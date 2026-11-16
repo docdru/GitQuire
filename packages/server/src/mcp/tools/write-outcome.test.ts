@@ -232,7 +232,7 @@ beforeAll(async () => {
           });
         case '/api/template':
           return Response.json({
-            path: 'guides/.ok/templates/tpl.md',
+            path: 'guides/.gitquire/templates/tpl.md',
             created: false,
             warnings: [],
             ...appRouteFields,
@@ -255,14 +255,14 @@ beforeAll(async () => {
     },
   });
   cwd = mkdtempSync(join(tmpdir(), 'ok-write-outcome-normalize-'));
-  mkdirSync(join(cwd, '.ok', 'templates'), { recursive: true });
+  mkdirSync(join(cwd, '.gitquire', 'templates'), { recursive: true });
   writeFileSync(
-    join(cwd, '.ok', 'templates', 'tpl.md'),
+    join(cwd, '.gitquire', 'templates', 'tpl.md'),
     '---\ntitle: Tpl\n---\n\nTemplate body.\n',
   );
-  mkdirSync(join(cwd, 'guides', '.ok', 'templates'), { recursive: true });
+  mkdirSync(join(cwd, 'guides', '.gitquire', 'templates'), { recursive: true });
   writeFileSync(
-    join(cwd, 'guides', '.ok', 'templates', 'tpl.md'),
+    join(cwd, 'guides', '.gitquire', 'templates', 'tpl.md'),
     '---\ntitle: Tpl\n---\n\nBody line.\n',
   );
   const server = new McpServer({ name: 'write-outcome', version: '1' });

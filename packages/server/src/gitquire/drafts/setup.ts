@@ -5,6 +5,7 @@ import type { GateLogger, SessionUser } from '../access-gate.ts';
 import type { GitHubAppConfig } from '../github-app.ts';
 import type { GitHubDraftsClient } from '../github-pulls.ts';
 import { internalRequestHeaders, internalSecret } from '../internal-request.ts';
+import { migrateLegacyDataFolders } from '../legacy-data-folder.ts';
 import {
   authHeaderEnv,
   ensureAutoSyncMode,
@@ -22,7 +23,7 @@ import { createDraftStore, draftsDir, draftsStatePath } from './store.ts';
 type Env = Readonly<Record<string, string | undefined>>;
 
 const FOLLOW_REMOTE_MS = 2 * 60 * 1000;
-const PROJECT_FILES = ['.ok/config.yml', '.okignore'];
+const PROJECT_FILES = ['.gitquire/config.yml', '.okignore'];
 
 export interface DraftsSetupDeps {
   env: Env;
@@ -106,6 +107,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
       authEnv(),
     );
     runGit(['config', 'fetch.prune', 'true'], dir);
+    migrateLegacyDataFolders(dir);
     for (const file of PROJECT_FILES) {
       const source = join(deps.projectDir, file);
       const target = join(dir, file);

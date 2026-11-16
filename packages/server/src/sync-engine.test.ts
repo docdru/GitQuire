@@ -28,6 +28,7 @@ import type {
   DetectGhFn,
   PushPermission,
 } from './github-permissions.ts';
+import { migrateLegacyDataFolders } from './gitquire/legacy-data-folder.ts';
 import { getLogger } from './logger.ts';
 import { createSyncCredentialConfigResolver } from './share/git-context.ts';
 import { declareGitHubHosts, useIsolatedHome } from './share/git-host-declarations.test-helper.ts';
@@ -94,7 +95,7 @@ beforeEach(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'sync-engine-test-'));
   projectDir = join(tmpDir, 'project');
   contentDir = join(tmpDir, 'content');
-  okDir = join(projectDir, '.ok', LOCAL_DIR);
+  okDir = join(projectDir, '.gitquire', LOCAL_DIR);
   mkdirSync(projectDir, { recursive: true });
   mkdirSync(okDir, { recursive: true });
 });
@@ -822,7 +823,7 @@ describe('SyncEngine tracked MCP overlap preparation', () => {
     await simpleGit(tmpDir).clone(bareDir, projectDir);
     configureTestGitRepository(projectDir);
     mkdirSync(okDir, { recursive: true });
-    appendFileSync(join(projectDir, '.git', 'info', 'exclude'), '\n.ok/\n', 'utf-8');
+    appendFileSync(join(projectDir, '.git', 'info', 'exclude'), '\n.gitquire/\n', 'utf-8');
 
     writeFileSync(join(sisterDir, '.mcp.json'), `${v2}\n`, 'utf-8');
     await sister.add('.mcp.json');
@@ -1007,7 +1008,7 @@ describe('SyncEngine tracked MCP overlap preparation', () => {
     configureTestGitRepository(sisterDir);
     await sister.raw('config', 'user.name', 'Sister');
     await sister.raw('config', 'user.email', 'sister@test.com');
-    writeFileSync(join(sisterDir, '.gitignore'), '/.ok/*\n', 'utf8');
+    writeFileSync(join(sisterDir, '.gitignore'), '/.gitquire/*\n', 'utf8');
     writeFileSync(join(sisterDir, '.mcp.json'), config('# ok-mcp-v1'), 'utf8');
     writeFileSync(join(sisterDir, 'shared.md'), 'base\n', 'utf8');
     await sister.add(['.gitignore', '.mcp.json', 'shared.md']);
@@ -1626,14 +1627,14 @@ describe('SyncEngine unified pull — B1 in every mode', () => {
 
   test('follow mode keeps a local artifact edit that origin also changed (the phantom-offline fix)', async () => {
     const { sister, sisterDir } = await projectWithSister();
-    mkdirSync(join(sisterDir, '.ok'), { recursive: true });
-    writeFileSync(join(sisterDir, '.ok', 'config.yml'), 'shared: remote\n');
-    await sister.add(['.ok/config.yml']);
+    mkdirSync(join(sisterDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(sisterDir, '.gitquire', 'config.yml'), 'shared: remote\n');
+    await sister.add(['.gitquire/config.yml']);
     await sister.commit('teammate edits config');
     await sister.push();
 
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'shared: local\n');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'shared: local\n');
 
     const engine = makeRootContentEngine('follow');
     try {
@@ -1648,7 +1649,9 @@ describe('SyncEngine unified pull — B1 in every mode', () => {
       const status = engine.getStatus();
       expect(status.state).not.toBe('offline');
       expect(status.pullError).toBeUndefined();
-      expect(readFileSync(join(projectDir, '.ok', 'config.yml'), 'utf-8')).toBe('shared: local\n');
+      expect(readFileSync(join(projectDir, '.gitquire', 'config.yml'), 'utf-8')).toBe(
+        'shared: local\n',
+      );
     } finally {
       await engine.destroy();
     }
@@ -2898,8 +2901,8 @@ describe('SyncEngine push cycle with non-ASCII filenames', () => {
 });
 
 describe('SyncEngine push cycle vs gitignored content (precedent #55 at the staging boundary)', () => {
-  const templatePath = join('trips', '.ok', 'templates', 'article.md');
-  const templateRel = 'trips/.ok/templates/article.md';
+  const templatePath = join('trips', '.gitquire', 'templates', 'article.md');
+  const templateRel = 'trips/.gitquire/templates/article.md';
 
   async function initRepoWithBareRemote() {
     const git = simpleGit(projectDir);
@@ -2932,9 +2935,9 @@ describe('SyncEngine push cycle vs gitignored content (precedent #55 at the stag
 
   test('skips untracked ignored paths instead of failing the whole push cycle', async () => {
     const git = await initRepoWithBareRemote();
-    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
+    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
 
-    mkdirSync(join(projectDir, 'trips', '.ok', 'templates'), { recursive: true });
+    mkdirSync(join(projectDir, 'trips', '.gitquire', 'templates'), { recursive: true });
     writeFileSync(join(projectDir, templatePath), '# Template\n');
     writeFileSync(join(projectDir, 'note.md'), 'new note\n');
 
@@ -2998,13 +3001,13 @@ describe('SyncEngine push cycle vs gitignored content (precedent #55 at the stag
 
   test('keeps syncing edits to a tracked file that an ignore rule also matches', async () => {
     const git = await initRepoWithBareRemote();
-    mkdirSync(join(projectDir, 'trips', '.ok', 'templates'), { recursive: true });
+    mkdirSync(join(projectDir, 'trips', '.gitquire', 'templates'), { recursive: true });
     writeFileSync(join(projectDir, templatePath), '# Template v1\n');
     await git.add('.');
     await git.commit('add template while shared');
     await git.push(['origin', 'main']);
 
-    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
+    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
     writeFileSync(join(projectDir, templatePath), '# Template v2\n');
 
     const engine = makePushEngine();
@@ -3028,7 +3031,7 @@ describe('SyncEngine push cycle vs gitignored content (precedent #55 at the stag
   });
 });
 
-describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', () => {
+describe('SyncEngine push cycle stages shareable .gitquire artifacts (sync scope)', () => {
   async function initSharedRepoWithBareRemote() {
     const git = simpleGit(projectDir);
     await git.init(['--initial-branch=main']);
@@ -3073,15 +3076,18 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
   test('stages and pushes every shareable artifact class in a shared full-mode project', async () => {
     const { git } = await initSharedRepoWithBareRemote();
-    mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-    mkdirSync(join(projectDir, '.ok', 'templates'), { recursive: true });
-    mkdirSync(join(projectDir, 'docs', '.ok', 'templates'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: full\n');
-    writeFileSync(join(projectDir, '.ok', '.gitignore'), 'local/\nworktrees/\n');
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
-    writeFileSync(join(projectDir, '.ok', 'templates', 'meeting.md'), '# Meeting\n');
-    writeFileSync(join(projectDir, 'docs', '.ok', 'templates', 'article.md'), '# Article\n');
-    writeFileSync(join(projectDir, 'docs', '.ok', 'frontmatter.yml'), 'icon: book\n');
+    mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire', 'templates'), { recursive: true });
+    mkdirSync(join(projectDir, 'docs', '.gitquire', 'templates'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'sync:\n  mode: full\n');
+    writeFileSync(join(projectDir, '.gitquire', '.gitignore'), 'local/\nworktrees/\n');
+    writeFileSync(
+      join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+      '{"type":"object"}\n',
+    );
+    writeFileSync(join(projectDir, '.gitquire', 'templates', 'meeting.md'), '# Meeting\n');
+    writeFileSync(join(projectDir, 'docs', '.gitquire', 'templates', 'article.md'), '# Article\n');
+    writeFileSync(join(projectDir, 'docs', '.gitquire', 'frontmatter.yml'), 'icon: book\n');
     writeFileSync(join(projectDir, 'docs', 'guide.md'), '# Guide\n');
 
     const engine = makeShareableEngine();
@@ -3095,12 +3101,12 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
       for (const path of [
-        '.ok/config.yml',
-        '.ok/.gitignore',
-        '.ok/schemas/frontmatter.json',
-        '.ok/templates/meeting.md',
-        'docs/.ok/templates/article.md',
-        'docs/.ok/frontmatter.yml',
+        '.gitquire/config.yml',
+        '.gitquire/.gitignore',
+        '.gitquire/schemas/frontmatter.json',
+        '.gitquire/templates/meeting.md',
+        'docs/.gitquire/templates/article.md',
+        'docs/.gitquire/frontmatter.yml',
         'docs/guide.md',
       ]) {
         expect(headPaths).toContain(path);
@@ -3218,13 +3224,13 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     }
   });
 
-  test('local-only .ok sharing does not block a configured attachment folder', async () => {
+  test('local-only .gitquire sharing does not block a configured attachment folder', async () => {
     const { git } = await initSharedRepoWithBareRemote();
-    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
     mkdirSync(join(projectDir, 'assets'), { recursive: true });
     writeFileSync(
-      join(projectDir, '.ok', 'config.yml'),
+      join(projectDir, '.gitquire', 'config.yml'),
       'content:\n  attachmentFolderPath: assets\n',
     );
     writeFileSync(join(projectDir, 'assets', 'shared.png'), 'attachment');
@@ -3246,7 +3252,7 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
       expect(headPaths).toContain('assets/shared.png');
-      expect(headPaths).not.toContain('.ok/config.yml');
+      expect(headPaths).not.toContain('.gitquire/config.yml');
     } finally {
       await engine.destroy();
     }
@@ -3254,14 +3260,17 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
   test('tracks the deletion of a shareable artifact and keeps the surviving ones', async () => {
     const { git } = await initSharedRepoWithBareRemote();
-    mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: full\n');
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
-    await git.add(['.ok/config.yml', '.ok/schemas/frontmatter.json']);
+    mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'sync:\n  mode: full\n');
+    writeFileSync(
+      join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+      '{"type":"object"}\n',
+    );
+    await git.add(['.gitquire/config.yml', '.gitquire/schemas/frontmatter.json']);
     await git.commit('add shareable artifacts');
     await git.push(['origin', 'main']);
 
-    rmSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'));
+    rmSync(join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'));
 
     const engine = makeShareableEngine();
     try {
@@ -3270,8 +3279,8 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       expect(engine.getStatus().pushError).toBeUndefined();
       const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-      expect(headPaths).not.toContain('.ok/schemas/frontmatter.json');
-      expect(headPaths).toContain('.ok/config.yml');
+      expect(headPaths).not.toContain('.gitquire/schemas/frontmatter.json');
+      expect(headPaths).toContain('.gitquire/config.yml');
 
       const remoteHead = (await git.revparse(['origin/main'])).trim();
       expect(remoteHead).toBe((await git.revparse(['HEAD'])).trim());
@@ -3284,10 +3293,13 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     'fails closed on an unreadable tracked schema when content and project roots match',
     async () => {
       const { git } = await initSharedRepoWithBareRemote();
-      mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-      mkdirSync(join(projectDir, '.ok', 'local'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
-      await git.add(['.ok/schemas/frontmatter.json']);
+      mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+      mkdirSync(join(projectDir, '.gitquire', 'local'), { recursive: true });
+      writeFileSync(
+        join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+        '{"type":"object"}\n',
+      );
+      await git.add(['.gitquire/schemas/frontmatter.json']);
       await git.commit('track project schema');
       await git.push(['origin', 'main']);
       const headBefore = (await git.revparse(['HEAD'])).trim();
@@ -3298,12 +3310,12 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       const engine = makeShareableEngine();
       const cap = captureSyncLogs();
       try {
-        chmodSync(join(projectDir, '.ok', 'schemas'), 0o311);
+        chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o311);
         await engine.start();
         await engine.trigger('push');
 
         const status = engine.getStatus();
-        expect(status.pushError).toContain('Shareable .ok subtree ".ok/schemas"');
+        expect(status.pushError).toContain('Shareable .gitquire subtree ".gitquire/schemas"');
         expect(status.consecutivePushFailures).toBeGreaterThan(0);
         expect(status.consecutiveFailures).toBe(0);
         const detail = cap.entries.find(
@@ -3316,12 +3328,12 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
         expect((await git.revparse(['HEAD'])).trim()).toBe(headBefore);
         expect((await git.revparse(['origin/main'])).trim()).toBe(remoteBefore);
         const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-        expect(headPaths).toContain('.ok/schemas/frontmatter.json');
+        expect(headPaths).toContain('.gitquire/schemas/frontmatter.json');
         expect(headPaths).not.toContain('note.md');
-        expect(existsSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'))).toBe(true);
+        expect(existsSync(join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'))).toBe(true);
       } finally {
         cap.restore();
-        chmodSync(join(projectDir, '.ok', 'schemas'), 0o755);
+        chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o755);
         await engine.destroy();
       }
     },
@@ -3331,9 +3343,12 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     'names a nested unreadable template subtree and commits no partial snapshot',
     async () => {
       const { git } = await initSharedRepoWithBareRemote();
-      mkdirSync(join(projectDir, 'docs', '.ok', 'templates'), { recursive: true });
-      writeFileSync(join(projectDir, 'docs', '.ok', 'templates', 'article.md'), '# Template\n');
-      await git.add(['docs/.ok/templates/article.md']);
+      mkdirSync(join(projectDir, 'docs', '.gitquire', 'templates'), { recursive: true });
+      writeFileSync(
+        join(projectDir, 'docs', '.gitquire', 'templates', 'article.md'),
+        '# Template\n',
+      );
+      await git.add(['docs/.gitquire/templates/article.md']);
       await git.commit('track folder template');
       await git.push(['origin', 'main']);
       const headBefore = (await git.revparse(['HEAD'])).trim();
@@ -3343,33 +3358,70 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       const engine = makeShareableEngine();
       try {
-        chmodSync(join(projectDir, 'docs', '.ok', 'templates'), 0o311);
+        chmodSync(join(projectDir, 'docs', '.gitquire', 'templates'), 0o311);
         await engine.start();
         await engine.trigger('push');
 
         const status = engine.getStatus();
         expect(status.pushError).toContain(
-          'Shareable .ok subtree "docs/.ok/templates" could not be fully enumerated',
+          'Shareable .gitquire subtree "docs/.gitquire/templates" could not be fully enumerated',
         );
         expect((await git.revparse(['HEAD'])).trim()).toBe(headBefore);
         expect((await git.revparse(['origin/main'])).trim()).toBe(remoteBefore);
-        expect(await git.raw(['show', 'HEAD:docs/.ok/templates/article.md'])).toBe('# Template\n');
+        expect(await git.raw(['show', 'HEAD:docs/.gitquire/templates/article.md'])).toBe(
+          '# Template\n',
+        );
         expect(await git.raw(['ls-tree', '-r', '--name-only', 'HEAD'])).not.toContain('note.md');
       } finally {
-        chmodSync(join(projectDir, 'docs', '.ok', 'templates'), 0o755);
+        chmodSync(join(projectDir, 'docs', '.gitquire', 'templates'), 0o755);
         await engine.destroy();
       }
     },
   );
 
-  test('never stages .ok local state, worktrees, or legacy root state files', async () => {
+  test('commits the move of an old .ok folder as a rename and keeps the moved local state out', async () => {
     const { git } = await initSharedRepoWithBareRemote();
-    mkdirSync(join(projectDir, '.ok', 'worktrees', 'wt1'), { recursive: true });
+    mkdirSync(join(projectDir, '.ok', 'local'), { recursive: true });
+    mkdirSync(join(projectDir, 'docs', '.ok', 'templates'), { recursive: true });
     writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: full\n');
+    writeFileSync(join(projectDir, '.ok', '.gitignore'), 'local/\n');
+    writeFileSync(join(projectDir, 'docs', '.ok', 'templates', 'article.md'), '# Template\n');
+    await git.add(['-f', '.ok/config.yml', '.ok/.gitignore', 'docs/.ok/templates/article.md']);
+    await git.commit('old data folder');
+    await git.push(['origin', 'main']);
+    rmSync(join(projectDir, '.gitquire'), { recursive: true, force: true });
     writeFileSync(join(projectDir, '.ok', 'local', 'principal.json'), '{}\n');
-    writeFileSync(join(projectDir, '.ok', 'worktrees', 'wt1', 'scratch.md'), '# Scratch\n');
-    writeFileSync(join(projectDir, '.ok', 'state.json'), '{}\n');
-    writeFileSync(join(projectDir, '.ok', 'server.lock'), '{}\n');
+
+    migrateLegacyDataFolders(projectDir);
+    const engine = makeShareableEngine();
+    try {
+      await engine.start();
+      await engine.trigger('push');
+      const tracked = (await git.raw(['ls-tree', '-r', '--name-only', 'origin/main']))
+        .split('\n')
+        .filter(Boolean);
+      expect(tracked.filter((p) => p.includes('.ok/'))).toEqual([]);
+      expect(tracked).toEqual(
+        expect.arrayContaining([
+          '.gitquire/config.yml',
+          '.gitquire/.gitignore',
+          'docs/.gitquire/templates/article.md',
+        ]),
+      );
+      expect(tracked.filter((p) => p.startsWith('.gitquire/local/'))).toEqual([]);
+    } finally {
+      await engine.destroy();
+    }
+  });
+
+  test('never stages .gitquire local state, worktrees, or legacy root state files', async () => {
+    const { git } = await initSharedRepoWithBareRemote();
+    mkdirSync(join(projectDir, '.gitquire', 'worktrees', 'wt1'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'sync:\n  mode: full\n');
+    writeFileSync(join(projectDir, '.gitquire', 'local', 'principal.json'), '{}\n');
+    writeFileSync(join(projectDir, '.gitquire', 'worktrees', 'wt1', 'scratch.md'), '# Scratch\n');
+    writeFileSync(join(projectDir, '.gitquire', 'state.json'), '{}\n');
+    writeFileSync(join(projectDir, '.gitquire', 'server.lock'), '{}\n');
 
     const engine = makeShareableEngine();
     try {
@@ -3378,12 +3430,14 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       expect(engine.getStatus().pushError).toBeUndefined();
       const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-      expect(headPaths).toContain('.ok/config.yml');
+      expect(headPaths).toContain('.gitquire/config.yml');
       expect(
-        headPaths.filter((p) => p.startsWith('.ok/local/') || p.startsWith('.ok/worktrees/')),
+        headPaths.filter(
+          (p) => p.startsWith('.gitquire/local/') || p.startsWith('.gitquire/worktrees/'),
+        ),
       ).toEqual([]);
-      expect(headPaths).not.toContain('.ok/state.json');
-      expect(headPaths).not.toContain('.ok/server.lock');
+      expect(headPaths).not.toContain('.gitquire/state.json');
+      expect(headPaths).not.toContain('.gitquire/server.lock');
     } finally {
       await engine.destroy();
     }
@@ -3394,8 +3448,8 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     async () => {
       const { bareDir } = await initSharedRepoWithBareRemote();
 
-      mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{}\n');
+      mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'), '{}\n');
 
       const engine = makeShareableEngine('off');
       const internal = engine as unknown as {
@@ -3403,7 +3457,7 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       };
       const commitDirty = internal.commitDirtyContentFilesToHead.bind(engine);
       internal.commitDirtyContentFilesToHead = async (handle, op) => {
-        chmodSync(join(projectDir, '.ok', 'schemas'), 0o311);
+        chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o311);
         await commitDirty(handle, op);
       };
 
@@ -3420,10 +3474,10 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
         await expect(engine.pushOnce()).resolves.toBeUndefined();
 
         const status = engine.getStatus();
-        expect(status.pushError).toContain('Shareable .ok subtree ".ok/schemas"');
+        expect(status.pushError).toContain('Shareable .gitquire subtree ".gitquire/schemas"');
         expect(status.pullError).toBeUndefined();
       } finally {
-        chmodSync(join(projectDir, '.ok', 'schemas'), 0o755);
+        chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o755);
         await engine.destroy();
       }
     },
@@ -3439,8 +3493,8 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       await sister.commit('advance remote');
       await sister.push(['origin', 'main']);
 
-      mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{}\n');
+      mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'), '{}\n');
       writeFileSync(join(projectDir, 'local.md'), '# Local\n');
       const engine = makeShareableEngine();
       const internal = engine as unknown as {
@@ -3448,7 +3502,7 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       };
       const commitDirty = internal.commitDirtyContentFilesToHead.bind(engine);
       internal.commitDirtyContentFilesToHead = async (handle, op) => {
-        chmodSync(join(projectDir, '.ok', 'schemas'), 0o311);
+        chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o311);
         await commitDirty(handle, op);
       };
 
@@ -3457,20 +3511,23 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
         await engine.trigger('push');
 
         const status = engine.getStatus();
-        expect(status.pushError).toContain('Shareable .ok subtree ".ok/schemas"');
+        expect(status.pushError).toContain('Shareable .gitquire subtree ".gitquire/schemas"');
         expect(status.pullError).toBeUndefined();
       } finally {
-        chmodSync(join(projectDir, '.ok', 'schemas'), 0o755);
+        chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o755);
         await engine.destroy();
       }
     },
   );
 
-  test('refuses a secret-suffixed file inside an admitted .ok directory', async () => {
+  test('refuses a secret-suffixed file inside an admitted .gitquire directory', async () => {
     const { git } = await initSharedRepoWithBareRemote();
-    mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'api.key'), 'secret\n');
+    mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+    writeFileSync(
+      join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+      '{"type":"object"}\n',
+    );
+    writeFileSync(join(projectDir, '.gitquire', 'schemas', 'api.key'), 'secret\n');
 
     const engine = makeShareableEngine();
     try {
@@ -3479,8 +3536,8 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       expect(engine.getStatus().pushError).toBeUndefined();
       const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-      expect(headPaths).toContain('.ok/schemas/frontmatter.json');
-      expect(headPaths).not.toContain('.ok/schemas/api.key');
+      expect(headPaths).toContain('.gitquire/schemas/frontmatter.json');
+      expect(headPaths).not.toContain('.gitquire/schemas/api.key');
     } finally {
       await engine.destroy();
     }
@@ -3488,12 +3545,15 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
   test('local-only projects keep every artifact class unstaged without failing the cycle', async () => {
     const { git } = await initSharedRepoWithBareRemote();
-    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
-    mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-    mkdirSync(join(projectDir, 'docs', '.ok', 'templates'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: full\n');
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
-    writeFileSync(join(projectDir, 'docs', '.ok', 'templates', 'article.md'), '# Article\n');
+    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
+    mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+    mkdirSync(join(projectDir, 'docs', '.gitquire', 'templates'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'sync:\n  mode: full\n');
+    writeFileSync(
+      join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+      '{"type":"object"}\n',
+    );
+    writeFileSync(join(projectDir, 'docs', '.gitquire', 'templates', 'article.md'), '# Article\n');
     writeFileSync(join(projectDir, 'note.md'), 'new note\n');
 
     const engine = makeShareableEngine();
@@ -3507,7 +3567,7 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
       expect(headPaths).toContain('note.md');
-      expect(headPaths.filter((p) => p.includes('.ok/'))).toEqual([]);
+      expect(headPaths.filter((p) => p.includes('.gitquire/'))).toEqual([]);
 
       const remoteHead = (await git.revparse(['origin/main'])).trim();
       expect(remoteHead).toBe((await git.revparse(['HEAD'])).trim());
@@ -3518,13 +3578,13 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
   test('local-only projects freeze a tracked artifact: no edit sync, no spurious deletion', async () => {
     const { git } = await initSharedRepoWithBareRemote();
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: full\n');
-    await git.add(['.ok/config.yml']);
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'sync:\n  mode: full\n');
+    await git.add(['.gitquire/config.yml']);
     await git.commit('add config while shared');
     await git.push(['origin', 'main']);
 
-    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: follow\n');
+    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'sync:\n  mode: follow\n');
     writeFileSync(join(projectDir, 'note.md'), 'new note\n');
 
     const engine = makeShareableEngine();
@@ -3537,8 +3597,8 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
       const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
       expect(headPaths).toContain('note.md');
-      expect(headPaths).toContain('.ok/config.yml');
-      const blob = await git.raw(['show', 'HEAD:.ok/config.yml']);
+      expect(headPaths).toContain('.gitquire/config.yml');
+      const blob = await git.raw(['show', 'HEAD:.gitquire/config.yml']);
       expect(blob).toBe('sync:\n  mode: full\n');
 
       const remoteHead = (await git.revparse(['origin/main'])).trim();
@@ -3551,9 +3611,12 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
   test('follow-mode pull fast-forwards shareable artifacts into the working tree', async () => {
     const { git, bareDir } = await initSharedRepoWithBareRemote();
     const { sister, sisterDir } = await cloneAsTeammate(bareDir);
-    mkdirSync(join(sisterDir, '.ok', 'schemas'), { recursive: true });
-    writeFileSync(join(sisterDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
-    await sister.add(['.ok/schemas/frontmatter.json']);
+    mkdirSync(join(sisterDir, '.gitquire', 'schemas'), { recursive: true });
+    writeFileSync(
+      join(sisterDir, '.gitquire', 'schemas', 'frontmatter.json'),
+      '{"type":"object"}\n',
+    );
+    await sister.add(['.gitquire/schemas/frontmatter.json']);
     await sister.commit('teammate adds schema');
     await sister.push(['origin', 'main']);
 
@@ -3562,7 +3625,7 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       await engine.start();
       await engine.trigger('pull');
 
-      expect(existsSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'))).toBe(true);
+      expect(existsSync(join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'))).toBe(true);
       expect((await git.revparse(['HEAD'])).trim()).toBe(
         (await git.revparse(['origin/main'])).trim(),
       );
@@ -3579,7 +3642,7 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     await sister.commit('teammate note');
     await sister.push(['origin', 'main']);
 
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'sync:\n  mode: full\n');
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'sync:\n  mode: full\n');
 
     const engine = makeShareableEngine();
     try {
@@ -3592,7 +3655,7 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       expect(status.state).toBe('idle');
       expect(existsSync(join(projectDir, 'from-teammate.md'))).toBe(true);
 
-      expect(readFileSync(join(projectDir, '.ok', 'config.yml'), 'utf-8')).toBe(
+      expect(readFileSync(join(projectDir, '.gitquire', 'config.yml'), 'utf-8')).toBe(
         'sync:\n  mode: full\n',
       );
       const lastMessage = (await git.log({ maxCount: 1 })).latest?.message;
@@ -3606,40 +3669,49 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
   test('keeps local artifact edits and pins template conflicts without merging', async () => {
     const { git, bareDir } = await initSharedRepoWithBareRemote();
-    mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-    mkdirSync(join(projectDir, '.ok', 'templates'), { recursive: true });
-    mkdirSync(join(projectDir, 'docs', '.ok', 'templates'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'shared: base\n');
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'lint.json'), '{"a":1}\n');
-    writeFileSync(join(projectDir, '.ok', 'templates', 'project.md'), '# Base project\n');
-    writeFileSync(join(projectDir, 'docs', '.ok', 'templates', 'folder.md'), '# Base folder\n');
+    mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire', 'templates'), { recursive: true });
+    mkdirSync(join(projectDir, 'docs', '.gitquire', 'templates'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'shared: base\n');
+    writeFileSync(join(projectDir, '.gitquire', 'schemas', 'lint.json'), '{"a":1}\n');
+    writeFileSync(join(projectDir, '.gitquire', 'templates', 'project.md'), '# Base project\n');
+    writeFileSync(
+      join(projectDir, 'docs', '.gitquire', 'templates', 'folder.md'),
+      '# Base folder\n',
+    );
     await git.add([
-      '.ok/config.yml',
-      '.ok/schemas/lint.json',
-      '.ok/templates/project.md',
-      'docs/.ok/templates/folder.md',
+      '.gitquire/config.yml',
+      '.gitquire/schemas/lint.json',
+      '.gitquire/templates/project.md',
+      'docs/.gitquire/templates/folder.md',
     ]);
     await git.commit('add shareable artifacts');
     await git.push(['origin', 'main']);
 
     const { sister, sisterDir } = await cloneAsTeammate(bareDir);
-    writeFileSync(join(sisterDir, '.ok', 'config.yml'), 'shared: remote\n');
-    writeFileSync(join(sisterDir, '.ok', 'schemas', 'lint.json'), '{"a":99}\n');
-    writeFileSync(join(sisterDir, '.ok', 'templates', 'project.md'), '# Remote project\n');
-    writeFileSync(join(sisterDir, 'docs', '.ok', 'templates', 'folder.md'), '# Remote folder\n');
+    writeFileSync(join(sisterDir, '.gitquire', 'config.yml'), 'shared: remote\n');
+    writeFileSync(join(sisterDir, '.gitquire', 'schemas', 'lint.json'), '{"a":99}\n');
+    writeFileSync(join(sisterDir, '.gitquire', 'templates', 'project.md'), '# Remote project\n');
+    writeFileSync(
+      join(sisterDir, 'docs', '.gitquire', 'templates', 'folder.md'),
+      '# Remote folder\n',
+    );
     await sister.add([
-      '.ok/config.yml',
-      '.ok/schemas/lint.json',
-      '.ok/templates/project.md',
-      'docs/.ok/templates/folder.md',
+      '.gitquire/config.yml',
+      '.gitquire/schemas/lint.json',
+      '.gitquire/templates/project.md',
+      'docs/.gitquire/templates/folder.md',
     ]);
     await sister.commit('teammate edits config and schema');
     await sister.push(['origin', 'main']);
 
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), 'shared: local\n');
-    writeFileSync(join(projectDir, '.ok', 'schemas', 'lint.json'), '{"a":2}\n');
-    writeFileSync(join(projectDir, '.ok', 'templates', 'project.md'), '# Local project\n');
-    writeFileSync(join(projectDir, 'docs', '.ok', 'templates', 'folder.md'), '# Local folder\n');
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'shared: local\n');
+    writeFileSync(join(projectDir, '.gitquire', 'schemas', 'lint.json'), '{"a":2}\n');
+    writeFileSync(join(projectDir, '.gitquire', 'templates', 'project.md'), '# Local project\n');
+    writeFileSync(
+      join(projectDir, 'docs', '.gitquire', 'templates', 'folder.md'),
+      '# Local folder\n',
+    );
 
     const engine = makeShareableEngine();
     const cap = captureSyncLogs();
@@ -3653,18 +3725,20 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       expect(status.conflictCount).toBe(2);
       const conflicts = authority.list();
       expect(conflicts.map((conflict) => conflict.file).sort()).toEqual([
-        '.ok/templates/project.md',
-        'docs/.ok/templates/folder.md',
+        '.gitquire/templates/project.md',
+        'docs/.gitquire/templates/folder.md',
       ]);
       expect(workingTreeConflicts()).toHaveLength(conflicts.length);
       expect(workingTreeConflicts().every((c) => c.theirsSha.length > 0)).toBe(true);
       expect(existsSync(join(projectDir, '.git', 'MERGE_HEAD'))).toBe(false);
 
-      expect(readFileSync(join(projectDir, '.ok', 'config.yml'), 'utf-8')).toBe('shared: local\n');
-      expect(readFileSync(join(projectDir, '.ok', 'schemas', 'lint.json'), 'utf-8')).toBe(
+      expect(readFileSync(join(projectDir, '.gitquire', 'config.yml'), 'utf-8')).toBe(
+        'shared: local\n',
+      );
+      expect(readFileSync(join(projectDir, '.gitquire', 'schemas', 'lint.json'), 'utf-8')).toBe(
         '{"a":2}\n',
       );
-      expect(readFileSync(join(projectDir, '.ok', 'templates', 'project.md'), 'utf-8')).toBe(
+      expect(readFileSync(join(projectDir, '.gitquire', 'templates', 'project.md'), 'utf-8')).toBe(
         '# Local project\n',
       );
 
@@ -3717,24 +3791,36 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
     test('stages the project-root shareable set alongside subfolder content', async () => {
       const { git } = await initSharedRepoWithBareRemote();
-      mkdirSync(join(projectDir, 'content', 'docs', '.ok'), { recursive: true });
-      mkdirSync(join(projectDir, 'content', 'guides', '.ok'), { recursive: true });
-      mkdirSync(join(projectDir, 'content', '.ok', 'schemas'), { recursive: true });
-      mkdirSync(join(projectDir, 'content', '.ok', 'templates'), { recursive: true });
-      mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-      mkdirSync(join(projectDir, '.ok', 'templates'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'config.yml'), 'content:\n  dir: content\n');
-      writeFileSync(join(projectDir, '.ok', '.gitignore'), 'local/\nworktrees/\n');
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
-      writeFileSync(join(projectDir, '.ok', 'templates', 'meeting.md'), '# Meeting\n');
-      writeFileSync(join(projectDir, 'content', '.ok', 'config.yml'), 'wrong: root\n');
-      writeFileSync(join(projectDir, 'content', '.ok', '.gitignore'), 'local/\n');
-      writeFileSync(join(projectDir, 'content', '.ok', 'schemas', 'nested.json'), '{}\n');
-      writeFileSync(join(projectDir, 'content', '.ok', 'templates', 'daily.md'), '# Daily\n');
+      mkdirSync(join(projectDir, 'content', 'docs', '.gitquire'), { recursive: true });
+      mkdirSync(join(projectDir, 'content', 'guides', '.gitquire'), { recursive: true });
+      mkdirSync(join(projectDir, 'content', '.gitquire', 'schemas'), { recursive: true });
+      mkdirSync(join(projectDir, 'content', '.gitquire', 'templates'), { recursive: true });
+      mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+      mkdirSync(join(projectDir, '.gitquire', 'templates'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'content:\n  dir: content\n');
+      writeFileSync(join(projectDir, '.gitquire', '.gitignore'), 'local/\nworktrees/\n');
+      writeFileSync(
+        join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+        '{"type":"object"}\n',
+      );
+      writeFileSync(join(projectDir, '.gitquire', 'templates', 'meeting.md'), '# Meeting\n');
+      writeFileSync(join(projectDir, 'content', '.gitquire', 'config.yml'), 'wrong: root\n');
+      writeFileSync(join(projectDir, 'content', '.gitquire', '.gitignore'), 'local/\n');
+      writeFileSync(join(projectDir, 'content', '.gitquire', 'schemas', 'nested.json'), '{}\n');
+      writeFileSync(join(projectDir, 'content', '.gitquire', 'templates', 'daily.md'), '# Daily\n');
       writeFileSync(join(projectDir, 'content', 'note.md'), '# Note\n');
-      writeFileSync(join(projectDir, 'content', 'docs', '.ok', 'config.yml'), 'not: project\n');
-      writeFileSync(join(projectDir, 'content', 'docs', '.ok', 'frontmatter.yml'), 'icon: book\n');
-      writeFileSync(join(projectDir, 'content', 'guides', '.ok', 'frontmatter.yml'), 'icon: map\n');
+      writeFileSync(
+        join(projectDir, 'content', 'docs', '.gitquire', 'config.yml'),
+        'not: project\n',
+      );
+      writeFileSync(
+        join(projectDir, 'content', 'docs', '.gitquire', 'frontmatter.yml'),
+        'icon: book\n',
+      );
+      writeFileSync(
+        join(projectDir, 'content', 'guides', '.gitquire', 'frontmatter.yml'),
+        'icon: map\n',
+      );
 
       const engine = makeSubfolderEngine();
       try {
@@ -3747,21 +3833,21 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
         const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
         for (const path of [
-          '.ok/config.yml',
-          '.ok/.gitignore',
-          '.ok/schemas/frontmatter.json',
-          '.ok/templates/meeting.md',
-          'content/.ok/templates/daily.md',
+          '.gitquire/config.yml',
+          '.gitquire/.gitignore',
+          '.gitquire/schemas/frontmatter.json',
+          '.gitquire/templates/meeting.md',
+          'content/.gitquire/templates/daily.md',
           'content/note.md',
-          'content/guides/.ok/frontmatter.yml',
+          'content/guides/.gitquire/frontmatter.yml',
         ]) {
           expect(headPaths).toContain(path);
         }
-        expect(headPaths).not.toContain('content/.ok/config.yml');
-        expect(headPaths).not.toContain('content/.ok/.gitignore');
-        expect(headPaths).not.toContain('content/.ok/schemas/nested.json');
-        expect(headPaths).not.toContain('content/docs/.ok/config.yml');
-        expect(headPaths).not.toContain('content/docs/.ok/frontmatter.yml');
+        expect(headPaths).not.toContain('content/.gitquire/config.yml');
+        expect(headPaths).not.toContain('content/.gitquire/.gitignore');
+        expect(headPaths).not.toContain('content/.gitquire/schemas/nested.json');
+        expect(headPaths).not.toContain('content/docs/.gitquire/config.yml');
+        expect(headPaths).not.toContain('content/docs/.gitquire/frontmatter.yml');
 
         const remoteHead = (await git.revparse(['origin/main'])).trim();
         expect(remoteHead).toBe((await git.revparse(['HEAD'])).trim());
@@ -3773,15 +3859,22 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     test('tracks deletion of a project-root artifact and keeps the survivors', async () => {
       const { git } = await initSharedRepoWithBareRemote();
       mkdirSync(join(projectDir, 'content'), { recursive: true });
-      mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'config.yml'), 'content:\n  dir: content\n');
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
+      mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'content:\n  dir: content\n');
+      writeFileSync(
+        join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+        '{"type":"object"}\n',
+      );
       writeFileSync(join(projectDir, 'content', 'note.md'), '# Note\n');
-      await git.add(['.ok/config.yml', '.ok/schemas/frontmatter.json', 'content/note.md']);
+      await git.add([
+        '.gitquire/config.yml',
+        '.gitquire/schemas/frontmatter.json',
+        'content/note.md',
+      ]);
       await git.commit('add shareable artifacts');
       await git.push(['origin', 'main']);
 
-      rmSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'));
+      rmSync(join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'));
 
       const engine = makeSubfolderEngine();
       try {
@@ -3790,8 +3883,8 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
         expect(engine.getStatus().pushError).toBeUndefined();
         const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-        expect(headPaths).not.toContain('.ok/schemas/frontmatter.json');
-        expect(headPaths).toContain('.ok/config.yml');
+        expect(headPaths).not.toContain('.gitquire/schemas/frontmatter.json');
+        expect(headPaths).toContain('.gitquire/config.yml');
         expect(headPaths).toContain('content/note.md');
 
         const remoteHead = (await git.revparse(['origin/main'])).trim();
@@ -3801,17 +3894,17 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       }
     });
 
-    test('folder artifacts outside contentDir and outside the root .ok stay frozen', async () => {
+    test('folder artifacts outside contentDir and outside the root .gitquire stay frozen', async () => {
       const { git } = await initSharedRepoWithBareRemote();
       mkdirSync(join(projectDir, 'content'), { recursive: true });
-      mkdirSync(join(projectDir, 'docs', '.ok'), { recursive: true });
-      writeFileSync(join(projectDir, 'docs', '.ok', 'frontmatter.yml'), 'icon: book\n');
-      await git.add(['docs/.ok/frontmatter.yml']);
+      mkdirSync(join(projectDir, 'docs', '.gitquire'), { recursive: true });
+      writeFileSync(join(projectDir, 'docs', '.gitquire', 'frontmatter.yml'), 'icon: book\n');
+      await git.add(['docs/.gitquire/frontmatter.yml']);
       await git.commit('folder metadata outside the content walk');
       await git.push(['origin', 'main']);
 
-      mkdirSync(join(projectDir, 'docs2', '.ok'), { recursive: true });
-      writeFileSync(join(projectDir, 'docs2', '.ok', 'frontmatter.yml'), 'icon: rocket\n');
+      mkdirSync(join(projectDir, 'docs2', '.gitquire'), { recursive: true });
+      writeFileSync(join(projectDir, 'docs2', '.gitquire', 'frontmatter.yml'), 'icon: rocket\n');
       writeFileSync(join(projectDir, 'content', 'note.md'), '# Note\n');
 
       const engine = makeSubfolderEngine();
@@ -3821,8 +3914,8 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
         expect(engine.getStatus().pushError).toBeUndefined();
         const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-        expect(headPaths).toContain('docs/.ok/frontmatter.yml');
-        expect(headPaths).not.toContain('docs2/.ok/frontmatter.yml');
+        expect(headPaths).toContain('docs/.gitquire/frontmatter.yml');
+        expect(headPaths).not.toContain('docs2/.gitquire/frontmatter.yml');
         expect(headPaths).toContain('content/note.md');
       } finally {
         await engine.destroy();
@@ -3832,13 +3925,13 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     test('the second walk still refuses local state, legacy files, and secrets', async () => {
       const { git } = await initSharedRepoWithBareRemote();
       mkdirSync(join(projectDir, 'content'), { recursive: true });
-      mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-      mkdirSync(join(projectDir, '.ok', 'worktrees', 'wt1'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'lint.json'), '{"type":"object"}\n');
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'api.key'), 'secret\n');
-      writeFileSync(join(projectDir, '.ok', 'local', 'principal.json'), '{}\n');
-      writeFileSync(join(projectDir, '.ok', 'worktrees', 'wt1', 'scratch.md'), '# Scratch\n');
-      writeFileSync(join(projectDir, '.ok', 'state.json'), '{}\n');
+      mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+      mkdirSync(join(projectDir, '.gitquire', 'worktrees', 'wt1'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'schemas', 'lint.json'), '{"type":"object"}\n');
+      writeFileSync(join(projectDir, '.gitquire', 'schemas', 'api.key'), 'secret\n');
+      writeFileSync(join(projectDir, '.gitquire', 'local', 'principal.json'), '{}\n');
+      writeFileSync(join(projectDir, '.gitquire', 'worktrees', 'wt1', 'scratch.md'), '# Scratch\n');
+      writeFileSync(join(projectDir, '.gitquire', 'state.json'), '{}\n');
       writeFileSync(join(projectDir, 'content', 'note.md'), '# Note\n');
 
       const engine = makeSubfolderEngine();
@@ -3848,13 +3941,13 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
         expect(engine.getStatus().pushError).toBeUndefined();
         const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-        expect(headPaths).toContain('.ok/schemas/lint.json');
+        expect(headPaths).toContain('.gitquire/schemas/lint.json');
         expect(headPaths).toContain('content/note.md');
         for (const path of headPaths) {
-          expect(path).not.toMatch(/^\.ok\/(local|worktrees)\//);
+          expect(path).not.toMatch(/^\.gitquire\/(local|worktrees)\//);
         }
-        expect(headPaths).not.toContain('.ok/schemas/api.key');
-        expect(headPaths).not.toContain('.ok/state.json');
+        expect(headPaths).not.toContain('.gitquire/schemas/api.key');
+        expect(headPaths).not.toContain('.gitquire/state.json');
       } finally {
         await engine.destroy();
       }
@@ -3863,11 +3956,14 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
     test('local-only subfolder projects keep the project-root set unstaged without errors', async () => {
       const { git } = await initSharedRepoWithBareRemote();
       mkdirSync(join(projectDir, 'content'), { recursive: true });
-      mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'config.yml'), 'content:\n  dir: content\n');
-      writeFileSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'), '{"type":"object"}\n');
+      mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'content:\n  dir: content\n');
+      writeFileSync(
+        join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
+        '{"type":"object"}\n',
+      );
       writeFileSync(join(projectDir, 'content', 'note.md'), '# Note\n');
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
+      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
 
       const engine = makeSubfolderEngine();
       try {
@@ -3879,20 +3975,20 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
         expect(status.consecutiveFailures).toBe(0);
         const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
         expect(headPaths).toContain('content/note.md');
-        expect(headPaths.filter((p) => p.startsWith('.ok/'))).toEqual([]);
+        expect(headPaths.filter((p) => p.startsWith('.gitquire/'))).toEqual([]);
       } finally {
         await engine.destroy();
       }
     });
 
     test.runIf(process.getuid?.() !== 0)(
-      'fails closed when a tracked project-root .ok is unreadable',
+      'fails closed when a tracked project-root .gitquire is unreadable',
       async () => {
         const { git } = await initSharedRepoWithBareRemote();
         mkdirSync(join(projectDir, 'content'), { recursive: true });
-        writeFileSync(join(projectDir, '.ok', 'config.yml'), 'content:\n  dir: content\n');
-        mkdirSync(join(projectDir, '.ok', 'local'), { recursive: true });
-        await git.add(['.ok/config.yml']);
+        writeFileSync(join(projectDir, '.gitquire', 'config.yml'), 'content:\n  dir: content\n');
+        mkdirSync(join(projectDir, '.gitquire', 'local'), { recursive: true });
+        await git.add(['.gitquire/config.yml']);
         await git.commit('track project config');
         await git.push(['origin', 'main']);
         const headBefore = (await git.revparse(['HEAD'])).trim();
@@ -3902,22 +3998,22 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
         const engine = makeSubfolderEngine();
         try {
-          chmodSync(join(projectDir, '.ok'), 0o311);
+          chmodSync(join(projectDir, '.gitquire'), 0o311);
           await engine.start();
           await engine.trigger('push');
 
           const status = engine.getStatus();
-          expect(status.pushError).toContain('Shareable .ok subtree ".ok"');
+          expect(status.pushError).toContain('Shareable .gitquire subtree ".gitquire"');
           expect(status.consecutivePushFailures).toBeGreaterThan(0);
           expect(status.consecutiveFailures).toBe(0);
           expect((await git.revparse(['HEAD'])).trim()).toBe(headBefore);
           expect((await git.revparse(['origin/main'])).trim()).toBe(remoteBefore);
           const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-          expect(headPaths).toContain('.ok/config.yml');
+          expect(headPaths).toContain('.gitquire/config.yml');
           expect(headPaths).not.toContain('content/note.md');
-          expect(existsSync(join(projectDir, '.ok', 'config.yml'))).toBe(true);
+          expect(existsSync(join(projectDir, '.gitquire', 'config.yml'))).toBe(true);
         } finally {
-          chmodSync(join(projectDir, '.ok'), 0o755);
+          chmodSync(join(projectDir, '.gitquire'), 0o755);
           await engine.destroy();
         }
       },
@@ -3928,13 +4024,13 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
       async () => {
         const { git } = await initSharedRepoWithBareRemote();
         mkdirSync(join(projectDir, 'content'), { recursive: true });
-        mkdirSync(join(projectDir, '.ok', 'schemas'), { recursive: true });
-        mkdirSync(join(projectDir, '.ok', 'local'), { recursive: true });
+        mkdirSync(join(projectDir, '.gitquire', 'schemas'), { recursive: true });
+        mkdirSync(join(projectDir, '.gitquire', 'local'), { recursive: true });
         writeFileSync(
-          join(projectDir, '.ok', 'schemas', 'frontmatter.json'),
+          join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'),
           '{"type":"object"}\n',
         );
-        await git.add(['.ok/schemas/frontmatter.json']);
+        await git.add(['.gitquire/schemas/frontmatter.json']);
         await git.commit('track project schema');
         await git.push(['origin', 'main']);
         const headBefore = (await git.revparse(['HEAD'])).trim();
@@ -3944,22 +4040,24 @@ describe('SyncEngine push cycle stages shareable .ok artifacts (sync scope)', ()
 
         const engine = makeSubfolderEngine();
         try {
-          chmodSync(join(projectDir, '.ok', 'schemas'), 0o311);
+          chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o311);
           await engine.start();
           await engine.trigger('push');
 
           const status = engine.getStatus();
-          expect(status.pushError).toContain('Shareable .ok subtree ".ok/schemas"');
+          expect(status.pushError).toContain('Shareable .gitquire subtree ".gitquire/schemas"');
           expect(status.consecutivePushFailures).toBeGreaterThan(0);
           expect(status.consecutiveFailures).toBe(0);
           expect((await git.revparse(['HEAD'])).trim()).toBe(headBefore);
           expect((await git.revparse(['origin/main'])).trim()).toBe(remoteBefore);
           const headPaths = await listNames(git, ['ls-tree', '-r', '--name-only', 'HEAD']);
-          expect(headPaths).toContain('.ok/schemas/frontmatter.json');
+          expect(headPaths).toContain('.gitquire/schemas/frontmatter.json');
           expect(headPaths).not.toContain('content/note.md');
-          expect(existsSync(join(projectDir, '.ok', 'schemas', 'frontmatter.json'))).toBe(true);
+          expect(existsSync(join(projectDir, '.gitquire', 'schemas', 'frontmatter.json'))).toBe(
+            true,
+          );
         } finally {
-          chmodSync(join(projectDir, '.ok', 'schemas'), 0o755);
+          chmodSync(join(projectDir, '.gitquire', 'schemas'), 0o755);
           await engine.destroy();
         }
       },
@@ -4055,7 +4153,7 @@ describe('SyncEngine push-permission probe', () => {
 
   test('keeps host classification from construction until a new engine starts', async () => {
     await initGitWithOrigin('https://ghes.acme.test/inkeep/open-knowledge.git');
-    const path = join(home(), '.ok', 'global.yml');
+    const path = join(home(), '.gitquire', 'global.yml');
     declareGitHubHosts(home(), 'ghes.acme.test');
     const probe = fakeProbe({ kind: 'allowed' });
     const engine = makeProbeEngine({ syncEnabled: false, fakeProbe: probe.fn });
@@ -7430,7 +7528,7 @@ describe('SyncEngine exclusive merge ownership', () => {
     configureTestGitRepository(bareDir);
     await bare.raw(['symbolic-ref', 'HEAD', 'refs/heads/main']);
     const git = await initGitWithOrigin(bareDir);
-    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
+    writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
     await git.push(['--set-upstream', 'origin', 'main']);
     const conflicts = newAuthority();
     const engine = new SyncEngine({

@@ -130,7 +130,7 @@ describe('DocNoticeLedger', () => {
   test('backup and held-save notices survive a restart, and withdrawing a held save leaves any other notice alone', async () => {
     seedDoc('flow', '.mmd');
     seedDoc('notes');
-    const backup = '~/.ok/edit-backups/discarded/flow.mmd/2026-10-21T10-00-00-000Z.mmd';
+    const backup = '~/.gitquire/edit-backups/discarded/flow.mmd/2026-10-21T10-00-00-000Z.mmd';
     ledger().record('flow.mmd', 'main', {
       kind: 'moved-to-backup',
       side: 'theirs',
@@ -258,7 +258,7 @@ describe('DocNoticeLedger', () => {
       const abs = join(outside, configDoc.replace(/\//g, '-'));
       mkdirSync(dirname(abs), { recursive: true });
       writeFileSync(abs, 'a: 1\n');
-      files.set(configDoc, { abs, display: `.ok/${configDoc.replace(/\//g, '-')}` });
+      files.set(configDoc, { abs, display: `.gitquire/${configDoc.replace(/\//g, '-')}` });
     }
     const notices = ledger({ resolveFile: (docName) => files.get(docName) ?? null });
     const ids = CONFIG_DOC_NAMES.map((configDoc) =>

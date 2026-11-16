@@ -11,15 +11,15 @@ import {
 } from './file-tree-utils';
 
 describe('hasOkPathSegment', () => {
-  test('matches a .ok segment at root and nested depth', () => {
-    expect(hasOkPathSegment('.ok')).toBe(true);
-    expect(hasOkPathSegment('.ok/config.yml')).toBe(true);
-    expect(hasOkPathSegment('notes/.ok/templates/starter')).toBe(true);
+  test('matches a .gitquire segment at root and nested depth', () => {
+    expect(hasOkPathSegment('.gitquire')).toBe(true);
+    expect(hasOkPathSegment('.gitquire/config.yml')).toBe(true);
+    expect(hasOkPathSegment('notes/.gitquire/templates/starter')).toBe(true);
   });
 
   test('matches case variants, mirroring the server reserved-path guard', () => {
-    expect(hasOkPathSegment('.OK')).toBe(true);
-    expect(hasOkPathSegment('notes/.Ok/templates')).toBe(true);
+    expect(hasOkPathSegment('.GITQUIRE')).toBe(true);
+    expect(hasOkPathSegment('notes/.GitQuire/templates')).toBe(true);
   });
 
   test('does not match lookalike segments or substrings', () => {
@@ -308,19 +308,19 @@ describe('filterVisibleEntries — axis composition', () => {
     expect(shows(dotAsset, both)).toBe(false);
   });
 
-  const okRootFolder = { kind: 'folder' as const, path: '.ok' };
-  const okTemplateDoc = { kind: 'document' as const, docName: '.ok/templates/meeting-notes' };
-  const okConfigAsset = { kind: 'asset' as const, path: '.ok/config.yml' };
-  const nestedOkDoc = { kind: 'document' as const, docName: 'docs/.ok/templates/spec' };
-  const dotAncestorOkDoc = { kind: 'document' as const, docName: '.scratch/.ok/wip' };
+  const okRootFolder = { kind: 'folder' as const, path: '.gitquire' };
+  const okTemplateDoc = { kind: 'document' as const, docName: '.gitquire/templates/meeting-notes' };
+  const okConfigAsset = { kind: 'asset' as const, path: '.gitquire/config.yml' };
+  const nestedOkDoc = { kind: 'document' as const, docName: 'docs/.gitquire/templates/spec' };
+  const dotAncestorOkDoc = { kind: 'document' as const, docName: '.scratch/.gitquire/wip' };
 
-  test('hidden-files on never reveals .ok entries — show-ok alone governs them', () => {
+  test('hidden-files on never reveals .gitquire entries — show-ok alone governs them', () => {
     for (const entry of [okRootFolder, okTemplateDoc, okConfigAsset, nestedOkDoc]) {
       expect(shows(entry, { showHiddenFiles: true })).toBe(false);
     }
   });
 
-  test('show-ok reveals root and per-folder .ok entries without hidden-files', () => {
+  test('show-ok reveals root and per-folder .gitquire entries without hidden-files', () => {
     const okOn = { showOkFolders: true };
     expect(shows(okRootFolder, okOn)).toBe(true);
     expect(shows(okTemplateDoc, okOn)).toBe(true);
@@ -329,19 +329,19 @@ describe('filterVisibleEntries — axis composition', () => {
     expect(shows(dotDoc, okOn)).toBe(false);
   });
 
-  test('only-markdown composes inside a revealed .ok', () => {
+  test('only-markdown composes inside a revealed .gitquire', () => {
     const okMd = { showOkFolders: true, showOnlyMarkdownFiles: true };
     expect(shows(okTemplateDoc, okMd)).toBe(true);
     expect(shows(okConfigAsset, okMd)).toBe(false);
     expect(shows(okRootFolder, okMd)).toBe(true);
   });
 
-  test('a dot-segment ancestor above the .ok segment still follows hidden-files', () => {
+  test('a dot-segment ancestor above the .gitquire segment still follows hidden-files', () => {
     expect(shows(dotAncestorOkDoc, { showOkFolders: true })).toBe(false);
     expect(shows(dotAncestorOkDoc, { showOkFolders: true, showHiddenFiles: true })).toBe(true);
   });
 
-  test('.ok entries never appear under default axes', () => {
+  test('.gitquire entries never appear under default axes', () => {
     expect(filterVisibleEntries([okRootFolder, okTemplateDoc, nestedOkDoc])).toEqual([]);
   });
 
@@ -444,8 +444,12 @@ describe('attributeTreeHiddenAxes', () => {
     }
   });
 
-  test('.ok paths attribute nothing — the O axis alone governs them', () => {
-    for (const ref of ['.ok/skills/writer/SKILL', '.ok/templates/meeting', 'docs/.ok/config.yml']) {
+  test('.gitquire paths attribute nothing — the O axis alone governs them', () => {
+    for (const ref of [
+      '.gitquire/skills/writer/SKILL',
+      '.gitquire/templates/meeting',
+      'docs/.gitquire/config.yml',
+    ]) {
       expect(attributeTreeHiddenAxes({ kind: 'document', docName: ref })).toEqual(none);
       expect(
         attributeTreeHiddenAxes(

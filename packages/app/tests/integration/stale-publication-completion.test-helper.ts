@@ -219,9 +219,9 @@ export async function startStalePublicationScenario(
   restore.push(() => renameSpy.mockRestore());
 
   writeFileSync(filePath, ORIGINAL_PUBLICATION, { flag: 'wx' });
-  mkdirSync(join(contentDir, '.ok', 'templates'), { recursive: true });
+  mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
   writeFileSync(
-    join(contentDir, '.ok', 'templates', 'pending-publication.md'),
+    join(contentDir, '.gitquire', 'templates', 'pending-publication.md'),
     PENDING_PUBLICATION,
     { flag: 'wx' },
   );

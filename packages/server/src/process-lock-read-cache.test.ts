@@ -48,7 +48,7 @@ beforeEach(() => {
   startReads.nowMs += 60_000;
   const startedAt = new Date();
   startReads.holderStart = { startedAtMs: startedAt.getTime(), clock: 'creation' };
-  lockDir = resolve(tempDir('ok-process-lock-read-cache-'), '.ok', LOCAL_DIR);
+  lockDir = resolve(tempDir('ok-process-lock-read-cache-'), '.gitquire', LOCAL_DIR);
   mkdirSync(lockDir, { recursive: true });
   writeFileSync(
     lockFilePath(lockDir, LOCK_NAME),

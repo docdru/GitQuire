@@ -25,8 +25,8 @@ msgstr " Zaznaczenie zostało przywrócone."
 msgid "— except"
 msgstr "— za wyjątkiem"
 
-msgid ".ok folders"
-msgstr "foldery .ok"
+msgid ".gitquire folders"
+msgstr "foldery .gitquire"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1027,7 +1027,7 @@ msgstr "Dotyczy (wzorce glob — wyróżnik ! na początku wyklucza; pusty oznac
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2687,8 +2687,8 @@ msgstr "embeddingi"
 msgid "Embeddings API key"
 msgstr "Klucz API embeddingów"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "Embeddingi są obliczane tylko podczas wyszukiwania i buforowane lokalnie w <0>.ok/local</0>."
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "Embeddingi są obliczane tylko podczas wyszukiwania i buforowane lokalnie w <0>.gitquire/local</0>."
 
 msgid "Emoji"
 msgstr "Emoji"
@@ -3159,8 +3159,8 @@ msgstr "Plik jest za duży ({sizeKb} KB) — limit każdego załącznika to {lim
 msgid "File name"
 msgstr "Nazwa pliku"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "Nazwa pliku (tworzona w .ok/schemas/)"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "Nazwa pliku (tworzona w .gitquire/schemas/)"
 
 msgid "File sidebar"
 msgstr "Panel plików"
@@ -6475,8 +6475,8 @@ msgstr "Dostarcz edytor z"
 msgid "Show"
 msgstr "Pokaż"
 
-msgid "Show .ok folders"
-msgstr "Pokazuj foldery .ok"
+msgid "Show .gitquire folders"
+msgstr "Pokazuj foldery .gitquire"
 
 msgid "Show {0} more"
 msgstr "Pokaż jeszcze {0}"
@@ -6778,8 +6778,8 @@ msgstr "Zatrzymano naprawianie. Już naprawione pliki pozostają naprawione."
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "Przechowywane w <0>.ok/templates/</0> w tym projekcie. Dostępne w każdym folderze (szablony ograniczone do folderu mogą nadpisywać je według nazwy pliku)."
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "Przechowywane w <0>.gitquire/templates/</0> w tym projekcie. Dostępne w każdym folderze (szablony ograniczone do folderu mogą nadpisywać je według nazwy pliku)."
 
 msgid "Strikethrough"
 msgstr "Przekreślenie"

@@ -23,7 +23,7 @@ function makeProject(): string {
 
 function makeProjectWithLockDir(): string {
   const dir = makeProject();
-  mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
+  mkdirSync(join(dir, '.gitquire', 'local'), { recursive: true });
   return dir;
 }
 
@@ -39,7 +39,7 @@ function makeLockMeta(overrides: Partial<ProcessLockMetadata> = {}): ProcessLock
 }
 
 describe('server-lock check', () => {
-  test('passes when no .ok/local directory exists', async () => {
+  test('passes when no .gitquire/local directory exists', async () => {
     const cwd = makeProject();
     const def = makeServerLockCheck();
     const result = await def.run({ cwd });
@@ -47,7 +47,7 @@ describe('server-lock check', () => {
     expect(result.summary).toContain('no server lock');
   });
 
-  test('passes when .ok/local exists but no server.lock', async () => {
+  test('passes when .gitquire/local exists but no server.lock', async () => {
     const cwd = makeProjectWithLockDir();
     const def = makeServerLockCheck({
       inspect: (): LockState => ({ status: 'missing', lockPath: '' }),

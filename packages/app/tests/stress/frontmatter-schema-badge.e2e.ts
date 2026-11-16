@@ -43,9 +43,9 @@ async function seed(page: Page, api: ApiHelpers, markdown: string) {
 }
 
 test.beforeEach(async ({ page, api, workerServer }) => {
-  mkdirSync(join(workerServer.contentDir, '.ok', 'schemas'), { recursive: true });
+  mkdirSync(join(workerServer.contentDir, '.gitquire', 'schemas'), { recursive: true });
   writeFileSync(
-    join(workerServer.contentDir, '.ok', 'schemas', 'doc.schema.json'),
+    join(workerServer.contentDir, '.gitquire', 'schemas', 'doc.schema.json'),
     JSON.stringify({
       type: 'object',
       required: ['status', 'owner'],
@@ -54,7 +54,7 @@ test.beforeEach(async ({ page, api, workerServer }) => {
     'utf-8',
   );
   writeFileSync(
-    join(workerServer.contentDir, '.ok', 'config.yml'),
+    join(workerServer.contentDir, '.gitquire', 'config.yml'),
     [
       'contentRules:',
       '  markdownlint:',
@@ -62,7 +62,7 @@ test.beforeEach(async ({ page, api, workerServer }) => {
       '  frontmatter:',
       '    enabled: true',
       '    schemas:',
-      '      - file: .ok/schemas/doc.schema.json',
+      '      - file: .gitquire/schemas/doc.schema.json',
       '',
     ].join('\n'),
     'utf-8',
@@ -88,7 +88,7 @@ test.afterEach(() => {
 });
 
 test.afterAll(({ workerServer }) => {
-  writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), '', 'utf-8');
+  writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
 });
 
 test.describe('frontmatter schema violations in WYSIWYG', () => {

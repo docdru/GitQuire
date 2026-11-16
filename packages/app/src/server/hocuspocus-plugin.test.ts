@@ -30,16 +30,20 @@ describe('resolveContentConfig', () => {
 
   test('config.yml without content.dir: defaults to projectRoot', () => {
     const projectRoot = mkTmp();
-    mkdirSync(join(projectRoot, '.ok'), { recursive: true });
-    writeFileSync(join(projectRoot, '.ok/config.yml'), 'server:\n  host: 0.0.0.0\n', 'utf-8');
+    mkdirSync(join(projectRoot, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectRoot, '.gitquire/config.yml'), 'server:\n  host: 0.0.0.0\n', 'utf-8');
     const config = resolveContentConfig(projectRoot);
     expect(config.dir).toBe(projectRoot);
   });
 
   test('config.yml with content.dir: resolves relative to projectRoot', () => {
     const projectRoot = mkTmp();
-    mkdirSync(join(projectRoot, '.ok'), { recursive: true });
-    writeFileSync(join(projectRoot, '.ok/config.yml'), "content:\n  dir: 'content'\n", 'utf-8');
+    mkdirSync(join(projectRoot, '.gitquire'), { recursive: true });
+    writeFileSync(
+      join(projectRoot, '.gitquire/config.yml'),
+      "content:\n  dir: 'content'\n",
+      'utf-8',
+    );
     const config = resolveContentConfig(projectRoot);
     expect(config.dir).toBe(join(projectRoot, 'content'));
   });

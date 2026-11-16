@@ -78,7 +78,7 @@ test('accepted config actions preserve their synchronous invalidation schedule',
   expect(markdown.status).toBe(200);
   expect(signals.splice(0)).toEqual(['lint-config']);
 
-  const file = '.ok/schemas/signals.schema.json';
+  const file = '.gitquire/schemas/signals.schema.json';
   const created = await post(extension, '/api/lint/frontmatter-schema', { file });
   expect(created.status).toBe(200);
   expect(signals.splice(0)).toEqual(['files', 'lint-config']);
@@ -171,11 +171,11 @@ test('refused and failed config writes leave accepted-write invalidation silent'
   const frontmatterFailureRig = createRig({
     signalChannel: (channel) => frontmatterFailureSignals.push(channel),
   });
-  writeFileSync(join(frontmatterFailureRig.contentDir, '.ok'), 'not a directory');
+  writeFileSync(join(frontmatterFailureRig.contentDir, '.gitquire'), 'not a directory');
   const frontmatterFailure = await post(
     frontmatterFailureRig.extension,
     '/api/lint/frontmatter-schema',
-    { file: '.ok/schemas/failure.schema.json' },
+    { file: '.gitquire/schemas/failure.schema.json' },
   );
   expect(frontmatterFailure.status).toBe(500);
   expect(frontmatterFailure.body.title).toBe('Failed to write the frontmatter schema.');
@@ -210,7 +210,7 @@ test('saved config changes and invalidation survive an effective-config reread f
     },
     signalChannel: (channel) => frontmatterSignals.push(channel),
   });
-  const file = '.ok/schemas/saved.schema.json';
+  const file = '.gitquire/schemas/saved.schema.json';
   const frontmatter = await post(frontmatterRig.extension, '/api/lint/frontmatter-schema', {
     file,
   });

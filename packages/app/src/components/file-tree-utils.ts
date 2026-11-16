@@ -163,7 +163,7 @@ interface TreeVisibility {
 }
 
 export function hasOkPathSegment(ref: string): boolean {
-  return ref.split('/').some((segment) => segment.toLowerCase() === '.ok');
+  return ref.split('/').some((segment) => segment.toLowerCase() === '.gitquire');
 }
 
 function failsOnlyMarkdownAxis(kind: unknown, showOnlyMarkdownFiles: boolean): boolean {
@@ -190,7 +190,7 @@ export function filterVisibleEntries<T extends { kind?: unknown; docName?: strin
       return false;
     }
     const segments = ref.split('/');
-    const okIndex = segments.indexOf('.ok');
+    const okIndex = segments.indexOf('.gitquire');
     if (okIndex !== -1) {
       if (!showOkFolders) return false;
       const ancestorPath = segments.slice(0, okIndex).join('/');

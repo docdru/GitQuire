@@ -36,8 +36,11 @@ function serializeFragment(fragment: Y.XmlFragment): string {
 
 function guardDisabledContentDir(): string {
   const dir = mkdtempSync(join(tmpdir(), 'ok-defer-guard-off-'));
-  mkdirSync(join(dir, '.ok'), { recursive: true });
-  writeFileSync(join(dir, '.ok', 'config.yml'), 'bridge:\n  deferGuard:\n    enabled: false\n');
+  mkdirSync(join(dir, '.gitquire'), { recursive: true });
+  writeFileSync(
+    join(dir, '.gitquire', 'config.yml'),
+    'bridge:\n  deferGuard:\n    enabled: false\n',
+  );
   writeFileSync(join(dir, 'test-doc.md'), '', 'utf-8');
   return dir;
 }

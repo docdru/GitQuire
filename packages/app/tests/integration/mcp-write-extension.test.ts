@@ -124,9 +124,9 @@ test('the `extension` field wins over an extension typed into `path`', async () 
 
 test('write({ document: { template } }) keeps a single-block template doc-frontmatter', async () => {
   const session = await openMcpSession(server.port);
-  mkdirSync(join(server.contentDir, '.ok', 'templates'), { recursive: true });
+  mkdirSync(join(server.contentDir, '.gitquire', 'templates'), { recursive: true });
   writeFileSync(
-    join(server.contentDir, '.ok', 'templates', 'research-tpl.md'),
+    join(server.contentDir, '.gitquire', 'templates', 'research-tpl.md'),
     '---\ntemplate:\n  title: Research Log\n  description: provisional\ntype: research-note\nstatus: provisional\ncreated: {{date}}\ntags: [research]\n---\n\n## Question\n',
     'utf-8',
   );

@@ -198,15 +198,15 @@ async function saveEverySettingScope(server: IsolatedServer): Promise<void> {
 }
 
 function projectConfigPath(server: TestServer): string {
-  return join(server.contentDir, '.ok', 'config.yml');
+  return join(server.contentDir, '.gitquire', 'config.yml');
 }
 
 function localConfigPath(server: TestServer): string {
-  return join(server.contentDir, '.ok', 'local', 'config.yml');
+  return join(server.contentDir, '.gitquire', 'local', 'config.yml');
 }
 
 function userConfigPath(server: IsolatedServer): string {
-  return join(server.home, '.ok', 'global.yml');
+  return join(server.home, '.gitquire', 'global.yml');
 }
 
 describe('test-reset with scope=server returns an isolated server to its booted state', () => {
@@ -278,8 +278,8 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     const home = realpathSync(mkdtempSync(join(tmpdir(), 'ok-reset-home-')));
     opened.push(() => removeAllDuringTeardown(home));
     writeFileSync(join(contentDir, 'test-doc.md'), '', 'utf-8');
-    mkdirSync(join(contentDir, '.ok'));
-    writeFileSync(join(contentDir, '.ok', 'config.yml'), '{}\n', 'utf-8');
+    mkdirSync(join(contentDir, '.gitquire'));
+    writeFileSync(join(contentDir, '.gitquire', 'config.yml'), '{}\n', 'utf-8');
     mkdirSync(join(contentDir, '.claude', 'skills'), { recursive: true });
     mkdirSync(join(contentDir, 'sidebar-folder'));
     writeFileSync(join(contentDir, 'sidebar-folder', 'nested-doc.md'), '', 'utf-8');
@@ -311,7 +311,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ scope: 'server', residue: NO_RESIDUE });
     expect(
-      readdirSync(join(contentDir, '.ok')).filter((name) =>
+      readdirSync(join(contentDir, '.gitquire')).filter((name) =>
         name.startsWith('watcher-settle-fence-'),
       ),
     ).toEqual([]);
@@ -325,7 +325,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     running = false;
     await server.cleanup();
     const journal = JSON.parse(
-      readFileSync(join(contentDir, '.ok', 'local', 'removed-docs.json'), 'utf-8'),
+      readFileSync(join(contentDir, '.gitquire', 'local', 'removed-docs.json'), 'utf-8'),
     ) as { entries: Array<{ docName: string }> };
     expect(journal.entries.map((entry) => entry.docName)).toEqual([]);
   }, 120_000);

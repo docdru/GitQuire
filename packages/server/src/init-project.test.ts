@@ -37,7 +37,7 @@ describe('initContent', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('creates config-only .ok/ scaffold from scratch', () => {
+  it('creates config-only .gitquire/ scaffold from scratch', () => {
     const result = initContent(testDir);
 
     const okDir = join(testDir, OK_DIR);
@@ -149,7 +149,7 @@ describe('initContent', () => {
   });
 
   describe('symlink-guard against malicious upstream scaffold paths', () => {
-    it('refuses to follow .ok/.gitignore symlink with existing target (read-modify-write)', () => {
+    it('refuses to follow .gitquire/.gitignore symlink with existing target (read-modify-write)', () => {
       const okDir = join(testDir, OK_DIR);
       mkdirSync(okDir, { recursive: true });
       const victim = resolve(testDir, 'victim-rc');
@@ -162,7 +162,7 @@ describe('initContent', () => {
       expect(lstatSync(join(okDir, '.gitignore')).isSymbolicLink()).toBe(true);
     });
 
-    it('refuses to follow .ok/.gitignore symlink with non-existent target (write-creates-file)', () => {
+    it('refuses to follow .gitquire/.gitignore symlink with non-existent target (write-creates-file)', () => {
       const okDir = join(testDir, OK_DIR);
       mkdirSync(okDir, { recursive: true });
       const phantomTarget = resolve(testDir, 'phantom-victim');
@@ -172,7 +172,7 @@ describe('initContent', () => {
       expect(existsSync(phantomTarget)).toBe(false);
     });
 
-    it('refuses to follow .ok/config.yml symlink (writeIfMissing path)', () => {
+    it('refuses to follow .gitquire/config.yml symlink (writeIfMissing path)', () => {
       const okDir = join(testDir, OK_DIR);
       mkdirSync(okDir, { recursive: true });
       const phantomTarget = resolve(testDir, 'phantom-config');
@@ -190,7 +190,7 @@ describe('initContent', () => {
       expect(existsSync(phantomTarget)).toBe(false);
     });
 
-    it('refuses to operate when .ok/ itself is a symlink (would redirect every scaffold write)', () => {
+    it('refuses to operate when .gitquire/ itself is a symlink (would redirect every scaffold write)', () => {
       const decoy = resolve(testDir, 'decoy-dir');
       mkdirSync(decoy, { recursive: true });
       symlinkSync(decoy, join(testDir, OK_DIR));
@@ -201,7 +201,7 @@ describe('initContent', () => {
     });
   });
 
-  it('ignores every machine-local name the product can leave at the .ok/ root', () => {
+  it('ignores every machine-local name the product can leave at the .gitquire/ root', () => {
     initContent(testDir);
     const lines = readFileSync(join(testDir, OK_DIR, '.gitignore'), 'utf-8')
       .split('\n')
@@ -346,11 +346,11 @@ describe('buildConfigYmlContent', () => {
     expect(out).toContain('content:\n  dir: "with spaces/sub"');
   });
 
-  it('precedence header points to user-global `~/.ok/global.yml`, not `config.yml`', () => {
+  it('precedence header points to user-global `~/.gitquire/global.yml`, not `config.yml`', () => {
     const out = buildConfigYmlContent('1.0.0');
-    expect(out).toContain('~/.ok/global.yml');
-    expect(out).toContain('./.ok/config.yml');
-    expect(out).not.toContain('~/.ok/config.yml');
+    expect(out).toContain('~/.gitquire/global.yml');
+    expect(out).toContain('./.gitquire/config.yml');
+    expect(out).not.toContain('~/.gitquire/config.yml');
   });
 });
 

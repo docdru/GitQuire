@@ -208,7 +208,7 @@ describe('runDiagnoseBundle — tracer bullet', () => {
     const result = await runDiagnoseBundle({ contentDir, yes: true }, deps);
 
     expect(result.outputPath).not.toBeNull();
-    expect(result.outputPath).toContain(join(contentDir, '.ok', 'local', 'diagnostics'));
+    expect(result.outputPath).toContain(join(contentDir, '.gitquire', 'local', 'diagnostics'));
     expect(result.outputPath?.endsWith('.zip')).toBe(true);
     expect(existsSync(result.outputPath ?? '')).toBe(true);
 
@@ -277,7 +277,7 @@ describe('runDiagnoseBundle — prompt + summary', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/telemetry/spans-current.jsonl',
+      '.gitquire/local/telemetry/spans-current.jsonl',
       '{"resourceSpans":[{"attributes":[{"key":"doc.name","value":"a"}]}]}\n',
     );
     const { deps, captured } = makeRunnerDeps();
@@ -311,7 +311,7 @@ describe('runDiagnoseBundle — prompt + summary', () => {
     const result = await runDiagnoseBundle({ contentDir }, deps);
     expect(result.declined).toBe(true);
     expect(result.outputPath).toBeNull();
-    const defaultDir = join(contentDir, '.ok', 'local', 'diagnostics');
+    const defaultDir = join(contentDir, '.gitquire', 'local', 'diagnostics');
     if (existsSync(defaultDir)) {
       const files = (await import('node:fs')).readdirSync(defaultDir);
       expect(files.filter((f) => f.endsWith('.zip'))).toEqual([]);
@@ -341,7 +341,7 @@ describe('runDiagnoseBundle — consent summary', () => {
   function seedSpans(contentDir: string): void {
     writeAt(
       contentDir,
-      '.ok/local/telemetry/spans-current.jsonl',
+      '.gitquire/local/telemetry/spans-current.jsonl',
       `${JSON.stringify({
         resourceSpans: [
           {
@@ -469,7 +469,7 @@ describe('runDiagnoseBundle — redaction', () => {
         },
       ],
     });
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', `${otlpLine}\n`);
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-current.jsonl', `${otlpLine}\n`);
 
     const { deps } = makeRunnerDeps();
     const out = join(makeTmpDir('ok-bundle-out-'), 'redacted.zip');
@@ -498,7 +498,7 @@ describe('runDiagnoseBundle — redaction', () => {
     expect(existsSync(join(dirname(out), 'redacted.docnames.json'))).toBe(false);
   });
 
-  test('original on-disk JSONL files under .ok/local/ are NOT modified by --redact', async () => {
+  test('original on-disk JSONL files under .gitquire/local/ are NOT modified by --redact', async () => {
     const contentDir = makeTmpDir();
     const originalSpansBody = `${JSON.stringify({
       resourceSpans: [
@@ -519,18 +519,18 @@ describe('runDiagnoseBundle — redaction', () => {
       level: 30,
       'doc.name': 'original-log-doc',
     })}\n`;
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', originalSpansBody);
-    writeAt(contentDir, '.ok/local/logs/server-current.jsonl', originalLogsBody);
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-current.jsonl', originalSpansBody);
+    writeAt(contentDir, '.gitquire/local/logs/server-current.jsonl', originalLogsBody);
 
     const { deps } = makeRunnerDeps();
     await runDiagnoseBundle({ contentDir, yes: true, redact: true }, deps);
 
     const spansOnDisk = readFileSync(
-      join(contentDir, '.ok/local/telemetry/spans-current.jsonl'),
+      join(contentDir, '.gitquire/local/telemetry/spans-current.jsonl'),
       'utf-8',
     );
     const logsOnDisk = readFileSync(
-      join(contentDir, '.ok/local/logs/server-current.jsonl'),
+      join(contentDir, '.gitquire/local/logs/server-current.jsonl'),
       'utf-8',
     );
     expect(spansOnDisk).toBe(originalSpansBody);
@@ -561,7 +561,7 @@ describe('runDiagnoseBundle — redaction', () => {
         },
       ],
     });
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', `${otlpLine}\n`);
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-current.jsonl', `${otlpLine}\n`);
 
     const { deps } = makeRunnerDeps();
     const out = join(makeTmpDir('ok-bundle-out-'), 'plain.zip');

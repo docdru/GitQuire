@@ -61,5 +61,5 @@ export function formatIgnoredCommittedKey(key: IgnoredCommittedKey): string {
   const location =
     key.source !== undefined ? `${key.source.file}:${key.source.line}:${key.source.column}: ` : '';
   const envHint = key.envVar !== undefined ? `, or set ${key.envVar} on this host` : '';
-  return `${location}${dotted} is a per-machine (project-local) setting; the value committed in .ok/config.yml is ignored. Set it in .ok/local/config.yml (this machine only)${envHint}.`;
+  return `${location}${dotted} is a per-machine (project-local) setting; the value committed in .gitquire/config.yml is ignored. Set it in .gitquire/local/config.yml (this machine only)${envHint}.`;
 }

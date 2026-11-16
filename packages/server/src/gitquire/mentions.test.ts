@@ -78,7 +78,7 @@ function ids(mentions: readonly { id: string }[]): string[] {
 function project(): string {
   const dir = mkdtempSync(join(tmpdir(), 'gq-mentions-'));
   mkdirSync(join(dir, 'notes'), { recursive: true });
-  mkdirSync(join(dir, '.ok', 'local'), { recursive: true });
+  mkdirSync(join(dir, '.gitquire', 'local'), { recursive: true });
   mkdirSync(join(dir, 'node_modules', 'pkg'), { recursive: true });
   const ask = comment('c1', bob, 'Can you check this, @alice?', '2026-11-10T09:00:00Z', ['alice']);
   const answer = comment('c2', alice, 'Done, @bob.', '2026-11-10T10:00:00Z', ['bob']);
@@ -90,7 +90,7 @@ function project(): string {
   writeFileSync(join(dir, 'notes', 'report.md'), report);
   writeFileSync(join(dir, 'plan.md'), plan);
   writeFileSync(join(dir, 'node_modules', 'pkg', 'readme.md'), report);
-  writeFileSync(join(dir, '.ok', 'local', 'hidden.md'), page([thread('t9', [hidden])]));
+  writeFileSync(join(dir, '.gitquire', 'local', 'hidden.md'), page([thread('t9', [hidden])]));
   return dir;
 }
 
@@ -201,7 +201,7 @@ describe('inbox', () => {
     const dir = project();
     try {
       const file = mentionStatePath(dir);
-      mkdirSync(join(dir, '.ok', 'local', 'gitquire'), { recursive: true });
+      mkdirSync(join(dir, '.gitquire', 'local', 'gitquire'), { recursive: true });
       writeFileSync(file, '{not json');
       expect([...createMentionReadStore(file).readIds(1)]).toEqual([]);
     } finally {

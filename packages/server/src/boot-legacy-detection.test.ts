@@ -9,7 +9,7 @@ describe('findLegacyRuntimeFiles', () => {
   let okDir: string;
 
   beforeEach(() => {
-    okDir = `${mkdtempSync(resolve(tmpdir(), 'ok-legacy-test-'))}/.ok`;
+    okDir = `${mkdtempSync(resolve(tmpdir(), 'ok-legacy-test-'))}/.gitquire`;
     mkdirSync(okDir, { recursive: true });
   });
 
@@ -17,11 +17,11 @@ describe('findLegacyRuntimeFiles', () => {
     await rm(resolve(okDir, '..'), { recursive: true, force: true });
   });
 
-  test('fresh project: no legacy files, no .ok/local/ → empty result', () => {
+  test('fresh project: no legacy files, no .gitquire/local/ → empty result', () => {
     expect(findLegacyRuntimeFiles(okDir)).toEqual([]);
   });
 
-  test('legacy files at .ok/ root, no .ok/local/ → enumerates them', () => {
+  test('legacy files at .gitquire/ root, no .gitquire/local/ → enumerates them', () => {
     writeFileSync(resolve(okDir, 'server.lock'), '{}');
     writeFileSync(resolve(okDir, 'principal.json'), '{}');
     writeFileSync(resolve(okDir, 'sync-state.json'), '{}');
@@ -52,7 +52,7 @@ describe('findLegacyRuntimeFiles', () => {
     expect(found).toContain('cache/');
   });
 
-  test('populated .ok/local/ suppresses the warning even with legacy files present', () => {
+  test('populated .gitquire/local/ suppresses the warning even with legacy files present', () => {
     writeFileSync(resolve(okDir, 'server.lock'), '{}');
     mkdirSync(resolve(okDir, 'local'));
     writeFileSync(resolve(okDir, 'local', 'server.lock'), '{}');
@@ -60,14 +60,14 @@ describe('findLegacyRuntimeFiles', () => {
     expect(findLegacyRuntimeFiles(okDir)).toEqual([]);
   });
 
-  test('empty .ok/local/ does NOT suppress (warning still drives developer cleanup)', () => {
+  test('empty .gitquire/local/ does NOT suppress (warning still drives developer cleanup)', () => {
     writeFileSync(resolve(okDir, 'server.lock'), '{}');
     mkdirSync(resolve(okDir, 'local'));
 
     expect(findLegacyRuntimeFiles(okDir)).toEqual(['server.lock']);
   });
 
-  test('config.yml at .ok/ root is NOT a legacy runtime file (committed config)', () => {
+  test('config.yml at .gitquire/ root is NOT a legacy runtime file (committed config)', () => {
     writeFileSync(resolve(okDir, 'config.yml'), '');
     writeFileSync(resolve(okDir, 'frontmatter.yml'), '');
     mkdirSync(resolve(okDir, 'templates'));

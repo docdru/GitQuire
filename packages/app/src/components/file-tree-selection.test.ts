@@ -440,15 +440,15 @@ describe('previewTabIdForTreePath', () => {
   });
 });
 
-describe('previewTabIdForTreePath — revealed .ok rows', () => {
+describe('previewTabIdForTreePath — revealed .gitquire rows', () => {
   test('a template row resolves to its content doc tab', () => {
     expect(
       previewTabIdForTreePath(
-        '.ok/templates/meeting.md',
+        '.gitquire/templates/meeting.md',
         [
           {
             kind: 'document',
-            docName: '.ok/templates/meeting',
+            docName: '.gitquire/templates/meeting',
             docExt: '.md',
             size: 0,
             modified: '',
@@ -456,34 +456,42 @@ describe('previewTabIdForTreePath — revealed .ok rows', () => {
         ],
         new Set<string>(),
       ),
-    ).toBe(docTabId('.ok/templates/meeting'));
+    ).toBe(docTabId('.gitquire/templates/meeting'));
   });
 
-  test('a non-page .ok doc row resolves to the read-only asset tab', () => {
+  test('a non-page .gitquire doc row resolves to the read-only asset tab', () => {
     expect(
       previewTabIdForTreePath(
-        '.ok/notes/scratch.md',
-        [{ kind: 'document', docName: '.ok/notes/scratch', docExt: '.md', size: 0, modified: '' }],
-        new Set<string>(),
-      ),
-    ).toBe(assetTabId('.ok/notes/scratch.md'));
-  });
-
-  test('an indexed .ok page keeps the ordinary doc tab', () => {
-    expect(
-      previewTabIdForTreePath(
-        '.ok/skills/thing/SKILL.md',
+        '.gitquire/notes/scratch.md',
         [
           {
             kind: 'document',
-            docName: '.ok/skills/thing/SKILL',
+            docName: '.gitquire/notes/scratch',
             docExt: '.md',
             size: 0,
             modified: '',
           },
         ],
-        new Set<string>(['.ok/skills/thing/SKILL']),
+        new Set<string>(),
       ),
-    ).toBe(docTabId('.ok/skills/thing/SKILL'));
+    ).toBe(assetTabId('.gitquire/notes/scratch.md'));
+  });
+
+  test('an indexed .gitquire page keeps the ordinary doc tab', () => {
+    expect(
+      previewTabIdForTreePath(
+        '.gitquire/skills/thing/SKILL.md',
+        [
+          {
+            kind: 'document',
+            docName: '.gitquire/skills/thing/SKILL',
+            docExt: '.md',
+            size: 0,
+            modified: '',
+          },
+        ],
+        new Set<string>(['.gitquire/skills/thing/SKILL']),
+      ),
+    ).toBe(docTabId('.gitquire/skills/thing/SKILL'));
   });
 });

@@ -59,26 +59,26 @@ describe('history group over the composed listener — served natively', () => {
     expect(res.headers.get('content-type')).toBe('application/json');
   });
 
-  test('the folder arm refuses a folder whose own .ok is a symlink (400 symlink-refused)', async () => {
+  test('the folder arm refuses a folder whose own .gitquire is a symlink (400 symlink-refused)', async () => {
     mkdirSync(resolve(contentDir, 'hist-target', 'templates'), { recursive: true });
     mkdirSync(resolve(contentDir, 'hist-aliased'), { recursive: true });
-    symlinkSync('../hist-target', resolve(contentDir, 'hist-aliased', '.ok'), 'dir');
+    symlinkSync('../hist-target', resolve(contentDir, 'hist-aliased', '.gitquire'), 'dir');
     const res = await fetch(`http://127.0.0.1:${server.port}/api/history?folder=hist-aliased`);
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:symlink-refused');
   });
 
-  test('the folder arm answers 200 for a folder with a regular FILE named .ok (no templates gate here)', async () => {
+  test('the folder arm answers 200 for a folder with a regular FILE named .gitquire (no templates gate here)', async () => {
     mkdirSync(resolve(contentDir, 'hist-flatok'), { recursive: true });
-    writeFileSync(resolve(contentDir, 'hist-flatok', '.ok'), 'not a directory\n', 'utf-8');
+    writeFileSync(resolve(contentDir, 'hist-flatok', '.gitquire'), 'not a directory\n', 'utf-8');
     const res = await fetch(`http://127.0.0.1:${server.port}/api/history?folder=hist-flatok`);
     expect(res.status).toBe(200);
   });
 
   test.runIf(process.getuid?.() !== 0)(
-    'the folder arm answers 200 for a folder whose .ok directory cannot be searched',
+    'the folder arm answers 200 for a folder whose .gitquire directory cannot be searched',
     async () => {
-      const ownOk = resolve(contentDir, 'hist-unsearchable', '.ok');
+      const ownOk = resolve(contentDir, 'hist-unsearchable', '.gitquire');
       mkdirSync(ownOk, { recursive: true });
       chmodSync(ownOk, 0o000);
       try {
@@ -92,11 +92,11 @@ describe('history group over the composed listener — served natively', () => {
     },
   );
 
-  test('the folder arm answers 200 for an own .ok/templates link resolving outside the content root', async () => {
+  test('the folder arm answers 200 for an own .gitquire/templates link resolving outside the content root', async () => {
     const outside = resolve(tmpRoot, 'hist-outside-templates');
     mkdirSync(outside, { recursive: true });
-    mkdirSync(resolve(contentDir, 'hist-esc', '.ok'), { recursive: true });
-    symlinkSync(outside, resolve(contentDir, 'hist-esc', '.ok', 'templates'), 'dir');
+    mkdirSync(resolve(contentDir, 'hist-esc', '.gitquire'), { recursive: true });
+    symlinkSync(outside, resolve(contentDir, 'hist-esc', '.gitquire', 'templates'), 'dir');
     const res = await fetch(`http://127.0.0.1:${server.port}/api/history?folder=hist-esc`);
     expect(res.status).toBe(200);
   });

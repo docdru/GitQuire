@@ -59,8 +59,8 @@ describe('what startWatcher hands @parcel/watcher as `ignore`', () => {
         expect.arrayContaining([
           '.git',
           'node_modules',
-          '.ok/local',
-          '.ok/worktrees',
+          '.gitquire/local',
+          '.gitquire/worktrees',
           'packages/app/node_modules',
         ]),
       );

@@ -118,7 +118,7 @@ afterEach(async () => {
 });
 
 describe('POST /api/local-op/ok-init', () => {
-  test('scaffolds .ok/config.yml on a fresh git worktree → {ok:true}', async () => {
+  test('scaffolds .gitquire/config.yml on a fresh git worktree → {ok:true}', async () => {
     rig = await bootRig();
     const target = join(rig.tmpRoot, 'fresh-worktree');
     mkdirSync(target);
@@ -127,14 +127,14 @@ describe('POST /api/local-op/ok-init', () => {
     run(target, 'git add -A');
     run(target, 'git commit -q -m initial');
 
-    expect(existsSync(join(target, '.ok'))).toBe(false);
+    expect(existsSync(join(target, '.gitquire'))).toBe(false);
 
     const res = await postOkInit(rig.port, { projectPath: target });
     expect(res.status).toBe(200);
     expect(res.json.ok).toBe(true);
     expect(res.json.projectPath).toBe(target);
-    expect(existsSync(join(target, '.ok/config.yml'))).toBe(true);
-    expect(existsSync(join(target, '.ok/.gitignore'))).toBe(true);
+    expect(existsSync(join(target, '.gitquire/config.yml'))).toBe(true);
+    expect(existsSync(join(target, '.gitquire/.gitignore'))).toBe(true);
     expect(existsSync(join(target, '.okignore'))).toBe(true);
   });
 
@@ -150,7 +150,7 @@ describe('POST /api/local-op/ok-init', () => {
     const first = await postOkInit(rig.port, { projectPath: target });
     expect(first.json.ok).toBe(true);
 
-    const configPath = join(target, '.ok/config.yml');
+    const configPath = join(target, '.gitquire/config.yml');
     writeFileSync(configPath, 'custom: true\n');
 
     const second = await postOkInit(rig.port, { projectPath: target });
@@ -167,7 +167,7 @@ describe('POST /api/local-op/ok-init', () => {
     expect(res.status).toBe(200);
     expect(res.json.ok).toBe(false);
     expect(res.json.reason).toBe('not-a-git-worktree');
-    expect(existsSync(join(target, '.ok'))).toBe(false);
+    expect(existsSync(join(target, '.gitquire'))).toBe(false);
   });
 
   test('non-existent path returns {ok:false, reason:"not-a-git-worktree"}', async () => {
@@ -193,7 +193,7 @@ describe('POST /api/local-op/ok-init', () => {
       const res = await postOkInit(rig.port, { projectPath: target });
       expect(res.status).toBe(400);
       expect(res.json.type).toBe('urn:ok:error:dir-outside-home');
-      expect(existsSync(join(target, '.ok'))).toBe(false);
+      expect(existsSync(join(target, '.gitquire'))).toBe(false);
     } finally {
       rmSync(outsideRoot, { recursive: true, force: true });
     }
@@ -240,7 +240,7 @@ describe('POST /api/local-op/ok-init', () => {
     expect(released).toEqual([]);
 
     rejectAcquisition = false;
-    writeFileSync(join(target, '.ok'), 'blocks scaffold directory\n');
+    writeFileSync(join(target, '.gitquire'), 'blocks scaffold directory\n');
     const failed = await postOkInit(rig.port, { projectPath: target });
     expect(failed.status).toBe(200);
     expect(failed.json).toMatchObject({ ok: false, reason: 'init-failed' });
@@ -262,6 +262,6 @@ describe('POST /api/local-op/ok-init', () => {
 
     const res = await postOkInit(rig.port, { projectPath: wt });
     expect(res.json.ok).toBe(true);
-    expect(existsSync(join(wt, '.ok/config.yml'))).toBe(true);
+    expect(existsSync(join(wt, '.gitquire/config.yml'))).toBe(true);
   });
 });

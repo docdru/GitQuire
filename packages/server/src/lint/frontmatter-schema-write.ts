@@ -140,7 +140,7 @@ export function deleteFrontmatterSchemaFile(
     return {
       action: 'refused',
       file,
-      reason: 'only *.schema.json files (or .ok/schemas/*.json) can be deleted',
+      reason: 'only *.schema.json files (or .gitquire/schemas/*.json) can be deleted',
     };
   }
   const abs = resolve(projectDir, file);

@@ -75,9 +75,9 @@ let okDir = '';
 beforeEach(async () => {
   tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-pathspec-invariance-'));
   projectDir = join(tmpDir, 'project');
-  okDir = join(projectDir, '.ok', LOCAL_DIR);
+  okDir = join(projectDir, '.gitquire', LOCAL_DIR);
   mkdirSync(okDir, { recursive: true });
-  writeFileSync(join(projectDir, '.ok', '.gitignore'), `${LOCAL_DIR}/\n`, 'utf-8');
+  writeFileSync(join(projectDir, '.gitquire', '.gitignore'), `${LOCAL_DIR}/\n`, 'utf-8');
 });
 
 afterEach(async () => {
@@ -524,7 +524,7 @@ describe('pathspec name invariance — pull-only overlay restore (site 6)', () =
 
     await simpleGit(root).clone(bareDir, cloneDir);
     configureTestGitRepository(cloneDir);
-    mkdirSync(join(cloneDir, '.ok', LOCAL_DIR), { recursive: true });
+    mkdirSync(join(cloneDir, '.gitquire', LOCAL_DIR), { recursive: true });
     const project = simpleGit(cloneDir);
     await project.raw('config', 'user.name', 'Project');
     await project.raw('config', 'user.email', 'project@test.com');

@@ -177,7 +177,7 @@ describe('content.attachmentFolderPath', () => {
 });
 
 describe('appearance.sidebar view toggles', () => {
-  test('sidebar defaults: hidden files off, only-markdown off, .ok folders off', () => {
+  test('sidebar defaults: hidden files off, only-markdown off, .gitquire folders off', () => {
     const sidebar = ConfigSchema.parse({ appearance: { sidebar: {} } }).appearance.sidebar;
     expect(sidebar).toEqual({
       showHiddenFiles: false,

@@ -1067,7 +1067,7 @@ export function FrontmatterPluginSection() {
   async function createSchema(): Promise<void> {
     const name = newSchemaName.trim();
     if (name === '' || name.includes('/') || name.includes('\\')) return;
-    const file = `.ok/schemas/${name.endsWith('.json') ? name : `${name}.schema.json`}`;
+    const file = `.gitquire/schemas/${name.endsWith('.json') ? name : `${name}.schema.json`}`;
     const result = await createEmptyFrontmatterSchema(file);
     if (!result.ok) {
       toast.error(result.errorDetail ?? t`Failed to create the schema file`);
@@ -1137,7 +1137,7 @@ export function FrontmatterPluginSection() {
           </PopoverTrigger>
           <PopoverContent align="end" className="w-72 space-y-2">
             <Label htmlFor="frontmatter-create-schema-name" className="text-xs">
-              <Trans>File name (created in .ok/schemas/)</Trans>
+              <Trans>File name (created in .gitquire/schemas/)</Trans>
             </Label>
             <Input
               id="frontmatter-create-schema-name"

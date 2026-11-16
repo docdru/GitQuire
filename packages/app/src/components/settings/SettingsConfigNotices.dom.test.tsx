@@ -74,7 +74,7 @@ describe('SettingsConfigNotices', () => {
       settingsNotice(
         'n-project',
         '__config__/project',
-        '.ok/config.yml',
+        '.gitquire/config.yml',
         'ours',
         'outside-settings-applied',
       ),
@@ -91,7 +91,7 @@ describe('SettingsConfigNotices', () => {
     const notices = await screen.findAllByRole('region', { name: 'File change notice' });
     expect(notices.map((notice) => notice.textContent)).toEqual([
       expect.stringContaining(
-        "Settings in .ok/config.yml changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet.",
+        "Settings in .gitquire/config.yml changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet.",
       ),
       expect.stringContaining(
         "An outside change to .okignore was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet.",
@@ -105,7 +105,7 @@ describe('SettingsConfigNotices', () => {
       settingsNotice(
         'n-project',
         '__config__/project',
-        '.ok/config.yml',
+        '.gitquire/config.yml',
         'ours',
         'outside-settings-applied',
       ),
@@ -113,22 +113,23 @@ describe('SettingsConfigNotices', () => {
         ...settingsNotice(
           'n-local',
           '__local__/project',
-          '.ok/local/config.yml',
+          '.gitquire/local/config.yml',
           'theirs',
           'outside-settings-invalid',
         ),
         kind: 'moved-to-backup',
         entries: [],
-        backup: '~/.ok/edit-backups/discarded/__local____project/2026-10-21T10-00-00-000Z.yml',
+        backup:
+          '~/.gitquire/edit-backups/discarded/__local____project/2026-10-21T10-00-00-000Z.yml',
       },
     ];
     renderSettingsNotices();
 
     const notices = await screen.findAllByRole('region', { name: 'File change notice' });
     expect(notices.map((notice) => notice.textContent)).toEqual([
-      expect.stringContaining('Settings in .ok/config.yml changed outside GitQuire'),
+      expect.stringContaining('Settings in .gitquire/config.yml changed outside GitQuire'),
       expect.stringContaining(
-        'An outside change to .ok/local/config.yml was not valid settings, so your settings stayed. A copy of the outside version was saved to ~/.ok/edit-backups/discarded/__local____project/2026-10-21T10-00-00-000Z.yml.',
+        'An outside change to .gitquire/local/config.yml was not valid settings, so your settings stayed. A copy of the outside version was saved to ~/.gitquire/edit-backups/discarded/__local____project/2026-10-21T10-00-00-000Z.yml.',
       ),
     ]);
   });
@@ -148,7 +149,7 @@ describe('SettingsConfigNotices', () => {
       settingsNotice(
         'n-user',
         '__user__/config.yml',
-        '~/.ok/config.yml',
+        '~/.gitquire/config.yml',
         'ours',
         'outside-settings-applied',
       ),

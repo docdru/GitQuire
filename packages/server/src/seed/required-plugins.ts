@@ -6,7 +6,7 @@ import { tracedWriteFileSync } from '../fs-traced.ts';
 import { CONFIG_FILENAME } from '../init-project.ts';
 
 function configPath(projectDir: string): string {
-  return join(projectDir, '.ok', CONFIG_FILENAME);
+  return join(projectDir, '.gitquire', CONFIG_FILENAME);
 }
 
 export function isPluginEnabled(projectDir: string, id: LintPluginId): boolean {

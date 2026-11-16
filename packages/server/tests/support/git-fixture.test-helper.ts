@@ -61,7 +61,7 @@ export function createGitTriangle(opts: { branch?: string } = {}): GitTriangle {
   git(senderDir, ['init', '-b', branch]);
   configureTestGitRepository(senderDir);
   configure(senderDir);
-  writeFile(senderDir, '.ok/config.yml', '');
+  writeFile(senderDir, '.gitquire/config.yml', '');
   writeFile(senderDir, 'README.md', '# base\n');
   git(senderDir, ['add', '-A']);
   git(senderDir, ['commit', '-m', 'seed base']);

@@ -25,8 +25,8 @@ msgstr " 已還原你的選取內容。"
 msgid "— except"
 msgstr "— 除了"
 
-msgid ".ok folders"
-msgstr ".ok 資料夾"
+msgid ".gitquire folders"
+msgstr ".gitquire 資料夾"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1027,7 +1027,7 @@ msgstr "適用於（glob 模式；開頭的 ! 表示排除；留空表示所有�
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2687,8 +2687,8 @@ msgstr "嵌入"
 msgid "Embeddings API key"
 msgstr "嵌入服務 API 金鑰"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "嵌入向量只在執行搜尋時計算，並快取在本機的 <0>.ok/local</0> 底下。"
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "嵌入向量只在執行搜尋時計算，並快取在本機的 <0>.gitquire/local</0> 底下。"
 
 msgid "Emoji"
 msgstr "表情符號"
@@ -3159,8 +3159,8 @@ msgstr "檔案過大（{sizeKb} KB）— 每個附件上限為 {limitKb} KB。�
 msgid "File name"
 msgstr "檔案名稱"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "檔案名稱（建立在 .ok/schemas/ 中）"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "檔案名稱（建立在 .gitquire/schemas/ 中）"
 
 msgid "File sidebar"
 msgstr "檔案側邊欄"
@@ -6475,8 +6475,8 @@ msgstr "讓編輯器帶上"
 msgid "Show"
 msgstr "顯示"
 
-msgid "Show .ok folders"
-msgstr "顯示 .ok 資料夾"
+msgid "Show .gitquire folders"
+msgstr "顯示 .gitquire 資料夾"
 
 msgid "Show {0} more"
 msgstr "再顯示 {0} 個"
@@ -6778,8 +6778,8 @@ msgstr "已停止修正。已經修正好的檔案會維持原狀。"
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "存在這個專案的 <0>.ok/templates/</0> 裡。在所有資料夾中都能用（資料夾範圍的範本可以用相同檔名覆蓋它）。"
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "存在這個專案的 <0>.gitquire/templates/</0> 裡。在所有資料夾中都能用（資料夾範圍的範本可以用相同檔名覆蓋它）。"
 
 msgid "Strikethrough"
 msgstr "刪除線"

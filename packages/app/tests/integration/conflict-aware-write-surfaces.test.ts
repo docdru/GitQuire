@@ -235,8 +235,8 @@ describe('FR12: /api/sync/conflicts + /api/sync/status count parity', () => {
         rmSync(tmpDir, { recursive: true, force: true });
       });
 
-      mkdirSync(join(tmpDir, '.ok'), { recursive: true });
-      writeFileSync(join(tmpDir, '.ok', 'config.yml'), '', 'utf-8');
+      mkdirSync(join(tmpDir, '.gitquire'), { recursive: true });
+      writeFileSync(join(tmpDir, '.gitquire', 'config.yml'), '', 'utf-8');
       await execFileAsync('git', ['init', '--initial-branch=main', tmpDir]);
       configureTestGitRepository(tmpDir);
 
@@ -296,8 +296,8 @@ describe('FR14: a conflicts.json present at construction gates writes (in-proces
       const tmpDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-fr14-fn-')));
       cleanups.push(() => rmSync(tmpDir, { recursive: true, force: true }));
 
-      mkdirSync(join(tmpDir, '.ok'), { recursive: true });
-      writeFileSync(join(tmpDir, '.ok', 'config.yml'), '', 'utf-8');
+      mkdirSync(join(tmpDir, '.gitquire'), { recursive: true });
+      writeFileSync(join(tmpDir, '.gitquire', 'config.yml'), '', 'utf-8');
       await execFileAsync('git', ['init', '--initial-branch=main', tmpDir]);
       configureTestGitRepository(tmpDir);
 
@@ -348,9 +348,9 @@ describe('a conflict raised while the doc was unloaded still gates its first loa
 
       await execFileAsync('git', ['init', '--initial-branch=main', tmpDir]);
       configureTestGitRepository(tmpDir);
-      mkdirSync(join(tmpDir, '.ok'), { recursive: true });
-      writeFileSync(join(tmpDir, '.ok', 'config.yml'), '', 'utf-8');
-      writeFileSync(join(tmpDir, '.ok', '.gitignore'), '', 'utf-8');
+      mkdirSync(join(tmpDir, '.gitquire'), { recursive: true });
+      writeFileSync(join(tmpDir, '.gitquire', 'config.yml'), '', 'utf-8');
+      writeFileSync(join(tmpDir, '.gitquire', '.gitignore'), '', 'utf-8');
 
       const docName = `onload-${crypto.randomUUID()}`;
       const fileName = `${docName}${extension}`;
@@ -410,9 +410,9 @@ describe('FR14: boot-time conflict admission from conflicts.json', () => {
 
       await execFileAsync('git', ['init', '--initial-branch=main', tmpDir]);
       configureTestGitRepository(tmpDir);
-      mkdirSync(join(tmpDir, '.ok'), { recursive: true });
-      writeFileSync(join(tmpDir, '.ok', 'config.yml'), '', 'utf-8');
-      writeFileSync(join(tmpDir, '.ok', '.gitignore'), '', 'utf-8');
+      mkdirSync(join(tmpDir, '.gitquire'), { recursive: true });
+      writeFileSync(join(tmpDir, '.gitquire', 'config.yml'), '', 'utf-8');
+      writeFileSync(join(tmpDir, '.gitquire', '.gitignore'), '', 'utf-8');
       const fileName = `fr14-${crypto.randomUUID()}.md`;
       await seedRealMergeConflict(tmpDir, [fileName]);
       seedConflictsJson(tmpDir, [{ file: fileName }]);
@@ -522,8 +522,8 @@ describe('FR17: Conflicts list HTTP shape (data feed the sidebar section consume
       const tmpDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-fr17-')));
       cleanups.push(() => rmSync(tmpDir, { recursive: true, force: true }));
 
-      mkdirSync(join(tmpDir, '.ok'), { recursive: true });
-      writeFileSync(join(tmpDir, '.ok', 'config.yml'), '', 'utf-8');
+      mkdirSync(join(tmpDir, '.gitquire'), { recursive: true });
+      writeFileSync(join(tmpDir, '.gitquire', 'config.yml'), '', 'utf-8');
       await execFileAsync('git', ['init', '--initial-branch=main', tmpDir]);
       configureTestGitRepository(tmpDir);
 
@@ -565,8 +565,8 @@ describe('FR17: Conflicts list HTTP shape (data feed the sidebar section consume
       const { mkdtempSync: mkdtempSync2, realpathSync: realpathSync2 } = await import('node:fs');
       const tmpDir2 = realpathSync2(mkdtempSync2(join(tmpdir(), 'ok-fr17-empty-')));
       cleanups.push(() => rmSync(tmpDir2, { recursive: true, force: true }));
-      mkdirSync(join(tmpDir2, '.ok'), { recursive: true });
-      writeFileSync(join(tmpDir2, '.ok', 'config.yml'), '', 'utf-8');
+      mkdirSync(join(tmpDir2, '.gitquire'), { recursive: true });
+      writeFileSync(join(tmpDir2, '.gitquire', 'config.yml'), '', 'utf-8');
       await execFileAsync('git', ['init', '--initial-branch=main', tmpDir2]);
       configureTestGitRepository(tmpDir2);
       const server2 = await createTestServer({ contentDir: tmpDir2, keepContentDir: true });
@@ -603,9 +603,9 @@ describe('a conflicted doc under a content.dir subdirectory reports its ledger f
 
     await execFileAsync('git', ['init', '--initial-branch=main', projectDir]);
     configureTestGitRepository(projectDir);
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
-    writeFileSync(join(projectDir, '.ok', '.gitignore'), '', 'utf-8');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
+    writeFileSync(join(projectDir, '.gitquire', '.gitignore'), '', 'utf-8');
 
     const contentDir = join(projectDir, 'docs');
     mkdirSync(contentDir, { recursive: true });

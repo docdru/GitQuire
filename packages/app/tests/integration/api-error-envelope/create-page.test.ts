@@ -77,9 +77,9 @@ describe('create-page envelope (RFC 9457)', () => {
     }
   });
 
-  test('rejects a .ok/skills/** target and writes nothing', async () => {
+  test('rejects a .gitquire/skills/** target and writes nothing', async () => {
     const relPath = 'skills/phantom-from-create-page/SKILL.md';
-    const res = await postCreate({ path: `.ok/${relPath}` });
+    const res = await postCreate({ path: `.gitquire/${relPath}` });
     expect(res.status).toBe(400);
     const body = await res.json();
     const parsed = ProblemDetailsSchema.safeParse(body);
@@ -87,11 +87,11 @@ describe('create-page envelope (RFC 9457)', () => {
     if (parsed.success) {
       expect(parsed.data.type).toBe('urn:ok:error:reserved-doc-name');
     }
-    expect(existsSync(join(server.contentDir, '.ok', relPath))).toBe(false);
+    expect(existsSync(join(server.contentDir, '.gitquire', relPath))).toBe(false);
   });
 
-  test('rejects a bare .ok/-rooted target and writes nothing', async () => {
-    const res = await postCreate({ path: '.ok/local/sneaky.md' });
+  test('rejects a bare .gitquire/-rooted target and writes nothing', async () => {
+    const res = await postCreate({ path: '.gitquire/local/sneaky.md' });
     expect(res.status).toBe(400);
     const body = await res.json();
     const parsed = ProblemDetailsSchema.safeParse(body);
@@ -99,7 +99,7 @@ describe('create-page envelope (RFC 9457)', () => {
     if (parsed.success) {
       expect(parsed.data.type).toBe('urn:ok:error:reserved-doc-name');
     }
-    expect(existsSync(join(server.contentDir, '.ok', 'local', 'sneaky.md'))).toBe(false);
+    expect(existsSync(join(server.contentDir, '.gitquire', 'local', 'sneaky.md'))).toBe(false);
   });
 
   test('path traversal emits urn:ok:error:path-escape', async () => {

@@ -318,7 +318,7 @@ async function portalGeneration(page: Page, docName: string): Promise<string> {
 
 test.describe('vertical editor splits', () => {
   test.afterEach(({ workerServer }) => {
-    writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), '', 'utf-8');
+    writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
   });
 
   test('narrow editor selects one live group and restores the split', async ({ page, api }) => {
@@ -1069,9 +1069,9 @@ test.describe('vertical editor splits', () => {
     const suffix = testId();
     const first = `split-keyboard-a-${suffix}`;
     const second = `split-keyboard-b-${suffix}`;
-    mkdirSync(join(workerServer.contentDir, '.ok'), { recursive: true });
+    mkdirSync(join(workerServer.contentDir, '.gitquire'), { recursive: true });
     writeFileSync(
-      join(workerServer.contentDir, '.ok', 'config.yml'),
+      join(workerServer.contentDir, '.gitquire', 'config.yml'),
       'contentRules:\n  markdownlint:\n    enabled: true\n',
       'utf-8',
     );

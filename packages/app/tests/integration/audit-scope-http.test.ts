@@ -49,7 +49,7 @@ const flightObserver = vi.spyOn(singleFlight, 'createSingleFlight').mockImplemen
 beforeAll(async () => {
   const contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-audit-scope-http-')));
   const seeds = {
-    '.ok/config.yml':
+    '.gitquire/config.yml':
       'contentRules:\n  markdownlint:\n    enabled: true\n  okf:\n    enabled: true\n',
     '.gitignore': 'ignored/\nparity/ignored.txt\n',
     'guides/solo.md': '# Solo\n\nA\ttab.\n\nSee [[scope-solo-ghost]].\n',

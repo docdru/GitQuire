@@ -106,7 +106,7 @@ async function backlinkSources(baseUrl: string, docName: string): Promise<string
 test('direct create, duplicate, rename, and delete keep links and tags in lockstep', async () => {
   const server = await createTestServer();
   const relationSignals = connectRelationSignals(server.port);
-  const templateDir = join(server.contentDir, '.ok', 'templates');
+  const templateDir = join(server.contentDir, '.gitquire', 'templates');
   mkdirSync(templateDir, { recursive: true });
   writeFileSync(
     join(templateDir, 'lifecycle.md'),
@@ -126,11 +126,11 @@ test('direct create, duplicate, rename, and delete keep links and tags in lockst
     );
     expect(created.status).toBe(200);
     expect(await tagDocuments(server.baseUrl, 'lifecycle')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'folder/item',
     ]);
     expect(await backlinkSources(server.baseUrl, 'target')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'folder/item',
     ]);
 
@@ -142,7 +142,7 @@ test('direct create, duplicate, rename, and delete keep links and tags in lockst
     );
     expect(fileDuplicate.status).toBe(200);
     expect(await tagDocuments(server.baseUrl, 'lifecycle')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'folder/item',
       'folder/item copy',
     ]);
@@ -155,7 +155,7 @@ test('direct create, duplicate, rename, and delete keep links and tags in lockst
     );
     expect(folderDuplicate.status).toBe(200);
     expect(await tagDocuments(server.baseUrl, 'lifecycle')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'folder copy/item',
       'folder copy/item copy',
       'folder/item',
@@ -171,14 +171,14 @@ test('direct create, duplicate, rename, and delete keep links and tags in lockst
     );
     expect(renamed.status).toBe(200);
     expect(await tagDocuments(server.baseUrl, 'lifecycle')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'archive/item',
       'archive/item copy',
       'folder/item',
       'folder/item copy',
     ]);
     expect(await backlinkSources(server.baseUrl, 'target')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'archive/item',
       'archive/item copy',
       'folder/item',
@@ -193,12 +193,12 @@ test('direct create, duplicate, rename, and delete keep links and tags in lockst
     );
     expect(deleted.status).toBe(200);
     expect(await tagDocuments(server.baseUrl, 'lifecycle')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'folder/item',
       'folder/item copy',
     ]);
     expect(await backlinkSources(server.baseUrl, 'target')).toEqual([
-      '.ok/templates/lifecycle',
+      '.gitquire/templates/lifecycle',
       'folder/item',
       'folder/item copy',
     ]);

@@ -14,7 +14,7 @@ export const ROUND_READS = {
     'packages/server/**',
     'test-support/read-declarations-observer.ts',
     'pnpm-lock.yaml',
-    '.ok/config.yml',
+    '.gitquire/config.yml',
     'package.json',
     'tsconfig.json',
   ],

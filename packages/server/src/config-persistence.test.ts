@@ -121,7 +121,7 @@ function makeFixture(): Fixture {
 }
 
 function backupsIn(home: string): string[] {
-  const root = join(home, '.ok', 'edit-backups', 'discarded');
+  const root = join(home, '.gitquire', 'edit-backups', 'discarded');
   if (!existsSync(root)) return [];
   return readdirSync(root, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
@@ -129,19 +129,19 @@ function backupsIn(home: string): string[] {
 }
 
 function blockBackups(home: string): void {
-  mkdirSync(join(home, '.ok'), { recursive: true });
-  writeFileSync(join(home, '.ok', 'edit-backups'), 'not a folder');
+  mkdirSync(join(home, '.gitquire'), { recursive: true });
+  writeFileSync(join(home, '.gitquire', 'edit-backups'), 'not a folder');
 }
 
 function writeWorkspaceConfig(projectDir: string, content: string): string {
-  const path = join(projectDir, '.ok', 'config.yml');
+  const path = join(projectDir, '.gitquire', 'config.yml');
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content, 'utf-8');
   return path;
 }
 
 function writeProjectLocalConfig(projectDir: string, content: string): string {
-  const path = join(projectDir, '.ok', 'local', 'config.yml');
+  const path = join(projectDir, '.gitquire', 'local', 'config.yml');
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content, 'utf-8');
   return path;
@@ -313,21 +313,21 @@ describe('settings outside changes: agreed version, races and deferral', () => {
 });
 
 describe('configDocAbsPath', () => {
-  test('project doc resolves under projectDir/.ok/config.yml', () => {
+  test('project doc resolves under projectDir/.gitquire/config.yml', () => {
     expect(configDocAbsPath(CONFIG_DOC_NAME_PROJECT, fx.ctx)).toBe(
-      join(fx.projectDir, '.ok', 'config.yml'),
+      join(fx.projectDir, '.gitquire', 'config.yml'),
     );
   });
 
-  test('user doc resolves under homedirOverride/.ok/global.yml', () => {
+  test('user doc resolves under homedirOverride/.gitquire/global.yml', () => {
     expect(configDocAbsPath(CONFIG_DOC_NAME_USER, fx.ctx)).toBe(
-      join(fx.homedir, '.ok', 'global.yml'),
+      join(fx.homedir, '.gitquire', 'global.yml'),
     );
   });
 
-  test('project-local doc resolves under projectDir/.ok/local/config.yml', () => {
+  test('project-local doc resolves under projectDir/.gitquire/local/config.yml', () => {
     expect(configDocAbsPath(CONFIG_DOC_NAME_PROJECT_LOCAL, fx.ctx)).toBe(
-      join(fx.projectDir, '.ok', 'local', 'config.yml'),
+      join(fx.projectDir, '.gitquire', 'local', 'config.yml'),
     );
   });
 
@@ -413,7 +413,7 @@ describe('loadConfigDoc — cold start', () => {
     expect(doc.getText('source').length).toBe(firstLength);
   });
 
-  test('project-local doc seeds Y.Text from <projectDir>/.ok/local/config.yml', () => {
+  test('project-local doc seeds Y.Text from <projectDir>/.gitquire/local/config.yml', () => {
     const yaml = 'autoSync:\n  enabled: true\n';
     writeProjectLocalConfig(fx.projectDir, yaml);
     const doc = new Y.Doc();
@@ -444,7 +444,7 @@ describe('storeConfigDoc — happy path', () => {
     const doc = new Y.Doc();
     doc.getText('source').insert(0, 'mcp:\n  autoStart: true\n');
 
-    expect(existsSync(join(fx.homedir, '.ok'))).toBe(false);
+    expect(existsSync(join(fx.homedir, '.gitquire'))).toBe(false);
     const outcome = await storeConfigDoc(doc, CONFIG_DOC_NAME_USER, undefined, fx.ctx);
 
     expect(outcome).toBe('persisted');
@@ -458,7 +458,7 @@ describe('storeConfigDoc — happy path', () => {
 
     await storeConfigDoc(doc, CONFIG_DOC_NAME_PROJECT, undefined, fx.ctx);
 
-    const dir = join(fx.projectDir, '.ok');
+    const dir = join(fx.projectDir, '.gitquire');
     const entries = readdirSafe(dir);
     expect(entries.filter((e) => e.includes('.tmp.'))).toHaveLength(0);
     expect(entries).toContain('config.yml');
@@ -535,7 +535,7 @@ describe('storeConfigDoc — cross-process reconciliation (file lock)', () => {
         side: 'ours',
         where: 'backup',
         entry: expect.stringMatching(
-          /^~\/\.ok\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/[^/]+\/[^/]+\.yml$/,
+          /^~\/\.gitquire\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/[^/]+\/[^/]+\.yml$/,
         ),
       },
     ]);
@@ -721,7 +721,7 @@ describe('storeConfigDoc — cross-process reconciliation (file lock)', () => {
   });
 
   test('mkdir failure surfaces as write-failed via onConfigRejected; no exception escapes', async () => {
-    const parentPath = join(fx.homedir, '.ok');
+    const parentPath = join(fx.homedir, '.gitquire');
     writeFileSync(parentPath, 'placeholder', 'utf-8');
 
     const doc = new Y.Doc();
@@ -771,7 +771,7 @@ describe('storeConfigDoc — write failures', () => {
 
     expect(doc.getText('source').toString()).toBe('mcp:\n  autoStart: false\n');
 
-    const dir = join(fx.projectDir, '.ok');
+    const dir = join(fx.projectDir, '.gitquire');
     const entries = readdirSafe(dir);
     expect(entries.filter((e) => e.includes('.tmp.'))).toHaveLength(0);
   });
@@ -791,7 +791,7 @@ describe('storeConfigDoc — short-circuits', () => {
     );
 
     expect(outcome).toBe('no-op');
-    expect(existsSync(join(fx.projectDir, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(join(fx.projectDir, '.gitquire', 'config.yml'))).toBe(false);
     expect(fx.rejections).toHaveLength(0);
   });
 
@@ -800,7 +800,7 @@ describe('storeConfigDoc — short-circuits', () => {
     const outcome = await storeConfigDoc(doc, CONFIG_DOC_NAME_PROJECT, undefined, fx.ctx);
 
     expect(outcome).toBe('no-op');
-    expect(existsSync(join(fx.projectDir, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(join(fx.projectDir, '.gitquire', 'config.yml'))).toBe(false);
   });
 
   test('YAML doc: empty Y.Text with non-empty LKG → no-op (YAML scope preserved)', async () => {
@@ -850,7 +850,7 @@ describe('storeConfigDoc — rejection + revert', () => {
     if (isKnownConfigError(r.error)) {
       expect(r.error.code).toBe('YAML_PARSE');
     }
-    expect(existsSync(join(fx.projectDir, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(join(fx.projectDir, '.gitquire', 'config.yml'))).toBe(false);
   });
 
   test('schema-invalid → reverts Y.Text + structured SCHEMA_INVALID error with issues', async () => {
@@ -920,7 +920,7 @@ describe('storeConfigDoc — rejection + revert', () => {
     });
     const r2 = await storeConfigDoc(doc, CONFIG_DOC_NAME_PROJECT, undefined, fx.ctx);
     expect(r2).toBe('persisted');
-    expect(readFileSync(join(fx.projectDir, '.ok', 'config.yml'), 'utf-8')).toBe(
+    expect(readFileSync(join(fx.projectDir, '.gitquire', 'config.yml'), 'utf-8')).toBe(
       'mcp:\n  autoStart: false\n',
     );
     expect(fx.ctx.lkgCache.get(CONFIG_DOC_NAME_PROJECT)).toBe('mcp:\n  autoStart: false\n');
@@ -1080,7 +1080,7 @@ describe('persistence extension dispatch — config-doc integration', () => {
 
     expect(rejections).toHaveLength(1);
     expect(rejections[0]?.docName).toBe(CONFIG_DOC_NAME_PROJECT);
-    expect(existsSync(join(fx.projectDir, '.ok', 'config.yml'))).toBe(false);
+    expect(existsSync(join(fx.projectDir, '.gitquire', 'config.yml'))).toBe(false);
   });
 
   test('non-config doc names skip the config branch entirely', async () => {

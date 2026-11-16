@@ -123,9 +123,9 @@ describe('computeShareFreshness — push-fixable folders stay absent', () => {
     expect(await computeShareFreshness(t.senderDir, t.branch, 'later', 'folder')).toBe('absent');
   });
 
-  test('a folder holding only .ok metadata is absent — that folder does push', async () => {
+  test('a folder holding only .gitquire metadata is absent — that folder does push', async () => {
     const t = newTriangle();
-    t.writeWorkingTree('meta/.ok/folder.yml', 'title: Meta\n');
+    t.writeWorkingTree('meta/.gitquire/folder.yml', 'title: Meta\n');
     expect(await computeShareFreshness(t.senderDir, t.branch, 'meta', 'folder')).toBe('absent');
   });
 

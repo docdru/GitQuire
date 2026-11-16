@@ -68,8 +68,8 @@ function inventory(projectSubPath = ''): WorktreeInventoryModel {
         prunable: false,
       },
       {
-        checkoutRoot: '/repo/.ok/worktrees/dev',
-        projectPath: `/repo/.ok/worktrees/dev${suffix}`,
+        checkoutRoot: '/repo/.gitquire/worktrees/dev',
+        projectPath: `/repo/.gitquire/worktrees/dev${suffix}`,
         branch: 'dev',
         headSha: '22222222',
         location: 'internal',
@@ -106,7 +106,7 @@ describe('groupRecentsByRepo', () => {
   test('groups by repository identity plus project-relative root', () => {
     const groups = groupRecentsByRepo([
       repoRecent('/repo', '/repo', 'main'),
-      repoRecent('/repo/.ok/worktrees/dev', '/repo/.ok/worktrees/dev', 'dev'),
+      repoRecent('/repo/.gitquire/worktrees/dev', '/repo/.gitquire/worktrees/dev', 'dev'),
       repoRecent('/repo/packages/docs', '/repo', 'main', { projectSubPath: 'packages/docs' }),
       repoRecent('/external/repo-docs/packages/docs', '/external/repo-docs', 'docs', {
         linked: true,
@@ -139,13 +139,13 @@ describe('groupRecentsByRepo', () => {
 describe('buildWorktreeFlyoutEntries', () => {
   test('a linked-only recent receives the full selected-scope inventory', () => {
     const [group] = groupRecentsByRepo([
-      repoRecent('/repo/.ok/worktrees/dev', '/repo/.ok/worktrees/dev', 'dev'),
+      repoRecent('/repo/.gitquire/worktrees/dev', '/repo/.gitquire/worktrees/dev', 'dev'),
     ]);
     if (group === undefined) throw new Error('missing group');
     const entries = buildWorktreeFlyoutEntries(group, inventory(), null, '/elsewhere');
     expect(entries.map((entry) => entry.path)).toEqual([
       '/repo',
-      '/repo/.ok/worktrees/dev',
+      '/repo/.gitquire/worktrees/dev',
       '/external/repo-feat',
     ]);
     expect(entries.map(rowLocation)).toEqual(['primary', 'internal', 'external']);
@@ -165,12 +165,12 @@ describe('buildWorktreeFlyoutEntries', () => {
       '/repo/packages/docs',
     );
     expect(entries.find((entry) => entry.location === 'internal')).toMatchObject({
-      path: '/repo/.ok/worktrees/dev/packages/docs',
-      checkoutRoot: '/repo/.ok/worktrees/dev',
+      path: '/repo/.gitquire/worktrees/dev/packages/docs',
+      checkoutRoot: '/repo/.gitquire/worktrees/dev',
       isCurrent: false,
       inventoryOpenRequest: {
         projectSubPath: 'packages/docs',
-        projectPath: '/repo/.ok/worktrees/dev/packages/docs',
+        projectPath: '/repo/.gitquire/worktrees/dev/packages/docs',
       },
     });
   });

@@ -1009,11 +1009,11 @@ describe('skill-bundle doc scoping', () => {
 
   test('folder templates keep their link findings', async () => {
     seedDoc('control', '# Control\n\nSee [[ghost]].\n');
-    seedDoc('.ok/templates/daily', '# Daily\n\nSee [[template-ghost]].\n');
+    seedDoc('.gitquire/templates/daily', '# Daily\n\nSee [[template-ghost]].\n');
 
     const result = await runValidationAudit(createProjectValidators(deps()));
 
-    const template = result.files.find((f) => f.file === '.ok/templates/daily.md');
+    const template = result.files.find((f) => f.file === '.gitquire/templates/daily.md');
     expect(template?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
   });
 

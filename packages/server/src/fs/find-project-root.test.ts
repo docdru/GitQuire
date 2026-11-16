@@ -16,17 +16,17 @@ describe('findEnclosingProjectRoot', () => {
   });
 
   function writeConfig(dir: string): void {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'config.yml'), 'version: 1\n');
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
+    writeFileSync(join(dir, '.gitquire', 'config.yml'), 'version: 1\n');
   }
 
-  test('returns { rootPath: dir, distance: 0 } when dir itself has .ok/config.yml', () => {
+  test('returns { rootPath: dir, distance: 0 } when dir itself has .gitquire/config.yml', () => {
     writeConfig(root);
     const result = findEnclosingProjectRoot(root);
     expect(result).toEqual({ rootPath: root, distance: 0 });
   });
 
-  test('returns ancestor with positive distance when an ancestor has .ok/config.yml', () => {
+  test('returns ancestor with positive distance when an ancestor has .gitquire/config.yml', () => {
     writeConfig(root);
     const nested = join(root, 'a', 'b', 'c');
     mkdirSync(nested, { recursive: true });
@@ -34,23 +34,23 @@ describe('findEnclosingProjectRoot', () => {
     expect(result).toEqual({ rootPath: root, distance: 3 });
   });
 
-  test('returns null when no ancestor up to filesystem root has .ok/config.yml', () => {
+  test('returns null when no ancestor up to filesystem root has .gitquire/config.yml', () => {
     const nested = join(root, 'a', 'b');
     mkdirSync(nested, { recursive: true });
     const result = findEnclosingProjectRoot(nested);
     expect(result).toBeNull();
   });
 
-  test('half-init folder (.ok/.gitignore exists but no config.yml) returns null', () => {
-    mkdirSync(join(root, '.ok'), { recursive: true });
-    writeFileSync(join(root, '.ok', '.gitignore'), 'local/\n');
+  test('half-init folder (.gitquire/.gitignore exists but no config.yml) returns null', () => {
+    mkdirSync(join(root, '.gitquire'), { recursive: true });
+    writeFileSync(join(root, '.gitquire', '.gitignore'), 'local/\n');
     const result = findEnclosingProjectRoot(root);
     expect(result).toBeNull();
   });
 
-  test('folder with only .ok/frontmatter.yml (nested folder rule) returns null', () => {
-    mkdirSync(join(root, '.ok'), { recursive: true });
-    writeFileSync(join(root, '.ok', 'frontmatter.yml'), 'tags: []\n');
+  test('folder with only .gitquire/frontmatter.yml (nested folder rule) returns null', () => {
+    mkdirSync(join(root, '.gitquire'), { recursive: true });
+    writeFileSync(join(root, '.gitquire', 'frontmatter.yml'), 'tags: []\n');
     const result = findEnclosingProjectRoot(root);
     expect(result).toBeNull();
   });
@@ -69,7 +69,7 @@ describe('findEnclosingProjectRoot', () => {
     expect(result).toBeNull();
   });
 
-  test('deeply nested temp dir with no .ok anywhere returns null without infinite-looping', () => {
+  test('deeply nested temp dir with no .gitquire anywhere returns null without infinite-looping', () => {
     let cursor = root;
     for (let i = 0; i < 8; i++) {
       cursor = join(cursor, `level-${i}`);

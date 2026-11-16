@@ -293,8 +293,8 @@ describe('project diagnostics location', () => {
       expect(dirname(namespace)).toBe(join(okUserHomeDir(), 'logs', 'projects'));
       expect(basename(namespace)).toMatch(/^[a-f0-9]{64}$/);
       expect(dirname(spansPath)).toBe(namespace);
-      expect(existsSync(join(tmp, '.ok', 'local', 'logs'))).toBe(false);
-      expect(existsSync(join(tmp, '.ok', 'local', 'telemetry'))).toBe(false);
+      expect(existsSync(join(tmp, '.gitquire', 'local', 'logs'))).toBe(false);
+      expect(existsSync(join(tmp, '.gitquire', 'local', 'telemetry'))).toBe(false);
     } finally {
       await provider.shutdown();
       sink.destroy();

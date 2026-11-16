@@ -29,7 +29,7 @@ type LockVerdict =
   | { readonly kind: 'stopping'; readonly reason: string };
 
 export function productionShellLockPath(contentDir: string): string {
-  return join(contentDir, '.ok', 'local', 'server.lock');
+  return join(contentDir, '.gitquire', 'local', 'server.lock');
 }
 
 function readLock(path: string): Record<string, unknown> | string {

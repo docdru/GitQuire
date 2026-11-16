@@ -140,7 +140,7 @@ describe('auditProject', () => {
           ...DEFAULT_LINTER_CONFIG.plugins,
           frontmatter: {
             enabled: true,
-            schemas: [{ appliesTo: '**', file: '.ok/schemas/missing.json' }],
+            schemas: [{ appliesTo: '**', file: '.gitquire/schemas/missing.json' }],
           },
         },
       },
@@ -264,7 +264,7 @@ describe('auditProject', () => {
   });
 
   test('skips hidden path segments — docs there are not addressable to fix or navigate', async () => {
-    write('.ok/skills/pack/SKILL.md', DOC_WITH_TAB);
+    write('.gitquire/skills/pack/SKILL.md', DOC_WITH_TAB);
     write('.hidden-notes.md', DOC_WITH_TAB);
     write('visible.md', DOC_WITH_TAB);
     const audit = await auditProject({
@@ -276,12 +276,12 @@ describe('auditProject', () => {
   });
 
   test('refuses a targetPath under a hidden segment', async () => {
-    write('.ok/skills/pack/SKILL.md', DOC_WITH_TAB);
+    write('.gitquire/skills/pack/SKILL.md', DOC_WITH_TAB);
     const audit = await auditProject({
       projectDir: root,
       contentDir: root,
       baseConfig: base,
-      targetPath: '.ok/skills',
+      targetPath: '.gitquire/skills',
     });
     expect(audit.files).toEqual([]);
     expect(audit.warnings).toEqual([

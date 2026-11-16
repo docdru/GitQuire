@@ -19,7 +19,7 @@ function makeDeps(
 
 function candidate(contentDir: string, port: number, alive = true): OffCwdCandidate {
   return {
-    lockDir: `${contentDir}/.ok/local`,
+    lockDir: `${contentDir}/.gitquire/local`,
     contentDir,
     baseUrl: `http://127.0.0.1:${port}`,
     alive,
@@ -84,9 +84,9 @@ describe('resolveOffCwdTarget', () => {
   test('an inspect failure on one candidate does not sink the resolution', async () => {
     const good = candidate('/repo/feat-b', 5102);
     const deps: OffCwdResolverDeps = {
-      discover: async () => ['/bad/.ok/local', good.lockDir],
+      discover: async () => ['/bad/.gitquire/local', good.lockDir],
       inspect: async (d) => {
-        if (d === '/bad/.ok/local') throw new Error('stat failed');
+        if (d === '/bad/.gitquire/local') throw new Error('stat failed');
         return good;
       },
       realpath: async (p) => p,
@@ -97,7 +97,7 @@ describe('resolveOffCwdTarget', () => {
 });
 
 describe('projectDirOfLockDir', () => {
-  test('walks up from <projectDir>/.ok/local to <projectDir>', () => {
-    expect(projectDirOfLockDir('/repo/feat-a/.ok/local')).toBe('/repo/feat-a');
+  test('walks up from <projectDir>/.gitquire/local to <projectDir>', () => {
+    expect(projectDirOfLockDir('/repo/feat-a/.gitquire/local')).toBe('/repo/feat-a');
   });
 });

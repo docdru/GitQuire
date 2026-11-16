@@ -113,8 +113,8 @@ describe('tmpUploadDir / mintTempUploadPath', () => {
     rmSync(tmpBase, { recursive: true, force: true });
   });
 
-  test('tmpUploadDir resolves to <projectDir>/.ok/local/tmp', () => {
-    expect(tmpUploadDir(tmpBase)).toBe(resolve(tmpBase, '.ok', LOCAL_DIR, 'tmp'));
+  test('tmpUploadDir resolves to <projectDir>/.gitquire/local/tmp', () => {
+    expect(tmpUploadDir(tmpBase)).toBe(resolve(tmpBase, '.gitquire', LOCAL_DIR, 'tmp'));
   });
 
   test('mintTempUploadPath lazily creates the tmp dir', () => {

@@ -192,7 +192,7 @@ describe('write({ document }) relaying a concurrent-overwrite refusal', () => {
       },
     });
     cwd = mkdtempSync(join(tmpdir(), 'ok-write-concurrent-refusal-'));
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
 
     let captured: Handler | null = null;
     const server = {
@@ -260,7 +260,7 @@ describe('write({ document }) appending or prepending to a path with no document
       },
     });
     cwd = mkdtempSync(join(tmpdir(), 'ok-write-created-by-position-'));
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
     mkdirSync(join(cwd, 'notes'), { recursive: true });
     writeFileSync(join(cwd, 'notes', 'existing.md'), '# Existing\n');
 
@@ -328,7 +328,7 @@ describe('write — an asset upload whose request to the server fails', () => {
 
   beforeAll(() => {
     cwd = mkdtempSync(join(tmpdir(), 'ok-write-asset-transport-'));
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
   });
 
   afterAll(() => {
@@ -380,7 +380,7 @@ describe('write — the reply to an asset upload the server accepted', () => {
 
   beforeAll(() => {
     cwd = mkdtempSync(join(tmpdir(), 'ok-write-asset-reply-'));
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
   });
 
   afterAll(() => {

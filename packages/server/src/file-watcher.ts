@@ -4290,7 +4290,7 @@ async function startParcelWatcher(
         if (closed) return;
         if (failure) throw failure;
         const name = `watcher-settle-fence-${randomUUID()}`;
-        const fencePath = join(contentDir, '.ok', name);
+        const fencePath = join(contentDir, '.gitquire', name);
         const reached = Promise.withResolvers<void>();
         let quiet: WatcherTimer | undefined;
         const progressed = (): void => {
@@ -4354,7 +4354,7 @@ export function isChokidarPathIgnored(
   }
   if (isDirectory) {
     const m = /^(\.[A-Za-z0-9_-]+)(\/skills(\/[^/]+)?)?$/.exec(rel);
-    if (m && m[1] !== '.ok') {
+    if (m && m[1] !== '.gitquire') {
       if (m[2] !== undefined) return false;
       if (existsSync(join(contentDir, rel, 'skills'))) return false;
     }

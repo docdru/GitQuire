@@ -43,7 +43,7 @@ describe('writeFrontmatterSchemaField', () => {
   test('create-on-first-edit materializes the skeleton + edit at the mapped path', () => {
     const result = writeFrontmatterSchemaField(
       projectDir,
-      '.ok/schemas/new.schema.json',
+      '.gitquire/schemas/new.schema.json',
       'status',
       {
         enum: ['draft', 'review'],
@@ -52,7 +52,7 @@ describe('writeFrontmatterSchemaField', () => {
     );
     expect(result.action).toBe('created');
     const onDisk = JSON.parse(
-      readFileSync(join(projectDir, '.ok/schemas/new.schema.json'), 'utf-8'),
+      readFileSync(join(projectDir, '.gitquire/schemas/new.schema.json'), 'utf-8'),
     );
     expect(onDisk.$schema).toBe('http://json-schema.org/draft-07/schema#');
     expect(onDisk.properties.status.enum).toEqual(['draft', 'review']);
@@ -98,10 +98,13 @@ describe('writeFrontmatterSchemaField', () => {
 
 describe('createEmptyFrontmatterSchemaFile', () => {
   test('creates the draft-07 skeleton at a fresh path, making the dir', () => {
-    const result = createEmptyFrontmatterSchemaFile(projectDir, '.ok/schemas/new.schema.json');
+    const result = createEmptyFrontmatterSchemaFile(
+      projectDir,
+      '.gitquire/schemas/new.schema.json',
+    );
     expect(result.action).toBe('created');
     const onDisk = JSON.parse(
-      readFileSync(join(projectDir, '.ok/schemas/new.schema.json'), 'utf-8'),
+      readFileSync(join(projectDir, '.gitquire/schemas/new.schema.json'), 'utf-8'),
     );
     expect(onDisk).toMatchObject({ type: 'object' });
     expect(typeof onDisk.$schema).toBe('string');
@@ -109,10 +112,10 @@ describe('createEmptyFrontmatterSchemaFile', () => {
 
   test('is idempotent — an existing schema is left untouched (never clobbered)', () => {
     const existing = `${JSON.stringify({ type: 'object', properties: { a: { type: 'string' } } }, null, 2)}\n`;
-    write('.ok/schemas/keep.json', existing);
-    const result = createEmptyFrontmatterSchemaFile(projectDir, '.ok/schemas/keep.json');
+    write('.gitquire/schemas/keep.json', existing);
+    const result = createEmptyFrontmatterSchemaFile(projectDir, '.gitquire/schemas/keep.json');
     expect(result.action).toBe('written');
-    expect(readFileSync(join(projectDir, '.ok/schemas/keep.json'), 'utf-8')).toBe(existing);
+    expect(readFileSync(join(projectDir, '.gitquire/schemas/keep.json'), 'utf-8')).toBe(existing);
   });
 
   test('refuses a path that escapes the project root', () => {
@@ -130,19 +133,19 @@ describe('removeFrontmatterSchemaField / renameFrontmatterSchemaField', () => {
   );
 
   test('remove drops the field on disk', () => {
-    write('.ok/schemas/s.json', SEED);
-    const result = removeFrontmatterSchemaField(projectDir, '.ok/schemas/s.json', 'a');
+    write('.gitquire/schemas/s.json', SEED);
+    const result = removeFrontmatterSchemaField(projectDir, '.gitquire/schemas/s.json', 'a');
     expect(result.action).toBe('written');
-    const onDisk = JSON.parse(readFileSync(join(projectDir, '.ok/schemas/s.json'), 'utf-8'));
+    const onDisk = JSON.parse(readFileSync(join(projectDir, '.gitquire/schemas/s.json'), 'utf-8'));
     expect(onDisk.properties).toEqual({ b: {} });
     expect('required' in onDisk).toBe(false);
   });
 
   test('rename carries the property and required membership', () => {
-    write('.ok/schemas/s.json', SEED);
-    const result = renameFrontmatterSchemaField(projectDir, '.ok/schemas/s.json', 'a', 'z');
+    write('.gitquire/schemas/s.json', SEED);
+    const result = renameFrontmatterSchemaField(projectDir, '.gitquire/schemas/s.json', 'a', 'z');
     expect(result.action).toBe('written');
-    const onDisk = JSON.parse(readFileSync(join(projectDir, '.ok/schemas/s.json'), 'utf-8'));
+    const onDisk = JSON.parse(readFileSync(join(projectDir, '.gitquire/schemas/s.json'), 'utf-8'));
     expect(Object.keys(onDisk.properties)).toEqual(['z', 'b']);
     expect(onDisk.required).toEqual(['z']);
   });
@@ -153,8 +156,8 @@ describe('removeFrontmatterSchemaField / renameFrontmatterSchemaField', () => {
   });
 
   test('rename onto an existing field is refused, file untouched', () => {
-    const abs = write('.ok/schemas/s.json', SEED);
-    const result = renameFrontmatterSchemaField(projectDir, '.ok/schemas/s.json', 'a', 'b');
+    const abs = write('.gitquire/schemas/s.json', SEED);
+    const result = renameFrontmatterSchemaField(projectDir, '.gitquire/schemas/s.json', 'a', 'b');
     expect(result.action).toBe('refused');
     expect(readFileSync(abs, 'utf-8')).toBe(SEED);
   });
@@ -167,14 +170,14 @@ describe('removeFrontmatterSchemaField / renameFrontmatterSchemaField', () => {
 
 describe('deleteFrontmatterSchemaFile', () => {
   test('deletes an existing tool-managed schema file', () => {
-    const abs = write('.ok/schemas/doc.schema.json', '{"type":"object"}');
-    const result = deleteFrontmatterSchemaFile(projectDir, '.ok/schemas/doc.schema.json');
+    const abs = write('.gitquire/schemas/doc.schema.json', '{"type":"object"}');
+    const result = deleteFrontmatterSchemaFile(projectDir, '.gitquire/schemas/doc.schema.json');
     expect(result.action).toBe('deleted');
     expect(existsSync(abs)).toBe(false);
   });
 
   test('is idempotent — an already-absent file still reports deleted', () => {
-    const result = deleteFrontmatterSchemaFile(projectDir, '.ok/schemas/gone.schema.json');
+    const result = deleteFrontmatterSchemaFile(projectDir, '.gitquire/schemas/gone.schema.json');
     expect(result.action).toBe('deleted');
   });
 
@@ -185,48 +188,48 @@ describe('deleteFrontmatterSchemaFile', () => {
     expect(existsSync(abs)).toBe(false);
   });
 
-  test('refuses unconventionally named json outside .ok/schemas/, file left on disk', () => {
+  test('refuses unconventionally named json outside .gitquire/schemas/, file left on disk', () => {
     const abs = write('schemas/user-owned.json', '{"type":"object"}');
     const result = deleteFrontmatterSchemaFile(projectDir, 'schemas/user-owned.json');
     expect(result.action).toBe('refused');
     expect(existsSync(abs)).toBe(true);
   });
 
-  test('refuses a nested non-convention path under .ok/schemas/', () => {
-    const abs = write('.ok/schemas/sub/nested.json', '{"type":"object"}');
-    const result = deleteFrontmatterSchemaFile(projectDir, '.ok/schemas/sub/nested.json');
+  test('refuses a nested non-convention path under .gitquire/schemas/', () => {
+    const abs = write('.gitquire/schemas/sub/nested.json', '{"type":"object"}');
+    const result = deleteFrontmatterSchemaFile(projectDir, '.gitquire/schemas/sub/nested.json');
     expect(result.action).toBe('refused');
     expect(existsSync(abs)).toBe(true);
   });
 
   test('refuses traversal dressed as a schemas path', () => {
-    const result = deleteFrontmatterSchemaFile(projectDir, '.ok/schemas/../../evil.json');
+    const result = deleteFrontmatterSchemaFile(projectDir, '.gitquire/schemas/../../evil.json');
     expect(result.action).toBe('refused');
   });
 
   test('unlinks a symlink ENTRY without touching its target', () => {
     const target = write('kept.json', '{"type":"object"}');
-    mkdirSync(join(projectDir, '.ok/schemas'), { recursive: true });
-    const link = join(projectDir, '.ok/schemas/linked.json');
+    mkdirSync(join(projectDir, '.gitquire/schemas'), { recursive: true });
+    const link = join(projectDir, '.gitquire/schemas/linked.json');
     symlinkSync(target, link);
-    const result = deleteFrontmatterSchemaFile(projectDir, '.ok/schemas/linked.json');
+    const result = deleteFrontmatterSchemaFile(projectDir, '.gitquire/schemas/linked.json');
     expect(result.action).toBe('deleted');
     expect(existsSync(link)).toBe(false);
     expect(existsSync(target)).toBe(true);
   });
 
-  test('refuses when .ok/schemas itself is a symlink escaping the project', () => {
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+  test('refuses when .gitquire/schemas itself is a symlink escaping the project', () => {
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
     writeFileSync(join(outsideDir, 'victim.json'), '{"type":"object"}');
-    symlinkSync(outsideDir, join(projectDir, '.ok/schemas'));
-    const result = deleteFrontmatterSchemaFile(projectDir, '.ok/schemas/victim.json');
+    symlinkSync(outsideDir, join(projectDir, '.gitquire/schemas'));
+    const result = deleteFrontmatterSchemaFile(projectDir, '.gitquire/schemas/victim.json');
     expect(result.action).toBe('refused');
     expect(existsSync(join(outsideDir, 'victim.json'))).toBe(true);
   });
 
   test('a non-directory path component still reports deleted (provably absent)', () => {
-    writeFileSync(join(projectDir, '.ok'), 'not a directory');
-    const result = deleteFrontmatterSchemaFile(projectDir, '.ok/schemas/x.schema.json');
+    writeFileSync(join(projectDir, '.gitquire'), 'not a directory');
+    const result = deleteFrontmatterSchemaFile(projectDir, '.gitquire/schemas/x.schema.json');
     expect(result.action).toBe('deleted');
   });
 });
@@ -258,25 +261,38 @@ describe('write-path symlink containment', () => {
     expect(readFileSync(victim, 'utf-8')).toBe(bytes);
   });
 
-  test('refuses creating under a .ok/schemas that symlinks outside the project', () => {
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    symlinkSync(outsideDir, join(projectDir, '.ok/schemas'));
-    const created = createEmptyFrontmatterSchemaFile(projectDir, '.ok/schemas/new.schema.json');
+  test('refuses creating under a .gitquire/schemas that symlinks outside the project', () => {
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    symlinkSync(outsideDir, join(projectDir, '.gitquire/schemas'));
+    const created = createEmptyFrontmatterSchemaFile(
+      projectDir,
+      '.gitquire/schemas/new.schema.json',
+    );
     expect(created.action).toBe('refused');
-    const edited = writeFrontmatterSchemaField(projectDir, '.ok/schemas/new.schema.json', 'x', {
-      type: 'string',
-    });
+    const edited = writeFrontmatterSchemaField(
+      projectDir,
+      '.gitquire/schemas/new.schema.json',
+      'x',
+      {
+        type: 'string',
+      },
+    );
     expect(edited.action).toBe('refused');
     expect(existsSync(join(outsideDir, 'new.schema.json'))).toBe(false);
   });
 
   test('a symlink resolving INSIDE the project is edited in place', () => {
     const target = write('real/s.schema.json', `${JSON.stringify({ type: 'object' }, null, 2)}\n`);
-    mkdirSync(join(projectDir, '.ok/schemas'), { recursive: true });
-    symlinkSync(target, join(projectDir, '.ok/schemas/link.json'));
-    const result = writeFrontmatterSchemaField(projectDir, '.ok/schemas/link.json', 'status', {
-      type: 'string',
-    });
+    mkdirSync(join(projectDir, '.gitquire/schemas'), { recursive: true });
+    symlinkSync(target, join(projectDir, '.gitquire/schemas/link.json'));
+    const result = writeFrontmatterSchemaField(
+      projectDir,
+      '.gitquire/schemas/link.json',
+      'status',
+      {
+        type: 'string',
+      },
+    );
     expect(result.action).toBe('written');
     const parsed = JSON.parse(readFileSync(target, 'utf-8')) as {
       properties: { status: { type: string } };

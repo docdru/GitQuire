@@ -24,11 +24,11 @@ describe('walkFiles', () => {
     expect(names).toEqual(['a.md', 'b.md', 'c.md']);
   });
 
-  test('skips dotfiles and dot-directories (.ok, .git)', () => {
+  test('skips dotfiles and dot-directories (.gitquire, .git)', () => {
     const root = makeTree({
       'keep.md': 'K',
       '.okignore': 'x',
-      '.ok/local/server.lock': 'lock',
+      '.gitquire/local/server.lock': 'lock',
       '.git/HEAD': 'ref',
     });
     const names = walkFiles(root).map((f) => basename(f));

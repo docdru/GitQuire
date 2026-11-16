@@ -74,7 +74,7 @@ describe('runInit', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('scaffolds .ok/ and points at gq start', async () => {
+  it('scaffolds .gitquire/ and points at gq start', async () => {
     const result = await runInitForTest();
     expect(existsSync(join(testDir, OK_DIR, 'config.yml'))).toBe(true);
     expect(formatInitResult(result, testDir)).toContain('start');
@@ -579,7 +579,7 @@ describe('runInit — refuses the home directory as a project root', () => {
     await expect(runAtHome(fakeHome)).rejects.toBeInstanceOf(HomeProjectRootError);
   });
 
-  it('writes nothing at all — no git repo, no .ok/, no project skills', async () => {
+  it('writes nothing at all — no git repo, no .gitquire/, no project skills', async () => {
     await expect(runAtHome(fakeHome)).rejects.toThrow();
 
     expect(existsSync(join(fakeHome, '.git'))).toBe(false);
@@ -732,7 +732,7 @@ describe('runInit — sharing mode', () => {
     expect(result.sharing.mode).toBe('local-only');
     expect(result.sharing.appended.length).toBeGreaterThan(0);
     const exclude = readFileSync(join(testDir, '.git', 'info', 'exclude'), 'utf-8');
-    expect(exclude).toContain('.ok/');
+    expect(exclude).toContain('.gitquire/');
     expect(exclude).toContain('.okignore');
   });
 
@@ -765,8 +765,8 @@ describe('runInit — sharing mode', () => {
         kind: 'applied',
         mode: 'local-only',
         action: 'added',
-        appended: ['.ok/', '.okignore'],
-        alreadyPresent: ['.ok/'],
+        appended: ['.gitquire/', '.okignore'],
+        alreadyPresent: ['.gitquire/'],
         removed: ['.claude/skills/trip-log/'],
       },
       '/tmp/project',
@@ -784,7 +784,7 @@ describe('runInit — sharing mode', () => {
         mode: 'local-only',
         action: 'cleaned',
         appended: [],
-        alreadyPresent: ['.ok/', '.okignore'],
+        alreadyPresent: ['.gitquire/', '.okignore'],
         removed: ['.claude/skills/trip-log/'],
       },
       '/tmp/project',
@@ -818,7 +818,7 @@ describe('runInit — sharing mode', () => {
     if (result.sharing.kind !== 'applied') throw new Error('expected applied');
     expect(result.sharing.mode).toBe('local-only');
     const exclude = readFileSync(join(testDir, '.git', 'info', 'exclude'), 'utf-8');
-    expect(exclude).toContain('.ok/');
+    expect(exclude).toContain('.gitquire/');
     expect(exclude).toContain('.okignore');
   });
 
@@ -863,7 +863,7 @@ describe('runInit — sharing mode', () => {
     const after = readFileSync(excludePath, 'utf-8');
     expect(after).toContain('# user header');
     expect(after).toContain('*.tmp');
-    expect(after).not.toContain('.ok/');
+    expect(after).not.toContain('.gitquire/');
     expect(after).not.toContain('.mcp.json');
   });
 

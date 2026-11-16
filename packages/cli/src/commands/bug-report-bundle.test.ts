@@ -63,7 +63,7 @@ function readZipEntry(zipPath: string, entry: string): string {
 
 function makeProjectDir(slug = 'bundle-proj'): string {
   const projectDir = makeTmpDir();
-  writeAt(projectDir, '.ok/config.yml', `name: ${slug}\n`);
+  writeAt(projectDir, '.gitquire/config.yml', `name: ${slug}\n`);
   return projectDir;
 }
 
@@ -75,11 +75,11 @@ function expectedProjectLogsDir(projectDir: string): string {
 const relocatedDiagnostics = [
   [
     'server-current.jsonl',
-    '.ok/local/logs/server-current.jsonl',
+    '.gitquire/local/logs/server-current.jsonl',
     'local-logs/server-current.jsonl',
   ],
-  ['server-prev.jsonl', '.ok/local/logs/server-prev.jsonl', 'local-logs/server-prev.jsonl'],
-  ['last-spawn-error.log', '.ok/local/last-spawn-error.log', 'lockdir/last-spawn-error.log'],
+  ['server-prev.jsonl', '.gitquire/local/logs/server-prev.jsonl', 'local-logs/server-prev.jsonl'],
+  ['last-spawn-error.log', '.gitquire/local/last-spawn-error.log', 'lockdir/last-spawn-error.log'],
 ] as const;
 
 describe('collectStandardBundle — relocated project diagnostics', () => {
@@ -99,7 +99,7 @@ describe('collectStandardBundle — relocated project diagnostics', () => {
       }
       writeAt(foreignDir, 'spans-current.jsonl', 'foreign-span-decoy\n');
       if (source !== 'legacy') writeAt(currentDir, 'spans-current.jsonl', 'excluded-span-decoy\n');
-      writeAt(projectDir, '.ok/local/telemetry/spans-current.jsonl', 'excluded-span-decoy\n');
+      writeAt(projectDir, '.gitquire/local/telemetry/spans-current.jsonl', 'excluded-span-decoy\n');
       const outputPath = join(makeTmpDir(), 'report.zip');
       const { zipPath, summary } = await collectStandardBundle({
         projectDir,
@@ -191,14 +191,14 @@ describe('collectStandardBundle — diagnostic-report staging count', () => {
 describe('collectStandardBundle — project bundle', () => {
   test('packages lock/spawn-error, local sink logs, and sysinfo into the zip', async () => {
     const projectDir = makeProjectDir();
-    writeAt(projectDir, '.ok/local/server.lock', '{"pid":1234}\n');
-    writeAt(projectDir, '.ok/local/last-spawn-error.log', 'spawn failed\n');
+    writeAt(projectDir, '.gitquire/local/server.lock', '{"pid":1234}\n');
+    writeAt(projectDir, '.gitquire/local/last-spawn-error.log', 'spawn failed\n');
     writeAt(
       projectDir,
-      '.ok/local/acp-launch-failures.log',
+      '.gitquire/local/acp-launch-failures.log',
       '=== acp launch failure 2026-09-23T12:00:00.000Z thread=t agent=codex-acp source=registry reason=connect ===\n',
     );
-    writeAt(projectDir, '.ok/local/logs/server-current.jsonl', '{"level":30}\n');
+    writeAt(projectDir, '.gitquire/local/logs/server-current.jsonl', '{"level":30}\n');
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { zipPath, summary } = await collectStandardBundle({
@@ -228,7 +228,7 @@ describe('collectStandardBundle — project bundle', () => {
   test('last-server-crash.json is packaged from the lock dir when the server recorded a crash', async () => {
     const projectDir = makeProjectDir();
     const body = '{"origin":"uncaughtException","error":{"name":"Error","message":"boom"}}\n';
-    writeAt(projectDir, '.ok/local/last-server-crash.json', body);
+    writeAt(projectDir, '.gitquire/local/last-server-crash.json', body);
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { zipPath } = await collectStandardBundle({
@@ -244,7 +244,7 @@ describe('collectStandardBundle — project bundle', () => {
 
   test('MANIFEST.json mirrors the returned summary', async () => {
     const projectDir = makeProjectDir();
-    writeAt(projectDir, '.ok/local/server.lock', '{"pid":1}\n');
+    writeAt(projectDir, '.gitquire/local/server.lock', '{"pid":1}\n');
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { zipPath, summary } = await collectStandardBundle({
@@ -262,9 +262,9 @@ describe('collectStandardBundle — project bundle', () => {
     expect(summary.files).toContain('sysinfo.json');
   });
 
-  test('falls back to a hashed slug when .ok exists without a config name', async () => {
+  test('falls back to a hashed slug when .gitquire exists without a config name', async () => {
     const projectDir = makeTmpDir();
-    writeAt(projectDir, '.ok/local/server.lock', '{}\n');
+    writeAt(projectDir, '.gitquire/local/server.lock', '{}\n');
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { summary } = await collectStandardBundle({ projectDir, redact: true, outputPath });
@@ -278,7 +278,7 @@ describe('collectStandardBundle — redaction', () => {
 
   test('scrubs a seeded secret and records the audit', async () => {
     const projectDir = makeProjectDir();
-    writeAt(projectDir, '.ok/local/last-spawn-error.log', `token ${secret} leaked\n`);
+    writeAt(projectDir, '.gitquire/local/last-spawn-error.log', `token ${secret} leaked\n`);
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { zipPath, summary } = await collectStandardBundle({
@@ -301,7 +301,7 @@ describe('collectStandardBundle — redaction', () => {
 
   test('redact: false leaves content unmodified and the audit empty', async () => {
     const projectDir = makeProjectDir();
-    writeAt(projectDir, '.ok/local/last-spawn-error.log', `token ${secret} leaked\n`);
+    writeAt(projectDir, '.gitquire/local/last-spawn-error.log', `token ${secret} leaked\n`);
     const outputPath = join(makeTmpDir(), 'report.zip');
 
     const { zipPath, summary } = await collectStandardBundle({
@@ -993,12 +993,12 @@ describe('collectStandardBundle — system-wide (no projectDir)', () => {
 });
 
 describe('defaultBugReportZipPath', () => {
-  test('derives ~/.ok/bug-reports/<timestamp>-bugreport.zip with : and . replaced', () => {
+  test('derives ~/.gitquire/bug-reports/<timestamp>-bugreport.zip with : and . replaced', () => {
     const path = defaultBugReportZipPath(new Date('2026-07-10T01:02:03.456Z'));
     expect(path).toBe(
-      join(homedir(), '.ok', 'bug-reports', '2026-07-10T01-02-03-456Z-bugreport.zip'),
+      join(homedir(), '.gitquire', 'bug-reports', '2026-07-10T01-02-03-456Z-bugreport.zip'),
     );
-    expect(okBugReportsDir()).toBe(join(homedir(), '.ok', 'bug-reports'));
+    expect(okBugReportsDir()).toBe(join(homedir(), '.gitquire', 'bug-reports'));
   });
 });
 

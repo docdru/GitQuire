@@ -23,14 +23,14 @@ describe('template CRDT docs — end to end', () => {
     return existsSync(path);
   }
 
-  test('a template content doc persists to <folder>/.ok/templates/<name>.md', async () => {
-    const docName = '.ok/templates/daily-note';
+  test('a template content doc persists to <folder>/.gitquire/templates/<name>.md', async () => {
+    const docName = '.gitquire/templates/daily-note';
     const client = await createTestClient(server.port, docName, { skipInvariantWatcher: true });
 
     const src = '---\ntitle: Daily Note\ndescription: a daily note\n---\n\n# {{date}}\n\nNotes.\n';
     client.doc.transact(() => client.ytext.insert(0, src));
 
-    const tplFile = resolve(server.contentDir, '.ok', 'templates', 'daily-note.md');
+    const tplFile = resolve(server.contentDir, '.gitquire', 'templates', 'daily-note.md');
     expect(await pollFor(tplFile)).toBe(true);
     expect(readFileSync(tplFile, 'utf-8')).toBe(src);
 
@@ -38,7 +38,7 @@ describe('template CRDT docs — end to end', () => {
   });
 
   test('PUT /api/template routes the body through the open CRDT doc (Slice E)', async () => {
-    const docName = 'notes/.ok/templates/meeting';
+    const docName = 'notes/.gitquire/templates/meeting';
     const client = await createTestClient(server.port, docName, { skipInvariantWatcher: true });
 
     const res = await fetch(`http://127.0.0.1:${server.port}/api/template`, {
@@ -61,7 +61,7 @@ describe('template CRDT docs — end to end', () => {
     }
     expect(client.ytext.toString()).toBe(expected);
 
-    const tplFile = resolve(server.contentDir, 'notes', '.ok', 'templates', 'meeting.md');
+    const tplFile = resolve(server.contentDir, 'notes', '.gitquire', 'templates', 'meeting.md');
     expect(await pollFor(tplFile)).toBe(true);
     expect(readFileSync(tplFile, 'utf-8')).toBe(expected);
 
@@ -71,15 +71,15 @@ describe('template CRDT docs — end to end', () => {
   test('an external template .md disk edit reconciles into the open doc', async () => {
     await server.cleanup();
     const seedDir = mkdtempSync(join(tmpdir(), 'ok-template-reconcile-'));
-    mkdirSync(resolve(seedDir, '.ok'), { recursive: true });
-    writeFileSync(resolve(seedDir, '.ok', 'config.yml'), '', 'utf-8');
-    const tplFile = resolve(seedDir, '.ok', 'templates', 'daily.md');
+    mkdirSync(resolve(seedDir, '.gitquire'), { recursive: true });
+    writeFileSync(resolve(seedDir, '.gitquire', 'config.yml'), '', 'utf-8');
+    const tplFile = resolve(seedDir, '.gitquire', 'templates', 'daily.md');
     const src = '---\ntitle: Daily\ndescription: initial\n---\n\n# {{date}}\n';
     mkdirSync(resolve(tplFile, '..'), { recursive: true });
     writeFileSync(tplFile, src, 'utf-8');
     server = await createTestServer({ contentDir: seedDir });
 
-    const docName = '.ok/templates/daily';
+    const docName = '.gitquire/templates/daily';
     const client = await createTestClient(server.port, docName, { skipInvariantWatcher: true });
     const loadStart = Date.now();
     while (Date.now() - loadStart < 5000 && client.ytext.toString() !== src) {

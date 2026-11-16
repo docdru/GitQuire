@@ -31,7 +31,7 @@ afterEach(async () => {
 });
 
 function readLossEvents(contentDir: string): LossRingEvent[] {
-  const path = join(contentDir, '.ok', 'local', 'loss-capture', 'loss-current.jsonl');
+  const path = join(contentDir, '.gitquire', 'local', 'loss-capture', 'loss-current.jsonl');
   if (!existsSync(path)) return [];
   return readFileSync(path, 'utf-8')
     .split('\n')
@@ -96,8 +96,8 @@ describe('template concurrent-write reconcile on the content branch', () => {
     async () => {
       server = await createTestServer({ gitEnabled: true, debounce: 150, maxDebounce: 600 });
       const name = `tpl-${randomUUID().slice(0, 8)}`;
-      const docName = `.ok/templates/${name}`;
-      const tplFile = resolve(server.contentDir, '.ok', 'templates', `${name}.md`);
+      const docName = `.gitquire/templates/${name}`;
+      const tplFile = resolve(server.contentDir, '.gitquire', 'templates', `${name}.md`);
 
       const client = await createTestClient(server.port, docName, { skipInvariantWatcher: true });
 

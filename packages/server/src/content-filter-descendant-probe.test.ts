@@ -33,8 +33,8 @@ describe('descendant-project probe failures', () => {
   test('a throwing probe is not cached as a negative', () => {
     projectDir = mkdtempSync(join(tmpdir(), 'ok-descendant-probe-'));
     const nested = join(projectDir, 'nested');
-    mkdirSync(join(nested, '.ok'), { recursive: true });
-    writeFileSync(join(nested, '.ok', 'config.yml'), 'autoSync:\n  enabled: false\n');
+    mkdirSync(join(nested, '.gitquire'), { recursive: true });
+    writeFileSync(join(nested, '.gitquire', 'config.yml'), 'autoSync:\n  enabled: false\n');
     writeFileSync(join(nested, 'inside.md'), '# inside');
 
     const filter = createContentFilter({ projectDir, contentDir: projectDir });

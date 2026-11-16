@@ -62,7 +62,7 @@ test('a reused server is reset to its booted state, and one it cannot prove rese
   const afterUnaccounted = await runReuseCase(socketPath, FINDS_NO_STATE);
   expect(statusesOf(afterUnaccounted), afterUnaccounted.transcript).toEqual(['passed']);
   expect(annotationsOf(afterUnaccounted, SERVER_LEASE_ANNOTATION)).toEqual([
-    'slot 0: the leased server could not be reset (the reset left .ok/local/unrecognised-state.json is not in a freshly booted slot), so it was discarded and this worker starts its own server',
+    'slot 0: the leased server could not be reset (the reset left .gitquire/local/unrecognised-state.json is not in a freshly booted slot), so it was discarded and this worker starts its own server',
   ]);
   const [freshURL] = annotationsOf(afterUnaccounted, CASE_SERVER_ANNOTATION);
   expect(freshURL).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);

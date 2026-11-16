@@ -53,9 +53,9 @@ const GOOD_SCHEMA = JSON.stringify({
 
 describe('resolveFrontmatterSchemas — loading', () => {
   test('loads a good schema with content + canonical key', () => {
-    const abs = write('.ok/schemas/doc.schema.json', GOOD_SCHEMA);
+    const abs = write('.gitquire/schemas/doc.schema.json', GOOD_SCHEMA);
     const { entries, problems } = resolveFrontmatterSchemas(projectDir, [
-      { appliesTo: 'docs/**', file: '.ok/schemas/doc.schema.json' },
+      { appliesTo: 'docs/**', file: '.gitquire/schemas/doc.schema.json' },
     ]);
     expect(problems).toEqual([]);
     expect(entries).toHaveLength(1);
@@ -64,7 +64,7 @@ describe('resolveFrontmatterSchemas — loading', () => {
     expect(entries[0]?.appliesTo).toBe('docs/**');
   });
 
-  test('schemas can live anywhere in the project, not only .ok/schemas/', () => {
+  test('schemas can live anywhere in the project, not only .gitquire/schemas/', () => {
     write('schemas/custom.json', GOOD_SCHEMA);
     const { entries, problems } = resolveFrontmatterSchemas(projectDir, [
       { file: 'schemas/custom.json' },
@@ -74,41 +74,41 @@ describe('resolveFrontmatterSchemas — loading', () => {
   });
 
   test('a broken file mapped disabled-then-enabled still reports once', () => {
-    write('.ok/schemas/broken.json', '{ not json');
+    write('.gitquire/schemas/broken.json', '{ not json');
     const { problems } = resolveFrontmatterSchemas(projectDir, [
-      { file: '.ok/schemas/broken.json', appliesTo: 'archive/**', enabled: false },
-      { file: '.ok/schemas/broken.json', appliesTo: 'docs/**', enabled: true },
+      { file: '.gitquire/schemas/broken.json', appliesTo: 'archive/**', enabled: false },
+      { file: '.gitquire/schemas/broken.json', appliesTo: 'docs/**', enabled: true },
     ]);
     expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain('.ok/schemas/broken.json');
+    expect(problems[0]).toContain('.gitquire/schemas/broken.json');
   });
 
   test('a broken file mapped by two enabled mappings is not double-reported', () => {
-    write('.ok/schemas/broken.json', '{ not json');
+    write('.gitquire/schemas/broken.json', '{ not json');
     const { problems } = resolveFrontmatterSchemas(projectDir, [
-      { file: '.ok/schemas/broken.json', appliesTo: 'docs/**' },
-      { file: '.ok/schemas/broken.json', appliesTo: 'specs/**' },
+      { file: '.gitquire/schemas/broken.json', appliesTo: 'docs/**' },
+      { file: '.gitquire/schemas/broken.json', appliesTo: 'specs/**' },
     ]);
     expect(problems).toHaveLength(1);
   });
 
   test('a broken file mapped only by a disabled mapping stays silent', () => {
-    write('.ok/schemas/broken.json', '{ not json');
+    write('.gitquire/schemas/broken.json', '{ not json');
     const { problems } = resolveFrontmatterSchemas(projectDir, [
-      { file: '.ok/schemas/broken.json', appliesTo: 'archive/**', enabled: false },
+      { file: '.gitquire/schemas/broken.json', appliesTo: 'archive/**', enabled: false },
     ]);
     expect(problems).toEqual([]);
   });
 
   test('a missing file is a schemaError problem; the entry stays content-less with a key', () => {
     const { entries, problems } = resolveFrontmatterSchemas(projectDir, [
-      { file: '.ok/schemas/nope.json' },
+      { file: '.gitquire/schemas/nope.json' },
     ]);
     expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain('.ok/schemas/nope.json');
+    expect(problems[0]).toContain('.gitquire/schemas/nope.json');
     expect(problems[0]).toContain('cannot read');
     expect(entries[0]?.schema).toBeUndefined();
-    expect(entries[0]?.key).toBe('.ok/schemas/nope.json');
+    expect(entries[0]?.key).toBe('.gitquire/schemas/nope.json');
   });
 
   test('malformed JSON is a problem, never a throw', () => {
@@ -231,10 +231,10 @@ describe('resolveFrontmatterSchemas — escape guards', () => {
 
 describe('resolveFrontmatterSchemas — dedup identity', () => {
   test('./-spelled duplicates of one file share a canonical key and read once', () => {
-    const abs = write('.ok/schemas/doc.schema.json', GOOD_SCHEMA);
+    const abs = write('.gitquire/schemas/doc.schema.json', GOOD_SCHEMA);
     const { entries, problems } = resolveFrontmatterSchemas(projectDir, [
-      { appliesTo: 'docs/**', file: '.ok/schemas/doc.schema.json' },
-      { appliesTo: 'specs/**', file: './.ok/schemas/doc.schema.json' },
+      { appliesTo: 'docs/**', file: '.gitquire/schemas/doc.schema.json' },
+      { appliesTo: 'specs/**', file: './.gitquire/schemas/doc.schema.json' },
     ]);
     expect(problems).toEqual([]);
     expect(entries[0]?.key).toBe(realpathSync(abs));
@@ -264,11 +264,11 @@ describe('composeFrontmatterSchemasConfig + resolveEffectiveLinterConfig', () =>
   }
 
   test('injects loaded content into the effective slice', () => {
-    write('.ok/schemas/doc.schema.json', GOOD_SCHEMA);
+    write('.gitquire/schemas/doc.schema.json', GOOD_SCHEMA);
     const problems: string[] = [];
     const effective = composeFrontmatterSchemasConfig(
       projectDir,
-      baseWith([{ appliesTo: 'docs/**', file: '.ok/schemas/doc.schema.json' }]),
+      baseWith([{ appliesTo: 'docs/**', file: '.gitquire/schemas/doc.schema.json' }]),
       (p) => problems.push(p),
     );
     expect(problems).toEqual([]);
@@ -283,24 +283,24 @@ describe('composeFrontmatterSchemasConfig + resolveEffectiveLinterConfig', () =>
   });
 
   test('already-resolved entries pass through without re-reading (audit precompose)', () => {
-    write('.ok/schemas/doc.schema.json', GOOD_SCHEMA);
+    write('.gitquire/schemas/doc.schema.json', GOOD_SCHEMA);
     const once = composeFrontmatterSchemasConfig(
       projectDir,
-      baseWith([{ file: '.ok/schemas/doc.schema.json' }]),
+      baseWith([{ file: '.gitquire/schemas/doc.schema.json' }]),
     );
-    rmSync(join(projectDir, '.ok/schemas/doc.schema.json'));
+    rmSync(join(projectDir, '.gitquire/schemas/doc.schema.json'));
     const twice = composeFrontmatterSchemasConfig(projectDir, once);
     expect(twice).toBe(once);
   });
 
   test('projectDir resolution holds when contentDir is a subfolder (content.dir)', () => {
-    write('.ok/schemas/doc.schema.json', GOOD_SCHEMA);
+    write('.gitquire/schemas/doc.schema.json', GOOD_SCHEMA);
     const contentDir = join(projectDir, 'kb');
     mkdirSync(contentDir, { recursive: true });
     const problems: string[] = [];
     const effective = resolveEffectiveLinterConfig(
       contentDir,
-      baseWith([{ file: '.ok/schemas/doc.schema.json' }]),
+      baseWith([{ file: '.gitquire/schemas/doc.schema.json' }]),
       { projectDir, onProblem: (p) => problems.push(p) },
     );
     expect(problems).toEqual([]);
@@ -309,22 +309,22 @@ describe('composeFrontmatterSchemasConfig + resolveEffectiveLinterConfig', () =>
 });
 
 describe('listProjectSchemaFiles', () => {
-  test('enumerates .ok/schemas/*.json as project-relative paths, sorted', () => {
-    write('.ok/schemas/zebra.json', '{}');
-    write('.ok/schemas/alpha.schema.json', '{}');
-    write('.ok/schemas/notes.JSON', '{}');
-    write('.ok/schemas/readme.md', '# not a schema');
-    mkdirSync(join(projectDir, '.ok/schemas/nested'), { recursive: true });
+  test('enumerates .gitquire/schemas/*.json as project-relative paths, sorted', () => {
+    write('.gitquire/schemas/zebra.json', '{}');
+    write('.gitquire/schemas/alpha.schema.json', '{}');
+    write('.gitquire/schemas/notes.JSON', '{}');
+    write('.gitquire/schemas/readme.md', '# not a schema');
+    mkdirSync(join(projectDir, '.gitquire/schemas/nested'), { recursive: true });
     const { schemas, truncated } = listProjectSchemaFiles(projectDir);
     expect(schemas).toEqual([
-      '.ok/schemas/alpha.schema.json',
-      '.ok/schemas/notes.JSON',
-      '.ok/schemas/zebra.json',
+      '.gitquire/schemas/alpha.schema.json',
+      '.gitquire/schemas/notes.JSON',
+      '.gitquire/schemas/zebra.json',
     ]);
     expect(truncated).toBe(false);
   });
 
-  test('missing .ok/schemas/ is an empty list, not an error', () => {
+  test('missing .gitquire/schemas/ is an empty list, not an error', () => {
     expect(listProjectSchemaFiles(projectDir)).toEqual({ schemas: [], truncated: false });
   });
 });
@@ -334,17 +334,23 @@ describe('unmatchedAppliesToProblems', () => {
 
   test('reports enabled mappings whose authored globs match zero docs', () => {
     const problems = unmatchedAppliesToProblems(
-      [{ file: '.ok/schemas/doc.schema.json', enabled: true, appliesTo: ['docs/**', 'specs/**'] }],
+      [
+        {
+          file: '.gitquire/schemas/doc.schema.json',
+          enabled: true,
+          appliesTo: ['docs/**', 'specs/**'],
+        },
+      ],
       docs,
     );
     expect(problems).toEqual([
-      'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .ok/schemas/doc.schema.json)',
+      'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .gitquire/schemas/doc.schema.json)',
     ]);
   });
 
   test('disabled mappings stay silent', () => {
     const problems = unmatchedAppliesToProblems(
-      [{ file: '.ok/schemas/doc.schema.json', enabled: false, appliesTo: ['specs/**'] }],
+      [{ file: '.gitquire/schemas/doc.schema.json', enabled: false, appliesTo: ['specs/**'] }],
       docs,
     );
     expect(problems).toEqual([]);
@@ -352,7 +358,7 @@ describe('unmatchedAppliesToProblems', () => {
 
   test('mappings without appliesTo (implicit every doc) report nothing', () => {
     const problems = unmatchedAppliesToProblems(
-      [{ file: '.ok/schemas/doc.schema.json', enabled: true }],
+      [{ file: '.gitquire/schemas/doc.schema.json', enabled: true }],
       docs,
     );
     expect(problems).toEqual([]);

@@ -35,7 +35,7 @@ describe('invalid external config write keeps the previous attachment admission'
   });
 
   test('malformed YAML landing on disk leaves the configured folder admitted', async () => {
-    const configPath = join(srv.contentDir, '.ok', 'config.yml');
+    const configPath = join(srv.contentDir, '.gitquire', 'config.yml');
     expect(srv.instance.contentFilter.isExcluded('assets/new.png')).toBe(false);
 
     const baseline = lintConfigFrames;

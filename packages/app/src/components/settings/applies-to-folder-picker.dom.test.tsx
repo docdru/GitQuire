@@ -38,7 +38,7 @@ vi.doMock('@/components/PageListContext', () => ({
 
 const { AppliesToFolderPicker } = await import('./applies-to-folder-picker');
 
-const FILE = '.ok/schemas/doc.schema.json';
+const FILE = '.gitquire/schemas/doc.schema.json';
 
 function mountPicker(globs: string[], onChange = vi.fn()) {
   render(<AppliesToFolderPicker file={FILE} globs={globs} disabled={false} onChange={onChange} />);

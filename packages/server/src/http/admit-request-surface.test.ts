@@ -161,7 +161,7 @@ describe('admitRequestSurface under allowExternal consent', () => {
     expect(warns.length).toBe(1);
     expect(warns[0]).toContain('server.externalUrl');
     expect(warns[0]).toContain('server.allowExternal');
-    expect(warns[0]).toContain('.ok/local/config.yml');
+    expect(warns[0]).toContain('.gitquire/local/config.yml');
     expect(warns[0]).toContain('ok.api.error.count');
     expect(admitRequestSurface(forwarded(), fakeRes().res, local, 'mcp-mount', log)).toBe(false);
     expect(warns.length).toBe(1);

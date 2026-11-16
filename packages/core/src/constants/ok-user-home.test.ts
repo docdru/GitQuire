@@ -11,19 +11,21 @@ afterEach(() => {
 });
 
 describe('per-channel user home', () => {
-  it('keeps Stable on ~/.ok exactly as before', () => {
+  it('keeps Stable on ~/.gitquire exactly as before', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
-    expect(okUserHomeDir(HOME)).toBe(join(HOME, '.ok'));
-    expect(posixOkManagedBinDir(HOME)).toBe('/Users/someone/.ok/bin');
-    expect(resolveConfigPath('user', '/project', HOME)).toBe(resolve(HOME, '.ok', 'global.yml'));
+    expect(okUserHomeDir(HOME)).toBe(join(HOME, '.gitquire'));
+    expect(posixOkManagedBinDir(HOME)).toBe('/Users/someone/.gitquire/bin');
+    expect(resolveConfigPath('user', '/project', HOME)).toBe(
+      resolve(HOME, '.gitquire', 'global.yml'),
+    );
   });
 
-  it('gives Beta a sibling ~/.ok-beta root for its home, PATH shims, and user config', () => {
+  it('gives Beta a sibling ~/.gitquire-beta root for its home, PATH shims, and user config', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
-    expect(okUserHomeDir(HOME)).toBe(join(HOME, '.ok-beta'));
-    expect(posixOkManagedBinDir(HOME)).toBe('/Users/someone/.ok-beta/bin');
+    expect(okUserHomeDir(HOME)).toBe(join(HOME, '.gitquire-beta'));
+    expect(posixOkManagedBinDir(HOME)).toBe('/Users/someone/.gitquire-beta/bin');
     expect(resolveConfigPath('user', '/project', HOME)).toBe(
-      resolve(HOME, '.ok-beta', 'global.yml'),
+      resolve(HOME, '.gitquire-beta', 'global.yml'),
     );
   });
 
@@ -44,7 +46,7 @@ describe('per-channel user home', () => {
       configurable: true,
     });
     try {
-      expect(okUserHomeDir(HOME)).toBe(join(HOME, '.ok-beta'));
+      expect(okUserHomeDir(HOME)).toBe(join(HOME, '.gitquire-beta'));
     } finally {
       Object.defineProperty(process, 'execPath', { value: execPath, configurable: true });
     }

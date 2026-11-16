@@ -203,7 +203,7 @@ describe('ensureProjectGit — initial commit', () => {
     await ensureProjectGit(projectRoot);
     configureTestGitRepository(projectRoot);
 
-    const worktreePath = resolve(projectRoot, '.ok/worktrees/wt-1');
+    const worktreePath = resolve(projectRoot, '.gitquire/worktrees/wt-1');
     await expect(
       execFileAsync('git', ['worktree', 'add', '-b', 'wt-1', worktreePath, '--', 'trunk'], {
         cwd: projectRoot,

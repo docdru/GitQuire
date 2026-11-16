@@ -160,7 +160,10 @@ describe('the notice on a document after an outside edit', () => {
     expect(await dismissDocNotice(docName, first?.id ?? '')).toBe(true);
     expect(await noticesFor(docName)).toEqual([]);
     await pollUntil(() => syncStatus.count() > signalsBeforeDismiss, 10_000, 25, 'a signal');
-    const stored = readFileSync(join(s.contentDir, '.ok', 'local', 'doc-notices.json'), 'utf-8');
+    const stored = readFileSync(
+      join(s.contentDir, '.gitquire', 'local', 'doc-notices.json'),
+      'utf-8',
+    );
     expect(stored).not.toContain(docName);
   }, 60_000);
 

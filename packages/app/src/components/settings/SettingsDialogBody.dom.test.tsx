@@ -329,13 +329,13 @@ describe('SettingsDialogBody preferences runtime', () => {
         ch: 'config-validation-rejected',
         seq: 3,
         docName: CONFIG_DOC_NAME_USER,
-        error: { code: 'SAVE_HELD', cause: 'not-utf8', file: '~/.ok/global.yml' },
+        error: { code: 'SAVE_HELD', cause: 'not-utf8', file: '~/.gitquire/global.yml' },
       });
     });
 
     await waitFor(() =>
       expect(shown).toHaveBeenCalledWith(
-        '~/.ok/global.yml was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
+        '~/.gitquire/global.yml was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
         { duration: 8000 },
       ),
     );
@@ -346,13 +346,13 @@ describe('SettingsDialogBody preferences runtime', () => {
         ch: 'config-validation-rejected',
         seq: 4,
         docName: CONFIG_DOC_NAME_USER,
-        error: { code: 'SAVE_HELD', cause: 'keeps-changing', file: '~/.ok/global.yml' },
+        error: { code: 'SAVE_HELD', cause: 'keeps-changing', file: '~/.gitquire/global.yml' },
       });
     });
 
     await waitFor(() =>
       expect(shown).toHaveBeenLastCalledWith(
-        '~/.ok/global.yml was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again.',
+        '~/.gitquire/global.yml was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again.',
         { duration: 8000 },
       ),
     );

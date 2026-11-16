@@ -81,12 +81,12 @@ afterEach(async () => {
 async function startBoot(localSinksEnabled: boolean): Promise<BootedServer> {
   execFileSync('git', ['init', '--initial-branch=main', projectDir], { stdio: 'pipe' });
   configureTestGitRepository(projectDir);
-  mkdirSync(join(projectDir, '.ok'));
+  mkdirSync(join(projectDir, '.gitquire'));
   writeFileSync(
-    join(projectDir, '.ok', 'config.yml'),
+    join(projectDir, '.gitquire', 'config.yml'),
     `telemetry:\n  localSink:\n    enabled: ${localSinksEnabled}\n`,
   );
-  writeFileSync(join(projectDir, '.ok', '.gitignore'), '');
+  writeFileSync(join(projectDir, '.gitquire', '.gitignore'), '');
   const originalGuard = serverAuthority.withServerAuthorityProjectDirs;
   vi.spyOn(serverAuthority, 'withServerAuthorityProjectDirs').mockImplementation((fn, path) => {
     if (path !== registryPath) throw new Error('Boot retention did not use its injected registry');

@@ -10,7 +10,7 @@ export const MENU_LABELS = {
   fullPath: 'Full path',
   relativePath: 'Relative path',
   showHiddenFiles: 'Show hidden files',
-  showOkFolders: 'Show .ok folders',
+  showOkFolders: 'Show .gitquire folders',
   showOnlyMarkdownFiles: 'Show only markdown files',
   expandAll: 'Expand all',
   collapseAll: 'Collapse all',

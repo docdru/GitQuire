@@ -1981,11 +1981,11 @@ describe('startWatcher symlink handling', () => {
     const SECRET = '# machine-local-secret\n';
 
     beforeEach(() => {
-      mkdirSync(resolve(contentDir, '.ok', 'local'), { recursive: true });
-      writeFileSync(resolve(contentDir, '.ok', 'local', 'secret.md'), SECRET);
+      mkdirSync(resolve(contentDir, '.gitquire', 'local'), { recursive: true });
+      writeFileSync(resolve(contentDir, '.gitquire', 'local', 'secret.md'), SECRET);
       mkdirSync(resolve(contentDir, '.git'), { recursive: true });
       writeFileSync(resolve(contentDir, '.git', 'config'), '[core]\n');
-      writeFileSync(resolve(contentDir, '.ok', 'config.yml'), '');
+      writeFileSync(resolve(contentDir, '.gitquire', 'config.yml'), '');
     });
 
     const filterFor = () => createContentFilter({ projectDir: contentDir, contentDir });
@@ -2007,7 +2007,7 @@ describe('startWatcher symlink handling', () => {
 
     test('runtime events for a doc linked into machine-local state are dropped', async () => {
       const linkPath = resolve(contentDir, 'leak.md');
-      symlinkSync('.ok/local/secret.md', linkPath);
+      symlinkSync('.gitquire/local/secret.md', linkPath);
 
       const collected: DiskEvent[] = [];
       await handleRawEvents(
@@ -2238,8 +2238,8 @@ describe('toParcelIgnorePaths', () => {
 
     expect(toParcelIgnorePaths(filter.getWatcherIgnoreGlobs()).sort()).toEqual([
       '.git',
-      '.ok/local',
-      '.ok/worktrees',
+      '.gitquire/local',
+      '.gitquire/worktrees',
       'node_modules',
     ]);
   });
@@ -2303,8 +2303,15 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
 
   test('merges discovered nested occurrences with the structural roots', () => {
     const merged = toParcelIgnorePaths(
-      ['.git', 'node_modules', '.ok/local', '.ok/worktrees', '**/node_modules/**', 'dist/'],
-      ['packages/app/node_modules', 'vendor/lib/.git', 'sub/.ok/local'],
+      [
+        '.git',
+        'node_modules',
+        '.gitquire/local',
+        '.gitquire/worktrees',
+        '**/node_modules/**',
+        'dist/',
+      ],
+      ['packages/app/node_modules', 'vendor/lib/.git', 'sub/.gitquire/local'],
     );
 
     expect(merged).toEqual(
@@ -2313,7 +2320,7 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
         'node_modules',
         'packages/app/node_modules',
         'vendor/lib/.git',
-        'sub/.ok/local',
+        'sub/.gitquire/local',
       ]),
     );
     expect(merged).not.toContain('**/node_modules/**');
@@ -2356,9 +2363,9 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
   });
 
   test('records a nested two-segment root, whose match is a suffix not a segment', async () => {
-    mkdirSync(resolve(contentDir, 'packages/sub/.ok/local/logs'), { recursive: true });
-    mkdirSync(resolve(contentDir, 'packages/sub/.ok/templates'), { recursive: true });
-    writeFileSync(resolve(contentDir, 'packages/sub/.ok/templates/note.md'), '# tmpl\n');
+    mkdirSync(resolve(contentDir, 'packages/sub/.gitquire/local/logs'), { recursive: true });
+    mkdirSync(resolve(contentDir, 'packages/sub/.gitquire/templates'), { recursive: true });
+    writeFileSync(resolve(contentDir, 'packages/sub/.gitquire/templates/note.md'), '# tmpl\n');
 
     const filter = createContentFilter({ projectDir: contentDir, contentDir });
     const watcher = await startWatcher(contentDir, async () => {}, filter, {
@@ -2366,8 +2373,8 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
     });
     try {
       const discovered = [...watcher.getStructuralIgnoreDirs()];
-      expect(discovered).toContain('packages/sub/.ok/local');
-      expect(discovered).not.toContain('packages/sub/.ok');
+      expect(discovered).toContain('packages/sub/.gitquire/local');
+      expect(discovered).not.toContain('packages/sub/.gitquire');
     } finally {
       await watcher.unsubscribe();
     }

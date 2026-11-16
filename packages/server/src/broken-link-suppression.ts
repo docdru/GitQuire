@@ -15,7 +15,7 @@ const SUPPRESSION_EXPLANATIONS = {
   },
   human: {
     'reserved-log-policy':
-      'a reserved `log.md` records history whose links are expected not to resolve. These findings stay out of the repair queue to protect that history. Set `validation.suppressLogLinkAdvisories: false` in `.ok/config.yml` to bring them back, or turn off "Ignore broken links in log.md" under Settings ▸ This project ▸ Preferences ▸ Content rules.',
+      'a reserved `log.md` records history whose links are expected not to resolve. These findings stay out of the repair queue to protect that history. Set `validation.suppressLogLinkAdvisories: false` in `.gitquire/config.yml` to bring them back, or turn off "Ignore broken links in log.md" under Settings ▸ This project ▸ Preferences ▸ Content rules.',
   },
 } as const satisfies Record<AuditSuppressionAudience, Record<BrokenLinkSuppressionReason, string>>;
 

@@ -50,7 +50,7 @@ let projectDir = '';
 
 beforeEach(() => {
   projectDir = mkdtempSync(join(tmpdir(), 'document-routes-test-'));
-  mkdirSync(join(projectDir, '.ok', LOCAL_DIR), { recursive: true });
+  mkdirSync(join(projectDir, '.gitquire', LOCAL_DIR), { recursive: true });
 });
 
 afterEach(() => {

@@ -255,14 +255,17 @@ describe('asset-serve middleware (narrow integration)', () => {
     const SECRET = 'machine-local-secret';
 
     beforeEach(() => {
-      mkdirSync(join(contentDir, '.ok', 'local'), { recursive: true });
-      writeFileSync(join(contentDir, '.ok', 'local', 'principal.json'), `{"token":"${SECRET}"}`);
+      mkdirSync(join(contentDir, '.gitquire', 'local'), { recursive: true });
+      writeFileSync(
+        join(contentDir, '.gitquire', 'local', 'principal.json'),
+        `{"token":"${SECRET}"}`,
+      );
       mkdirSync(join(contentDir, '.git'), { recursive: true });
       writeFileSync(join(contentDir, '.git', 'config'), `[core]\n\t# ${SECRET}\n`);
     });
 
     test('a markdown link into machine-local state is not served', async () => {
-      symlinkSync('../.ok/local/principal.json', join(contentDir, 'docs', 'leak.md'));
+      symlinkSync('../.gitquire/local/principal.json', join(contentDir, 'docs', 'leak.md'));
       const res = await fetch(`${harness.baseURL}/docs/leak.md`);
       const body = await res.text();
       expect(body).not.toContain(SECRET);
@@ -291,14 +294,14 @@ describe('asset-serve middleware (narrow integration)', () => {
 
     test('a path is checked as sirv decodes it, not as the extension gate decodes it', async () => {
       writeFileSync(join(contentDir, 'docs', 'x+.png'), 'harmless-bytes');
-      symlinkSync('../.ok/local/principal.json', join(contentDir, 'docs', 'x%2B.png'));
+      symlinkSync('../.gitquire/local/principal.json', join(contentDir, 'docs', 'x%2B.png'));
       const res = await fetch(`${harness.baseURL}/docs/x%2B.png`);
       expect(res.status).toBe(404);
       expect(await res.text()).not.toContain(SECRET);
     });
 
     test('a missing asset does not fall back to a linked html sibling', async () => {
-      symlinkSync('../.ok/local/principal.json', join(contentDir, 'docs', 'gone.png.html'));
+      symlinkSync('../.gitquire/local/principal.json', join(contentDir, 'docs', 'gone.png.html'));
       const res = await fetch(`${harness.baseURL}/docs/gone.png`);
       expect(res.status).toBe(404);
       expect(await res.text()).not.toContain(SECRET);

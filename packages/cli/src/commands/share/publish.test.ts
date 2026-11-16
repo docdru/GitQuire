@@ -340,8 +340,8 @@ describe('runPublishFlow (e2e against bare repo)', () => {
       ownerKind: 'user',
       deps: {
         ensureOkScaffold: (dir) => {
-          mkdirSync(join(dir, '.ok'), { recursive: true });
-          writeFileSync(join(dir, '.ok', '.gitignore'), 'local/\n', 'utf-8');
+          mkdirSync(join(dir, '.gitquire'), { recursive: true });
+          writeFileSync(join(dir, '.gitquire', '.gitignore'), 'local/\n', 'utf-8');
         },
       },
     });
@@ -369,7 +369,7 @@ describe('runPublishFlow (e2e against bare repo)', () => {
       cwd: projectDir,
       encoding: 'utf-8',
     });
-    expect(tree).toContain('.ok/.gitignore');
+    expect(tree).toContain('.gitquire/.gitignore');
     expect(tree).toContain('README.md');
     expect(readFileSync(join(projectDir, 'README.md'), 'utf-8')).toBe('# Hello\n');
     const remoteRefSha = execSync('git rev-parse refs/remotes/origin/main', {

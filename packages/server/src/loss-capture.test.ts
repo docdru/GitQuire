@@ -43,7 +43,7 @@ function readAllRetained(): LossCaptureEvent[] {
 }
 
 describe('LossCaptureRing.record', () => {
-  it('writes a content-free event line under .ok/local/loss-capture/', async () => {
+  it('writes a content-free event line under .gitquire/local/loss-capture/', async () => {
     const ring = new LossCaptureRing({ projectDir, maxBytes: 1_000_000, now: () => 4242 });
     await ring.record({
       event: LOSS_EVENT_GUARD_DEFER,
@@ -56,9 +56,9 @@ describe('LossCaptureRing.record', () => {
     await ring.drain();
 
     const currentPath = lossCaptureCurrentPath(projectDir);
-    expect(currentPath.endsWith(join('.ok', 'local', 'loss-capture', 'loss-current.jsonl'))).toBe(
-      true,
-    );
+    expect(
+      currentPath.endsWith(join('.gitquire', 'local', 'loss-capture', 'loss-current.jsonl')),
+    ).toBe(true);
     expect(existsSync(currentPath)).toBe(true);
 
     const events = parseLossCaptureLines(readFileSync(currentPath, 'utf-8'));

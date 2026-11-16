@@ -10,9 +10,9 @@ describe('resolveLocalSinkConfig', () => {
 
   beforeEach(() => {
     projectDir = mkdtempSync(join(tmpdir(), 'ok-local-sink-resolver-'));
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    mkdirSync(join(projectDir, '.ok', 'local'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), '');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '');
   });
 
   afterEach(() => {
@@ -21,11 +21,11 @@ describe('resolveLocalSinkConfig', () => {
   });
 
   function seedProject(value: unknown): void {
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), stringifyYaml(value));
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), stringifyYaml(value));
   }
 
   function seedProjectLocal(value: unknown): void {
-    writeFileSync(join(projectDir, '.ok', 'local', 'config.yml'), stringifyYaml(value));
+    writeFileSync(join(projectDir, '.gitquire', 'local', 'config.yml'), stringifyYaml(value));
   }
 
   it('returns the default sink config when no config files set anything', () => {

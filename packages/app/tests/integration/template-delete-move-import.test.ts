@@ -124,7 +124,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
     async () => {
       const rig = server;
       const name = `daily-${randomUUID().slice(0, 8)}`;
-      const docName = `.ok/templates/${name}`;
+      const docName = `.gitquire/templates/${name}`;
 
       expect(
         (await putTemplate(rig.port, '', name, '# Daily\n\nv1.\n', { title: 'Daily' })).status,
@@ -140,7 +140,9 @@ describe('template delete/move/import — content-doc lifecycle', () => {
         expect((await del.json()).existed).toBe(true);
 
         expect(serverDoc(rig, docName)).toBeUndefined();
-        expect(existsSync(join(rig.contentDir, '.ok', 'templates', `${name}.md`))).toBe(false);
+        expect(existsSync(join(rig.contentDir, '.gitquire', 'templates', `${name}.md`))).toBe(
+          false,
+        );
 
         expect((await expectAuthRejection(rig.port, docName)).kind).toBe('doc-deleted');
       } finally {
@@ -156,7 +158,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
       const rig = server;
       const fromName = `note-${randomUUID().slice(0, 8)}`;
       const toName = `${fromName}-moved`;
-      const fromDoc = `.ok/templates/${fromName}`;
+      const fromDoc = `.gitquire/templates/${fromName}`;
 
       expect(
         (await putTemplate(rig.port, '', fromName, '# Note\n\nv1.\n', { title: 'Note' })).status,
@@ -176,8 +178,12 @@ describe('template delete/move/import — content-doc lifecycle', () => {
         expect(move.status).toBe(200);
 
         expect(serverDoc(rig, fromDoc)).toBeUndefined();
-        expect(existsSync(join(rig.contentDir, '.ok', 'templates', `${fromName}.md`))).toBe(false);
-        expect(existsSync(join(rig.contentDir, '.ok', 'templates', `${toName}.md`))).toBe(true);
+        expect(existsSync(join(rig.contentDir, '.gitquire', 'templates', `${fromName}.md`))).toBe(
+          false,
+        );
+        expect(existsSync(join(rig.contentDir, '.gitquire', 'templates', `${toName}.md`))).toBe(
+          true,
+        );
 
         const rejection = await expectAuthRejection(rig.port, fromDoc);
         expect(['doc-deleted', 'rename-redirect']).toContain(rejection.kind);
@@ -195,7 +201,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
       const marker = `imported-body-${randomUUID().slice(0, 8)}`;
       const sourceName = `src-${randomUUID().slice(0, 8)}`;
       const tplName = `tpl-${randomUUID().slice(0, 8)}`;
-      const tplDoc = `.ok/templates/${tplName}`;
+      const tplDoc = `.gitquire/templates/${tplName}`;
 
       await writeSource(
         rig.port,
@@ -221,7 +227,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
         expect(live).toContain('template:');
         expect(live).toContain('Source Title');
 
-        const tplFile = join(rig.contentDir, '.ok', 'templates', `${tplName}.md`);
+        const tplFile = join(rig.contentDir, '.gitquire', 'templates', `${tplName}.md`);
         expect(existsSync(tplFile)).toBe(true);
         expect(readFileSync(tplFile, 'utf-8')).toBe(live);
       } finally {
@@ -249,7 +255,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
         title: 'Standup',
       });
       expect(put.status).toBe(200);
-      expect(await pagesHas(`${putFolder}/.ok/templates/${putName}`)).toBe(true);
+      expect(await pagesHas(`${putFolder}/.gitquire/templates/${putName}`)).toBe(true);
 
       const sourceName = `src-idx-${randomUUID().slice(0, 8)}`;
       await writeSource(rig.port, rig.contentDir, sourceName, '# Imported\n\nBody.\n');
@@ -261,7 +267,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
         name: impName,
       });
       expect(imp.status).toBe(200);
-      expect(await pagesHas(`${impFolder}/.ok/templates/${impName}`)).toBe(true);
+      expect(await pagesHas(`${impFolder}/.gitquire/templates/${impName}`)).toBe(true);
 
       const moveToFolder = `fresh-mov-${randomUUID().slice(0, 8)}`;
       const mov = await moveTemplate(rig.port, {
@@ -271,7 +277,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
         toName: putName,
       });
       expect(mov.status).toBe(200);
-      expect(await pagesHas(`${moveToFolder}/.ok/templates/${putName}`)).toBe(true);
+      expect(await pagesHas(`${moveToFolder}/.gitquire/templates/${putName}`)).toBe(true);
     },
     HARNESS_BOOT_TIMEOUT_MS + 30_000,
   );
@@ -330,9 +336,9 @@ describe('template delete/move/import — content-doc lifecycle', () => {
       const folder = `unicode-imp-${suffix}`;
       const imp = await importTemplate(rig.port, { sourcePath: sourceName, targetFolder: folder });
       expect(imp.status).toBe(200);
-      expect(existsSync(join(rig.contentDir, folder, '.ok', 'templates', `${sourceName}.md`))).toBe(
-        true,
-      );
+      expect(
+        existsSync(join(rig.contentDir, folder, '.gitquire', 'templates', `${sourceName}.md`)),
+      ).toBe(true);
     },
     HARNESS_BOOT_TIMEOUT_MS + 30_000,
   );
@@ -348,7 +354,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
       const imp = await importTemplate(rig.port, { sourcePath: sourceName, targetFolder: folder });
       expect(imp.status).toBe(200);
       expect(((await imp.json()) as { path?: string }).path).toBe(
-        `${folder}/.ok/templates/café-${suffix}.md`,
+        `${folder}/.gitquire/templates/café-${suffix}.md`,
       );
     },
     HARNESS_BOOT_TIMEOUT_MS + 30_000,
@@ -362,7 +368,7 @@ describe('template delete/move/import — content-doc lifecycle', () => {
       const folder = `nfd-routes-${suffix}`;
       const fromName = `cafe\u{0301}-${suffix}`;
       const toName = `cre\u{0300}me-${suffix}`;
-      const templatesDir = join(rig.contentDir, folder, '.ok', 'templates');
+      const templatesDir = join(rig.contentDir, folder, '.gitquire', 'templates');
 
       const put = await putTemplate(rig.port, folder, fromName, '# Menu\n', { title: 'Menu' });
       expect(put.status).toBe(200);

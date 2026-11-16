@@ -49,7 +49,7 @@ describe('getOkArtifactPaths', () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it('returns `.ok/` and `.okignore` when no config.yml exists', () => {
+  it('returns `.gitquire/` and `.okignore` when no config.yml exists', () => {
     expect(getOkArtifactPaths(dir)).toEqual([`${OK_DIR}/`, '.okignore']);
   });
 
@@ -59,15 +59,15 @@ describe('getOkArtifactPaths', () => {
     expect([...a]).toEqual([...b]);
   });
 
-  it('emits unanchored `.ok/` / `.okignore` regardless of content.dir', () => {
+  it('emits unanchored `.gitquire/` / `.okignore` regardless of content.dir', () => {
     mkdirSync(join(dir, OK_DIR), { recursive: true });
     writeFileSync(join(dir, OK_DIR, 'config.yml'), 'content:\n  dir: docs\n', 'utf-8');
     const paths = getOkArtifactPaths(dir);
-    expect(paths).toEqual(['.ok/', '.okignore']);
+    expect(paths).toEqual(['.gitquire/', '.okignore']);
   });
 });
 
-describe('root + nested .ok coverage for a non-default content.dir', () => {
+describe('root + nested .gitquire coverage for a non-default content.dir', () => {
   let dir: string;
   beforeEach(() => {
     dir = uniqueDir('nested-exclude-test');
@@ -89,20 +89,20 @@ describe('root + nested .ok coverage for a non-default content.dir', () => {
     }
   }
 
-  it('excludes the ROOT `.ok/` config dir AND folder-nested `.ok/` / `.okignore` (content.dir = docs)', () => {
+  it('excludes the ROOT `.gitquire/` config dir AND folder-nested `.gitquire/` / `.okignore` (content.dir = docs)', () => {
     mkdirSync(join(dir, OK_DIR), { recursive: true });
     writeFileSync(join(dir, OK_DIR, 'config.yml'), 'content:\n  dir: docs\n', 'utf-8');
     writeFileSync(join(dir, '.okignore'), '', 'utf-8');
-    mkdirSync(join(dir, 'docs', 'guides', '.ok'), { recursive: true });
-    writeFileSync(join(dir, 'docs', 'guides', '.ok', 'frontmatter.yml'), '', 'utf-8');
+    mkdirSync(join(dir, 'docs', 'guides', '.gitquire'), { recursive: true });
+    writeFileSync(join(dir, 'docs', 'guides', '.gitquire', 'frontmatter.yml'), '', 'utf-8');
     writeFileSync(join(dir, 'docs', 'guides', '.okignore'), '', 'utf-8');
 
     const result = addOkPathsToGitExclude(dir, getOkArtifactPaths(dir));
     expect(result.kind).toBe('updated');
 
-    expect(isIgnored('.ok/config.yml')).toBe(true);
+    expect(isIgnored('.gitquire/config.yml')).toBe(true);
     expect(isIgnored('.okignore')).toBe(true);
-    expect(isIgnored('docs/guides/.ok/frontmatter.yml')).toBe(true);
+    expect(isIgnored('docs/guides/.gitquire/frontmatter.yml')).toBe(true);
     expect(isIgnored('docs/guides/.okignore')).toBe(true);
   });
 });
@@ -123,65 +123,65 @@ describe('addOkPathsToGitExclude', () => {
 `;
     writeExclude(dir, template);
 
-    const result = addOkPathsToGitExclude(dir, ['.ok/', '.mcp.json']);
+    const result = addOkPathsToGitExclude(dir, ['.gitquire/', '.mcp.json']);
 
     expect(result).toEqual({
       kind: 'updated',
-      appended: ['.ok/', '.mcp.json'],
+      appended: ['.gitquire/', '.mcp.json'],
       alreadyPresent: [],
       removed: [],
     });
     const after = readExclude(dir);
     expect(after.startsWith(template)).toBe(true);
-    expect(after).toMatch(/\.ok\/\n/);
+    expect(after).toMatch(/\.gitquire\/\n/);
     expect(after).toMatch(/\.mcp\.json\n/);
   });
 
   it('inserts a newline before appending when existing content has no trailing newline', () => {
     writeExclude(dir, '*.tmp');
-    const result = addOkPathsToGitExclude(dir, ['.ok/']);
+    const result = addOkPathsToGitExclude(dir, ['.gitquire/']);
     expect(result.kind).toBe('updated');
-    expect(readExclude(dir)).toBe('*.tmp\n.ok/\n');
+    expect(readExclude(dir)).toBe('*.tmp\n.gitquire/\n');
   });
 
   it('is idempotent — running twice classifies as alreadyPresent', () => {
     writeExclude(dir, '');
-    addOkPathsToGitExclude(dir, ['.ok/']);
-    const second = addOkPathsToGitExclude(dir, ['.ok/']);
+    addOkPathsToGitExclude(dir, ['.gitquire/']);
+    const second = addOkPathsToGitExclude(dir, ['.gitquire/']);
     expect(second).toEqual({
       kind: 'updated',
       appended: [],
-      alreadyPresent: ['.ok/'],
+      alreadyPresent: ['.gitquire/'],
       removed: [],
     });
-    expect(readExclude(dir)).toBe('.ok/\n');
+    expect(readExclude(dir)).toBe('.gitquire/\n');
   });
 
-  it('recognizes all four idempotence variants — `.ok`, `.ok/`, `/.ok`, `/.ok/`', () => {
-    for (const variant of ['.ok', '.ok/', '/.ok', '/.ok/']) {
+  it('recognizes all four idempotence variants — `.gitquire`, `.gitquire/`, `/.gitquire`, `/.gitquire/`', () => {
+    for (const variant of ['.gitquire', '.gitquire/', '/.gitquire', '/.gitquire/']) {
       writeExclude(dir, `${variant}\n`);
-      const result = addOkPathsToGitExclude(dir, ['.ok/']);
+      const result = addOkPathsToGitExclude(dir, ['.gitquire/']);
       expect(result).toEqual({
         kind: 'updated',
         appended: [],
-        alreadyPresent: ['.ok/'],
+        alreadyPresent: ['.gitquire/'],
         removed: [],
       });
     }
   });
 
-  it('overlaps cleanly with the clone-precedent `.ok/` line', () => {
-    writeExclude(dir, '.ok/\n');
+  it('overlaps cleanly with the clone-precedent `.gitquire/` line', () => {
+    writeExclude(dir, '.gitquire/\n');
     const result = addOkPathsToGitExclude(dir, [
-      '.ok/',
+      '.gitquire/',
       '.mcp.json',
       '.claude/skills/open-knowledge/',
     ]);
     expect(result.kind).toBe('updated');
     if (result.kind !== 'updated') throw new Error('unreachable');
-    expect(result.alreadyPresent).toEqual(['.ok/']);
+    expect(result.alreadyPresent).toEqual(['.gitquire/']);
     expect(result.appended).toEqual(['.mcp.json', '.claude/skills/open-knowledge/']);
-    expect(readExclude(dir)).toBe('.ok/\n.mcp.json\n.claude/skills/open-knowledge/\n');
+    expect(readExclude(dir)).toBe('.gitquire/\n.mcp.json\n.claude/skills/open-knowledge/\n');
   });
 
   it('refuses when a candidate path is tracked upstream and does not write', () => {
@@ -193,7 +193,7 @@ describe('addOkPathsToGitExclude', () => {
     });
 
     writeExclude(dir, '');
-    const result = addOkPathsToGitExclude(dir, ['.ok/', '.mcp.json']);
+    const result = addOkPathsToGitExclude(dir, ['.gitquire/', '.mcp.json']);
     expect(result.kind).toBe('refused-tracked');
     if (result.kind !== 'refused-tracked') throw new Error('unreachable');
     expect(result.tracked).toEqual(['.mcp.json']);
@@ -215,17 +215,17 @@ describe('addOkPathsToGitExclude', () => {
     });
 
     writeExclude(dir, '');
-    const result = addOkPathsToGitExclude(dir, ['.ok/', '.mcp.json']);
+    const result = addOkPathsToGitExclude(dir, ['.gitquire/', '.mcp.json']);
     expect(result.kind).toBe('updated');
     if (result.kind !== 'updated') throw new Error('unreachable');
-    expect(result.appended.sort()).toEqual(['.mcp.json', '.ok/']);
+    expect(result.appended.sort()).toEqual(['.gitquire/', '.mcp.json']);
   });
 
   it('returns no-exclude / no-git for non-git directories', () => {
     const nonGit = uniqueDir('non-git');
     mkdirSync(nonGit, { recursive: true });
     try {
-      const result = addOkPathsToGitExclude(nonGit, ['.ok/']);
+      const result = addOkPathsToGitExclude(nonGit, ['.gitquire/']);
       expect(result).toEqual({ kind: 'no-exclude', reason: 'no-git' });
     } finally {
       rmSync(nonGit, { recursive: true, force: true });
@@ -237,7 +237,7 @@ describe('addOkPathsToGitExclude', () => {
     initGitRepo(noInfo);
     try {
       rmSync(join(noInfo, '.git', 'info'), { recursive: true, force: true });
-      const result = addOkPathsToGitExclude(noInfo, ['.ok/']);
+      const result = addOkPathsToGitExclude(noInfo, ['.gitquire/']);
       expect(result).toEqual({ kind: 'no-exclude', reason: 'no-info-dir' });
     } finally {
       rmSync(noInfo, { recursive: true, force: true });
@@ -263,13 +263,13 @@ describe('addOkPathsToGitExclude', () => {
       const dotGitContent = readFileSync(join(linkedWorktree, '.git'), 'utf-8');
       expect(dotGitContent.startsWith('gitdir:')).toBe(true);
 
-      const result = addOkPathsToGitExclude(linkedWorktree, ['.ok/', '.mcp.json']);
+      const result = addOkPathsToGitExclude(linkedWorktree, ['.gitquire/', '.mcp.json']);
       expect(result.kind).toBe('updated');
 
       const mainExclude = join(mainRepo, '.git', 'info', 'exclude');
       expect(existsSync(mainExclude)).toBe(true);
       const mainExcludeContent = readFileSync(mainExclude, 'utf-8');
-      expect(mainExcludeContent).toContain('.ok/');
+      expect(mainExcludeContent).toContain('.gitquire/');
       expect(mainExcludeContent).toContain('.mcp.json');
 
       expect(existsSync(join(linkedWorktree, '.git', 'info', 'exclude'))).toBe(false);
@@ -293,13 +293,13 @@ describe('removeOkPathsFromGitExclude', () => {
   it('removes matching lines and preserves every other line byte-identical', () => {
     const original = `# user header
 *.tmp
-.ok/
+.gitquire/
 .mcp.json
 build/
 .DS_Store
 `;
     writeExclude(dir, original);
-    removeOkPathsFromGitExclude(dir, ['.ok/', '.mcp.json']);
+    removeOkPathsFromGitExclude(dir, ['.gitquire/', '.mcp.json']);
     const expected = `# user header
 *.tmp
 build/
@@ -308,10 +308,10 @@ build/
     expect(readExclude(dir)).toBe(expected);
   });
 
-  it('matches every variant on remove — `.ok`, `.ok/`, `/.ok`, `/.ok/`', () => {
-    for (const variant of ['.ok', '.ok/', '/.ok', '/.ok/']) {
+  it('matches every variant on remove — `.gitquire`, `.gitquire/`, `/.gitquire`, `/.gitquire/`', () => {
+    for (const variant of ['.gitquire', '.gitquire/', '/.gitquire', '/.gitquire/']) {
       writeExclude(dir, `*.tmp\n${variant}\nbuild/\n`);
-      removeOkPathsFromGitExclude(dir, ['.ok/']);
+      removeOkPathsFromGitExclude(dir, ['.gitquire/']);
       expect(readExclude(dir)).toBe('*.tmp\nbuild/\n');
     }
   });
@@ -319,21 +319,21 @@ build/
   it('is a no-op when no OK paths are present', () => {
     const original = '*.tmp\nbuild/\n';
     writeExclude(dir, original);
-    removeOkPathsFromGitExclude(dir, ['.ok/']);
+    removeOkPathsFromGitExclude(dir, ['.gitquire/']);
     expect(readExclude(dir)).toBe(original);
   });
 
   it('survives a round-trip — `add` then `remove` reproduces the pre-add bytes', () => {
     const original = '# user header\n*.tmp\n';
     writeExclude(dir, original);
-    addOkPathsToGitExclude(dir, ['.ok/', '.mcp.json']);
-    removeOkPathsFromGitExclude(dir, ['.ok/', '.mcp.json']);
+    addOkPathsToGitExclude(dir, ['.gitquire/', '.mcp.json']);
+    removeOkPathsFromGitExclude(dir, ['.gitquire/', '.mcp.json']);
     expect(readExclude(dir)).toBe(original);
   });
 
   it('is tolerant of an absent exclude file', () => {
     rmSync(join(dir, '.git', 'info', 'exclude'), { force: true });
-    const result = removeOkPathsFromGitExclude(dir, ['.ok/']);
+    const result = removeOkPathsFromGitExclude(dir, ['.gitquire/']);
     expect(result.kind).toBe('updated');
   });
 
@@ -346,7 +346,7 @@ build/
       writeFileSync(join(dir, '.git'), `gitdir: ${gitDir}\n`);
       symlinkSync('commondir', join(gitDir, 'commondir'));
 
-      expect(removeOkPathsFromGitExclude(dir, ['.ok/'])).toEqual({
+      expect(removeOkPathsFromGitExclude(dir, ['.gitquire/'])).toEqual({
         kind: 'no-exclude',
         reason: 'inaccessible',
       });
@@ -354,16 +354,20 @@ build/
   );
 
   it('reports the actually-removed artifact paths in `removed` (not the full candidate list)', () => {
-    writeExclude(dir, '# header\n.ok/\n.mcp.json\nbuild/\n');
-    const result = removeOkPathsFromGitExclude(dir, ['.ok/', '.mcp.json', '.cursor/mcp.json']);
+    writeExclude(dir, '# header\n.gitquire/\n.mcp.json\nbuild/\n');
+    const result = removeOkPathsFromGitExclude(dir, [
+      '.gitquire/',
+      '.mcp.json',
+      '.cursor/mcp.json',
+    ]);
     expect(result.kind).toBe('updated');
     if (result.kind !== 'updated') throw new Error('unreachable');
-    expect(result.removed.sort()).toEqual(['.mcp.json', '.ok/']);
+    expect(result.removed.sort()).toEqual(['.gitquire/', '.mcp.json']);
   });
 
   it('reports an empty `removed` when no candidate line was present', () => {
     writeExclude(dir, '*.tmp\nbuild/\n');
-    const result = removeOkPathsFromGitExclude(dir, ['.ok/']);
+    const result = removeOkPathsFromGitExclude(dir, ['.gitquire/']);
     expect(result.kind).toBe('updated');
     if (result.kind !== 'updated') throw new Error('unreachable');
     expect(result.removed).toEqual([]);
@@ -489,16 +493,16 @@ describe('formatTrackedRemediation', () => {
   });
 });
 
-describe('shared -> local-only transition with tracked shareable .ok artifacts', () => {
+describe('shared -> local-only transition with tracked shareable .gitquire artifacts', () => {
   let dir: string;
   beforeEach(() => {
     dir = uniqueDir('tracked-artifact-transition-test');
     initGitRepo(dir);
-    mkdirSync(join(dir, '.ok', 'schemas'), { recursive: true });
-    mkdirSync(join(dir, '.ok', 'templates'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'config.yml'), 'x: 1\n', 'utf-8');
-    writeFileSync(join(dir, '.ok', 'schemas', 'lint.json'), '{}\n', 'utf-8');
-    writeFileSync(join(dir, '.ok', 'templates', 'note.md'), '# t\n', 'utf-8');
+    mkdirSync(join(dir, '.gitquire', 'schemas'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire', 'templates'), { recursive: true });
+    writeFileSync(join(dir, '.gitquire', 'config.yml'), 'x: 1\n', 'utf-8');
+    writeFileSync(join(dir, '.gitquire', 'schemas', 'lint.json'), '{}\n', 'utf-8');
+    writeFileSync(join(dir, '.gitquire', 'templates', 'note.md'), '# t\n', 'utf-8');
   });
   afterEach(() => {
     rmSync(dir, { recursive: true, force: true });
@@ -507,7 +511,7 @@ describe('shared -> local-only transition with tracked shareable .ok artifacts',
   function commitOkArtifacts(): void {
     execFileSync(
       'git',
-      ['add', '.ok/config.yml', '.ok/schemas/lint.json', '.ok/templates/note.md'],
+      ['add', '.gitquire/config.yml', '.gitquire/schemas/lint.json', '.gitquire/templates/note.md'],
       { cwd: dir },
     );
     execFileSync('git', ['commit', '-m', 'share ok artifacts'], {
@@ -524,8 +528,8 @@ describe('shared -> local-only transition with tracked shareable .ok artifacts',
     const result = addOkPathsToGitExclude(dir, getOkArtifactPaths(dir));
     expect(result.kind).toBe('refused-tracked');
     if (result.kind !== 'refused-tracked') throw new Error('unreachable');
-    expect(result.tracked).toEqual(['.ok/']);
-    expect(result.remediation).toContain('git rm --cached -r -- .ok');
+    expect(result.tracked).toEqual(['.gitquire/']);
+    expect(result.remediation).toContain('git rm --cached -r -- .gitquire');
     expect(result.remediation).toContain('your teammates will see a deletion on their next pull');
     expect(readExclude(dir)).toBe('');
     expect(readSharingMode(dir)).toBe('shared');
@@ -544,7 +548,7 @@ describe('shared -> local-only transition with tracked shareable .ok artifacts',
     const refused = addOkPathsToGitExclude(dir, getOkArtifactPaths(dir));
     expect(refused.kind).toBe('refused-tracked');
 
-    execFileSync('git', ['rm', '--cached', '-r', '.ok'], {
+    execFileSync('git', ['rm', '--cached', '-r', '.gitquire'], {
       cwd: dir,
       stdio: ['ignore', 'ignore', 'ignore'],
     });
@@ -552,7 +556,7 @@ describe('shared -> local-only transition with tracked shareable .ok artifacts',
     const retried = addOkPathsToGitExclude(dir, getOkArtifactPaths(dir));
     expect(retried.kind).toBe('updated');
     expect(readSharingMode(dir)).toBe('local-only');
-    expect(existsSync(join(dir, '.ok', 'config.yml'))).toBe(true);
+    expect(existsSync(join(dir, '.gitquire', 'config.yml'))).toBe(true);
   });
 });
 
@@ -567,16 +571,16 @@ describe('legacy skills carve-out spelling (recognition only)', () => {
   });
 
   it('readSharingMode reports local-only from the carve lines alone', () => {
-    writeExclude(dir, '**/.ok/*\n!**/.ok/skills/\n');
+    writeExclude(dir, '**/.gitquire/*\n!**/.gitquire/skills/\n');
     expect(readSharingMode(dir)).toBe('local-only');
   });
 
-  it('removeOkPaths (share) strips the carve lines so nothing is left excluding .ok/', () => {
-    writeExclude(dir, '**/.ok/*\n!**/.ok/skills/\n.okignore\n');
+  it('removeOkPaths (share) strips the carve lines so nothing is left excluding .gitquire/', () => {
+    writeExclude(dir, '**/.gitquire/*\n!**/.gitquire/skills/\n.okignore\n');
     removeOkPathsFromGitExclude(dir, getOkArtifactPaths(dir));
     const content = readExclude(dir);
-    expect(content).not.toContain('**/.ok/*');
-    expect(content).not.toContain('!**/.ok/skills/');
+    expect(content).not.toContain('**/.gitquire/*');
+    expect(content).not.toContain('!**/.gitquire/skills/');
     expect(readSharingMode(dir)).toBe('shared');
   });
 });

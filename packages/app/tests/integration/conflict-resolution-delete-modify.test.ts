@@ -68,7 +68,7 @@ async function setupUDConflict(
 async function registerConflict(contentDir: string, file: string): Promise<void> {
   const { LOCAL_DIR } = await import('@gitquire/core');
   const { mkdirSync } = await import('node:fs');
-  const okLocal = join(contentDir, '.ok', LOCAL_DIR);
+  const okLocal = join(contentDir, '.gitquire', LOCAL_DIR);
   mkdirSync(okLocal, { recursive: true });
   const conflictsJson = {
     version: 1,
@@ -81,8 +81,8 @@ async function registerConflict(contentDir: string, file: string): Promise<void>
 async function createDUTestServer(): Promise<TestServer> {
   const dir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-du-test-')));
   const { mkdirSync } = await import('node:fs');
-  mkdirSync(join(dir, '.ok'), { recursive: true });
-  writeFileSync(join(dir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(join(dir, '.gitquire'), { recursive: true });
+  writeFileSync(join(dir, '.gitquire', 'config.yml'), '', 'utf-8');
   await execFileAsync('git', ['init', '--initial-branch=main', dir]);
   configureTestGitRepository(dir);
   await setupDUConflict(dir);
@@ -93,8 +93,8 @@ async function createDUTestServer(): Promise<TestServer> {
 async function createUDTestServer(): Promise<TestServer> {
   const dir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-ud-test-')));
   const { mkdirSync } = await import('node:fs');
-  mkdirSync(join(dir, '.ok'), { recursive: true });
-  writeFileSync(join(dir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(join(dir, '.gitquire'), { recursive: true });
+  writeFileSync(join(dir, '.gitquire', 'config.yml'), '', 'utf-8');
   await execFileAsync('git', ['init', '--initial-branch=main', dir]);
   configureTestGitRepository(dir);
   await setupUDConflict(dir);
@@ -255,8 +255,8 @@ describe('both-modified conflict — backward compatibility', () => {
   beforeAll(async () => {
     contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-mm-test-')));
     const { mkdirSync } = await import('node:fs');
-    mkdirSync(join(contentDir, '.ok'), { recursive: true });
-    writeFileSync(join(contentDir, '.ok', 'config.yml'), '', 'utf-8');
+    mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
     await execFileAsync('git', ['init', '--initial-branch=main', contentDir]);
     configureTestGitRepository(contentDir);
     const opts = { cwd: contentDir };

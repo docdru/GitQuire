@@ -119,8 +119,8 @@ async function withLoadedDocuments(
   try {
     await ensureProjectGit(projectDir);
     configureTestGitRepository(projectDir);
-    await mkdir(join(projectDir, '.ok'), { recursive: true });
-    await writeFile(join(projectDir, '.ok', 'config.yml'), '');
+    await mkdir(join(projectDir, '.gitquire'), { recursive: true });
+    await writeFile(join(projectDir, '.gitquire', 'config.yml'), '');
     for (const name of names) await writeFile(join(projectDir, `${name}.md`), `# ${name}\n`);
     booted = await bootServer({
       host: '127.0.0.1',

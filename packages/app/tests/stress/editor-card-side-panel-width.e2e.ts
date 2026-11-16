@@ -2459,9 +2459,9 @@ test('Problems location reveals the editor from the information cover', async ({
 
 test('Problems Fix keeps information work in the cover', async ({ page, api, workerServer }) => {
   const docName = `editor-card-problem-fix-${test.info().workerIndex}`;
-  const configPath = join(workerServer.contentDir, '.ok', 'config.yml');
+  const configPath = join(workerServer.contentDir, '.gitquire', 'config.yml');
   const originalConfig = existsSync(configPath) ? readFileSync(configPath) : null;
-  mkdirSync(join(workerServer.contentDir, '.ok'), { recursive: true });
+  mkdirSync(join(workerServer.contentDir, '.gitquire'), { recursive: true });
   writeFileSync(configPath, 'contentRules:\n  markdownlint:\n    enabled: true\n', 'utf-8');
   try {
     await api.seedDocs([

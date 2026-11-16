@@ -86,7 +86,7 @@ function environmentFor(value) {
 function pendingFences() {
   return readdirSync(workDir, { withFileTypes: true }).flatMap((entry) => {
     if (!entry.isDirectory() || !entry.name.startsWith('ok-shadow-settle-fence-')) return [];
-    const dir = join(workDir, entry.name, '.ok');
+    const dir = join(workDir, entry.name, '.gitquire');
     return existsSync(dir)
       ? readdirSync(dir)
           .filter((name) => name.startsWith('watcher-settle-fence-'))

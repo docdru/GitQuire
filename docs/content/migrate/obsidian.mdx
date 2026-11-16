@@ -7,7 +7,7 @@ description: How to open an existing Obsidian vault in GitQuire, which markdown 
 GitQuire and Obsidian are both editors over a [folder of plain markdown](/docs/reference/core-concepts#the-file-system-is-the-database). This means that you can point GitQuire at your existing vault and your notes, links, tags, and frontmatter work out of the box.
 
 <Callout type="info">
-  GitQuire works **directly on your markdown files** — it never moves, renames, or rewrites them just for opening a vault. It keeps its own state in a `.ok/` directory and ignores Obsidian's `.obsidian/` folder, so your Obsidian setup stays exactly where it is. To back out, delete `.ok/`; your markdown stays untouched.
+  GitQuire works **directly on your markdown files** — it never moves, renames, or rewrites them just for opening a vault. It keeps its own state in a `.gitquire/` directory and ignores Obsidian's `.obsidian/` folder, so your Obsidian setup stays exactly where it is. To back out, delete `.gitquire/`; your markdown stays untouched.
 </Callout>
 
 ## Open your vault
@@ -46,7 +46,7 @@ A handful of Obsidian features are not supported, or behave differently. None of
 | --- | --- |
 | **Note transclusion** — `![[Some Note]]` to embed another note's *content* | Renders as a working link to the note rather than inlining its content — the target is one click away, just not pulled in. Only file assets (images, PDFs) embed inline; documents do not transclude. |
 | **Block references** — `^block-id` and `[[Page#^block-id]]` | Not recognized. Heading links (`[[Page#Heading]]`) resolve, but a `#^block-id` fragment won't point at a block. |
-| **The `.obsidian/` folder** | Ignored. GitQuire does not read Obsidian's theme, hotkeys, plugin config, or vault preferences. Configure GitQuire in [`.ok/config.yml`](/docs/reference/configuration) instead. |
+| **The `.obsidian/` folder** | Ignored. GitQuire does not read Obsidian's theme, hotkeys, plugin config, or vault preferences. Configure GitQuire in [`.gitquire/config.yml`](/docs/reference/configuration) instead. |
 | **Community plugins** | Don't run. GitQuire is a separate app, not an Obsidian plugin host. Many features people reach for plugins for in Obsidian — callouts, tags, math, Mermaid, embeds — are built in here, but plugin-specific syntax (for example Dataview queries) is left as plain text. |
 | **Canvas (`.canvas`) and Bases (`.base`)** | Open in a read-only text view rather than as interactive canvases or bases. They're still indexed and linkable from your notes. |
 

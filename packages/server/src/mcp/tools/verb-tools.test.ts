@@ -177,16 +177,16 @@ describe('write/edit/delete({ template }) — server-routed for attribution (PRD
     });
     expect(r.isError).toBe(true);
     expect(textOf(r)).toContain('must use letters and digits');
-    expect(existsSync(join(cwd, 'x', '.ok', 'templates', 'a.b.md'))).toBe(false);
+    expect(existsSync(join(cwd, 'x', '.gitquire', 'templates', 'a.b.md'))).toBe(false);
   });
 });
 
 describe('edit({ template }) — fence trailing whitespace (fm-delimiter hazard)', () => {
   test('a body edit preserves frontmatter stored under trailing-whitespace fences', async () => {
     const cwd = newProject();
-    mkdirSync(join(cwd, 'fishing-log', '.ok', 'templates'), { recursive: true });
+    mkdirSync(join(cwd, 'fishing-log', '.gitquire', 'templates'), { recursive: true });
     writeFileSync(
-      join(cwd, 'fishing-log', '.ok', 'templates', 'trip-log.md'),
+      join(cwd, 'fishing-log', '.gitquire', 'templates', 'trip-log.md'),
       '--- \ntitle: Trip Log\ndescription: Catch log\n---\n\n# Log\n\nFish: none\n',
     );
 
@@ -196,7 +196,7 @@ describe('edit({ template }) — fence trailing whitespace (fm-delimiter hazard)
       async fetch(req) {
         if (req.method === 'PUT' && new URL(req.url).pathname === '/api/template') {
           putPayload = (await req.json()) as Record<string, unknown>;
-          return Response.json({ path: 'fishing-log/.ok/templates/trip-log.md' });
+          return Response.json({ path: 'fishing-log/.gitquire/templates/trip-log.md' });
         }
         return Response.json({ error: 'unexpected request' }, { status: 404 });
       },
@@ -268,9 +268,9 @@ describe('write({ document }) — template-availability nudge on create', () => 
   }
 
   function seedNoteTemplate(cwd: string) {
-    mkdirSync(join(cwd, 'notes', '.ok', 'templates'), { recursive: true });
+    mkdirSync(join(cwd, 'notes', '.gitquire', 'templates'), { recursive: true });
     writeFileSync(
-      join(cwd, 'notes', '.ok', 'templates', 'note.md'),
+      join(cwd, 'notes', '.gitquire', 'templates', 'note.md'),
       '---\ntitle: Note\ndescription: A plain note\n---\n\n# \n',
     );
   }
@@ -300,9 +300,9 @@ describe('write({ document }) — template-availability nudge on create', () => 
 
   test('a decomposed template name finds the composed template', async () => {
     const cwd = newProject();
-    mkdirSync(join(cwd, 'menus', '.ok', 'templates'), { recursive: true });
+    mkdirSync(join(cwd, 'menus', '.gitquire', 'templates'), { recursive: true });
     writeFileSync(
-      join(cwd, 'menus', '.ok', 'templates', 'café.md'),
+      join(cwd, 'menus', '.gitquire', 'templates', 'café.md'),
       '---\ntitle: Café\ndescription: A menu\n---\n\n## Menu\n',
     );
     await withWriteStub(cwd, async (write) => {

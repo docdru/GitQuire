@@ -59,7 +59,7 @@ export interface LossCaptureEventInput {
   connections?: number;
 }
 
-const LOSS_CAPTURE_SUBDIR = ['.ok', 'local', 'loss-capture'] as const;
+const LOSS_CAPTURE_SUBDIR = ['.gitquire', 'local', 'loss-capture'] as const;
 const LOSS_CURRENT_FILENAME = 'loss-current.jsonl';
 const LOSS_PREVIOUS_FILENAME = 'loss-prev.jsonl';
 

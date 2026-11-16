@@ -48,7 +48,7 @@ function serializeFragment(fragment: Y.XmlFragment): string {
 function readLossEvents(contentDir: string): LossRingEvent[] {
   try {
     const raw = readFileSync(
-      join(contentDir, '.ok', 'local', 'loss-capture', 'loss-current.jsonl'),
+      join(contentDir, '.gitquire', 'local', 'loss-capture', 'loss-current.jsonl'),
       'utf-8',
     );
     return raw
@@ -101,8 +101,11 @@ function stageUnpropagatedKeystroke(doc: Y.Doc, ytext: Y.Text, fragment: Y.XmlFr
 
 function guardDisabledContentDir(): string {
   const dir = mkdtempSync(join(tmpdir(), 'ok-loss-injection-'));
-  mkdirSync(join(dir, '.ok'), { recursive: true });
-  writeFileSync(join(dir, '.ok', 'config.yml'), 'bridge:\n  deferGuard:\n    enabled: false\n');
+  mkdirSync(join(dir, '.gitquire'), { recursive: true });
+  writeFileSync(
+    join(dir, '.gitquire', 'config.yml'),
+    'bridge:\n  deferGuard:\n    enabled: false\n',
+  );
   return dir;
 }
 

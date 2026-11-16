@@ -137,7 +137,7 @@ function writeIfMissing(filePath: string, content: string, label: string): boole
 export function ensureGitignoreEntries(
   filePath: string,
   scaffoldContent: string,
-  label = '.ok/.gitignore',
+  label = '.gitquire/.gitignore',
 ): 'created' | 'updated' | 'unchanged' {
   assertNotSymlink(filePath, label);
   if (!existsSync(filePath)) {
@@ -213,25 +213,25 @@ export function removeProjectSkillGitignoreBlock(projectDir: string): 'removed' 
   return 'removed';
 }
 
-const OK_GITIGNORE_CONTENT = `# .ok/local/ holds per-machine runtime state. Anything inside is
+const OK_GITIGNORE_CONTENT = `# .gitquire/local/ holds per-machine runtime state. Anything inside is
 # machine-local and never committed. New runtime files (caches, locks,
 # manifests, telemetry, error logs) are auto-ignored — no edit needed here.
 ${LOCAL_DIR}/
 
-# .ok/worktrees/ holds git worktrees created from the desktop worktree
+# .gitquire/worktrees/ holds git worktrees created from the desktop worktree
 # selector — per-machine checkouts, never committed (WORKTREES_PARENT_DIR in
 # @gitquire/core). Worktree creation also appends this path to
 # .git/info/exclude so projects whose committed rule predates it stay clean.
 ${WORKTREES_DIRNAME}/
 
-# Machine-local directories left behind by projects that predate .ok/local/.
+# Machine-local directories left behind by projects that predate .gitquire/local/.
 # Nothing writes them anymore, but a project that has them keeps them until
 # someone deletes them, so they stay ignored.
 ${OK_LEGACY_MACHINE_LOCAL_ROOT_DIRS.map((name) => `${name}/`).join('\n')}
 
-# Per-machine runtime state at the .ok/ root. Contains PII (principal email,
+# Per-machine runtime state at the .gitquire/ root. Contains PII (principal email,
 # UUID), hostnames, and absolute filesystem paths — never commit. The only
-# file at .ok/ root that SHOULD be committed is \`config.yml\` (project
+# file at .gitquire/ root that SHOULD be committed is \`config.yml\` (project
 # configuration), which is explicitly NOT in this ignore list.
 ${OK_MACHINE_LOCAL_ROOT_FILES.join('\n')}
 `;
@@ -278,7 +278,7 @@ export function initContent(projectDir: string, options?: InitContentOptions): I
   const updated: string[] = [];
   const skipped: string[] = [];
 
-  assertNotSymlink(okDir, '.ok/');
+  assertNotSymlink(okDir, '.gitquire/');
   tracedMkdirSync(okDir, { recursive: true });
 
   const gitignoreAction = ensureGitignoreEntries(join(okDir, '.gitignore'), OK_GITIGNORE_CONTENT);
@@ -296,7 +296,7 @@ export function initContent(projectDir: string, options?: InitContentOptions): I
       buildConfigYmlContent(options?.packageVersion ?? '0.0.0', {
         contentDir: options?.contentDir,
       }),
-      `.ok/${CONFIG_FILENAME}`,
+      `.gitquire/${CONFIG_FILENAME}`,
     )
   ) {
     created.push(CONFIG_FILENAME);

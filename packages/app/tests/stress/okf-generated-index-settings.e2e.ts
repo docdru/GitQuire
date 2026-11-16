@@ -99,7 +99,7 @@ test('Escape decline restores focus, confirmation creates indexes, and disabling
     },
   ]);
 
-  const configPath = join(workerServer.contentDir, '.ok', 'config.yml');
+  const configPath = join(workerServer.contentDir, '.gitquire', 'config.yml');
   const rootIndexPath = join(workerServer.contentDir, 'index.md');
   const nestedIndexPath = join(workerServer.contentDir, 'guides', 'index.md');
   const attributesPath = join(workerServer.contentDir, '.gitattributes');

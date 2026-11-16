@@ -44,7 +44,7 @@ beforeEach(async () => {
   renameCalls.length = 0;
   tmpDir = mkdtempSync(join(tmpdir(), 'sync-engine-state-persist-'));
   projectDir = join(tmpDir, 'project');
-  okDir = join(projectDir, '.ok', LOCAL_DIR);
+  okDir = join(projectDir, '.gitquire', LOCAL_DIR);
   mkdirSync(projectDir, { recursive: true });
   mkdirSync(okDir, { recursive: true });
   const git = simpleGit(projectDir);

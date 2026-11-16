@@ -15,7 +15,7 @@ describe('server.lock — the Desktop attach advertisement', () => {
   test('port sentinel: acquire writes 0, updateServerLockPort stamps the bound port, release unlinks', async () => {
     const tmp = await mkdtemp(resolve(tmpdir(), 'ok-attach-sentinel-'));
     try {
-      const lockDir = resolve(tmp, '.ok', 'local');
+      const lockDir = resolve(tmp, '.gitquire', 'local');
       mkdirSync(lockDir, { recursive: true });
 
       acquireServerLock(lockDir, { port: 0, worktreeRoot: tmp });
@@ -42,9 +42,9 @@ describe('server.lock — the Desktop attach advertisement', () => {
         const body = parseProblem(await res.text());
         expect(body.detail).toContain('running without the web UI');
         expect(body.detail).toContain('gq start');
-        const lock = readServerLock(resolve(tmp, '.ok', 'local'));
+        const lock = readServerLock(resolve(tmp, '.gitquire', 'local'));
         expect(lock?.capabilities ?? []).not.toContain('ui');
-        expect(existsSync(resolve(tmp, '.ok', 'local', 'ui.lock'))).toBe(false);
+        expect(existsSync(resolve(tmp, '.gitquire', 'local', 'ui.lock'))).toBe(false);
       } finally {
         await booted.destroy();
       }
@@ -66,7 +66,7 @@ describe('server.lock v2 — the canonical Claude Desktop attach contract', () =
       try {
         await booted.ready;
 
-        const lock = readServerLock(resolve(projectDir, '.ok', 'local'));
+        const lock = readServerLock(resolve(projectDir, '.gitquire', 'local'));
         expect(lock).not.toBeNull();
         expect(lock?.port).toBe(booted.port);
         expect(lock?.url).toBe(`http://127.0.0.1:${booted.port}`);
@@ -94,7 +94,7 @@ describe('server.lock v2 — the canonical Claude Desktop attach contract', () =
       const booted = await bootCompositionRig(tmp);
       try {
         await booted.ready;
-        const lock = readServerLock(resolve(tmp, '.ok', 'local'));
+        const lock = readServerLock(resolve(tmp, '.gitquire', 'local'));
         expect(lock).not.toBeNull();
         expect(lock?.capabilities).toEqual(['http', 'ws']);
       } finally {

@@ -17,7 +17,7 @@ interface ProjectHandles {
 }
 
 function makeProject(root: string, slug: string): ProjectHandles {
-  const lockDir = join(root, slug, '.ok', LOCAL_DIR);
+  const lockDir = join(root, slug, '.gitquire', LOCAL_DIR);
   mkdirSync(lockDir, { recursive: true });
   const metadata = { port: 0, worktreeRoot: join(root, slug), startedAt: new Date().toISOString() };
   const server = acquireProcessLock({ lockName: 'server', lockDir, metadata });
@@ -240,7 +240,7 @@ describe('multi-project lock isolation — cross-process (A1)', () => {
 
   it('three concurrent worker processes each hold their own server lock (no cross-contamination)', async () => {
     const lockDirs = [1, 2, 3].map((i) => {
-      const lockDir = join(testRoot, `project-${i}`, '.ok', LOCAL_DIR);
+      const lockDir = join(testRoot, `project-${i}`, '.gitquire', LOCAL_DIR);
       mkdirSync(lockDir, { recursive: true });
       return { i, lockDir, serverPort: 52100 + i };
     });
@@ -281,7 +281,7 @@ describe('multi-project lock isolation — cross-process (A1)', () => {
   });
 
   it('a fourth worker against an already-held lockDir collides on the live foreign pid (US-001 collision branch)', async () => {
-    const lockDir = join(testRoot, 'shared-project', '.ok', LOCAL_DIR);
+    const lockDir = join(testRoot, 'shared-project', '.gitquire', LOCAL_DIR);
     mkdirSync(lockDir, { recursive: true });
 
     const holder = await spawnLockWorker(lockDir, 52200);

@@ -80,15 +80,19 @@ function expectedProjectLogsDir(projectDir: string): string {
 }
 
 const relocatedDiagnostics = [
-  ['server-current.jsonl', '.ok/local/logs/server-current.jsonl', 'logs/server-current.jsonl'],
-  ['server-prev.jsonl', '.ok/local/logs/server-prev.jsonl', 'logs/server-prev.jsonl'],
+  [
+    'server-current.jsonl',
+    '.gitquire/local/logs/server-current.jsonl',
+    'logs/server-current.jsonl',
+  ],
+  ['server-prev.jsonl', '.gitquire/local/logs/server-prev.jsonl', 'logs/server-prev.jsonl'],
   [
     'spans-current.jsonl',
-    '.ok/local/telemetry/spans-current.jsonl',
+    '.gitquire/local/telemetry/spans-current.jsonl',
     'telemetry/spans-current.jsonl',
   ],
-  ['spans-prev.jsonl', '.ok/local/telemetry/spans-prev.jsonl', 'telemetry/spans-prev.jsonl'],
-  ['last-spawn-error.log', '.ok/local/last-spawn-error.log', 'state/last-spawn-error.log'],
+  ['spans-prev.jsonl', '.gitquire/local/telemetry/spans-prev.jsonl', 'telemetry/spans-prev.jsonl'],
+  ['last-spawn-error.log', '.gitquire/local/last-spawn-error.log', 'state/last-spawn-error.log'],
 ] as const;
 
 describe('collectBundle — relocated project diagnostics', () => {
@@ -100,7 +104,7 @@ describe('collectBundle — relocated project diagnostics', () => {
     mkdirSync(join(expectedProjectLogsDir(projectDir), 'server-current.jsonl'), {
       recursive: true,
     });
-    writeAt(projectDir, '.ok/local/logs/server-current.jsonl', 'older incident\n');
+    writeAt(projectDir, '.gitquire/local/logs/server-current.jsonl', 'older incident\n');
     const collected = await collectBundle({
       contentDir: projectDir,
       deps: makeDeterministicDeps(),
@@ -113,8 +117,8 @@ describe('collectBundle — relocated project diagnostics', () => {
   });
 
   test.each([
-    ['stable', '~/.ok/logs/projects'],
-    ['beta', '~/.ok-beta/logs/projects'],
+    ['stable', '~/.gitquire/logs/projects'],
+    ['beta', '~/.gitquire-beta/logs/projects'],
   ] as const)(
     'records the %s diagnostic root without exposing the account home',
     async (channel, directory) => {
@@ -286,7 +290,7 @@ describe('collectBundle — file inventory', () => {
   test('lists staged spans-current.jsonl with correct bytes + lines', async () => {
     const contentDir = makeTmpDir();
     const spansBody = `{"resourceSpans":[]}\n{"resourceSpans":[{"x":1}]}\n`;
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', spansBody);
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-current.jsonl', spansBody);
 
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
 
@@ -303,15 +307,19 @@ describe('collectBundle — file inventory', () => {
     mkdirSync(contentDir, { recursive: true });
 
     const realSpans = '{"resourceSpans":[]}\n';
-    writeAt(projectDir, '.ok/local/telemetry/spans-current.jsonl', realSpans);
-    writeAt(projectDir, '.ok/local/logs/server-current.jsonl', '{"level":30,"msg":"x"}\n');
-    writeAt(projectDir, '.ok/local/server.lock', JSON.stringify({ port: 6111 }));
+    writeAt(projectDir, '.gitquire/local/telemetry/spans-current.jsonl', realSpans);
+    writeAt(projectDir, '.gitquire/local/logs/server-current.jsonl', '{"level":30,"msg":"x"}\n');
+    writeAt(projectDir, '.gitquire/local/server.lock', JSON.stringify({ port: 6111 }));
     writeAt(
       projectDir,
-      '.ok/local/acp-launch-failures.log',
+      '.gitquire/local/acp-launch-failures.log',
       '=== acp launch failure 2026-09-23T12:00:00.000Z thread=t agent=codex-acp source=registry reason=connect ===\n',
     );
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":["DECOY"]}\n');
+    writeAt(
+      contentDir,
+      '.gitquire/local/telemetry/spans-current.jsonl',
+      '{"resourceSpans":["DECOY"]}\n',
+    );
 
     const collected = await collectBundle({
       contentDir,
@@ -335,8 +343,8 @@ describe('collectBundle — file inventory', () => {
 
   test('defaults to contentDir as the project root when projectDir is omitted', async () => {
     const contentDir = makeTmpDir();
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
-    writeAt(contentDir, '.ok/local/server.lock', JSON.stringify({ port: 6222 }));
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
+    writeAt(contentDir, '.gitquire/local/server.lock', JSON.stringify({ port: 6222 }));
 
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
 
@@ -348,8 +356,8 @@ describe('collectBundle — file inventory', () => {
 
   test('lists both spans-current.jsonl and spans-prev.jsonl when both exist', async () => {
     const contentDir = makeTmpDir();
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
-    writeAt(contentDir, '.ok/local/telemetry/spans-prev.jsonl', '{"resourceSpans":[1]}\n');
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-prev.jsonl', '{"resourceSpans":[1]}\n');
 
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
 
@@ -375,7 +383,7 @@ describe('collectBundle — file inventory', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/logs/server-current.jsonl',
+      '.gitquire/local/logs/server-current.jsonl',
       '{"level":30,"msg":"hi"}\n{"level":30,"msg":"there"}\n',
     );
 
@@ -390,7 +398,7 @@ describe('collectBundle — file inventory', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/telemetry/spans-current.jsonl',
+      '.gitquire/local/telemetry/spans-current.jsonl',
       `{"resourceSpans":[]}\n{"resourceSpans":[1]}\n{"resourceSpans"`,
     );
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
@@ -419,7 +427,7 @@ describe('collectBundle — server status', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/server.lock',
+      '.gitquire/local/server.lock',
       JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
     );
     let queriedPort = -1;
@@ -443,7 +451,7 @@ describe('collectBundle — server status', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/server.lock',
+      '.gitquire/local/server.lock',
       JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
     );
     const collected = await collectBundle({
@@ -481,7 +489,7 @@ describe('collectBundle — server status', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/server.lock',
+      '.gitquire/local/server.lock',
       JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
     );
     let queriedPort = -1;
@@ -505,7 +513,7 @@ describe('collectBundle — server status', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/server.lock',
+      '.gitquire/local/server.lock',
       JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
     );
     let queriedPort = -1;
@@ -550,7 +558,7 @@ describe('collectBundle — server status', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/server.lock',
+      '.gitquire/local/server.lock',
       JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
     );
     const emptyDeps = makeDeterministicDeps({
@@ -578,7 +586,7 @@ describe('collectBundle — server status', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/server.lock',
+      '.gitquire/local/server.lock',
       JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
     );
     const deps = makeDeterministicDeps({
@@ -596,7 +604,7 @@ describe('collectBundle — server status', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/server.lock',
+      '.gitquire/local/server.lock',
       JSON.stringify({ pid: 1, port: 4711, hostname: 'h', startedAt: 't', worktreeRoot: '/' }),
     );
     const deps = makeDeterministicDeps({
@@ -612,7 +620,7 @@ describe('collectBundle — server status', () => {
 
   test('corrupt lock → not-running, lock still staged for forensics', async () => {
     const contentDir = makeTmpDir();
-    writeAt(contentDir, '.ok/local/server.lock', 'not json {');
+    writeAt(contentDir, '.gitquire/local/server.lock', 'not json {');
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
 
     expect(collected.manifest.serverStatus).toBe('not-running');
@@ -670,7 +678,7 @@ describe('collectBundle — state files', () => {
       null,
       2,
     )}\n`;
-    writeAt(contentDir, '.ok/local/last-server-exit.json', body);
+    writeAt(contentDir, '.gitquire/local/last-server-exit.json', body);
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
     expect(
       readFileSync(join(collected.stagingDir, 'state', 'last-server-exit.json'), 'utf-8'),
@@ -698,7 +706,7 @@ describe('collectBundle — state files', () => {
       null,
       2,
     )}\n`;
-    writeAt(contentDir, '.ok/local/last-server-crash.json', body);
+    writeAt(contentDir, '.gitquire/local/last-server-crash.json', body);
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
     expect(
       readFileSync(join(collected.stagingDir, 'state', 'last-server-crash.json'), 'utf-8'),
@@ -787,13 +795,13 @@ describe('collectBundle — summary', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/telemetry/spans-current.jsonl',
+      '.gitquire/local/telemetry/spans-current.jsonl',
       '{"resourceSpans":[{"attributes":[{"key":"doc.name","value":"a"}]}]}\n' +
         '{"resourceSpans":[{"attributes":[{"key":"doc.name","value":"b"}]}]}\n',
     );
     writeAt(
       contentDir,
-      '.ok/local/telemetry/spans-prev.jsonl',
+      '.gitquire/local/telemetry/spans-prev.jsonl',
       '{"resourceSpans":[{"attributes":[{"key":"doc.name","value":"c"}]}]}\n',
     );
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
@@ -805,7 +813,7 @@ describe('collectBundle — summary', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/logs/server-current.jsonl',
+      '.gitquire/local/logs/server-current.jsonl',
       '{"source":"renderer-console","event":"ok-outline-nav","docName":"notes/a"}\n' +
         '{"source":"renderer-console","event":"ok/scroll-restore/abandoned","docName":"notes/b"}\n',
     );
@@ -836,7 +844,7 @@ describe('collectBundle — summary', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/local/logs/server-current.jsonl',
+      '.gitquire/local/logs/server-current.jsonl',
       `{"level":30,"msg":"opened ${contentDir}/notes.md"}\n`,
     );
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
@@ -908,7 +916,7 @@ describe('collectBundle — a content root typed through a directory alias', () 
       expect(spellingRelation(typed, native)).toBe(relation);
       writeAt(
         projectDir,
-        '.ok/local/logs/server-current.jsonl',
+        '.gitquire/local/logs/server-current.jsonl',
         jsonl([
           {
             level: 30,
@@ -991,7 +999,7 @@ describe('collectBundle — a content root typed through a directory alias', () 
     expect(existsSync(contentDir)).toBe(false);
     writeAt(
       projectDir,
-      '.ok/local/logs/server-current.jsonl',
+      '.gitquire/local/logs/server-current.jsonl',
       jsonl([{ level: 30, path: join(contentDir, 'note.md'), msg: 'opened' }]),
     );
 
@@ -1015,7 +1023,7 @@ describe('collectBundle — a content root typed through a directory alias', () 
     expect(statSync(dirname(contentDir)).isFile()).toBe(true);
     writeAt(
       projectDir,
-      '.ok/local/logs/server-current.jsonl',
+      '.gitquire/local/logs/server-current.jsonl',
       jsonl([{ level: 30, path: join(contentDir, 'note.md'), msg: 'opened' }]),
     );
 
@@ -1047,8 +1055,8 @@ describe('collectBundle — loss-capture ring', () => {
       lostLen: 12,
       digest: 'abc12345',
     });
-    writeAt(contentDir, '.ok/local/loss-capture/loss-current.jsonl', `${lossEvent}\n`);
-    writeAt(contentDir, '.ok/local/loss-capture/loss-prev.jsonl', `${lossEvent}\n`);
+    writeAt(contentDir, '.gitquire/local/loss-capture/loss-current.jsonl', `${lossEvent}\n`);
+    writeAt(contentDir, '.gitquire/local/loss-capture/loss-prev.jsonl', `${lossEvent}\n`);
 
     const collected = await collectBundle({
       contentDir,
@@ -1086,7 +1094,7 @@ async function readZipEntries(zipPath: string): Promise<string[]> {
 describe('writeBundle', () => {
   test('produces a zip whose entries match collected.manifest.files[] + manifest.json', async () => {
     const contentDir = makeTmpDir();
-    writeAt(contentDir, '.ok/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
+    writeAt(contentDir, '.gitquire/local/telemetry/spans-current.jsonl', '{"resourceSpans":[]}\n');
     const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
 
     const outDir = makeTmpDir('ok-bundle-out-');
@@ -1149,8 +1157,8 @@ describe('writeBundle', () => {
 describe('collectBundle — manifest.telemetry.localSink cascade', () => {
   test("project's explicit `enabled: false` survives schema defaults in an empty project-local config", async () => {
     const contentDir = makeTmpDir();
-    writeAt(contentDir, '.ok/config.yml', 'telemetry:\n  localSink:\n    enabled: false\n');
-    writeAt(contentDir, '.ok/local/config.yml', '');
+    writeAt(contentDir, '.gitquire/config.yml', 'telemetry:\n  localSink:\n    enabled: false\n');
+    writeAt(contentDir, '.gitquire/local/config.yml', '');
 
     const collected = await collectBundle({
       contentDir,
@@ -1162,8 +1170,12 @@ describe('collectBundle — manifest.telemetry.localSink cascade', () => {
 
   test('project-local explicit `enabled: false` wins over project `true`', async () => {
     const contentDir = makeTmpDir();
-    writeAt(contentDir, '.ok/config.yml', 'telemetry:\n  localSink:\n    enabled: true\n');
-    writeAt(contentDir, '.ok/local/config.yml', 'telemetry:\n  localSink:\n    enabled: false\n');
+    writeAt(contentDir, '.gitquire/config.yml', 'telemetry:\n  localSink:\n    enabled: true\n');
+    writeAt(
+      contentDir,
+      '.gitquire/local/config.yml',
+      'telemetry:\n  localSink:\n    enabled: false\n',
+    );
     const collected = await collectBundle({
       contentDir,
       deps: makeDeterministicDeps(),
@@ -1176,12 +1188,12 @@ describe('collectBundle — manifest.telemetry.localSink cascade', () => {
     const contentDir = makeTmpDir();
     writeAt(
       contentDir,
-      '.ok/config.yml',
+      '.gitquire/config.yml',
       'telemetry:\n  localSink:\n    spans:\n      maxBytes: 999\n',
     );
     writeAt(
       contentDir,
-      '.ok/local/config.yml',
+      '.gitquire/local/config.yml',
       'telemetry:\n  localSink:\n    spans:\n      maxBytes: 7\n',
     );
     const collected = await collectBundle({
@@ -1209,7 +1221,7 @@ describe('collectBundle — staging cleanup on throw', () => {
   test('a mid-staging throw removes the staging dir instead of stranding staged copies', async () => {
     const marker = `staging-leak-${randomUUID()}`;
     const contentDir = makeTmpDir();
-    writeAt(contentDir, '.ok/local/logs/server-current.jsonl', `{"msg":"${marker}"}\n`);
+    writeAt(contentDir, '.gitquire/local/logs/server-current.jsonl', `{"msg":"${marker}"}\n`);
 
     await expect(
       collectBundle({

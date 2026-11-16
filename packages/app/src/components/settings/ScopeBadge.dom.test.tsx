@@ -68,7 +68,7 @@ describe('ScopeBadge', () => {
     renderBadge('project-local');
     await userEvent.hover(screen.getByTestId('settings-scope-badge-project-local'));
     const tooltip = await screen.findAllByRole('tooltip');
-    expect(within(tooltip[0]).getByText(/\.ok\/local/i)).toBeDefined();
+    expect(within(tooltip[0]).getByText(/\.gitquire\/local/i)).toBeDefined();
   });
 
   test('badge is keyboard-focusable and focus opens the tooltip', async () => {

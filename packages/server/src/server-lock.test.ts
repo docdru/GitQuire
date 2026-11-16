@@ -33,7 +33,7 @@ let lockPath: string;
 
 beforeEach(async () => {
   tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-server-lock-test-'));
-  lockDir = resolve(tmpDir, '.ok', LOCAL_DIR);
+  lockDir = resolve(tmpDir, '.gitquire', LOCAL_DIR);
   lockPath = resolve(lockDir, 'server.lock');
 });
 

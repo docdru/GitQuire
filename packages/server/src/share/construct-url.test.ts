@@ -631,10 +631,10 @@ describe('isValidSharePath (kind-aware)', () => {
     expect(isValidSharePath('a/.git/b', 'folder')).toBe(false);
   });
 
-  test('.ok and .github dot-folders allowed (gate is .git-only per D21)', () => {
-    expect(isValidSharePath('.ok/config.yml', 'doc')).toBe(true);
+  test('.gitquire and .github dot-folders allowed (gate is .git-only per D21)', () => {
+    expect(isValidSharePath('.gitquire/config.yml', 'doc')).toBe(true);
     expect(isValidSharePath('.github/workflows', 'folder')).toBe(true);
-    expect(isValidSharePath('.ok', 'folder')).toBe(true);
+    expect(isValidSharePath('.gitquire', 'folder')).toBe(true);
   });
 
   test('empty intermediate segment (a//b) rejected', () => {

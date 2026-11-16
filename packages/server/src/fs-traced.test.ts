@@ -24,35 +24,41 @@ describe('classifyFsPath', () => {
     );
   });
 
-  test('.ok/local/server.lock buckets as "lock" (lock check fires before ok-internal)', () => {
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}server.lock`)).toBe('lock');
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}ui.lock`)).toBe('lock');
+  test('.gitquire/local/server.lock buckets as "lock" (lock check fires before ok-internal)', () => {
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}server.lock`)).toBe('lock');
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}ui.lock`)).toBe('lock');
   });
 
-  test('.ok/local/principal.json buckets as "principal"', () => {
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}principal.json`)).toBe('principal');
+  test('.gitquire/local/principal.json buckets as "principal"', () => {
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}principal.json`)).toBe(
+      'principal',
+    );
   });
 
   test('conflicts.json or paths under conflicts/ bucket as "conflict"', () => {
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}conflicts.json`)).toBe('conflict');
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}conflicts${sep}foo.md`)).toBe(
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}conflicts.json`)).toBe(
+      'conflict',
+    );
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}conflicts${sep}foo.md`)).toBe(
       'conflict',
     );
   });
 
-  test('.ok/local/* general writes bucket as "ok-internal"', () => {
-    expect(classifyFsPath(`${root}${sep}.ok${sep}config.yml`)).toBe('ok-internal');
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}cache${sep}foo.json`)).toBe(
+  test('.gitquire/local/* general writes bucket as "ok-internal"', () => {
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}config.yml`)).toBe('ok-internal');
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}cache${sep}foo.json`)).toBe(
       'ok-internal',
     );
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}state.json`)).toBe('ok-internal');
-    expect(classifyFsPath(`${root}${sep}.ok${sep}local${sep}sync-state.json`)).toBe('ok-internal');
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}state.json`)).toBe('ok-internal');
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}local${sep}sync-state.json`)).toBe(
+      'ok-internal',
+    );
   });
 
-  test('.md/.mdx writes UNDER .ok/ bucket as "ok-internal" (not content-md)', () => {
-    expect(classifyFsPath(`${root}${sep}.ok${sep}AGENTS.md`)).toBe('ok-internal');
-    expect(classifyFsPath(`${root}${sep}.ok${sep}cache${sep}foo.md`)).toBe('ok-internal');
-    expect(classifyFsPath(`${root}${sep}.ok${sep}notes.mdx`)).toBe('ok-internal');
+  test('.md/.mdx writes UNDER .gitquire/ bucket as "ok-internal" (not content-md)', () => {
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}AGENTS.md`)).toBe('ok-internal');
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}cache${sep}foo.md`)).toBe('ok-internal');
+    expect(classifyFsPath(`${root}${sep}.gitquire${sep}notes.mdx`)).toBe('ok-internal');
   });
 
   test('content-md and content-mdx writes bucket as "content-md"', () => {

@@ -18,7 +18,7 @@ let root: string;
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'ok-okf-schemas-'));
-  mkdirSync(join(root, '.ok'), { recursive: true });
+  mkdirSync(join(root, '.gitquire'), { recursive: true });
   resetOkfSchemaWriteState();
 });
 afterEach(() => {
@@ -72,33 +72,33 @@ describe('writing the schemas', () => {
 });
 
 describe('git handling', () => {
-  test('the generated directory is added to .ok/.gitignore', () => {
-    writeFileSync(join(root, '.ok', '.gitignore'), 'local/\n', 'utf8');
+  test('the generated directory is added to .gitquire/.gitignore', () => {
+    writeFileSync(join(root, '.gitquire', '.gitignore'), 'local/\n', 'utf8');
     writeOkfSchemaFiles(root);
-    expect(read('.ok/.gitignore')).toMatch(/^okf\/$/m);
+    expect(read('.gitquire/.gitignore')).toMatch(/^okf\/$/m);
   });
 
   test('the rule is not duplicated on a second write', () => {
-    writeFileSync(join(root, '.ok', '.gitignore'), 'local/\n', 'utf8');
+    writeFileSync(join(root, '.gitquire', '.gitignore'), 'local/\n', 'utf8');
     writeOkfSchemaFiles(root);
     writeOkfSchemaFiles(root);
-    const lines = read('.ok/.gitignore')
+    const lines = read('.gitquire/.gitignore')
       .split('\n')
       .filter((l) => l.trim() === 'okf/');
     expect(lines).toHaveLength(1);
   });
 
   test('a rule the user already wrote themselves is left alone', () => {
-    writeFileSync(join(root, '.ok', '.gitignore'), 'local/\n  okf/  \n', 'utf8');
+    writeFileSync(join(root, '.gitquire', '.gitignore'), 'local/\n  okf/  \n', 'utf8');
     writeOkfSchemaFiles(root);
-    const lines = read('.ok/.gitignore')
+    const lines = read('.gitquire/.gitignore')
       .split('\n')
       .filter((l) => l.trim() === 'okf/');
     expect(lines).toHaveLength(1);
   });
 
-  test('a project with no .ok/.gitignore still gets its schemas', () => {
-    rmSync(join(root, '.ok', '.gitignore'), { force: true });
+  test('a project with no .gitquire/.gitignore still gets its schemas', () => {
+    rmSync(join(root, '.gitquire', '.gitignore'), { force: true });
     expect(writeOkfSchemaFiles(root).length).toBeGreaterThan(0);
     expect(existsSync(join(root, OKF_SCHEMA_DIR))).toBe(true);
   });
@@ -170,7 +170,7 @@ describe('the enablement gate', () => {
 
   test('a second project is not skipped by the first', () => {
     const rootB = mkdtempSync(join(tmpdir(), 'ok-okf-schemas-b-'));
-    mkdirSync(join(rootB, '.ok'), { recursive: true });
+    mkdirSync(join(rootB, '.gitquire'), { recursive: true });
     try {
       ensureOkfSchemaFiles(root, { enabled: true });
       ensureOkfSchemaFiles(rootB, { enabled: true });

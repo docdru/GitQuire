@@ -7,8 +7,8 @@ import { assertProjectContentSubtree } from './project-content-scope.ts';
 test('recursive operations refuse a descendant project without relying on a file index', () => {
   const root = mkdtempSync(join(tmpdir(), 'ok-scope-subtree-'));
   try {
-    mkdirSync(join(root, 'public', 'knowledge', '.ok'), { recursive: true });
-    writeFileSync(join(root, 'public', 'knowledge', '.ok', 'config.yml'), '');
+    mkdirSync(join(root, 'public', 'knowledge', '.gitquire'), { recursive: true });
+    writeFileSync(join(root, 'public', 'knowledge', '.gitquire', 'config.yml'), '');
     expect(() => assertProjectContentSubtree(join(root, 'public'), root)).toThrow(
       /nested project/i,
     );
@@ -20,10 +20,10 @@ test('recursive operations refuse a descendant project without relying on a file
 test('recursive operations allow folder metadata and do not follow directory links', () => {
   const root = mkdtempSync(join(tmpdir(), 'ok-scope-subtree-'));
   try {
-    mkdirSync(join(root, 'notes', '.ok'), { recursive: true });
-    writeFileSync(join(root, 'notes', '.ok', 'frontmatter.yml'), 'icon: note\n');
-    mkdirSync(join(root, 'child', '.ok'), { recursive: true });
-    writeFileSync(join(root, 'child', '.ok', 'config.yml'), '');
+    mkdirSync(join(root, 'notes', '.gitquire'), { recursive: true });
+    writeFileSync(join(root, 'notes', '.gitquire', 'frontmatter.yml'), 'icon: note\n');
+    mkdirSync(join(root, 'child', '.gitquire'), { recursive: true });
+    writeFileSync(join(root, 'child', '.gitquire', 'config.yml'), '');
     symlinkSync(join(root, 'child'), join(root, 'notes', 'alias'), 'junction');
     expect(() => assertProjectContentSubtree(join(root, 'notes'), root)).not.toThrow();
   } finally {

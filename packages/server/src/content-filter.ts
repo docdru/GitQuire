@@ -50,6 +50,7 @@ const BUILTIN_SKIP_DIRS = new Set([
   '.parcel-cache',
   'coverage',
   '.git',
+  '.gitquire',
   '.ok',
   '.open-knowledge',
   '.openknowledge',
@@ -62,6 +63,7 @@ const BUILTIN_SKIP_DIRS = new Set([
 const ALWAYS_SKIP_DIRS = new Set<string>([
   '.git',
   'node_modules',
+  '.gitquire',
   '.ok',
   '.open-knowledge',
   '.openknowledge',
@@ -184,7 +186,7 @@ function isSkillContentFile(relativePath: string): boolean {
 
 function isSkillContentAncestorDir(relativePath: string): boolean {
   return (
-    relativePath === '.ok' ||
+    relativePath === '.gitquire' ||
     relativePath === LEGACY_SKILL_STORE_ROOT ||
     isSkillContentFile(relativePath)
   );
@@ -198,8 +200,8 @@ const WATCHER_SAFE_BUILTIN_SKIP_DIRS = new Set(
 export const WATCHER_STRUCTURAL_IGNORE_DIRS = [
   '.git',
   'node_modules',
-  '.ok/local',
-  '.ok/worktrees',
+  '.gitquire/local',
+  '.gitquire/worktrees',
 ] as const;
 
 const WATCHER_STRUCTURAL_IGNORE_GLOBS = WATCHER_STRUCTURAL_IGNORE_DIRS.flatMap((dir) => [
@@ -226,15 +228,15 @@ function watcherPatternIsConfinedToAlwaysSkippedTree(pattern: string): boolean {
 
 const WATCHER_MANAGED_CONTENT_PROBES = [
   '.gitignore',
-  '.ok',
-  '.ok/config.yml',
-  '.ok/.gitignore',
-  '.ok/schemas/frontmatter.json',
-  '.ok/templates/example.md',
-  '.ok/skills/example/SKILL.md',
-  'docs/.ok',
-  'docs/.ok/frontmatter.yml',
-  'docs/.ok/templates/example.md',
+  '.gitquire',
+  '.gitquire/config.yml',
+  '.gitquire/.gitignore',
+  '.gitquire/schemas/frontmatter.json',
+  '.gitquire/templates/example.md',
+  '.gitquire/skills/example/SKILL.md',
+  'docs/.gitquire',
+  'docs/.gitquire/frontmatter.yml',
+  'docs/.gitquire/templates/example.md',
   ...EDITOR_HOST_DIRS.flatMap((dir) => [dir, `${dir}/skills/example/SKILL.md`]),
 ] as const;
 
@@ -299,8 +301,8 @@ function isTemplateContentAncestorDir(relativePath: string): boolean {
 }
 
 /**
- * True for a FILE on the shareable `.ok` artifact allow-list. Exported because the symlink guard's
- * `.ok` write exemption must consult THIS predicate on the resolved path: one predicate for
+ * True for a FILE on the shareable `.gitquire` artifact allow-list. Exported because the symlink guard's
+ * `.gitquire` write exemption must consult THIS predicate on the resolved path: one predicate for
  * whether a path is in sync scope, never a parallel copy that can drift (precedent #55).
  */
 export function isShareableOkArtifact(relativePath: string): boolean {
@@ -643,7 +645,7 @@ type ContentFilterSyncReadOpts = ContentFilterCommonReadOpts & {
   bypassFilters?: never;
   /**
    * Paths the unified ignore rules reject stay refused even with the scope: the gather walk and
-   * `git add` must agree on every path (precedent #55), and a local-only project's blanket `.ok/`
+   * `git add` must agree on every path (precedent #55), and a local-only project's blanket `.gitquire/`
    * exclude covers exactly this set.
    */
   syncScope: { pathBase: 'content' | 'project' };

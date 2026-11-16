@@ -30,7 +30,7 @@ const unsafe = (code: number) => `private-prefix😀${String.fromCharCode(code)}
 
 function artifactPath(kind: ArtifactKind, name: string): string {
   return kind === 'template'
-    ? join(root, 'templates', '.ok', 'templates', `${name}.md`)
+    ? join(root, 'templates', '.gitquire', 'templates', `${name}.md`)
     : join(root, '.agents', 'skills', name, 'SKILL.md');
 }
 

@@ -1147,16 +1147,16 @@ test.describe('markdown-lint hover callout', () => {
     'more than one visual line in the editor so a pointer can rest anywhere along its width.';
 
   test.beforeEach(({ workerServer }) => {
-    mkdirSync(join(workerServer.contentDir, '.ok'), { recursive: true });
+    mkdirSync(join(workerServer.contentDir, '.gitquire'), { recursive: true });
     writeFileSync(
-      join(workerServer.contentDir, '.ok', 'config.yml'),
+      join(workerServer.contentDir, '.gitquire', 'config.yml'),
       'contentRules:\n  markdownlint:\n    enabled: true\n',
       'utf-8',
     );
   });
 
   test.afterAll(({ workerServer }) => {
-    writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), '', 'utf-8');
+    writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
   });
 
   async function openLintDoc(page: Page, api: ApiHelpers, prefix: string): Promise<void> {

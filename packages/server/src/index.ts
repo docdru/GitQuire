@@ -233,6 +233,12 @@ export {
   initProjectWithCli,
   runGitQuireBootstrap,
 } from './gitquire/index.ts';
+export {
+  describeLegacyDataFolderMigration,
+  findLegacyProjectRoot,
+  migrateLegacyDataFolders,
+  migrateLegacyHomeFolder,
+} from './gitquire/legacy-data-folder.ts';
 export { type ProjectHeadState, readProjectHeadState } from './head-watcher.ts';
 export {
   assertSafeProjectRoot,

@@ -48,7 +48,7 @@ describe('GET /api/template with Node win32 paths', () => {
     const directory = fixture.fs.mkdtempSync(fixture.path.join(tmpdir(), 'ok-template-ancestry-'));
     fixture.state.directory = fixture.fs.realpathSync(directory);
     try {
-      const templates = fixture.path.join(directory, 'Setup', '.ok', 'templates');
+      const templates = fixture.path.join(directory, 'Setup', '.gitquire', 'templates');
       fixture.fs.mkdirSync(templates, { recursive: true });
       fixture.fs.mkdirSync(fixture.path.join(directory, 'Results'));
       fixture.fs.writeFileSync(fixture.path.join(templates, 'setup-only.md'), '# Setup only\n');

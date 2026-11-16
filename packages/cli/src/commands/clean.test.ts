@@ -363,7 +363,7 @@ describe('runClean over a lock whose recorded process has exited but is unreaped
     const defunct = await startDefunctProcess(root, children);
     expect(defunct.state).toMatch(/^Z/);
 
-    const lockDir = join(root, '.ok', 'local');
+    const lockDir = join(root, '.gitquire', 'local');
     mkdirSync(lockDir, { recursive: true });
     const lockPath = join(lockDir, 'server.lock');
     writeFileSync(

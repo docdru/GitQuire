@@ -503,21 +503,21 @@ describe('asset hash helpers', () => {
 describe('template doc names round-trip as documents', () => {
   test('template CONTENT doc name (nested folder) round-trips through the hash', () => {
     const docName = templateContentDocName('a/b/c', 'deep');
-    expect(docName).toBe('a/b/c/.ok/templates/deep');
-    expect(hashFromDocName(docName)).toBe('#/a/b/c/.ok/templates/deep');
+    expect(docName).toBe('a/b/c/.gitquire/templates/deep');
+    expect(hashFromDocName(docName)).toBe('#/a/b/c/.gitquire/templates/deep');
     expect(docNameFromHash(hashFromDocName(docName))).toBe(docName);
   });
 
   test('template CONTENT doc at the project root round-trips', () => {
     const docName = templateContentDocName('', 'daily');
-    expect(docName).toBe('.ok/templates/daily');
+    expect(docName).toBe('.gitquire/templates/daily');
     expect(docNameFromHash(hashFromDocName(docName))).toBe(docName);
   });
 
   test('a spaced-folder template content name rides the generic hash round-trip', () => {
     const docName = templateContentDocName('My Notes', 'plan');
-    expect(docName).toBe('My Notes/.ok/templates/plan');
-    expect(docNameFromHash('#/My%20Notes/.ok/templates/plan')).toBe(docName);
+    expect(docName).toBe('My Notes/.gitquire/templates/plan');
+    expect(docNameFromHash('#/My%20Notes/.gitquire/templates/plan')).toBe(docName);
     expect(docNameFromHash(hashFromDocName(docName))).toBe(docName);
   });
 

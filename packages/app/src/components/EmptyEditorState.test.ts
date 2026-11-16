@@ -64,7 +64,7 @@ describe('countEntries() — onboarding gate', () => {
         { kind: 'document', docName: 'INDEX' },
         { kind: 'folder', path: 'brain' },
         { kind: 'document', docName: '.scratch/wip' },
-        { kind: 'document', docName: '.ok/skills/research/SKILL' },
+        { kind: 'document', docName: '.gitquire/skills/research/SKILL' },
       ]),
     ).toBe(2);
   });

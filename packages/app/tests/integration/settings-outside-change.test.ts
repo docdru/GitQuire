@@ -63,7 +63,7 @@ async function openWithPendingEdit(
   await pollUntil(() => c.ytext.toString() === SAVED, 10_000, 25, 'the settings to load');
   c.ytext.insert(c.ytext.length, '# a note being typed\n');
   await pollUntil(() => liveText(s) === PENDING, 10_000, 25, 'the edit to reach the server');
-  return { s, path: join(s.contentDir, '.ok', 'config.yml') };
+  return { s, path: join(s.contentDir, '.gitquire', 'config.yml') };
 }
 
 async function settingsHistory(
@@ -111,7 +111,7 @@ describe('an outside change to the project settings under an unsaved edit', () =
         kind: 'moved-to-history',
         side: 'ours',
         reason: 'outside-settings-applied',
-        file: '.ok/config.yml',
+        file: '.gitquire/config.yml',
       }),
     ]);
   });
@@ -131,7 +131,7 @@ describe('an outside change to the project settings under an unsaved edit', () =
       { side: 'theirs', fileType: 'config', content: invalid },
     ]);
     expect(await settingsNotices(s)).toEqual([
-      expect.objectContaining({ reason: 'outside-settings-invalid', file: '.ok/config.yml' }),
+      expect.objectContaining({ reason: 'outside-settings-invalid', file: '.gitquire/config.yml' }),
     ]);
   });
 
@@ -143,7 +143,7 @@ describe('an outside change to the project settings under an unsaved edit', () =
 
     await pollUntil(() => liveText(s) === outside, 10_000, 25, 'the polled intake to apply');
     await pollUntil(async () => (await settingsNotices(s)).length === 1, 10_000, 25, 'the notice');
-    const backups = join(home, '.ok', 'edit-backups', 'discarded');
+    const backups = join(home, '.gitquire', 'edit-backups', 'discarded');
     expect(existsSync(backups)).toBe(true);
     expect(
       readdirSync(backups, { recursive: true, withFileTypes: true })
@@ -155,9 +155,9 @@ describe('an outside change to the project settings under an unsaved edit', () =
         kind: 'moved-to-backup',
         side: 'ours',
         reason: 'outside-settings-applied',
-        file: '.ok/config.yml',
+        file: '.gitquire/config.yml',
         backup: expect.stringMatching(
-          /^~\/\.ok\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/[^/]+\/[^/]+\.yml$/,
+          /^~\/\.gitquire\/edit-backups\/discarded\/projects\/[0-9a-f]{8}\/[^/]+\/[^/]+\.yml$/,
         ),
       }),
     ]);

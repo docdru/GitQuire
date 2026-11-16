@@ -167,9 +167,9 @@ export interface WriteBundleOpts {
   outputPath: string;
 }
 
-const TELEMETRY_REL = ['.ok', 'local', 'telemetry'] as const;
-const LOGS_REL = ['.ok', 'local', 'logs'] as const;
-const LOSS_CAPTURE_REL = ['.ok', 'local', 'loss-capture'] as const;
+const TELEMETRY_REL = ['.gitquire', 'local', 'telemetry'] as const;
+const LOGS_REL = ['.gitquire', 'local', 'logs'] as const;
+const LOSS_CAPTURE_REL = ['.gitquire', 'local', 'loss-capture'] as const;
 const SPANS_CURRENT = PROJECT_DIAGNOSTIC_FILES.spansCurrent;
 const SPANS_PREVIOUS = PROJECT_DIAGNOSTIC_FILES.spansPrevious;
 const LOGS_CURRENT = PROJECT_DIAGNOSTIC_FILES.logsCurrent;
@@ -548,7 +548,7 @@ export async function collectBundle(opts: CollectBundleOpts): Promise<CollectedB
       }
     }
 
-    const lockDir = join(projectDir, '.ok', 'local');
+    const lockDir = join(projectDir, '.gitquire', 'local');
     const lockPath = join(lockDir, 'server.lock');
     let serverStatus: BundleServerStatus = 'not-running';
     let serverStatusReason = 'no server.lock';

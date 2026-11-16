@@ -23,8 +23,8 @@ afterEach(async () => {
 
 function seedContentDir(): string {
   const dir = mkdtempSync(join(tmpdir(), 'ok-template-gate-'));
-  mkdirSync(resolve(dir, '.ok'), { recursive: true });
-  writeFileSync(resolve(dir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(resolve(dir, '.gitquire'), { recursive: true });
+  writeFileSync(resolve(dir, '.gitquire', 'config.yml'), '', 'utf-8');
   return dir;
 }
 
@@ -64,7 +64,7 @@ describe('template tombstone quarantine (FR3)', () => {
       await wait(700);
 
       expect(existsSync(join(rig.contentDir, '__template__', folder, `${name}.md`))).toBe(false);
-      expect(existsSync(join(rig.contentDir, folder, '.ok', 'templates', `${name}.md`))).toBe(
+      expect(existsSync(join(rig.contentDir, folder, '.gitquire', 'templates', `${name}.md`))).toBe(
         false,
       );
       expect(existsSync(join(rig.contentDir, '__template__'))).toBe(false);
@@ -80,9 +80,9 @@ describe('template live conflict gate (FR5)', () => {
     'conflict markers in a template file make the live gate refuse PUT, move, DELETE, and import (previously dead)',
     async () => {
       const name = `tpl-${randomUUID().slice(0, 8)}`;
-      const docName = `.ok/templates/${name}`;
+      const docName = `.gitquire/templates/${name}`;
       const contentDir = seedContentDir();
-      const tplFile = resolve(contentDir, '.ok', 'templates', `${name}.md`);
+      const tplFile = resolve(contentDir, '.gitquire', 'templates', `${name}.md`);
       const clean = '---\ntitle: T\ndescription: initial\n---\n\n# Template\n\nv1.\n';
       mkdirSync(resolve(tplFile, '..'), { recursive: true });
       writeFileSync(tplFile, clean, 'utf-8');
@@ -135,7 +135,9 @@ describe('template live conflict gate (FR5)', () => {
       expect(((await imp.json()) as { type: string }).type).toBe('urn:ok:error:doc-in-conflict');
 
       expect(readFileSync(tplFile, 'utf-8')).toBe(conflicted);
-      expect(existsSync(resolve(contentDir, '.ok', 'templates', `${movedName}.md`))).toBe(false);
+      expect(existsSync(resolve(contentDir, '.gitquire', 'templates', `${movedName}.md`))).toBe(
+        false,
+      );
 
       await client.cleanup();
     },

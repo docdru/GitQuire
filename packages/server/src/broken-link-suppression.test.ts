@@ -53,7 +53,7 @@ describe('formatAuditBrokenLinkSuppressionLine', () => {
 
     expect(line).toContain('protect that history');
     expect(line).toContain('validation.suppressLogLinkAdvisories: false');
-    expect(line).toContain('.ok/config.yml');
+    expect(line).toContain('.gitquire/config.yml');
     expect(line).toContain('Settings ▸ This project ▸ Preferences ▸ Content rules');
     expect(line).toContain('http://127.0.0.1:54321/api/dead-links');
     expect(line).not.toMatch(/\/api\/dead-links\S/);

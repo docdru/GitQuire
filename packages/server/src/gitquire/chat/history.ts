@@ -82,7 +82,7 @@ export function titleFrom(text: string): string {
 }
 
 export function chatsDir(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'chats');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'chats');
 }
 
 export interface ChatHistoryStore {

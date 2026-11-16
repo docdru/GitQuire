@@ -63,7 +63,7 @@ describe('resolveDesktopProductName', () => {
     const products = Object.values(DESKTOP_PRODUCTS);
     expect(new Set(products.map((p) => p.userHomeDirName)).size).toBe(products.length);
     expect(new Set(products.map((p) => p.keyringService)).size).toBe(products.length);
-    expect(DESKTOP_PRODUCTS.stable.userHomeDirName).toBe('.ok');
+    expect(DESKTOP_PRODUCTS.stable.userHomeDirName).toBe('.gitquire');
     expect(DESKTOP_PRODUCTS.stable.keyringService).toBe('open-knowledge');
   });
 
@@ -123,7 +123,7 @@ describe('resolveDesktopProductName', () => {
     const dev = resolveDesktopProductName({ GITQUIRE_CHANNEL: 'dev' }, '/usr/local/bin/node');
     expect(dev).toBe('dev');
     expect(DESKTOP_PRODUCTS[dev]).toMatchObject({
-      userHomeDirName: '.ok-dev',
+      userHomeDirName: '.gitquire-dev',
       keyringService: 'open-knowledge-dev',
       mcpServerName: 'open-knowledge-dev',
       protocolScheme: 'openknowledge-dev',
@@ -206,9 +206,11 @@ describe('channel CLI command name', () => {
   });
 
   it('names each product home folder for display', () => {
-    expect(userHomeDisplayPath(DESKTOP_PRODUCTS.stable, 'secrets.yml')).toBe('~/.ok/secrets.yml');
+    expect(userHomeDisplayPath(DESKTOP_PRODUCTS.stable, 'secrets.yml')).toBe(
+      '~/.gitquire/secrets.yml',
+    );
     expect(userHomeDisplayPath(DESKTOP_PRODUCTS.beta, 'secrets.yml')).toBe(
-      '~/.ok-beta/secrets.yml',
+      '~/.gitquire-beta/secrets.yml',
     );
   });
 });

@@ -67,7 +67,7 @@ test('an older write completion cannot adopt the unmodified resident of a recrea
   expect(oldResident).toBeDefined();
   const oldWritten = '# Accepted before recreation\n';
   const replacement = '# Replacement without resident adoption\n';
-  const templateDir = join(scenario.server.contentDir, '.ok', 'templates');
+  const templateDir = join(scenario.server.contentDir, '.gitquire', 'templates');
   mkdirSync(templateDir, { recursive: true });
   writeFileSync(join(templateDir, 'replacement.md'), replacement, { flag: 'wx' });
   const reached = Promise.withResolvers<void>();

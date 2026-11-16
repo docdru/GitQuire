@@ -15,9 +15,9 @@ export function readFolderFrontmatter(
   folderRelPath: string,
 ): FolderFrontmatter {
   const yamlPath = nestedOkPath(projectDir, folderRelPath, 'frontmatter.yml');
-  /* STOP: the leaf lstat below cannot see a symlinked `.ok` ANCESTOR — the
+  /* STOP: the leaf lstat below cannot see a symlinked `.gitquire` ANCESTOR — the
      kernel dereferences it before reaching the final component — so the
-     containing `.ok` dir gets its own identity check, matching
+     containing `.gitquire` dir gets its own identity check, matching
      `collectFromFolder` and the fetch-by-name walk. */
   if (checkSymlinkLeaf(dirname(yamlPath)).kind === 'symlink') {
     warnOnce(
@@ -47,7 +47,7 @@ export function readFolderFrontmatter(
   if (!existsSync(yamlPath)) return {};
   /* STOP: unlike the folder-config route arms, this reader's other caller
      (`enrichDirectory` via MCP `exec`) has only lexical containment in front
-     of it, so a symlinked ancestor (`<folder>/.ok -> /outside`) must be
+     of it, so a symlinked ancestor (`<folder>/.gitquire -> /outside`) must be
      refused HERE — the leaf check above cannot see it. */
   try {
     assertNoSymlinkEscape(yamlPath, resolve(projectDir));
@@ -132,8 +132,8 @@ function readFrontmatterYaml(absYamlPath: string): Record<string, unknown> | nul
 export function nestedOkPath(projectDir: string, folderRelPath: string, member: string): string {
   const normalized = folderRelPath.replace(/^\.\//, '').replace(/^\/+/, '').replace(/\/+$/, '');
   return normalized === '' || normalized === '.'
-    ? join(projectDir, '.ok', member)
-    : join(projectDir, normalized, '.ok', member);
+    ? join(projectDir, '.gitquire', member)
+    : join(projectDir, normalized, '.gitquire', member);
 }
 
 export function parentFolderOf(relPath: string): string {

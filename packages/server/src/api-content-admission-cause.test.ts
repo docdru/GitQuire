@@ -10,7 +10,7 @@ import { connectMcpTestClient } from './mcp/client.test-helper.ts';
 let root: string;
 let server: BootedServer;
 let client: Client;
-const templatePath = () => join(root, 'templates', '.ok', 'templates', 'existing.md');
+const templatePath = () => join(root, 'templates', '.gitquire', 'templates', 'existing.md');
 
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'ok-admission-cause-'));

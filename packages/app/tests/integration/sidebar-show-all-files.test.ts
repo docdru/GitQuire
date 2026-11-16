@@ -30,8 +30,8 @@ beforeAll(async () => {
   writeFileSync(join(contentDir, 'node_modules', 'pkg', 'README.md'), '# Pkg\n');
   mkdirSync(join(contentDir, '.git'), { recursive: true });
   writeFileSync(join(contentDir, '.git', 'HEAD'), 'ref: refs/heads/main\n');
-  mkdirSync(join(contentDir, '.ok'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'config.yml'), 'content:\n  dir: .\n');
+  mkdirSync(join(contentDir, '.gitquire'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'config.yml'), 'content:\n  dir: .\n');
 
   writeFileSync(join(contentDir, 'package.json'), '{"name":"test"}\n');
   mkdirSync(join(contentDir, 'src'), { recursive: true });
@@ -121,7 +121,7 @@ describe('/api/documents?showAll=true', () => {
     expect(gitignore?.assetExt).toBe('gitignore');
   });
 
-  test('?showAll=true emits folder entries for content dirs but prunes the always-skip floor (.git / node_modules / .ok)', async () => {
+  test('?showAll=true emits folder entries for content dirs but prunes the always-skip floor (.git / node_modules / .gitquire)', async () => {
     const res = await fetch(`http://127.0.0.1:${server.port}/api/documents?showAll=true`);
     expect(res.ok).toBe(true);
     const body = DocumentListSuccessSchema.parse(await res.json());
@@ -137,7 +137,7 @@ describe('/api/documents?showAll=true', () => {
     expect(folderPaths).not.toContain('node_modules');
     expect(folderPaths).not.toContain('node_modules/pkg');
     expect(folderPaths).not.toContain('.git');
-    expect(folderPaths).not.toContain('.ok');
+    expect(folderPaths).not.toContain('.gitquire');
   });
 
   test('STOP rule preserved — synthetic system + config docs stay hidden in bypass mode', async () => {

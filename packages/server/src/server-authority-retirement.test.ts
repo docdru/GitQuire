@@ -12,9 +12,9 @@ test.each(['stalled', 'completes'] as const)(
   async (outcome) => {
     const root = mkdtempSync(join(tmpdir(), 'ok-stalled-mutation-'));
     const replacementProject = mkdtempSync(join(tmpdir(), 'ok-stalled-replacement-'));
-    mkdirSync(join(replacementProject, '.ok'));
-    writeFileSync(join(replacementProject, '.ok', 'config.yml'), '');
-    writeFileSync(join(replacementProject, '.ok', '.gitignore'), '*\n');
+    mkdirSync(join(replacementProject, '.gitquire'));
+    writeFileSync(join(replacementProject, '.gitquire', 'config.yml'), '');
+    writeFileSync(join(replacementProject, '.gitquire', '.gitignore'), '*\n');
     writeFileSync(join(root, 'note.md'), '# Before\n');
     writeFileSync(join(root, 'live.md'), '# Live\n');
     const staged = Promise.withResolvers<void>();
@@ -114,9 +114,9 @@ test('a pending document load retains ownership until it settles and retires', a
   const contentDir = join(root, 'content');
   const replacementProject = join(root, 'replacement');
   mkdirSync(contentDir);
-  mkdirSync(join(replacementProject, '.ok'), { recursive: true });
-  writeFileSync(join(replacementProject, '.ok', 'config.yml'), '');
-  writeFileSync(join(replacementProject, '.ok', '.gitignore'), '');
+  mkdirSync(join(replacementProject, '.gitquire'), { recursive: true });
+  writeFileSync(join(replacementProject, '.gitquire', 'config.yml'), '');
+  writeFileSync(join(replacementProject, '.gitquire', '.gitignore'), '');
   writeFileSync(join(contentDir, 'note.md'), '# Before\n');
   const entered = Promise.withResolvers<void>();
   const release = Promise.withResolvers<void>();
@@ -179,9 +179,9 @@ test.each(['internal', 'http'] as const)(
     const contentDir = join(root, 'content');
     const replacementProject = join(root, 'replacement');
     for (const project of [root, replacementProject]) {
-      mkdirSync(join(project, '.ok'), { recursive: true });
-      writeFileSync(join(project, '.ok', 'config.yml'), '');
-      writeFileSync(join(project, '.ok', '.gitignore'), '');
+      mkdirSync(join(project, '.gitquire'), { recursive: true });
+      writeFileSync(join(project, '.gitquire', 'config.yml'), '');
+      writeFileSync(join(project, '.gitquire', '.gitignore'), '');
     }
     mkdirSync(contentDir);
     writeFileSync(join(contentDir, 'note.md'), '# Before\n');

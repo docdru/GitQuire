@@ -43,7 +43,7 @@ describe('folder-config HTTP with importer-scoped Node win32 relative paths', ()
         ['Setup', 'setup-categories', 'Setup categories'],
         ['Sibling', 'sibling-only', 'Sibling only'],
       ]) {
-        const directory = resolve(contentDir, folder, '.ok', 'templates');
+        const directory = resolve(contentDir, folder, '.gitquire', 'templates');
         mkdirSync(directory, { recursive: true });
         writeFileSync(resolve(directory, `${name}.md`), `---\ntitle: ${title}\n---\n# ${title}\n`);
       }
@@ -77,14 +77,14 @@ describe('folder-config HTTP with importer-scoped Node win32 relative paths', ()
               {
                 name: 'setup-categories',
                 title: 'Setup categories',
-                path: 'Setup/.ok/templates/setup-categories.md',
+                path: 'Setup/.gitquire/templates/setup-categories.md',
                 source_folder: 'Setup',
                 scope: 'inherited',
               },
               {
                 name: 'global',
                 title: 'Global',
-                path: '.ok/templates/global.md',
+                path: '.gitquire/templates/global.md',
                 source_folder: '',
                 scope: 'inherited',
               },

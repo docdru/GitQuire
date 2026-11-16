@@ -293,7 +293,7 @@ describe('runAuthReposSubprocess', () => {
     ['a bare signed-out sentence', 'Not logged in to github.com\\n'],
     [
       'a file-backend storage banner ahead of the signed-out sentence',
-      '[auth] token storage: file (~/.ok/auth.yml) — OS keychain unavailable: keyring init failed\\nNot logged in to github.com\\n',
+      '[auth] token storage: file (~/.gitquire/auth.yml) — OS keychain unavailable: keyring init failed\\nNot logged in to github.com\\n',
     ],
   ])('still flags %s as unauthenticated', async (_label, stderr) => {
     const result = await runAuthReposSubprocess({
@@ -315,7 +315,7 @@ describe('runAuthReposSubprocess', () => {
     const result = await runAuthReposSubprocess({
       cli: okCli(
         fixtureCli(`
-        process.stderr.write('[auth] token storage: file (~/.ok/auth.yml) — OS keychain unavailable: keyring init failed\\n[auth] Failed to parse ~/.ok/auth.yml: bad indentation at line 2. Starting with empty credentials.\\nNot logged in to github.com\\n');
+        process.stderr.write('[auth] token storage: file (~/.gitquire/auth.yml) — OS keychain unavailable: keyring init failed\\n[auth] Failed to parse ~/.gitquire/auth.yml: bad indentation at line 2. Starting with empty credentials.\\nNot logged in to github.com\\n');
         process.exit(1);
       `),
       ),
@@ -323,7 +323,7 @@ describe('runAuthReposSubprocess', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.authenticated).toBeUndefined();
-      expect(result.error).toContain('Failed to parse ~/.ok/auth.yml');
+      expect(result.error).toContain('Failed to parse ~/.gitquire/auth.yml');
     }
   });
 

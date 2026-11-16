@@ -25,8 +25,8 @@ msgstr " Sua seleção foi restaurada."
 msgid "— except"
 msgstr "— exceto"
 
-msgid ".ok folders"
-msgstr "Pastas .ok"
+msgid ".gitquire folders"
+msgstr "Pastas .gitquire"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1023,7 +1023,7 @@ msgstr "Aplica-se a (globs — um ! inicial exclui; vazio significa todos os doc
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2683,8 +2683,8 @@ msgstr "embeddings"
 msgid "Embeddings API key"
 msgstr "Chave de API de embeddings"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "Os embeddings só são calculados quando uma busca roda e ficam em cache localmente em <0>.ok/local</0>."
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "Os embeddings só são calculados quando uma busca roda e ficam em cache localmente em <0>.gitquire/local</0>."
 
 msgid "Emoji"
 msgstr "Emoji"
@@ -3155,8 +3155,8 @@ msgstr "O arquivo é grande demais ({sizeKb} KB) — cada anexo tem limite de {l
 msgid "File name"
 msgstr "Nome do arquivo"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "Nome do arquivo (criado em .ok/schemas/)"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "Nome do arquivo (criado em .gitquire/schemas/)"
 
 msgid "File sidebar"
 msgstr "Barra lateral de arquivos"
@@ -6471,8 +6471,8 @@ msgstr "Publique o editor com um"
 msgid "Show"
 msgstr "Mostrar"
 
-msgid "Show .ok folders"
-msgstr "Mostrar as pastas .ok"
+msgid "Show .gitquire folders"
+msgstr "Mostrar as pastas .gitquire"
 
 msgid "Show {0} more"
 msgstr "Mostrar mais {0}"
@@ -6774,8 +6774,8 @@ msgstr "A correção parou. Os arquivos já corrigidos continuam corrigidos."
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "Guardado em <0>.ok/templates/</0> neste projeto. Disponível em todas as pastas (modelos de pasta podem substituí-lo pelo nome do arquivo)."
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "Guardado em <0>.gitquire/templates/</0> neste projeto. Disponível em todas as pastas (modelos de pasta podem substituí-lo pelo nome do arquivo)."
 
 msgid "Strikethrough"
 msgstr "Tachado"

@@ -218,7 +218,14 @@ describe('delete durability — across server restart with a stale client', () =
     try {
       await writeMd(rs.port, oldName, '# Migrant\n\nbody\n');
 
-      const cachePath = join(rs.contentDir, '.ok', 'local', 'cache', 'main', 'backlinks.json');
+      const cachePath = join(
+        rs.contentDir,
+        '.gitquire',
+        'local',
+        'cache',
+        'main',
+        'backlinks.json',
+      );
       const cacheDeadline = Date.now() + 10_000;
       while (true) {
         if (existsSync(cachePath) && readFileSync(cachePath, 'utf-8').includes(oldName)) break;
@@ -307,7 +314,14 @@ describe('delete durability — across server restart with a stale client', () =
     try {
       expect(clientDoc.getText('source').toString()).toContain(marker);
 
-      const cachePath = join(rs.contentDir, '.ok', 'local', 'cache', 'main', 'backlinks.json');
+      const cachePath = join(
+        rs.contentDir,
+        '.gitquire',
+        'local',
+        'cache',
+        'main',
+        'backlinks.json',
+      );
       const cacheDeadline = Date.now() + 10_000;
       while (true) {
         if (existsSync(cachePath) && readFileSync(cachePath, 'utf-8').includes(docName)) break;

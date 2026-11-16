@@ -86,12 +86,12 @@ describe('detectCommittedProjectLocalKeys', () => {
     const doc = parseDocument(source);
     const findings = detectCommittedProjectLocalKeys({
       value: doc.toJSON(),
-      file: '/tmp/.ok/config.yml',
+      file: '/tmp/.gitquire/config.yml',
       source,
       doc,
     });
     expect(findings).toHaveLength(1);
-    expect(findings[0]?.source?.file).toBe('/tmp/.ok/config.yml');
+    expect(findings[0]?.source?.file).toBe('/tmp/.gitquire/config.yml');
     expect(findings[0]?.source?.line).toBeGreaterThanOrEqual(1);
   });
 });
@@ -101,14 +101,14 @@ describe('formatIgnoredCommittedKey', () => {
     const msg = formatIgnoredCommittedKey({ path: ['server', 'bind'], envVar: 'GITQUIRE_BIND' });
     expect(msg).toContain('server.bind');
     expect(msg).toContain('ignored');
-    expect(msg).toContain('.ok/local/config.yml');
+    expect(msg).toContain('.gitquire/local/config.yml');
     expect(msg).toContain('GITQUIRE_BIND');
   });
 
   test('omits the env hint when the leaf has no env surface', () => {
     const msg = formatIgnoredCommittedKey({ path: ['autoSync', 'mode'] });
     expect(msg).toContain('autoSync.mode');
-    expect(msg).toContain('.ok/local/config.yml');
+    expect(msg).toContain('.gitquire/local/config.yml');
     expect(msg).not.toContain('OK_');
   });
 
@@ -116,9 +116,9 @@ describe('formatIgnoredCommittedKey', () => {
     const msg = formatIgnoredCommittedKey({
       path: ['server', 'bind'],
       envVar: 'GITQUIRE_BIND',
-      source: { file: '/repo/.ok/config.yml', line: 3, column: 5 },
+      source: { file: '/repo/.gitquire/config.yml', line: 3, column: 5 },
     });
-    expect(msg.startsWith('/repo/.ok/config.yml:3:5: ')).toBe(true);
+    expect(msg.startsWith('/repo/.gitquire/config.yml:3:5: ')).toBe(true);
     expect(msg).toContain('server.bind');
   });
 

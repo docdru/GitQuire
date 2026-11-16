@@ -94,7 +94,7 @@ describe('previewContent', () => {
     expect(result.sample.length).toBe(5);
   });
 
-  it('skips .ok/ entirely (BUILTIN_SKIP_DIRS coverage)', () => {
+  it('skips .gitquire/ entirely (BUILTIN_SKIP_DIRS coverage)', () => {
     const okDir = join(testDir, OK_DIR);
     mkdirSync(okDir, { recursive: true });
     writeFileSync(join(okDir, 'AGENTS.md'), '# Agents');

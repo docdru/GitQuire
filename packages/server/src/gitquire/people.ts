@@ -41,7 +41,7 @@ export interface PeopleDirectory {
 }
 
 export function peopleStatePath(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'people.json');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'people.json');
 }
 
 export function allowedLoginsFrom(raw: string | undefined): string[] {

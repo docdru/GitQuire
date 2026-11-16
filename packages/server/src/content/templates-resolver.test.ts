@@ -23,7 +23,7 @@ describe('resolveTemplatesAvailable', () => {
   });
 
   function writeTemplate(folder: string, name: string, body: string): void {
-    const dir = join(projectDir, folder, '.ok', 'templates');
+    const dir = join(projectDir, folder, '.gitquire', 'templates');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, `${name}.md`), body);
   }
@@ -32,7 +32,7 @@ describe('resolveTemplatesAvailable', () => {
     return `---\ntitle: ${title}\ndescription: ${description}\n---\n${body}`;
   }
 
-  test('returns empty when no .ok/templates/ exists anywhere', () => {
+  test('returns empty when no .gitquire/templates/ exists anywhere', () => {
     expect(resolveTemplatesAvailable(projectDir, 'meetings')).toEqual([]);
     expect(resolveTemplatesAvailable(projectDir, '')).toEqual([]);
   });
@@ -52,7 +52,7 @@ describe('resolveTemplatesAvailable', () => {
     const prep = tpls.find((t) => t.name === 'prep-notes');
     expect(prep?.title).toBe('Meeting Prep');
     expect(prep?.description).toBe('Use before a meeting.');
-    expect(prep?.path).toBe('meetings/.ok/templates/prep-notes.md');
+    expect(prep?.path).toBe('meetings/.gitquire/templates/prep-notes.md');
   });
 
   test('inherited templates: ancestor templates surface as scope inherited', () => {
@@ -65,7 +65,7 @@ describe('resolveTemplatesAvailable', () => {
       name: 'prep-notes',
       title: 'Meeting Prep',
       description: 'Top-level prep.',
-      path: 'meetings/.ok/templates/prep-notes.md',
+      path: 'meetings/.gitquire/templates/prep-notes.md',
       source_folder: 'meetings',
       scope: 'inherited',
     });
@@ -96,10 +96,10 @@ describe('resolveTemplatesAvailable', () => {
     expect(tpls.find((t) => t.name === 'prep-notes')).toBeUndefined();
   });
 
-  test('a non-directory ancestor .ok is skipped WITHOUT a refusal and the walk continues to the root', () => {
+  test('a non-directory ancestor .gitquire is skipped WITHOUT a refusal and the walk continues to the root', () => {
     writeTemplate('', 'global', withFm('Global', 'Survives the skip.'));
     mkdirSync(join(projectDir, 'anc', 'child'), { recursive: true });
-    writeFileSync(join(projectDir, 'anc', '.ok'), 'not a directory\n');
+    writeFileSync(join(projectDir, 'anc', '.gitquire'), 'not a directory\n');
     const refusals: TemplateDirRefusal[] = [];
     const tpls = resolveTemplatesAvailable(projectDir, 'anc/child', {
       onRefused: (r) => refusals.push(r),
@@ -109,10 +109,10 @@ describe('resolveTemplatesAvailable', () => {
     expect(refusals).toEqual([]);
   });
 
-  test('a regular FILE at .ok/templates is skipped WITHOUT a refusal and inherited templates still resolve', () => {
+  test('a regular FILE at .gitquire/templates is skipped WITHOUT a refusal and inherited templates still resolve', () => {
     writeTemplate('', 'global', withFm('Global', 'Survives the skip.'));
-    mkdirSync(join(projectDir, 'flat', '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, 'flat', '.ok', 'templates'), 'not a directory\n');
+    mkdirSync(join(projectDir, 'flat', '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, 'flat', '.gitquire', 'templates'), 'not a directory\n');
     const refusals: TemplateDirRefusal[] = [];
     const tpls = resolveTemplatesAvailable(projectDir, 'flat', {
       onRefused: (r) => refusals.push(r),
@@ -131,20 +131,20 @@ describe('resolveTemplatesAvailable', () => {
     expect(refusals[0]).toMatchObject({
       kind: 'unverifiable',
       folder: 'loop',
-      component: '.ok/templates',
+      component: '.gitquire/templates',
     });
     expect((refusals[0] as { code?: string }).code).toBe('ELOOP');
   });
 
-  test('a symlinked ancestor .ok and a symlinked templates dir each reach onRefused, naming the folder', () => {
+  test('a symlinked ancestor .gitquire and a symlinked templates dir each reach onRefused, naming the folder', () => {
     mkdirSync(join(projectDir, 'target-a', 'templates'), { recursive: true });
     writeFileSync(join(projectDir, 'target-a', 'templates', 'x.md'), withFm('X', 'x'));
     mkdirSync(join(projectDir, 'a', 'child'), { recursive: true });
-    symlinkSync('../target-a', join(projectDir, 'a', '.ok'), 'dir');
+    symlinkSync('../target-a', join(projectDir, 'a', '.gitquire'), 'dir');
     mkdirSync(join(projectDir, 'target-b'), { recursive: true });
     writeFileSync(join(projectDir, 'target-b', 'y.md'), withFm('Y', 'y'));
-    mkdirSync(join(projectDir, 'b', '.ok'), { recursive: true });
-    symlinkSync('../../target-b', join(projectDir, 'b', '.ok', 'templates'), 'dir');
+    mkdirSync(join(projectDir, 'b', '.gitquire'), { recursive: true });
+    symlinkSync('../../target-b', join(projectDir, 'b', '.gitquire', 'templates'), 'dir');
 
     writeTemplate('', 'global', withFm('Global', 'Survives the skip.'));
     const fromA: TemplateDirRefusal[] = [];
@@ -152,23 +152,23 @@ describe('resolveTemplatesAvailable', () => {
       onRefused: (r) => fromA.push(r),
     });
     expect(viaA.map((t) => t.name)).toEqual(['global']);
-    expect(fromA).toEqual([{ kind: 'symlink', folder: 'a', component: '.ok' }]);
+    expect(fromA).toEqual([{ kind: 'symlink', folder: 'a', component: '.gitquire' }]);
 
     const fromB: TemplateDirRefusal[] = [];
     const viaB = resolveTemplatesAvailable(projectDir, 'b', { onRefused: (r) => fromB.push(r) });
     expect(viaB.map((t) => t.name)).toEqual(['global']);
-    expect(fromB).toEqual([{ kind: 'symlink', folder: 'b', component: '.ok/templates' }]);
+    expect(fromB).toEqual([{ kind: 'symlink', folder: 'b', component: '.gitquire/templates' }]);
   });
 
-  test('an in-root symlinked ancestor .ok is not enumerated (menu matches fetch-by-name)', () => {
+  test('an in-root symlinked ancestor .gitquire is not enumerated (menu matches fetch-by-name)', () => {
     mkdirSync(join(projectDir, 'secretdir', 'templates'), { recursive: true });
     writeFileSync(
       join(projectDir, 'secretdir', 'templates', 'note.md'),
-      withFm('Hidden', 'Aliased through .ok'),
+      withFm('Hidden', 'Aliased through .gitquire'),
       'utf-8',
     );
     mkdirSync(join(projectDir, 'notes'), { recursive: true });
-    symlinkSync('../secretdir', join(projectDir, 'notes', '.ok'), 'dir');
+    symlinkSync('../secretdir', join(projectDir, 'notes', '.gitquire'), 'dir');
     mkdirSync(join(projectDir, 'notes', 'sub'), { recursive: true });
     writeTemplate('', 'global', withFm('Global', 'Survives the skip.'));
 
@@ -181,8 +181,8 @@ describe('resolveTemplatesAvailable', () => {
   test('an in-root symlinked templates dir is not enumerated', () => {
     mkdirSync(join(projectDir, 'elsewhere'), { recursive: true });
     writeFileSync(join(projectDir, 'elsewhere', 'x.md'), withFm('X', 'aliased'), 'utf-8');
-    mkdirSync(join(projectDir, 'notes2', '.ok'), { recursive: true });
-    symlinkSync('../../elsewhere', join(projectDir, 'notes2', '.ok', 'templates'), 'dir');
+    mkdirSync(join(projectDir, 'notes2', '.gitquire'), { recursive: true });
+    symlinkSync('../../elsewhere', join(projectDir, 'notes2', '.gitquire', 'templates'), 'dir');
     writeTemplate('', 'global', withFm('Global', 'Survives the skip.'));
 
     expect(resolveTemplatesAvailable(projectDir, 'notes2').map((t) => t.name)).toEqual(['global']);
@@ -264,7 +264,7 @@ describe('resolveTemplatesAvailable', () => {
 
   test('non-md files in templates/ are ignored', () => {
     writeTemplate('meetings', 'good', withFm('Good', 'OK'));
-    const dir = join(projectDir, 'meetings', '.ok', 'templates');
+    const dir = join(projectDir, 'meetings', '.gitquire', 'templates');
     writeFileSync(join(dir, 'README.txt'), 'not a template');
     writeFileSync(join(dir, 'image.png'), 'fake png');
 
@@ -285,7 +285,7 @@ describe('resolveTemplatesAvailable', () => {
   });
 
   test('malformed frontmatter is treated as no metadata, not an error', () => {
-    const dir = join(projectDir, 'broken', '.ok', 'templates');
+    const dir = join(projectDir, 'broken', '.gitquire', 'templates');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, 'broken.md'), '---\ntitle: [no closing\nbroken yaml\n---\nbody\n');
 
@@ -301,7 +301,7 @@ describe('resolveTemplatesAvailable', () => {
     try {
       writeFileSync(join(outside, 'secret.txt'), 'TOP SECRET');
       writeTemplate('notes', 'ok', withFm('OK', 'In-root template.'));
-      const tplDir = join(projectDir, 'notes', '.ok', 'templates');
+      const tplDir = join(projectDir, 'notes', '.gitquire', 'templates');
       symlinkSync(join(outside, 'secret.txt'), join(tplDir, 'leak.md'), 'file');
 
       const tpls = resolveTemplatesAvailable(projectDir, 'notes');
@@ -312,13 +312,13 @@ describe('resolveTemplatesAvailable', () => {
   });
 
   test('a template symlinked to an in-root but out-of-templates path is dropped', () => {
-    const okLocal = join(projectDir, '.ok', 'local');
+    const okLocal = join(projectDir, '.gitquire', 'local');
     mkdirSync(okLocal, { recursive: true });
     writeFileSync(join(okLocal, 'last-spawn-error.log'), 'stack trace with secrets');
     writeTemplate('notes', 'ok', withFm('OK', 'In-root template.'));
     symlinkSync(
       join(okLocal, 'last-spawn-error.log'),
-      join(projectDir, 'notes', '.ok', 'templates', 'leak.md'),
+      join(projectDir, 'notes', '.gitquire', 'templates', 'leak.md'),
       'file',
     );
 
@@ -330,8 +330,8 @@ describe('resolveTemplatesAvailable', () => {
     const outside = await mkdtemp(join(tmpdir(), 'tpl-dir-outside-'));
     try {
       writeFileSync(join(outside, 'leak.md'), withFm('Leak', 'Foreign template.'));
-      mkdirSync(join(projectDir, 'notes', '.ok'), { recursive: true });
-      symlinkSync(outside, join(projectDir, 'notes', '.ok', 'templates'), 'dir');
+      mkdirSync(join(projectDir, 'notes', '.gitquire'), { recursive: true });
+      symlinkSync(outside, join(projectDir, 'notes', '.gitquire', 'templates'), 'dir');
       writeTemplate('', 'global', withFm('Global', 'Survives the skip.'));
 
       expect(resolveTemplatesAvailable(projectDir, 'notes').map((t) => t.name)).toEqual(['global']);
@@ -342,8 +342,8 @@ describe('resolveTemplatesAvailable', () => {
 
   test('a templates DIRECTORY symlinked elsewhere IN-project is skipped wholesale', async () => {
     writeFileSync(join(projectDir, 'stash.md'), withFm('Stash', 'Not a template.'));
-    mkdirSync(join(projectDir, 'notes', '.ok'), { recursive: true });
-    symlinkSync(projectDir, join(projectDir, 'notes', '.ok', 'templates'), 'dir');
+    mkdirSync(join(projectDir, 'notes', '.gitquire'), { recursive: true });
+    symlinkSync(projectDir, join(projectDir, 'notes', '.gitquire', 'templates'), 'dir');
     writeTemplate('', 'global', withFm('Global', 'Survives the skip.'));
 
     expect(resolveTemplatesAvailable(projectDir, 'notes').map((t) => t.name)).toEqual(['global']);
@@ -363,8 +363,8 @@ describe('resolveProjectTemplates', () => {
 
   function writeTemplate(folder: string, name: string, body: string): void {
     const dir = folder
-      ? join(projectDir, folder, '.ok', 'templates')
-      : join(projectDir, '.ok', 'templates');
+      ? join(projectDir, folder, '.gitquire', 'templates')
+      : join(projectDir, '.gitquire', 'templates');
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, `${name}.md`), body);
   }
@@ -399,7 +399,7 @@ describe('resolveProjectTemplates', () => {
     const result = await resolveProjectTemplates(projectDir);
     expect(result.templates).toHaveLength(1);
     expect(result.templates[0]?.source_folder).toBe('a/b/c');
-    expect(result.templates[0]?.path).toBe('a/b/c/.ok/templates/deep.md');
+    expect(result.templates[0]?.path).toBe('a/b/c/.gitquire/templates/deep.md');
   });
 
   test('skips node_modules, dist, build, and dot-prefixed dirs', async () => {
@@ -452,8 +452,8 @@ describe('resolveProjectTemplates', () => {
     const folders = result.templates.map((t) => t.source_folder).sort();
     expect(folders).toEqual(['alias', 'real']);
     expect(result.templates.map((t) => t.path).sort()).toEqual([
-      'alias/.ok/templates/linked-tpl.md',
-      'real/.ok/templates/linked-tpl.md',
+      'alias/.gitquire/templates/linked-tpl.md',
+      'real/.gitquire/templates/linked-tpl.md',
     ]);
   });
 
@@ -496,7 +496,7 @@ describe('resolveProjectTemplates', () => {
     const before = await resolveProjectTemplates(projectDir);
     expect(before.templates.map((t) => t.name)).toEqual(['doomed']);
 
-    rmSync(join(projectDir, '.ok', 'templates', 'doomed.md'));
+    rmSync(join(projectDir, '.gitquire', 'templates', 'doomed.md'));
     const after = await resolveProjectTemplates(projectDir);
     expect(after.templates).toEqual([]);
   });

@@ -63,9 +63,9 @@ describe('GET /api/template — fence trailing whitespace (fm-delimiter hazard)'
   test('parses template frontmatter whose opening fence carries a trailing space', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     try {
-      mkdirSync(join(dir, '.ok/templates'), { recursive: true });
+      mkdirSync(join(dir, '.gitquire/templates'), { recursive: true });
       writeFileSync(
-        join(dir, '.ok/templates/trip-log.md'),
+        join(dir, '.gitquire/templates/trip-log.md'),
         '--- \ntitle: Trip Log\ndescription: Catch log\n---\n\n# {{date}}\n',
         'utf-8',
       );
@@ -87,9 +87,9 @@ describe('GET /api/template — fence trailing whitespace (fm-delimiter hazard)'
   test('parses template frontmatter whose closing fence carries a trailing tab', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     try {
-      mkdirSync(join(dir, '.ok/templates'), { recursive: true });
+      mkdirSync(join(dir, '.gitquire/templates'), { recursive: true });
       writeFileSync(
-        join(dir, '.ok/templates/standup.md'),
+        join(dir, '.gitquire/templates/standup.md'),
         '---\ntitle: Standup\n---\t\n\n# Notes\n',
         'utf-8',
       );
@@ -108,9 +108,9 @@ describe('GET /api/template — fence trailing whitespace (fm-delimiter hazard)'
   test('a leading space before the opening fence still means no frontmatter', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     try {
-      mkdirSync(join(dir, '.ok/templates'), { recursive: true });
+      mkdirSync(join(dir, '.gitquire/templates'), { recursive: true });
       writeFileSync(
-        join(dir, '.ok/templates/indented.md'),
+        join(dir, '.gitquire/templates/indented.md'),
         ' ---\ntitle: Not FM\n---\n\n# Notes\n',
         'utf-8',
       );
@@ -133,8 +133,8 @@ describe('GET /api/template — symlinked leaf refusal', () => {
     try {
       const secret = join(dir, 'planted-key');
       writeFileSync(secret, 'PRIVATE-KEY-MATERIAL-do-not-leak\n', 'utf-8');
-      mkdirSync(join(dir, '.ok/templates'), { recursive: true });
-      symlinkSync(secret, join(dir, '.ok/templates/stolen.md'));
+      mkdirSync(join(dir, '.gitquire/templates'), { recursive: true });
+      symlinkSync(secret, join(dir, '.gitquire/templates/stolen.md'));
 
       const result = await getTemplate(dir, 'stolen');
 
@@ -150,8 +150,8 @@ describe('GET /api/template — symlinked leaf refusal', () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     try {
       writeFileSync(join(dir, 'ordinary.md'), '# In-root but not a template\n', 'utf-8');
-      mkdirSync(join(dir, '.ok/templates'), { recursive: true });
-      symlinkSync('../../ordinary.md', join(dir, '.ok/templates/aliased.md'));
+      mkdirSync(join(dir, '.gitquire/templates'), { recursive: true });
+      symlinkSync('../../ordinary.md', join(dir, '.gitquire/templates/aliased.md'));
 
       const result = await getTemplate(dir, 'aliased');
 
@@ -163,13 +163,13 @@ describe('GET /api/template — symlinked leaf refusal', () => {
     }
   });
 
-  test('refuses a symlinked ANCESTOR .ok/templates reached via a descendant folder', async () => {
+  test('refuses a symlinked ANCESTOR .gitquire/templates reached via a descendant folder', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     const outside = mkdtempSync(join(tmpdir(), 'ok-template-outside-'));
     try {
       writeFileSync(join(outside, 'meeting.md'), 'PRIVATE-ANCESTOR-TARGET\n', 'utf-8');
-      mkdirSync(join(dir, 'notes', '.ok'), { recursive: true });
-      symlinkSync(outside, join(dir, 'notes', '.ok', 'templates'), 'dir');
+      mkdirSync(join(dir, 'notes', '.gitquire'), { recursive: true });
+      symlinkSync(outside, join(dir, 'notes', '.gitquire', 'templates'), 'dir');
       mkdirSync(join(dir, 'notes', 'sub'), { recursive: true });
 
       const result = await getTemplate(dir, 'meeting', 'notes/sub');
@@ -183,13 +183,13 @@ describe('GET /api/template — symlinked leaf refusal', () => {
     }
   });
 
-  test('refuses an IN-ROOT symlinked .ok/templates (the case containment cannot see)', async () => {
+  test('refuses an IN-ROOT symlinked .gitquire/templates (the case containment cannot see)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     try {
       mkdirSync(join(dir, '.claude'), { recursive: true });
       writeFileSync(join(dir, '.claude', 'CLAUDE.md'), 'IN-ROOT-HIDDEN-CONTENT\n', 'utf-8');
-      mkdirSync(join(dir, '.ok'), { recursive: true });
-      symlinkSync('../.claude', join(dir, '.ok', 'templates'), 'dir');
+      mkdirSync(join(dir, '.gitquire'), { recursive: true });
+      symlinkSync('../.claude', join(dir, '.gitquire', 'templates'), 'dir');
 
       const result = await getTemplate(dir, 'CLAUDE');
 
@@ -201,13 +201,17 @@ describe('GET /api/template — symlinked leaf refusal', () => {
     }
   });
 
-  test('a regular FILE named .ok on an ancestor is skipped like an absent one (ENOTDIR continues the walk)', async () => {
+  test('a regular FILE named .gitquire on an ancestor is skipped like an absent one (ENOTDIR continues the walk)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     try {
-      mkdirSync(join(dir, '.ok', 'templates'), { recursive: true });
-      writeFileSync(join(dir, '.ok', 'templates', 'x.md'), '---\ntitle: X\n---\n# X\n', 'utf-8');
+      mkdirSync(join(dir, '.gitquire', 'templates'), { recursive: true });
+      writeFileSync(
+        join(dir, '.gitquire', 'templates', 'x.md'),
+        '---\ntitle: X\n---\n# X\n',
+        'utf-8',
+      );
       mkdirSync(join(dir, 'a', 'b'), { recursive: true });
-      writeFileSync(join(dir, 'a', '.ok'), 'a regular file, not a directory', 'utf-8');
+      writeFileSync(join(dir, 'a', '.gitquire'), 'a regular file, not a directory', 'utf-8');
 
       const result = await getTemplate(dir, 'x', 'a/b');
 
@@ -219,13 +223,13 @@ describe('GET /api/template — symlinked leaf refusal', () => {
     }
   });
 
-  test('refuses an in-root symlinked ancestor .ok via a descendant folder', async () => {
+  test('refuses an in-root symlinked ancestor .gitquire via a descendant folder', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-template-get-'));
     try {
       mkdirSync(join(dir, 'secretdir', 'templates'), { recursive: true });
       writeFileSync(join(dir, 'secretdir', 'templates', 'note.md'), 'ALIASED-OK-DIR\n', 'utf-8');
       mkdirSync(join(dir, 'notes'), { recursive: true });
-      symlinkSync('../secretdir', join(dir, 'notes', '.ok'), 'dir');
+      symlinkSync('../secretdir', join(dir, 'notes', '.gitquire'), 'dir');
       mkdirSync(join(dir, 'notes', 'sub'), { recursive: true });
 
       const result = await getTemplate(dir, 'note', 'notes/sub');

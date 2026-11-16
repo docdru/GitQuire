@@ -31,8 +31,8 @@ test.each([false, true])(
       const content = join(root, 'content');
       mkdirSync(content);
       writeFileSync(join(content, 'one.md'), '# One\n');
-      mkdirSync(join(root, 'preview', '.ok'), { recursive: true });
-      writeFileSync(join(root, 'preview', '.ok', 'config.yml'), '');
+      mkdirSync(join(root, 'preview', '.gitquire'), { recursive: true });
+      writeFileSync(join(root, 'preview', '.gitquire', 'config.yml'), '');
       const configHomedirOverride = callerHome(root, provided);
       const owner = await bootCompositionRig(content, {
         projectDir: join(root, 'preview'),
@@ -128,7 +128,7 @@ test.each([false, true])(
     await withIsolatedTemp(async (root) => {
       const content = join(root, 'content');
       mkdirSync(content);
-      writeFileSync(join(content, '.ok'), 'caller-owned file');
+      writeFileSync(join(content, '.gitquire'), 'caller-owned file');
       const configHomedirOverride = callerHome(root, provided);
       const before = readdirSync(root).sort();
       const failure: unknown = await createRestartableServer({
@@ -143,7 +143,7 @@ test.each([false, true])(
       );
       expect(failure).toMatchObject({ code: 'EEXIST' });
       expect.soft(readdirSync(root).sort()).toEqual(before);
-      expect(readFileSync(join(content, '.ok'), 'utf8')).toBe('caller-owned file');
+      expect(readFileSync(join(content, '.gitquire'), 'utf8')).toBe('caller-owned file');
       expect(readFileSync(join(root, 'caller-home', 'keep.txt'), 'utf8')).toBe('caller-owned');
     });
   },

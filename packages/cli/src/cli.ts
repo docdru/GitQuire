@@ -12,13 +12,22 @@ if (process.argv.includes('--no-color')) {
 
 trustSystemCertificates();
 
+import { homedir } from 'node:os';
 import {
   currentCliCommandName,
   currentDesktopProduct,
   formatIgnoredCommittedKey,
   humanFormat,
 } from '@gitquire/core';
-import { type Config, loggerFactory, trustSystemCertificates } from '@gitquire/server';
+import {
+  type Config,
+  describeLegacyDataFolderMigration,
+  findLegacyProjectRoot,
+  loggerFactory,
+  migrateLegacyDataFolders,
+  migrateLegacyHomeFolder,
+  trustSystemCertificates,
+} from '@gitquire/server';
 import { Command } from 'commander';
 import { getCliLogger, initCliLogger } from './cli-logger.ts';
 import { auditCommand } from './commands/audit.ts';
@@ -96,11 +105,19 @@ program
     }
 
     const subcommandName = thisCommand.args?.[0];
+    const legacyRoot = findLegacyProjectRoot(process.cwd());
+    const migrations = [
+      migrateLegacyHomeFolder(homedir()),
+      ...(legacyRoot === null ? [] : [migrateLegacyDataFolders(legacyRoot)]),
+    ];
+    for (const line of migrations.flatMap(describeLegacyDataFolderMigration)) {
+      console.error(`[gitquire] ${line}`);
+    }
     const anchorRoot = resolveProjectAnchor(subcommandName, process.cwd());
     if (anchorRoot !== null) {
       recordInvocationCwd(process.cwd());
       process.chdir(anchorRoot);
-      console.error(`[ok] Using GitQuire project at ${anchorRoot}`);
+      console.error(`[gitquire] Using GitQuire project at ${anchorRoot}`);
     }
 
     const loaded = loadConfig(anchorRoot ?? cwd);
@@ -108,11 +125,11 @@ program
     if (shouldAnnounceRemovedKeys(subcommandName)) {
       for (const diagnostic of loaded.diagnostics) {
         if (diagnostic.code !== 'REMOVED_KEY') continue;
-        console.error(`[ok] ${humanFormat(diagnostic)}`);
+        console.error(`[gitquire] ${humanFormat(diagnostic)}`);
       }
     }
     for (const key of loaded.ignoredCommittedKeys) {
-      console.error(`[ok] ${formatIgnoredCommittedKey(key)}`);
+      console.error(`[gitquire] ${formatIgnoredCommittedKey(key)}`);
     }
     resolvedConfig = config;
 

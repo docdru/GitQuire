@@ -103,10 +103,10 @@ describe('MCP write paths relaying an agent-session capacity refusal', () => {
       },
     });
     cwd = mkdtempSync(join(tmpdir(), 'ok-session-capacity-refusal-'));
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
-    mkdirSync(join(cwd, 'notes', '.ok', 'templates'), { recursive: true });
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
+    mkdirSync(join(cwd, 'notes', '.gitquire', 'templates'), { recursive: true });
     writeFileSync(
-      join(cwd, 'notes', '.ok', 'templates', 'note.md'),
+      join(cwd, 'notes', '.gitquire', 'templates', 'note.md'),
       '---\ntitle: Note\ndescription: A plain note\n---\n\n# Note\n',
     );
 

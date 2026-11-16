@@ -130,7 +130,7 @@ describe('DocChangeNotice', () => {
       {
         notice: {
           ...moved('n-settings-applied', 'folder/plan', 'ours'),
-          file: '.ok/config.yml',
+          file: '.gitquire/config.yml',
           reason: 'outside-settings-applied',
         },
         says: "Settings in config.yml changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet.",
@@ -153,7 +153,8 @@ describe('DocChangeNotice', () => {
   });
 
   test('a version kept in the backup folder, and a save that is held, say where the version went or why nothing was saved', async () => {
-    const backup = '~/.ok/edit-backups/discarded/folder__flow.mmd/2026-10-21T10-00-00-000Z.mmd';
+    const backup =
+      '~/.gitquire/edit-backups/discarded/folder__flow.mmd/2026-10-21T10-00-00-000Z.mmd';
     const common = {
       docName: 'folder/flow.mmd',
       file: 'folder/flow.mmd',

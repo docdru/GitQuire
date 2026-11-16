@@ -63,7 +63,7 @@ interface RigExtras {
 
 async function bootRemoteRig(externalUrl: string | null, extras: RigExtras = {}): Promise<Rig> {
   const contentDir = mkdtempSync(join(tmpdir(), 'ok-remote-mcp-'));
-  const localDir = join(contentDir, '.ok', 'local');
+  const localDir = join(contentDir, '.gitquire', 'local');
   mkdirSync(localDir, { recursive: true });
   const config = ConfigSchema.parse(
     externalUrl === null ? {} : { server: { externalUrl, allowExternal: true } },

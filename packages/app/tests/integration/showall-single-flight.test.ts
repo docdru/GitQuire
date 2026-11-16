@@ -35,8 +35,8 @@ beforeAll(async () => {
     mkdirSync(join(contentDir, sub));
     writeFileSync(join(contentDir, sub, 'note.md'), `# ${sub}\n`);
   }
-  mkdirSync(join(contentDir, '.ok', 'templates'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'templates', 'daily.md'), '# Daily\n');
+  mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'templates', 'daily.md'), '# Daily\n');
   server = await createTestServer({ contentDir, keepContentDir: false });
 }, 60_000);
 
@@ -121,8 +121,8 @@ describe('showOk single-flight isolation', () => {
 
     const pathOf = (e: { kind: string; docName?: string; path?: string }) =>
       e.kind === 'folder' ? (e.path ?? '') : (e.docName ?? e.path ?? '');
-    expect(plain.documents.map(pathOf).some((p) => p.split('/').includes('.ok'))).toBe(false);
-    expect(reveal.documents.map(pathOf)).toContain('.ok/templates/daily');
+    expect(plain.documents.map(pathOf).some((p) => p.split('/').includes('.gitquire'))).toBe(false);
+    expect(reveal.documents.map(pathOf)).toContain('.gitquire/templates/daily');
   }, 30_000);
 });
 

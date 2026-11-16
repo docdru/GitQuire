@@ -19,7 +19,7 @@ const detail = 'body: Disallowed content control U+001F at zero-based UTF-16 off
 
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'ok-metadata-control-advice-'));
-  const templates = join(root, 'templates', '.ok', 'templates');
+  const templates = join(root, 'templates', '.gitquire', 'templates');
   mkdirSync(templates, { recursive: true });
   writeFileSync(
     join(templates, 'existing.md'),

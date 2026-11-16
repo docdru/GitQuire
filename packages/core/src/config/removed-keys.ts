@@ -98,7 +98,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     get redirect() {
       return [
         'content.include has been removed.',
-        'For subdirectory scoping, set content.dir in .ok/config.yml instead.',
+        'For subdirectory scoping, set content.dir in .gitquire/config.yml instead.',
         'For pattern-based filtering, use .okignore (gitignore syntax — exclude-only; do not copy include patterns directly).',
         migrateHint(),
       ].join(' ');
@@ -118,7 +118,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     get redirect() {
       return [
         'folders is no longer a top-level config field.',
-        "A folder's own frontmatter (open-shape, like a doc's) lives in nested `<folder>/.ok/frontmatter.yml`; new-doc starting properties come from templates in `<folder>/.ok/templates/`.",
+        "A folder's own frontmatter (open-shape, like a doc's) lives in nested `<folder>/.gitquire/frontmatter.yml`; new-doc starting properties come from templates in `<folder>/.gitquire/templates/`.",
         'Edit via the folder overview in the editor sidebar, or `edit({ folder: { path, frontmatter } })` via the MCP.',
         migrateHint(),
       ].join(' ');
@@ -155,7 +155,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     path: ['server', 'host'],
     get redirect() {
       return [
-        'Use server.bind in .ok/config.yml instead — a list of bind addresses, e.g. [127.0.0.1]; a non-loopback bind additionally requires server.allowExternal.',
+        'Use server.bind in .gitquire/config.yml instead — a list of bind addresses, e.g. [127.0.0.1]; a non-loopback bind additionally requires server.allowExternal.',
         'The --bind CLI flag and HOST environment variable also remain available.',
         migrateHint(),
       ].join(' ');
@@ -165,7 +165,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     path: ['remote', 'url'],
     get redirect() {
       return [
-        'remote.url has been removed. Use server.externalUrl in .ok/config.yml instead (the public origin your tunnel serves).',
+        'remote.url has been removed. Use server.externalUrl in .gitquire/config.yml instead (the public origin your tunnel serves).',
         migrateHint(),
       ].join(' ');
     },
@@ -174,7 +174,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     path: ['remote', 'port'],
     get redirect() {
       return [
-        'remote.port has been removed. Use server.port in .ok/config.yml instead.',
+        'remote.port has been removed. Use server.port in .gitquire/config.yml instead.',
         migrateHint(),
       ].join(' ');
     },
@@ -183,7 +183,7 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
     path: ['server', 'publicUrl'],
     get redirect() {
       return [
-        'server.publicUrl has been removed. Use server.externalUrl in .ok/config.yml instead (the same key under its current name).',
+        'server.publicUrl has been removed. Use server.externalUrl in .gitquire/config.yml instead (the same key under its current name).',
         migrateHint(),
       ].join(' ');
     },

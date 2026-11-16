@@ -9,7 +9,7 @@ import { tightFixture } from './tight.ts';
 import type { DocSpec, WorkloadFixture, WorkloadFixtureRef } from './types.ts';
 import { SIZE_ENVELOPES } from './types.ts';
 
-const DEFAULT_TRACE_SUBPATH = '.ok/perf-traces';
+const DEFAULT_TRACE_SUBPATH = '.gitquire/perf-traces';
 const SIZE_DRIFT_PCT_THRESHOLD = 15;
 const DISTANCE_DRIFT_RATIO_THRESHOLD = 0.3;
 

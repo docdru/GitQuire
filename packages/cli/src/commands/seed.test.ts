@@ -44,7 +44,7 @@ describe('runSeed — happy path', () => {
     }
     expect(existsSync(join(testDir, 'log.md'))).toBe(true);
     for (const folder of STARTER_FOLDERS) {
-      const fmPath = join(testDir, folder.path, '.ok', 'frontmatter.yml');
+      const fmPath = join(testDir, folder.path, '.gitquire', 'frontmatter.yml');
       expect(existsSync(fmPath)).toBe(true);
       expect(readFileSync(fmPath, 'utf-8')).toContain(folder.title);
     }
@@ -126,7 +126,7 @@ describe('runSeed — no-op', () => {
 });
 
 describe('runSeed — prerequisite', () => {
-  test('exits 1 when .ok/ is absent', async () => {
+  test('exits 1 when .gitquire/ is absent', async () => {
     const result = await runSeed({ cwd: testDir });
     expect(result.status).toBe('prerequisite-missing');
     expect(result.exitCode).toBe(1);
@@ -145,7 +145,7 @@ describe('runSeed — --root', () => {
     }
     expect(existsSync(join(testDir, 'brain', 'log.md'))).toBe(true);
     for (const folder of STARTER_FOLDERS) {
-      const fmPath = join(testDir, 'brain', folder.path, '.ok', 'frontmatter.yml');
+      const fmPath = join(testDir, 'brain', folder.path, '.gitquire', 'frontmatter.yml');
       expect(existsSync(fmPath)).toBe(true);
     }
   });
@@ -186,10 +186,12 @@ describe('runSeed — --root', () => {
     for (const folder of STARTER_FOLDERS) {
       expect(existsSync(join(testDir, 'work', folder.path))).toBe(true);
       expect(existsSync(join(testDir, 'personal', folder.path))).toBe(true);
-      expect(existsSync(join(testDir, 'work', folder.path, '.ok', 'frontmatter.yml'))).toBe(true);
-      expect(existsSync(join(testDir, 'personal', folder.path, '.ok', 'frontmatter.yml'))).toBe(
+      expect(existsSync(join(testDir, 'work', folder.path, '.gitquire', 'frontmatter.yml'))).toBe(
         true,
       );
+      expect(
+        existsSync(join(testDir, 'personal', folder.path, '.gitquire', 'frontmatter.yml')),
+      ).toBe(true);
     }
   });
 

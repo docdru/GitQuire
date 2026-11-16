@@ -20,7 +20,7 @@ async function toggleShowOkFolders(page: Page): Promise<void> {
   await page.getByTestId('tree-options-show-ok-folders').click();
 }
 
-test('toggle reveals .ok rows, routes clicks to sanctioned surfaces, and keeps rows mutate-free', async ({
+test('toggle reveals .gitquire rows, routes clicks to sanctioned surfaces, and keeps rows mutate-free', async ({
   page,
   api,
   workerServer,
@@ -31,7 +31,7 @@ test('toggle reveals .ok rows, routes clicks to sanctioned surfaces, and keeps r
   const rawDocBase = `notes-probe-${stamp}`;
 
   await api.createPage(`${controlDoc}.md`);
-  const okDir = join(workerServer.contentDir, '.ok');
+  const okDir = join(workerServer.contentDir, '.gitquire');
   mkdirSync(join(okDir, 'templates'), { recursive: true });
   mkdirSync(join(okDir, 'worktrees', 'checkout'), { recursive: true });
   mkdirSync(join(okDir, 'local'), { recursive: true });
@@ -42,15 +42,15 @@ test('toggle reveals .ok rows, routes clicks to sanctioned surfaces, and keeps r
   await page.goto(`/#/${controlDoc}`);
   await fileRow(page, `${controlDoc}.md`).waitFor({ state: 'visible', timeout: 15_000 });
 
-  await expect(folderRow(page, '.ok')).toHaveCount(0);
+  await expect(folderRow(page, '.gitquire')).toHaveCount(0);
 
   await toggleShowOkFolders(page);
   await treeScroller(page).evaluate((el) => {
     el.scrollTop = 0;
   });
-  await folderRow(page, '.ok').waitFor({ state: 'visible', timeout: 15_000 });
+  await folderRow(page, '.gitquire').waitFor({ state: 'visible', timeout: 15_000 });
 
-  await folderRow(page, '.ok').click();
+  await folderRow(page, '.gitquire').click();
   await folderRow(page, 'templates').waitFor({ state: 'visible', timeout: 15_000 });
   await fileRow(page, `${rawDocBase}.md`).waitFor({ state: 'visible', timeout: 15_000 });
   await expect(folderRow(page, 'worktrees')).toHaveCount(0);
@@ -92,13 +92,13 @@ test('toggle reveals .ok rows, routes clicks to sanctioned surfaces, and keeps r
     .poll(async () => decodeURIComponent(await page.evaluate(() => window.location.hash)), {
       timeout: 15_000,
     })
-    .toBe(`#/.ok/templates/${templateName}`);
+    .toBe(`#/.gitquire/templates/${templateName}`);
 
   await toggleShowOkFolders(page);
-  await expect(folderRow(page, '.ok')).toHaveCount(0, { timeout: 15_000 });
+  await expect(folderRow(page, '.gitquire')).toHaveCount(0, { timeout: 15_000 });
 });
 
-test('a direct hash to a raw .ok docName lands read-only — existing shows bytes, missing never offers create', async ({
+test('a direct hash to a raw .gitquire docName lands read-only — existing shows bytes, missing never offers create', async ({
   page,
   api,
   workerServer,
@@ -108,9 +108,9 @@ test('a direct hash to a raw .ok docName lands read-only — existing shows byte
   const rawDocBase = `guard-probe-${stamp}`;
 
   await api.createPage(`${anchorDoc}.md`);
-  mkdirSync(join(workerServer.contentDir, '.ok'), { recursive: true });
+  mkdirSync(join(workerServer.contentDir, '.gitquire'), { recursive: true });
   writeFileSync(
-    join(workerServer.contentDir, '.ok', `${rawDocBase}.md`),
+    join(workerServer.contentDir, '.gitquire', `${rawDocBase}.md`),
     `# Guard probe ${stamp}\n`,
     'utf-8',
   );
@@ -120,7 +120,7 @@ test('a direct hash to a raw .ok docName lands read-only — existing shows byte
 
   await page.evaluate((docName) => {
     window.location.hash = `#/${docName}`;
-  }, `.ok/${rawDocBase}`);
+  }, `.gitquire/${rawDocBase}`);
   await expect(textViewer(page)).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(`Guard probe ${stamp}`)).toBeVisible({ timeout: 15_000 });
   await page.locator('[data-text-viewer] .cm-content').click();
@@ -130,13 +130,13 @@ test('a direct hash to a raw .ok docName lands read-only — existing shows byte
 
   await page.evaluate((docName) => {
     window.location.hash = `#/${docName}`;
-  }, `.ok/ghost-${stamp}`);
+  }, `.gitquire/ghost-${stamp}`);
   await expect(textViewer(page)).toBeVisible({ timeout: 15_000 });
   await expect(page.getByPlaceholder('Start writing to create this page')).toHaveCount(0);
   await expect(page.getByText('Start writing to create this page')).toHaveCount(0);
 });
 
-test('an activated .ok folder row never becomes a mutation target — create falls back to root, keyboard delete no-ops', async ({
+test('an activated .gitquire folder row never becomes a mutation target — create falls back to root, keyboard delete no-ops', async ({
   page,
   api,
   workerServer,
@@ -149,7 +149,7 @@ test('an activated .ok folder row never becomes a mutation target — create fal
 
   await api.createPage(`${anchorDoc}.md`);
   await api.createPage(`${controlFolder}/inside.md`);
-  const okDir = join(workerServer.contentDir, '.ok');
+  const okDir = join(workerServer.contentDir, '.gitquire');
   mkdirSync(okDir, { recursive: true });
   writeFileSync(join(okDir, `${probeDocBase}.md`), `# Activation probe ${stamp}\n`, 'utf-8');
 
@@ -160,9 +160,9 @@ test('an activated .ok folder row never becomes a mutation target — create fal
   await treeScroller(page).evaluate((el) => {
     el.scrollTop = 0;
   });
-  await folderRow(page, '.ok').waitFor({ state: 'visible', timeout: 15_000 });
+  await folderRow(page, '.gitquire').waitFor({ state: 'visible', timeout: 15_000 });
 
-  await folderRow(page, '.ok').click();
+  await folderRow(page, '.gitquire').click();
   await fileRow(page, `${probeDocBase}.md`).waitFor({ state: 'visible', timeout: 15_000 });
 
   await page.getByRole('button', { name: 'New file', exact: true }).click();
@@ -202,7 +202,7 @@ test('an activated .ok folder row never becomes a mutation target — create fal
   await treeScroller(page).evaluate((el) => {
     el.scrollTop = 0;
   });
-  const okRow = folderRow(page, '.ok');
+  const okRow = folderRow(page, '.gitquire');
   await okRow.waitFor({ state: 'visible', timeout: 15_000 });
   await okRow.click();
   await okRow.focus();
@@ -213,7 +213,7 @@ test('an activated .ok folder row never becomes a mutation target — create fal
   expect(existsSync(join(okDir, `${probeDocBase}.md`))).toBe(true);
 
   await toggleShowOkFolders(page);
-  await expect(folderRow(page, '.ok')).toHaveCount(0, { timeout: 15_000 });
+  await expect(folderRow(page, '.gitquire')).toHaveCount(0, { timeout: 15_000 });
 });
 
 test('a legacy __template__ bookmark redirects to the content doc and opens it', async ({
@@ -227,9 +227,9 @@ test('a legacy __template__ bookmark redirects to the content doc and opens it',
   const bodyMarker = `Legacy redirect ${stamp}`;
 
   await api.createPage(`${anchorDoc}.md`);
-  mkdirSync(join(workerServer.contentDir, '.ok', 'templates'), { recursive: true });
+  mkdirSync(join(workerServer.contentDir, '.gitquire', 'templates'), { recursive: true });
   writeFileSync(
-    join(workerServer.contentDir, '.ok', 'templates', `${templateName}.md`),
+    join(workerServer.contentDir, '.gitquire', 'templates', `${templateName}.md`),
     `# ${bodyMarker}\n`,
     'utf-8',
   );

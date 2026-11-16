@@ -1068,7 +1068,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'template-create: notes/.ok/templates/standup',
+      'template-create: notes/.gitquire/templates/standup',
       '---\ntemplate:\n  title: Standup\n---\n# v1\n',
       next(),
     );
@@ -1077,7 +1077,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'template-edit: notes/.ok/templates/standup',
+      'template-edit: notes/.gitquire/templates/standup',
       '---\ntemplate:\n  title: Standup\n---\n# v2\n',
       next(),
     );
@@ -1087,7 +1087,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'wip: notes/.ok/templates/standup',
+      'wip: notes/.gitquire/templates/standup',
       '---\ntemplate:\n  title: Standup\n---\n# v3 edited in the editor\n',
       next(),
       human,
@@ -1112,7 +1112,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'template-create: notes/.ok/templates/standup',
+      'template-create: notes/.gitquire/templates/standup',
       '# create\n',
       next(),
     );
@@ -1121,7 +1121,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'template-edit: notes/.ok/templates/standup',
+      'template-edit: notes/.gitquire/templates/standup',
       '# edit\n',
       next(),
     );
@@ -1130,7 +1130,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'template-rename: notes/.ok/templates/scrum -> notes/.ok/templates/standup',
+      'template-rename: notes/.gitquire/templates/scrum -> notes/.gitquire/templates/standup',
       '# rename\n',
       next(),
     );
@@ -1139,7 +1139,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'template-delete: notes/.ok/templates/standup',
+      'template-delete: notes/.gitquire/templates/standup',
       '# delete\n',
       next(),
     );
@@ -1148,7 +1148,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'template-import: notes/.ok/templates/standup',
+      'template-import: notes/.gitquire/templates/standup',
       '# import\n',
       next(),
     );
@@ -1157,7 +1157,7 @@ describe('getDocumentHistory + getFolderTimeline — templates as content (FR6 /
       contentDir,
       'notes',
       'standup',
-      'wip: notes/.ok/templates/standup',
+      'wip: notes/.gitquire/templates/standup',
       '# editor edit\n',
       next(),
       human,

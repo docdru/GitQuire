@@ -1281,17 +1281,17 @@ describe('FileTree show-ok-folders visibility', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  test('show-ok ON requests the listing with showOk=true and renders .ok rows', async () => {
+  test('show-ok ON requests the listing with showOk=true and renders .gitquire rows', async () => {
     mergedConfig = { appearance: { sidebar: { showOkFolders: true } } };
     responseByUrl.set(SHOW_OK_DEPTH1_URL, () =>
       jsonResponse({
-        documents: [docEntry('README'), folderEntry('.ok', true)],
+        documents: [docEntry('README'), folderEntry('.gitquire', true)],
         truncated: false,
       }),
     );
     render(<FileTree />);
 
-    await waitFor(() => expect(model.items.has('.ok/')).toBe(true));
+    await waitFor(() => expect(model.items.has('.gitquire/')).toBe(true));
     expect(model.items.has('README.md')).toBe(true);
     expect(fetchUrls).toContain(SHOW_OK_DEPTH1_URL);
     expect(fetchUrls).not.toContain(SHOW_ALL_DEPTH1_URL);
@@ -1309,42 +1309,46 @@ describe('FileTree show-ok-folders visibility', () => {
     expect(fetchUrls.some((url) => url.includes('showOk'))).toBe(false);
   });
 
-  test('hidden-files on does not reveal .ok rows and does not request showOk', async () => {
+  test('hidden-files on does not reveal .gitquire rows and does not request showOk', async () => {
     mergedConfig = { appearance: { sidebar: { showHiddenFiles: true } } };
     showAllResponseFactory = () =>
       jsonResponse({
-        documents: [docEntry('README'), folderEntry('.scratch', true), folderEntry('.ok', true)],
+        documents: [
+          docEntry('README'),
+          folderEntry('.scratch', true),
+          folderEntry('.gitquire', true),
+        ],
         truncated: false,
       });
     render(<FileTree />);
 
     await waitFor(() => expect(model.items.has('.scratch/')).toBe(true));
-    expect(model.items.has('.ok/')).toBe(false);
+    expect(model.items.has('.gitquire/')).toBe(false);
     expect(fetchUrls.some((url) => url.includes('showOk'))).toBe(false);
   });
 
-  test('expanding a revealed .ok folder lazy-fetches its children with showOk=true', async () => {
+  test('expanding a revealed .gitquire folder lazy-fetches its children with showOk=true', async () => {
     mergedConfig = { appearance: { sidebar: { showOkFolders: true } } };
     responseByUrl.set(SHOW_OK_DEPTH1_URL, () =>
       jsonResponse({
-        documents: [docEntry('README'), folderEntry('.ok', true)],
+        documents: [docEntry('README'), folderEntry('.gitquire', true)],
         truncated: false,
       }),
     );
-    responseByUrl.set(lazyOkDirUrl('.ok'), () =>
+    responseByUrl.set(lazyOkDirUrl('.gitquire'), () =>
       jsonResponse({
-        documents: [folderEntry('.ok/templates', true), assetEntry('.ok/config.yml')],
+        documents: [folderEntry('.gitquire/templates', true), assetEntry('.gitquire/config.yml')],
         truncated: false,
       }),
     );
     render(<FileTree />);
-    await waitFor(() => expect(model.items.has('.ok/')).toBe(true));
+    await waitFor(() => expect(model.items.has('.gitquire/')).toBe(true));
 
-    model.getItem('.ok/')?.expand();
+    model.getItem('.gitquire/')?.expand();
 
-    await waitFor(() => expect(model.items.has('.ok/templates/')).toBe(true));
-    expect(model.items.has('.ok/config.yml')).toBe(true);
-    expect(fetchUrls).toContain(lazyOkDirUrl('.ok'));
+    await waitFor(() => expect(model.items.has('.gitquire/templates/')).toBe(true));
+    expect(model.items.has('.gitquire/config.yml')).toBe(true);
+    expect(fetchUrls).toContain(lazyOkDirUrl('.gitquire'));
   });
 
   test('flipping show-ok refetches through the scheduler and preserves expansion state', async () => {
@@ -1358,7 +1362,7 @@ describe('FileTree show-ok-folders visibility', () => {
     );
     responseByUrl.set(SHOW_OK_DEPTH1_URL, () =>
       jsonResponse({
-        documents: [docEntry('README'), folderEntry('team', true), folderEntry('.ok', true)],
+        documents: [docEntry('README'), folderEntry('team', true), folderEntry('.gitquire', true)],
         truncated: false,
       }),
     );
@@ -1373,37 +1377,37 @@ describe('FileTree show-ok-folders visibility', () => {
     mergedConfig = { appearance: { sidebar: { showOkFolders: true } } };
     view.rerender(<FileTree />);
 
-    await waitFor(() => expect(model.items.has('.ok/')).toBe(true));
+    await waitFor(() => expect(model.items.has('.gitquire/')).toBe(true));
     expect(model.getItem('team/')?.isExpanded()).toBe(true);
 
     mergedConfig = { appearance: { sidebar: { showOkFolders: false } } };
     view.rerender(<FileTree />);
-    await waitFor(() => expect(model.items.has('.ok/')).toBe(false));
+    await waitFor(() => expect(model.items.has('.gitquire/')).toBe(false));
     expect(model.items.has('README.md')).toBe(true);
     expect(model.getItem('team/')?.isExpanded()).toBe(true);
   });
 
-  test('an expanded .ok folder stays expanded across a refresh cycle', async () => {
+  test('an expanded .gitquire folder stays expanded across a refresh cycle', async () => {
     mergedConfig = { appearance: { sidebar: { showOkFolders: true } } };
     responseByUrl.set(SHOW_OK_DEPTH1_URL, () =>
       jsonResponse({
-        documents: [docEntry('README'), folderEntry('.ok', true)],
+        documents: [docEntry('README'), folderEntry('.gitquire', true)],
         truncated: false,
       }),
     );
-    responseByUrl.set(lazyOkDirUrl('.ok'), () =>
-      jsonResponse({ documents: [folderEntry('.ok/templates', true)], truncated: false }),
+    responseByUrl.set(lazyOkDirUrl('.gitquire'), () =>
+      jsonResponse({ documents: [folderEntry('.gitquire/templates', true)], truncated: false }),
     );
     render(<FileTree />);
-    await waitFor(() => expect(model.items.has('.ok/')).toBe(true));
-    model.getItem('.ok/')?.expand();
-    await waitFor(() => expect(model.items.has('.ok/templates/')).toBe(true));
+    await waitFor(() => expect(model.items.has('.gitquire/')).toBe(true));
+    model.getItem('.gitquire/')?.expand();
+    await waitFor(() => expect(model.items.has('.gitquire/templates/')).toBe(true));
 
     emitDocumentsChanged();
     await waitFor(() =>
       expect(fetchUrls.filter((url) => url === SHOW_OK_DEPTH1_URL).length).toBeGreaterThan(1),
     );
-    await waitFor(() => expect(model.getItem('.ok/')?.isExpanded()).toBe(true));
-    expect(model.items.has('.ok/templates/')).toBe(true);
+    await waitFor(() => expect(model.getItem('.gitquire/')?.isExpanded()).toBe(true));
+    expect(model.items.has('.gitquire/templates/')).toBe(true);
   });
 });

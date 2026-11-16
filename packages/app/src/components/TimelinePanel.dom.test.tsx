@@ -128,7 +128,7 @@ const SURFACED_KINDS: ParsedCheckpoint[] = [
   },
   {
     kind: 'managed-artifact-reconcile',
-    docName: '.ok/templates/daily',
+    docName: '.gitquire/templates/daily',
     size: 12,
     metadata: { diskBytes: 41, discardedBytes: 66 },
   },

@@ -21,7 +21,7 @@ describe('resolveContentDir', () => {
 });
 
 describe('resolveLockDir', () => {
-  test('returns <contentDir>/.ok/local', () => {
+  test('returns <contentDir>/.gitquire/local', () => {
     expect(resolveLockDir('/tmp/project')).toBe(getLocalDir('/tmp/project'));
   });
 });

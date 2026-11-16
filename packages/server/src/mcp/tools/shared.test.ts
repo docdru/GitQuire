@@ -938,25 +938,27 @@ describe('alignWarningCodes — defensive normalization at trust boundary', () =
 
 describe('okReservedPathRedirect', () => {
   test('leading slash is tolerated', () => {
-    expect(okReservedPathRedirect('/.ok/templates/x')).toContain('`template` target');
+    expect(okReservedPathRedirect('/.gitquire/templates/x')).toContain('`template` target');
   });
 
-  test('.ok/templates/ path → template-verb redirect', () => {
-    expect(okReservedPathRedirect('.ok/templates/note')).toContain('`template` target');
+  test('.gitquire/templates/ path → template-verb redirect', () => {
+    expect(okReservedPathRedirect('.gitquire/templates/note')).toContain('`template` target');
   });
 
-  test('a raw document write into .ok/templates is refused, not admitted as a content doc (D7)', () => {
-    const path = '.ok/templates/standup';
+  test('a raw document write into .gitquire/templates is refused, not admitted as a content doc (D7)', () => {
+    const path = '.gitquire/templates/standup';
     expect(normalizeDocName(path).ok).toBe(false);
     expect(okReservedPathRedirect(path)).toContain('`template` target');
 
-    const nested = 'notes/.ok/templates/standup';
+    const nested = 'notes/.gitquire/templates/standup';
     expect(normalizeDocName(nested).ok).toBe(false);
     expect(okReservedPathRedirect(nested)).toBeNull();
   });
 
-  test('other .ok/ path → generic .ok redirect', () => {
-    expect(okReservedPathRedirect('.ok/config/whatever')).toContain('not addressable as documents');
+  test('other .gitquire/ path → generic .gitquire redirect', () => {
+    expect(okReservedPathRedirect('.gitquire/config/whatever')).toContain(
+      'not addressable as documents',
+    );
   });
 
   test('non-.ok path → null (normal docName error stands)', () => {

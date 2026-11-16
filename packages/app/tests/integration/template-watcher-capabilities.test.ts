@@ -23,8 +23,8 @@ afterEach(async () => {
 
 function seedContentDir(): string {
   const dir = mkdtempSync(join(tmpdir(), 'ok-template-watcher-'));
-  mkdirSync(resolve(dir, '.ok'), { recursive: true });
-  writeFileSync(resolve(dir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(resolve(dir, '.gitquire'), { recursive: true });
+  writeFileSync(resolve(dir, '.gitquire', 'config.yml'), '', 'utf-8');
   return dir;
 }
 
@@ -68,11 +68,11 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
       const rig = server;
       const folder = `folder-${randomUUID().slice(0, 8)}`;
       const name = `tpl-${randomUUID().slice(0, 8)}`;
-      const docName = `${folder}/.ok/templates/${name}`;
+      const docName = `${folder}/.gitquire/templates/${name}`;
       const src =
         '---\ntitle: Standup\ndescription: a standup template\n---\n\n# {{date}}\n\nStandup.\n';
 
-      const tplFile = resolve(rig.contentDir, folder, '.ok', 'templates', `${name}.md`);
+      const tplFile = resolve(rig.contentDir, folder, '.gitquire', 'templates', `${name}.md`);
       mkdirSync(resolve(tplFile, '..'), { recursive: true });
       writeFileSync(tplFile, src, 'utf-8');
 
@@ -91,9 +91,9 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
     'a template deleted on disk closes the doc cleanly and is not resurrected by a debounced store',
     async () => {
       const name = `tpl-${randomUUID().slice(0, 8)}`;
-      const docName = `.ok/templates/${name}`;
+      const docName = `.gitquire/templates/${name}`;
       const contentDir = seedContentDir();
-      const tplFile = resolve(contentDir, '.ok', 'templates', `${name}.md`);
+      const tplFile = resolve(contentDir, '.gitquire', 'templates', `${name}.md`);
       const src = '---\ntitle: T\ndescription: d\n---\n\n# Template\n\nv1.\n';
       mkdirSync(resolve(tplFile, '..'), { recursive: true });
       writeFileSync(tplFile, src, 'utf-8');
@@ -130,11 +130,11 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
     async () => {
       const from = `a-${randomUUID().slice(0, 8)}`;
       const to = `b-${randomUUID().slice(0, 8)}`;
-      const fromDoc = `.ok/templates/${from}`;
-      const toDoc = `.ok/templates/${to}`;
+      const fromDoc = `.gitquire/templates/${from}`;
+      const toDoc = `.gitquire/templates/${to}`;
       const contentDir = seedContentDir();
-      const fromFile = resolve(contentDir, '.ok', 'templates', `${from}.md`);
-      const toFile = resolve(contentDir, '.ok', 'templates', `${to}.md`);
+      const fromFile = resolve(contentDir, '.gitquire', 'templates', `${from}.md`);
+      const toFile = resolve(contentDir, '.gitquire', 'templates', `${to}.md`);
       const src = '---\ntitle: T\ndescription: d\n---\n\n# Template\n\nBody.\n';
       mkdirSync(resolve(fromFile, '..'), { recursive: true });
       writeFileSync(fromFile, src, 'utf-8');
@@ -160,9 +160,9 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
     'conflict markers written to a template file raise a reconcile conflict for the open doc',
     async () => {
       const name = `tpl-${randomUUID().slice(0, 8)}`;
-      const docName = `.ok/templates/${name}`;
+      const docName = `.gitquire/templates/${name}`;
       const contentDir = seedContentDir();
-      const tplFile = resolve(contentDir, '.ok', 'templates', `${name}.md`);
+      const tplFile = resolve(contentDir, '.gitquire', 'templates', `${name}.md`);
       const clean = '---\ntitle: T\ndescription: initial\n---\n\n# Template\n\nv1.\n';
       mkdirSync(resolve(tplFile, '..'), { recursive: true });
       writeFileSync(tplFile, clean, 'utf-8');

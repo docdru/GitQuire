@@ -2,9 +2,9 @@ import { describe, expect, test } from 'vitest';
 import { indexGlobProblemsByFile, parseAppliesToGlobProblem } from './applies-to-glob-problems';
 
 const UNMATCHED =
-  'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .ok/schemas/doc.schema.json)';
+  'unmatched appliesTo glob "specs/**" — matches no docs in this project (frontmatter mapping for .gitquire/schemas/doc.schema.json)';
 const SUSPICIOUS =
-  'suspicious appliesTo glob "blog/" — a trailing slash can never match (doc paths have no trailing slash) (frontmatter mapping for .ok/schemas/blog.schema.json)';
+  'suspicious appliesTo glob "blog/" — a trailing slash can never match (doc paths have no trailing slash) (frontmatter mapping for .gitquire/schemas/blog.schema.json)';
 const INVALID =
   'invalid appliesTo glob "[" — Unterminated character class (frontmatter mapping for schemas/local.schema.json)';
 
@@ -14,7 +14,7 @@ describe('parseAppliesToGlobProblem', () => {
       kind: 'unmatched',
       pattern: 'specs/**',
       detail: 'matches no docs in this project',
-      file: '.ok/schemas/doc.schema.json',
+      file: '.gitquire/schemas/doc.schema.json',
     });
   });
 
@@ -23,7 +23,7 @@ describe('parseAppliesToGlobProblem', () => {
       kind: 'suspicious',
       pattern: 'blog/',
       detail: 'a trailing slash can never match (doc paths have no trailing slash)',
-      file: '.ok/schemas/blog.schema.json',
+      file: '.gitquire/schemas/blog.schema.json',
     });
   });
 
@@ -40,7 +40,7 @@ describe('parseAppliesToGlobProblem', () => {
 
   test('returns null for problems that are not glob findings', () => {
     for (const other of [
-      'frontmatter schema .ok/schemas/doc.schema.json: cannot read (ENOENT)',
+      'frontmatter schema .gitquire/schemas/doc.schema.json: cannot read (ENOENT)',
       '[.markdownlint.json] malformed markdownlint config',
       '',
     ]) {
@@ -64,10 +64,10 @@ describe('indexGlobProblemsByFile', () => {
   test('groups parseable problems by file then pattern, skipping the rest', () => {
     const index = indexGlobProblemsByFile([UNMATCHED, INVALID, 'unrelated problem']);
     expect([...index.keys()].sort()).toEqual([
-      '.ok/schemas/doc.schema.json',
+      '.gitquire/schemas/doc.schema.json',
       'schemas/local.schema.json',
     ]);
-    expect(index.get('.ok/schemas/doc.schema.json')?.get('specs/**')).toBe(
+    expect(index.get('.gitquire/schemas/doc.schema.json')?.get('specs/**')).toBe(
       'matches no docs in this project',
     );
   });

@@ -9,8 +9,8 @@ const makeTempDir = createTempDirFactory(afterAll);
 function makeTempProject(): { cwd: string; home: string } {
   const cwd = makeTempDir('ok-inspect-cwd-');
   const home = makeTempDir('ok-inspect-home-');
-  mkdirSync(join(cwd, '.ok'), { recursive: true });
-  mkdirSync(join(home, '.ok'), { recursive: true });
+  mkdirSync(join(cwd, '.gitquire'), { recursive: true });
+  mkdirSync(join(home, '.gitquire'), { recursive: true });
   return { cwd, home };
 }
 
@@ -30,7 +30,7 @@ describe('inspectConfigPaths', () => {
   test('reports `project: true` when the path is set in project YAML', () => {
     const { cwd, home } = makeTempProject();
     writeFileSync(
-      join(cwd, '.ok', 'config.yml'),
+      join(cwd, '.gitquire', 'config.yml'),
       'mcp:\n  tools:\n    grep:\n      maxResults: 100\n',
     );
     const result = inspectConfigPaths([['mcp', 'tools', 'grep', 'maxResults']], {
@@ -45,7 +45,7 @@ describe('inspectConfigPaths', () => {
 
   test('reports `user: true` when the path is set in user YAML', () => {
     const { cwd, home } = makeTempProject();
-    writeFileSync(join(home, '.ok', 'global.yml'), 'appearance:\n  theme: dark\n');
+    writeFileSync(join(home, '.gitquire', 'global.yml'), 'appearance:\n  theme: dark\n');
     const result = inspectConfigPaths([['appearance', 'theme']], {
       cwd,
       homedirOverride: home,
@@ -59,11 +59,11 @@ describe('inspectConfigPaths', () => {
   test('reports both true when set in both files', () => {
     const { cwd, home } = makeTempProject();
     writeFileSync(
-      join(cwd, '.ok', 'config.yml'),
+      join(cwd, '.gitquire', 'config.yml'),
       'mcp:\n  tools:\n    grep:\n      maxResults: 100\n',
     );
     writeFileSync(
-      join(home, '.ok', 'global.yml'),
+      join(home, '.gitquire', 'global.yml'),
       'mcp:\n  tools:\n    grep:\n      maxResults: 50\n',
     );
     const result = inspectConfigPaths([['mcp', 'tools', 'grep', 'maxResults']], {
@@ -79,10 +79,10 @@ describe('inspectConfigPaths', () => {
   test('handles multiple paths in one call', () => {
     const { cwd, home } = makeTempProject();
     writeFileSync(
-      join(cwd, '.ok', 'config.yml'),
+      join(cwd, '.gitquire', 'config.yml'),
       'mcp:\n  tools:\n    grep:\n      maxResults: 100\n',
     );
-    writeFileSync(join(home, '.ok', 'global.yml'), 'appearance:\n  theme: dark\n');
+    writeFileSync(join(home, '.gitquire', 'global.yml'), 'appearance:\n  theme: dark\n');
     const result = inspectConfigPaths(
       [
         ['mcp', 'tools', 'grep', 'maxResults'],
@@ -107,7 +107,7 @@ describe('inspectConfigPaths', () => {
 
   test('reports false when YAML parses but path traverses through a scalar', () => {
     const { cwd, home } = makeTempProject();
-    writeFileSync(join(cwd, '.ok', 'config.yml'), 'mcp:\n  tools: hello\n');
+    writeFileSync(join(cwd, '.gitquire', 'config.yml'), 'mcp:\n  tools: hello\n');
     const result = inspectConfigPaths([['mcp', 'tools', 'grep', 'maxResults']], {
       cwd,
       homedirOverride: home,
@@ -120,7 +120,7 @@ describe('inspectConfigPaths', () => {
 
   test('reports false when YAML is malformed (parse error → null tree)', () => {
     const { cwd, home } = makeTempProject();
-    writeFileSync(join(cwd, '.ok', 'config.yml'), 'mcp: {[[ broken');
+    writeFileSync(join(cwd, '.gitquire', 'config.yml'), 'mcp: {[[ broken');
     const result = inspectConfigPaths([['mcp', 'tools', 'grep', 'maxResults']], {
       cwd,
       homedirOverride: home,
@@ -133,7 +133,7 @@ describe('inspectConfigPaths', () => {
 
   test('reports true even when leaf value is null (RFC 7396 clear convention)', () => {
     const { cwd, home } = makeTempProject();
-    writeFileSync(join(cwd, '.ok', 'config.yml'), 'appearance:\n  theme: null\n');
+    writeFileSync(join(cwd, '.gitquire', 'config.yml'), 'appearance:\n  theme: null\n');
     const result = inspectConfigPaths([['appearance', 'theme']], {
       cwd,
       homedirOverride: home,
@@ -144,7 +144,7 @@ describe('inspectConfigPaths', () => {
   test('handles array-leaf folders[]', () => {
     const { cwd, home } = makeTempProject();
     writeFileSync(
-      join(cwd, '.ok', 'config.yml'),
+      join(cwd, '.gitquire', 'config.yml'),
       'folders:\n  - match: specs/**\n    frontmatter:\n      description: Specs\n',
     );
     const result = inspectConfigPaths([['folders']], { cwd, homedirOverride: home });

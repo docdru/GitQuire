@@ -82,7 +82,7 @@ describe('/api/saved-themes + /api/saved-theme', () => {
       .update(resolve(savedThemesDir(home)))
       .digest('hex')
       .slice(0, 24);
-    const lockDir = join(home, '.ok');
+    const lockDir = join(home, '.gitquire');
     mkdirSync(lockDir, { recursive: true });
     const lockPath = join(lockDir, `saved-themes-${rootKey}.lock`);
     writeFileSync(lockPath, '', { flag: 'wx', mode: 0o600 });

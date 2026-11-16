@@ -20,7 +20,7 @@ describe('buildWorktreeSelectorModel', () => {
     const model = buildWorktreeSelectorModel({
       worktrees: [
         wt({ path: '/repo', branch: 'main' }),
-        wt({ path: '/repo/.ok/worktrees/dev', branch: 'dev' }),
+        wt({ path: '/repo/.gitquire/worktrees/dev', branch: 'dev' }),
       ],
       branches: ['main', 'dev'],
       currentProjectPath: '/repo',
@@ -32,14 +32,14 @@ describe('buildWorktreeSelectorModel', () => {
     const model = buildWorktreeSelectorModel({
       worktrees: [
         wt({ path: '/repo', branch: 'main' }),
-        wt({ path: '/repo/.ok/worktrees/dev', branch: 'dev' }),
+        wt({ path: '/repo/.gitquire/worktrees/dev', branch: 'dev' }),
       ],
       branches: ['main', 'dev', 'feature-x'],
       currentProjectPath: '/repo',
     });
     const byBranch = new Map(model.entries.map((e) => [e.branch, e]));
     expect(byBranch.get('main')?.worktreePath).toBe('/repo');
-    expect(byBranch.get('dev')?.worktreePath).toBe('/repo/.ok/worktrees/dev');
+    expect(byBranch.get('dev')?.worktreePath).toBe('/repo/.gitquire/worktrees/dev');
     expect(byBranch.get('feature-x')?.worktreePath).toBeNull();
   });
 
@@ -47,10 +47,10 @@ describe('buildWorktreeSelectorModel', () => {
     const model = buildWorktreeSelectorModel({
       worktrees: [
         wt({ path: '/repo', branch: 'main' }),
-        wt({ path: '/repo/.ok/worktrees/dev', branch: 'dev' }),
+        wt({ path: '/repo/.gitquire/worktrees/dev', branch: 'dev' }),
       ],
       branches: ['main', 'dev'],
-      currentProjectPath: '/repo/.ok/worktrees/dev',
+      currentProjectPath: '/repo/.gitquire/worktrees/dev',
     });
     const main = model.entries.find((e) => e.branch === 'main');
     const dev = model.entries.find((e) => e.branch === 'dev');
@@ -65,10 +65,10 @@ describe('buildWorktreeSelectorModel', () => {
     const model = buildWorktreeSelectorModel({
       worktrees: [
         wt({ path: '/repo', branch: 'main' }),
-        wt({ path: '/repo/.ok/worktrees/zeta', branch: 'zeta' }),
+        wt({ path: '/repo/.gitquire/worktrees/zeta', branch: 'zeta' }),
       ],
       branches: ['main', 'zeta', 'alpha', 'beta'],
-      currentProjectPath: '/repo/.ok/worktrees/zeta',
+      currentProjectPath: '/repo/.gitquire/worktrees/zeta',
     });
     expect(model.entries.map((e) => e.branch)).toEqual(['zeta', 'main', 'alpha', 'beta']);
   });
@@ -89,12 +89,14 @@ describe('buildWorktreeSelectorModel', () => {
     const model = buildWorktreeSelectorModel({
       worktrees: [
         wt({ path: '/repo', branch: 'main' }),
-        wt({ path: '/repo/.ok/worktrees/detached', branch: null }),
+        wt({ path: '/repo/.gitquire/worktrees/detached', branch: null }),
       ],
       branches: ['main'],
-      currentProjectPath: '/repo/.ok/worktrees/detached',
+      currentProjectPath: '/repo/.gitquire/worktrees/detached',
     });
-    const detached = model.entries.find((e) => e.worktreePath === '/repo/.ok/worktrees/detached');
+    const detached = model.entries.find(
+      (e) => e.worktreePath === '/repo/.gitquire/worktrees/detached',
+    );
     expect(detached?.branch).toBeNull();
     expect(detached?.isCurrent).toBe(true);
   });
@@ -146,18 +148,22 @@ describe('projectWorktreeCreateResult', () => {
   test('projects a created checkout onto the active nested project root', () => {
     expect(
       projectWorktreeCreateResult(
-        { ok: true, path: '/repo/.ok/worktrees/feature', created: true },
+        { ok: true, path: '/repo/.gitquire/worktrees/feature', created: true },
         'packages/docs',
       ),
     ).toEqual({
       ok: true,
-      path: '/repo/.ok/worktrees/feature/packages/docs',
+      path: '/repo/.gitquire/worktrees/feature/packages/docs',
       created: true,
     });
   });
 
   test('preserves root-scoped and failed results', () => {
-    const success = { ok: true, path: '/repo/.ok/worktrees/feature', created: false } as const;
+    const success = {
+      ok: true,
+      path: '/repo/.gitquire/worktrees/feature',
+      created: false,
+    } as const;
     const failure = { ok: false, reason: 'no-git' } as const;
     expect(projectWorktreeCreateResult(success, '')).toBe(success);
     expect(projectWorktreeCreateResult(failure, 'packages/docs')).toBe(failure);
@@ -168,7 +174,7 @@ describe('projectWorktreeCreateResult', () => {
       ok: false,
       reason: 'project-scope-unavailable',
       issue: 'outside-worktree',
-      path: '/repo/.ok/worktrees/feature',
+      path: '/repo/.gitquire/worktrees/feature',
       created: true,
     } as const;
     expect(projectWorktreeCreateResult(failure, 'packages/docs')).toBe(failure);

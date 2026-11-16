@@ -135,8 +135,10 @@ test('an already-connected WebSocket edit acknowledged on disk survives a delaye
   });
 
   writeFileSync(filePath, ORIGINAL, { flag: 'wx' });
-  mkdirSync(join(contentDir, '.ok', 'templates'), { recursive: true });
-  writeFileSync(join(contentDir, '.ok', 'templates', 'same-original.md'), ORIGINAL, { flag: 'wx' });
+  mkdirSync(join(contentDir, '.gitquire', 'templates'), { recursive: true });
+  writeFileSync(join(contentDir, '.gitquire', 'templates', 'same-original.md'), ORIGINAL, {
+    flag: 'wx',
+  });
   server = await createTestServer({ contentDir });
   const running = server;
   originalClient = await createTestClient(running.port, docName, { resetOnCleanup: false });

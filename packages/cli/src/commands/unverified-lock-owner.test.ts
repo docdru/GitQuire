@@ -16,7 +16,7 @@ let lockPath: string;
 const raw = JSON.stringify({ pid: 4242 });
 beforeEach(() => {
   project = mkdtempSync(join(tmpdir(), 'ok-unverified-owner-owned-'));
-  lockDir = join(project, '.ok', 'local');
+  lockDir = join(project, '.gitquire', 'local');
   mkdirSync(lockDir, { recursive: true });
   lockPath = join(lockDir, 'server.lock');
   writeFileSync(lockPath, raw);
@@ -86,7 +86,7 @@ test.each([
   'ps reports the project directory for $layout locks with json=$json',
   async ({ json, layout }) => {
     if (layout !== 'current') {
-      lockDir = join(project, layout === 'legacy' ? '.ok' : 'custom-state');
+      lockDir = join(project, layout === 'legacy' ? '.gitquire' : 'custom-state');
       mkdirSync(lockDir, { recursive: true });
       lockPath = join(lockDir, 'server.lock');
       writeFileSync(lockPath, raw);

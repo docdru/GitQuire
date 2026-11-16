@@ -808,7 +808,7 @@ describe('file operation API routes', () => {
     }
   });
 
-  test('managed rename rejects .ok as a destination (reserved directory)', async () => {
+  test('managed rename rejects .gitquire as a destination (reserved directory)', async () => {
     const dir = setupTmpDir();
     mkdirSync(join(dir, 'project'));
     writeFileSync(join(dir, 'project', 'index.md'), '# Index\n', 'utf-8');
@@ -820,7 +820,7 @@ describe('file operation API routes', () => {
       {
         kind: 'folder',
         fromPath: 'project',
-        toPath: '.ok',
+        toPath: '.gitquire',
       },
       { backlinkIndex: buildBacklinkIndex(dir) },
     );
@@ -829,11 +829,11 @@ describe('file operation API routes', () => {
     {
       const parsed = JSON.parse(result.body) as Record<string, unknown>;
       expect(parsed.type).toBe('urn:ok:error:reserved-doc-name');
-      expect(parsed.title).toContain('.ok and .git are reserved directories');
+      expect(parsed.title).toContain('.gitquire and .git are reserved directories');
     }
   });
 
-  test('managed rename rejects .ok subpath as a destination', async () => {
+  test('managed rename rejects .gitquire subpath as a destination', async () => {
     const dir = setupTmpDir();
     writeFileSync(join(dir, 'notes.md'), '# Notes\n', 'utf-8');
 
@@ -844,7 +844,7 @@ describe('file operation API routes', () => {
       {
         kind: 'file',
         fromPath: 'notes',
-        toPath: '.ok/secret',
+        toPath: '.gitquire/secret',
       },
       { backlinkIndex: buildBacklinkIndex(dir) },
     );
@@ -853,7 +853,7 @@ describe('file operation API routes', () => {
     {
       const parsed = JSON.parse(result.body) as Record<string, unknown>;
       expect(parsed.type).toBe('urn:ok:error:reserved-doc-name');
-      expect(parsed.title).toContain('.ok and .git are reserved directories');
+      expect(parsed.title).toContain('.gitquire and .git are reserved directories');
     }
   });
 
@@ -2752,7 +2752,7 @@ describe('file operation API routes', () => {
 
     const okResult = await callApi(dir, '/api/duplicate-path', 'POST', {
       kind: 'folder',
-      path: '.ok/local',
+      path: '.gitquire/local',
     });
     const configFolderResult = await callApi(dir, '/api/duplicate-path', 'POST', {
       kind: 'folder',
@@ -2947,18 +2947,18 @@ describe('file operation API routes', () => {
     });
   });
 
-  test('rejects create-folder destinations inside .ok even without content filter', async () => {
+  test('rejects create-folder destinations inside .gitquire even without content filter', async () => {
     const dir = setupTmpDir();
 
     const result = await callApi(dir, '/api/create-folder', 'POST', {
-      path: '.ok/local/cache',
+      path: '.gitquire/local/cache',
     });
 
     expect(result.status).toBe(400);
-    expect(existsSync(join(dir, '.ok/local/cache'))).toBe(false);
+    expect(existsSync(join(dir, '.gitquire/local/cache'))).toBe(false);
     expect(JSON.parse(result.body)).toMatchObject({
       type: 'urn:ok:error:reserved-doc-name',
-      title: '.ok and .git are reserved directories.',
+      title: '.gitquire and .git are reserved directories.',
       status: 400,
     });
   });

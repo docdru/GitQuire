@@ -54,7 +54,7 @@ async function seedServerLock(
   owned.push(holder);
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-lock-pid-reuse-')));
   roots.push(root);
-  const lockDir = join(root, '.ok', 'local');
+  const lockDir = join(root, '.gitquire', 'local');
   mkdirSync(lockDir, { recursive: true });
   const lockPath = lockFilePath(lockDir, 'server');
   const serialized = JSON.stringify({

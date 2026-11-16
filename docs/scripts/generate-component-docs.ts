@@ -228,7 +228,7 @@ const PREVIEWS: Partial<Record<string, string>> = {
       Run \`npm install @gitquire/cli\` to add the CLI to your project.
     </TabPreview>
     <TabPreview label="Configure">
-      Point \`.ok/config.yml\` at your content directory. Frontmatter, ignore
+      Point \`.gitquire/config.yml\` at your content directory. Frontmatter, ignore
       patterns, and folder defaults all live in this one file.
     </TabPreview>
     <TabPreview label="Serve">

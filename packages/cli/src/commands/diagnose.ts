@@ -336,7 +336,7 @@ export async function runDiagnose(
   const outDir = opts.output
     ? opts.output
     : contentDir
-      ? join(contentDir, '.ok', 'local', 'diagnostics', `process-${pid}-${ts}`)
+      ? join(contentDir, '.gitquire', 'local', 'diagnostics', `process-${pid}-${ts}`)
       : join(process.cwd(), `ok-diagnose-${pid}-${ts}`);
   try {
     mkdirSync(outDir, { recursive: true });
@@ -568,7 +568,7 @@ export async function runDiagnoseBundle(
     }
   } else {
     const ts = now().toISOString().replace(/[:.]/g, '-');
-    const defaultDir = join(opts.contentDir, '.ok', 'local', 'diagnostics');
+    const defaultDir = join(opts.contentDir, '.gitquire', 'local', 'diagnostics');
     mkdirSync(defaultDir, { recursive: true });
     outputPath = join(defaultDir, `bundle-${ts}.zip`);
   }

@@ -30,13 +30,13 @@ const SEED_CONFIG = [
   '      - appliesTo:',
   '          - "docs/**"',
   '          - "!**/{index,log}"',
-  '        file: ".ok/schemas/doc.schema.json"',
+  '        file: ".gitquire/schemas/doc.schema.json"',
   '      - appliesTo: "broken/**"',
-  '        file: ".ok/schemas/missing.schema.json"',
+  '        file: ".gitquire/schemas/missing.schema.json"',
   '      - appliesTo: "modern/**"',
-  '        file: ".ok/schemas/modern.schema.json"',
+  '        file: ".gitquire/schemas/modern.schema.json"',
   '      - appliesTo: "nineteen/**"',
-  '        file: ".ok/schemas/nineteen.schema.json"',
+  '        file: ".gitquire/schemas/nineteen.schema.json"',
   '',
 ].join('\n');
 
@@ -75,14 +75,14 @@ const VIOLATING_DOC = ['---', 'status: shipped', '---', '', '# Guide'].join('\n'
 
 beforeAll(async () => {
   server = await createTestServer({ seedProjectConfigYml: SEED_CONFIG });
-  mkdirSync(join(server.contentDir, '.ok', 'schemas'), { recursive: true });
+  mkdirSync(join(server.contentDir, '.gitquire', 'schemas'), { recursive: true });
   writeFileSync(
-    join(server.contentDir, '.ok', 'schemas', 'doc.schema.json'),
+    join(server.contentDir, '.gitquire', 'schemas', 'doc.schema.json'),
     JSON.stringify(DOC_SCHEMA, null, 2),
     'utf-8',
   );
   writeFileSync(
-    join(server.contentDir, '.ok', 'schemas', 'modern.schema.json'),
+    join(server.contentDir, '.gitquire', 'schemas', 'modern.schema.json'),
     JSON.stringify(MODERN_SCHEMA, null, 2),
     'utf-8',
   );
@@ -90,7 +90,7 @@ beforeAll(async () => {
   writeFileSync(join(server.contentDir, 'docs', 'guide.md'), VIOLATING_DOC, 'utf-8');
   writeFileSync(join(server.contentDir, 'docs', 'index.md'), VIOLATING_DOC, 'utf-8');
   writeFileSync(
-    join(server.contentDir, '.ok', 'schemas', 'nineteen.schema.json'),
+    join(server.contentDir, '.gitquire', 'schemas', 'nineteen.schema.json'),
     JSON.stringify(NINETEEN_SCHEMA, null, 2),
     'utf-8',
   );
@@ -229,7 +229,7 @@ describe('GET /api/lint/config — effective slice for the browser', () => {
     const body = LintConfigResponseSchema.parse(await res.json());
     const slice = body.effective.plugins.frontmatter;
     expect(slice.enabled).toBe(true);
-    const loaded = slice.schemas.find((s) => s.file === '.ok/schemas/doc.schema.json');
+    const loaded = slice.schemas.find((s) => s.file === '.gitquire/schemas/doc.schema.json');
     expect(loaded?.schema).toMatchObject({ required: ['owner', 'status'] });
     expect(body.configProblems?.some((p) => p.includes('missing.schema.json'))).toBe(true);
   });
@@ -277,7 +277,7 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
   }
 
   test('a per-field edit routes to disk and returns the recomputed effective config', async () => {
-    const file = '.ok/schemas/http-edit.schema.json';
+    const file = '.gitquire/schemas/http-edit.schema.json';
     const res = await postSchema({
       file,
       field: 'status',
@@ -294,7 +294,7 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
   });
 
   test('a field-less request takes the create-empty branch and is idempotent', async () => {
-    const file = '.ok/schemas/http-create.schema.json';
+    const file = '.gitquire/schemas/http-create.schema.json';
     const created = await postSchema({ file });
     expect(created.status).toBe(200);
     LintConfigResponseSchema.parse(await created.json());
@@ -313,7 +313,7 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
   });
 
   test('a delete request removes a tool-managed schema file and is idempotent', async () => {
-    const file = '.ok/schemas/http-delete.schema.json';
+    const file = '.gitquire/schemas/http-delete.schema.json';
     writeFileSync(join(server.contentDir, file), '{"type":"object"}', 'utf-8');
     const res = await postSchema({ file, delete: true });
     expect(res.status).toBe(200);
@@ -341,7 +341,7 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
   });
 
   test('removeField and renameTo shapes edit the file over HTTP', async () => {
-    const file = '.ok/schemas/http-fieldops.schema.json';
+    const file = '.gitquire/schemas/http-fieldops.schema.json';
     writeFileSync(
       join(server.contentDir, file),
       JSON.stringify({ type: 'object', required: ['a'], properties: { a: {}, b: {} } }),
@@ -361,7 +361,7 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
   });
 
   test('parentPath addresses a nested object property over HTTP', async () => {
-    const file = '.ok/schemas/http-nested.schema.json';
+    const file = '.gitquire/schemas/http-nested.schema.json';
     const res = await postSchema({
       file,
       field: 'owner',
@@ -377,7 +377,7 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
   });
 
   test('an {items: true} parentPath segment edits an array element schema over HTTP', async () => {
-    const file = '.ok/schemas/http-items.schema.json';
+    const file = '.gitquire/schemas/http-items.schema.json';
     writeFileSync(
       join(server.contentDir, file),
       JSON.stringify({
@@ -400,17 +400,17 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
   });
 
   test('a bare field, and removeField without field, are rejected as malformed', async () => {
-    expect((await postSchema({ file: '.ok/schemas/doc.schema.json', field: 'x' })).status).toBe(
-      400,
-    );
     expect(
-      (await postSchema({ file: '.ok/schemas/doc.schema.json', removeField: true })).status,
+      (await postSchema({ file: '.gitquire/schemas/doc.schema.json', field: 'x' })).status,
+    ).toBe(400);
+    expect(
+      (await postSchema({ file: '.gitquire/schemas/doc.schema.json', removeField: true })).status,
     ).toBe(400);
   });
 
   test('mixing delete with a field edit is rejected as malformed', async () => {
     const res = await postSchema({
-      file: '.ok/schemas/doc.schema.json',
+      file: '.gitquire/schemas/doc.schema.json',
       delete: true,
       field: 'status',
       constraint: { type: 'string' },
@@ -423,7 +423,7 @@ describe('POST /api/lint/frontmatter-schema — write surface over HTTP', () => 
     const contentDir = join(projectDir, 'content');
     mkdirSync(contentDir);
     const distinctServer = await createTestServer({ contentDir, projectDir });
-    const file = '.ok/schemas/project-root.schema.json';
+    const file = '.gitquire/schemas/project-root.schema.json';
     try {
       const res = await fetch(
         `http://127.0.0.1:${distinctServer.port}/api/lint/frontmatter-schema`,
@@ -459,16 +459,16 @@ describe('GET /api/lint/frontmatter-schemas — file listing for the picker', ()
     const res = await fetch(api('/api/lint/frontmatter-schemas'));
     const body = FrontmatterSchemasListSuccessSchema.parse(await res.json());
     expect(body.schemas).toContain('shapes/thing.schema.json');
-    expect(body.schemas).toContain('.ok/schemas/doc.schema.json');
+    expect(body.schemas).toContain('.gitquire/schemas/doc.schema.json');
     rmSync(join(server.contentDir, 'shapes'), { recursive: true, force: true });
   });
 
-  test('lists the project .ok/schemas/*.json files as project-relative paths', async () => {
+  test('lists the project .gitquire/schemas/*.json files as project-relative paths', async () => {
     const res = await fetch(api('/api/lint/frontmatter-schemas'));
     expect(res.status).toBe(200);
     const body = FrontmatterSchemasListSuccessSchema.parse(await res.json());
-    expect(body.schemas).toContain('.ok/schemas/doc.schema.json');
-    expect(body.schemas).not.toContain('.ok/schemas/missing.schema.json');
+    expect(body.schemas).toContain('.gitquire/schemas/doc.schema.json');
+    expect(body.schemas).not.toContain('.gitquire/schemas/missing.schema.json');
     expect(body.truncated).toBe(false);
   });
 });

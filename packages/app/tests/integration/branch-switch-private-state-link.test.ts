@@ -43,15 +43,18 @@ describe('branch switch with a document that became a link into private state', 
       configureTestGitRepository(contentDir);
       git(contentDir, 'config user.name test');
       git(contentDir, 'config user.email test@test.local');
-      mkdirSync(join(contentDir, '.ok', 'local'), { recursive: true });
-      writeFileSync(join(contentDir, '.ok', 'local', 'secret.md'), '# Secret\n\nPRIVATE-BYTES\n');
+      mkdirSync(join(contentDir, '.gitquire', 'local'), { recursive: true });
+      writeFileSync(
+        join(contentDir, '.gitquire', 'local', 'secret.md'),
+        '# Secret\n\nPRIVATE-BYTES\n',
+      );
       writeFileSync(join(contentDir, 'leak.md'), '# Leak\n\nOn main.\n', 'utf-8');
       writeFileSync(join(contentDir, 'other.md'), '# Other\n\nOn main.\n', 'utf-8');
       git(contentDir, 'add leak.md other.md');
       git(contentDir, 'commit -m main');
       git(contentDir, 'checkout -b feature');
       git(contentDir, 'rm -q leak.md');
-      symlinkSync('.ok/local/secret.md', join(contentDir, 'leak.md'));
+      symlinkSync('.gitquire/local/secret.md', join(contentDir, 'leak.md'));
       writeFileSync(join(contentDir, 'other.md'), '# Other\n\nOn feature.\n', 'utf-8');
       git(contentDir, 'add leak.md other.md');
       git(contentDir, 'commit -m feature');

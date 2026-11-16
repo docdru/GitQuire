@@ -451,7 +451,7 @@ function hasLockFile(lockDir: string): boolean {
 }
 
 function addLockDirsForCwd(candidateDirs: Set<string>, cwd: string): void {
-  for (const lockDir of [join(cwd, '.ok', 'local'), join(cwd, '.ok')]) {
+  for (const lockDir of [join(cwd, '.gitquire', 'local'), join(cwd, '.gitquire')]) {
     if (existsSync(lockDir) && hasLockFile(lockDir)) {
       candidateDirs.add(lockDir);
     }
@@ -478,7 +478,7 @@ function addLockDirsUnderCwd(candidateDirs: Set<string>, cwd: string): void {
     for (const entry of entries) {
       if (visited >= LOCK_SCAN_MAX_ENTRIES) return;
       if (entry === 'node_modules' || entry === '.git' || entry === 'Library') continue;
-      if (entry.startsWith('.') && entry !== '.ok') continue;
+      if (entry.startsWith('.') && entry !== '.gitquire') continue;
 
       const child = join(dir, entry);
       let isDirectory = false;
@@ -592,8 +592,8 @@ export async function scanLockProcesses(
     pid: number,
     source: LockProcessScan['candidates'][number]['source'],
   ) => {
-    await add(join(project, '.ok', 'local'), pid, source);
-    await add(join(project, '.ok'), pid, source);
+    await add(join(project, '.gitquire', 'local'), pid, source);
+    await add(join(project, '.gitquire'), pid, source);
   };
   const pendingCwd: Array<{ pid: number; source: 'process-cwd' | 'listener-cwd' }> = [];
   for (const entry of entries) {

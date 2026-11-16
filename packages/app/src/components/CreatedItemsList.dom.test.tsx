@@ -54,7 +54,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
         { kind: 'folder', path: 'brain/external-sources' },
         { kind: 'folder', path: 'brain/research' },
         { kind: 'folder', path: 'brain/articles' },
-        { kind: 'file', path: 'brain/external-sources/.ok/templates/clip.md' },
+        { kind: 'file', path: 'brain/external-sources/.gitquire/templates/clip.md' },
       ],
       skipped: [],
       warnings: [],
@@ -77,7 +77,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
     const plan: OkScaffoldPlan = {
       created: [
         { kind: 'folder', path: 'notes' },
-        { kind: 'file', path: 'notes/.ok/templates/note.md' },
+        { kind: 'file', path: 'notes/.gitquire/templates/note.md' },
       ],
       skipped: [],
       warnings: [],
@@ -97,7 +97,7 @@ describe('CreatedItemsList — cards + count derivation', () => {
 
   test('template-only reinstall (no folder entry) still shows the folder card', async () => {
     const plan: OkScaffoldPlan = {
-      created: [{ kind: 'file', path: 'notes/.ok/templates/note.md' }],
+      created: [{ kind: 'file', path: 'notes/.gitquire/templates/note.md' }],
       skipped: [],
       warnings: [],
     };
@@ -107,11 +107,11 @@ describe('CreatedItemsList — cards + count derivation', () => {
     expect(folderCountText()).toBe('1 folder');
   });
 
-  test('template files under .ok/ do not render as file cards', async () => {
+  test('template files under .gitquire/ do not render as file cards', async () => {
     const plan: OkScaffoldPlan = {
       created: [
         { kind: 'folder', path: 'notes' },
-        { kind: 'file', path: 'notes/.ok/templates/note.md' },
+        { kind: 'file', path: 'notes/.gitquire/templates/note.md' },
         { kind: 'file', path: 'log.md' },
       ],
       skipped: [],

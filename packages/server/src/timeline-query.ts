@@ -675,7 +675,7 @@ export async function getFolderTimeline(
 
   const normalizedRoot = contentRoot === '.' ? '' : contentRoot.replace(/^\.\//, '');
   const base = folderRel.replace(/^\.?\/+/, '').replace(/\/+$/, '');
-  const okPath = [normalizedRoot, base, '.ok'].filter(Boolean).join('/');
+  const okPath = [normalizedRoot, base, '.gitquire'].filter(Boolean).join('/');
 
   const sg = shadowGit(shadow);
   try {
@@ -704,7 +704,7 @@ export async function getFolderTimeline(
     );
     const parsedFolderEntries = parseGitLogOutput(raw);
     const windowSaturated = parsedFolderEntries.length >= walkCap;
-    const okDocPrefix = base ? `${base}/.ok/` : '.ok/';
+    const okDocPrefix = base ? `${base}/.gitquire/` : '.gitquire/';
     const seen = new Set<string>();
     const entries: TimelineEntry[] = [];
     for (const parsed of parsedFolderEntries) {

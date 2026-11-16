@@ -18,6 +18,10 @@ import {
 } from './github-app.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient } from './github-pulls.ts';
+import {
+  describeLegacyDataFolderMigration,
+  migrateLegacyDataFolders,
+} from './legacy-data-folder.ts';
 import type { ScanFilter } from './page-scan.ts';
 import { setSessionPrincipalResolver } from './principal-directory.ts';
 import {
@@ -39,7 +43,7 @@ type Env = Readonly<Record<string, string | undefined>>;
 function agentTokensFile(env: Env, projectDir: string): string {
   const override = env.GITQUIRE_AGENT_TOKENS_FILE?.trim();
   if (override !== undefined && override !== '') return override;
-  return join(projectDir, '.ok', 'local', 'gitquire', 'agent-tokens.json');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'agent-tokens.json');
 }
 
 export function createAccessGateFromEnv(
@@ -141,7 +145,8 @@ export async function runGitQuireBootstrap(
   });
   const outcome = await bootstrapRepository(dir, config, client);
   runGitSync(['config', 'fetch.prune', 'true'], dir);
-  if (!existsSync(join(dir, '.ok'))) initProject(dir);
+  for (const line of describeLegacyDataFolderMigration(migrateLegacyDataFolders(dir))) warn(line);
+  if (!existsSync(join(dir, '.gitquire'))) initProject(dir);
   const sync = ensureAutoSyncMode(dir, syncMode);
   const repo = `${config.repo.owner}/${config.repo.name}`;
   const what =

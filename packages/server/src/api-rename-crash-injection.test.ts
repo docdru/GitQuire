@@ -57,7 +57,7 @@ function buildFileIndex(contentDir: string): ReadonlyMap<string, FileIndexEntry>
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const fullPath = resolve(dir, entry.name);
       if (entry.isDirectory()) {
-        if (entry.name === '.ok' || entry.name === '.git') continue;
+        if (entry.name === '.gitquire' || entry.name === '.git') continue;
         walk(fullPath);
         continue;
       }

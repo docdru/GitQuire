@@ -48,15 +48,15 @@ describe('ContentFilter', () => {
     '%s filtering preserves captured exclusions after a nested marker is removed',
     async (_name, create) => {
       const child = join(projectDir, 'child');
-      mkdirSync(join(child, '.ok'), { recursive: true });
-      writeFileSync(join(child, '.ok', 'config.yml'), '');
+      mkdirSync(join(child, '.gitquire'), { recursive: true });
+      writeFileSync(join(child, '.gitquire', 'config.yml'), '');
       writeFileSync(join(child, 'note.md'), '# Child\n');
       const filter = await create({
         projectDir,
         contentDir: projectDir,
         isContentScopeExcluded: (path) => path === child || path.startsWith(`${child}${sep}`),
       });
-      unlinkSync(join(child, '.ok', 'config.yml'));
+      unlinkSync(join(child, '.gitquire', 'config.yml'));
       await filter.rebuildIgnorePatterns();
       expect(filter.isExcluded('child/note.md')).toBe(true);
       expect(filter.isDirExcluded('child')).toBe(true);
@@ -76,7 +76,7 @@ describe('ContentFilter', () => {
 
       expect(openable(filter, 'opencode.json')).toBe(true);
       expect(openable(filter, '.gitignore')).toBe(true);
-      expect(openable(filter, '.ok/config.yml')).toBe(true);
+      expect(openable(filter, '.gitquire/config.yml')).toBe(true);
       expect(openable(filter, '.claude/skills/reviewer/SKILL.md')).toBe(false);
       expect(openable(filter, 'ignored-note.md')).toBe(true);
     });
@@ -89,7 +89,7 @@ describe('ContentFilter', () => {
       expect(openable(filter, 'deploy/prod.pem')).toBe(false);
       expect(openable(filter, '.ssh/id_rsa')).toBe(false);
       expect(openable(filter, '.aws/credentials')).toBe(false);
-      expect(openable(filter, '.ok/local/server.lock')).toBe(false);
+      expect(openable(filter, '.gitquire/local/server.lock')).toBe(false);
       expect(openable(filter, '.git/config')).toBe(false);
       expect(openable(filter, 'node_modules/pkg/index.js')).toBe(false);
     });
@@ -402,45 +402,48 @@ describe('ContentFilter', () => {
         '**/.git/**',
         'node_modules',
         '**/node_modules/**',
-        '.ok/local',
-        '**/.ok/local/**',
-        '.ok/worktrees',
-        '**/.ok/worktrees/**',
+        '.gitquire/local',
+        '**/.gitquire/local/**',
+        '.gitquire/worktrees',
+        '**/.gitquire/worktrees/**',
       ]) {
         expect(globs).toContain(structural);
       }
-      expect(globs.some((glob) => glob === '.ok' || glob === '.ok/**')).toBe(false);
+      expect(globs.some((glob) => glob === '.gitquire' || glob === '.gitquire/**')).toBe(false);
       expect(globs.some((glob) => glob.startsWith('.claude'))).toBe(false);
     });
 
-    test('drops blanket .ok globs so the OS watcher can reach .ok/skills (skills-as-content)', () => {
+    test('drops blanket .gitquire globs so the OS watcher can reach .gitquire/skills (skills-as-content)', () => {
       execFileSync('git', ['init', '-q'], { cwd: projectDir });
       configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
-      writeFileSync(join(projectDir, '.gitignore'), 'dist/\n.ok\nnode_modules/\n');
+      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
+      writeFileSync(join(projectDir, '.gitignore'), 'dist/\n.gitquire\nnode_modules/\n');
 
       const globs = createContentFilter({
         projectDir,
         contentDir: projectDir,
       }).getWatcherIgnoreGlobs();
 
-      expect(globs).not.toContain('.ok');
-      expect(globs).not.toContain('.ok/');
+      expect(globs).not.toContain('.gitquire');
+      expect(globs).not.toContain('.gitquire/');
       expect(globs).toContain('dist/');
       expect(globs).toContain('node_modules/');
     });
 
     function assertCarveChildrenExcludeStripped(filter: ContentFilter) {
       const globs = filter.getWatcherIgnoreGlobs();
-      expect(globs).not.toContain('**/.ok/*');
-      expect(globs).not.toContain('!**/.ok/skills/');
+      expect(globs).not.toContain('**/.gitquire/*');
+      expect(globs).not.toContain('!**/.gitquire/skills/');
       expect(globs).toContain('dist/');
     }
 
     test('drops the children-exclude the skills-sharing carve writes (sync)', () => {
       execFileSync('git', ['init', '-q'], { cwd: projectDir });
       configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '**/.ok/*\n!**/.ok/skills/\n');
+      writeFileSync(
+        join(projectDir, '.git', 'info', 'exclude'),
+        '**/.gitquire/*\n!**/.gitquire/skills/\n',
+      );
       writeFileSync(join(projectDir, '.gitignore'), 'dist/\n');
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       assertCarveChildrenExcludeStripped(filter);
@@ -448,7 +451,10 @@ describe('ContentFilter', () => {
     test('drops the children-exclude the skills-sharing carve writes (async)', async () => {
       execFileSync('git', ['init', '-q'], { cwd: projectDir });
       configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '**/.ok/*\n!**/.ok/skills/\n');
+      writeFileSync(
+        join(projectDir, '.git', 'info', 'exclude'),
+        '**/.gitquire/*\n!**/.gitquire/skills/\n',
+      );
       writeFileSync(join(projectDir, '.gitignore'), 'dist/\n');
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
       assertCarveChildrenExcludeStripped(filter);
@@ -492,45 +498,45 @@ describe('ContentFilter', () => {
     function assertShareableOkLeavesUnblocked(filter: ContentFilter) {
       const globs = filter.getWatcherIgnoreGlobs();
       for (const blocker of [
-        'docs/.ok/templates/',
-        'packages/app/.ok/templates/',
+        'docs/.gitquire/templates/',
+        'packages/app/.gitquire/templates/',
         '.*',
-        '.ok/**/*',
-        '**/.ok/**/*',
-        '.ok/templates/',
-        '.ok/local/../templates',
+        '.gitquire/**/*',
+        '**/.gitquire/**/*',
+        '.gitquire/templates/',
+        '.gitquire/local/../templates',
         'node_modules/../docs',
       ]) {
         expect(globs, blocker).not.toContain(blocker);
       }
-      expect(globs.filter((glob) => glob === '.ok/local')).toHaveLength(1);
-      expect(globs.filter((glob) => glob === '.ok/local/**')).toHaveLength(1);
-      expect(globs).toContain('**/.ok/local/**');
-      expect(globs).toContain('.ok/worktrees/**');
-      expect(globs).toContain('**/.ok/worktrees/**');
+      expect(globs.filter((glob) => glob === '.gitquire/local')).toHaveLength(1);
+      expect(globs.filter((glob) => glob === '.gitquire/local/**')).toHaveLength(1);
+      expect(globs).toContain('**/.gitquire/local/**');
+      expect(globs).toContain('.gitquire/worktrees/**');
+      expect(globs).toContain('**/.gitquire/worktrees/**');
       expect(globs).toContain('dist/');
       expect(globs).toContain('node_modules/**');
     }
 
-    test('watcher globs never block the shareable .ok leaves; .ok/local stays pruned (sync)', () => {
+    test('watcher globs never block the shareable .gitquire leaves; .gitquire/local stays pruned (sync)', () => {
       writeFileSync(
         join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/**\ndocs/.ok/templates/\npackages/app/.ok/templates/\n.*\n.ok\n.ok/**\n.ok/**/*\n**/.ok\n**/.ok/**\n**/.ok/**/*\n.ok/*\n**/.ok/*\n.ok/templates/\n.ok/local\n.ok/local/**\n.ok/local/../templates\nnode_modules/../docs\n',
+        'dist/\nnode_modules/**\ndocs/.gitquire/templates/\npackages/app/.gitquire/templates/\n.*\n.gitquire\n.gitquire/**\n.gitquire/**/*\n**/.gitquire\n**/.gitquire/**\n**/.gitquire/**/*\n.gitquire/*\n**/.gitquire/*\n.gitquire/templates/\n.gitquire/local\n.gitquire/local/**\n.gitquire/local/../templates\nnode_modules/../docs\n',
       );
       execFileSync('git', ['init', '-q'], { cwd: projectDir });
       configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
+      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       assertShareableOkLeavesUnblocked(filter);
     });
-    test('watcher globs never block the shareable .ok leaves; .ok/local stays pruned (async)', async () => {
+    test('watcher globs never block the shareable .gitquire leaves; .gitquire/local stays pruned (async)', async () => {
       writeFileSync(
         join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/**\ndocs/.ok/templates/\npackages/app/.ok/templates/\n.*\n.ok\n.ok/**\n.ok/**/*\n**/.ok\n**/.ok/**\n**/.ok/**/*\n.ok/*\n**/.ok/*\n.ok/templates/\n.ok/local\n.ok/local/**\n.ok/local/../templates\nnode_modules/../docs\n',
+        'dist/\nnode_modules/**\ndocs/.gitquire/templates/\npackages/app/.gitquire/templates/\n.*\n.gitquire\n.gitquire/**\n.gitquire/**/*\n**/.gitquire\n**/.gitquire/**\n**/.gitquire/**/*\n.gitquire/*\n**/.gitquire/*\n.gitquire/templates/\n.gitquire/local\n.gitquire/local/**\n.gitquire/local/../templates\nnode_modules/../docs\n',
       );
       execFileSync('git', ['init', '-q'], { cwd: projectDir });
       configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.ok/\n');
+      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
       assertShareableOkLeavesUnblocked(filter);
     });
@@ -571,7 +577,7 @@ describe('ContentFilter', () => {
       expect(filter.isExcluded('.vscode/notes.md')).toBe(false);
 
       expect(filter.isExcluded('.git/config')).toBe(true);
-      expect(filter.isExcluded('.ok/config.yml')).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml')).toBe(true);
       expect(filter.isExcluded('node_modules/foo/README.md')).toBe(true);
       expect(filter.isExcluded('.next/build.md')).toBe(true);
       expect(filter.isExcluded('apps/web/.next/foo.md')).toBe(true);
@@ -583,8 +589,8 @@ describe('ContentFilter', () => {
 
       expect(filter.isDirExcluded('.cursor')).toBe(true);
       expect(filter.isDirExcluded('.git')).toBe(true);
-      expect(filter.isDirExcluded('.ok')).toBe(false);
-      expect(filter.isDirExcluded('.ok/local')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/local')).toBe(true);
     });
   });
 
@@ -673,9 +679,9 @@ describe('ContentFilter', () => {
       expect(filter.isDirExcluded('.turbo')).toBe(true);
       expect(filter.isDirExcluded('coverage')).toBe(true);
       expect(filter.isDirExcluded('.git')).toBe(true);
-      expect(filter.isDirExcluded('.ok')).toBe(false);
-      expect(filter.isDirExcluded('.ok/local')).toBe(true);
-      expect(filter.isDirExcluded('.ok/local/cache')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/local')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/local/cache')).toBe(true);
       expect(filter.isDirExcluded('docs')).toBe(false);
       expect(filter.isDirExcluded('src')).toBe(false);
     });
@@ -683,10 +689,10 @@ describe('ContentFilter', () => {
     test('excludes BUILTIN_SKIP_DIRS at any path depth, not just top segment (FR-CF1)', () => {
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
 
-      expect(filter.isDirExcluded('meetings/.ok')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok/templates')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok/local')).toBe(true);
-      expect(filter.isDirExcluded('a/b/c/.ok/d')).toBe(true);
+      expect(filter.isDirExcluded('meetings/.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire/local')).toBe(true);
+      expect(filter.isDirExcluded('a/b/c/.gitquire/d')).toBe(true);
 
       expect(filter.isDirExcluded('packages/foo/node_modules')).toBe(true);
       expect(filter.isDirExcluded('packages/foo/node_modules/bar')).toBe(true);
@@ -710,25 +716,25 @@ describe('ContentFilter', () => {
       expect(filter.isExcluded('node_modules/logo.png')).toBe(true);
     });
 
-    test('admits .ok only down the skills path; non-skill .ok files stay excluded', () => {
-      mkdirSync(join(projectDir, '.ok'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'AGENTS.md'), '# Agents\n');
+    test('admits .gitquire only down the skills path; non-skill .gitquire files stay excluded', () => {
+      mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'AGENTS.md'), '# Agents\n');
       writeFileSync(join(projectDir, 'docs.md'), '# Docs\n');
 
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
 
-      expect(filter.isDirExcluded('.ok')).toBe(false);
-      expect(filter.isDirExcluded('.ok/local')).toBe(true);
-      expect(filter.isExcluded('.ok/logo.png')).toBe(true);
-      expect(filter.isExcluded('.ok/AGENTS.md')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/local')).toBe(true);
+      expect(filter.isExcluded('.gitquire/logo.png')).toBe(true);
+      expect(filter.isExcluded('.gitquire/AGENTS.md')).toBe(true);
     });
 
     test('isExcluded rejects supported docs born inside BUILTIN_SKIP_DIRS except the templates carve-out', () => {
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
 
-      expect(filter.isExcluded('.ok/templates/daily.md')).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/templates/standup.md')).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/frontmatter.yml.md')).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/daily.md')).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/templates/standup.md')).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/frontmatter.yml.md')).toBe(true);
       expect(filter.isExcluded('node_modules/some-pkg/README.md')).toBe(true);
       expect(filter.isExcluded('apps/web/dist/index.md')).toBe(true);
 
@@ -739,15 +745,15 @@ describe('ContentFilter', () => {
 
   describe('templates-as-content admission', () => {
     function assertTemplateAdmission(filter: ContentFilter) {
-      expect(filter.isExcluded('.ok/templates/daily.md')).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/templates/standup.md')).toBe(false);
-      expect(filter.isExcluded('a/b/.ok/templates/note.md')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok/templates')).toBe(false);
-      expect(filter.isExcluded('.ok/templates/daily.mdx')).toBe(true);
-      expect(filter.isDirExcluded('.ok/templates/sub')).toBe(true);
-      expect(filter.isExcluded('.ok/templates/sub/x.md')).toBe(true);
-      expect(filter.isPathIgnored('.ok/templates/daily.md')).toBe(false);
+      expect(filter.isExcluded('.gitquire/templates/daily.md')).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/templates/standup.md')).toBe(false);
+      expect(filter.isExcluded('a/b/.gitquire/templates/note.md')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates')).toBe(false);
+      expect(filter.isExcluded('.gitquire/templates/daily.mdx')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/templates/sub')).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/sub/x.md')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/templates/daily.md')).toBe(false);
     }
 
     test('sync factory (createContentFilter)', () => {
@@ -764,15 +770,15 @@ describe('ContentFilter', () => {
   describe('templates-as-content carve-out matrix (FR1)', () => {
     function assertSecretFloorWins(filter: ContentFilter) {
       for (const secret of [
-        '.ok/templates/server.key',
-        '.ok/templates/server.pem',
-        'meetings/.ok/templates/id_rsa',
+        '.gitquire/templates/server.key',
+        '.gitquire/templates/server.pem',
+        'meetings/.gitquire/templates/id_rsa',
       ]) {
         expect(filter.isExcluded(secret), secret).toBe(true);
         expect(filter.isPathIgnored(secret), secret).toBe(true);
       }
-      expect(filter.isDirExcluded('.ok/templates/.ssh')).toBe(true);
-      expect(filter.isExcluded('.ok/templates/daily.md')).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/templates/.ssh')).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/daily.md')).toBe(false);
     }
 
     test('secret floor wins over the carve-out (sync)', () => {
@@ -785,54 +791,57 @@ describe('ContentFilter', () => {
     });
 
     function assertCarveOutIsNarrow(filter: ContentFilter) {
-      expect(filter.isExcluded('.ok/templates/daily.md')).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/templates/standup.md')).toBe(false);
-      expect(filter.isExcluded('.ok/config.yml')).toBe(true);
-      expect(filter.isExcluded('.ok/AGENTS.md')).toBe(true);
-      expect(filter.isExcluded('meetings/.ok/frontmatter.yml.md')).toBe(true);
-      expect(filter.isExcluded('.ok/local/cache/notes.md')).toBe(true);
-      expect(filter.isDirExcluded('.ok/local')).toBe(true);
-      expect(filter.isDirExcluded('.ok/worktrees')).toBe(true);
-      expect(filter.isDirExcluded('meetings/.ok/local')).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/daily.md')).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/templates/standup.md')).toBe(false);
+      expect(filter.isExcluded('.gitquire/config.yml')).toBe(true);
+      expect(filter.isExcluded('.gitquire/AGENTS.md')).toBe(true);
+      expect(filter.isExcluded('meetings/.gitquire/frontmatter.yml.md')).toBe(true);
+      expect(filter.isExcluded('.gitquire/local/cache/notes.md')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/local')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/worktrees')).toBe(true);
+      expect(filter.isDirExcluded('meetings/.gitquire/local')).toBe(true);
     }
 
-    test('carve-out does not over-admit other .ok children (sync)', () => {
+    test('carve-out does not over-admit other .gitquire children (sync)', () => {
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       assertCarveOutIsNarrow(filter);
     });
-    test('carve-out does not over-admit other .ok children (async)', async () => {
+    test('carve-out does not over-admit other .gitquire children (async)', async () => {
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
       assertCarveOutIsNarrow(filter);
     });
 
     function assertFolderIndexDescendable(filter: ContentFilter) {
-      expect(filter.isDirExcluded('.ok')).toBe(false);
-      expect(filter.isDirExcluded('.ok/templates')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok/templates')).toBe(false);
-      expect(filter.isDirExcluded('a/b/.ok')).toBe(false);
-      expect(filter.isDirExcluded('a/b/.ok/templates')).toBe(false);
-      expect(filter.isDirExcluded('.ok/templates/sub')).toBe(true);
-      expect(filter.isDirExcluded('meetings/.ok/templates/sub')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/templates')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates')).toBe(false);
+      expect(filter.isDirExcluded('a/b/.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('a/b/.gitquire/templates')).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/templates/sub')).toBe(true);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates/sub')).toBe(true);
     }
 
-    test('folder-index keeps nested .ok/templates descendable (sync)', () => {
+    test('folder-index keeps nested .gitquire/templates descendable (sync)', () => {
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       assertFolderIndexDescendable(filter);
     });
-    test('folder-index keeps nested .ok/templates descendable (async)', async () => {
+    test('folder-index keeps nested .gitquire/templates descendable (async)', async () => {
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
       assertFolderIndexDescendable(filter);
     });
 
     async function assertBootWalkAdmits(makeFilter: () => ContentFilter | Promise<ContentFilter>) {
-      mkdirSync(join(projectDir, 'meetings', '.ok', 'templates'), { recursive: true });
-      writeFileSync(join(projectDir, 'meetings', '.ok', 'templates', 'standup.md'), '# Standup\n');
+      mkdirSync(join(projectDir, 'meetings', '.gitquire', 'templates'), { recursive: true });
+      writeFileSync(
+        join(projectDir, 'meetings', '.gitquire', 'templates', 'standup.md'),
+        '# Standup\n',
+      );
       const filter = await makeFilter();
       expect(filter.isDirExcluded('meetings')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok')).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok/templates')).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/templates/standup.md')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire')).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates')).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/templates/standup.md')).toBe(false);
     }
 
     test('pre-existing template on disk is admitted by the walk (sync)', async () => {
@@ -846,9 +855,9 @@ describe('ContentFilter', () => {
 
     function assertSingleFileScope(filter: ContentFilter) {
       expect(filter.isExcluded('notes.md')).toBe(false);
-      expect(filter.isExcluded('.ok/templates/daily.md')).toBe(true);
-      expect(filter.isExcluded('meetings/.ok/templates/standup.md')).toBe(true);
-      expect(filter.isPathIgnored('.ok/templates/daily.md')).toBe(false);
+      expect(filter.isExcluded('.gitquire/templates/daily.md')).toBe(true);
+      expect(filter.isExcluded('meetings/.gitquire/templates/standup.md')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/templates/daily.md')).toBe(false);
     }
 
     test('single-file scope excludes templates (sync)', () => {
@@ -870,26 +879,26 @@ describe('ContentFilter', () => {
 
     function assertGlobStripSet(filter: ContentFilter) {
       const globs = filter.getWatcherIgnoreGlobs();
-      for (const blanket of ['.ok', '.ok/**', '**/.ok', '**/.ok/**']) {
+      for (const blanket of ['.gitquire', '.gitquire/**', '**/.gitquire', '**/.gitquire/**']) {
         expect(globs, blanket).not.toContain(blanket);
       }
-      expect(globs).toContain('.ok/local');
+      expect(globs).toContain('.gitquire/local');
       expect(globs).toContain('dist/');
       expect(globs).toContain('node_modules/');
     }
 
-    test('watcher glob strip drops blanket .ok, keeps the rest (sync)', () => {
+    test('watcher glob strip drops blanket .gitquire, keeps the rest (sync)', () => {
       writeFileSync(
         join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/\n.ok\n.ok/**\n**/.ok\n**/.ok/**\n.ok/local\n',
+        'dist/\nnode_modules/\n.gitquire\n.gitquire/**\n**/.gitquire\n**/.gitquire/**\n.gitquire/local\n',
       );
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       assertGlobStripSet(filter);
     });
-    test('watcher glob strip drops blanket .ok, keeps the rest (async)', async () => {
+    test('watcher glob strip drops blanket .gitquire, keeps the rest (async)', async () => {
       writeFileSync(
         join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/\n.ok\n.ok/**\n**/.ok\n**/.ok/**\n.ok/local\n',
+        'dist/\nnode_modules/\n.gitquire\n.gitquire/**\n**/.gitquire\n**/.gitquire/**\n.gitquire/local\n',
       );
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
       assertGlobStripSet(filter);
@@ -899,18 +908,18 @@ describe('ContentFilter', () => {
   describe('templates-as-content carve-out stays below the skip-dir floor', () => {
     function assertSkipDirAncestorExcluded(filter: ContentFilter) {
       for (const vendored of [
-        'node_modules/pkg/.ok/templates/x.md',
-        'dist/.ok/templates/x.md',
-        'vendor/lib/.ok/templates/note.md',
+        'node_modules/pkg/.gitquire/templates/x.md',
+        'dist/.gitquire/templates/x.md',
+        'vendor/lib/.gitquire/templates/note.md',
       ]) {
         expect(filter.isExcluded(vendored), vendored).toBe(true);
         expect(filter.isPathIgnored(vendored), vendored).toBe(true);
       }
-      expect(filter.isExcluded('docs/.ok/templates/x.md')).toBe(false);
-      expect(filter.isExcluded('a/b/c/.ok/templates/x.md')).toBe(false);
-      expect(filter.isPathIgnored('docs/.ok/templates/x.md')).toBe(false);
-      expect(filter.isDirExcluded('node_modules/pkg/.ok')).toBe(true);
-      expect(filter.isDirExcluded('dist/.ok/templates')).toBe(true);
+      expect(filter.isExcluded('docs/.gitquire/templates/x.md')).toBe(false);
+      expect(filter.isExcluded('a/b/c/.gitquire/templates/x.md')).toBe(false);
+      expect(filter.isPathIgnored('docs/.gitquire/templates/x.md')).toBe(false);
+      expect(filter.isDirExcluded('node_modules/pkg/.gitquire')).toBe(true);
+      expect(filter.isDirExcluded('dist/.gitquire/templates')).toBe(true);
     }
 
     test('skip-dir ancestor excluded from admission and serve path (sync)', () => {
@@ -923,19 +932,19 @@ describe('ContentFilter', () => {
     });
   });
 
-  describe('shareable .ok artifact sync scope (allow-list)', () => {
+  describe('shareable .gitquire artifact sync scope (allow-list)', () => {
     const SYNC = { syncScope: { pathBase: 'project' } } as const;
 
     function assertSyncScopeAdmission(filter: ContentFilter) {
-      expect(filter.isExcluded('.ok/config.yml', SYNC)).toBe(false);
-      expect(filter.isExcluded('.ok/.gitignore', SYNC)).toBe(false);
-      expect(filter.isExcluded('.ok/schemas/lint.json', SYNC)).toBe(false);
-      expect(filter.isExcluded('.ok/schemas/LINT.JSON', SYNC)).toBe(false);
-      expect(filter.isExcluded('.ok/templates/daily.md', SYNC)).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/templates/standup.md', SYNC)).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/frontmatter.yml', SYNC)).toBe(false);
-      expect(filter.isExcluded('a/b/c/.ok/frontmatter.yml', SYNC)).toBe(false);
-      expect(filter.isExcluded('.ok/frontmatter.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/config.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/.gitignore', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/schemas/LINT.JSON', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/templates/daily.md', SYNC)).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/templates/standup.md', SYNC)).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/frontmatter.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('a/b/c/.gitquire/frontmatter.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/frontmatter.yml', SYNC)).toBe(false);
     }
 
     test('sync scope admits exactly the shareable artifact shapes (sync)', () => {
@@ -951,18 +960,18 @@ describe('ContentFilter', () => {
       const contentScope = { syncScope: { pathBase: 'content' } } as const;
       const projectScope = { syncScope: { pathBase: 'project' } } as const;
 
-      expect(filter.isExcluded('.ok/config.yml', contentScope)).toBe(true);
-      expect(filter.isExcluded('.ok/.gitignore', contentScope)).toBe(true);
-      expect(filter.isExcluded('.ok/schemas/lint.json', contentScope)).toBe(true);
-      expect(filter.isDirExcluded('.ok/schemas', contentScope)).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', contentScope)).toBe(true);
+      expect(filter.isExcluded('.gitquire/.gitignore', contentScope)).toBe(true);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json', contentScope)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/schemas', contentScope)).toBe(true);
 
-      expect(filter.isExcluded('.ok/config.yml', projectScope)).toBe(false);
-      expect(filter.isExcluded('.ok/.gitignore', projectScope)).toBe(false);
-      expect(filter.isExcluded('.ok/schemas/lint.json', projectScope)).toBe(false);
-      expect(filter.isDirExcluded('.ok/schemas', projectScope)).toBe(false);
+      expect(filter.isExcluded('.gitquire/config.yml', projectScope)).toBe(false);
+      expect(filter.isExcluded('.gitquire/.gitignore', projectScope)).toBe(false);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json', projectScope)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/schemas', projectScope)).toBe(false);
 
-      expect(filter.isExcluded('.ok/templates/daily.md', contentScope)).toBe(false);
-      expect(filter.isExcluded('.ok/frontmatter.yml', contentScope)).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/daily.md', contentScope)).toBe(false);
+      expect(filter.isExcluded('.gitquire/frontmatter.yml', contentScope)).toBe(true);
       expect(filter.isExcluded('note.md', contentScope)).toBe(true);
     }
 
@@ -971,7 +980,7 @@ describe('ContentFilter', () => {
       mkdirSync(contentDir);
       writeFileSync(
         join(projectDir, '.gitignore'),
-        '/content/note.md\n/content/.ok/frontmatter.yml\n',
+        '/content/note.md\n/content/.gitquire/frontmatter.yml\n',
       );
       const filter = createContentFilter({ projectDir, contentDir });
       assertSubfolderPathCoordinates(filter);
@@ -982,7 +991,7 @@ describe('ContentFilter', () => {
       mkdirSync(contentDir);
       writeFileSync(
         join(projectDir, '.gitignore'),
-        '/content/note.md\n/content/.ok/frontmatter.yml\n',
+        '/content/note.md\n/content/.gitquire/frontmatter.yml\n',
       );
       const filter = await createContentFilterAsync({ projectDir, contentDir });
       assertSubfolderPathCoordinates(filter);
@@ -990,41 +999,45 @@ describe('ContentFilter', () => {
 
     function assertSyncScopeIsNarrow(filter: ContentFilter) {
       for (const path of [
-        '.ok/local/server.lock',
-        '.ok/local/cache/embeddings.json',
-        '.ok/worktrees/wt1/notes.md',
-        '.ok/principal.json',
-        '.ok/state.json',
-        '.ok/server.lock',
-        '.ok/ui.lock',
-        '.ok/sync-state.json',
-        '.ok/last-spawn-error.log',
-        '.ok/AGENTS.md',
-        '.ok/schemas/nested/deep.json',
-        '.ok/schemas/readme.md',
-        'docs/.ok/config.yml',
-        'docs/.ok/.gitignore',
-        'docs/.ok/schemas/lint.json',
+        '.gitquire/local/server.lock',
+        '.gitquire/local/cache/embeddings.json',
+        '.gitquire/worktrees/wt1/notes.md',
+        '.gitquire/principal.json',
+        '.gitquire/state.json',
+        '.gitquire/server.lock',
+        '.gitquire/ui.lock',
+        '.gitquire/sync-state.json',
+        '.gitquire/last-spawn-error.log',
+        '.gitquire/AGENTS.md',
+        '.gitquire/schemas/nested/deep.json',
+        '.gitquire/schemas/readme.md',
+        'docs/.gitquire/config.yml',
+        'docs/.gitquire/.gitignore',
+        'docs/.gitquire/schemas/lint.json',
       ]) {
         expect(filter.isExcluded(path, SYNC), path).toBe(true);
       }
     }
 
-    test('sync scope never becomes a blanket .ok admission (sync)', () => {
+    test('sync scope never becomes a blanket .gitquire admission (sync)', () => {
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       assertSyncScopeIsNarrow(filter);
     });
-    test('sync scope never becomes a blanket .ok admission (async)', async () => {
+    test('sync scope never becomes a blanket .gitquire admission (async)', async () => {
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
       assertSyncScopeIsNarrow(filter);
     });
 
     function assertSecretFloorPrecedesSyncScope(filter: ContentFilter) {
-      for (const secret of ['.ok/schemas/foo.key', '.ok/schemas/service.pem', '.ok/schemas/.env']) {
+      for (const secret of [
+        '.gitquire/schemas/foo.key',
+        '.gitquire/schemas/service.pem',
+        '.gitquire/schemas/.env',
+      ]) {
         expect(filter.isExcluded(secret, SYNC), secret).toBe(true);
       }
-      expect(filter.isDirExcluded('.ok/.ssh', SYNC)).toBe(true);
-      expect(filter.isExcluded('.ok/schemas/foo.json', SYNC)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/.ssh', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/schemas/foo.json', SYNC)).toBe(false);
     }
 
     test('secret floor wins over the sync scope (sync)', () => {
@@ -1037,16 +1050,16 @@ describe('ContentFilter', () => {
     });
 
     function assertSyncScopeDirAncestors(filter: ContentFilter) {
-      expect(filter.isDirExcluded('.ok', SYNC)).toBe(false);
-      expect(filter.isDirExcluded('.ok/schemas', SYNC)).toBe(false);
-      expect(filter.isDirExcluded('.ok/templates', SYNC)).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok', SYNC)).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok/templates', SYNC)).toBe(false);
-      expect(filter.isDirExcluded('.ok/schemas/sub', SYNC)).toBe(true);
-      expect(filter.isDirExcluded('.ok/local', SYNC)).toBe(true);
-      expect(filter.isDirExcluded('.ok/worktrees', SYNC)).toBe(true);
-      expect(filter.isDirExcluded('node_modules/pkg/.ok', SYNC)).toBe(true);
-      expect(filter.isDirExcluded('docs/.ok/schemas', SYNC)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire', SYNC)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/schemas', SYNC)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/templates', SYNC)).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire', SYNC)).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates', SYNC)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/schemas/sub', SYNC)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/local', SYNC)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/worktrees', SYNC)).toBe(true);
+      expect(filter.isDirExcluded('node_modules/pkg/.gitquire', SYNC)).toBe(true);
+      expect(filter.isDirExcluded('docs/.gitquire/schemas', SYNC)).toBe(true);
     }
 
     test('sync scope keeps the schemas dir descendable, bounded (sync)', () => {
@@ -1060,17 +1073,17 @@ describe('ContentFilter', () => {
 
     function assertSyncScopeSkipDirBound(filter: ContentFilter) {
       for (const vendored of [
-        'node_modules/pkg/.ok/frontmatter.yml',
-        'dist/.ok/frontmatter.yml',
-        '.ok/worktrees/wt1/docs/.ok/frontmatter.yml',
-        '.ok/worktrees/wt1/.ok/config.yml',
-        '.OK/local/cache/.ok/frontmatter.yml',
-        '.OK/worktrees/wt1/docs/.ok/frontmatter.yml',
-        'node_modules/pkg/.ok/templates/x.md',
+        'node_modules/pkg/.gitquire/frontmatter.yml',
+        'dist/.gitquire/frontmatter.yml',
+        '.gitquire/worktrees/wt1/docs/.gitquire/frontmatter.yml',
+        '.gitquire/worktrees/wt1/.gitquire/config.yml',
+        '.GITQUIRE/local/cache/.gitquire/frontmatter.yml',
+        '.GITQUIRE/worktrees/wt1/docs/.gitquire/frontmatter.yml',
+        'node_modules/pkg/.gitquire/templates/x.md',
       ]) {
         expect(filter.isExcluded(vendored, SYNC), vendored).toBe(true);
       }
-      expect(filter.isExcluded('a/b/c/.ok/frontmatter.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('a/b/c/.gitquire/frontmatter.yml', SYNC)).toBe(false);
     }
 
     test('skip-dir ancestors stay excluded from sync scope (sync)', () => {
@@ -1083,45 +1096,45 @@ describe('ContentFilter', () => {
     });
 
     function assertGitignoredArtifactsRefused(filter: ContentFilter) {
-      expect(filter.isExcluded('.ok/config.yml', SYNC)).toBe(true);
-      expect(filter.isExcluded('.ok/.gitignore', SYNC)).toBe(true);
-      expect(filter.isExcluded('.ok/schemas/lint.json', SYNC)).toBe(true);
-      expect(filter.isExcluded('.ok/frontmatter.yml', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/.gitignore', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/frontmatter.yml', SYNC)).toBe(true);
     }
 
     test('gitignored artifacts are NOT admitted, even with the scope (sync)', () => {
-      writeFileSync(join(projectDir, '.gitignore'), '.ok/\n');
+      writeFileSync(join(projectDir, '.gitignore'), '.gitquire/\n');
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       assertGitignoredArtifactsRefused(filter);
     });
     test('gitignored artifacts are NOT admitted, even with the scope (async)', async () => {
-      writeFileSync(join(projectDir, '.gitignore'), '.ok/\n');
+      writeFileSync(join(projectDir, '.gitignore'), '.gitquire/\n');
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
       assertGitignoredArtifactsRefused(filter);
     });
 
     test('a narrower gitignore refuses only its own subtree (sync)', () => {
-      writeFileSync(join(projectDir, '.gitignore'), '.ok/schemas/\n');
+      writeFileSync(join(projectDir, '.gitignore'), '.gitquire/schemas/\n');
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
-      expect(filter.isExcluded('.ok/schemas/lint.json', SYNC)).toBe(true);
-      expect(filter.isExcluded('.ok/config.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', SYNC)).toBe(false);
     });
     test('a narrower gitignore refuses only its own subtree (async)', async () => {
-      writeFileSync(join(projectDir, '.gitignore'), '.ok/schemas/\n');
+      writeFileSync(join(projectDir, '.gitignore'), '.gitquire/schemas/\n');
       const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
-      expect(filter.isExcluded('.ok/schemas/lint.json', SYNC)).toBe(true);
-      expect(filter.isExcluded('.ok/config.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', SYNC)).toBe(false);
     });
 
     function assertNoScopeBehaviorUnchanged(filter: ContentFilter) {
-      expect(filter.isExcluded('.ok/config.yml')).toBe(true);
-      expect(filter.isExcluded('.ok/.gitignore')).toBe(true);
-      expect(filter.isExcluded('.ok/schemas/lint.json')).toBe(true);
-      expect(filter.isExcluded('meetings/.ok/frontmatter.yml')).toBe(true);
-      expect(filter.isExcluded('.ok/frontmatter.yml')).toBe(true);
-      expect(filter.isDirExcluded('.ok/schemas')).toBe(true);
-      expect(filter.isExcluded('.ok/templates/daily.md')).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/templates/standup.md')).toBe(false);
+      expect(filter.isExcluded('.gitquire/config.yml')).toBe(true);
+      expect(filter.isExcluded('.gitquire/.gitignore')).toBe(true);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json')).toBe(true);
+      expect(filter.isExcluded('meetings/.gitquire/frontmatter.yml')).toBe(true);
+      expect(filter.isExcluded('.gitquire/frontmatter.yml')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/schemas')).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/daily.md')).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/templates/standup.md')).toBe(false);
     }
 
     test('without the scope the index/sidebar view is unchanged (sync)', () => {
@@ -1134,10 +1147,10 @@ describe('ContentFilter', () => {
     });
 
     function assertServeFloorHolds(filter: ContentFilter) {
-      expect(filter.isPathIgnored('.ok/config.yml')).toBe(true);
-      expect(filter.isPathIgnored('.ok/.gitignore')).toBe(true);
-      expect(filter.isPathIgnored('.ok/schemas/lint.json')).toBe(true);
-      expect(filter.isPathIgnored('meetings/.ok/frontmatter.yml')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/config.yml')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/.gitignore')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/schemas/lint.json')).toBe(true);
+      expect(filter.isPathIgnored('meetings/.gitquire/frontmatter.yml')).toBe(true);
     }
 
     test('the asset-serve gate ignores the scope (sync)', () => {
@@ -1151,8 +1164,8 @@ describe('ContentFilter', () => {
 
     function assertSingleFileScopeHolds(filter: ContentFilter) {
       expect(filter.isExcluded('notes.md', SYNC)).toBe(false);
-      expect(filter.isExcluded('.ok/config.yml', SYNC)).toBe(true);
-      expect(filter.isExcluded('.ok/schemas/lint.json', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', SYNC)).toBe(true);
+      expect(filter.isExcluded('.gitquire/schemas/lint.json', SYNC)).toBe(true);
     }
 
     test('single-file scope excludes shareable artifacts (sync)', () => {
@@ -1174,9 +1187,9 @@ describe('ContentFilter', () => {
 
     test('sync scope and bypass remain separate runtime modes', () => {
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
-      expect(filter.isExcluded('.ok/config.yml', SYNC)).toBe(false);
-      expect(filter.isExcluded('.ok/config.yml', { bypassFilters: true })).toBe(true);
-      expect(filter.isPathIgnored('.ok/config.yml', { bypassFilters: true })).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', SYNC)).toBe(false);
+      expect(filter.isExcluded('.gitquire/config.yml', { bypassFilters: true })).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/config.yml', { bypassFilters: true })).toBe(true);
     });
   });
 
@@ -1187,19 +1200,19 @@ describe('ContentFilter', () => {
       expect(filter.isDirExcluded('.git', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('node_modules', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('node_modules/some-pkg', BYPASS)).toBe(true);
-      expect(filter.isDirExcluded('.ok', BYPASS)).toBe(true);
-      expect(filter.isDirExcluded('.ok/local', BYPASS)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire', BYPASS)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/local', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('.open-knowledge', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('.openknowledge', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('packages/foo/node_modules', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('a/b/.git/c', BYPASS)).toBe(true);
-      expect(filter.isDirExcluded('meetings/.ok/templates', BYPASS)).toBe(true);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('a/b/.open-knowledge/c', BYPASS)).toBe(true);
       expect(filter.isDirExcluded('a/b/.openknowledge', BYPASS)).toBe(true);
 
       expect(filter.isExcluded('.git/objects/x.md', BYPASS)).toBe(true);
       expect(filter.isExcluded('node_modules/pkg/README.md', BYPASS)).toBe(true);
-      expect(filter.isExcluded('.ok/templates/daily.md', BYPASS)).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/daily.md', BYPASS)).toBe(true);
       expect(filter.isPathIgnored('.git/config', BYPASS)).toBe(true);
       expect(filter.isPathIgnored('node_modules/pkg/index.js', BYPASS)).toBe(true);
 
@@ -1290,15 +1303,15 @@ describe('ContentFilter', () => {
       expect(filter.isExcluded('docs/.Environment.md', BYPASS)).toBe(false);
       expect(filter.isExcluded('docs/KEYMAP.md', BYPASS)).toBe(false);
 
-      expect(filter.isExcluded('.ok/skills/foo/server.key')).toBe(true);
-      expect(filter.isExcluded('.ok/skills/foo/id_rsa')).toBe(true);
-      expect(filter.isExcluded('.ok/skills/foo/.env')).toBe(true);
-      expect(filter.isPathIgnored('.ok/skills/foo/server.key')).toBe(true);
-      expect(filter.isPathIgnored('.ok/skills/foo/id_rsa')).toBe(true);
-      expect(filter.isPathIgnored('.ok/skills/foo/.env')).toBe(true);
-      expect(filter.isDirExcluded('.ok/skills/foo/.ssh')).toBe(true);
-      expect(filter.isExcluded('.ok/skills/foo/SKILL.md')).toBe(false);
-      expect(filter.isExcluded('.ok/skills/foo/diagram.png')).toBe(false);
+      expect(filter.isExcluded('.gitquire/skills/foo/server.key')).toBe(true);
+      expect(filter.isExcluded('.gitquire/skills/foo/id_rsa')).toBe(true);
+      expect(filter.isExcluded('.gitquire/skills/foo/.env')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/skills/foo/server.key')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/skills/foo/id_rsa')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/skills/foo/.env')).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/skills/foo/.ssh')).toBe(true);
+      expect(filter.isExcluded('.gitquire/skills/foo/SKILL.md')).toBe(false);
+      expect(filter.isExcluded('.gitquire/skills/foo/diagram.png')).toBe(false);
 
       expect(filter.isDirExcluded('dist', BYPASS)).toBe(false);
       expect(filter.isDirExcluded('build', BYPASS)).toBe(false);
@@ -1327,41 +1340,45 @@ describe('ContentFilter', () => {
     });
   });
 
-  describe('showOk lifts the .ok floor for the tree-listing walk only', () => {
+  describe('showOk lifts the .gitquire floor for the tree-listing walk only', () => {
     const REVEAL = { bypassFilters: true, showOk: true } as const;
 
     function assertShowOkReveal(filter: ContentFilter) {
-      expect(filter.isDirExcluded('.ok', REVEAL)).toBe(false);
-      expect(filter.isDirExcluded('.ok/templates', REVEAL)).toBe(false);
-      expect(filter.isDirExcluded('.ok/skills', REVEAL)).toBe(false);
-      expect(filter.isDirExcluded('.ok/skills/demo', REVEAL)).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok', REVEAL)).toBe(false);
-      expect(filter.isDirExcluded('meetings/.ok/templates', REVEAL)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire', REVEAL)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/templates', REVEAL)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/skills', REVEAL)).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/skills/demo', REVEAL)).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire', REVEAL)).toBe(false);
+      expect(filter.isDirExcluded('meetings/.gitquire/templates', REVEAL)).toBe(false);
 
-      expect(filter.isDirExcluded('.ok/worktrees', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.ok/worktrees/checkout', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.ok/local', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.ok/local/cache', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('meetings/.ok/worktrees', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('meetings/.ok/local', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/worktrees', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/worktrees/checkout', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/local', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/local/cache', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('meetings/.gitquire/worktrees', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('meetings/.gitquire/local', REVEAL)).toBe(true);
 
-      expect(filter.isDirExcluded('.ok/Worktrees', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.ok/Local', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.OK/worktrees', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.OK/local', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.ok/LOCAL/cache', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.ok/Local/server.lock', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.OK/local/server.lock', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.OK/worktrees/wt/.ok/frontmatter.yml', REVEAL)).toBe(true);
-      expect(filter.isExcluded('meetings/.ok/WORKTREES/checkout/README.md', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/Worktrees', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/Local', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.GITQUIRE/worktrees', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.GITQUIRE/local', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/LOCAL/cache', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.gitquire/Local/server.lock', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.GITQUIRE/local/server.lock', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.GITQUIRE/worktrees/wt/.gitquire/frontmatter.yml', REVEAL)).toBe(
+        true,
+      );
+      expect(filter.isExcluded('meetings/.gitquire/WORKTREES/checkout/README.md', REVEAL)).toBe(
+        true,
+      );
 
-      expect(filter.isExcluded('.ok/config.yml', REVEAL)).toBe(false);
-      expect(filter.isExcluded('.ok/.gitignore', REVEAL)).toBe(false);
-      expect(filter.isExcluded('.ok/templates/daily.md', REVEAL)).toBe(false);
-      expect(filter.isExcluded('.ok/skills/demo/SKILL.md', REVEAL)).toBe(false);
-      expect(filter.isExcluded('meetings/.ok/frontmatter.yml', REVEAL)).toBe(false);
-      expect(filter.isExcluded('.ok/local/server.lock', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.ok/worktrees/checkout/README.md', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', REVEAL)).toBe(false);
+      expect(filter.isExcluded('.gitquire/.gitignore', REVEAL)).toBe(false);
+      expect(filter.isExcluded('.gitquire/templates/daily.md', REVEAL)).toBe(false);
+      expect(filter.isExcluded('.gitquire/skills/demo/SKILL.md', REVEAL)).toBe(false);
+      expect(filter.isExcluded('meetings/.gitquire/frontmatter.yml', REVEAL)).toBe(false);
+      expect(filter.isExcluded('.gitquire/local/server.lock', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.gitquire/worktrees/checkout/README.md', REVEAL)).toBe(true);
 
       expect(filter.isDirExcluded('.git', REVEAL)).toBe(true);
       expect(filter.isDirExcluded('node_modules', REVEAL)).toBe(true);
@@ -1369,24 +1386,24 @@ describe('ContentFilter', () => {
       expect(filter.isDirExcluded('.openknowledge', REVEAL)).toBe(true);
       expect(filter.isExcluded('.git/objects/x.md', REVEAL)).toBe(true);
       expect(filter.isExcluded('node_modules/pkg/README.md', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.ok/templates/node_modules', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.ok/templates/node_modules/pkg/x.md', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/templates/node_modules', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/node_modules/pkg/x.md', REVEAL)).toBe(true);
 
-      expect(filter.isExcluded('.ok/.DS_Store', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.ok/templates/server.pem', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.ok/skills/demo/id_rsa', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.ok/skills/demo/.ssh', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.gitquire/.DS_Store', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.gitquire/templates/server.pem', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.gitquire/skills/demo/id_rsa', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/skills/demo/.ssh', REVEAL)).toBe(true);
 
       expect(filter.isExcluded('__system__.md', REVEAL)).toBe(true);
       expect(filter.isExcluded('__config__/project.md', REVEAL)).toBe(true);
       expect(filter.isExcluded('__local__/project.md', REVEAL)).toBe(true);
 
-      expect(filter.isPathIgnored('.ok/config.yml', REVEAL)).toBe(true);
-      expect(filter.isPathIgnored('.ok/templates/daily.md', REVEAL)).toBe(false);
+      expect(filter.isPathIgnored('.gitquire/config.yml', REVEAL)).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/templates/daily.md', REVEAL)).toBe(false);
 
-      expect(filter.isDirExcluded('.ok/templates', { showOk: true })).toBe(false);
-      expect(filter.isDirExcluded('.ok/local', { showOk: true })).toBe(true);
-      expect(filter.isExcluded('.ok/config.yml', { showOk: true })).toBe(true);
+      expect(filter.isDirExcluded('.gitquire/templates', { showOk: true })).toBe(false);
+      expect(filter.isDirExcluded('.gitquire/local', { showOk: true })).toBe(true);
+      expect(filter.isExcluded('.gitquire/config.yml', { showOk: true })).toBe(true);
     }
 
     test('sync factory (createContentFilter)', () => {
@@ -1763,7 +1780,7 @@ describe('ContentFilter', () => {
       }
     });
 
-    test('gitignore, secret, and .ok floors override configured attachment admission in both factories', async () => {
+    test('gitignore, secret, and .gitquire floors override configured attachment admission in both factories', async () => {
       writeFileSync(join(projectDir, '.gitignore'), 'assets/private/\n');
       const filters = [
         createContentFilter({
@@ -1787,10 +1804,10 @@ describe('ContentFilter', () => {
       const okFilter = createContentFilter({
         projectDir,
         contentDir: projectDir,
-        attachmentFolderPath: '.ok/assets',
+        attachmentFolderPath: '.gitquire/assets',
       });
-      expect(okFilter.isDirExcluded('.ok/assets')).toBe(true);
-      expect(okFilter.isExcluded('.ok/assets/private.png')).toBe(true);
+      expect(okFilter.isDirExcluded('.gitquire/assets')).toBe(true);
+      expect(okFilter.isExcluded('.gitquire/assets/private.png')).toBe(true);
     });
 
     test('live attachment-folder updates replace the previous admission shape in both factories', async () => {
@@ -1981,7 +1998,7 @@ describe('ContentFilter', () => {
       expect(filter.isPathIgnored('node_modules/pkg/img.png')).toBe(true);
       expect(filter.isPathIgnored('dist/output.png')).toBe(true);
       expect(filter.isPathIgnored('.git/objects/pack/foo.png')).toBe(true);
-      expect(filter.isPathIgnored('.ok/templates/img.png')).toBe(true);
+      expect(filter.isPathIgnored('.gitquire/templates/img.png')).toBe(true);
       expect(filter.isPathIgnored('a/b/node_modules/c/img.png')).toBe(true);
     });
 
@@ -2692,18 +2709,18 @@ describe('ContentFilter', () => {
       mkdirSync(join(projectDir, 'notes'), { recursive: true });
       writeFileSync(join(projectDir, 'notes', 'own.md'), '# own');
 
-      mkdirSync(join(projectDir, 'nested', '.ok'), { recursive: true });
+      mkdirSync(join(projectDir, 'nested', '.gitquire'), { recursive: true });
       writeFileSync(
-        join(projectDir, 'nested', '.ok', 'config.yml'),
+        join(projectDir, 'nested', '.gitquire', 'config.yml'),
         'autoSync:\n  enabled: false\n',
       );
       writeFileSync(join(projectDir, 'nested', 'inside.md'), '# inside');
       mkdirSync(join(projectDir, 'nested', 'deep'), { recursive: true });
       writeFileSync(join(projectDir, 'nested', 'deep', 'deeper.md'), '# deeper');
 
-      mkdirSync(join(projectDir, 'rules', '.ok', 'templates'), { recursive: true });
-      writeFileSync(join(projectDir, 'rules', '.ok', 'frontmatter.yml'), 'type: note\n');
-      writeFileSync(join(projectDir, 'rules', '.ok', 'templates', 'note.md'), '# template');
+      mkdirSync(join(projectDir, 'rules', '.gitquire', 'templates'), { recursive: true });
+      writeFileSync(join(projectDir, 'rules', '.gitquire', 'frontmatter.yml'), 'type: note\n');
+      writeFileSync(join(projectDir, 'rules', '.gitquire', 'templates', 'note.md'), '# template');
       writeFileSync(join(projectDir, 'rules', 'ruled.md'), '# ruled');
     }
 
@@ -2715,20 +2732,20 @@ describe('ContentFilter', () => {
       expect(filter.isDirExcluded('nested/deep')).toBe(true);
       expect(filter.isExcluded('nested/inside.md')).toBe(true);
       expect(filter.isExcluded('nested/deep/deeper.md')).toBe(true);
-      expect(filter.isExcluded('nested/.ok/skills/demo/SKILL.md')).toBe(true);
+      expect(filter.isExcluded('nested/.gitquire/skills/demo/SKILL.md')).toBe(true);
 
       expect(filter.isExcluded('ancestor.md')).toBe(false);
       expect(filter.isExcluded('notes/own.md')).toBe(false);
       expect(filter.isDirExcluded('notes')).toBe(false);
     });
 
-    test('a nested `.ok` carrying only folder metadata is not a project', () => {
+    test('a nested `.gitquire` carrying only folder metadata is not a project', () => {
       seedTwoLevelFixture();
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
 
       expect(filter.isDirExcluded('rules')).toBe(false);
       expect(filter.isExcluded('rules/ruled.md')).toBe(false);
-      expect(filter.isExcluded('rules/.ok/templates/note.md')).toBe(false);
+      expect(filter.isExcluded('rules/.gitquire/templates/note.md')).toBe(false);
     });
 
     test('single-file scope is unaffected — the one admitted doc stays admitted', () => {
@@ -2744,11 +2761,14 @@ describe('ContentFilter', () => {
     });
 
     test('detects the descendant root under either path base', () => {
-      mkdirSync(join(projectDir, 'content', 'docs', '.ok'), { recursive: true });
-      writeFileSync(join(projectDir, 'content', 'docs', '.ok', 'config.yml'), 'x: 1\n');
+      mkdirSync(join(projectDir, 'content', 'docs', '.gitquire'), { recursive: true });
+      writeFileSync(join(projectDir, 'content', 'docs', '.gitquire', 'config.yml'), 'x: 1\n');
       writeFileSync(join(projectDir, 'content', 'docs', 'inside.md'), '# inside');
-      mkdirSync(join(projectDir, 'content', 'guides', '.ok'), { recursive: true });
-      writeFileSync(join(projectDir, 'content', 'guides', '.ok', 'frontmatter.yml'), 'icon: map\n');
+      mkdirSync(join(projectDir, 'content', 'guides', '.gitquire'), { recursive: true });
+      writeFileSync(
+        join(projectDir, 'content', 'guides', '.gitquire', 'frontmatter.yml'),
+        'icon: map\n',
+      );
       writeFileSync(join(projectDir, 'content', 'guides', 'ruled.md'), '# ruled');
 
       const filter = createContentFilter({
@@ -2764,7 +2784,9 @@ describe('ContentFilter', () => {
 
       expect(filter.isDirExcluded('guides')).toBe(false);
       expect(filter.isDirExcluded('content/guides', projectScope)).toBe(false);
-      expect(filter.isExcluded('content/guides/.ok/frontmatter.yml', projectScope)).toBe(false);
+      expect(filter.isExcluded('content/guides/.gitquire/frontmatter.yml', projectScope)).toBe(
+        false,
+      );
     });
 
     test('async factory mirrors the descendant-project floor', async () => {

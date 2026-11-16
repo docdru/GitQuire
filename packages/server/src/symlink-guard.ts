@@ -38,11 +38,11 @@ export function assertRealpathWithinDir(
           : [canonicalRel, ...pendingSuffix].filter((seg) => seg !== '').join('/');
       if (resolvesIntoInternalStateDir(effectiveRel)) {
         const exemptable =
-          effectiveRel.split('/')[0] === '.ok' &&
+          effectiveRel.split('/')[0] === '.gitquire' &&
           opts.allowShareableOkArtifact !== undefined &&
           opts.allowShareableOkArtifact(effectiveRel);
         if (!exemptable) {
-          throw new SymlinkEscapeError('path resolves into the .git/.ok state tree');
+          throw new SymlinkEscapeError('path resolves into the .git/.gitquire state tree');
         }
       }
       return resolve(canonical, ...pendingSuffix);
@@ -73,5 +73,5 @@ export function assertRealpathWithinDir(
 function resolvesIntoInternalStateDir(effectiveRel: string): boolean {
   if (effectiveRel === '' || effectiveRel.startsWith('..')) return false;
   const first = (effectiveRel.split('/')[0] ?? '').toLowerCase();
-  return first === '.git' || first === '.ok';
+  return first === '.git' || first === '.gitquire';
 }

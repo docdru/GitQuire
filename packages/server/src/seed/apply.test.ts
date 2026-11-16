@@ -20,20 +20,20 @@ const STARTER_TEMPLATES = KNOWLEDGE_BASE_PACK.templates;
 const LOG_MD_TEMPLATE = KNOWLEDGE_BASE_PACK.rootFiles?.['log.md'];
 if (!LOG_MD_TEMPLATE) throw new Error('knowledge-base pack is missing log.md');
 
-describe('applySeed — nested .ok/ era', () => {
+describe('applySeed — nested .gitquire/ era', () => {
   let projectDir: string;
 
   beforeEach(async () => {
     projectDir = await mkdtemp(join(tmpdir(), 'seed-apply-'));
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
   });
 
   afterEach(async () => {
     await rm(projectDir, { recursive: true, force: true });
   });
 
-  test('writes every starter folder + nested .ok/frontmatter.yml + starter template', async () => {
+  test('writes every starter folder + nested .gitquire/frontmatter.yml + starter template', async () => {
     const plan = await planSeed({ projectDir });
     const result = await applySeed(plan, { projectDir });
 
@@ -42,12 +42,12 @@ describe('applySeed — nested .ok/ era', () => {
 
     for (const folder of STARTER_FOLDERS) {
       expect(existsSync(join(projectDir, folder.path))).toBe(true);
-      expect(existsSync(join(projectDir, folder.path, '.ok'))).toBe(true);
-      expect(existsSync(join(projectDir, folder.path, '.ok', 'frontmatter.yml'))).toBe(true);
-      expect(existsSync(join(projectDir, folder.path, '.ok', 'templates'))).toBe(true);
+      expect(existsSync(join(projectDir, folder.path, '.gitquire'))).toBe(true);
+      expect(existsSync(join(projectDir, folder.path, '.gitquire', 'frontmatter.yml'))).toBe(true);
+      expect(existsSync(join(projectDir, folder.path, '.gitquire', 'templates'))).toBe(true);
       expect(
         existsSync(
-          join(projectDir, folder.path, '.ok', 'templates', `${folder.starterTemplate}.md`),
+          join(projectDir, folder.path, '.gitquire', 'templates', `${folder.starterTemplate}.md`),
         ),
       ).toBe(true);
     }
@@ -76,7 +76,7 @@ describe('applySeed — nested .ok/ era', () => {
 
     for (const folder of STARTER_FOLDERS) {
       const fmContent = readFileSync(
-        join(projectDir, folder.path, '.ok', 'frontmatter.yml'),
+        join(projectDir, folder.path, '.gitquire', 'frontmatter.yml'),
         'utf-8',
       );
       expect(fmContent).toContain(folder.title);
@@ -93,7 +93,7 @@ describe('applySeed — nested .ok/ era', () => {
 
     for (const folder of STARTER_FOLDERS) {
       const tplContent = readFileSync(
-        join(projectDir, folder.path, '.ok', 'templates', `${folder.starterTemplate}.md`),
+        join(projectDir, folder.path, '.gitquire', 'templates', `${folder.starterTemplate}.md`),
         'utf-8',
       );
       expect(tplContent).toBe(STARTER_TEMPLATES[folder.starterTemplate]);
@@ -123,7 +123,7 @@ describe('applySeed — nested .ok/ era', () => {
     const plan1 = await planSeed({ projectDir });
     await applySeed(plan1, { projectDir });
 
-    const fmPath = join(projectDir, 'external-sources', '.ok', 'frontmatter.yml');
+    const fmPath = join(projectDir, 'external-sources', '.gitquire', 'frontmatter.yml');
     const userEdit =
       'title: My Custom External Sources\ndescription: edited by user\ntags:\n  - mine\n';
     writeFileSync(fmPath, userEdit, 'utf-8');
@@ -140,16 +140,16 @@ describe('applySeed — nested .ok/ era', () => {
 
     expect(result.errors).toEqual([]);
     for (const folder of STARTER_FOLDERS) {
-      expect(existsSync(join(projectDir, 'brain', folder.path, '.ok', 'frontmatter.yml'))).toBe(
-        true,
-      );
+      expect(
+        existsSync(join(projectDir, 'brain', folder.path, '.gitquire', 'frontmatter.yml')),
+      ).toBe(true);
       expect(
         existsSync(
           join(
             projectDir,
             'brain',
             folder.path,
-            '.ok',
+            '.gitquire',
             'templates',
             `${folder.starterTemplate}.md`,
           ),
@@ -164,9 +164,9 @@ describe('applySeed — nested .ok/ era', () => {
       {
         created: [
           {
-            path: 'phantom/.ok/templates/unknown.md',
+            path: 'phantom/.gitquire/templates/unknown.md',
             kind: 'file',
-            template: 'phantom/.ok/templates/unknown.md',
+            template: 'phantom/.gitquire/templates/unknown.md',
           },
         ],
         skipped: [],
@@ -187,15 +187,15 @@ describe('applySeed — codebase-wiki nested folder paths + wiki/-prefixed rootF
 
   beforeEach(async () => {
     projectDir = await mkdtemp(join(tmpdir(), 'seed-apply-wiki-'));
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
   });
 
   afterEach(async () => {
     await rm(projectDir, { recursive: true, force: true });
   });
 
-  test('writes every nested wiki/<section> with .ok/frontmatter.yml + template and no errors', async () => {
+  test('writes every nested wiki/<section> with .gitquire/frontmatter.yml + template and no errors', async () => {
     const plan = await planSeed({ projectDir, packId: 'codebase-wiki' });
     const result = await applySeed(plan, { projectDir, packId: 'codebase-wiki' });
 
@@ -203,10 +203,10 @@ describe('applySeed — codebase-wiki nested folder paths + wiki/-prefixed rootF
     expect(result.applied).toBe(plan.created.length);
 
     for (const folder of WIKI_PACK.folders) {
-      expect(existsSync(join(projectDir, folder.path, '.ok', 'frontmatter.yml'))).toBe(true);
+      expect(existsSync(join(projectDir, folder.path, '.gitquire', 'frontmatter.yml'))).toBe(true);
       expect(
         existsSync(
-          join(projectDir, folder.path, '.ok', 'templates', `${folder.starterTemplate}.md`),
+          join(projectDir, folder.path, '.gitquire', 'templates', `${folder.starterTemplate}.md`),
         ),
       ).toBe(true);
     }
@@ -217,7 +217,10 @@ describe('applySeed — codebase-wiki nested folder paths + wiki/-prefixed rootF
     await applySeed(plan, { projectDir, packId: 'codebase-wiki' });
 
     for (const folder of WIKI_PACK.folders) {
-      const fm = readFileSync(join(projectDir, folder.path, '.ok', 'frontmatter.yml'), 'utf-8');
+      const fm = readFileSync(
+        join(projectDir, folder.path, '.gitquire', 'frontmatter.yml'),
+        'utf-8',
+      );
       expect(fm).toContain(folder.title);
       for (const tag of folder.tags) expect(fm).toContain(`- ${tag}`);
     }
@@ -229,7 +232,7 @@ describe('applySeed — codebase-wiki nested folder paths + wiki/-prefixed rootF
 
     for (const folder of WIKI_PACK.folders) {
       const tpl = readFileSync(
-        join(projectDir, folder.path, '.ok', 'templates', `${folder.starterTemplate}.md`),
+        join(projectDir, folder.path, '.gitquire', 'templates', `${folder.starterTemplate}.md`),
         'utf-8',
       );
       expect(tpl).toBe(WIKI_PACK.templates[folder.starterTemplate]);
@@ -255,7 +258,7 @@ describe('applySeed — required plugins', () => {
 
   beforeEach(async () => {
     projectDir = await mkdtemp(join(tmpdir(), 'seed-apply-plugins-'));
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -263,12 +266,12 @@ describe('applySeed — required plugins', () => {
   });
 
   async function seedOkfWith(body: string): Promise<{ after: string; enabled: string[] }> {
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), body, 'utf-8');
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), body, 'utf-8');
     const plan = await planSeed({ projectDir, packId: 'okf' });
     const result = await applySeed(plan, { projectDir, packId: 'okf' });
     expect(result.errors).toEqual([]);
     return {
-      after: readFileSync(join(projectDir, '.ok', 'config.yml'), 'utf-8'),
+      after: readFileSync(join(projectDir, '.gitquire', 'config.yml'), 'utf-8'),
       enabled: result.pluginsEnabled,
     };
   }
@@ -297,7 +300,7 @@ describe('applySeed — required plugins', () => {
   });
 
   test('a pack with no requirement reports none', async () => {
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
     const plan = await planSeed({ projectDir, packId: 'knowledge-base' });
     const result = await applySeed(plan, { projectDir, packId: 'knowledge-base' });
 

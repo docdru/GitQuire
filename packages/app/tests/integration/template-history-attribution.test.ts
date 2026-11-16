@@ -39,7 +39,7 @@ describe('template history — HTTP typed writes and editor wip edits unify unde
   test('a typed HTTP write attributes under the content doc name; the store mints wip:, never a typed folder subject', async () => {
     const folder = 'notes';
     const name = `standup-${randomUUID().slice(0, 8)}`;
-    const docName = `${folder}/.ok/templates/${name}`;
+    const docName = `${folder}/.gitquire/templates/${name}`;
 
     const putRes = await fetch(`http://127.0.0.1:${server.port}/api/template`, {
       method: 'PUT',

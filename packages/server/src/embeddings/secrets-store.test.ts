@@ -28,7 +28,7 @@ let projectA: string;
 let projectB: string;
 beforeEach(() => {
   dir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-embkey-')));
-  secretsFile = join(dir, '.ok', 'secrets.yml');
+  secretsFile = join(dir, '.gitquire', 'secrets.yml');
   projectA = join(dir, 'project-a');
   projectB = join(dir, 'project-b');
   mkdirSync(projectA, { recursive: true });
@@ -94,7 +94,7 @@ describe('FileEmbeddingsBackend — project + endpoint scoped', () => {
 
 describe('legacy flat key — default-OpenAI-host-only fallback', () => {
   test('a flat OPENAI_API_KEY resolves for the DEFAULT endpoint (grandfathering)', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, `OPENAI_API_KEY: ${KEY}\n`);
     const resolved = await store().resolveForProject(projectA, OPENAI);
     expect(resolved.key).toBe(KEY);
@@ -102,13 +102,13 @@ describe('legacy flat key — default-OpenAI-host-only fallback', () => {
   });
 
   test('the flat key does NOT leak to a custom endpoint', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, `OPENAI_API_KEY: ${KEY}\n`);
     expect((await store().resolveForProject(projectA, CUSTOM)).key).toBeNull();
   });
 
   test('a project key for the default endpoint wins over the flat key', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, `OPENAI_API_KEY: ${KEY}\n`);
     const s = store();
     await s.setForProject(projectA, OPENAI, KEY_2);
@@ -116,7 +116,7 @@ describe('legacy flat key — default-OpenAI-host-only fallback', () => {
   });
 
   test('the legacy `embeddings` field is also read as the default-host fallback', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, `embeddings: ${KEY}\n`);
     expect((await store().resolveForProject(projectA, OPENAI)).key).toBe(KEY);
   });
@@ -129,7 +129,7 @@ describe('file permissions + atomic writes', () => {
   });
 
   test('re-asserts 0600 on a pre-existing looser file', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, 'other: keep-me\n');
     chmodSync(secretsFile, 0o644);
     await store().setForProject(projectA, CUSTOM, KEY);
@@ -138,7 +138,7 @@ describe('file permissions + atomic writes', () => {
   });
 
   test('resolve self-heals a world-readable file to 0600 on the read path', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, `OPENAI_API_KEY: ${KEY}\n`);
     chmodSync(secretsFile, 0o644);
     await store().resolveForProject(projectA, OPENAI);
@@ -162,7 +162,7 @@ describe('clear semantics', () => {
   });
 
   test('clearForProject keeps unrelated top-level secrets', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, 'other: keep-me\n');
     const s = store();
     await s.setForProject(projectA, CUSTOM, KEY);
@@ -171,7 +171,7 @@ describe('clear semantics', () => {
   });
 
   test('clearAll wipes every project + the legacy flat key', async () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
     writeFileSync(secretsFile, `OPENAI_API_KEY: ${KEY}\n`);
     const s = store();
     await s.setForProject(projectA, CUSTOM, KEY);
@@ -223,10 +223,10 @@ describe('secrets file per channel', () => {
     vi.unstubAllEnvs();
   });
 
-  test('Stable keeps ~/.ok/secrets.yml and Beta uses ~/.ok-beta/secrets.yml', () => {
+  test('Stable keeps ~/.gitquire/secrets.yml and Beta uses ~/.gitquire-beta/secrets.yml', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
-    expect(secretsFilePath('/home/me')).toBe(join('/home/me', '.ok', 'secrets.yml'));
+    expect(secretsFilePath('/home/me')).toBe(join('/home/me', '.gitquire', 'secrets.yml'));
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
-    expect(secretsFilePath('/home/me')).toBe(join('/home/me', '.ok-beta', 'secrets.yml'));
+    expect(secretsFilePath('/home/me')).toBe(join('/home/me', '.gitquire-beta', 'secrets.yml'));
   });
 });

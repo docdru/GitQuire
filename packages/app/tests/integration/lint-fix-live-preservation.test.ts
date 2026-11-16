@@ -227,9 +227,9 @@ describe('lint fix live-write preservation', () => {
 
   test('records the current anonymous direct and persistence attribution split', async () => {
     const root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-lint-anonymous-')));
-    mkdirSync(join(root, '.ok', 'local', 'principal.json'), { recursive: true });
+    mkdirSync(join(root, '.gitquire', 'local', 'principal.json'), { recursive: true });
     writeFileSync(
-      join(root, '.ok', 'config.yml'),
+      join(root, '.gitquire', 'config.yml'),
       'contentRules:\n  markdownlint:\n    enabled: true\n',
       'utf-8',
     );
@@ -676,9 +676,9 @@ describe('lint fix live-write preservation', () => {
 
   test('an indexed in-root alias fixes the canonical document and reports its canonical path', async () => {
     const root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-lint-alias-')));
-    mkdirSync(join(root, '.ok'), { recursive: true });
+    mkdirSync(join(root, '.gitquire'), { recursive: true });
     writeFileSync(
-      join(root, '.ok', 'config.yml'),
+      join(root, '.gitquire', 'config.yml'),
       'contentRules:\n  markdownlint:\n    enabled: true\n',
       'utf-8',
     );

@@ -92,8 +92,8 @@ describe('config tool', () => {
 
   test('reflects on-disk config when caller passes a resolver that loads it', async () => {
     const cwd = makeTempDir('ok-get-config-disk-');
-    mkdirSync(join(cwd, '.ok'), { recursive: true });
-    writeFileSync(join(cwd, '.ok', 'config.yml'), 'appearance:\n  theme: light\n');
+    mkdirSync(join(cwd, '.gitquire'), { recursive: true });
+    writeFileSync(join(cwd, '.gitquire', 'config.yml'), 'appearance:\n  theme: light\n');
     const merged: Config = {
       ...BASE_CONFIG,
       appearance: { theme: 'light' },

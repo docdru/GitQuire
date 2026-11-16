@@ -273,11 +273,11 @@ export async function resolveProjectServerContext(
 
 export function okReservedPathRedirect(path: string): string | null {
   const p = path.replace(/^\/+/, '');
-  if (p !== '.ok' && !p.startsWith('.ok/')) return null;
-  if (p.startsWith('.ok/templates/')) {
+  if (p !== '.gitquire' && !p.startsWith('.gitquire/')) return null;
+  if (p.startsWith('.gitquire/templates/')) {
     return 'Templates are authored with the `template` target (`write({ template: { … } })`), not a raw document path.';
   }
-  return 'Paths under `.ok/` are not addressable as documents. Edit folder config/frontmatter via the `folder` target and templates via the `template` target.';
+  return 'Paths under `.gitquire/` are not addressable as documents. Edit folder config/frontmatter via the `folder` target and templates via the `template` target.';
 }
 
 export function normalizeDocName(

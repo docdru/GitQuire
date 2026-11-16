@@ -9,7 +9,7 @@ test('template creation shows actionable admission detail and accepts explicit p
   workerServer,
 }, testInfo) => {
   const name = `admission-${randomUUID()}`;
-  const path = join(workerServer.contentDir, '.ok', 'templates', `${name}.md`);
+  const path = join(workerServer.contentDir, '.gitquire', 'templates', `${name}.md`);
   const unsafe = 'x😀\u0000private-tail\n';
   const cleaned = 'x😀\\u0000private-tail\n';
   await page.goto('/#settings');

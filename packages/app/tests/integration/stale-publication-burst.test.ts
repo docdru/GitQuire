@@ -23,7 +23,7 @@ test('a published edit preserves its recreated lifetime while a later edit is st
   const resident = scenario.server.instance.hocuspocus.documents.get(scenario.docName);
   if (!resident) throw new Error('Expected the original connected resident');
   const filePath = join(scenario.server.contentDir, `${scenario.docName}.md`);
-  const templates = join(scenario.server.contentDir, '.ok', 'templates');
+  const templates = join(scenario.server.contentDir, '.gitquire', 'templates');
 
   scenario.deleteExternally();
   await scenario.waitUntilHeld();

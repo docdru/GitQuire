@@ -218,7 +218,7 @@ appearance:
     expect(joined).toContain('1:1 migration');
   });
 
-  test('folders in project config is stripped with a nested .ok/ redirect', () => {
+  test('folders in project config is stripped with a nested .gitquire/ redirect', () => {
     writeWorkspaceConfig(`content:
   dir: docs
 folders:
@@ -230,7 +230,7 @@ folders:
     expect(config.content.dir).toBe('docs');
     const folders = removedKeys(diagnostics).find((r) => r.dotted === 'folders');
     expect(folders).toBeDefined();
-    expect(folders?.redirect).toContain('.ok/');
+    expect(folders?.redirect).toContain('.gitquire/');
     expect(folders?.redirect).toContain('edit({ folder');
   });
 
@@ -334,7 +334,7 @@ folders:
     expect(() => loadConfig(testDir)).not.toThrow();
   });
 
-  test('user-global reads from `~/.ok/global.yml` (not `config.yml`)', () => {
+  test('user-global reads from `~/.gitquire/global.yml` (not `config.yml`)', () => {
     const okDir = resolve(fakeHome, OK_DIR);
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'global.yml'), 'appearance:\n  theme: dark\n', 'utf-8');

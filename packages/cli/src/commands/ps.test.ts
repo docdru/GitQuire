@@ -16,7 +16,7 @@ function makeAliveServer(overrides?: {
 }): LockState {
   return {
     status: 'alive',
-    lockPath: `${overrides?.worktreeRoot ?? '/tmp/notes'}/.ok/server.lock`,
+    lockPath: `${overrides?.worktreeRoot ?? '/tmp/notes'}/.gitquire/server.lock`,
     lock: {
       pid: overrides?.pid ?? 12345,
       hostname: overrides?.hostname ?? 'test-host',
@@ -36,7 +36,7 @@ function makeDeadServer(overrides?: {
 }): LockState {
   return {
     status: 'dead-pid',
-    lockPath: `${overrides?.worktreeRoot ?? '/tmp/old-project'}/.ok/server.lock`,
+    lockPath: `${overrides?.worktreeRoot ?? '/tmp/old-project'}/.gitquire/server.lock`,
     lock: {
       pid: overrides?.pid ?? 44444,
       hostname: 'test-host',
@@ -56,7 +56,7 @@ function makeForeignServer(overrides?: {
 }): LockState {
   return {
     status: 'foreign-host',
-    lockPath: `${overrides?.worktreeRoot ?? '/tmp/shared'}/.ok/server.lock`,
+    lockPath: `${overrides?.worktreeRoot ?? '/tmp/shared'}/.gitquire/server.lock`,
     lock: {
       pid: overrides?.pid ?? 99999,
       hostname: 'other-host',
@@ -69,12 +69,12 @@ function makeForeignServer(overrides?: {
 
 const missingLock: LockState = {
   status: 'missing',
-  lockPath: '/tmp/notes/.ok/server.lock',
+  lockPath: '/tmp/notes/.gitquire/server.lock',
 };
 
 const corruptLock: LockState = {
   status: 'corrupt',
-  lockPath: '/tmp/notes/.ok/server.lock',
+  lockPath: '/tmp/notes/.gitquire/server.lock',
   text: '{',
 };
 
@@ -94,10 +94,10 @@ describe('runPs default (alive + foreign-host)', () => {
     const aliveServerState = makeAliveServer({ worktreeRoot: '/tmp/notes' });
     const deadServerState = makeDeadServer({ worktreeRoot: '/tmp/old-project' });
 
-    const lockDirs = ['/tmp/notes/.ok', '/tmp/old-project/.ok'];
+    const lockDirs = ['/tmp/notes/.gitquire', '/tmp/old-project/.gitquire'];
     const lockMap: Record<string, Record<string, LockState>> = {
-      '/tmp/notes/.ok': { server: aliveServerState },
-      '/tmp/old-project/.ok': { server: deadServerState },
+      '/tmp/notes/.gitquire': { server: aliveServerState },
+      '/tmp/old-project/.gitquire': { server: deadServerState },
     };
 
     const lines: string[] = [];
@@ -117,7 +117,7 @@ describe('runPs default (alive + foreign-host)', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/shared/.ok'],
+      discover: async () => ['/tmp/shared/.gitquire'],
       inspect: () => foreignServerState,
       log: (msg) => lines.push(msg),
     });
@@ -132,7 +132,7 @@ describe('runPs default (alive + foreign-host)', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/old-project/.ok'],
+      discover: async () => ['/tmp/old-project/.gitquire'],
       inspect: () => deadServerState,
       log: (msg) => lines.push(msg),
     });
@@ -159,10 +159,10 @@ describe('runPs --all', () => {
     const aliveServerState = makeAliveServer({ worktreeRoot: '/tmp/notes' });
     const deadServerState = makeDeadServer({ worktreeRoot: '/tmp/old-project' });
 
-    const lockDirs = ['/tmp/notes/.ok', '/tmp/old-project/.ok'];
+    const lockDirs = ['/tmp/notes/.gitquire', '/tmp/old-project/.gitquire'];
     const lockMap: Record<string, Record<string, LockState>> = {
-      '/tmp/notes/.ok': { server: aliveServerState },
-      '/tmp/old-project/.ok': { server: deadServerState },
+      '/tmp/notes/.gitquire': { server: aliveServerState },
+      '/tmp/old-project/.gitquire': { server: deadServerState },
     };
 
     const lines: string[] = [];
@@ -185,7 +185,7 @@ describe('runPs --all', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/shared/.ok'],
+      discover: async () => ['/tmp/shared/.gitquire'],
       inspect: () => foreignServerState,
       all: true,
       log: (msg) => lines.push(msg),
@@ -232,7 +232,7 @@ describe('runPs desktop labeling', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServerState,
       resolveCommand: () => ELECTRON_UTILITY_COMMAND,
       log: (msg) => lines.push(msg),
@@ -249,7 +249,7 @@ describe('runPs desktop labeling', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/vault/.ok'],
+      discover: async () => ['/tmp/vault/.gitquire'],
       inspect: () => foreignServerState,
       resolveCommand: () => ELECTRON_UTILITY_COMMAND,
       log: (msg) => lines.push(msg),
@@ -266,7 +266,7 @@ describe('runPs desktop labeling', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServerState,
       resolveCommand: () =>
         '/usr/local/bin/node /opt/open-knowledge/packages/cli/dist/cli.mjs start',
@@ -283,7 +283,7 @@ describe('runPs desktop labeling', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServerState,
       resolveCommand: () => ELECTRON_UTILITY_COMMAND,
       json: true,
@@ -299,7 +299,7 @@ describe('runPs desktop labeling', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => deadServerState,
       resolveCommand: () => ELECTRON_UTILITY_COMMAND,
       all: true,
@@ -317,10 +317,10 @@ describe('runPs --json', () => {
     const aliveServerState = makeAliveServer({ worktreeRoot: '/tmp/notes' });
     const deadServerState = makeDeadServer({ worktreeRoot: '/tmp/old-project' });
 
-    const lockDirs = ['/tmp/notes/.ok', '/tmp/old-project/.ok'];
+    const lockDirs = ['/tmp/notes/.gitquire', '/tmp/old-project/.gitquire'];
     const lockMap: Record<string, Record<string, LockState>> = {
-      '/tmp/notes/.ok': { server: aliveServerState },
-      '/tmp/old-project/.ok': { server: deadServerState },
+      '/tmp/notes/.gitquire': { server: aliveServerState },
+      '/tmp/old-project/.gitquire': { server: deadServerState },
     };
 
     const lines: string[] = [];
@@ -350,7 +350,7 @@ describe('runPs --json', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServerState,
       resolveCommand: () => '/usr/local/bin/node /tmp/open-knowledge/packages/cli/src/cli.ts start',
       resolveUsage: (pid) =>
@@ -416,7 +416,7 @@ describe('runPs --json', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServerState,
       json: true,
       log: (msg) => lines.push(msg),
@@ -432,7 +432,7 @@ describe('runPs --json', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServerState,
       json: true,
       log: (msg) => lines.push(msg),
@@ -451,7 +451,7 @@ describe('PORTS column', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/starting/.ok'],
+      discover: async () => ['/tmp/starting/.gitquire'],
       inspect: () => startingServer,
       log: (msg) => lines.push(msg),
     });
@@ -469,7 +469,7 @@ describe('PORTS column', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServer,
       log: (msg) => lines.push(msg),
     });
@@ -487,7 +487,7 @@ describe('PORTS column', () => {
 
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/notes/.ok'],
+      discover: async () => ['/tmp/notes/.gitquire'],
       inspect: () => aliveServer,
       log: (msg) => lines.push(msg),
     });
@@ -500,7 +500,7 @@ describe('PORTS column', () => {
 describe('a lock whose pid now belongs to another process', () => {
   const reusedPidLock: LockState = {
     status: 'reused-pid',
-    lockPath: '/tmp/restarted/.ok/local/server.lock',
+    lockPath: '/tmp/restarted/.gitquire/local/server.lock',
     lock: {
       pid: 55555,
       hostname: 'test-host',
@@ -515,7 +515,7 @@ describe('a lock whose pid now belongs to another process', () => {
   test('json reports it stale with no command, usage, binary or ui attributed to that process', async () => {
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/restarted/.ok/local'],
+      discover: async () => ['/tmp/restarted/.gitquire/local'],
       inspect: () => reusedPidLock,
       resolveCommand: () => ELECTRON_UTILITY_COMMAND,
       resolveUsage: () => ({ cpuPercent: 9.9, memPercent: 8.8 }),
@@ -526,7 +526,7 @@ describe('a lock whose pid now belongs to another process', () => {
     expect(JSON.parse(lines.join('\n'))).toEqual([
       expect.objectContaining({
         directory: '/tmp/restarted',
-        lockPath: '/tmp/restarted/.ok/local/server.lock',
+        lockPath: '/tmp/restarted/.gitquire/local/server.lock',
         displayStatus: 'stale',
         command: null,
         binary: null,
@@ -540,7 +540,7 @@ describe('a lock whose pid now belongs to another process', () => {
   test('the table hides it by default and lists it as stale with all', async () => {
     const hidden: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/restarted/.ok/local'],
+      discover: async () => ['/tmp/restarted/.gitquire/local'],
       inspect: () => reusedPidLock,
       resolveCommand: () => ELECTRON_UTILITY_COMMAND,
       resolveUsage: () => null,
@@ -548,7 +548,7 @@ describe('a lock whose pid now belongs to another process', () => {
     });
     const shown: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/restarted/.ok/local'],
+      discover: async () => ['/tmp/restarted/.gitquire/local'],
       inspect: () => reusedPidLock,
       resolveCommand: () => ELECTRON_UTILITY_COMMAND,
       resolveUsage: () => null,
@@ -569,7 +569,7 @@ describe('server lock missing/corrupt discards entry', () => {
   test('missing server lock: entry discarded', async () => {
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/gone/.ok'],
+      discover: async () => ['/tmp/gone/.gitquire'],
       inspect: () => missingLock,
       log: (msg) => lines.push(msg),
     });
@@ -581,7 +581,7 @@ describe('server lock missing/corrupt discards entry', () => {
   test('corrupt server lock: entry discarded', async () => {
     const lines: string[] = [];
     await runPs({
-      discover: async () => ['/tmp/gone/.ok'],
+      discover: async () => ['/tmp/gone/.gitquire'],
       inspect: () => corruptLock,
       log: (msg) => lines.push(msg),
     });
@@ -609,7 +609,7 @@ describe('renderTable', () => {
       },
       ui: null,
       hostname: 'test-host',
-      lockPath: '/tmp/notes/.ok/server.lock',
+      lockPath: '/tmp/notes/.gitquire/server.lock',
       binary: '/tmp/open-knowledge/packages/cli/src/cli.ts',
       command: '/usr/local/bin/node /tmp/open-knowledge/packages/cli/src/cli.ts start',
       isDesktop: false,
@@ -665,7 +665,7 @@ describe('renderTable stop hint names the running channel CLI', () => {
         server: { port: 5173, status: 'alive' as const, pid: 12345, startedAt: null, usage: null },
         ui: null,
         hostname: 'test-host',
-        lockPath: '/tmp/notes/.ok/server.lock',
+        lockPath: '/tmp/notes/.gitquire/server.lock',
         binary: null,
         command: null,
         isDesktop: false,

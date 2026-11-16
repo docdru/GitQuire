@@ -38,8 +38,8 @@ let storePath = '';
 beforeEach(() => {
   tmpDir = mkdtempSync(join(tmpdir(), 'conflict-authority-test-'));
   projectDir = join(tmpDir, 'project');
-  storePath = join(projectDir, '.ok', LOCAL_DIR, 'conflicts.json');
-  mkdirSync(join(projectDir, '.ok', LOCAL_DIR), { recursive: true });
+  storePath = join(projectDir, '.gitquire', LOCAL_DIR, 'conflicts.json');
+  mkdirSync(join(projectDir, '.gitquire', LOCAL_DIR), { recursive: true });
 });
 
 afterEach(() => {
@@ -120,7 +120,7 @@ function readLedger(): { version: number; branch: string; conflicts: Conflict[] 
 }
 
 function quarantinedLedgers(): string[] {
-  return readdirSync(join(projectDir, '.ok', LOCAL_DIR)).filter((name) =>
+  return readdirSync(join(projectDir, '.gitquire', LOCAL_DIR)).filter((name) =>
     name.includes('conflicts.json.corrupt-'),
   );
 }

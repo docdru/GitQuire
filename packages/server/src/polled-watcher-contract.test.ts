@@ -95,8 +95,8 @@ function watchedFile(entry: WatcherEntry, scenario: ReadinessScenario): WatchedF
   const file: WatchedFile =
     entry === 'config'
       ? {
-          watch: [join(project, '.ok', 'config.yml')],
-          target: join(project, '.ok', 'config.yml'),
+          watch: [join(project, '.gitquire', 'config.yml')],
+          target: join(project, '.gitquire', 'config.yml'),
         }
       : {
           watch: [join(project, '.okignore'), join(project, '.gitignore')],

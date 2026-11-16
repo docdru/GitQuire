@@ -5,8 +5,8 @@ import type { Page } from '@playwright/test';
 import { parse } from 'yaml';
 import { expect, filterCriticalErrors, type LogEntry, test } from './_helpers';
 
-const SCHEMA_MAIN = '.ok/schemas/glob-picker.schema.json';
-const SCHEMA_ZERO = '.ok/schemas/glob-picker-zero.schema.json';
+const SCHEMA_MAIN = '.gitquire/schemas/glob-picker.schema.json';
+const SCHEMA_ZERO = '.gitquire/schemas/glob-picker-zero.schema.json';
 
 const REQUIRED_SCHEMA = JSON.stringify({ type: 'object', required: ['status', 'owner'] });
 
@@ -30,11 +30,11 @@ async function openFrontmatterSettings(page: Page) {
 }
 
 test.beforeEach(async ({ page, workerServer }) => {
-  mkdirSync(join(workerServer.contentDir, '.ok', 'schemas'), { recursive: true });
+  mkdirSync(join(workerServer.contentDir, '.gitquire', 'schemas'), { recursive: true });
   writeFileSync(join(workerServer.contentDir, SCHEMA_MAIN), REQUIRED_SCHEMA, 'utf-8');
   writeFileSync(join(workerServer.contentDir, SCHEMA_ZERO), REQUIRED_SCHEMA, 'utf-8');
   writeFileSync(
-    join(workerServer.contentDir, '.ok', 'config.yml'),
+    join(workerServer.contentDir, '.gitquire', 'config.yml'),
     [
       'contentRules:',
       '  frontmatter:',
@@ -63,7 +63,7 @@ test.afterEach(() => {
 });
 
 test.afterAll(({ workerServer }) => {
-  writeFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), '', 'utf-8');
+  writeFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), '', 'utf-8');
 });
 
 test.describe('folder picker writes real config', () => {
@@ -84,7 +84,7 @@ test.describe('folder picker writes real config', () => {
     await expect(pickerTrigger(page, SCHEMA_MAIN)).toContainText('1 folder picked');
     await expect(schemaRow(page, SCHEMA_MAIN)).toContainText(`${folder}/**`);
     await expect
-      .poll(() => readFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), 'utf-8'), {
+      .poll(() => readFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), 'utf-8'), {
         timeout: 15_000,
       })
       .toContain(`${folder}/**`);
@@ -130,7 +130,7 @@ test.describe('folder picker writes real config', () => {
     mkdirSync(join(workerServer.contentDir, folder), { recursive: true });
     writeFileSync(join(workerServer.contentDir, folder, 'doc-u.md'), '# u\n', 'utf-8');
     writeFileSync(
-      join(workerServer.contentDir, '.ok', 'config.yml'),
+      join(workerServer.contentDir, '.gitquire', 'config.yml'),
       [
         'contentRules:',
         '  frontmatter:',
@@ -158,12 +158,12 @@ test.describe('folder picker writes real config', () => {
     await expect(pickerTrigger(page, SCHEMA_MAIN)).toContainText('Pick folders');
     await expect(schemaRow(page, SCHEMA_MAIN)).not.toContainText(`${folder}/**`);
     await expect
-      .poll(() => readFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), 'utf-8'), {
+      .poll(() => readFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), 'utf-8'), {
         timeout: 15_000,
       })
       .not.toContain(`${folder}/**`);
     const config = parse(
-      readFileSync(join(workerServer.contentDir, '.ok', 'config.yml'), 'utf-8'),
+      readFileSync(join(workerServer.contentDir, '.gitquire', 'config.yml'), 'utf-8'),
     ) as {
       contentRules?: { frontmatter?: { schemas?: Array<{ file?: string; appliesTo?: unknown }> } };
     };

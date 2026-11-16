@@ -1,6 +1,6 @@
 import type { OkfRuleId } from '../okf-rule-meta.ts';
 
-export const OKF_SCHEMA_DIR = '.ok/okf';
+export const OKF_SCHEMA_DIR = '.gitquire/okf';
 
 export function fileNameFor(ruleId: OkfRuleId): string {
   return `${ruleId.replace(/^frontmatter-/, '')}.schema.json`;

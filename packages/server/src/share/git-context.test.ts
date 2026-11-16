@@ -1079,7 +1079,7 @@ describe('git host declaration gates GitHub treatment', () => {
     });
   });
 
-  test('a malformed ~/.ok/global.yml yields no declarations and is left on disk unchanged', () => {
+  test('a malformed ~/.gitquire/global.yml yields no declarations and is left on disk unchanged', () => {
     const malformed = 'git:\n  hosts:\n   - [unclosed\n';
     writeUserConfig(home(), malformed);
     seedRepo(dir, { config: SELF_HOSTED_CONFIG });
@@ -1087,14 +1087,18 @@ describe('git host declaration gates GitHub treatment', () => {
     expect(readDeclaredGitHubHosts().size).toBe(0);
     expect(readOriginGitHubRepo(dir)).toEqual({ kind: 'non-github', host: 'git.example.internal' });
 
-    const configPath = join(home(), '.ok', 'global.yml');
+    const configPath = join(home(), '.gitquire', 'global.yml');
     expect(existsSync(configPath)).toBe(true);
     expect(readFileSync(configPath, 'utf-8')).toBe(malformed);
   });
 
-  test("a declaration in the project's .ok/config.yml is ignored", () => {
-    mkdirSync(join(dir, '.ok'), { recursive: true });
-    writeFileSync(join(dir, '.ok', 'config.yml'), gitHostsYaml('git.example.internal'), 'utf-8');
+  test("a declaration in the project's .gitquire/config.yml is ignored", () => {
+    mkdirSync(join(dir, '.gitquire'), { recursive: true });
+    writeFileSync(
+      join(dir, '.gitquire', 'config.yml'),
+      gitHostsYaml('git.example.internal'),
+      'utf-8',
+    );
     seedRepo(dir, { config: SELF_HOSTED_CONFIG });
 
     expect(readDeclaredGitHubHosts().size).toBe(0);

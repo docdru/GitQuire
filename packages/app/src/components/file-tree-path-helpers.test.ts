@@ -79,9 +79,9 @@ describe('file-tree-path-helpers', () => {
       expect(targets[0].path).toBe('docs/notes');
     });
 
-    test('excludes read-only .ok rows', () => {
+    test('excludes read-only .gitquire rows', () => {
       const targets = selectedTreePathsToDeleteTargets(
-        ['docs/notes.md', 'docs/.ok/templates/trip.md'],
+        ['docs/notes.md', 'docs/.gitquire/templates/trip.md'],
         documents,
       );
       expect(targets.map((t) => t.path)).toEqual(['docs/notes']);

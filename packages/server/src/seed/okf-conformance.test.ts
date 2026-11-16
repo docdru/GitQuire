@@ -42,7 +42,7 @@ function collectMarkdown(root: string, dir = root): string[] {
 }
 
 function consumerFrontmatterYaml(relPath: string, raw: string): string | null {
-  const isTemplate = relPath.includes('/.ok/templates/');
+  const isTemplate = relPath.includes('/.gitquire/templates/');
   const docSource = isTemplate
     ? applySubstitution(instantiateDoc(raw), { date: '2026-01-01', user: 'Test User' })
     : raw;
@@ -55,8 +55,8 @@ async function seedOkf(
   rootDir?: string,
 ): Promise<{ projectDir: string; cleanup: () => Promise<void> }> {
   const projectDir = await mkdtemp(join(tmpdir(), 'seed-okf-'));
-  mkdirSync(join(projectDir, '.ok'), { recursive: true });
-  writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+  writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
   mkdirSync(join(projectDir, '.agents', 'skills'), { recursive: true });
   const plan = await planSeed({ projectDir, packId: 'okf', rootDir });
   const result = await applySeed(plan, { projectDir, packId: 'okf' });
@@ -71,8 +71,8 @@ async function seedPackSequence(
   order: readonly PackId[],
 ): Promise<{ projectDir: string; cleanup: () => Promise<void> }> {
   const projectDir = await mkdtemp(join(tmpdir(), 'seed-okf-compatible-packs-'));
-  mkdirSync(join(projectDir, '.ok'), { recursive: true });
-  writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+  mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+  writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
   mkdirSync(join(projectDir, '.agents', 'skills'), { recursive: true });
   for (const packId of order) {
     const plan = await planSeed({ projectDir, packId });
@@ -102,7 +102,7 @@ describe('okf pack — OKF §11 conformance by construction', () => {
     try {
       const docs = collectMarkdown(projectDir).filter((p) => !RESERVED_FILES.has(p));
       expect(docs).toContain('concepts/getting-started.md');
-      expect(docs).toContain('concepts/.ok/templates/concept.md');
+      expect(docs).toContain('concepts/.gitquire/templates/concept.md');
 
       for (const relPath of docs) {
         const raw = readFileSync(join(projectDir, relPath), 'utf-8');
@@ -182,8 +182,8 @@ describe('okf pack — OKF §11 conformance by construction', () => {
     const projectDir = await mkdtemp(join(tmpdir(), 'seed-okf-existing-root-index-'));
     const existingIndex = '# User-authored bundle index\n';
     try {
-      mkdirSync(join(projectDir, '.ok'), { recursive: true });
-      writeFileSync(join(projectDir, '.ok', 'config.yml'), '', 'utf-8');
+      mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
+      writeFileSync(join(projectDir, '.gitquire', 'config.yml'), '', 'utf-8');
       mkdirSync(join(projectDir, 'bundle'), { recursive: true });
       writeFileSync(join(projectDir, 'bundle', 'index.md'), existingIndex, 'utf-8');
 
@@ -243,7 +243,7 @@ describe('okf pack — the okf lint rules find nothing in the seeded bundle', ()
       expect(files).toContain('concepts/getting-started.md');
       expect(files).not.toContain('log.md');
       expect(files.filter((relPath) => relPath.endsWith('/index.md'))).toEqual([]);
-      expect(files.some((relPath) => relPath.includes('.ok/templates/'))).toBe(true);
+      expect(files.some((relPath) => relPath.includes('.gitquire/templates/'))).toBe(true);
 
       for (const relPath of files) {
         const source = readFileSync(join(projectDir, relPath), 'utf-8');
@@ -275,9 +275,9 @@ describe('knowledge-base + okf pack compatibility', () => {
         const files = collectMarkdown(projectDir);
         expect(files).toContain('index.md');
         expect(files).toContain('log.md');
-        expect(files).toContain('external-sources/.ok/templates/clip.md');
-        expect(files).toContain('research/.ok/templates/research-log.md');
-        expect(files).toContain('articles/.ok/templates/article.md');
+        expect(files).toContain('external-sources/.gitquire/templates/clip.md');
+        expect(files).toContain('research/.gitquire/templates/research-log.md');
+        expect(files).toContain('articles/.gitquire/templates/article.md');
 
         for (const relPath of files) {
           const source = readFileSync(join(projectDir, relPath), 'utf-8');
@@ -304,7 +304,7 @@ describe('all starter packs — OKF §11 rule 2 (every template instantiates a t
       expect(templates.length, `${pack.id}: pack defines no templates`).toBeGreaterThan(0);
 
       for (const [name, body] of templates) {
-        const relPath = `${pack.id}/.ok/templates/${name}.md`;
+        const relPath = `${pack.id}/.gitquire/templates/${name}.md`;
         const yaml = consumerFrontmatterYaml(relPath, body);
         expect(
           yaml,

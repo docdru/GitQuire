@@ -698,6 +698,6 @@ test.describe('dialogs that ride the address bar', () => {
     await page.getByRole('button', { name: 'Create template' }).click();
 
     await expect(page.getByTestId('settings-dialog')).toHaveCount(0);
-    await expectEditorShownOn(page, `.ok/templates/${templateName}`);
+    await expectEditorShownOn(page, `.gitquire/templates/${templateName}`);
   });
 });

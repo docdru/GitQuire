@@ -138,7 +138,7 @@ The **Knowledge base** pack scaffolds Karpathy's pattern with one significant ad
 | The wiki (single LLM-owned layer) | **Split**: `research/` (provisional, `status: draft`, sources cited) + `articles/` (canonical, `status: stable`, supersedes chain); `consolidate` promotes |
 | `log.md` (append-only record) | `log.md` at project root, written by the pack |
 | `index.md` (static content catalog) | Provided dynamically via `exec` (`ls`) + the file sidebar. The agent reads folder frontmatter + per-doc metadata on every list call, so a static index isn't required. You can still hand-write `index.md` if you prefer. |
-| `CLAUDE.md` / `AGENTS.md` (centralized schema) | `<folder>/.ok/frontmatter.yml` + per-folder templates; schema lives next to the action |
+| `CLAUDE.md` / `AGENTS.md` (centralized schema) | `<folder>/.gitquire/frontmatter.yml` + per-folder templates; schema lives next to the action |
 | LLM agent | [Claude Code](../gitquire/connect-ai.mdx), [Cursor](../gitquire/connect-ai.mdx), [Codex](../gitquire/connect-ai.mdx), [OpenCode](../gitquire/connect-ai.mdx), [OpenClaw](../gitquire/connect-ai.mdx) |
 
 When your agent lists `external-sources/`, it reads the folder description telling it to ingest verbatim and *not* analyze in those files. That's the schema layer doing its job, without you hand-writing a `CLAUDE.md` from scratch.
@@ -193,11 +193,11 @@ Every claim in the log cites a specific source path. You can now ask:
 
 The agent reads `research/agent-framework-evaluation.md` first, follows the citation chain into `external-sources/`, and returns a synthesized answer with traceable evidence.
 
-## What's inside `.ok/` after seeding
+## What's inside `.gitquire/` after seeding
 
 The pack doesn't just create three folders. It scaffolds the **agent-readable schema layer** that makes the LLM behave per Karpathy's conventions without you hand-writing a `CLAUDE.md`.
 
-Each folder gets a `.ok/frontmatter.yml` (the agent reads it on every `exec` directory listing) plus a `.ok/templates/<name>.md` (the agent picks it on every `write({ document: { template } })` call). `external-sources/.ok/frontmatter.yml`, for example, carries this description:
+Each folder gets a `.gitquire/frontmatter.yml` (the agent reads it on every `exec` directory listing) plus a `.gitquire/templates/<name>.md` (the agent picks it on every `write({ document: { template } })` call). `external-sources/.gitquire/frontmatter.yml`, for example, carries this description:
 
 > Raw sources saved verbatim — the fetched text of URLs, extracted PDFs, and copied files, each with the original URL and access date in frontmatter. Produced by `ingest`. Immutable after capture; no analysis here (that goes in `research/`).
 
@@ -234,7 +234,7 @@ When to use each tool, and when *not* to:
 
 | When | Do | Composes |
 |---|---|---|
-| **As sources arrive** | `ingest` (30 sec per source) | `external-sources/.ok/` frontmatter + `clip` template + agent activity panel |
+| **As sources arrive** | `ingest` (30 sec per source) | `external-sources/.gitquire/` frontmatter + `clip` template + agent activity panel |
 | **Weekly** | A `research` pass to synthesize recent ingests; ask the agent to flag contradictions | `research` procedure + folder frontmatter discipline + wikilink graph |
 | **Per-decision** | `consolidate` to canonical | `consolidate` procedure + supersedes chain + `articles/` template |
 | **Monthly** | *"find stale claims in `articles/`, orphans, missing cross-refs"* | `links` (orphans, dead links, backlinks) |
@@ -243,7 +243,7 @@ The compounding move: end each ingest session with one synthesis query. The answ
 
 ## Tips
 
-- **Folder descriptions are agent-readable.** The pack writes `<folder>/.ok/frontmatter.yml` so the agent learns layer discipline on every `exec` directory listing, with no separate `CLAUDE.md`.
+- **Folder descriptions are agent-readable.** The pack writes `<folder>/.gitquire/frontmatter.yml` so the agent learns layer discipline on every `exec` directory listing, with no separate `CLAUDE.md`.
 - **`log.md` doubles as a journal.** Every `ingest` / `research` / `consolidate` lands there with timestamps. Underrated.
 - **`New from template`** in the sidebar gives you the right frontmatter shape instantly. Don't hand-author.
 

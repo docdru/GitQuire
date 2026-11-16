@@ -58,8 +58,8 @@ async function factoryProbe(root: string, expireInit: boolean, target: WatcherTa
       env: { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' },
     });
     configureTestGitRepository(project);
-    mkdirSync(join(project, '.ok'));
-    writeFileSync(join(project, '.ok', 'config.yml'), '');
+    mkdirSync(join(project, '.gitquire'));
+    writeFileSync(join(project, '.gitquire', 'config.yml'), '');
     writeFileSync(join(project, 'start.md'), '# Start\n');
 
     const operations: Operation[] = [];

@@ -47,7 +47,7 @@ export function createLinkedWorktree(opts: CreateLinkedWorktreeOptions = {}): Li
   const worktreeGitdir = resolve(worktreesDir, adminName);
 
   if (opts.seedOkScaffold) {
-    const okDir = resolve(worktreePath, '.ok');
+    const okDir = resolve(worktreePath, '.gitquire');
     mkdirSync(okDir, { recursive: true });
     writeFileSync(resolve(okDir, 'config.yml'), '', 'utf-8');
     writeFileSync(resolve(okDir, '.gitignore'), '', 'utf-8');

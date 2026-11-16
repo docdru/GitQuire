@@ -20,7 +20,7 @@ describe('runSync — client version headers (AC-5)', () => {
 
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), 'ok-sync-test-'));
-    const lockDir = join(dir, '.ok', 'local');
+    const lockDir = join(dir, '.gitquire', 'local');
     mkdirSync(lockDir, { recursive: true });
     writeFileSync(
       join(lockDir, 'server.lock'),

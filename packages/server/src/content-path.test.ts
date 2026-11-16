@@ -15,8 +15,8 @@ afterEach(() => {
 });
 
 function markProject(path: string): void {
-  mkdirSync(join(path, '.ok'), { recursive: true });
-  writeFileSync(join(path, '.ok', 'config.yml'), '');
+  mkdirSync(join(path, '.gitquire'), { recursive: true });
+  writeFileSync(join(path, '.gitquire', 'config.yml'), '');
 }
 
 test('refuses existing and new documents owned by a nested project', () => {
@@ -30,8 +30,8 @@ test('refuses existing and new documents owned by a nested project', () => {
 });
 
 test('folder metadata does not split project ownership', () => {
-  mkdirSync(join(root, 'notes', '.ok'), { recursive: true });
-  writeFileSync(join(root, 'notes', '.ok', 'frontmatter.yml'), 'icon: note\n');
+  mkdirSync(join(root, 'notes', '.gitquire'), { recursive: true });
+  writeFileSync(join(root, 'notes', '.gitquire', 'frontmatter.yml'), 'icon: note\n');
   expect(safeContentPath('notes/new', root)).toBe(join(root, 'notes', 'new.md'));
 });
 

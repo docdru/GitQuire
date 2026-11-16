@@ -419,7 +419,7 @@ describe('fetchPages', () => {
         documents: [
           { kind: 'file', path: 'assets/.DS_Store' },
           { kind: 'file', path: '.okignore' },
-          { kind: 'file', path: '.ok/skills/x.md' },
+          { kind: 'file', path: '.gitquire/skills/x.md' },
           { kind: 'file', path: '.vscode/mcp.json' },
           { kind: 'file', path: 'opencode.json' },
         ],

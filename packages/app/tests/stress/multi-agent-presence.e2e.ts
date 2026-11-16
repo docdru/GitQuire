@@ -25,7 +25,7 @@ test.describe('multi-agent presence — sectioned PresenceBar (FR-9)', () => {
     api,
     workerServer,
   }) => {
-    const configDir = join(workerServer.contentDir, '.ok');
+    const configDir = join(workerServer.contentDir, '.gitquire');
     const configPath = join(configDir, 'config.yml');
     const originalConfig = existsSync(configPath) ? readFileSync(configPath) : null;
     const callerConfig = 'contentRules:\n  markdownlint:\n    enabled: true\n';

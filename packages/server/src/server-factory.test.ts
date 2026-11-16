@@ -668,7 +668,7 @@ describe('createServer().destroy() — graceful shutdown flush', () => {
     });
     await server.ready;
 
-    const lockPath = join(tmpDir, '.ok', LOCAL_DIR, 'server.lock');
+    const lockPath = join(tmpDir, '.gitquire', LOCAL_DIR, 'server.lock');
     const docName = 'shutdown-order';
     const contentPath = join(tmpDir, `${docName}.md`);
     const captures: Array<{ lockExists: boolean; contentOnDisk: boolean; payload: string }> = [];
@@ -1843,9 +1843,9 @@ describe('createServer() degraded signal', () => {
     _resetDocExtensionsForTests();
     const contentDir = mkdtempSync(resolve(testProjectDir, 'content-'));
     const diskContent = 'bytes the editor tried to overwrite';
-    mkdirSync(join(testProjectDir, '.ok', LOCAL_DIR), { recursive: true });
+    mkdirSync(join(testProjectDir, '.gitquire', LOCAL_DIR), { recursive: true });
     writeFileSync(
-      join(testProjectDir, '.ok', LOCAL_DIR, 'stale-external-writes.json'),
+      join(testProjectDir, '.gitquire', LOCAL_DIR, 'stale-external-writes.json'),
       JSON.stringify({
         version: 1,
         branches: {
@@ -2009,8 +2009,8 @@ describe('createServer() — config file watcher (US-007)', () => {
 
     expect(ytext.toString()).toBe('');
 
-    const configPath = join(testProjectDir, '.ok', 'config.yml');
-    mkdirSync(join(testProjectDir, '.ok'), { recursive: true });
+    const configPath = join(testProjectDir, '.gitquire', 'config.yml');
+    mkdirSync(join(testProjectDir, '.gitquire'), { recursive: true });
     const newContent = 'mcp:\n  autoStart: false\n';
     writeFileSync(configPath, newContent, 'utf-8');
 
@@ -2055,8 +2055,8 @@ describe('createServer() — config file watcher (US-007)', () => {
   test('external broken-YAML write keeps Y.Text at LKG and does not crash the server', async () => {
     const logs = captureAllLoggers();
     const contentDir = mkdtempSync(resolve(testProjectDir, 'content-'));
-    const configPath = join(testProjectDir, '.ok', 'config.yml');
-    mkdirSync(join(testProjectDir, '.ok'), { recursive: true });
+    const configPath = join(testProjectDir, '.gitquire', 'config.yml');
+    mkdirSync(join(testProjectDir, '.gitquire'), { recursive: true });
     const validContent = 'mcp:\n  autoStart: false\n';
     writeFileSync(configPath, validContent, 'utf-8');
 
@@ -2117,7 +2117,7 @@ describe('createServer() — config file watcher (US-007)', () => {
       ytext.insert(0, newContent);
     });
 
-    const configPath = join(testProjectDir, '.ok', 'config.yml');
+    const configPath = join(testProjectDir, '.gitquire', 'config.yml');
     const fileLanded = await waitFor(
       () => existsSync(configPath) && readFileSync(configPath, 'utf-8') === newContent,
     );
@@ -2171,7 +2171,7 @@ describe('createServer() — project-local file watcher → engine.setMode', () 
 
     expect(srv.syncEngine?.getStatus().syncEnabled).toBe(false);
 
-    const localDir = join(testProjectDir, '.ok', LOCAL_DIR);
+    const localDir = join(testProjectDir, '.gitquire', LOCAL_DIR);
     mkdirSync(localDir, { recursive: true });
     const configPath = join(localDir, 'config.yml');
     writeFileSync(configPath, 'autoSync:\n  enabled: true\n', 'utf-8');
@@ -2183,9 +2183,9 @@ describe('createServer() — project-local file watcher → engine.setMode', () 
   });
 
   test('toggling autoSync.enabled: false on disk disables the engine within 4s', async () => {
-    mkdirSync(join(testProjectDir, '.ok', LOCAL_DIR), { recursive: true });
+    mkdirSync(join(testProjectDir, '.gitquire', LOCAL_DIR), { recursive: true });
     writeFileSync(
-      join(testProjectDir, '.ok', LOCAL_DIR, 'config.yml'),
+      join(testProjectDir, '.gitquire', LOCAL_DIR, 'config.yml'),
       'autoSync:\n  enabled: true\n',
       'utf-8',
     );
@@ -2202,7 +2202,7 @@ describe('createServer() — project-local file watcher → engine.setMode', () 
     expect(srv.syncEngine?.getStatus().syncEnabled).toBe(true);
 
     writeFileSync(
-      join(testProjectDir, '.ok', LOCAL_DIR, 'config.yml'),
+      join(testProjectDir, '.gitquire', LOCAL_DIR, 'config.yml'),
       'autoSync:\n  enabled: false\n',
       'utf-8',
     );
@@ -2225,9 +2225,9 @@ describe('createServer() — project-local file watcher → engine.setMode', () 
 
     expect(srv.syncEngine?.getStatus().syncEnabled).toBe(false);
 
-    mkdirSync(join(testProjectDir, '.ok'), { recursive: true });
+    mkdirSync(join(testProjectDir, '.gitquire'), { recursive: true });
     writeFileSync(
-      join(testProjectDir, '.ok', 'config.yml'),
+      join(testProjectDir, '.gitquire', 'config.yml'),
       'autoSync:\n  default: true\n',
       'utf-8',
     );
@@ -2268,7 +2268,7 @@ describe('createServer() — a removed key in project-local config does not disa
   });
 
   function writeProjectLocal(yaml: string): void {
-    const localDir = join(testProjectDir, '.ok', LOCAL_DIR);
+    const localDir = join(testProjectDir, '.gitquire', LOCAL_DIR);
     mkdirSync(localDir, { recursive: true });
     writeFileSync(join(localDir, 'config.yml'), yaml, 'utf-8');
   }
@@ -2559,7 +2559,7 @@ describe('createServer() managed rename recovery', () => {
   });
 
   test('marks the server degraded when the managed rename journal is corrupt', async () => {
-    mkdirSync(join(tmpDir, '.ok', LOCAL_DIR), { recursive: true });
+    mkdirSync(join(tmpDir, '.gitquire', LOCAL_DIR), { recursive: true });
     writeFileSync(managedRenameJournalPath(tmpDir), '{not valid json', 'utf-8');
 
     const server = createServer({
@@ -2594,7 +2594,7 @@ describe('createServer() server-lock integration (V0-1)', () => {
     });
     await server.ready;
 
-    const lockPath = join(tmpDir, '.ok', LOCAL_DIR, 'server.lock');
+    const lockPath = join(tmpDir, '.gitquire', LOCAL_DIR, 'server.lock');
     expect(existsSync(lockPath)).toBe(true);
     const md = JSON.parse(readFileSync(lockPath, 'utf-8'));
     expect(md.pid).toBe(process.pid);
@@ -2619,7 +2619,7 @@ describe('createServer() server-lock integration (V0-1)', () => {
     });
     await server.ready;
 
-    expect(server.lockDir).toBe(join(tmpDir, '.ok', LOCAL_DIR));
+    expect(server.lockDir).toBe(join(tmpDir, '.gitquire', LOCAL_DIR));
 
     await server.destroy();
   });
@@ -2634,7 +2634,7 @@ describe('createServer() server-lock integration (V0-1)', () => {
 
     const { hostname } = await import('node:os');
     const foreignPid = process.ppid > 1 ? process.ppid : process.pid + 1;
-    const lockPath = join(tmpDir, '.ok', LOCAL_DIR, 'server.lock');
+    const lockPath = join(tmpDir, '.gitquire', LOCAL_DIR, 'server.lock');
     writeFileSync(
       lockPath,
       JSON.stringify({
@@ -2675,7 +2675,7 @@ describe('createServer() server-lock integration (V0-1)', () => {
     });
     await server.ready;
 
-    const lockPath = join(tmpDir, '.ok', LOCAL_DIR, 'server.lock');
+    const lockPath = join(tmpDir, '.gitquire', LOCAL_DIR, 'server.lock');
     const before = JSON.parse(readFileSync(lockPath, 'utf-8'));
     expect(before.port).toBe(0);
 
@@ -2698,7 +2698,7 @@ describe('createServer() server-lock integration (V0-1)', () => {
     });
     await server.ready;
 
-    const lockPath = join(tmpDir, '.ok', LOCAL_DIR, 'server.lock');
+    const lockPath = join(tmpDir, '.gitquire', LOCAL_DIR, 'server.lock');
     const acquired = JSON.parse(readFileSync(lockPath, 'utf-8'));
     expect(acquired.port).toBe(0);
 
@@ -2713,7 +2713,7 @@ describe('createServer() server-lock integration (V0-1)', () => {
     });
     await server.ready;
 
-    const lockPath = join(tmpDir, '.ok', LOCAL_DIR, 'server.lock');
+    const lockPath = join(tmpDir, '.gitquire', LOCAL_DIR, 'server.lock');
     expect(existsSync(lockPath)).toBe(true);
 
     const origCloseAll = server.sessionManager.closeAll.bind(server.sessionManager);
@@ -3624,13 +3624,13 @@ describe('createServer() — readProjectAutoSyncMode precedence', () => {
   });
 
   function seedProjectLocalConfig(content: string): void {
-    mkdirSync(join(testProjectDir, '.ok', LOCAL_DIR), { recursive: true });
-    writeFileSync(join(testProjectDir, '.ok', LOCAL_DIR, 'config.yml'), content, 'utf-8');
+    mkdirSync(join(testProjectDir, '.gitquire', LOCAL_DIR), { recursive: true });
+    writeFileSync(join(testProjectDir, '.gitquire', LOCAL_DIR, 'config.yml'), content, 'utf-8');
   }
 
   function seedProjectConfig(content: string): void {
-    mkdirSync(join(testProjectDir, '.ok'), { recursive: true });
-    writeFileSync(join(testProjectDir, '.ok', 'config.yml'), content, 'utf-8');
+    mkdirSync(join(testProjectDir, '.gitquire'), { recursive: true });
+    writeFileSync(join(testProjectDir, '.gitquire', 'config.yml'), content, 'utf-8');
   }
 
   test('project-local autoSync.enabled: true → engine boots enabled', async () => {
@@ -3784,7 +3784,7 @@ describe('createServer() — protected-branch auto-disable persistence', () => {
     const contentDir = mkdtempSync(resolve(projectDir, 'content-'));
     const projectConfigPath = resolveConfigPath('project', projectDir);
     const localConfigPath = resolveConfigPath('project-local', projectDir);
-    mkdirSync(join(projectDir, '.ok', LOCAL_DIR), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire', LOCAL_DIR), { recursive: true });
     writeFileSync(projectConfigPath, 'autoSync:\n  default: true\n', 'utf-8');
     writeFileSync(localConfigPath, 'autoSync:\n  enabled: true\n', 'utf-8');
 
@@ -4464,9 +4464,9 @@ describe('createServer() — generated index wiring', () => {
     projectDir = await mkdtemp(join(tmpdir(), 'ok-index-wiring-'));
     contentDir = join(projectDir, 'content');
     mkdirSync(contentDir, { recursive: true });
-    mkdirSync(join(projectDir, '.ok'), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire'), { recursive: true });
     writeFileSync(
-      join(projectDir, '.ok', 'config.yml'),
+      join(projectDir, '.gitquire', 'config.yml'),
       stringifyYaml({ contentRules: { okf: { enabled: true, generate: { index: true } } } }),
       'utf-8',
     );
@@ -4591,7 +4591,7 @@ describe('createServer() — generated index wiring', () => {
     await firstWrite;
 
     writeFileSync(
-      join(projectDir, '.ok', 'config.yml'),
+      join(projectDir, '.gitquire', 'config.yml'),
       stringifyYaml({ contentRules: { okf: { enabled: true, generate: { index: false } } } }),
       'utf-8',
     );
@@ -4736,7 +4736,7 @@ describe('createServer() — generated index wiring', () => {
 
   test('settings endpoint commits the Git rule and config as one lifecycle operation', async () => {
     writeFileSync(
-      join(projectDir, '.ok', 'config.yml'),
+      join(projectDir, '.gitquire', 'config.yml'),
       stringifyYaml({ contentRules: { okf: { enabled: true, generate: { index: false } } } }),
       'utf-8',
     );
@@ -4786,7 +4786,7 @@ describe('createServer() — generated index wiring', () => {
 
   test('settings endpoint rolls the Git rule back when the config write is rejected', async () => {
     const invalidConfig = 'contentRules: [\n';
-    writeFileSync(join(projectDir, '.ok', 'config.yml'), invalidConfig, 'utf-8');
+    writeFileSync(join(projectDir, '.gitquire', 'config.yml'), invalidConfig, 'utf-8');
     writeDoc('waiting.md', 'Waiting', 'note');
     const activeServer = await bootServer();
     await expect(activeServer.generatedIndexSweepReady).resolves.toEqual({
@@ -4808,14 +4808,14 @@ describe('createServer() — generated index wiring', () => {
       reason: 'config-write',
       git: { state: 'missing' },
     });
-    expect(readFileSync(join(projectDir, '.ok', 'config.yml'), 'utf-8')).toBe(invalidConfig);
+    expect(readFileSync(join(projectDir, '.gitquire', 'config.yml'), 'utf-8')).toBe(invalidConfig);
     expect(existsSync(join(projectDir, '.gitattributes'))).toBe(false);
     expect(existsSync(indexPath())).toBe(false);
   });
 
   test('settings endpoint repairs a missing Git rule when config is already enabled', async () => {
     writeFileSync(
-      join(projectDir, '.ok', 'config.yml'),
+      join(projectDir, '.gitquire', 'config.yml'),
       stringifyYaml({ contentRules: { okf: { enabled: true, generate: { index: true } } } }),
       'utf-8',
     );
@@ -5031,9 +5031,9 @@ describe('createServer() — generated index wiring', () => {
       '',
     ].join('\n');
     writeFileSync(indexPathAt('concepts'), conflicted, 'utf-8');
-    mkdirSync(join(projectDir, '.ok', LOCAL_DIR), { recursive: true });
+    mkdirSync(join(projectDir, '.gitquire', LOCAL_DIR), { recursive: true });
     writeFileSync(
-      join(projectDir, '.ok', LOCAL_DIR, 'conflicts.json'),
+      join(projectDir, '.gitquire', LOCAL_DIR, 'conflicts.json'),
       JSON.stringify({
         version: 1,
         branch: 'main',
@@ -5340,7 +5340,7 @@ describe('createServer() — generated index wiring', () => {
 
   test('enabling generation sweeps nested folders, not only the root', async () => {
     writeFileSync(
-      join(projectDir, '.ok', 'config.yml'),
+      join(projectDir, '.gitquire', 'config.yml'),
       stringifyYaml({ contentRules: { okf: { enabled: true, generate: { index: false } } } }),
       'utf-8',
     );
@@ -5719,7 +5719,7 @@ function persistedStaleExternalWrite(
   projectDir: string,
   docName: string,
 ): Record<string, unknown> | undefined {
-  const snapshot = join(projectDir, '.ok', LOCAL_DIR, 'stale-external-writes.json');
+  const snapshot = join(projectDir, '.gitquire', LOCAL_DIR, 'stale-external-writes.json');
   if (!existsSync(snapshot)) return undefined;
   const parsed = JSON.parse(readFileSync(snapshot, 'utf-8')) as {
     branches: Record<string, { docName: string; staleExternalWrite?: Record<string, unknown> }[]>;

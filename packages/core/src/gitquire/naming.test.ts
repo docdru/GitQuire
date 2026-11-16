@@ -17,7 +17,7 @@ describe('naming rule', () => {
   });
 
   test('leaves hidden, underscore and unsluggable segments alone', () => {
-    expect(slugifySegment('.ok', false)).toBe('.ok');
+    expect(slugifySegment('.gitquire', false)).toBe('.gitquire');
     expect(slugifySegment('_Drafts', false)).toBe('_Drafts');
     expect(slugifySegment('🚀.md', true)).toBe('🚀.md');
   });

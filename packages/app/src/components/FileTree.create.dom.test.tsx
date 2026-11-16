@@ -469,7 +469,7 @@ describe('FileTree startCreating addPage symmetry', () => {
       {
         name: 'daily',
         title: 'Daily',
-        path: 'notes/.ok/templates/daily.md',
+        path: 'notes/.gitquire/templates/daily.md',
         source_folder: 'notes',
         scope: 'local',
       },

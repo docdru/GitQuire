@@ -39,7 +39,7 @@ interface ContentConfig {
 
 export function resolveContentConfig(projectRoot: string): ContentConfig {
   const defaults: ContentConfig = { dir: projectRoot };
-  const configPath = resolve(projectRoot, '.ok/config.yml');
+  const configPath = resolve(projectRoot, '.gitquire/config.yml');
   if (existsSync(configPath)) {
     try {
       const raw = readFileSync(configPath, 'utf-8');

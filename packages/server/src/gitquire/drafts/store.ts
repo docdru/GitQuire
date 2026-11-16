@@ -19,7 +19,7 @@ export interface DraftStore {
 }
 
 export function draftsStatePath(projectDir: string): string {
-  return join(projectDir, '.ok', 'local', 'gitquire', 'drafts.json');
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'drafts.json');
 }
 
 export function draftsDir(

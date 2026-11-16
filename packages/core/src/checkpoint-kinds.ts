@@ -580,7 +580,7 @@ export const CHECKPOINT_SAMPLE_BY_KIND = {
   },
   'managed-artifact-reconcile': {
     kind: 'managed-artifact-reconcile',
-    docName: '.ok/templates/daily',
+    docName: '.gitquire/templates/daily',
     size: 12,
     metadata: { diskBytes: 41, discardedBytes: 66 },
   },

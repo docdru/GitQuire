@@ -71,7 +71,7 @@ test.each(['write', 'edit', 'move'])(
 
 test('move keeps its identity promise and default summary in the actual listing', () => {
   expect(description('move')).toMatch(
-    /^For \.md\/\.mdx inspection before or after a move in a project with \.ok\/, use exec; native Read\/Grep\/Glob omit wiki context\./,
+    /^For \.md\/\.mdx inspection before or after a move in a project with \.gitquire\/, use exec; native Read\/Grep\/Glob omit wiki context\./,
   );
   expect(description('move')).toContain(
     'Links to the moved document keep pointing to it. The old path stops existing; do not leave a redirect or stub.',

@@ -102,7 +102,7 @@ afterAll(() => {
 
 beforeEach(async () => {
   tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-share-link-test-'));
-  await mkdir(resolve(tmpDir, '.ok'), { recursive: true });
+  await mkdir(resolve(tmpDir, '.gitquire'), { recursive: true });
   seenRequests.length = 0;
   mockResponse = { status: 200, body: {} };
   mockRawResponse = null;
@@ -121,7 +121,7 @@ function makeDeps(serverUrl: string | undefined, config: Config = BASE_CONFIG): 
 }
 
 async function seedUiServer(): Promise<void> {
-  const lockDir = resolve(tmpDir, '.ok', 'local');
+  const lockDir = resolve(tmpDir, '.gitquire', 'local');
   await mkdir(lockDir, { recursive: true });
   acquireServerLock(lockDir, {
     port: 0,

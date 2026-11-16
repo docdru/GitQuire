@@ -660,7 +660,7 @@ export function InheritedBadge({
   target?: string;
 }) {
   const { t } = useLingui();
-  const path = source === '' ? `.ok/${target}` : `${source}/.ok/${target}`;
+  const path = source === '' ? `.gitquire/${target}` : `${source}/.gitquire/${target}`;
   return (
     <Badge
       variant="gray"

@@ -104,7 +104,7 @@ describe('file-ops group over the composed listener — served natively', () => 
   test('create-page drops a template symlinked outside the content root from the menu', async () => {
     const secretDir = mkdtempSync(resolve(tmpRoot, 'secret-'));
     writeFileSync(resolve(secretDir, 'secret.txt'), 'TOP SECRET', 'utf-8');
-    const tplDir = resolve(contentDir, 'leaky', '.ok', 'templates');
+    const tplDir = resolve(contentDir, 'leaky', '.gitquire', 'templates');
     mkdirSync(tplDir, { recursive: true });
     symlinkSync(resolve(secretDir, 'secret.txt'), resolve(tplDir, 'leak.md'), 'file');
     const res = await postJson('/api/create-page', {
@@ -117,7 +117,7 @@ describe('file-ops group over the composed listener — served natively', () => 
   });
 
   test('create-page instantiates a template whose name uses non-Latin letters', async () => {
-    const tplDir = resolve(contentDir, 'minutes', '.ok', 'templates');
+    const tplDir = resolve(contentDir, 'minutes', '.gitquire', 'templates');
     mkdirSync(tplDir, { recursive: true });
     writeFileSync(
       resolve(tplDir, '議事録.md'),
@@ -135,7 +135,7 @@ describe('file-ops group over the composed listener — served natively', () => 
   });
 
   test('create-page resolves a decomposed template name to its composed spelling', async () => {
-    const tplDir = resolve(contentDir, 'nfc', '.ok', 'templates');
+    const tplDir = resolve(contentDir, 'nfc', '.gitquire', 'templates');
     mkdirSync(tplDir, { recursive: true });
     writeFileSync(
       resolve(tplDir, 'café.md'),
@@ -151,7 +151,7 @@ describe('file-ops group over the composed listener — served natively', () => 
   });
 
   test('create-page finds a decomposed template file from its composed spelling', async () => {
-    const tplDir = resolve(contentDir, 'nfd', '.ok', 'templates');
+    const tplDir = resolve(contentDir, 'nfd', '.gitquire', 'templates');
     mkdirSync(tplDir, { recursive: true });
     writeFileSync(
       resolve(tplDir, 'cafe\u{0301}.md'),
@@ -166,28 +166,32 @@ describe('file-ops group over the composed listener — served natively', () => 
     expect(readFileSync(resolve(contentDir, 'nfd', 'today.md'), 'utf-8')).toContain('## Specials');
   });
 
-  test('create-page refuses a target routed into .ok through a symlinked directory', async () => {
-    symlinkSync(resolve(contentDir, '.ok'), resolve(contentDir, 'escape-hatch'), 'dir');
+  test('create-page refuses a target routed into .gitquire through a symlinked directory', async () => {
+    symlinkSync(resolve(contentDir, '.gitquire'), resolve(contentDir, 'escape-hatch'), 'dir');
     const res = await postJson('/api/create-page', {
       path: 'escape-hatch/skills/phantom.md',
     });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
-    expect(existsSync(resolve(contentDir, '.ok', 'skills', 'phantom.md'))).toBe(false);
+    expect(existsSync(resolve(contentDir, '.gitquire', 'skills', 'phantom.md'))).toBe(false);
   });
 
-  test('delete-path refuses a recursive delete routed into .ok through a symlink', async () => {
-    mkdirSync(resolve(contentDir, '.ok', 'local'), { recursive: true });
-    writeFileSync(resolve(contentDir, '.ok', 'local', 'survivor-marker'), 'still here', 'utf-8');
-    symlinkSync(resolve(contentDir, '.ok'), resolve(contentDir, 'esc-del'), 'dir');
+  test('delete-path refuses a recursive delete routed into .gitquire through a symlink', async () => {
+    mkdirSync(resolve(contentDir, '.gitquire', 'local'), { recursive: true });
+    writeFileSync(
+      resolve(contentDir, '.gitquire', 'local', 'survivor-marker'),
+      'still here',
+      'utf-8',
+    );
+    symlinkSync(resolve(contentDir, '.gitquire'), resolve(contentDir, 'esc-del'), 'dir');
     const res = await postJson('/api/delete-path', { kind: 'folder', path: 'esc-del/local' });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
-    expect(existsSync(resolve(contentDir, '.ok', 'local', 'survivor-marker'))).toBe(true);
+    expect(existsSync(resolve(contentDir, '.gitquire', 'local', 'survivor-marker'))).toBe(true);
   });
 
-  test('rename-path refuses a destination routed into .ok/skills through a symlink', async () => {
-    symlinkSync(resolve(contentDir, '.ok'), resolve(contentDir, 'esc-ren'), 'dir');
+  test('rename-path refuses a destination routed into .gitquire/skills through a symlink', async () => {
+    symlinkSync(resolve(contentDir, '.gitquire'), resolve(contentDir, 'esc-ren'), 'dir');
     const res = await postJson('/api/rename-path', {
       kind: 'file',
       fromPath: 'alpha',
@@ -195,12 +199,12 @@ describe('file-ops group over the composed listener — served natively', () => 
     });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
-    expect(existsSync(resolve(contentDir, '.ok', 'skills', 'evil.md'))).toBe(false);
+    expect(existsSync(resolve(contentDir, '.gitquire', 'skills', 'evil.md'))).toBe(false);
   });
 
-  test('rename-path refuses a SOURCE routed into .ok through a symlink', async () => {
-    mkdirSync(resolve(contentDir, '.ok', 'local'), { recursive: true });
-    symlinkSync(resolve(contentDir, '.ok'), resolve(contentDir, 'esc-ren-src'), 'dir');
+  test('rename-path refuses a SOURCE routed into .gitquire through a symlink', async () => {
+    mkdirSync(resolve(contentDir, '.gitquire', 'local'), { recursive: true });
+    symlinkSync(resolve(contentDir, '.gitquire'), resolve(contentDir, 'esc-ren-src'), 'dir');
     const res = await postJson('/api/rename-path', {
       kind: 'folder',
       fromPath: 'esc-ren-src/local',
@@ -208,39 +212,39 @@ describe('file-ops group over the composed listener — served natively', () => 
     });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
-    expect(existsSync(resolve(contentDir, '.ok', 'local'))).toBe(true);
+    expect(existsSync(resolve(contentDir, '.gitquire', 'local'))).toBe(true);
     expect(existsSync(resolve(contentDir, 'stolen'))).toBe(false);
   });
 
-  test('create-folder refuses a directory routed into .ok through a symlink', async () => {
-    symlinkSync(resolve(contentDir, '.ok'), resolve(contentDir, 'esc-cf'), 'dir');
+  test('create-folder refuses a directory routed into .gitquire through a symlink', async () => {
+    symlinkSync(resolve(contentDir, '.gitquire'), resolve(contentDir, 'esc-cf'), 'dir');
     const res = await postJson('/api/create-folder', { path: 'esc-cf/skills' });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
   });
 
-  test('duplicate-path refuses a source routed into .ok through a symlink', async () => {
-    symlinkSync(resolve(contentDir, '.ok'), resolve(contentDir, 'esc-dup'), 'dir');
+  test('duplicate-path refuses a source routed into .gitquire through a symlink', async () => {
+    symlinkSync(resolve(contentDir, '.gitquire'), resolve(contentDir, 'esc-dup'), 'dir');
     const res = await postJson('/api/duplicate-path', { kind: 'folder', path: 'esc-dup/local' });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
   });
 
-  test('upload refuses a parentDocName inside .ok, no symlink needed', async () => {
+  test('upload refuses a parentDocName inside .gitquire, no symlink needed', async () => {
     const res = await fetch(`http://127.0.0.1:${server.port}/api/upload`, {
       method: 'POST',
       body: uploadForm(
-        { parentDocName: '.ok/skills/planted' },
+        { parentDocName: '.gitquire/skills/planted' },
         { name: 'evil.md', bytes: 'planted skill content' },
       ),
     });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
-    expect(existsSync(resolve(contentDir, '.ok', 'skills', 'evil.md'))).toBe(false);
+    expect(existsSync(resolve(contentDir, '.gitquire', 'skills', 'evil.md'))).toBe(false);
   });
 
-  test('upload refuses a parentDocName routed into .ok through a symlink', async () => {
-    symlinkSync(resolve(contentDir, '.ok'), resolve(contentDir, 'esc-upload'), 'dir');
+  test('upload refuses a parentDocName routed into .gitquire through a symlink', async () => {
+    symlinkSync(resolve(contentDir, '.gitquire'), resolve(contentDir, 'esc-upload'), 'dir');
     const res = await fetch(`http://127.0.0.1:${server.port}/api/upload`, {
       method: 'POST',
       body: uploadForm(
@@ -250,7 +254,7 @@ describe('file-ops group over the composed listener — served natively', () => 
     });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');
-    expect(existsSync(resolve(contentDir, '.ok', 'skills', 'sneaky.md'))).toBe(false);
+    expect(existsSync(resolve(contentDir, '.gitquire', 'skills', 'sneaky.md'))).toBe(false);
   });
 
   test('upload refuses a ./-prefixed parentDocName with the same precondition as its siblings', async () => {
@@ -286,14 +290,17 @@ describe('file-ops group over the composed listener — served natively', () => 
   });
 
   test('duplicate-path refuses an extensionless file path linked into machine-local state', async () => {
-    mkdirSync(resolve(contentDir, '.ok', 'local'), { recursive: true });
+    mkdirSync(resolve(contentDir, '.gitquire', 'local'), { recursive: true });
     writeFileSync(
-      resolve(contentDir, '.ok', 'local', 'dup-fixture.json'),
+      resolve(contentDir, '.gitquire', 'local', 'dup-fixture.json'),
       '{"token":"machine-local-secret"}',
       'utf-8',
     );
     mkdirSync(resolve(contentDir, 'dup-linked'), { recursive: true });
-    symlinkSync('../.ok/local/dup-fixture.json', resolve(contentDir, 'dup-linked', 'leak.md'));
+    symlinkSync(
+      '../.gitquire/local/dup-fixture.json',
+      resolve(contentDir, 'dup-linked', 'leak.md'),
+    );
 
     const res = await postJson('/api/duplicate-path', { kind: 'file', path: 'dup-linked/leak' });
     expect(res.status).toBe(400);
@@ -317,7 +324,7 @@ describe('file-ops group over the composed listener — served natively', () => 
     expect(ok.status).toBe(200);
     expect(((await ok.json()) as { path?: string }).path).toBe('made-native');
 
-    const reserved = await postJson('/api/create-folder', { path: '.ok/nested' });
+    const reserved = await postJson('/api/create-folder', { path: '.gitquire/nested' });
     expect(reserved.status).toBe(400);
     expect(((await reserved.json()) as { type?: string }).type).toBe(
       'urn:ok:error:reserved-doc-name',
@@ -345,7 +352,7 @@ describe('file-ops group over the composed listener — served natively', () => 
     const res = await postJson('/api/rename-path', {
       kind: 'file',
       fromPath: 'alpha',
-      toPath: '.ok/alpha',
+      toPath: '.gitquire/alpha',
     });
     expect(res.status).toBe(400);
     expect(((await res.json()) as { type?: string }).type).toBe('urn:ok:error:reserved-doc-name');

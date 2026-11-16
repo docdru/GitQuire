@@ -25,8 +25,8 @@ msgstr " تمت استعادة تحديدك."
 msgid "— except"
 msgstr "— باستثناء"
 
-msgid ".ok folders"
-msgstr "مجلدات .ok"
+msgid ".gitquire folders"
+msgstr "مجلدات .gitquire"
 
 msgid "\"{0}\" is live."
 msgstr ""
@@ -1027,7 +1027,7 @@ msgstr "ينطبق على (أنماط — البادئة ! تستثني؛ وال
 msgid "Applies to everyone using this wiki. Stored in the repository and travels with it through git."
 msgstr ""
 
-msgid "Applies to everyone using this wiki. Stored on the server in .ok/local, not in Git."
+msgid "Applies to everyone using this wiki. Stored on the server in .gitquire/local, not in Git."
 msgstr ""
 
 msgid "Apply changes"
@@ -2687,8 +2687,8 @@ msgstr "تضمينات"
 msgid "Embeddings API key"
 msgstr "مفتاح API للتضمينات"
 
-msgid "Embeddings are computed only when a search runs and are cached locally under <0>.ok/local</0>."
-msgstr "تُحسب التضمينات فقط عند تشغيل بحث وتُخزَّن محليًا تحت <0>.ok/local</0>."
+msgid "Embeddings are computed only when a search runs and are cached locally under <0>.gitquire/local</0>."
+msgstr "تُحسب التضمينات فقط عند تشغيل بحث وتُخزَّن محليًا تحت <0>.gitquire/local</0>."
 
 msgid "Emoji"
 msgstr "رموز تعبيرية"
@@ -3159,8 +3159,8 @@ msgstr "الملف كبير جدًا ({sizeKb} KB) — الحد الأقصى ل�
 msgid "File name"
 msgstr "اسم الملف"
 
-msgid "File name (created in .ok/schemas/)"
-msgstr "اسم الملف (يُنشأ في .ok/schemas/)"
+msgid "File name (created in .gitquire/schemas/)"
+msgstr "اسم الملف (يُنشأ في .gitquire/schemas/)"
 
 msgid "File sidebar"
 msgstr "الشريط الجانبي للملفات"
@@ -6475,8 +6475,8 @@ msgstr "أطلق المحرر مع"
 msgid "Show"
 msgstr "إظهار"
 
-msgid "Show .ok folders"
-msgstr "إظهار مجلدات .ok"
+msgid "Show .gitquire folders"
+msgstr "إظهار مجلدات .gitquire"
 
 msgid "Show {0} more"
 msgstr "إظهار {0} إضافية"
@@ -6778,8 +6778,8 @@ msgstr "توقف الإصلاح. تبقى الملفات المُصلَحة با
 msgid "Stopped."
 msgstr ""
 
-msgid "Stored at <0>.ok/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
-msgstr "يُخزَّن في <0>.ok/templates/</0> في هذا المشروع. متاح في كل مجلد (يمكن للقوالب المقيَّدة بمجلد أن تتجاوزه باسم الملف)."
+msgid "Stored at <0>.gitquire/templates/</0> in this project. Available in every folder (folder-scoped templates can override by filename)."
+msgstr "يُخزَّن في <0>.gitquire/templates/</0> في هذا المشروع. متاح في كل مجلد (يمكن للقوالب المقيَّدة بمجلد أن تتجاوزه باسم الملف)."
 
 msgid "Strikethrough"
 msgstr "يتوسطه خط"

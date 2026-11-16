@@ -12,7 +12,7 @@ function makeTmpDir(): string {
 function makeServerLock(pid: number, worktreeRoot: string, port = 5173): LockState {
   return {
     status: 'alive',
-    lockPath: `${worktreeRoot}/.ok/local/server.lock`,
+    lockPath: `${worktreeRoot}/.gitquire/local/server.lock`,
     lock: {
       pid,
       hostname: 'test-host',
@@ -120,7 +120,7 @@ describe('runDiagnose', () => {
       { pid, noInspector: true, output: out },
       {
         ...makeBaseDeps(out),
-        discover: async () => [`${worktreeRoot}/.ok/local`],
+        discover: async () => [`${worktreeRoot}/.gitquire/local`],
         inspect: () => makeServerLock(pid, worktreeRoot),
       },
     );
@@ -141,10 +141,10 @@ describe('runDiagnose', () => {
       { pid, noInspector: true, output: out },
       {
         ...makeBaseDeps(out),
-        discover: async () => [`${worktreeRoot}/.ok/local`],
+        discover: async () => [`${worktreeRoot}/.gitquire/local`],
         inspect: () => ({
           status: 'reused-pid',
-          lockPath: `${worktreeRoot}/.ok/local/server.lock`,
+          lockPath: `${worktreeRoot}/.gitquire/local/server.lock`,
           lock: {
             pid,
             hostname: 'test-host',
@@ -162,7 +162,7 @@ describe('runDiagnose', () => {
     expect(meta.lockInfo).toBeNull();
   });
 
-  test('output dir defaults to contentDir/.ok/local/diagnostics when lock found', async () => {
+  test('output dir defaults to contentDir/.gitquire/local/diagnostics when lock found', async () => {
     const contentDir = makeTmpDir();
     tmpDirs.push(contentDir);
     const pid = process.pid;
@@ -172,14 +172,14 @@ describe('runDiagnose', () => {
       { pid, noInspector: true },
       {
         ...makeBaseDeps(contentDir),
-        discover: async () => [`${contentDir}/.ok/local`],
+        discover: async () => [`${contentDir}/.gitquire/local`],
         inspect: () => makeServerLock(pid, contentDir),
         log: (m) => logs.push(m),
       },
     );
 
     const outputLine = logs.find((l) => l.startsWith('Output:')) ?? '';
-    expect(outputLine).toContain(join(contentDir, '.ok', 'local', 'diagnostics'));
+    expect(outputLine).toContain(join(contentDir, '.gitquire', 'local', 'diagnostics'));
   });
 
   test('writes inspector-endpoints.json, cpu.cpuprofile, and stacks.txt when endpoints available', async () => {

@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 function discarded(...segments: string[]): string {
-  return join(home, '.ok', 'edit-backups', 'discarded', ...segments);
+  return join(home, '.gitquire', 'edit-backups', 'discarded', ...segments);
 }
 
 function contentsOf(dir: string): string[] {
@@ -46,7 +46,7 @@ describe('backUpDisplacedVersion', () => {
       'beta\n',
     ]);
     expect(beta?.display).toBe(
-      `~/.ok/edit-backups/discarded/projects/${fnv1aDigest('/work/beta')}/flow.mmd/2026-10-21T10-00-06-000Z.mmd`,
+      `~/.gitquire/edit-backups/discarded/projects/${fnv1aDigest('/work/beta')}/flow.mmd/2026-10-21T10-00-06-000Z.mmd`,
     );
   });
 
