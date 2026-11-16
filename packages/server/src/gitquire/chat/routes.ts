@@ -298,6 +298,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
             user,
             wikiName: deps.wikiName(),
             today: now().toISOString().slice(0, 10),
+            workspace: tools.workspace,
           }),
           emit,
           persist: (record) => deps.history.save(user.id, record),

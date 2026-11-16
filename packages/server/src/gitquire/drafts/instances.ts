@@ -4,11 +4,12 @@ import { createServer } from 'node:net';
 import { basename, join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { INTERNAL_SECRET_ENV } from '../internal-request.ts';
+import { DRAFT_BASE_ENV, DRAFT_SLUG_ENV, DRAFT_TITLE_ENV } from '../workspace.ts';
 import type { DraftRecord } from './model.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
-export const DRAFT_INSTANCE_ENV = 'GITQUIRE_DRAFT';
+export const DRAFT_INSTANCE_ENV = DRAFT_SLUG_ENV;
 const READY_TIMEOUT_MS = 120_000;
 const READY_POLL_MS = 300;
 const STOP_GRACE_MS = 20_000;
@@ -154,6 +155,8 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
         GITQUIRE_BIND: '127.0.0.1',
         GITQUIRE_BRANCH: draft.branch,
         [DRAFT_INSTANCE_ENV]: draft.slug,
+        [DRAFT_TITLE_ENV]: draft.title,
+        [DRAFT_BASE_ENV]: draft.base,
         [INTERNAL_SECRET_ENV]: deps.internalSecret,
       },
       stdio: 'inherit',

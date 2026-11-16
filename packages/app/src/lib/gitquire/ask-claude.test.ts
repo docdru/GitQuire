@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   askDestinations,
+  askWorkspace,
   buildClaudePrompt,
   claudeLink,
   defaultAskDestination,
@@ -26,6 +27,49 @@ describe('Ask Claude', () => {
         'Turn the action items into a checklist',
       ].join('\n'),
     );
+  });
+
+  it('says which draft and branch the request was written in', () => {
+    const prompt = buildClaudePrompt({
+      wikiUrl: 'https://wiki.example.com',
+      workspace: { kind: 'draft', title: 'Pricing page', branch: 'draft/pricing-page' },
+      target: { kind: 'page', path: 'pricing.md' },
+      request: 'Shorten the intro',
+    });
+    expect(prompt).toBe(
+      [
+        'Use the GitQuire wiki tools (the MCP server for https://wiki.example.com) for this.',
+        '',
+        'Workspace: the draft "Pricing page" (branch draft/pricing-page), not the live wiki. Check with the workspace tool before changing anything; if it reports a different place, stop and tell me.',
+        'Page: pricing.md',
+        '',
+        'Shorten the intro',
+      ].join('\n'),
+    );
+  });
+
+  it('says so when the request was written in the live wiki', () => {
+    const prompt = buildClaudePrompt({
+      wikiUrl: 'https://w',
+      workspace: { kind: 'live' },
+      target: { kind: 'page', path: 'a.md' },
+      request: 'x',
+    });
+    expect(prompt).toContain('Workspace: the live wiki\nPage: a.md');
+  });
+
+  it('takes the workspace from the draft the person has open', () => {
+    const viewing = { title: 'Pricing page', branch: 'draft/pricing-page' };
+    expect(askWorkspace({ list: { enabled: true }, current: { viewing } })).toEqual({
+      kind: 'draft',
+      title: 'Pricing page',
+      branch: 'draft/pricing-page',
+    });
+    expect(askWorkspace({ list: { enabled: true }, current: { viewing: null } })).toEqual({
+      kind: 'live',
+    });
+    expect(askWorkspace({ list: { enabled: false }, current: null })).toBeUndefined();
+    expect(askWorkspace({ list: null, current: null })).toBeUndefined();
   });
 
   it('describes a folder, or the whole wiki at the root', () => {

@@ -59,6 +59,7 @@ export interface DraftServiceDeps {
 
 interface DraftSummary {
   slug: string;
+  branch: string;
   title: string;
   status: DraftRecord['status'];
   author: DraftPerson;
@@ -176,6 +177,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
   function summary(draft: DraftRecord): DraftSummary {
     return {
       slug: draft.slug,
+      branch: draft.branch,
       title: draft.title,
       status: draft.status,
       author: draft.author,

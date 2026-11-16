@@ -13,6 +13,7 @@ export const OPEN_KNOWLEDGE_MCP_TOOLS = [
   'links',
   'config',
   'palette',
+  'workspace',
   'preview_url',
   'share_link',
   'lint',
