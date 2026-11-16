@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-export const AGENTS_FILE_NAME = 'AGENTS.md';
+const AGENTS_FILE_NAME = 'AGENTS.md';
 export const AGENTS_SECTION_BEGIN =
   '<!-- gitquire:begin — written by GitQuire; edit outside this section -->';
 export const AGENTS_SECTION_END = '<!-- gitquire:end -->';

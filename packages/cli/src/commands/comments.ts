@@ -10,7 +10,7 @@ const PAGE_EXTENSIONS = ['.md', '.mdx'];
 
 export const CONVERT_COMMIT_MESSAGE = 'Convert comments to footnote threads';
 
-export async function markdownPagesUnder(root: string): Promise<string[]> {
+async function markdownPagesUnder(root: string): Promise<string[]> {
   const pages: string[] = [];
   const queue = [root];
   while (queue.length > 0) {
