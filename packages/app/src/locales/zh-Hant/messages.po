@@ -413,6 +413,15 @@ msgstr "{minutes} 分鐘前"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
+msgid "{name} icon"
+msgstr ""
+
+msgid "{name} URLs are not direct audio files. Paste a direct audio file URL."
+msgstr ""
+
+msgid "{name} URLs are not direct image files. Paste a direct image file URL."
+msgstr ""
+
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, other {# 個節點}}"
 
@@ -549,6 +558,9 @@ msgstr "# 每行一個模式。\n"
 "#   drafts/\n"
 "#   *.draft.md\n"
 "#   !keep.md"
+
+msgid "#F05032 or rgb(240,80,50)"
+msgstr ""
 
 msgid "+ {overflow} more"
 msgstr "+ 還有 {overflow} 個"
@@ -859,6 +871,9 @@ msgstr "正在新增"
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "為速度較慢或記憶體受限的嵌入伺服器調整索引請求的大小與逾時時間。大多數情況下應保持預設值。"
 
+msgid "Admiral"
+msgstr ""
+
 msgid "Advanced"
 msgstr "進階"
 
@@ -1125,6 +1140,9 @@ msgstr "資源建議"
 
 msgid "Asset: {title}"
 msgstr "資產：{title}"
+
+msgid "Attach a downloadable file (.pdf, .docx, .zip and more)."
+msgstr ""
 
 msgid "Attach images"
 msgstr "附加圖片"
@@ -1509,6 +1527,9 @@ msgstr "清空欄位即可還原預設值。"
 
 msgid "Clear color"
 msgstr "清除顏色"
+
+msgid "Clear icon"
+msgstr ""
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "把這個欄位清空，就會恢復成預設的 OpenAI 端點。"
@@ -2221,6 +2242,9 @@ msgstr "自訂編輯器的外觀和行為。"
 msgid "Dark"
 msgstr "深色"
 
+msgid "Data URIs are not supported for media fields. Use a hosted file URL."
+msgstr ""
+
 msgid "Date"
 msgstr "日期"
 
@@ -2497,6 +2521,9 @@ msgstr "拖曳 {patternText} 以重新排序"
 msgid "Drag item {0} to reorder"
 msgstr "拖曳項目 {0} 以重新排序"
 
+msgid "Drag to adjust"
+msgstr ""
+
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "拖放、貼上或附加最多 {MAX_ATTACHMENTS} 張圖片。"
 
@@ -2662,6 +2689,9 @@ msgstr ""
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
 msgstr "嵌入此工作區中 .excalidraw 畫板的即時快照。"
 
+msgid "Embed a URL"
+msgstr ""
+
 msgid "Embed a video with native player controls."
 msgstr "嵌入一段影片，附原生播放器控制項。"
 
@@ -2673,6 +2703,12 @@ msgstr "用行內 iframe 嵌入外部頁面（說明文件、示範、Figma、Co
 
 msgid "Embed an image with optional alt text."
 msgstr "嵌入一張圖片，可選填替代文字。"
+
+msgid "Embed only supports cross-origin URLs"
+msgstr ""
+
+msgid "Embedded line break — the row spans multiple lines."
+msgstr ""
 
 msgid "Embedding request settings"
 msgstr "嵌入請求設定"
@@ -2747,6 +2783,9 @@ msgstr "啟用主題"
 msgid "Enabling index generation"
 msgstr "啟用索引生成"
 
+msgid "End"
+msgstr ""
+
 msgid "Ended"
 msgstr "已結束"
 
@@ -2755,6 +2794,9 @@ msgstr "端點"
 
 msgid "Eng specs"
 msgstr "工程規格"
+
+msgid "Engineer"
+msgstr ""
 
 msgid "Enter"
 msgstr "Enter"
@@ -2772,6 +2814,9 @@ msgid "Enter a name for this theme."
 msgstr "輸入這個主題的名稱。"
 
 msgid "Enter a name."
+msgstr ""
+
+msgid "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
 msgstr ""
 
 msgid "Enter a number of seconds between {minimum} and {maximum}."
@@ -2985,6 +3030,9 @@ msgstr "載入關係圖失敗"
 msgid "Failed to load headings"
 msgstr "載入標題失敗"
 
+msgid "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+msgstr ""
+
 msgid "Failed to load hub pages"
 msgstr "載入樞紐頁面失敗"
 
@@ -2997,6 +3045,9 @@ msgstr "載入外連連結失敗"
 msgid "Failed to load pages"
 msgstr "載入頁面失敗"
 
+msgid "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+msgstr ""
+
 msgid "Failed to load PDF"
 msgstr "載入 PDF 失敗"
 
@@ -3008,6 +3059,9 @@ msgstr "載入專案範本失敗"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "載入標籤失敗。按 <0>Esc</0> 後重新開啟可再試一次。"
+
+msgid "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
+msgstr ""
 
 msgid "Failed to load templates: {message}"
 msgstr "載入範本失敗：{message}"
@@ -3812,6 +3866,9 @@ msgstr "行內公式屬性"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "用來呈現可下載檔案的行內列。也可以拖放。"
 
+msgid "Inline tag (#tagname) that links pages with the same tag."
+msgstr ""
+
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "插入一個註腳參照，以及對應的定義草稿。"
 
@@ -3832,6 +3889,9 @@ msgstr "在上方插入列"
 
 msgid "Insert row below"
 msgstr "在下方插入列"
+
+msgid "Insert unresolved link \"{title}\""
+msgstr ""
 
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "透過 CodeMirror 的預設按鍵對應，在原始碼編輯器中插入、刪除、移動、複製和縮排行。"
@@ -3963,6 +4023,9 @@ msgid "Layout options"
 msgstr "版面配置選項"
 
 msgid "Le Chat"
+msgstr ""
+
+msgid "Leading whitespace — the rule may not match as expected."
 msgstr ""
 
 msgid "Learn more"
@@ -4181,6 +4244,9 @@ msgstr "本機的提交讓這份副本無法更新"
 msgid "Local path"
 msgstr "本機路徑"
 
+msgid "Lone ! — negation needs a pattern after it."
+msgstr ""
+
 msgid "Looked at links"
 msgstr ""
 
@@ -4190,11 +4256,17 @@ msgstr ""
 msgid "Looked at: {detail}"
 msgstr ""
 
+msgid "Loom video player"
+msgstr ""
+
 msgid "Lost connection to \"{docName}\"."
 msgstr "與「{docName}」的連線已中斷。"
 
 msgid "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
 msgstr "調低此值可減少每個請求的記憶體占用與工作量。批次越小，請求越多，整體索引速度可能變慢。"
+
+msgid "lucide:Lightbulb or 📘"
+msgstr ""
 
 msgid "Maintain generated indexes in every folder?"
 msgstr "在每個資料夾中維護 generated 索引？"
@@ -4289,6 +4361,9 @@ msgstr "Mermaid 圖表控制項"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid 圖表顯示失敗。"
 
+msgid "Mermaid flowchart preview"
+msgstr ""
+
 msgid "Message"
 msgstr ""
 
@@ -4321,6 +4396,9 @@ msgstr "缺少某個功能"
 
 msgid "Missing file {identity}. Go to reference."
 msgstr "檔案 {identity} 不存在。前往引用位置。"
+
+msgid "Missing file extension. Accepts: {accepted}."
+msgstr ""
 
 msgid "Missing image {identity}. Go to reference."
 msgstr "圖片 {identity} 不存在。前往引用位置。"
@@ -4916,6 +4994,9 @@ msgstr "不是 base16 主題"
 msgid "Not a hex color: {0}"
 msgstr "不是十六進位色彩：{0}"
 
+msgid "Not a valid URL."
+msgstr ""
+
 msgid "Not connected"
 msgstr "未連接"
 
@@ -5378,6 +5459,12 @@ msgstr ""
 msgid "Paste your API key"
 msgstr "貼上你的 API 金鑰"
 
+msgid "Pasted as plain text — some formatting could not be converted."
+msgstr ""
+
+msgid "Pasted without linking — the link could not be applied."
+msgstr ""
+
 msgid "Path cannot contain \"..\""
 msgstr "路徑不能包含「..」"
 
@@ -5718,6 +5805,9 @@ msgstr "現成的資料夾和範本，幫你快速上手。"
 msgid "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 msgstr "現成的資料夾和範本，幫你快速上手。選一個套件可以先看會建立哪些東西，再把它加到你的專案。"
 
+msgid "Ready?"
+msgstr ""
+
 msgid "Receiving objects"
 msgstr "正在接收物件"
 
@@ -5943,6 +6033,9 @@ msgstr "找不到儲存庫——它可能不存在，或所用帳戶可能沒有
 msgid "Repository not found. It may have been renamed, deleted, or moved."
 msgstr "找不到儲存庫。它可能已被重新命名、刪除或移動。"
 
+msgid "Request failed (HTTP {status})."
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "requests"
 msgstr "請求"
@@ -6054,6 +6147,9 @@ msgstr "在 Finder 中顯示"
 
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "「在 Finder 中顯示」會顯示應用程式，讓你將其拖曳到垃圾桶。"
+
+msgid "Revenue"
+msgstr ""
 
 msgid "Review"
 msgstr "檢視"
@@ -6192,6 +6288,9 @@ msgstr "搜尋檔案、資料夾或指令"
 
 msgid "Search folders"
 msgstr "搜尋資料夾"
+
+msgid "Search for a command to run"
+msgstr ""
 
 msgid "Search for a page and choose it to insert a link."
 msgstr ""
@@ -6361,6 +6460,9 @@ msgstr "伺服器無法開啟文件"
 msgid "Server error (HTTP {status})"
 msgstr "伺服器錯誤（HTTP {status}）"
 
+msgid "Server error (HTTP {status}): {detail}"
+msgstr ""
+
 msgid "Server error: {status}"
 msgstr "伺服器錯誤：{status}"
 
@@ -6489,6 +6591,9 @@ msgstr "顯示進階選項"
 
 msgid "Show Agents"
 msgstr "顯示「代理」"
+
+msgid "Show All Files stream failed."
+msgstr ""
 
 msgid "Show diagram"
 msgstr "顯示圖表"
@@ -6706,6 +6811,9 @@ msgstr ""
 msgid "Split list item"
 msgstr "分割清單項目"
 
+msgid "Start"
+msgstr ""
+
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -6900,6 +7008,12 @@ msgstr "正在同步"
 
 msgid "System"
 msgstr "跟隨系統"
+
+msgid "Tab 1"
+msgstr ""
+
+msgid "Tab 2"
+msgstr ""
 
 msgid "Table"
 msgstr "表格"
@@ -7486,6 +7600,9 @@ msgstr ""
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "這個視窗無法儲存權杖——請從應用程式主視窗開啟「設定」。"
 
+msgid "Thumbnails"
+msgstr ""
+
 msgid "Timeline"
 msgstr "時間軸"
 
@@ -7607,6 +7724,9 @@ msgstr "太慢了"
 
 msgid "Top linked pages"
 msgstr "被連結最多的頁面"
+
+msgid "Trailing backslash — line continuation isn't supported."
+msgstr ""
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "在 GitQuire 的導覽記錄中往回走。"
@@ -7740,11 +7860,17 @@ msgstr "未知的元件：{componentName}——可在下方編輯原始碼"
 msgid "Unknown component: {unregisteredComponentName}"
 msgstr "未知的元件：{unregisteredComponentName}"
 
+msgid "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+msgstr ""
+
 msgid "Unknown error"
 msgstr "未知的錯誤"
 
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "未知的變數 {unknownList}。可用的變數：{supportedVariables}。"
+
+msgid "Unmatched [ — character class is open."
+msgstr ""
 
 msgid "Unmerged"
 msgstr "未合併"
@@ -7761,6 +7887,9 @@ msgstr "取消釘選分頁"
 msgid "Unread"
 msgstr ""
 
+msgid "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "無法辨識的連結"
 
@@ -7775,6 +7904,9 @@ msgstr "無法解析檔案 {identity}。前往引用位置。"
 
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "無法解析圖片 {identity}。前往引用位置。"
+
+msgid "Unsupported extension .{extension}. Accepts: {accepted}."
+msgstr ""
 
 msgid "Unsupported file type: {fileType}."
 msgstr "不支援的檔案類型：{fileType}。"
@@ -7851,6 +7983,9 @@ msgstr "正在上傳檔案"
 msgid "Upstream sync"
 msgstr "上游同步"
 
+msgid "URL must start with http:// or https://"
+msgstr ""
+
 msgid "Use {0} as the dark theme"
 msgstr "把 {0} 用作深色主題"
 
@@ -7908,6 +8043,9 @@ msgstr "使用者外掛只屬於這台裝置——在這裡開啟或關閉它們
 msgid "Username"
 msgstr "使用者名稱"
 
+msgid "Users"
+msgstr ""
+
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "正在使用 <0>OK_EMBEDDINGS_API_KEY</0> 環境變數（在 GitQuire 之外管理）。"
 
@@ -7951,6 +8089,9 @@ msgid "View only"
 msgstr "僅供檢視"
 
 msgid "Views"
+msgstr ""
+
+msgid "Vimeo video player"
 msgstr ""
 
 msgid "Visibility"
@@ -8123,6 +8264,9 @@ msgstr ""
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML 或 JSON，兩種 base16 排版都可以。"
+
+msgid "yes"
+msgstr ""
 
 msgid "yesterday"
 msgstr "昨天"

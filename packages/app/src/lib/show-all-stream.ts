@@ -2,6 +2,7 @@ import {
   type DocumentListEntry,
   DocumentListEntrySchema,
 } from '@inkeep/open-knowledge-core/schemas/api';
+import { t } from '@lingui/core/macro';
 
 export const SHOW_ALL_NDJSON_ACCEPT = { Accept: 'application/x-ndjson, application/json' } as const;
 
@@ -60,7 +61,7 @@ export async function consumeShowAllStream(
         const title =
           typeof parsed.problem?.title === 'string'
             ? parsed.problem.title
-            : 'Show All Files stream failed.';
+            : t`Show All Files stream failed.`;
         throw new ShowAllStreamError(title);
       }
       truncated = parsed.truncated === true;

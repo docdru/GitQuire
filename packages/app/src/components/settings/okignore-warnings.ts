@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+
 type OkignoreWarningCode =
   | 'trailing-backslash'
   | 'unmatched-bracket'
@@ -10,13 +12,20 @@ export interface OkignoreWarning {
   readonly message: string;
 }
 
-export const WARNING_MESSAGES: Readonly<Record<OkignoreWarningCode, string>> = {
-  'trailing-backslash': "Trailing backslash — line continuation isn't supported.",
-  'unmatched-bracket': 'Unmatched [ — character class is open.',
-  'lone-bang': 'Lone ! — negation needs a pattern after it.',
-  'leading-whitespace': 'Leading whitespace — the rule may not match as expected.',
-  'embedded-newline': 'Embedded line break — the row spans multiple lines.',
-};
+export function warningMessage(code: OkignoreWarningCode): string {
+  switch (code) {
+    case 'trailing-backslash':
+      return t`Trailing backslash — line continuation isn't supported.`;
+    case 'unmatched-bracket':
+      return t`Unmatched [ — character class is open.`;
+    case 'lone-bang':
+      return t`Lone ! — negation needs a pattern after it.`;
+    case 'leading-whitespace':
+      return t`Leading whitespace — the rule may not match as expected.`;
+    case 'embedded-newline':
+      return t`Embedded line break — the row spans multiple lines.`;
+  }
+}
 
 export function checkHeuristicWarnings(line: string): OkignoreWarning[] {
   const warnings: OkignoreWarning[] = [];
@@ -24,27 +33,27 @@ export function checkHeuristicWarnings(line: string): OkignoreWarning[] {
   if (line.trimStart().startsWith('#')) return warnings;
 
   if (/[\r\n]/.test(line)) {
-    warnings.push({ code: 'embedded-newline', message: WARNING_MESSAGES['embedded-newline'] });
+    warnings.push({ code: 'embedded-newline', message: warningMessage('embedded-newline') });
   }
   if (/^\s/.test(line)) {
-    warnings.push({ code: 'leading-whitespace', message: WARNING_MESSAGES['leading-whitespace'] });
+    warnings.push({ code: 'leading-whitespace', message: warningMessage('leading-whitespace') });
   }
 
   const trimmed = line.trim();
   if (trimmed === '!') {
-    warnings.push({ code: 'lone-bang', message: WARNING_MESSAGES['lone-bang'] });
+    warnings.push({ code: 'lone-bang', message: warningMessage('lone-bang') });
   }
   if (trimmed.endsWith('\\')) {
     warnings.push({
       code: 'trailing-backslash',
-      message: WARNING_MESSAGES['trailing-backslash'],
+      message: warningMessage('trailing-backslash'),
     });
   }
 
   const opens = countMatches(trimmed, '[');
   const closes = countMatches(trimmed, ']');
   if (opens > closes) {
-    warnings.push({ code: 'unmatched-bracket', message: WARNING_MESSAGES['unmatched-bracket'] });
+    warnings.push({ code: 'unmatched-bracket', message: warningMessage('unmatched-bracket') });
   }
 
   return warnings;

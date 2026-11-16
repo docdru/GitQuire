@@ -413,6 +413,15 @@ msgstr "{minutes}m ago"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 
+msgid "{name} icon"
+msgstr "{name} icon"
+
+msgid "{name} URLs are not direct audio files. Paste a direct audio file URL."
+msgstr "{name} URLs are not direct audio files. Paste a direct audio file URL."
+
+msgid "{name} URLs are not direct image files. Paste a direct image file URL."
+msgstr "{name} URLs are not direct image files. Paste a direct image file URL."
+
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, one {# node} other {# nodes}}"
 
@@ -549,6 +558,9 @@ msgstr "# One pattern per line.\n"
 "#   drafts/\n"
 "#   *.draft.md\n"
 "#   !keep.md"
+
+msgid "#F05032 or rgb(240,80,50)"
+msgstr "#F05032 or rgb(240,80,50)"
 
 msgid "+ {overflow} more"
 msgstr "+ {overflow} more"
@@ -859,6 +871,9 @@ msgstr "Adding"
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 
+msgid "Admiral"
+msgstr "Admiral"
+
 msgid "Advanced"
 msgstr "Advanced"
 
@@ -1125,6 +1140,9 @@ msgstr "Asset suggestions"
 
 msgid "Asset: {title}"
 msgstr "Asset: {title}"
+
+msgid "Attach a downloadable file (.pdf, .docx, .zip and more)."
+msgstr "Attach a downloadable file (.pdf, .docx, .zip and more)."
 
 msgid "Attach images"
 msgstr "Attach images"
@@ -1509,6 +1527,9 @@ msgstr "Clear a field to restore its default value."
 
 msgid "Clear color"
 msgstr "Clear color"
+
+msgid "Clear icon"
+msgstr "Clear icon"
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "Clear the field to reset back to the default OpenAI endpoint."
@@ -2221,6 +2242,9 @@ msgstr "Customize how the editor looks and behaves."
 msgid "Dark"
 msgstr "Dark"
 
+msgid "Data URIs are not supported for media fields. Use a hosted file URL."
+msgstr "Data URIs are not supported for media fields. Use a hosted file URL."
+
 msgid "Date"
 msgstr "Date"
 
@@ -2497,6 +2521,9 @@ msgstr "Drag {patternText} to reorder"
 msgid "Drag item {0} to reorder"
 msgstr "Drag item {0} to reorder"
 
+msgid "Drag to adjust"
+msgstr "Drag to adjust"
+
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 
@@ -2662,6 +2689,9 @@ msgstr "Email me new mentions"
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
 msgstr "Embed a live snapshot of an .excalidraw board from this workspace."
 
+msgid "Embed a URL"
+msgstr "Embed a URL"
+
 msgid "Embed a video with native player controls."
 msgstr "Embed a video with native player controls."
 
@@ -2673,6 +2703,12 @@ msgstr "Embed an external page in an inline iframe (docs, demos, Figma, CodeSand
 
 msgid "Embed an image with optional alt text."
 msgstr "Embed an image with optional alt text."
+
+msgid "Embed only supports cross-origin URLs"
+msgstr "Embed only supports cross-origin URLs"
+
+msgid "Embedded line break — the row spans multiple lines."
+msgstr "Embedded line break — the row spans multiple lines."
 
 msgid "Embedding request settings"
 msgstr "Embedding request settings"
@@ -2747,6 +2783,9 @@ msgstr "Enable Themes"
 msgid "Enabling index generation"
 msgstr "Enabling index generation"
 
+msgid "End"
+msgstr "End"
+
 msgid "Ended"
 msgstr "Ended"
 
@@ -2755,6 +2794,9 @@ msgstr "Endpoint"
 
 msgid "Eng specs"
 msgstr "Eng specs"
+
+msgid "Engineer"
+msgstr "Engineer"
 
 msgid "Enter"
 msgstr "Enter"
@@ -2773,6 +2815,9 @@ msgstr "Enter a name for this theme."
 
 msgid "Enter a name."
 msgstr "Enter a name."
+
+msgid "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
+msgstr "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
 
 msgid "Enter a number of seconds between {minimum} and {maximum}."
 msgstr "Enter a number of seconds between {minimum} and {maximum}."
@@ -2985,6 +3030,9 @@ msgstr "Failed to load graph"
 msgid "Failed to load headings"
 msgstr "Failed to load headings"
 
+msgid "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+msgstr "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+
 msgid "Failed to load hub pages"
 msgstr "Failed to load hub pages"
 
@@ -2997,6 +3045,9 @@ msgstr "Failed to load outgoing links"
 msgid "Failed to load pages"
 msgstr "Failed to load pages"
 
+msgid "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+msgstr "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+
 msgid "Failed to load PDF"
 msgstr "Failed to load PDF"
 
@@ -3008,6 +3059,9 @@ msgstr "Failed to load project templates"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "Failed to load tags. Press <0>Esc</0> and re-open to retry."
+
+msgid "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
+msgstr "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
 
 msgid "Failed to load templates: {message}"
 msgstr "Failed to load templates: {message}"
@@ -3812,6 +3866,9 @@ msgstr "Inline Math Properties"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "Inline row for a downloadable file. Drag-drop also works."
 
+msgid "Inline tag (#tagname) that links pages with the same tag."
+msgstr "Inline tag (#tagname) that links pages with the same tag."
+
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "Insert a footnote reference + matching definition stub."
 
@@ -3832,6 +3889,9 @@ msgstr "Insert row above"
 
 msgid "Insert row below"
 msgstr "Insert row below"
+
+msgid "Insert unresolved link \"{title}\""
+msgstr "Insert unresolved link \"{title}\""
 
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
@@ -3964,6 +4024,9 @@ msgstr "Layout options"
 
 msgid "Le Chat"
 msgstr "Le Chat"
+
+msgid "Leading whitespace — the rule may not match as expected."
+msgstr "Leading whitespace — the rule may not match as expected."
 
 msgid "Learn more"
 msgstr "Learn more"
@@ -4181,6 +4244,9 @@ msgstr "Local commits are keeping this copy from updating"
 msgid "Local path"
 msgstr "Local path"
 
+msgid "Lone ! — negation needs a pattern after it."
+msgstr "Lone ! — negation needs a pattern after it."
+
 msgid "Looked at links"
 msgstr "Looked at links"
 
@@ -4190,11 +4256,17 @@ msgstr "Looked at the page history"
 msgid "Looked at: {detail}"
 msgstr "Looked at: {detail}"
 
+msgid "Loom video player"
+msgstr "Loom video player"
+
 msgid "Lost connection to \"{docName}\"."
 msgstr "Lost connection to \"{docName}\"."
 
 msgid "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
 msgstr "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
+
+msgid "lucide:Lightbulb or 📘"
+msgstr "lucide:Lightbulb or 📘"
 
 msgid "Maintain generated indexes in every folder?"
 msgstr "Maintain generated indexes in every folder?"
@@ -4289,6 +4361,9 @@ msgstr "Mermaid diagram controls"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid diagram failed to render."
 
+msgid "Mermaid flowchart preview"
+msgstr "Mermaid flowchart preview"
+
 msgid "Message"
 msgstr "Message"
 
@@ -4321,6 +4396,9 @@ msgstr "Missing a feature"
 
 msgid "Missing file {identity}. Go to reference."
 msgstr "Missing file {identity}. Go to reference."
+
+msgid "Missing file extension. Accepts: {accepted}."
+msgstr "Missing file extension. Accepts: {accepted}."
 
 msgid "Missing image {identity}. Go to reference."
 msgstr "Missing image {identity}. Go to reference."
@@ -4916,6 +4994,9 @@ msgstr "Not a base16 theme"
 msgid "Not a hex color: {0}"
 msgstr "Not a hex color: {0}"
 
+msgid "Not a valid URL."
+msgstr "Not a valid URL."
+
 msgid "Not connected"
 msgstr "Not connected"
 
@@ -5378,6 +5459,12 @@ msgstr "Paste your {0} API key"
 msgid "Paste your API key"
 msgstr "Paste your API key"
 
+msgid "Pasted as plain text — some formatting could not be converted."
+msgstr "Pasted as plain text — some formatting could not be converted."
+
+msgid "Pasted without linking — the link could not be applied."
+msgstr "Pasted without linking — the link could not be applied."
+
 msgid "Path cannot contain \"..\""
 msgstr "Path cannot contain \"..\""
 
@@ -5718,6 +5805,9 @@ msgstr "Ready-made folders and templates to get you started quickly."
 msgid "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 msgstr "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 
+msgid "Ready?"
+msgstr "Ready?"
+
 msgid "Receiving objects"
 msgstr "Receiving objects"
 
@@ -5943,6 +6033,9 @@ msgstr "Repository not found — it may not exist, or the account used may not h
 msgid "Repository not found. It may have been renamed, deleted, or moved."
 msgstr "Repository not found. It may have been renamed, deleted, or moved."
 
+msgid "Request failed (HTTP {status})."
+msgstr "Request failed (HTTP {status})."
+
 msgctxt "settings search keyword"
 msgid "requests"
 msgstr "requests"
@@ -6054,6 +6147,9 @@ msgstr "Reveal in Finder"
 
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "Reveal in Finder shows the app so you can drag it to the Trash."
+
+msgid "Revenue"
+msgstr "Revenue"
 
 msgid "Review"
 msgstr "Review"
@@ -6192,6 +6288,9 @@ msgstr "Search files, folders, or commands"
 
 msgid "Search folders"
 msgstr "Search folders"
+
+msgid "Search for a command to run"
+msgstr "Search for a command to run"
 
 msgid "Search for a page and choose it to insert a link."
 msgstr "Search for a page and choose it to insert a link."
@@ -6361,6 +6460,9 @@ msgstr "Server can't open documents"
 msgid "Server error (HTTP {status})"
 msgstr "Server error (HTTP {status})"
 
+msgid "Server error (HTTP {status}): {detail}"
+msgstr "Server error (HTTP {status}): {detail}"
+
 msgid "Server error: {status}"
 msgstr "Server error: {status}"
 
@@ -6489,6 +6591,9 @@ msgstr "Show advanced"
 
 msgid "Show Agents"
 msgstr "Show Agents"
+
+msgid "Show All Files stream failed."
+msgstr "Show All Files stream failed."
 
 msgid "Show diagram"
 msgstr "Show diagram"
@@ -6706,6 +6811,9 @@ msgstr "Spending limit"
 msgid "Split list item"
 msgstr "Split list item"
 
+msgid "Start"
+msgstr "Start"
+
 msgid "Start a blank page, or scaffold one from a template."
 msgstr "Start a blank page, or scaffold one from a template."
 
@@ -6900,6 +7008,12 @@ msgstr "Syncing"
 
 msgid "System"
 msgstr "System"
+
+msgid "Tab 1"
+msgstr "Tab 1"
+
+msgid "Tab 2"
+msgstr "Tab 2"
 
 msgid "Table"
 msgstr "Table"
@@ -7486,6 +7600,9 @@ msgstr "This wiki has more pages than a view can show; the list is cut off."
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "This window can't store a token — open Settings from the main app window."
 
+msgid "Thumbnails"
+msgstr "Thumbnails"
+
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -7607,6 +7724,9 @@ msgstr "Too slow"
 
 msgid "Top linked pages"
 msgstr "Top linked pages"
+
+msgid "Trailing backslash — line continuation isn't supported."
+msgstr "Trailing backslash — line continuation isn't supported."
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Traverse GitQuire navigation history backward."
@@ -7740,11 +7860,17 @@ msgstr "Unknown component: {componentName} — source editable below"
 msgid "Unknown component: {unregisteredComponentName}"
 msgstr "Unknown component: {unregisteredComponentName}"
 
+msgid "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+msgstr "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+
 msgid "Unknown error"
 msgstr "Unknown error"
 
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "Unknown variable {unknownList}. Available variables: {supportedVariables}."
+
+msgid "Unmatched [ — character class is open."
+msgstr "Unmatched [ — character class is open."
 
 msgid "Unmerged"
 msgstr "Unmerged"
@@ -7761,6 +7887,9 @@ msgstr "Unpin tab"
 msgid "Unread"
 msgstr "Unread"
 
+msgid "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+msgstr "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+
 msgid "Unrecognized link"
 msgstr "Unrecognized link"
 
@@ -7775,6 +7904,9 @@ msgstr "Unresolvable file {identity}. Go to reference."
 
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "Unresolvable image {identity}. Go to reference."
+
+msgid "Unsupported extension .{extension}. Accepts: {accepted}."
+msgstr "Unsupported extension .{extension}. Accepts: {accepted}."
 
 msgid "Unsupported file type: {fileType}."
 msgstr "Unsupported file type: {fileType}."
@@ -7851,6 +7983,9 @@ msgstr "Uploading file"
 msgid "Upstream sync"
 msgstr "Upstream sync"
 
+msgid "URL must start with http:// or https://"
+msgstr "URL must start with http:// or https://"
+
 msgid "Use {0} as the dark theme"
 msgstr "Use {0} as the dark theme"
 
@@ -7908,6 +8043,9 @@ msgstr "User plugins are personal to this device — turn them on or off here. E
 msgid "Username"
 msgstr "Username"
 
+msgid "Users"
+msgstr "Users"
+
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 
@@ -7952,6 +8090,9 @@ msgstr "View only"
 
 msgid "Views"
 msgstr "Views"
+
+msgid "Vimeo video player"
+msgstr "Vimeo video player"
 
 msgid "Visibility"
 msgstr "Visibility"
@@ -8123,6 +8264,9 @@ msgstr "Wrote pages"
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML or JSON, in either base16 layout."
+
+msgid "yes"
+msgstr "yes"
 
 msgid "yesterday"
 msgstr "yesterday"

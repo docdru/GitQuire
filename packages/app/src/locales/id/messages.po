@@ -413,6 +413,15 @@ msgstr "{minutes} mnt lalu"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
+msgid "{name} icon"
+msgstr ""
+
+msgid "{name} URLs are not direct audio files. Paste a direct audio file URL."
+msgstr ""
+
+msgid "{name} URLs are not direct image files. Paste a direct image file URL."
+msgstr ""
+
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, other {# simpul}}"
 
@@ -545,6 +554,9 @@ msgid "# One pattern per line.\n"
 "#   *.draft.md\n"
 "#   !keep.md"
 msgstr "# Satu pola per baris.\\n# Contoh:\\n#   drafts/\\n#   *.draft.md\\n#   !keep.md"
+
+msgid "#F05032 or rgb(240,80,50)"
+msgstr ""
 
 msgid "+ {overflow} more"
 msgstr "+ {overflow} lagi"
@@ -855,6 +867,9 @@ msgstr "Menambahkan"
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "Sesuaikan ukuran dan batas waktu permintaan pengindeksan untuk server embedding yang lambat atau terbatas memori. Sebagian besar penyiapan sebaiknya mempertahankan nilai bawaan."
 
+msgid "Admiral"
+msgstr ""
+
 msgid "Advanced"
 msgstr "Lanjutan"
 
@@ -1121,6 +1136,9 @@ msgstr "Saran aset"
 
 msgid "Asset: {title}"
 msgstr "Aset: {title}"
+
+msgid "Attach a downloadable file (.pdf, .docx, .zip and more)."
+msgstr ""
 
 msgid "Attach images"
 msgstr "Lampirkan gambar"
@@ -1505,6 +1523,9 @@ msgstr "Kosongkan kolom untuk mengembalikan nilai defaultnya."
 
 msgid "Clear color"
 msgstr "Hapus warna"
+
+msgid "Clear icon"
+msgstr ""
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "Kosongkan bidang ini untuk kembali ke endpoint OpenAI bawaan."
@@ -2217,6 +2238,9 @@ msgstr "Sesuaikan tampilan dan perilaku penyunting."
 msgid "Dark"
 msgstr "Gelap"
 
+msgid "Data URIs are not supported for media fields. Use a hosted file URL."
+msgstr ""
+
 msgid "Date"
 msgstr "Tanggal"
 
@@ -2493,6 +2517,9 @@ msgstr "Seret {patternText} untuk menata ulang"
 msgid "Drag item {0} to reorder"
 msgstr "Seret item {0} untuk menata ulang"
 
+msgid "Drag to adjust"
+msgstr ""
+
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "Letakkan, tempel, atau lampirkan hingga {MAX_ATTACHMENTS} gambar."
 
@@ -2658,6 +2685,9 @@ msgstr ""
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
 msgstr "Sematkan cuplikan langsung papan .excalidraw dari ruang kerja ini."
 
+msgid "Embed a URL"
+msgstr ""
+
 msgid "Embed a video with native player controls."
 msgstr "Menyematkan video dengan kendali pemutar bawaan."
 
@@ -2669,6 +2699,12 @@ msgstr "Menyematkan halaman eksternal dalam iframe sebaris (dokumentasi, demo, F
 
 msgid "Embed an image with optional alt text."
 msgstr "Menyematkan gambar dengan teks alternatif opsional."
+
+msgid "Embed only supports cross-origin URLs"
+msgstr ""
+
+msgid "Embedded line break — the row spans multiple lines."
+msgstr ""
 
 msgid "Embedding request settings"
 msgstr "Pengaturan permintaan embedding"
@@ -2743,6 +2779,9 @@ msgstr "Aktifkan Tema"
 msgid "Enabling index generation"
 msgstr "Mengaktifkan pembuatan indeks"
 
+msgid "End"
+msgstr ""
+
 msgid "Ended"
 msgstr "Berakhir"
 
@@ -2751,6 +2790,9 @@ msgstr "Endpoint"
 
 msgid "Eng specs"
 msgstr "Spesifikasi teknik"
+
+msgid "Engineer"
+msgstr ""
 
 msgid "Enter"
 msgstr "Enter"
@@ -2768,6 +2810,9 @@ msgid "Enter a name for this theme."
 msgstr "Masukkan nama untuk tema ini."
 
 msgid "Enter a name."
+msgstr ""
+
+msgid "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
 msgstr ""
 
 msgid "Enter a number of seconds between {minimum} and {maximum}."
@@ -2981,6 +3026,9 @@ msgstr "Gagal memuat graf"
 msgid "Failed to load headings"
 msgstr "Gagal memuat judul"
 
+msgid "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+msgstr ""
+
 msgid "Failed to load hub pages"
 msgstr "Gagal memuat halaman pusat"
 
@@ -2993,6 +3041,9 @@ msgstr "Gagal memuat tautan keluar"
 msgid "Failed to load pages"
 msgstr "Gagal memuat halaman"
 
+msgid "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+msgstr ""
+
 msgid "Failed to load PDF"
 msgstr "Gagal memuat PDF"
 
@@ -3004,6 +3055,9 @@ msgstr "Gagal memuat templat proyek"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "Gagal memuat tag. Tekan <0>Esc</0> lalu buka lagi untuk mencoba ulang."
+
+msgid "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
+msgstr ""
 
 msgid "Failed to load templates: {message}"
 msgstr "Gagal memuat templat: {message}"
@@ -3808,6 +3862,9 @@ msgstr "Properti Matematika Sebaris"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "Baris sebaris untuk berkas yang bisa diunduh. Seret-lepas juga berfungsi."
 
+msgid "Inline tag (#tagname) that links pages with the same tag."
+msgstr ""
+
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "Menyisipkan rujukan catatan kaki + kerangka definisi yang sesuai."
 
@@ -3828,6 +3885,9 @@ msgstr "Sisipkan baris di atas"
 
 msgid "Insert row below"
 msgstr "Sisipkan baris di bawah"
+
+msgid "Insert unresolved link \"{title}\""
+msgstr ""
 
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "Menyisipkan, menghapus, memindahkan, menyalin, dan mengindentasi baris penyunting sumber lewat peta tombol bawaan CodeMirror."
@@ -3959,6 +4019,9 @@ msgid "Layout options"
 msgstr "Opsi tata letak"
 
 msgid "Le Chat"
+msgstr ""
+
+msgid "Leading whitespace — the rule may not match as expected."
 msgstr ""
 
 msgid "Learn more"
@@ -4177,6 +4240,9 @@ msgstr "Commit lokal menghalangi salinan ini diperbarui"
 msgid "Local path"
 msgstr "Jalur lokal"
 
+msgid "Lone ! — negation needs a pattern after it."
+msgstr ""
+
 msgid "Looked at links"
 msgstr ""
 
@@ -4186,11 +4252,17 @@ msgstr ""
 msgid "Looked at: {detail}"
 msgstr ""
 
+msgid "Loom video player"
+msgstr ""
+
 msgid "Lost connection to \"{docName}\"."
 msgstr "Koneksi ke \"{docName}\" terputus."
 
 msgid "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
 msgstr "Turunkan nilai ini untuk mengurangi penggunaan memori dan beban per permintaan. Batch yang lebih kecil mengirim lebih banyak permintaan dan dapat memperlambat pengindeksan secara keseluruhan."
+
+msgid "lucide:Lightbulb or 📘"
+msgstr ""
 
 msgid "Maintain generated indexes in every folder?"
 msgstr "Pertahankan indeks generated di setiap folder?"
@@ -4285,6 +4357,9 @@ msgstr "Kendali diagram Mermaid"
 msgid "Mermaid diagram failed to render."
 msgstr "Diagram Mermaid gagal dirender."
 
+msgid "Mermaid flowchart preview"
+msgstr ""
+
 msgid "Message"
 msgstr ""
 
@@ -4317,6 +4392,9 @@ msgstr "Ada fitur yang kurang"
 
 msgid "Missing file {identity}. Go to reference."
 msgstr "File {identity} tidak ditemukan. Buka referensi."
+
+msgid "Missing file extension. Accepts: {accepted}."
+msgstr ""
 
 msgid "Missing image {identity}. Go to reference."
 msgstr "Gambar {identity} tidak ditemukan. Buka referensi."
@@ -4912,6 +4990,9 @@ msgstr "Bukan tema base16"
 msgid "Not a hex color: {0}"
 msgstr "Bukan warna heksa: {0}"
 
+msgid "Not a valid URL."
+msgstr ""
+
 msgid "Not connected"
 msgstr "Tidak terhubung"
 
@@ -5374,6 +5455,12 @@ msgstr ""
 msgid "Paste your API key"
 msgstr "Tempelkan kunci API Anda"
 
+msgid "Pasted as plain text — some formatting could not be converted."
+msgstr ""
+
+msgid "Pasted without linking — the link could not be applied."
+msgstr ""
+
 msgid "Path cannot contain \"..\""
 msgstr "Jalur tidak boleh memuat \"..\""
 
@@ -5714,6 +5801,9 @@ msgstr "Folder dan templat siap pakai agar Anda cepat memulai."
 msgid "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 msgstr "Folder dan templat siap pakai agar Anda cepat memulai. Pilih sebuah paket untuk melihat apa yang akan dibuat, lalu tambahkan ke proyek Anda."
 
+msgid "Ready?"
+msgstr ""
+
 msgid "Receiving objects"
 msgstr "Menerima objek"
 
@@ -5939,6 +6029,9 @@ msgstr "Repositori tidak ditemukan — mungkin ia tidak ada, atau akun yang digu
 msgid "Repository not found. It may have been renamed, deleted, or moved."
 msgstr "Repositori tidak ditemukan. Mungkin ia sudah diganti nama, dihapus, atau dipindahkan."
 
+msgid "Request failed (HTTP {status})."
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "requests"
 msgstr "permintaan"
@@ -6050,6 +6143,9 @@ msgstr "Tampilkan di Finder"
 
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "Tampilkan di Finder menampilkan aplikasi agar Anda dapat menyeretnya ke Tong Sampah."
+
+msgid "Revenue"
+msgstr ""
 
 msgid "Review"
 msgstr "Tinjau"
@@ -6188,6 +6284,9 @@ msgstr "Cari berkas, folder, atau perintah"
 
 msgid "Search folders"
 msgstr "Cari folder"
+
+msgid "Search for a command to run"
+msgstr ""
 
 msgid "Search for a page and choose it to insert a link."
 msgstr ""
@@ -6357,6 +6456,9 @@ msgstr "Server tidak bisa membuka dokumen"
 msgid "Server error (HTTP {status})"
 msgstr "Galat server (HTTP {status})"
 
+msgid "Server error (HTTP {status}): {detail}"
+msgstr ""
+
 msgid "Server error: {status}"
 msgstr "Galat server: {status}"
 
@@ -6485,6 +6587,9 @@ msgstr "Tampilkan opsi lanjutan"
 
 msgid "Show Agents"
 msgstr "Tampilkan Agen"
+
+msgid "Show All Files stream failed."
+msgstr ""
 
 msgid "Show diagram"
 msgstr "Tampilkan diagram"
@@ -6702,6 +6807,9 @@ msgstr ""
 msgid "Split list item"
 msgstr "Pisahkan item daftar"
 
+msgid "Start"
+msgstr ""
+
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -6896,6 +7004,12 @@ msgstr "Menyinkronkan"
 
 msgid "System"
 msgstr "Sistem"
+
+msgid "Tab 1"
+msgstr ""
+
+msgid "Tab 2"
+msgstr ""
 
 msgid "Table"
 msgstr "Tabel"
@@ -7482,6 +7596,9 @@ msgstr ""
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "Jendela ini tidak bisa menyimpan token — buka Pengaturan dari jendela utama aplikasi."
 
+msgid "Thumbnails"
+msgstr ""
+
 msgid "Timeline"
 msgstr "Lini masa"
 
@@ -7603,6 +7720,9 @@ msgstr "Terlalu lambat"
 
 msgid "Top linked pages"
 msgstr "Halaman paling banyak ditaut"
+
+msgid "Trailing backslash — line continuation isn't supported."
+msgstr ""
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Menyusuri riwayat navigasi GitQuire ke belakang."
@@ -7736,11 +7856,17 @@ msgstr "Komponen tidak dikenal: {componentName} — sumber bisa disunting di baw
 msgid "Unknown component: {unregisteredComponentName}"
 msgstr "Komponen tidak dikenal: {unregisteredComponentName}"
 
+msgid "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+msgstr ""
+
 msgid "Unknown error"
 msgstr "Galat tidak diketahui"
 
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "Variabel tidak dikenal {unknownList}. Variabel yang tersedia: {supportedVariables}."
+
+msgid "Unmatched [ — character class is open."
+msgstr ""
 
 msgid "Unmerged"
 msgstr "Belum digabungkan"
@@ -7757,6 +7883,9 @@ msgstr "Lepas sematan tab"
 msgid "Unread"
 msgstr ""
 
+msgid "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "Tautan tidak dikenali"
 
@@ -7771,6 +7900,9 @@ msgstr "File {identity} tidak dapat ditentukan. Buka referensi."
 
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "Gambar {identity} tidak dapat ditentukan. Buka referensi."
+
+msgid "Unsupported extension .{extension}. Accepts: {accepted}."
+msgstr ""
 
 msgid "Unsupported file type: {fileType}."
 msgstr "Tipe berkas tidak didukung: {fileType}."
@@ -7847,6 +7979,9 @@ msgstr "Mengunggah berkas"
 msgid "Upstream sync"
 msgstr "Sinkronisasi hulu"
 
+msgid "URL must start with http:// or https://"
+msgstr ""
+
 msgid "Use {0} as the dark theme"
 msgstr "Pakai {0} sebagai tema gelap"
 
@@ -7904,6 +8039,9 @@ msgstr "Plugin pengguna bersifat pribadi untuk perangkat ini — nyalakan atau m
 msgid "Username"
 msgstr "Nama pengguna"
 
+msgid "Users"
+msgstr ""
+
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "Memakai variabel lingkungan <0>OK_EMBEDDINGS_API_KEY</0> (dikelola di luar GitQuire)."
 
@@ -7947,6 +8085,9 @@ msgid "View only"
 msgstr "Hanya lihat"
 
 msgid "Views"
+msgstr ""
+
+msgid "Vimeo video player"
 msgstr ""
 
 msgid "Visibility"
@@ -8119,6 +8260,9 @@ msgstr ""
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML atau JSON, dalam salah satu tata letak base16."
+
+msgid "yes"
+msgstr ""
 
 msgid "yesterday"
 msgstr "kemarin"

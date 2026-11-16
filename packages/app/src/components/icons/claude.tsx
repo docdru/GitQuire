@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function ClaudeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="Claude icon"
+      aria-label={iconLabel('Claude')}
       fill="none"
       height={24}
       width={24}

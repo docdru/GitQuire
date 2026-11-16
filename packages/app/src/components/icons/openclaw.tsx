@@ -1,11 +1,12 @@
 import { type SVGProps, useId } from 'react';
+import { iconLabel } from './icon-label';
 
 export function OpenClawIcon(props: SVGProps<SVGSVGElement>) {
   const maskId = `openclaw-eyes-${useId().replace(/:/g, '')}`;
   return (
     <svg
       role="img"
-      aria-label="OpenClaw icon"
+      aria-label={iconLabel('OpenClaw')}
       xmlns="http://www.w3.org/2000/svg"
       width={24}
       height={24}

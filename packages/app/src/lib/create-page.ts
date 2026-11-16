@@ -1,4 +1,5 @@
 import { CreatePageSuccessSchema } from '@inkeep/open-knowledge-core/schemas/api';
+import { t } from '@lingui/core/macro';
 import { emitDocumentsChanged } from './documents-events';
 import { parseServerResponse, parseSuccessOrWarn } from './parse-server-response';
 
@@ -26,7 +27,7 @@ async function createPageFromPath(path: string): Promise<{ docName: string }> {
     body: JSON.stringify({ path }),
   });
 
-  const parsed = await parseServerResponse(res, 'Failed to create page');
+  const parsed = await parseServerResponse(res, t`Failed to create page`);
   if (!parsed.ok) {
     throw new Error(parsed.title);
   }

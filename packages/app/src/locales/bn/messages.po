@@ -413,6 +413,15 @@ msgstr "{minutes} মিনিট আগে"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
+msgid "{name} icon"
+msgstr ""
+
+msgid "{name} URLs are not direct audio files. Paste a direct audio file URL."
+msgstr ""
+
+msgid "{name} URLs are not direct image files. Paste a direct image file URL."
+msgstr ""
+
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, one {# নোড} other {# নোড}}"
 
@@ -545,6 +554,9 @@ msgid "# One pattern per line.\n"
 "#   *.draft.md\n"
 "#   !keep.md"
 msgstr "# প্রতি লাইনে একটি প্যাটার্ন।\\n# উদাহরণ:\\n#   drafts/\\n#   *.draft.md\\n#   !keep.md"
+
+msgid "#F05032 or rgb(240,80,50)"
+msgstr ""
 
 msgid "+ {overflow} more"
 msgstr "+ আরও {overflow}"
@@ -855,6 +867,9 @@ msgstr "যোগ করা হচ্ছে"
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "ধীর বা কম মেমোরির এমবেডিং সার্ভারের জন্য ইনডেক্সিং অনুরোধের আকার ও সময়সীমা সমন্বয় করুন। বেশিরভাগ ক্ষেত্রে ডিফল্ট মানই রাখা উচিত।"
 
+msgid "Admiral"
+msgstr ""
+
 msgid "Advanced"
 msgstr "উন্নত"
 
@@ -1121,6 +1136,9 @@ msgstr "অ্যাসেট পরামর্শ"
 
 msgid "Asset: {title}"
 msgstr "সম্পদ: {title}"
+
+msgid "Attach a downloadable file (.pdf, .docx, .zip and more)."
+msgstr ""
 
 msgid "Attach images"
 msgstr "ছবি সংযুক্ত করুন"
@@ -1505,6 +1523,9 @@ msgstr "কোনো ফিল্ডের ডিফল্ট মান ফি�
 
 msgid "Clear color"
 msgstr "রং সরান"
+
+msgid "Clear icon"
+msgstr ""
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "ডিফল্ট OpenAI এন্ডপয়েন্টে ফিরতে ফিল্ডটি খালি করুন।"
@@ -2217,6 +2238,9 @@ msgstr "সম্পাদক কেমন দেখাবে ও কেমন �
 msgid "Dark"
 msgstr "গাঢ়"
 
+msgid "Data URIs are not supported for media fields. Use a hosted file URL."
+msgstr ""
+
 msgid "Date"
 msgstr "তারিখ"
 
@@ -2493,6 +2517,9 @@ msgstr "ক্রম বদলাতে {patternText} টেনে আনুন"
 msgid "Drag item {0} to reorder"
 msgstr "ক্রম বদলাতে আইটেম {0} টেনে আনুন"
 
+msgid "Drag to adjust"
+msgstr ""
+
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "সর্বোচ্চ {MAX_ATTACHMENTS}টি ছবি ছেড়ে দিন, পেস্ট করুন বা সংযুক্ত করুন।"
 
@@ -2658,6 +2685,9 @@ msgstr ""
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
 msgstr "এই ওয়ার্কস্পেসের একটি .excalidraw বোর্ডের লাইভ স্ন্যাপশট এম্বেড করুন।"
 
+msgid "Embed a URL"
+msgstr ""
+
 msgid "Embed a video with native player controls."
 msgstr "নিজস্ব প্লেয়ার নিয়ন্ত্রণসহ একটি ভিডিও এমবেড করুন।"
 
@@ -2669,6 +2699,12 @@ msgstr "একটি বাইরের পাতা ইনলাইন iframe-�
 
 msgid "Embed an image with optional alt text."
 msgstr "ঐচ্ছিক বিকল্প-লেখাসহ একটি ছবি এমবেড করুন।"
+
+msgid "Embed only supports cross-origin URLs"
+msgstr ""
+
+msgid "Embedded line break — the row spans multiple lines."
+msgstr ""
 
 msgid "Embedding request settings"
 msgstr "এমবেডিং অনুরোধ সেটিংস"
@@ -2743,6 +2779,9 @@ msgstr "থিম চালু করুন"
 msgid "Enabling index generation"
 msgstr "সূচক তৈরি সক্ষম করা হচ্ছে"
 
+msgid "End"
+msgstr ""
+
 msgid "Ended"
 msgstr "শেষ হয়েছে"
 
@@ -2751,6 +2790,9 @@ msgstr "এন্ডপয়েন্ট"
 
 msgid "Eng specs"
 msgstr "ইঞ্জিনিয়ারিং স্পেক"
+
+msgid "Engineer"
+msgstr ""
 
 msgid "Enter"
 msgstr "Enter"
@@ -2768,6 +2810,9 @@ msgid "Enter a name for this theme."
 msgstr "এই থিমের জন্য একটি নাম লিখুন।"
 
 msgid "Enter a name."
+msgstr ""
+
+msgid "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
 msgstr ""
 
 msgid "Enter a number of seconds between {minimum} and {maximum}."
@@ -2981,6 +3026,9 @@ msgstr "গ্রাফ লোড করতে ব্যর্থ"
 msgid "Failed to load headings"
 msgstr "শিরোনাম লোড করতে ব্যর্থ"
 
+msgid "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+msgstr ""
+
 msgid "Failed to load hub pages"
 msgstr "হাব পাতা লোড করতে ব্যর্থ"
 
@@ -2993,6 +3041,9 @@ msgstr "বহির্গামী লিংক লোড করতে ব্�
 msgid "Failed to load pages"
 msgstr "পৃষ্ঠা লোড করা যায়নি"
 
+msgid "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+msgstr ""
+
 msgid "Failed to load PDF"
 msgstr "PDF লোড করতে ব্যর্থ"
 
@@ -3004,6 +3055,9 @@ msgstr "প্রকল্পের টেমপ্লেট লোড করত
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "ট্যাগ লোড করতে ব্যর্থ। <0>Esc</0> চেপে আবার খুলে চেষ্টা করুন।"
+
+msgid "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
+msgstr ""
 
 msgid "Failed to load templates: {message}"
 msgstr "টেমপ্লেট লোড করতে ব্যর্থ: {message}"
@@ -3808,6 +3862,9 @@ msgstr "ইনলাইন গণিত প্রপার্টি"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "ডাউনলোডযোগ্য ফাইলের জন্য ইনলাইন সারি। টেনে-ফেলাও কাজ করে।"
 
+msgid "Inline tag (#tagname) that links pages with the same tag."
+msgstr ""
+
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "একটি পাদটীকা রেফারেন্স + মিলে যাওয়া সংজ্ঞার কাঠামো ঢোকান।"
 
@@ -3828,6 +3885,9 @@ msgstr "উপরে সারি যোগ করুন"
 
 msgid "Insert row below"
 msgstr "নিচে সারি যোগ করুন"
+
+msgid "Insert unresolved link \"{title}\""
+msgstr ""
 
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "CodeMirror-এর ডিফল্ট কীম্যাপ দিয়ে সোর্স সম্পাদকের লাইন ঢোকান, মুছুন, সরান, কপি করুন ও ভেতরে নিন।"
@@ -3959,6 +4019,9 @@ msgid "Layout options"
 msgstr "বিন্যাসের বিকল্প"
 
 msgid "Le Chat"
+msgstr ""
+
+msgid "Leading whitespace — the rule may not match as expected."
 msgstr ""
 
 msgid "Learn more"
@@ -4177,6 +4240,9 @@ msgstr "স্থানীয় কমিটগুলো এই অনুলি
 msgid "Local path"
 msgstr "স্থানীয় পথ"
 
+msgid "Lone ! — negation needs a pattern after it."
+msgstr ""
+
 msgid "Looked at links"
 msgstr ""
 
@@ -4186,11 +4252,17 @@ msgstr ""
 msgid "Looked at: {detail}"
 msgstr ""
 
+msgid "Loom video player"
+msgstr ""
+
 msgid "Lost connection to \"{docName}\"."
 msgstr "\"{docName}\"-এর সঙ্গে সংযোগ হারিয়েছে।"
 
 msgid "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
 msgstr "প্রতি অনুরোধে মেমোরি ব্যবহার ও কাজ কমাতে এটি কমান। ছোট ব্যাচ বেশি অনুরোধ পাঠায় এবং সামগ্রিকভাবে ইনডেক্সিং ধীর করতে পারে।"
+
+msgid "lucide:Lightbulb or 📘"
+msgstr ""
 
 msgid "Maintain generated indexes in every folder?"
 msgstr "প্রতি ফোল্ডারে generated সূচী বজায় রাখুন?"
@@ -4285,6 +4357,9 @@ msgstr "Mermaid চিত্রের নিয়ন্ত্রণ"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid চিত্র রেন্ডার করা যায়নি।"
 
+msgid "Mermaid flowchart preview"
+msgstr ""
+
 msgid "Message"
 msgstr ""
 
@@ -4317,6 +4392,9 @@ msgstr "একটি বৈশিষ্ট্য অনুপস্থিত"
 
 msgid "Missing file {identity}. Go to reference."
 msgstr "অনুপস্থিত ফাইল {identity}। রেফারেন্সে যান।"
+
+msgid "Missing file extension. Accepts: {accepted}."
+msgstr ""
 
 msgid "Missing image {identity}. Go to reference."
 msgstr "অনুপস্থিত ছবি {identity}। রেফারেন্সে যান।"
@@ -4912,6 +4990,9 @@ msgstr "এটি base16 থিম নয়"
 msgid "Not a hex color: {0}"
 msgstr "হেক্স রঙ নয়: {0}"
 
+msgid "Not a valid URL."
+msgstr ""
+
 msgid "Not connected"
 msgstr "যুক্ত নয়"
 
@@ -5374,6 +5455,12 @@ msgstr ""
 msgid "Paste your API key"
 msgstr "আপনার API কী পেস্ট করুন"
 
+msgid "Pasted as plain text — some formatting could not be converted."
+msgstr ""
+
+msgid "Pasted without linking — the link could not be applied."
+msgstr ""
+
 msgid "Path cannot contain \"..\""
 msgstr "পথে \"..\" থাকতে পারে না"
 
@@ -5714,6 +5801,9 @@ msgstr "দ্রুত শুরু করার জন্য তৈরি ফ�
 msgid "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 msgstr "দ্রুত শুরু করার জন্য তৈরি ফোল্ডার ও টেমপ্লেট। কী তৈরি হবে তার প্রাকদর্শন দেখতে একটি প্যাক নির্বাচন করুন, তারপর সেটি আপনার প্রকল্পে যোগ করুন।"
 
+msgid "Ready?"
+msgstr ""
+
 msgid "Receiving objects"
 msgstr "অবজেক্ট গ্রহণ করা হচ্ছে"
 
@@ -5939,6 +6029,9 @@ msgstr "রিপোজিটরি পাওয়া যায়নি — �
 msgid "Repository not found. It may have been renamed, deleted, or moved."
 msgstr "রিপোজিটরি পাওয়া যায়নি। হয়তো এর নাম বদলানো হয়েছে, মুছে ফেলা হয়েছে, বা সরানো হয়েছে।"
 
+msgid "Request failed (HTTP {status})."
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "requests"
 msgstr "অনুরোধ"
@@ -6050,6 +6143,9 @@ msgstr "Finder-এ দেখান"
 
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "Finder-এ দেখান অ্যাপটি দেখায়, যাতে আপনি সেটি ট্র্যাশে টেনে নিতে পারেন।"
+
+msgid "Revenue"
+msgstr ""
 
 msgid "Review"
 msgstr "পর্যালোচনা"
@@ -6188,6 +6284,9 @@ msgstr "ফাইল, ফোল্ডার বা কমান্ড খুঁ�
 
 msgid "Search folders"
 msgstr "ফোল্ডার খুঁজুন"
+
+msgid "Search for a command to run"
+msgstr ""
 
 msgid "Search for a page and choose it to insert a link."
 msgstr ""
@@ -6357,6 +6456,9 @@ msgstr "সার্ভার নথি খুলতে পারছে না"
 msgid "Server error (HTTP {status})"
 msgstr "সার্ভার ত্রুটি (HTTP {status})"
 
+msgid "Server error (HTTP {status}): {detail}"
+msgstr ""
+
 msgid "Server error: {status}"
 msgstr "সার্ভার ত্রুটি: {status}"
 
@@ -6485,6 +6587,9 @@ msgstr "উন্নত দেখান"
 
 msgid "Show Agents"
 msgstr "Agents দেখান"
+
+msgid "Show All Files stream failed."
+msgstr ""
 
 msgid "Show diagram"
 msgstr "চিত্র দেখান"
@@ -6702,6 +6807,9 @@ msgstr ""
 msgid "Split list item"
 msgstr "তালিকা আইটেম ভাগ করুন"
 
+msgid "Start"
+msgstr ""
+
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -6896,6 +7004,12 @@ msgstr "সিঙ্ক হচ্ছে"
 
 msgid "System"
 msgstr "সিস্টেম"
+
+msgid "Tab 1"
+msgstr ""
+
+msgid "Tab 2"
+msgstr ""
 
 msgid "Table"
 msgstr "টেবিল"
@@ -7482,6 +7596,9 @@ msgstr ""
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "এই জানালাটি কোনো টোকেন সংরক্ষণ করতে পারে না — মূল অ্যাপ জানালা থেকে Settings খুলুন।"
 
+msgid "Thumbnails"
+msgstr ""
+
 msgid "Timeline"
 msgstr "কালানুক্রম"
 
@@ -7603,6 +7720,9 @@ msgstr "খুব ধীর"
 
 msgid "Top linked pages"
 msgstr "সবচেয়ে বেশি লিংক করা পাতা"
+
+msgid "Trailing backslash — line continuation isn't supported."
+msgstr ""
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "GitQuire-এর নেভিগেশন ইতিহাসে পিছনে যান।"
@@ -7736,11 +7856,17 @@ msgstr "অজানা কম্পোনেন্ট: {componentName} — স�
 msgid "Unknown component: {unregisteredComponentName}"
 msgstr "অজানা কম্পোনেন্ট: {unregisteredComponentName}"
 
+msgid "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+msgstr ""
+
 msgid "Unknown error"
 msgstr "অজানা ত্রুটি"
 
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "অজানা ভেরিয়েবল {unknownList}। উপলব্ধ ভেরিয়েবল: {supportedVariables}।"
+
+msgid "Unmatched [ — character class is open."
+msgstr ""
 
 msgid "Unmerged"
 msgstr "মার্জ হয়নি"
@@ -7757,6 +7883,9 @@ msgstr "ট্যাব আনপিন করুন"
 msgid "Unread"
 msgstr ""
 
+msgid "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "অচেনা লিংক"
 
@@ -7771,6 +7900,9 @@ msgstr "সমাধান করা যায় না এমন ফাইল 
 
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "সমাধান করা যায় না এমন ছবি {identity}। রেফারেন্সে যান।"
+
+msgid "Unsupported extension .{extension}. Accepts: {accepted}."
+msgstr ""
 
 msgid "Unsupported file type: {fileType}."
 msgstr "অসমর্থিত ফাইলের ধরন: {fileType}।"
@@ -7847,6 +7979,9 @@ msgstr "ফাইল আপলোড করা হচ্ছে"
 msgid "Upstream sync"
 msgstr "আপস্ট্রিম সিঙ্ক"
 
+msgid "URL must start with http:// or https://"
+msgstr ""
+
 msgid "Use {0} as the dark theme"
 msgstr "{0}-কে গাঢ় থিম হিসেবে ব্যবহার করুন"
 
@@ -7904,6 +8039,9 @@ msgstr "ব্যবহারকারী প্লাগইন এই যন্
 msgid "Username"
 msgstr "ব্যবহারকারীর নাম"
 
+msgid "Users"
+msgstr ""
+
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "<0>OK_EMBEDDINGS_API_KEY</0> পরিবেশ চলক ব্যবহার করা হচ্ছে (GitQuire-এর বাইরে পরিচালিত)।"
 
@@ -7947,6 +8085,9 @@ msgid "View only"
 msgstr "শুধু দেখার জন্য"
 
 msgid "Views"
+msgstr ""
+
+msgid "Vimeo video player"
 msgstr ""
 
 msgid "Visibility"
@@ -8119,6 +8260,9 @@ msgstr ""
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML বা JSON, যেকোনো base16 বিন্যাসে।"
+
+msgid "yes"
+msgstr ""
 
 msgid "yesterday"
 msgstr "গতকাল"

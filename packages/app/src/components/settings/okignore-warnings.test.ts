@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { checkHeuristicWarnings, WARNING_MESSAGES } from './okignore-warnings';
+import { checkHeuristicWarnings, warningMessage } from './okignore-warnings';
 
 describe('checkHeuristicWarnings — quiet on uninteresting input', () => {
   test('empty string returns no warnings', () => {
@@ -35,7 +35,7 @@ describe('checkHeuristicWarnings — trailing backslash', () => {
   test('flags trailing backslash', () => {
     const out = checkHeuristicWarnings('foo\\');
     expect(out.map((w) => w.code)).toEqual(['trailing-backslash']);
-    expect(out[0]?.message).toBe(WARNING_MESSAGES['trailing-backslash']);
+    expect(out[0]?.message).toBe(warningMessage('trailing-backslash'));
   });
 
   test('does not flag escape mid-pattern', () => {
@@ -122,8 +122,8 @@ describe('checkHeuristicWarnings — combinations', () => {
       'leading-whitespace',
       'embedded-newline',
     ] as const) {
-      expect(typeof WARNING_MESSAGES[code]).toBe('string');
-      expect(WARNING_MESSAGES[code].length).toBeGreaterThan(0);
+      expect(typeof warningMessage(code)).toBe('string');
+      expect(warningMessage(code).length).toBeGreaterThan(0);
     }
   });
 });

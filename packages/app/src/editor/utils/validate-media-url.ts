@@ -6,6 +6,7 @@ import {
 import { isLoomUrl } from '@inkeep/open-knowledge-core/utils/loom-embed';
 import { isVimeoUrl } from '@inkeep/open-knowledge-core/utils/vimeo-embed';
 import { parseYouTubeUrl } from '@inkeep/open-knowledge-core/utils/youtube-embed';
+import { t } from '@lingui/core/macro';
 
 type MediaKind = 'video' | 'audio' | 'image';
 
@@ -126,22 +127,25 @@ export function mediaUrlValidationMessage(
   kind: MediaKind,
 ): string {
   if (result.valid) return '';
-  if (result.reason === 'invalid-url') return 'Not a valid URL.';
+  if (result.reason === 'invalid-url') return t`Not a valid URL.`;
   if (result.reason === 'data-uri') {
-    return 'Data URIs are not supported for media fields. Use a hosted file URL.';
+    return t`Data URIs are not supported for media fields. Use a hosted file URL.`;
   }
   if (result.reason === 'embed-provider') {
     const name = PROVIDER_DISPLAY_NAMES[result.provider];
     if (kind === 'video') {
-      return `Unrecognized ${name} URL. Paste a valid ${name} share or embed link, or a direct ${kind} file URL.`;
+      return t`Unrecognized ${name} URL. Paste a valid ${name} share or embed link, or a direct video file URL.`;
     }
-    return `${name} URLs are not direct ${kind} files. Paste a direct ${kind} file URL.`;
+    return kind === 'audio'
+      ? t`${name} URLs are not direct audio files. Paste a direct audio file URL.`
+      : t`${name} URLs are not direct image files. Paste a direct image file URL.`;
   }
   const accepted = Array.from(EXTENSIONS_BY_KIND[kind])
     .map((e) => `.${e}`)
     .join(', ');
   if (result.extension === '') {
-    return `Missing file extension. Accepts: ${accepted}.`;
+    return t`Missing file extension. Accepts: ${accepted}.`;
   }
-  return `Unsupported extension .${result.extension}. Accepts: ${accepted}.`;
+  const extension = result.extension;
+  return t`Unsupported extension .${extension}. Accepts: ${accepted}.`;
 }

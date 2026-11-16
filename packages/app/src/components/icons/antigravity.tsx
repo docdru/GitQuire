@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function AntigravityIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="Antigravity icon"
+      aria-label={iconLabel('Antigravity')}
       xmlns="http://www.w3.org/2000/svg"
       width={24}
       height={24}

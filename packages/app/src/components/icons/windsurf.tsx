@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function WindsurfIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="Windsurf icon"
+      aria-label={iconLabel('Windsurf')}
       xmlns="http://www.w3.org/2000/svg"
       width={22}
       height={22}

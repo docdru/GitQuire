@@ -413,6 +413,15 @@ msgstr "{minutes}분 전"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
+msgid "{name} icon"
+msgstr ""
+
+msgid "{name} URLs are not direct audio files. Paste a direct audio file URL."
+msgstr ""
+
+msgid "{name} URLs are not direct image files. Paste a direct image file URL."
+msgstr ""
+
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, other {노드 #개}}"
 
@@ -549,6 +558,9 @@ msgstr "# 줄마다 패턴 하나를 작성합니다.\n"
 "#   drafts/\n"
 "#   *.draft.md\n"
 "#   !keep.md"
+
+msgid "#F05032 or rgb(240,80,50)"
+msgstr ""
 
 msgid "+ {overflow} more"
 msgstr "+ {overflow}개 더"
@@ -859,6 +871,9 @@ msgstr "추가 중"
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "느리거나 메모리가 제한된 임베딩 서버에 맞게 인덱싱 요청 크기와 시간 제한을 조정합니다. 대부분의 환경에서는 기본값을 유지하는 것이 좋습니다."
 
+msgid "Admiral"
+msgstr ""
+
 msgid "Advanced"
 msgstr "고급"
 
@@ -1125,6 +1140,9 @@ msgstr "에셋 제안"
 
 msgid "Asset: {title}"
 msgstr "에셋: {title}"
+
+msgid "Attach a downloadable file (.pdf, .docx, .zip and more)."
+msgstr ""
 
 msgid "Attach images"
 msgstr "이미지 첨부"
@@ -1509,6 +1527,9 @@ msgstr "필드를 비우면 기본값으로 복원됩니다."
 
 msgid "Clear color"
 msgstr "색상 지우기"
+
+msgid "Clear icon"
+msgstr ""
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "필드를 지우면 기본 OpenAI 엔드포인트로 돌아갑니다."
@@ -2221,6 +2242,9 @@ msgstr "편집기 모양과 동작을 사용자 지정합니다."
 msgid "Dark"
 msgstr "어두운 테마"
 
+msgid "Data URIs are not supported for media fields. Use a hosted file URL."
+msgstr ""
+
 msgid "Date"
 msgstr "날짜"
 
@@ -2497,6 +2521,9 @@ msgstr "{patternText} 드래그로 순서를 변경합니다."
 msgid "Drag item {0} to reorder"
 msgstr "항목 {0}을 드래그하여 순서 변경"
 
+msgid "Drag to adjust"
+msgstr ""
+
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "이미지를 최대 {MAX_ATTACHMENTS}개까지 놓거나 붙여넣거나 첨부하세요."
 
@@ -2662,6 +2689,9 @@ msgstr ""
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
 msgstr "이 워크스페이스의 .excalidraw 보드 라이브 스냅샷을 삽입합니다."
 
+msgid "Embed a URL"
+msgstr ""
+
 msgid "Embed a video with native player controls."
 msgstr "기본 플레이어 컨트롤이 있는 동영상을 삽입합니다."
 
@@ -2673,6 +2703,12 @@ msgstr "외부 페이지를 인라인 iframe에 삽입합니다. 문서, 데모,
 
 msgid "Embed an image with optional alt text."
 msgstr "대체 텍스트를 추가할 수 있는 이미지를 삽입합니다."
+
+msgid "Embed only supports cross-origin URLs"
+msgstr ""
+
+msgid "Embedded line break — the row spans multiple lines."
+msgstr ""
 
 msgid "Embedding request settings"
 msgstr "임베딩 요청 설정"
@@ -2747,6 +2783,9 @@ msgstr "테마 사용"
 msgid "Enabling index generation"
 msgstr "인덱스 생성 활성화 중"
 
+msgid "End"
+msgstr ""
+
 msgid "Ended"
 msgstr "종료됨"
 
@@ -2755,6 +2794,9 @@ msgstr "엔드포인트"
 
 msgid "Eng specs"
 msgstr "엔지니어링 사양"
+
+msgid "Engineer"
+msgstr ""
 
 msgid "Enter"
 msgstr "Enter"
@@ -2772,6 +2814,9 @@ msgid "Enter a name for this theme."
 msgstr "이 테마의 이름을 입력합니다."
 
 msgid "Enter a name."
+msgstr ""
+
+msgid "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
 msgstr ""
 
 msgid "Enter a number of seconds between {minimum} and {maximum}."
@@ -2985,6 +3030,9 @@ msgstr "그래프 불러오기 실패"
 msgid "Failed to load headings"
 msgstr "제목 불러오기 실패"
 
+msgid "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+msgstr ""
+
 msgid "Failed to load hub pages"
 msgstr "허브 페이지 불러오기 실패"
 
@@ -2997,6 +3045,9 @@ msgstr "나가는 링크 불러오기 실패"
 msgid "Failed to load pages"
 msgstr "페이지 불러오기 실패"
 
+msgid "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+msgstr ""
+
 msgid "Failed to load PDF"
 msgstr "PDF를 불러오지 못했습니다"
 
@@ -3008,6 +3059,9 @@ msgstr "프로젝트 템플릿을 불러오지 못했습니다"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "태그를 불러오지 못했습니다. <0>Esc</0> 키를 누르고 다시 열어 보세요."
+
+msgid "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
+msgstr ""
 
 msgid "Failed to load templates: {message}"
 msgstr "템플릿을 불러오지 못했습니다: {message}"
@@ -3812,6 +3866,9 @@ msgstr "인라인 수식 속성"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "다운로드 가능한 파일을 위한 인라인 행입니다. 드래그 앤 드롭도 사용할 수 있습니다."
 
+msgid "Inline tag (#tagname) that links pages with the same tag."
+msgstr ""
+
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "각주 참조와 대응하는 정의 초안을 삽입합니다."
 
@@ -3832,6 +3889,9 @@ msgstr "위에 행 삽입"
 
 msgid "Insert row below"
 msgstr "아래에 행 삽입"
+
+msgid "Insert unresolved link \"{title}\""
+msgstr ""
 
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "CodeMirror 기본 키맵을 통해 소스 편집기 줄을 삽입, 삭제, 이동, 복사하고 들여씁니다."
@@ -3963,6 +4023,9 @@ msgid "Layout options"
 msgstr "레이아웃 옵션"
 
 msgid "Le Chat"
+msgstr ""
+
+msgid "Leading whitespace — the rule may not match as expected."
 msgstr ""
 
 msgid "Learn more"
@@ -4181,6 +4244,9 @@ msgstr "로컬 커밋 때문에 이 사본을 업데이트할 수 없습니다."
 msgid "Local path"
 msgstr "로컬 경로"
 
+msgid "Lone ! — negation needs a pattern after it."
+msgstr ""
+
 msgid "Looked at links"
 msgstr ""
 
@@ -4190,11 +4256,17 @@ msgstr ""
 msgid "Looked at: {detail}"
 msgstr ""
 
+msgid "Loom video player"
+msgstr ""
+
 msgid "Lost connection to \"{docName}\"."
 msgstr "\"{docName}\" 연결이 끊겼습니다."
 
 msgid "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
 msgstr "이 값을 낮추면 요청당 메모리 사용량과 작업량이 줄어듭니다. 배치가 작을수록 요청 수가 늘어 전체 인덱싱이 느려질 수 있습니다."
+
+msgid "lucide:Lightbulb or 📘"
+msgstr ""
 
 msgid "Maintain generated indexes in every folder?"
 msgstr "모든 폴더에서 생성된 인덱스를 유지하시겠습니까?"
@@ -4289,6 +4361,9 @@ msgstr "Mermaid 다이어그램 컨트롤"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid 다이어그램을 렌더링하지 못했습니다."
 
+msgid "Mermaid flowchart preview"
+msgstr ""
+
 msgid "Message"
 msgstr ""
 
@@ -4321,6 +4396,9 @@ msgstr "기능 누락"
 
 msgid "Missing file {identity}. Go to reference."
 msgstr "누락된 파일 {identity}. 참조로 이동합니다."
+
+msgid "Missing file extension. Accepts: {accepted}."
+msgstr ""
 
 msgid "Missing image {identity}. Go to reference."
 msgstr "누락된 이미지 {identity}. 참조로 이동합니다."
@@ -4916,6 +4994,9 @@ msgstr "base16 테마가 아님"
 msgid "Not a hex color: {0}"
 msgstr "16진수 색상이 아닙니다: {0}"
 
+msgid "Not a valid URL."
+msgstr ""
+
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -5378,6 +5459,12 @@ msgstr ""
 msgid "Paste your API key"
 msgstr "API 키 붙여넣기"
 
+msgid "Pasted as plain text — some formatting could not be converted."
+msgstr ""
+
+msgid "Pasted without linking — the link could not be applied."
+msgstr ""
+
 msgid "Path cannot contain \"..\""
 msgstr "경로에 \"..\"를 포함할 수 없음"
 
@@ -5718,6 +5805,9 @@ msgstr "빠르게 시작할 수 있는 미리 준비된 폴더와 템플릿입�
 msgid "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 msgstr "바로 사용할 수 있는 폴더와 템플릿으로 빠르게 시작합니다. 팩을 선택해 무엇이 생성되는지 미리 본 다음 프로젝트에 추가하세요."
 
+msgid "Ready?"
+msgstr ""
+
 msgid "Receiving objects"
 msgstr "객체 수신 중"
 
@@ -5943,6 +6033,9 @@ msgstr "저장소를 찾을 수 없습니다 — 존재하지 않거나, 사용�
 msgid "Repository not found. It may have been renamed, deleted, or moved."
 msgstr "저장소 검색 실패. 이름 변경, 삭제 또는 이동됐을 수 있습니다."
 
+msgid "Request failed (HTTP {status})."
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "requests"
 msgstr "요청"
@@ -6054,6 +6147,9 @@ msgstr "Finder에서 보기"
 
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "Finder에서 보기를 누르면 앱이 표시되어 휴지통으로 드래그할 수 있습니다."
+
+msgid "Revenue"
+msgstr ""
 
 msgid "Review"
 msgstr "검토"
@@ -6192,6 +6288,9 @@ msgstr "파일, 폴더 또는 명령 검색"
 
 msgid "Search folders"
 msgstr "폴더 검색"
+
+msgid "Search for a command to run"
+msgstr ""
 
 msgid "Search for a page and choose it to insert a link."
 msgstr ""
@@ -6361,6 +6460,9 @@ msgstr "서버에서 문서를 열 수 없습니다"
 msgid "Server error (HTTP {status})"
 msgstr "서버 오류 (HTTP {status})"
 
+msgid "Server error (HTTP {status}): {detail}"
+msgstr ""
+
 msgid "Server error: {status}"
 msgstr "서버 오류: {status}"
 
@@ -6489,6 +6591,9 @@ msgstr "고급 설정 보기"
 
 msgid "Show Agents"
 msgstr "에이전트 표시"
+
+msgid "Show All Files stream failed."
+msgstr ""
 
 msgid "Show diagram"
 msgstr "다이어그램 보기"
@@ -6706,6 +6811,9 @@ msgstr ""
 msgid "Split list item"
 msgstr "목록 항목 분할"
 
+msgid "Start"
+msgstr ""
+
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -6900,6 +7008,12 @@ msgstr "동기화 중"
 
 msgid "System"
 msgstr "시스템"
+
+msgid "Tab 1"
+msgstr ""
+
+msgid "Tab 2"
+msgstr ""
 
 msgid "Table"
 msgstr "표"
@@ -7486,6 +7600,9 @@ msgstr ""
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "이 창에는 토큰을 저장할 수 없습니다. 기본 앱 창에서 설정을 여세요."
 
+msgid "Thumbnails"
+msgstr ""
+
 msgid "Timeline"
 msgstr "타임라인"
 
@@ -7607,6 +7724,9 @@ msgstr "너무 느림"
 
 msgid "Top linked pages"
 msgstr "링크가 가장 많은 페이지"
+
+msgid "Trailing backslash — line continuation isn't supported."
+msgstr ""
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "GitQuire 탐색 기록을 뒤로 이동합니다."
@@ -7740,11 +7860,17 @@ msgstr "알 수 없는 컴포넌트: {componentName}, 아래에서 소스를 편
 msgid "Unknown component: {unregisteredComponentName}"
 msgstr "알 수 없는 컴포넌트: {unregisteredComponentName}"
 
+msgid "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+msgstr ""
+
 msgid "Unknown error"
 msgstr "알 수 없는 오류"
 
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "알 수 없는 변수 {unknownList}. 사용할 수 있는 변수: {supportedVariables}."
+
+msgid "Unmatched [ — character class is open."
+msgstr ""
 
 msgid "Unmerged"
 msgstr "병합 안 됨"
@@ -7761,6 +7887,9 @@ msgstr "탭 고정 해제"
 msgid "Unread"
 msgstr ""
 
+msgid "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "인식할 수 없는 링크"
 
@@ -7775,6 +7904,9 @@ msgstr "해결할 수 없는 파일 {identity}. 참조로 이동합니다."
 
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "해결할 수 없는 이미지 {identity}. 참조로 이동합니다."
+
+msgid "Unsupported extension .{extension}. Accepts: {accepted}."
+msgstr ""
 
 msgid "Unsupported file type: {fileType}."
 msgstr "지원되지 않는 파일 형식: {fileType}."
@@ -7851,6 +7983,9 @@ msgstr "파일 업로드 중"
 msgid "Upstream sync"
 msgstr "상위 저장소 동기화"
 
+msgid "URL must start with http:// or https://"
+msgstr ""
+
 msgid "Use {0} as the dark theme"
 msgstr "어두운 테마로 {0} 사용"
 
@@ -7908,6 +8043,9 @@ msgstr "사용자 플러그인은 이 기기에만 적용됩니다. 여기에서
 msgid "Username"
 msgstr "사용자 이름"
 
+msgid "Users"
+msgstr ""
+
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "GitQuire 외부에서 관리되는 <0>OK_EMBEDDINGS_API_KEY</0> 환경 변수를 사용합니다."
 
@@ -7951,6 +8089,9 @@ msgid "View only"
 msgstr "보기 전용"
 
 msgid "Views"
+msgstr ""
+
+msgid "Vimeo video player"
 msgstr ""
 
 msgid "Visibility"
@@ -8123,6 +8264,9 @@ msgstr ""
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "base16 레이아웃에서 YAML 또는 JSON"
+
+msgid "yes"
+msgstr ""
 
 msgid "yesterday"
 msgstr "어제"

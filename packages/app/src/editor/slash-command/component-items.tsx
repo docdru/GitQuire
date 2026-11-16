@@ -119,7 +119,9 @@ const PREVIEW_CONFIG: Record<string, PreviewConfig> = {
       <div className="flex h-full w-full flex-col overflow-hidden rounded-md border border-border bg-background">
         <div className="flex items-center gap-1 border-b border-border bg-muted/40 px-1.5 py-1">
           <svg viewBox="0 0 12 12" className="size-3 text-muted-foreground" aria-hidden="true">
-            <title>Thumbnails</title>
+            <title>
+              <Trans>Thumbnails</Trans>
+            </title>
             <rect x="1" y="1" width="4" height="4" fill="currentColor" rx="0.5" />
             <rect x="7" y="1" width="4" height="4" fill="currentColor" rx="0.5" />
             <rect x="1" y="7" width="4" height="4" fill="currentColor" rx="0.5" />
@@ -161,7 +163,9 @@ const PREVIEW_CONFIG: Record<string, PreviewConfig> = {
         aria-hidden="true"
         preserveAspectRatio="xMidYMid meet"
       >
-        <title>Mermaid flowchart preview</title>
+        <title>
+          <Trans>Mermaid flowchart preview</Trans>
+        </title>
         <defs>
           <marker
             id="mermaid-preview-arrow"
@@ -187,7 +191,7 @@ const PREVIEW_CONFIG: Record<string, PreviewConfig> = {
           strokeOpacity="0.7"
         />
         <text x="42" y="38" textAnchor="middle" fontSize="10" fill="currentColor">
-          Start
+          <Trans>Start</Trans>
         </text>
         <polygon
           points="100,18 140,50 100,82 60,50"
@@ -197,7 +201,7 @@ const PREVIEW_CONFIG: Record<string, PreviewConfig> = {
           strokeOpacity="0.7"
         />
         <text x="100" y="54" textAnchor="middle" fontSize="10" fill="currentColor">
-          Ready?
+          <Trans>Ready?</Trans>
         </text>
         <rect
           x="130"
@@ -211,7 +215,7 @@ const PREVIEW_CONFIG: Record<string, PreviewConfig> = {
           strokeOpacity="0.7"
         />
         <text x="158" y="102" textAnchor="middle" fontSize="10" fill="currentColor">
-          End
+          <Trans>End</Trans>
         </text>
         <line
           x1="70"
@@ -234,7 +238,7 @@ const PREVIEW_CONFIG: Record<string, PreviewConfig> = {
           markerEnd="url(#mermaid-preview-arrow)"
         />
         <text x="138" y="74" fontSize="8" fill="currentColor" opacity="0.6">
-          yes
+          <Trans>yes</Trans>
         </text>
       </svg>
     ),
@@ -245,9 +249,11 @@ const PREVIEW_CONFIG: Record<string, PreviewConfig> = {
       <div className="space-y-1.5">
         <div className="flex gap-1 border-b border-border pb-1">
           <span className="rounded-md bg-foreground/10 px-2 py-0.5 text-xs font-medium text-foreground">
-            Tab 1
+            <Trans>Tab 1</Trans>
           </span>
-          <span className="rounded-md px-2 py-0.5 text-xs text-muted-foreground">Tab 2</span>
+          <span className="rounded-md px-2 py-0.5 text-xs text-muted-foreground">
+            <Trans>Tab 2</Trans>
+          </span>
         </div>
         <p className="px-1 text-xs text-muted-foreground">
           <Trans>Active panel content for the selected tab shows here.</Trans>
@@ -432,7 +438,7 @@ function getCustomBlockComponentItems(): SlashCommandItem[] {
       icon: FileUp,
       category: 'media',
       aliases: ['file', 'attachment', 'download', 'upload', 'document', 'doc', 'docx', 'zip'],
-      description: 'Attach a downloadable file (`.pdf` / `.docx` / `.zip` / …)',
+      description: t`Attach a downloadable file (.pdf, .docx, .zip and more).`,
       insertsBlockComponent: true,
       command: openFilePickerAndUpload,
       preview: {
@@ -526,7 +532,7 @@ export function getInlineComponentItems(): SlashCommandItem[] {
         'backlink',
         'cross-link',
       ],
-      description: 'Link to a page or external URL',
+      description: t`Link to a page or external URL.`,
       preview: {
         description: t`Link to a page or external URL.`,
         render: () => (
@@ -567,7 +573,7 @@ export function getInlineComponentItems(): SlashCommandItem[] {
       icon: Hash,
       category: 'content',
       aliases: ['#', 'hashtag', 'label'],
-      description: 'Inline tag (`#tagname`) for cross-doc linking',
+      description: t`Inline tag (#tagname) that links pages with the same tag.`,
       preview: {
         description: t`Inline hashtag for cross-doc grouping.`,
         render: () => (

@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function CursorIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="Cursor icon"
+      aria-label={iconLabel('Cursor')}
       fill="none"
       height={24}
       width={24}

@@ -1,4 +1,5 @@
 import { rewriteEmbedUrl } from '@inkeep/open-knowledge-core/utils/embed-url-rewrite';
+import { t } from '@lingui/core/macro';
 import { useEffect, useRef } from 'react';
 import { useJsxComponentHost } from './jsx-host-context.tsx';
 import { ResizeHandles } from './ResizeHandles.tsx';
@@ -48,11 +49,11 @@ export function Embed({ src, title, width, height }: EmbedProps) {
   }, [width, height]);
 
   if (!isEmbedSrcSafe(src)) {
-    let message = 'Embed a URL';
+    let message = t`Embed a URL`;
     if (typeof src === 'string' && src.length > 0) {
       message = HTTP_SCHEME_RE.test(src)
-        ? 'Embed only supports cross-origin URLs'
-        : 'URL must start with http:// or https://';
+        ? t`Embed only supports cross-origin URLs`
+        : t`URL must start with http:// or https://`;
     }
     return (
       <div className="ok-embed ok-embed--placeholder" contentEditable={false}>

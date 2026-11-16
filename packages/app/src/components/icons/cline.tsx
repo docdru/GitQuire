@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function ClineIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="Cline icon"
+      aria-label={iconLabel('Cline')}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 466.73 487.04"
       fill="none"

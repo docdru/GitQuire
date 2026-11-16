@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function OpenCodeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="OpenCode icon"
+      aria-label={iconLabel('OpenCode')}
       xmlns="http://www.w3.org/2000/svg"
       width={24}
       height={24}

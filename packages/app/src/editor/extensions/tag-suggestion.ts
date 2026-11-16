@@ -2,6 +2,7 @@ import {
   INLINE_TAG_VALUE_PATTERN_SOURCE,
   INLINE_TAG_VALUE_RE,
 } from '@inkeep/open-knowledge-core/markdown/tag-promotion';
+import { t } from '@lingui/core/macro';
 import type { Editor } from '@tiptap/core';
 import type { ResolvedPos } from '@tiptap/pm/model';
 import { PluginKey } from '@tiptap/pm/state';
@@ -121,8 +122,7 @@ export function configureTagSuggestion(editor: Editor) {
           fetchError = null;
         } catch (err) {
           console.error('[tag-suggestion] Failed to fetch tags:', err);
-          fetchError =
-            'Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag.';
+          fetchError = t`Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag.`;
           cachedTags = [];
         } finally {
           tagsLoaded = true;

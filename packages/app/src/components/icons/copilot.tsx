@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function CopilotIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="GitHub Copilot icon"
+      aria-label={iconLabel('GitHub Copilot')}
       xmlns="http://www.w3.org/2000/svg"
       width={12}
       height={12}

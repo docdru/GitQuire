@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro';
 export class GitQuireApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -11,6 +12,10 @@ export class GitQuireApiError extends Error {
 
 export interface ApiDeps {
   fetch?: typeof fetch;
+}
+
+function requestFailed(status: number): string {
+  return t`Request failed (HTTP ${status}).`;
 }
 
 async function request<T>(
@@ -40,7 +45,7 @@ async function request<T>(
         ? body.message
         : typeof body.detail === 'string'
           ? body.detail
-          : `Request failed (HTTP ${res.status}).`;
+          : requestFailed(res.status);
     throw new GitQuireApiError(res.status, code, message);
   }
   return parsed as T;
