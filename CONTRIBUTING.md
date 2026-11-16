@@ -166,6 +166,11 @@ lockfile it produces.
   touch sync also run the sync test against it.
 - Add or update tests for behavior you change. Changesets are not used in GitQuire.
 - New user-facing text goes through Lingui (`t`, `<Trans>`) so it can be translated.
+- Use the GitQuire names: `gq`/`gitquire`, `@gitquire/*`, `GITQUIRE_*`, `.gitquire/`, `GQ_*`,
+  `Gq*`, `--gq-*`. CI runs `node scripts/check-old-names.mjs`, which fails when a file gains an
+  OpenKnowledge-era name (`ok`, `@inkeep/`, `OK_*`, `.ok/`, …) beyond
+  `scripts/old-names-baseline.json`. If one is needed on purpose (compatibility, history), run
+  `node scripts/check-old-names.mjs --update` and say why in the pull request.
 
 ## License
 

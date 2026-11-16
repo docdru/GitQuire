@@ -1,0 +1,1242 @@
+{
+  ".gitignore": {
+    "open-knowledge": 1
+  },
+  "biome.jsonc": {
+    "open-knowledge": 1
+  },
+  "docker/entrypoint.sh": {
+    "ok-folder": 1
+  },
+  "docs/content/gitquire/overview.mdx": {
+    "open-knowledge": 3
+  },
+  "docs/content/plugins/okf.mdx": {
+    "open-knowledge": 3
+  },
+  "docs/content/reference/cli.mdx": {
+    "open-knowledge": 1
+  },
+  "docs/content/reference/configuration.mdx": {
+    "open-knowledge": 3
+  },
+  "docs/content/remote-control/methods/cli.mdx": {
+    "open-knowledge": 1
+  },
+  "docs/content/workflows/karpathy-llm-wiki.mdx": {
+    "open-knowledge": 1
+  },
+  "docs/content/workflows/meeting-ingestion.mdx": {
+    "open-knowledge": 1
+  },
+  "docs/content/workflows/meta.json": {
+    "open-knowledge": 1
+  },
+  "docs/content/workflows/supporting-open-knowledge-format.mdx": {
+    "open-knowledge": 2
+  },
+  "docs/scripts/generate-brand-assets.ts": {
+    "open-knowledge": 6
+  },
+  "docs/scripts/generate-component-docs.ts": {
+    "open-knowledge": 2
+  },
+  "docs/scripts/generate-og-wordmark.ts": {
+    "ok-env": 1
+  },
+  "docs/src/lib/docs-corpus.test-helper.ts": {
+    "open-knowledge": 1
+  },
+  "docs/src/lib/download-links.test.ts": {
+    "open-knowledge": 3
+  },
+  "docs/src/lib/download-links.ts": {
+    "open-knowledge": 14
+  },
+  "docs/src/lib/download-targets.test.ts": {
+    "open-knowledge": 2
+  },
+  "docs/src/lib/download-targets.ts": {
+    "open-knowledge": 1
+  },
+  "docs/src/lib/get-llm-text.test.ts": {
+    "open-knowledge": 3
+  },
+  "docs/src/lib/markdown-response.test.ts": {
+    "open-knowledge": 2
+  },
+  "docs/src/lib/mdx-serializer-registry.test.ts": {
+    "open-knowledge": 8
+  },
+  "docs/src/lib/mdx-serializer.test.ts": {
+    "open-knowledge": 23
+  },
+  "docs/src/lib/share-splash.test.ts": {
+    "open-knowledge": 10
+  },
+  "docs/src/lib/share-splash.ts": {
+    "open-knowledge": 2
+  },
+  "lint-plugins/gq-rules/__fixtures__/no-unwrapped-user-facing-string.fixture.tsx": {
+    "open-knowledge": 2
+  },
+  "lint-plugins/gq-rules/docs.mjs": {
+    "open-knowledge": 1
+  },
+  "lint-plugins/gq-rules/README.md": {
+    "open-knowledge": 7
+  },
+  "lint-plugins/gq-rules/rules/path-conditional-map-driven-origin.mjs": {
+    "open-knowledge": 1
+  },
+  "lint-plugins/gq-rules/tests/gq-rules-scope-partition.uncached.test.mjs": {
+    "open-knowledge": 1
+  },
+  "lint-plugins/no-comments/allowlist.mjs": {
+    "open-knowledge": 1
+  },
+  "lint-plugins/no-comments/no-comments.config.schema.json": {
+    "open-knowledge": 1
+  },
+  "lint-plugins/no-comments/README.md": {
+    "open-knowledge": 4
+  },
+  "lint-plugins/no-comments/scope.test.mjs": {
+    "open-knowledge": 2
+  },
+  "packages/app/.gitignore": {
+    "open-knowledge": 1
+  },
+  "packages/app/BUNDLE-SIZE.md": {
+    "open-knowledge": 2
+  },
+  "packages/app/lingui.config.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/scripts/audit-strings/check-casing.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/scripts/audit-strings/viewer-template.html": {
+    "open-knowledge": 1
+  },
+  "packages/app/scripts/perf-prod.sh": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/App.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/build/e2e-coverage-contract.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/ActivityModeContent.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/ActivityPanelBurstRow.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/ActivityPanelFileRow.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/AddPropertiesButton.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/AgentDiffPane.tsx": {
+    "open-knowledge": 1,
+    "ok-folder": 1
+  },
+  "packages/app/src/components/AppHeader.auth-prompt.dom.test.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/ArrayOfObjectsWidget.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/AuthModal.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/CloneDialog.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/CommandPalette.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/ConflictsSection.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/ConnectingBanner.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/CopyButton.dom.test.tsx": {
+    "open-knowledge": 5
+  },
+  "packages/app/src/components/doc-panel-events.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/DocPanel.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/EditorActivityPool.conflict-swap.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/EditorHeader.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/EditorTabs.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/EditorToolbar.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FeedbackForm.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/file-entry-icon.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/file-tree-extension-badge.dom.test.tsx": {
+    "open-knowledge": 9
+  },
+  "packages/app/src/components/file-tree-refresh.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/file-tree-rename-focus-reconciliation.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileSidebar.dom.test.tsx": {
+    "open-knowledge": 3
+  },
+  "packages/app/src/components/FileSidebar.menu-action.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileSidebar.share.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileSidebar.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileTree.create.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileTree.duplicate.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileTree.preview-tabs.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileTree.problem-badge.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileTree.share.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FileTree.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FolderOverview.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FolderPropertiesCard.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/FolderTimelineCard.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/FrontmatterRow.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/GraphPanel.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/HelpPopover.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/LinksPanel.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/LinksPanel.tsx": {
+    "open-knowledge": 3
+  },
+  "packages/app/src/components/ManagedArtifactProperties.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/navigation-targets.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/NewItemDialog.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/ObjectWidget.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/OutlinePanel.tsx": {
+    "open-knowledge": 3
+  },
+  "packages/app/src/components/PackCardGrid.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/ProblemsPanel.tsx": {
+    "open-knowledge": 4
+  },
+  "packages/app/src/components/property-inline-link-tokens.test.ts": {
+    "open-knowledge": 3
+  },
+  "packages/app/src/components/PropertyInlineLinks.dom.test.tsx": {
+    "open-knowledge": 3
+  },
+  "packages/app/src/components/PropertyWidgets.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/PublishToGitHubDialog.dom.test.tsx": {
+    "open-knowledge": 5
+  },
+  "packages/app/src/components/PublishToGitHubDialog.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/recent-remove-controls.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/settings/CustomThemeEditor.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/settings/frontmatter-schema-field-editor.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/settings/LinkPreviewsSection.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/settings/OkignoreSection.tsx": {
+    "open-knowledge": 3
+  },
+  "packages/app/src/components/settings/SearchSection.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/settings/SettingsDialogBody.sections.dom.test.tsx": {
+    "open-knowledge": 23
+  },
+  "packages/app/src/components/settings/SettingsDialogBody.sync-mode.dom.test.tsx": {
+    "open-knowledge": 14
+  },
+  "packages/app/src/components/settings/SettingsDialogShell.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/ShareButton.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/SubscribeForm.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/SyncStatusBadge.dom.test.tsx": {
+    "open-knowledge": 8
+  },
+  "packages/app/src/components/SyncStatusBadge.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/TemplateDeleteDialog.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/TemplateForm.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/TemplateRow.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/components/TimelineDiffPane.tsx": {
+    "open-knowledge": 1,
+    "ok-folder": 3
+  },
+  "packages/app/src/components/TimelinePanel.dom.test.tsx": {
+    "open-knowledge": 6
+  },
+  "packages/app/src/components/TimelinePanel.restore-dismissal.dom.test.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/TimelinePanel.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/components/TimelinePanel.tsx": {
+    "open-knowledge": 4
+  },
+  "packages/app/src/editor/anchor-navigation-event.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/apply-lint-fix.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/awareness-user.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/bubble-menu/link-edit-popover-events.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/clipboard/comment-clipboard-contract.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/clipboard/comment-scrub.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/components/PropPanel.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/extensions/chunk-wrapper-decoration.test.ts": {
+    "ok-env": 1
+  },
+  "packages/app/src/editor/extensions/InternalLinkPropPanel.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/extensions/wiki-link-suggestion.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/extensions/WikiLinkPropPanel.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/lint-config-client.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/editor/view-in-source-event.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/gitquire-comments/ui-store.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/src/globals.css": {
+    "ok-env": 1
+  },
+  "packages/app/src/hooks/use-conflicts.dom.test.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/hooks/use-generated-index-settings.dom.test.tsx": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/hooks/use-generated-index-settings.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/create-file-events.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/documents-events.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/lib/documents-events.ts": {
+    "open-knowledge": 4
+  },
+  "packages/app/src/lib/file-tree-menu-action-events.ts": {
+    "open-knowledge": 4
+  },
+  "packages/app/src/lib/install-stale-tab-reload-prompt.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/language-telemetry.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/perf/otel-spans.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/saved-themes-client.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/src/lib/saved-themes-telemetry.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/share/clipboard-adapter.test.ts": {
+    "open-knowledge": 10
+  },
+  "packages/app/src/lib/share/run-share-action.test.ts": {
+    "open-knowledge": 17
+  },
+  "packages/app/src/lib/sidebar-drag.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/slides-telemetry.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/lib/transports/auth-transport.test.ts": {
+    "ok-folder": 2
+  },
+  "packages/app/src/lib/use-settings-route.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/locales/REVIEW.md": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/presence/PresenceBar.tsx": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/server/dev-server-channel.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/src/server/hocuspocus-plugin.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/src/telemetry-impl.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/tests/foundation/fixtures/network-loopback.fixture.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/foundation/prebuilt-build-use.node.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/foundation/prebuilt-concurrent-builders.node.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/foundation/prebuilt-concurrent-prune.node.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/foundation/prebuilt-dev-app.node.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/foundation/prebuilt-interrupted-prune.node.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/foundation/server-lease-safety.node.test.ts": {
+    "ok-env": 1
+  },
+  "packages/app/tests/foundation/server-lease.node.test.ts": {
+    "ok-env": 1
+  },
+  "packages/app/tests/foundation/test-server-inputs.node.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/tests/integration/api-error-envelope/agent-activity.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/agent-patch.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/agent-undo.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/agent-write-batch.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/agent-write-md.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/agent-write.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/backlink-counts.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/backlinks.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/create-folder.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/create-page.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/dead-links.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/delete-path.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/doc-notice-dismiss.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/doc-notices.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/document-list.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/document-read.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/document-refresh.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/folder-config.test.ts": {
+    "ok-folder": 3
+  },
+  "packages/app/tests/integration/api-error-envelope/forward-links.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/history.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/hubs.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/link-graph.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/local-op-auth-set-identity.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/metrics-agent-effects.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/metrics-agent-presence.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/metrics-parse-health.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/metrics-reconciliation.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/metrics-watcher-recent.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/orphans.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/page-headings.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/pages.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/rename-path.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/save-version.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/search.test.ts": {
+    "ok-folder": 2
+  },
+  "packages/app/tests/integration/api-error-envelope/seed-plan.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/server-info.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/sync-conflicts.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/sync-status.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/sync-trigger.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/tags-for-name.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/tags-list.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/template.test.ts": {
+    "ok-folder": 2
+  },
+  "packages/app/tests/integration/api-error-envelope/test-flush-git.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/test-rescan-backlinks.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/test-rescan-files.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/test-reset.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/upload-asset.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/api-error-envelope/workspace.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/conflict-authority-reconcile.test.ts": {
+    "ok-folder": 3
+  },
+  "packages/app/tests/integration/conflict-aware-write-surfaces.test.ts": {
+    "ok-folder": 5
+  },
+  "packages/app/tests/integration/conflict-resolution-delete-modify.test.ts": {
+    "ok-folder": 3
+  },
+  "packages/app/tests/integration/e2e-stop-rules.test.ts": {
+    "ok-env": 2
+  },
+  "packages/app/tests/integration/editor-area-conflict-swap.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/empty-folder-visibility.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/mcp-http.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/integration/sync-conflict-resolution-crdt.test.ts": {
+    "ok-folder": 4
+  },
+  "packages/app/tests/integration/sync-engine-dot-dir-symmetry.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/app/tests/integration/template-watcher-capabilities.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/integration/test-harness.ts": {
+    "ok-folder": 3
+  },
+  "packages/app/tests/integration/test-reset-server-scope.test.ts": {
+    "ok-folder": 5
+  },
+  "packages/app/tests/lint-plugins/no-comments.uncached.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/meta/browser-node-compat.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/tests/perf/baselines/2026-05-01-post-leak-fix-baseline.json": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/perf/scenarios/sweep-convention-cap-graduation.smoke.test.ts": {
+    "ok-env": 1
+  },
+  "packages/app/tests/stress/_helpers/boot-verdict/inject-boot-failure.ts": {
+    "ok-env": 1
+  },
+  "packages/app/tests/stress/_helpers/boot-verdict/verdict-fixture.ts": {
+    "ok-env": 1
+  },
+  "packages/app/tests/stress/_helpers/e2e-coverage/e2e-coverage.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/tests/stress/_helpers/fixtures.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/stress/_helpers/reuse/leased-server.reuse-case.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/stress/command-palette-semantic.e2e.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/stress/find-replace.e2e.ts": {
+    "open-knowledge": 2
+  },
+  "packages/app/tests/stress/markdown-lint.e2e.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/stress/pseudolocale.e2e.ts": {
+    "open-knowledge": 1
+  },
+  "packages/app/tests/stress/quiet-tree-hidden-doc.e2e.ts": {
+    "ok-folder": 1
+  },
+  "packages/app/tests/stress/zh-hans-coverage-sweep.e2e.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/.gitignore": {
+    "open-knowledge": 1
+  },
+  "packages/cli/package.json": {
+    "open-knowledge": 3
+  },
+  "packages/cli/README.md": {
+    "open-knowledge": 3
+  },
+  "packages/cli/scripts/check-published-dts.mjs": {
+    "open-knowledge": 1
+  },
+  "packages/cli/scripts/verify-package-surface.mjs": {
+    "open-knowledge": 2
+  },
+  "packages/cli/src/auth/resolve-auth.test.ts": {
+    "open-knowledge": 7
+  },
+  "packages/cli/src/auth/token-store.test.ts": {
+    "open-knowledge": 14
+  },
+  "packages/cli/src/cli.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/commands/audit-scope-composition.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/cli/src/commands/audit.ts": {
+    "ok-folder": 1
+  },
+  "packages/cli/src/commands/auth/git-credential-helper.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/commands/auth/login.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/commands/bug-report-bundle.test.ts": {
+    "open-knowledge": 5
+  },
+  "packages/cli/src/commands/clean.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/commands/clone-git-config-env.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/commands/clone-init.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/cli/src/commands/clone.test.ts": {
+    "ok-env": 2
+  },
+  "packages/cli/src/commands/diagnose-bundle.test.ts": {
+    "open-knowledge": 6
+  },
+  "packages/cli/src/commands/diagnose-health-checks/macos-codesig.test.ts": {
+    "open-knowledge": 8
+  },
+  "packages/cli/src/commands/diagnose-health-checks/macos-codesig.ts": {
+    "open-knowledge": 2
+  },
+  "packages/cli/src/commands/diagnose.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/commands/init.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/commands/ps.test.ts": {
+    "open-knowledge": 19
+  },
+  "packages/cli/src/commands/ps.ts": {
+    "open-knowledge": 2
+  },
+  "packages/cli/src/commands/self-spawn.test.ts": {
+    "open-knowledge": 13
+  },
+  "packages/cli/src/commands/share/publish.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/cli/src/commands/start.test.ts": {
+    "open-knowledge": 11
+  },
+  "packages/cli/src/commands/start.ts": {
+    "open-knowledge": 2
+  },
+  "packages/cli/src/commands/stop.test.ts": {
+    "open-knowledge": 8
+  },
+  "packages/cli/src/commands/stop.ts": {
+    "open-knowledge": 7
+  },
+  "packages/cli/src/commands/sync-credential-helper.test.ts": {
+    "open-knowledge": 41
+  },
+  "packages/cli/src/diagnose/bundle-redact.test.ts": {
+    "open-knowledge": 15
+  },
+  "packages/cli/src/diagnose/bundle.test.ts": {
+    "open-knowledge": 4,
+    "ok-env": 1
+  },
+  "packages/cli/src/diagnose/diagnostic-reports.test.ts": {
+    "open-knowledge": 88
+  },
+  "packages/cli/src/diagnose/diagnostic-reports.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/diagnose/os-termination-evidence.test.ts": {
+    "open-knowledge": 37
+  },
+  "packages/cli/src/diagnose/os-termination-evidence.ts": {
+    "open-knowledge": 5
+  },
+  "packages/cli/src/diagnose/staging-coverage.test.ts": {
+    "open-knowledge": 3
+  },
+  "packages/cli/src/github/folder-validator.test.ts": {
+    "open-knowledge": 40
+  },
+  "packages/cli/src/github/url.test.ts": {
+    "open-knowledge": 15
+  },
+  "packages/cli/src/github/visibility.test.ts": {
+    "open-knowledge": 3
+  },
+  "packages/cli/src/github/visibility.ts": {
+    "open-knowledge": 1
+  },
+  "packages/cli/src/project-anchor.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/cli/src/report-bundle.test.ts": {
+    "open-knowledge": 23
+  },
+  "packages/cli/src/sharing/git-exclude.test.ts": {
+    "open-knowledge": 11
+  },
+  "packages/cli/src/ui/banner.test.ts": {
+    "open-knowledge": 15
+  },
+  "packages/cli/src/utils/open-target.test.ts": {
+    "open-knowledge": 12
+  },
+  "packages/cli/tests/e2e/cli-linux-e2e.ts": {
+    "open-knowledge": 1
+  },
+  "packages/core/scripts/build-output.mjs": {
+    "open-knowledge": 1
+  },
+  "packages/core/src/config/bind-okignore-doc.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/core/src/config/telemetry.ts": {
+    "open-knowledge": 1
+  },
+  "packages/core/src/config/write-config-patch.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/core/src/config/write-config-patch.ts": {
+    "inkeep-scope": 1,
+    "open-knowledge": 1
+  },
+  "packages/core/src/constants/mcp-launcher.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/core/src/constants/ok-user-home.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/core/src/constants/path-shim-layout.test.ts": {
+    "open-knowledge": 12
+  },
+  "packages/core/src/constants/path-shim-layout.ts": {
+    "open-knowledge": 6
+  },
+  "packages/core/src/constants/product.test.ts": {
+    "open-knowledge": 40
+  },
+  "packages/core/src/constants/product.ts": {
+    "open-knowledge": 30
+  },
+  "packages/core/src/constants/product.type-tests.ts": {
+    "open-knowledge": 3
+  },
+  "packages/core/src/frontmatter/key-refusal.test.ts": {
+    "ok-folder": 2
+  },
+  "packages/core/src/git-repository.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/core/src/helper-bundle.test.ts": {
+    "open-knowledge": 8
+  },
+  "packages/core/src/logging/qa-secret-pattern-canary.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/core/src/logging/secret-scrub.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/core/src/markdown/lint/okf-frontmatter/schemas.ts": {
+    "open-knowledge": 6
+  },
+  "packages/core/src/schemas/api/share.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/core/src/schemas/api/sync-seed.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/core/src/shadow-repo-layout.test.ts": {
+    "open-knowledge": 22
+  },
+  "packages/core/src/shadow-repo-layout.ts": {
+    "open-knowledge": 5
+  },
+  "packages/core/src/sharing/candidate-selection.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/core/src/sharing/receive-flow.test.ts": {
+    "open-knowledge": 16
+  },
+  "packages/core/src/sharing/share-url-v2.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/core/src/sharing/share-url.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/core/src/util/doc-name.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/core/src/utils/identity.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/.gitignore": {
+    "open-knowledge": 1
+  },
+  "packages/server/share-v2-smoke.ts": {
+    "open-knowledge": 3
+  },
+  "packages/server/src/agent-id.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/api-document-composition.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/api-extension.persistence-failure.test.ts": {
+    "ok-env": 5
+  },
+  "packages/server/src/api-extension.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/server/src/api-file-ops.test.ts": {
+    "ok-folder": 5
+  },
+  "packages/server/src/api-mcp-admission-error-basis.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/api-mcp-full-put-qualification.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/api-rename-log-emission.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/bash/index.ts": {
+    "ok-folder": 2
+  },
+  "packages/server/src/content-filter.test.ts": {
+    "open-knowledge": 17
+  },
+  "packages/server/src/content-filter.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/content/generate-index-literal-metadata.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/content/generated-artifact.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/content/generated-index-git-attributes.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/content/generated-index-git-attributes.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/git-handle.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/github-permissions.test.ts": {
+    "open-knowledge": 23
+  },
+  "packages/server/src/github-permissions.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/github-reference/fetch-reference.test.ts": {
+    "ok-folder": 5
+  },
+  "packages/server/src/github-reference/fetch-reference.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/gitquire/principal-directory.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/http/agent-write-routes.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/http/local-op-routes.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/http/share-routes.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/http/workspace-tools-routes.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/incoming-symlink-guard.ts": {
+    "open-knowledge": 2,
+    "ok-folder": 1
+  },
+  "packages/server/src/init-project.test.ts": {
+    "open-knowledge": 18
+  },
+  "packages/server/src/init-project.ts": {
+    "inkeep-scope": 1,
+    "open-knowledge": 11
+  },
+  "packages/server/src/local-ops/auth-query.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/local-ops/clone-flow.test.ts": {
+    "open-knowledge": 1,
+    "ok-folder": 1
+  },
+  "packages/server/src/maintenance-consolidation.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/maintenance-coordinator.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/mcp-config-reconciler.test.ts": {
+    "open-knowledge": 16
+  },
+  "packages/server/src/mcp/tools/checkpoint.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/mcp/tools/description-contract.uncached.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/mcp/tools/exec.test.ts": {
+    "ok-folder": 3
+  },
+  "packages/server/src/mcp/tools/exec.ts": {
+    "ok-folder": 1
+  },
+  "packages/server/src/mcp/tools/output-schema-strictness.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/mcp/tools/preview-url.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/mcp/tools/share-link.test.ts": {
+    "open-knowledge": 10,
+    "ok-folder": 1
+  },
+  "packages/server/src/mcp/tools/shared.test.ts": {
+    "ok-folder": 3
+  },
+  "packages/server/src/mcp/tools/write.ts": {
+    "ok-folder": 4
+  },
+  "packages/server/src/parcel-drop-notice.test.ts": {
+    "ok-folder": 8
+  },
+  "packages/server/src/persistence.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/persistence.ts": {
+    "open-knowledge": 3
+  },
+  "packages/server/src/principal.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/principal.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/process-scan-collectors.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/process-scan-enumeration.test.ts": {
+    "open-knowledge": 3
+  },
+  "packages/server/src/process-scan.test.ts": {
+    "open-knowledge": 41
+  },
+  "packages/server/src/process-scan.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/project-git.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/project-git.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/rename-log.test.ts": {
+    "open-knowledge": 10
+  },
+  "packages/server/src/saved-themes-store.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/server/src/saved-themes-write.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/server/src/server-factory.conflict-ledger-lifecycle.test.ts": {
+    "ok-folder": 2
+  },
+  "packages/server/src/server-factory.test.ts": {
+    "open-knowledge": 5
+  },
+  "packages/server/src/services/version-ops.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/shadow-branch-gc.test.ts": {
+    "open-knowledge": 4
+  },
+  "packages/server/src/shadow-branch-gc.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/shadow-repo-stats.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/shadow-repo.test.ts": {
+    "open-knowledge": 27
+  },
+  "packages/server/src/shadow-repo.ts": {
+    "open-knowledge": 25
+  },
+  "packages/server/src/share/construct-url.test.ts": {
+    "open-knowledge": 40
+  },
+  "packages/server/src/share/construct-url.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/share/endpoint-real-git.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/share/git-context.test.ts": {
+    "open-knowledge": 53
+  },
+  "packages/server/src/share/publish.integration.test.ts": {
+    "open-knowledge": 1,
+    "ok-folder": 2
+  },
+  "packages/server/src/showall-stream.test.ts": {
+    "ok-folder": 1
+  },
+  "packages/server/src/sync-engine.incoming-symlinks.test.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/sync-engine.index-heal.test.ts": {
+    "open-knowledge": 1
+  },
+  "packages/server/src/sync-engine.test.ts": {
+    "open-knowledge": 15
+  },
+  "packages/server/src/telemetry.ts": {
+    "open-knowledge": 2
+  },
+  "packages/server/src/timeline-query.test.ts": {
+    "open-knowledge": 4
+  },
+  "PRECEDENTS.md": {
+    "open-knowledge": 1,
+    "ok-style-token": 1
+  },
+  "scripts/check-husky-prepare-guard.sh": {
+    "open-knowledge": 1
+  },
+  "scripts/check-i18n-compiled-catalogs-untracked.test.mjs": {
+    "open-knowledge": 1
+  },
+  "scripts/check-i18n-drift.sh": {
+    "open-knowledge": 1
+  },
+  "scripts/check-i18n-new-string-translations.mjs": {
+    "ok-folder": 1
+  },
+  "scripts/check-known-reds.uncached.test.mjs": {
+    "open-knowledge": 1
+  },
+  "scripts/check-override-floors.test.mjs": {
+    "open-knowledge": 4
+  },
+  "scripts/check-server-test-inputs.mjs": {
+    "open-knowledge": 2
+  },
+  "scripts/check-typescript-resolution.test.mjs": {
+    "open-knowledge": 2
+  },
+  "scripts/generate-locale-review-packet.mjs": {
+    "open-knowledge": 3
+  },
+  "scripts/generate-locale-review-packet.test.mjs": {
+    "open-knowledge": 6
+  },
+  "scripts/generate-third-party-notices.mjs": {
+    "open-knowledge": 1
+  },
+  "scripts/known-reds.mjs": {
+    "open-knowledge": 1
+  },
+  "test-support/fixtures/share-url-v1-v2.json": {
+    "open-knowledge": 20
+  },
+  "test-support/share/frozen-v1-share-reader.test-helper.ts": {
+    "open-knowledge": 1
+  },
+  "test-support/uncached-tier-reconcile.test.ts": {
+    "open-knowledge": 1
+  },
+  "test-support/uncached-tier-reconcile.ts": {
+    "open-knowledge": 1
+  }
+}
