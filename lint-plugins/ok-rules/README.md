@@ -148,22 +148,6 @@ Beyond the fixture positions, the self-test copies the repository's own `oxlint.
 
 Rule: [`lint-plugins/ok-rules/rules/no-app-core-barrel-import.mjs`](rules/no-app-core-barrel-import.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-app-core-barrel-import.fixture.tsx`](__fixtures__/no-app-core-barrel-import.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-app-core-barrel-import.uncached.test.mjs`](tests/no-app-core-barrel-import.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
 
-### `no-uninstall-forbidden-import`
-
-"Connects to nothing" first-hop feedback. The self-uninstall window's survey and completion screens render after `ok uninstall --yes` has stopped the local Hocuspocus server and removed `~/.ok`, so the uninstall entry must never reach the editor, the CRDT stack, the provider pool, or the server bootstrap — and must eager-load (no dynamic `import()`) so those screens paint from memory once teardown is under way.
-
-Scoped (see the rule's `RULE_SCOPES` entry in [`scope.mjs`](scope.mjs)) to `packages/app/src/uninstall/**` (test files exempt — a dom test legitimately does `await import('./main')` to prove the entry paints). Two diagnostics:
-- A static import (`import … from`, `import type … from`, `import * as … from`, or side-effect `import`) whose source is an editor / CRDT / provider-pool / Hocuspocus-server specifier (`@/editor/*`, `@inkeep/open-knowledge-server`, `@hocuspocus/*`, `yjs`, `y-protocols`, `y-prosemirror`, `y-codemirror.next`, `y-indexeddb`, `@tiptap/y-tiptap`, `@tiptap/extension-collaboration*`). `@inkeep/open-knowledge-core` (shared types + constants) is deliberately allowed.
-- Any dynamic `import()`.
-
-This rule is **shallow, first-hop feedback only**. The desktop app's transitive module-graph test that backed it was removed with the desktop package, so this first-hop check is the only gate left.
-
-**Scope** (`RULE_SCOPES['no-uninstall-forbidden-import']` in [`scope.mjs`](scope.mjs)). "Connects to nothing" first-hop feedback. The self-uninstall window's survey/completion screens render after `ok uninstall --yes` stops the local Hocuspocus server and removes ~/.ok, so the uninstall entry must never import the editor / CRDT / provider-pool / Hocuspocus-server surface, and must eager-load (no dynamic import). This is SHALLOW first-hop feedback; the authoritative gate is the transitive-graph test at packages/desktop/tests/unit/uninstall-module-graph.test.ts, which also catches indirect and re-export pull-ins a first-hop rule can't express. @inkeep/open-knowledge-core (shared types + constants) is allowed. Test files are excluded: the invariant is about the SHIPPED entry graph, and a dom test legitimately does `await import('./main')` to prove the entry paints (a dynamic import the eager-load rule would otherwise flag).
-
-Included: `packages/app/src/uninstall/**/*.ts`, `packages/app/src/uninstall/**/*.tsx`, `lint-plugins/ok-rules/__fixtures__/no-uninstall-forbidden-import.fixture.tsx`. Excluded: `packages/app/src/uninstall/**/*.test.ts`, `packages/app/src/uninstall/**/*.test.tsx`, `packages/app/src/uninstall/**/*.dom.test.tsx`.
-
-Rule: [`lint-plugins/ok-rules/rules/no-uninstall-forbidden-import.mjs`](rules/no-uninstall-forbidden-import.mjs). Fixture: [`lint-plugins/ok-rules/__fixtures__/no-uninstall-forbidden-import.fixture.tsx`](__fixtures__/no-uninstall-forbidden-import.fixture.tsx). Test: [`lint-plugins/ok-rules/tests/no-uninstall-forbidden-import.uncached.test.mjs`](tests/no-uninstall-forbidden-import.uncached.test.mjs). See [PRECEDENTS.md #42](../../PRECEDENTS.md#custom-lint-enforcement-precedent-42) for the custom-rule convention.
-
 ### `path-conditional-map-driven-origin`
 
 Observer A origin discipline. Inside `packages/server/src/server-observers.ts`, every `Y.Doc.transact()` call MUST pass the sanctioned origin `OBSERVER_SYNC_ORIGIN` as its second argument (`doc.transact(fn, OBSERVER_SYNC_ORIGIN)`). Bare `doc.transact(fn)` - or a wrong origin - routes the write to `openknowledge-service` and breaks per-session UndoManager attribution (the `trackedOrigins` Set-identity match skips the transaction).
@@ -476,7 +460,7 @@ Scope discipline for user-global Agent Skill installs. Bans the `skills` CLI npm
 
 **Why.** `installUserSkill` used to shell out to `npx -y skills@~1.5.0 add <dir> --agent '*' -g -y --copy`. `--agent '*'` makes that CLI skip its own host detection and target every host in its registry (~75 and growing), so a single `ok init` wrote 110 directories across 54 tool-config homes in a real `$HOME` — 51 of them for tools the reporter had never installed ([issue #820](https://github.com/inkeep/open-knowledge/issues/820)). OK's user-global skills are behavioural instructions autonomous software reads and acts on, so writing one into a tool's config dir is a scope-of-consent decision, not cosmetic clutter.
 
-Nothing about the dependency was load-bearing: OK passed a local path (no source resolution), forced `--copy` (no symlinks), and the CLI writes no lockfile or state at global scope. It contributed a directory table that OK already maintains in core for project scope — while costing a floating-range `npx -y` fetch-and-execute at init time and third-party telemetry OK never opted out of. The install now writes directly, gated on `detectUserSkillHosts`, whose host set derives from `HOSTS_WITH_USER_SKILL_DIR` in [`packages/core/src/constants/editors.ts`](../../packages/core/src/constants/editors.ts).
+Nothing about the dependency was load-bearing: OK passed a local path (no source resolution), forced `--copy` (no symlinks), and the CLI writes no lockfile or state at global scope. It contributed a directory table that OK already maintains in core for project scope — while costing a floating-range `npx -y` fetch-and-execute at init time and third-party telemetry OK never opted out of. The install now writes directly, gated on `detectUserSkillHosts`.
 
 The rule bans the *ingredients* rather than the assembled command line, because the argv was built as an array of literals that no single AST node spans.
 

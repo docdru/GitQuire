@@ -47,7 +47,6 @@ if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
 
 installSubscribeCardStore();
 
-
 installContactEmailStore();
 
 const queryClient = new QueryClient({

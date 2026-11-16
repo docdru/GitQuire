@@ -94,7 +94,6 @@
     "tests/stress/_helpers/card-surface.ts",
     "tests/stress/_helpers/e2e-coverage",
     "tests/stress/_helpers/editor-state.ts",
-    "tests/stress/_helpers/feedback-nudge.ts",
     "tests/stress/_helpers/image.ts",
     "tests/stress/_helpers/loop-markers.ts",
     "tests/stress/_helpers/prebuilt",

@@ -237,7 +237,6 @@ describe('resolveInternalHref', () => {
       });
     });
   });
-
 });
 
 describe('encodeHrefPathSegment', () => {

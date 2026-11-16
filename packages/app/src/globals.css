@@ -64,10 +64,9 @@
  * used) relies solely on these @source
  * directives — without these lines `.antialiased` is never emitted there and
  * desktop-dev text renders heavier than production. Keep in sync with the
- * classes in index.html / uninstall.html.
+ * classes in index.html.
  */
 @source "../index.html";
-@source "../uninstall.html";
 
 @custom-variant dark (&:is(.dark *));
 

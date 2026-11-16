@@ -78,7 +78,6 @@ export default defineConfig({
     'ok/no-split-suggestion-dispatch': 'error',
     'ok/no-themeless-pierre-diff': 'error',
     'ok/no-unconverted-git-pathspec': 'error',
-    'ok/no-uninstall-forbidden-import': 'error',
     'ok/no-unportaled-editor-content': 'error',
     'ok/no-unwrapped-user-facing-string': 'error',
     'ok/path-conditional-map-driven-origin': 'error',

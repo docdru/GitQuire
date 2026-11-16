@@ -1,7 +1,4 @@
-import {
-  getWikiLinkText,
-  resolveWikiLinkTargetDocName,
-} from '@inkeep/open-knowledge-core';
+import { getWikiLinkText, resolveWikiLinkTargetDocName } from '@inkeep/open-knowledge-core';
 import { describe, expect, test } from 'vitest';
 import { applyRenameMap } from './apply-managed-rename.ts';
 import { matchWikiLinks } from './link-syntax.ts';
@@ -19,9 +16,9 @@ function rewrite(content: string, pages: string[], renames: [string, string][], 
     expect(getWikiLinkText(after)).toBe(getWikiLinkText(before));
     expect(after.anchor).toBe(before.anchor);
     if (original !== undefined) {
-      expect(
-        resolveWikiLinkTargetDocName(after.target, context.after),
-      ).toBe(context.renames.get(original) ?? original);
+      expect(resolveWikiLinkTargetDocName(after.target, context.after)).toBe(
+        context.renames.get(original) ?? original,
+      );
     }
   }
   return result;

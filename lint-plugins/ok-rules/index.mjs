@@ -25,7 +25,6 @@ import { noSentinelSignalTarget } from './rules/no-sentinel-signal-target.mjs';
 import { noSplitSuggestionDispatch } from './rules/no-split-suggestion-dispatch.mjs';
 import { noThemelessPierreDiff } from './rules/no-themeless-pierre-diff.mjs';
 import { noUnconvertedGitPathspec } from './rules/no-unconverted-git-pathspec.mjs';
-import { noUninstallForbiddenImport } from './rules/no-uninstall-forbidden-import.mjs';
 import { noUnportaledEditorContent } from './rules/no-unportaled-editor-content.mjs';
 import { noUnwrappedUserFacingString } from './rules/no-unwrapped-user-facing-string.mjs';
 import { pathConditionalMapDrivenOrigin } from './rules/path-conditional-map-driven-origin.mjs';
@@ -64,7 +63,6 @@ const declared = {
   'no-split-suggestion-dispatch': noSplitSuggestionDispatch,
   'no-themeless-pierre-diff': noThemelessPierreDiff,
   'no-unconverted-git-pathspec': noUnconvertedGitPathspec,
-  'no-uninstall-forbidden-import': noUninstallForbiddenImport,
   'no-unportaled-editor-content': noUnportaledEditorContent,
   'no-unwrapped-user-facing-string': noUnwrappedUserFacingString,
   'path-conditional-map-driven-origin': pathConditionalMapDrivenOrigin,

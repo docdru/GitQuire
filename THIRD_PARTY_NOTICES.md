@@ -978,20 +978,10 @@ Homepage: https://github.com/GoogleChrome/pwacompat
 
 _(LICENSE template present but no copyright line filled in; refer to the package source for canonical attribution.)_
 
-### `remend@1.3.0`
-Homepage: https://streamdown.ai/docs/termination
-
-Copyright 2023 Vercel, Inc.
-
 ### `scheduler-polyfill@1.3.0`
 Homepage: https://github.com/GoogleChromeLabs/scheduler-polyfill
 
 _(LICENSE template present but no copyright line filled in; refer to the package source for canonical attribution.)_
-
-### `streamdown@2.5.0`
-Homepage: https://streamdown.ai
-
-Copyright 2023 Vercel, Inc.
 
 ### `tunnel-agent@0.6.0`
 Homepage: https://github.com/mikeal/tunnel-agent
@@ -2055,11 +2045,6 @@ Copyright (c) 2022 WorkOS
 Homepage: https://github.com/Sec-ant/readable-stream
 
 Copyright (c) 2022 Ze-Zheng Wu
-
-### `@shadcn/react@0.2.1`
-Homepage: https://ui.shadcn.com
-
-Copyright (c) 2023 shadcn
 
 ### `@shikijs/core@3.23.0`
 Homepage: https://github.com/shikijs/shiki#readme
@@ -3622,23 +3607,8 @@ Homepage: https://github.com/syntax-tree/hast-util-phrasing
 
 Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
 
-### `hast-util-raw@9.1.0`
-Homepage: https://github.com/syntax-tree/hast-util-raw
-
-Copyright (c) Titus Wormer <tituswormer@gmail.com>
-
-### `hast-util-sanitize@5.0.2`
-Homepage: https://github.com/syntax-tree/hast-util-sanitize
-
-Copyright (c) Titus Wormer <tituswormer@gmail.com>
-
 ### `hast-util-to-html@9.0.5`
 Homepage: https://github.com/syntax-tree/hast-util-to-html
-
-Copyright (c) Titus Wormer <tituswormer@gmail.com>
-
-### `hast-util-to-jsx-runtime@2.3.6`
-Homepage: https://github.com/syntax-tree/hast-util-to-jsx-runtime
 
 Copyright (c) Titus Wormer <tituswormer@gmail.com>
 
@@ -3646,11 +3616,6 @@ Copyright (c) Titus Wormer <tituswormer@gmail.com>
 Homepage: https://github.com/syntax-tree/hast-util-to-mdast
 
 Copyright (c) Titus Wormer <tituswormer@gmail.com> Copyright (c) Seth Vincent <sethvincent@gmail.com>
-
-### `hast-util-to-parse5@8.0.1`
-Homepage: https://github.com/syntax-tree/hast-util-to-parse5
-
-Copyright (c) Titus Wormer <tituswormer@gmail.com>
 
 ### `hast-util-to-text@4.0.2`
 Homepage: https://github.com/syntax-tree/hast-util-to-text
@@ -3676,11 +3641,6 @@ Copyright (c) 2014-2022 Matteo Collina
 Homepage: https://hono.dev
 
 Copyright (c) 2021 - present, Yusuke Wada and Hono contributors
-
-### `html-url-attributes@3.0.1`
-Homepage: https://github.com/rehypejs/rehype-minify/tree/main/packages/html-url-attributes
-
-Copyright (c) Titus Wormer
 
 ### `html-void-elements@3.0.0`
 Homepage: https://github.com/wooorm/html-void-elements
@@ -3733,11 +3693,6 @@ Copyright Joyent, Inc. and other Node contributors. All rights reserved.
 Homepage: https://github.com/vasturiano/index-array-by
 
 Copyright (c) 2018 Vasco Asturiano
-
-### `inline-style-parser@0.2.7`
-Homepage: https://github.com/remarkablemark/inline-style-parser
-
-Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
 
 ### `ip-address@10.7.6`
 Homepage: https://github.com/beaugunderson/ip-address
@@ -4105,11 +4060,6 @@ Homepage: https://github.com/DavidAnson/markdownlint
 Copyright (c) David Anson
 
 ### `marked@16.4.2`
-Homepage: https://marked.js.org
-
-Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/) Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)
-
-### `marked@17.0.6`
 Homepage: https://marked.js.org
 
 Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/) Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)
@@ -4729,11 +4679,6 @@ Homepage: https://github.com/pillarjs/path-to-regexp
 
 Copyright (c) 2014 Blake Embrey (hello@blakeembrey.com)
 
-### `pend@1.2.0`
-Homepage: https://github.com/andrewrk/node-pend
-
-Copyright (c) 2014 Andrew Kelley
-
 ### `perfect-freehand@1.2.0`
 Homepage: https://github.com/steveruizok/perfect-freehand
 
@@ -5120,11 +5065,6 @@ Homepage: https://github.com/slevithan/regex-utilities
 
 Copyright (c) 2024 Steven Levithan
 
-### `rehype-harden@1.1.8`
-Homepage: https://github.com/vercel-labs/markdown-sanitizers#readme
-
-Copyright (c) 2025 Vercel Inc.
-
 ### `rehype-minify-whitespace@6.0.2`
 Homepage: https://github.com/rehypejs/rehype-minify/tree/main/packages/rehype-minify-whitespace
 
@@ -5135,20 +5075,10 @@ Homepage: https://github.com/rehypejs/rehype
 
 Copyright (c) Titus Wormer
 
-### `rehype-raw@7.0.0`
-Homepage: https://github.com/rehypejs/rehype-raw
-
-Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
-
 ### `rehype-remark@10.0.1`
 Homepage: https://github.com/rehypejs/rehype-remark
 
 Copyright (c) Titus Wormer <tituswormer@gmail.com>
-
-### `rehype-sanitize@6.0.0`
-Homepage: https://github.com/rehypejs/rehype-sanitize
-
-Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
 
 ### `rehype-stringify@10.0.1`
 Homepage: https://github.com/rehypejs/rehype
@@ -5484,16 +5414,6 @@ _(LICENSE file present but no auto-extractable copyright line; refer to the pack
 Homepage: https://github.com/marijnh/style-mod
 
 Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
-
-### `style-to-js@1.1.21`
-Homepage: https://github.com/remarkablemark/style-to-js
-
-Copyright (c) 2020 Menglin "Mark" Xu <mark@remarkablemark.org>
-
-### `style-to-object@1.0.14`
-Homepage: https://github.com/remarkablemark/style-to-object
-
-Copyright (c) 2017 Menglin "Mark" Xu <mark@remarkablemark.org>
 
 ### `stylis@4.4.0`
 Homepage: https://github.com/thysultan/stylis.js
@@ -5839,11 +5759,6 @@ Copyright (c) 2014 - Kevin Jahns <kevin.jahns@rwth-aachen.de>. - Chair of Comput
 Homepage: https://github.com/yjs/y-protocols#readme
 
 Copyright (c) 2019 Kevin Jahns <kevin.jahns@protonmail.com>.
-
-### `yauzl@3.4.0`
-Homepage: https://github.com/thejoshwolfe/yauzl
-
-Copyright (c) 2014 Josh Wolfe
 
 ### `yazl@3.3.1`
 Homepage: https://github.com/thejoshwolfe/yazl
