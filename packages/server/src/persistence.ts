@@ -37,6 +37,7 @@ import {
   isConfigDoc,
   isEditableTextDoc,
   isExcalidrawDoc,
+  isManagedArtifactDoc,
   isMermaidDoc,
   isPersistenceExcludedDoc,
   isSystemDoc,
@@ -86,6 +87,7 @@ import {
   OK_PATH_UNRESOLVABLE,
   OK_STORE_HELD,
   OK_STORE_REFUSED,
+  OK_WRITE_DROPPED,
   type StoreFailure,
   type StoreFailureRemoval,
   type StoreIntakeMerge,
@@ -2468,6 +2470,10 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
       lastContext: _lastContext,
     }) {
       if (isSystemDoc(documentName)) return;
+      if (isManagedArtifactDoc(documentName)) {
+        refuseLegacyNameStore(documentName);
+        return;
+      }
       if (isConfigDoc(documentName) || isEnginelessDoc(documentName)) {
         await storeOutsideContentPipeline(document, documentName, lastTransactionOrigin);
         return;
@@ -2508,6 +2514,15 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
       branchDeferred: deferredStores.size,
       quiescenceDeferred: persistenceDeferCounts.size,
     };
+  }
+
+  function refuseLegacyNameStore(documentName: string): void {
+    if (!durabilityState.consumeAgentWriteStore(documentName)) return;
+    durabilityState.recordStoreFailure(documentName, {
+      code: OK_WRITE_DROPPED,
+      message: `${documentName} was not saved: this name has no file of its own`,
+      dropped: 'legacy-name',
+    });
   }
 
   function isEnginelessDoc(documentName: string): boolean {

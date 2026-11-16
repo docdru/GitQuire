@@ -25,6 +25,7 @@ import {
   TemplateMoveSuccessSchema,
   TemplatePutRequestSchema,
   TemplatePutSuccessSchema,
+  TemplatesListSuccessSchema,
   templateContentDocName,
   unwrapFrontmatterFences,
 } from '@inkeep/open-knowledge-core';
@@ -45,6 +46,7 @@ import {
   applyFolderFrontmatterPatch,
   type FolderFrontmatterErrorCode,
 } from '../content/folder-frontmatter-write.ts';
+import { resolveProjectTemplates } from '../content/templates-resolver.ts';
 import {
   applyTemplateDelete,
   applyTemplateMove,
@@ -61,6 +63,7 @@ import type { PinoLogger } from '../logger.ts';
 import { extractPageTitle } from '../page-identity.ts';
 import type { RecentlyRemovedDocs } from '../recently-removed-docs.ts';
 import { type ApiRouteGroup, createApiRouteGroup } from './api-pipeline.ts';
+import { catchErrors } from './catch-errors.ts';
 import { errorResponse } from './error-response.ts';
 import { methodRouter } from './method-router.ts';
 import { withValidation } from './request-validation.ts';
@@ -1385,8 +1388,31 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
     { handler: 'template-import', method: 'POST' },
   );
 
+  const handleTemplatesList = withValidation(
+    EmptyRequestSchema,
+    catchErrors(
+      async (_req, res) => {
+        const result = await resolveProjectTemplates(resolve(contentDir));
+        const templates = result.templates.map((template) => {
+          const { scope: _scope, ...rest } = template;
+          return rest;
+        });
+        successResponse(
+          res,
+          200,
+          TemplatesListSuccessSchema,
+          { templates, truncated: result.truncated },
+          { handler: 'templates-list' },
+        );
+      },
+      { handler: 'templates-list', title: 'Failed to list templates.' },
+    ),
+    { handler: 'templates-list', method: 'GET', skipBodyParse: true },
+  );
+
   return createApiRouteGroup(
     {
+      '/api/templates': handleTemplatesList,
       '/api/folder-config': handleFolderConfig,
       '/api/template': handleTemplate,
       '/api/template/import': handleTemplateImport,
