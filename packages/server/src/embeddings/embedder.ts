@@ -6,7 +6,7 @@ import {
   DEFAULT_EMBEDDINGS_MAX_BATCH_SIZE,
   sleep as defaultSleep,
   isLoopbackEmbeddingsUrl,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { deploymentEmbeddingsKey } from '../gitquire/semantic-search.ts';
 import { getLogger } from '../logger.ts';
 import { EmbeddingsSecretStoreError } from './credential-errors.ts';

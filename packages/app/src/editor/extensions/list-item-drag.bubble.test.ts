@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { Editor } from '@tiptap/core';
 import type { DragHandlePlugin } from '@tiptap/extension-drag-handle';
 import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state';

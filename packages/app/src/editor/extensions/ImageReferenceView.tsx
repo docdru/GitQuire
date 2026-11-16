@@ -1,5 +1,5 @@
-import { normalizeReferenceLabel } from '@inkeep/open-knowledge-core/markdown/reference-label';
-import { normalizeDocRelativeAssetUrl } from '@inkeep/open-knowledge-core/markdown/resolve-image-url';
+import { normalizeReferenceLabel } from '@gitquire/core/markdown/reference-label';
+import { normalizeDocRelativeAssetUrl } from '@gitquire/core/markdown/resolve-image-url';
 import type { NodeViewProps } from '@tiptap/core';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { NodeViewWrapper, useEditorState } from '@tiptap/react';

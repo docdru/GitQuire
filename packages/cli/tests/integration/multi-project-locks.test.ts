@@ -2,13 +2,13 @@ import { type ChildProcess, spawn as nativeSpawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR } from '@gitquire/core';
 import {
   acquireProcessLock,
   isProcessAlive,
   type ProcessLockHandle,
   readProcessLock,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 interface ProjectHandles {

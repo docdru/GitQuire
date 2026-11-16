@@ -1,4 +1,4 @@
-import { normalizeBridge } from '@inkeep/open-knowledge-core';
+import { normalizeBridge } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { isPersistenceExcludedDoc } from './cc1-broadcast.ts';

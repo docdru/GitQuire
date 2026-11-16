@@ -1,7 +1,7 @@
 import {
   type FrontmatterValidationError,
   fieldErrorsFromError,
-} from '@inkeep/open-knowledge-core/frontmatter/errors';
+} from '@gitquire/core/frontmatter/errors';
 
 export function describeError(
   error: FrontmatterValidationError,

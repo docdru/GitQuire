@@ -1,4 +1,4 @@
-import { UA_PATTERNS } from '@inkeep/open-knowledge-core';
+import { UA_PATTERNS } from '@gitquire/core';
 
 export type EmbedProbeEntry = {
   ts: number;

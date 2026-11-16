@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { OK_DIR } from '@inkeep/open-knowledge-core';
+import { OK_DIR } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import {
@@ -53,7 +53,7 @@ describe('getOkArtifactPaths', () => {
     expect(getOkArtifactPaths(dir)).toEqual([`${OK_DIR}/`, '.okignore']);
   });
 
-  it('preserves a stable order so `ok config-sharing status` and unit-test snapshots are deterministic', () => {
+  it('preserves a stable order so `gq config-sharing status` and unit-test snapshots are deterministic', () => {
     const a = getOkArtifactPaths(dir);
     const b = getOkArtifactPaths(dir);
     expect([...a]).toEqual([...b]);

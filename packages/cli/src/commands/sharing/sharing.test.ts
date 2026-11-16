@@ -59,7 +59,7 @@ async function capture<T>(fn: () => Promise<T>): Promise<{
   }
 }
 
-describe('ok config-sharing unshare → share round-trip', () => {
+describe('gq config-sharing unshare → share round-trip', () => {
   let dir: string;
   beforeEach(() => {
     dir = uniqueDir('sharing-cmd-test');
@@ -115,7 +115,7 @@ describe('ok config-sharing unshare → share round-trip', () => {
   });
 });
 
-describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
+describe('gq config-sharing unshare — §5.5 tracked-files refusal', () => {
   let dir: string;
   beforeEach(() => {
     dir = uniqueDir('sharing-refuse-test');
@@ -188,7 +188,7 @@ describe('ok config-sharing unshare — §5.5 tracked-files refusal', () => {
   });
 });
 
-describe('ok config-sharing status', () => {
+describe('gq config-sharing status', () => {
   let dir: string;
   beforeEach(() => {
     dir = uniqueDir('sharing-status-test');

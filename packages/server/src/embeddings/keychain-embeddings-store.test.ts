@@ -939,7 +939,7 @@ test('a killed credential writer releases its SQLite lock for another process', 
   const helper = fileURLToPath(new URL('./keychain-crash.test-helper.ts', import.meta.url));
   const child = spawn(
     process.execPath,
-    ['--import', 'tsx', '--conditions=@inkeep/source', helper, path],
+    ['--import', 'tsx', '--conditions=@gitquire/source', helper, path],
     {
       stdio: ['pipe', 'pipe', 'pipe'],
     },

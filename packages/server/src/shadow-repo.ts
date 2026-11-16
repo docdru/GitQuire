@@ -7,8 +7,8 @@ import {
   OK_MACHINE_LOCAL_ROOT_FILES,
   pathspecArgs,
   SYSTEM_WRITER_DISPLAY_NAMES,
-} from '@inkeep/open-knowledge-core';
-import { ATOMIC_TEMP_GLOB } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { ATOMIC_TEMP_GLOB } from '@gitquire/core/server';
 import {
   type AutoConsolidationTrigger,
   CHECKPOINT_KIND_REGISTRY,
@@ -27,7 +27,7 @@ import {
   resolveGitDir,
   resolveShadowDir,
   type WriterClassification,
-} from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core/shadow-repo-layout';
 import { resolveCheckpointChainAnchors } from './checkpoint-chain.ts';
 import { tracedMkdirSync, tracedRenameSync, tracedWriteFileSync } from './fs-traced.ts';
 import { escapeGitPatternSegment, listTreeLongEntries, realpathOrResolved } from './git-paths.ts';

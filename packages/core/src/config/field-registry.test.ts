@@ -6,7 +6,7 @@ import { getLeafFieldMeta } from './schema-leaf.ts';
 
 describe('fieldRegistry singleton', () => {
   test('is reachable via the public globalThis Symbol key', () => {
-    const SINGLETON_KEY = Symbol.for('@inkeep/open-knowledge/field-registry');
+    const SINGLETON_KEY = Symbol.for('@gitquire/cli/field-registry');
     const fromGlobal = (globalThis as Record<symbol, unknown>)[SINGLETON_KEY];
     expect(fromGlobal).toBe(fieldRegistry as unknown as typeof fromGlobal);
   });
@@ -129,7 +129,7 @@ describe('ConfigSchema coverage (NR3 — every leaf has fieldRegistry metadata)'
     if (missing.length > 0) {
       const lines = missing.map((m) => `  - ${m.path.join('.')}`).join('\n');
       throw new Error(
-        `ConfigSchema leaves missing fieldRegistry entry (register each leaf on the \`fieldRegistry\` singleton from \`@inkeep/open-knowledge-core\`):\n${lines}`,
+        `ConfigSchema leaves missing fieldRegistry entry (register each leaf on the \`fieldRegistry\` singleton from \`@gitquire/core\`):\n${lines}`,
       );
     }
   });

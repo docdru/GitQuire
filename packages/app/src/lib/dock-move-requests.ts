@@ -1,4 +1,4 @@
-import type { DockMoveSide } from '@inkeep/open-knowledge-core/commands/command-identity';
+import type { DockMoveSide } from '@gitquire/core/commands/command-identity';
 import type { PaneId } from '@/lib/pane-visibility-store';
 
 export interface DockPaneMove {

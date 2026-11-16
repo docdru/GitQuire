@@ -1,4 +1,4 @@
-import { DEFAULT_TELEMETRY_ATTRIBUTE_DENYLIST } from '@inkeep/open-knowledge-core/server';
+import { DEFAULT_TELEMETRY_ATTRIBUTE_DENYLIST } from '@gitquire/core/server';
 import type { Attributes, Meter, Span, SpanOptions, Tracer } from '@opentelemetry/api';
 import { context, metrics, propagation, SpanStatusCode, trace } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';

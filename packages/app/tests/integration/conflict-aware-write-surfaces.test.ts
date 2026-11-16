@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
-import { bootServer, ConfigSchema, getLocalDir } from '@inkeep/open-knowledge-server';
+import { bootServer, ConfigSchema, getLocalDir } from '@gitquire/server';
 import { describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { createTestClient, createTestServer, pollUntil, type TestServer } from './test-harness';

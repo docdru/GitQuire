@@ -1,4 +1,4 @@
-import { toWikiLinkSlug } from '@inkeep/open-knowledge-core/utils/slug';
+import { toWikiLinkSlug } from '@gitquire/core/utils/slug';
 import {
   type ActionFilter,
   type ActionGrouping,

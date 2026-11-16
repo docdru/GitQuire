@@ -19,8 +19,8 @@ import {
   ProblemDetailsSchema,
   type ValidationAuditResponse,
   ValidationAuditResponseSchema,
-} from '@inkeep/open-knowledge-core';
-import { ConfigSchema, readServerLock } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { ConfigSchema, readServerLock } from '@gitquire/server';
 import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { afterAll, afterEach, test as baseTest, beforeAll, describe, expect, vi } from 'vitest';
 import type { BootedServer } from '../../../server/src/boot.ts';
@@ -155,9 +155,7 @@ async function http(name: string, path: string): Promise<ValidationAuditResponse
 
 beforeAll(() => {
   if (!existsSync(CLI_ENTRY)) {
-    throw new Error(
-      'Build the CLI first: pnpm exec turbo run build --filter=@inkeep/open-knowledge',
-    );
+    throw new Error('Build the CLI first: pnpm exec turbo run build --filter=@gitquire/cli');
   }
   root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-cli-scope-')));
   headless = realpathSync(mkdtempSync(join(tmpdir(), 'ok-headless-scope-')));

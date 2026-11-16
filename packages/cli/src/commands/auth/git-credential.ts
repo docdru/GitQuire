@@ -1,4 +1,4 @@
-import { flushFileLogger } from '@inkeep/open-knowledge-server';
+import { flushFileLogger } from '@gitquire/server';
 import { Command } from 'commander';
 import type { Logger as PinoLoggerInstance } from 'pino';
 import type { TokenStore, TokenStoreDiagnostics } from '../../auth/token-store.ts';

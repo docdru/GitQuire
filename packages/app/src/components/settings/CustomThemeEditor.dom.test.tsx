@@ -1,4 +1,4 @@
-import { BASE16_SLOT_ROLES, parseBase16Scheme } from '@inkeep/open-knowledge-core';
+import { BASE16_SLOT_ROLES, parseBase16Scheme } from '@gitquire/core';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';

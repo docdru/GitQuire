@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MarkdownManager, OK_DIR, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, OK_DIR, sharedExtensions } from '@gitquire/core';
 
 const TARGET_BYTES = 50_000;
 

@@ -1,4 +1,4 @@
-import { type Config, resolveContentDir } from '@inkeep/open-knowledge-server';
+import { type Config, resolveContentDir } from '@gitquire/server';
 import { Command } from 'commander';
 import type { PreviewResult } from '../content/preview.ts';
 

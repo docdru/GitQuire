@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { AGENT_WRITE_NEXT_STEPS, AGENT_WRITE_OUTCOMES } from '@inkeep/open-knowledge-core';
+import { AGENT_WRITE_NEXT_STEPS, AGENT_WRITE_OUTCOMES } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {
@@ -382,7 +382,7 @@ describe('what each refusal and each kind of document reports', () => {
       saved: false,
       nextStep: 'retry',
     });
-    expect(String(answer.body.detail)).toContain('Write the skill or template by its file path');
+    expect(String(answer.body.detail)).toContain('Write the template by its file path');
   }, 60_000);
 });
 

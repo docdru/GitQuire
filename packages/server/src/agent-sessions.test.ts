@@ -1,5 +1,5 @@
+import { sharedExtensions, stripFrontmatter } from '@gitquire/core';
 import type { Document } from '@hocuspocus/server';
-import { sharedExtensions, stripFrontmatter } from '@inkeep/open-knowledge-core';
 import { metrics } from '@opentelemetry/api';
 import {
   AggregationTemporality,

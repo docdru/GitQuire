@@ -1,4 +1,4 @@
-import { CONFIG_DOC_NAMES } from '@inkeep/open-knowledge-core';
+import { CONFIG_DOC_NAMES } from '@gitquire/core';
 import { describe, expect, test, vi } from 'vitest';
 import { SYSTEM_DOC_NAME } from './cc1-broadcast.ts';
 import {

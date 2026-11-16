@@ -41,7 +41,13 @@ afterEach(cleanup);
 function makeEditor(target: string): Editor {
   const node = { attrs: { target, alias: null, anchor: null }, nodeSize: 1 };
   return {
-    state: { doc: { nodeAt: () => node } },
+    state: {
+      doc: {
+        nodeAt: () => node,
+        content: { size: 0 },
+        resolve: () => ({ parent: { isTextblock: false } }),
+      },
+    },
     view: { dom: document.createElement('div') },
   } as unknown as Editor;
 }

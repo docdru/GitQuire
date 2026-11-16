@@ -1,10 +1,7 @@
-import { toDesktopAssetHref } from '@inkeep/open-knowledge-core/utils/asset-href';
-import { isLoomUrl, parseLoomUrl } from '@inkeep/open-knowledge-core/utils/loom-embed';
-import { isVimeoUrl } from '@inkeep/open-knowledge-core/utils/vimeo-embed';
-import {
-  type ParsedYouTubeUrl,
-  parseYouTubeUrl,
-} from '@inkeep/open-knowledge-core/utils/youtube-embed';
+import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
+import { isLoomUrl, parseLoomUrl } from '@gitquire/core/utils/loom-embed';
+import { isVimeoUrl } from '@gitquire/core/utils/vimeo-embed';
+import { type ParsedYouTubeUrl, parseYouTubeUrl } from '@gitquire/core/utils/youtube-embed';
 import { t } from '@lingui/core/macro';
 import Vimeo from '@u-wave/react-vimeo';
 import { type CSSProperties, useEffect, useRef } from 'react';

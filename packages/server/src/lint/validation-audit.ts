@@ -8,7 +8,7 @@ import {
   type ValidationDiagnostic,
   type ValidationDocCounts,
   type ValidationSource,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { createReservedLogBrokenLinkSuppression } from '../broken-link-suppression.ts';
 import { isProblemsPlaneExcludedDoc } from '../cc1-broadcast.ts';
 import type { DerivedDocumentIndexApiPort } from '../derived-document-index.ts';

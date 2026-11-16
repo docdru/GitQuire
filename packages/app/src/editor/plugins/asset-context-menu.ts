@@ -1,7 +1,4 @@
-import {
-  classifyMarkdownHref,
-  resolveAssetProjectPath,
-} from '@inkeep/open-knowledge-core/utils/link-targets';
+import { classifyMarkdownHref, resolveAssetProjectPath } from '@gitquire/core/utils/link-targets';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 

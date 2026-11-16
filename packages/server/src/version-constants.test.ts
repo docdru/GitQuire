@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CLIENT_RUNTIME_VERSION_FALLBACK } from '@inkeep/open-knowledge-core';
+import { CLIENT_RUNTIME_VERSION_FALLBACK } from '@gitquire/core';
 import { describe, expect, test, vi } from 'vitest';
 
 const stamped = vi.hoisted(() => ({ version: '9.8.7-stamped.1' }));
@@ -12,7 +12,7 @@ vi.mock('node:fs', async (importOriginal) => {
   const serverPackageJson = toPath(new URL('../package.json', import.meta.url));
   const readFileSync = ((path: Parameters<typeof actual.readFileSync>[0], ...rest: unknown[]) =>
     String(path) === serverPackageJson
-      ? JSON.stringify({ name: '@inkeep/open-knowledge-server', version: stamped.version })
+      ? JSON.stringify({ name: '@gitquire/server', version: stamped.version })
       : Reflect.apply(actual.readFileSync, actual, [path, ...rest])) as typeof actual.readFileSync;
   return { ...actual, readFileSync };
 });

@@ -1,4 +1,4 @@
-import { ProblemDetailsSchema, type ProblemType } from '@inkeep/open-knowledge-core/schemas/api';
+import { ProblemDetailsSchema, type ProblemType } from '@gitquire/core/schemas/api';
 
 type ResolveStrategy = 'mine' | 'theirs' | 'content' | 'delete';
 

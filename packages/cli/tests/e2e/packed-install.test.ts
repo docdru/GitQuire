@@ -31,7 +31,7 @@ test('reports unavailable registry acquisition after bounded attempts', async ()
   writeFileSync(
     join(packageDir, 'package.json'),
     JSON.stringify({
-      name: '@inkeep/open-knowledge',
+      name: '@gitquire/cli',
       version: '1.0.0',
       dependencies: { 'ok-cli-registry-fixture': '1.0.0' },
     }),

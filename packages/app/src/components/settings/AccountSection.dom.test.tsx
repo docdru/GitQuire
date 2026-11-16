@@ -1,4 +1,4 @@
-import { bindConfigDoc, type ConfigBinding } from '@inkeep/open-knowledge-core';
+import { bindConfigDoc, type ConfigBinding } from '@gitquire/core';
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -589,7 +589,7 @@ describe('AccountSection host-token form', () => {
 
     const confirmation = await screen.findByTestId('settings-account-host-token-success');
     expect(confirmation.textContent).toBe(
-      'Token stored for oauth2 on gitea.internal. To remove it, run ok auth signout --host gitea.internal.',
+      'Token stored for oauth2 on gitea.internal. To remove it, run gq auth signout --host gitea.internal.',
     );
     expect(calls).toEqual([['gitea.internal', 'oauth2', 'glpat_secret']]);
     expect((screen.getByLabelText('Access token') as HTMLInputElement).value).toBe('');

@@ -1,4 +1,4 @@
-import { toBroadcasterKey } from '@inkeep/open-knowledge-server';
+import { toBroadcasterKey } from '@gitquire/server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
 import { fetchWithHostHeader } from './host-header-request.test-helper';

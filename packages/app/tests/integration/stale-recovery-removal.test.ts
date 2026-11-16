@@ -10,10 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  MetricsReconciliationSuccessSchema,
-  PagesSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+import { MetricsReconciliationSuccessSchema, PagesSuccessSchema } from '@gitquire/core';
 import { afterEach, expect, test, vi } from 'vitest';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';
 import { resetMetrics } from '../../../server/src/metrics.ts';

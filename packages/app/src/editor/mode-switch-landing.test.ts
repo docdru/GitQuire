@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { EditorState as CmEditorState, type TransactionSpec } from '@codemirror/state';
 import type { EditorView as CodeMirrorView, DecorationSet } from '@codemirror/view';
-import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@gitquire/core';
 import { type Editor, getSchema } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import { EditorState as PmEditorState } from '@tiptap/pm/state';

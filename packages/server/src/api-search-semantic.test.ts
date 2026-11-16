@@ -16,8 +16,8 @@ import {
   createWorkspaceSearchDocument,
   type SemanticProviderErrorReason,
   type SemanticQueryOutcome,
-} from '@inkeep/open-knowledge-core';
-import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { filesystemIdentity } from '@gitquire/core/server';
 import { describe, expect, test } from 'vitest';
 import { createApiExtension } from './api-extension.test-helper.ts';
 import { createConceptEmbedder, type Embedder, SemanticSearchService } from './embeddings/index.ts';

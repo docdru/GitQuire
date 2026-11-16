@@ -367,6 +367,7 @@ export function focusInsertedComponent(
   if (hasEditableProps) {
     setPendingAutoOpen(insertPos);
     requestAnimationFrame(() => {
+      if (editor.isDestroyed) return;
       editor.commands.setNodeSelection(insertPos);
     });
   } else if (descriptor.hasChildren) {

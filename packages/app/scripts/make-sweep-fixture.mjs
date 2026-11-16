@@ -236,6 +236,6 @@ if (!quiet) {
   console.log(`  broken-only:  ${counts['broken-only'] ?? 0}`);
   console.log('');
   console.log('  Verify the finding counts against a running server:');
-  console.log(`    ok start --port 7801   # cwd = a COPY of ${outDir}`);
+  console.log(`    gq start --port 7801   # cwd = a COPY of ${outDir}`);
   console.log('    curl -s localhost:<api-port>/api/audit | jq ...');
 }

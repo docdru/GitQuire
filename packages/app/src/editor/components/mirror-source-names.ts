@@ -1,4 +1,4 @@
-import { graphemePrefix } from '@inkeep/open-knowledge-core/utils/grapheme-clip';
+import { graphemePrefix } from '@gitquire/core/utils/grapheme-clip';
 import { useOptionalPageList } from '@/components/PageListContext';
 import { getSharedMarkdownManager } from '../utils/md-singleton.ts';
 import { useLiveDocText } from './live-doc-pool.ts';

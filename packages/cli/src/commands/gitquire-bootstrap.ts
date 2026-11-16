@@ -1,10 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import {
-  GitHubUnavailableError,
-  initProjectWithCli,
-  runGitQuireBootstrap,
-} from '@inkeep/open-knowledge-server';
+import { GitHubUnavailableError, initProjectWithCli, runGitQuireBootstrap } from '@gitquire/server';
 import { Command } from 'commander';
 import { error as errorColor, success, warning } from '../ui/colors.ts';
 

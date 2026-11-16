@@ -1,14 +1,14 @@
 import type {
   ConfigBinding,
   ConfigBindingPatchResult,
-} from '@inkeep/open-knowledge-core/config/bind-config-doc';
+} from '@gitquire/core/config/bind-config-doc';
 import {
   type ConfigIssue,
   type ConfigValidationError,
   humanFormat,
   isKnownConfigError,
-} from '@inkeep/open-knowledge-core/config/errors';
-import type { Config, ConfigPatch } from '@inkeep/open-knowledge-core/config/schema';
+} from '@gitquire/core/config/errors';
+import type { Config, ConfigPatch } from '@gitquire/core/config/schema';
 import { useEffect } from 'react';
 import { type FieldPath, type UseFormReturn, useForm } from 'react-hook-form';
 import { buildPatch } from './schema-walker';

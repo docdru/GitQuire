@@ -13,9 +13,9 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
+import { filesystemIdentity } from '@gitquire/core/server';
 import { Hocuspocus } from '@hocuspocus/server';
-import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import {
@@ -231,6 +231,11 @@ afterEach(() => {
   if (tmpDir) {
     rmSync(tmpDir, { recursive: true, force: true });
   }
+});
+
+beforeEach(() => {
+  vi.stubEnv('GITQUIRE_NAMING', 'off');
+  return () => vi.unstubAllEnvs();
 });
 
 describe('file operation API routes', () => {

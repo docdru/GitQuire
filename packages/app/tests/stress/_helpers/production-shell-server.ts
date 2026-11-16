@@ -41,6 +41,6 @@ export function initProductionShellContent(contentDir: string): void {
     { cwd: contentDir, encoding: 'utf8' },
   );
   if (initialized.status !== 0) {
-    throw new Error(`production-shell ok init failed: ${initialized.stderr}`);
+    throw new Error(`production-shell gq init failed: ${initialized.stderr}`);
   }
 }

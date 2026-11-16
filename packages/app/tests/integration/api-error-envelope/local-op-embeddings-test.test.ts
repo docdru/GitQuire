@@ -1,10 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  LocalOpEmbeddingsTestResponseSchema,
-  ProblemDetailsSchema,
-} from '@inkeep/open-knowledge-core';
+import { LocalOpEmbeddingsTestResponseSchema, ProblemDetailsSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 import {
   type FakeEmbeddingsServer,

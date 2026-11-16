@@ -2,12 +2,12 @@ import { indentWithTab } from '@codemirror/commands';
 import { search } from '@codemirror/search';
 import { Compartment, EditorSelection, EditorState, StateEffect } from '@codemirror/state';
 import { placeholder as cmPlaceholder, EditorView, keymap } from '@codemirror/view';
-import type { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   DEFAULT_LINTER_CONFIG,
   type PersistedLinterConfig,
   toEffectiveBase,
-} from '@inkeep/open-knowledge-core/markdown/lint';
+} from '@gitquire/core/markdown/lint';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
 import { useLingui } from '@lingui/react/macro';
 import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';

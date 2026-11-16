@@ -19,7 +19,7 @@ import { readJsoncOrError } from './read-jsonc.mjs';
 const makeTempDir = createTempDirFactory(afterAll);
 
 const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
-const TASK = '@inkeep/open-knowledge-server#test';
+const TASK = '@gitquire/server#test';
 
 function fixtureRootWithout(glob) {
   const turbo = JSON.parse(readFileSync(join(OK_ROOT, 'turbo.json'), 'utf-8'));

@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEFAULT_LINTER_CONFIG, type LinterConfig } from '@inkeep/open-knowledge-core';
+import { DEFAULT_LINTER_CONFIG, type LinterConfig } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { auditProject, lintDoc } from './audit.ts';
 

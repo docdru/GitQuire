@@ -1,4 +1,4 @@
-import { CLIENT_SURFACE_ATTRIBUTE } from '@inkeep/open-knowledge-core/client-version';
+import { CLIENT_SURFACE_ATTRIBUTE } from '@gitquire/core/client-version';
 import { trace } from '@opentelemetry/api';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';

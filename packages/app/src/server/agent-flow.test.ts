@@ -1,5 +1,5 @@
+import { MarkdownManager } from '@gitquire/core';
 import { Hocuspocus } from '@hocuspocus/server';
-import { MarkdownManager } from '@inkeep/open-knowledge-core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { describe, expect, test } from 'vitest';

@@ -1,5 +1,5 @@
-import { normalizeNullableString } from '@inkeep/open-knowledge-core/extensions/wiki-link';
-import { wikiLinkHref } from '@inkeep/open-knowledge-core/utils/slug';
+import { normalizeNullableString } from '@gitquire/core/extensions/wiki-link';
+import { wikiLinkHref } from '@gitquire/core/utils/slug';
 import type { Node as PmNode, Slice } from '@tiptap/pm/model';
 import type { EditorView } from '@tiptap/pm/view';
 import {

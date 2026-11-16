@@ -15,8 +15,8 @@ import { request as httpRequest } from 'node:http';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { idleShutdownToMs } from '@inkeep/open-knowledge-core';
-import { type Config, ConfigSchema } from '@inkeep/open-knowledge-server';
+import { idleShutdownToMs } from '@gitquire/core';
+import { type Config, ConfigSchema } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   type BootedStartServer,
@@ -83,14 +83,14 @@ describe('parseExternalUrlFlag', () => {
 describe('formatShutdownNotice', () => {
   test('SIGINT includes the headline, the wait notice, and the force-quit hint', () => {
     const lines = formatShutdownNotice('SIGINT');
-    expect(lines[0]).toContain('Stopping OpenKnowledge');
+    expect(lines[0]).toContain('Stopping GitQuire');
     expect(lines.some((l) => l.includes('few seconds'))).toBe(true);
     expect(lines.some((l) => l.includes('force quit'))).toBe(true);
   });
 
   test('SIGTERM omits the force-quit hint (no interactive second-press path)', () => {
     const lines = formatShutdownNotice('SIGTERM');
-    expect(lines[0]).toContain('Stopping OpenKnowledge');
+    expect(lines[0]).toContain('Stopping GitQuire');
     expect(lines.some((l) => l.includes('few seconds'))).toBe(true);
     expect(lines.some((l) => l.includes('force quit'))).toBe(false);
   });
@@ -290,7 +290,7 @@ describe('withIdleShutdownProcessExit (idle-path zombie prevention)', () => {
 
 describe('isServerLockCollision (D1/C3 gate)', () => {
   test('same-project authority refusal is reusable before its discovery record appears', async () => {
-    const mod = await import('@inkeep/open-knowledge-server');
+    const mod = await import('@gitquire/server');
     const fixture = mkdtempSync(join(tmpdir(), 'ok-reuse-authority-'));
     const cwd = join(fixture, 'project');
     const other = join(fixture, 'other-project');
@@ -320,7 +320,7 @@ describe('isServerLockCollision (D1/C3 gate)', () => {
   class FakeServerLockErr extends Error {}
   const fakeModule = {
     ServerLockCollisionError: FakeServerLockErr,
-  } as unknown as typeof import('@inkeep/open-knowledge-server');
+  } as unknown as typeof import('@gitquire/server');
 
   test('true for a ServerLockCollisionError instance', () => {
     expect(isServerLockCollision(new FakeServerLockErr('held'), fakeModule, tmpdir())).toBe(true);
@@ -330,7 +330,7 @@ describe('isServerLockCollision (D1/C3 gate)', () => {
     expect(isServerLockCollision('not-an-error', fakeModule, tmpdir())).toBe(false);
   });
   test('false (never throws) when the module lacks the class export', () => {
-    const empty = {} as unknown as typeof import('@inkeep/open-knowledge-server');
+    const empty = {} as unknown as typeof import('@gitquire/server');
     expect(isServerLockCollision(new Error('boom'), empty, tmpdir())).toBe(false);
   });
 });
@@ -831,7 +831,7 @@ describe('bootStartServer (integration)', () => {
   });
 });
 
-describe('bootStartServer — no auto git-init from ok start (US-004)', () => {
+describe('bootStartServer — no auto git-init from gq start (US-004)', () => {
   let tmpDir: string;
   let booted: BootedStartServer | null = null;
   let originalHome: string | undefined;
@@ -862,7 +862,7 @@ describe('bootStartServer — no auto git-init from ok start (US-004)', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  test('fresh tmpdir (no .git/) → ok start does NOT create .git/HEAD', async () => {
+  test('fresh tmpdir (no .git/) → gq start does NOT create .git/HEAD', async () => {
     booted = await bootStartServer({
       config: makeTestConfig(),
       cwd: tmpDir,
@@ -873,7 +873,7 @@ describe('bootStartServer — no auto git-init from ok start (US-004)', () => {
     expect(existsSync(join(tmpDir, '.git/HEAD'))).toBe(false);
   });
 
-  test('missing git binary does not prevent ok start from booting', async () => {
+  test('missing git binary does not prevent gq start from booting', async () => {
     const originalPath = process.env.PATH;
     process.env.PATH = '/nonexistent-path';
     try {
@@ -921,7 +921,7 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
     ).rejects.toBeInstanceOf(OkDirMissingError);
   });
 
-  test('fresh dir (no .ok/) → OkDirMissingError message contains "ok init"', async () => {
+  test('fresh dir (no .ok/) → OkDirMissingError message contains "gq init"', async () => {
     await expect(
       bootStartServer({
         config: makeTestConfig(),
@@ -929,7 +929,7 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
         host: TEST_HOST,
         skipAutoInit: false,
       }),
-    ).rejects.toThrow('ok init');
+    ).rejects.toThrow('gq init');
 
     expect(existsSync(join(tmpDir, '.ok'))).toBe(false);
   });
@@ -982,7 +982,7 @@ describe('bootStartServer — rejects with init-required when .ok/config.yml is 
 
 describe('tryDescribeLockCollision', () => {
   test('overlapping content ownership has an actionable message without a stack', async () => {
-    const serverModule = await import('@inkeep/open-knowledge-server');
+    const serverModule = await import('@gitquire/server');
     const err = new serverModule.ServerAuthorityCollisionError({
       projectDir: '/holder',
       scope: { kind: 'tree', path: '/content', excluded: [] },
@@ -996,7 +996,7 @@ describe('tryDescribeLockCollision', () => {
   test.runIf(process.platform !== 'win32' && process.getuid?.() !== 0)(
     'a lock acquisition cannot read has its remedy as the message, without a stack',
     async () => {
-      const serverModule = await import('@inkeep/open-knowledge-server');
+      const serverModule = await import('@gitquire/server');
       const projectDir = await mkdtemp(join(tmpdir(), 'ok-start-unreadable-lock-'));
       const lockDir = join(projectDir, '.ok', 'local');
       const lockPath = join(lockDir, 'server.lock');
@@ -1038,7 +1038,7 @@ describe('tryDescribeLockCollision', () => {
         if (opts.throwOnRead) throw new Error('synthetic read failure');
         return opts.meta;
       },
-    } as unknown as typeof import('@inkeep/open-knowledge-server');
+    } as unknown as typeof import('@gitquire/server');
   }
 
   test('non-lock-collision error → null (caller falls back to generic)', () => {
@@ -1068,7 +1068,7 @@ describe('tryDescribeLockCollision', () => {
     const err = new fm.ServerLockCollisionError();
     const result = tryDescribeLockCollision(err, '/tmp/proj', fm);
     expect(result).toContain('already running');
-    expect(result).toContain('ok status');
+    expect(result).toContain('gq status');
   });
 
   test('meta=null → generic already-running message', () => {
@@ -1088,7 +1088,7 @@ describe('tryDescribeLockCollision', () => {
   test('serverModule.ServerLockCollisionError missing → null (back-compat)', () => {
     const fm = {
       readServerLock: () => null,
-    } as unknown as typeof import('@inkeep/open-knowledge-server');
+    } as unknown as typeof import('@gitquire/server');
     const err = new Error('any');
     const result = tryDescribeLockCollision(err, '/tmp/proj', fm);
     expect(result).toBeNull();
@@ -1104,7 +1104,7 @@ describe('resolveStartConfig (ephemeral config isolation)', () => {
     expect(resolved).not.toBe(projectConfig);
   });
 
-  test('plain ok start keeps the loaded project config untouched', () => {
+  test('plain gq start keeps the loaded project config untouched', () => {
     const projectConfig = ConfigSchema.parse({ server: { port: 4242 } });
     let userReads = 0;
     const resolved = resolveStartConfig(projectConfig, undefined, () => {
@@ -1631,10 +1631,10 @@ describe('startCommand — flag-conflict guards (exit 2)', () => {
     expect(stderr).toContain('--react-shell-dist-dir');
   });
 
-  test('--mode app exits 2 and points to ok start', async () => {
+  test('--mode app exits 2 and points to gq start', async () => {
     const { code, stderr } = await captureGuard(['--mode', 'app']);
     expect(code).toBe(2);
-    expect(stderr).toContain("run 'ok start'");
+    expect(stderr).toContain("run 'gq start'");
   });
 });
 
@@ -1643,23 +1643,23 @@ describe('start messages name the running channel command', () => {
     vi.unstubAllEnvs();
   });
 
-  test('Stable keeps ok in the missing-setup error and the reuse notice', () => {
+  test('Stable keeps gq in the missing-setup error and the reuse notice', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     expect(new OkDirMissingError('/p').message).toBe(
-      "This directory isn't set up yet. Run `ok init` first, then `ok start` again.",
+      "This directory isn't set up yet. Run `gq init` first, then `gq start` again.",
     );
     expect(formatServerReuseNotice({ url: 'u', pid: 7, servesUi: true })[2]).toBe(
-      'Leaving it running — run `ok stop` first if you want a fresh server.',
+      'Leaving it running — run `gq stop` first if you want a fresh server.',
     );
   });
 
-  test('Beta names ok-beta in the missing-setup error and the reuse notice', () => {
+  test('Beta names gq-beta in the missing-setup error and the reuse notice', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     expect(new OkDirMissingError('/p').message).toBe(
-      "This directory isn't set up yet. Run `ok-beta init` first, then `ok-beta start` again.",
+      "This directory isn't set up yet. Run `gq-beta init` first, then `gq-beta start` again.",
     );
     expect(formatServerReuseNotice({ url: 'u', pid: 7, servesUi: true })[2]).toBe(
-      'Leaving it running — run `ok-beta stop` first if you want a fresh server.',
+      'Leaving it running — run `gq-beta stop` first if you want a fresh server.',
     );
   });
 });

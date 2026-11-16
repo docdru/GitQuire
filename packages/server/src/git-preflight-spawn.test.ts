@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { OK_DIR } from '@inkeep/open-knowledge-core';
+import { OK_DIR } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 
 const SERVER_PACKAGE_ROOT = resolve(import.meta.dir, '..');

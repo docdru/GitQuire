@@ -3,7 +3,7 @@
  * disk and converged to every peer (precedent #38).
  */
 
-import { sharedExtensions } from '@inkeep/open-knowledge-core';
+import { sharedExtensions } from '@gitquire/core';
 import { getSchema, type JSONContent } from '@tiptap/core';
 import { updateYFragment } from '@tiptap/y-tiptap';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';

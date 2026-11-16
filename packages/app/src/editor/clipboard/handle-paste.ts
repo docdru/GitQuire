@@ -1,7 +1,7 @@
 /** WYSIWYG paste/drop dispatcher — 5-branch router per precedent #19(b). */
 
-import type { MarkdownManager } from '@inkeep/open-knowledge-core/markdown';
-import { htmlToMdast, mdastToMarkdown } from '@inkeep/open-knowledge-core/markdown/html-to-mdast';
+import type { MarkdownManager } from '@gitquire/core/markdown';
+import { htmlToMdast, mdastToMarkdown } from '@gitquire/core/markdown/html-to-mdast';
 import { t } from '@lingui/core/macro';
 import type { JSONContent } from '@tiptap/core';
 import { Fragment, type Node as ProseMirrorNode } from '@tiptap/pm/model';

@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { ProblemDetailsSchema, ValidationAuditResponseSchema } from '@inkeep/open-knowledge-core';
+import { ProblemDetailsSchema, ValidationAuditResponseSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 import {
   AUDIT_EMPTY_SCOPE_WARNING,

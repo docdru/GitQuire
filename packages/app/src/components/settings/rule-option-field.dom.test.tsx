@@ -1,4 +1,4 @@
-import { MARKDOWNLINT_RULE_CATALOG, type RuleOptionSpec } from '@inkeep/open-knowledge-core';
+import { MARKDOWNLINT_RULE_CATALOG, type RuleOptionSpec } from '@gitquire/core';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test, vi } from 'vitest';

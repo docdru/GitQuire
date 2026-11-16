@@ -1,5 +1,5 @@
-import { sharedExtensions as coreExtensions, MarkdownManager } from '@inkeep/open-knowledge-core';
-import { type ObserverDispatchKind, setupServerObservers } from '@inkeep/open-knowledge-server';
+import { sharedExtensions as coreExtensions, MarkdownManager } from '@gitquire/core';
+import { type ObserverDispatchKind, setupServerObservers } from '@gitquire/server';
 import { cleanup } from '@testing-library/react';
 import { Editor, getSchema, type JSONContent } from '@tiptap/core';
 import Collaboration from '@tiptap/extension-collaboration';

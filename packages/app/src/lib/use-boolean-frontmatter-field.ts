@@ -4,9 +4,9 @@
  * singleton) would keep processing remote updates for every hidden document (precedent #18(c)).
  */
 
+import { bindFrontmatterDoc } from '@gitquire/core/bridge';
+import type { FrontmatterMap } from '@gitquire/core/frontmatter/schema';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { bindFrontmatterDoc } from '@inkeep/open-knowledge-core/bridge';
-import type { FrontmatterMap } from '@inkeep/open-knowledge-core/frontmatter/schema';
 import { useEffect, useState } from 'react';
 
 function isFlagEnabled(map: FrontmatterMap, key: string): boolean {

@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { LOCAL_DIR, OK_DIR } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR, OK_DIR } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { BacklinkIndex } from './backlink-index.ts';
 
@@ -336,7 +336,7 @@ describe('resolved document relationships', () => {
     expect(index.getForwardLinks('source')).toEqual(['notes/beta']);
     await index.saveToDisk();
     const saved = JSON.parse(readFileSync(cache, 'utf8'));
-    expect(saved.version).toBe(4);
+    expect(saved.version).toBe(5);
     expect(saved.forward.source).toEqual(['beta']);
     expect(Object.keys(saved.backward)).toEqual(['beta']);
     mkdirSync(join(projectDir, 'notes'));

@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { getMetrics } from '../../../server/src/metrics';

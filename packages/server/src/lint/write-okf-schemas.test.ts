@@ -6,7 +6,7 @@ import {
   OKF_SCHEMA_DIR,
   okfSchemaPathFor,
   renderOkfSchemaFiles,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   ensureOkfSchemaFiles,

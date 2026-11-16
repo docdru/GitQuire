@@ -1,12 +1,12 @@
 import { lstatSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { PROJECT_DIAGNOSTIC_FILES } from '@inkeep/open-knowledge-core';
+import { PROJECT_DIAGNOSTIC_FILES } from '@gitquire/core';
 import {
   isProjectLogsKey,
   okProjectLogsDir,
   projectLogsKeyForCanonicalPath,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';
 import { tracedMkdirSync, tracedRmSync, tracedUtimesSync } from './fs-traced.ts';
 import { getLogger } from './logger.ts';
 import {

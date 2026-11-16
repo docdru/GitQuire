@@ -18,7 +18,7 @@ import {
   type SemanticProviderErrorReason,
   ServerInfoSuccessSchema,
   WorkspaceSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getBootTimings } from '../boot-timings.ts';
 import { isConfigDoc, isSystemDoc } from '../cc1-broadcast.ts';
 import { collabUrlFromRequestHeaders } from '../collab-bootstrap-url.ts';

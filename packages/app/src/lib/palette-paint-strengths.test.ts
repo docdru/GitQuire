@@ -9,7 +9,7 @@ import {
   EDITOR_FIND_TINT,
   VIEWER_FIND_ACTIVE_TINT,
   VIEWER_FIND_TINT,
-} from '@inkeep/open-knowledge-core/theme/base16';
+} from '@gitquire/core/theme/base16';
 import { assert, describe, expect, test } from 'vitest';
 import { findBlockBodies } from '../../../core/scripts/chrome-resolver.ts';
 

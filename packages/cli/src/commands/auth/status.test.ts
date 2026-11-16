@@ -179,6 +179,6 @@ describe('formatStoredEntryStatus', () => {
   test('no stored entry names the command that stores one', () => {
     const line = formatStoredEntryStatus({ authenticated: false }, 'gitea.internal');
     expect(line).toContain('No token stored for gitea.internal');
-    expect(line).toContain('ok auth token --host gitea.internal --username <username>');
+    expect(line).toContain('gq auth token --host gitea.internal --username <username>');
   });
 });

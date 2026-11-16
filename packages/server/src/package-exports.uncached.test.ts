@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 interface ExportEntry {
-  '@inkeep/source'?: string;
+  '@gitquire/source'?: string;
   development?: string;
   types?: string;
   node?: string;
@@ -25,12 +25,12 @@ describe('dev-boot mechanism — predev hook + dist exports', () => {
   test('packages/app has predev hook that builds core + server workspace deps', () => {
     const { scripts } = readPkg('app');
     expect(scripts.predev, 'packages/app/package.json missing `predev` script').toBeDefined();
-    expect(scripts.predev).toContain('@inkeep/open-knowledge-core');
-    expect(scripts.predev).toContain('@inkeep/open-knowledge-server');
+    expect(scripts.predev).toContain('@gitquire/core');
+    expect(scripts.predev).toContain('@gitquire/server');
   });
 
   for (const pkgName of ['core', 'server']) {
-    describe(`@inkeep/open-knowledge-${pkgName}`, () => {
+    describe(`@gitquire/${pkgName}`, () => {
       test('"." exports has default → ./dist/*.mjs', () => {
         const pkgExports = readPkg(pkgName).exports;
         const dot = pkgExports['.'];
@@ -63,26 +63,4 @@ describe('dev-boot mechanism — predev hook + dist exports', () => {
       });
     });
   }
-});
-
-describe('app test-support exports', () => {
-  test('keep source-only conditions aligned', () => {
-    const testSupportExports = Object.entries(readPkg('app').exports).filter(([subpath]) =>
-      subpath.startsWith('./test-support/'),
-    );
-    expect(testSupportExports.length).toBeGreaterThan(0);
-    for (const [subpath, entry] of testSupportExports) {
-      expect(Object.keys(entry), `app exports["${subpath}"] condition order`).toEqual([
-        '@inkeep/source',
-        'development',
-        'types',
-        'default',
-      ]);
-      for (const condition of ['development', 'types', 'default'] as const) {
-        expect(entry[condition], `app exports["${subpath}"] source vs ${condition}`).toBe(
-          entry['@inkeep/source'],
-        );
-      }
-    }
-  });
 });

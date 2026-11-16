@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { legacyServerLock } from '../../../test-support/owned-process.test-helper.ts';
 import { createTempDirFactory } from '../../../test-support/temp-dir.test-helper.ts';

@@ -7,7 +7,7 @@ import {
   type LinterConfig,
   lintDocument,
   MarkdownManager,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { Editor } from '@tiptap/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { LINT_NAV_EVENT, type LintNavDetail } from '@/components/ProblemsPanel';

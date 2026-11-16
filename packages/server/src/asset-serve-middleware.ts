@@ -1,7 +1,7 @@
 import { realpathSync, statSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, join, normalize, relative, resolve, sep } from 'node:path';
-import { SANDBOXED_HTML_EXTENSIONS } from '@inkeep/open-knowledge-core';
+import { SANDBOXED_HTML_EXTENSIONS } from '@gitquire/core';
 import { isWithinContentDir } from './content-path.ts';
 import { resolvesIntoPrivateState } from './fs-safety.ts';
 import { errorResponse } from './http/error-response.ts';

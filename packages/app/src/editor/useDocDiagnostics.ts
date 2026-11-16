@@ -1,10 +1,6 @@
+import { isEditableTextDocFile } from '@gitquire/core/constants/code-languages';
+import { type LintDiagnostic, type LinterConfig, lintDocument } from '@gitquire/core/markdown/lint';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
-import {
-  type LintDiagnostic,
-  type LinterConfig,
-  lintDocument,
-} from '@inkeep/open-knowledge-core/markdown/lint';
 import { useEffect, useState } from 'react';
 
 const RELINT_DEBOUNCE_MS = 300;

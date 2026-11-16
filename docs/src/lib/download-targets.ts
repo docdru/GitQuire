@@ -110,10 +110,6 @@ function downloadPageHrefForCta(cta: DownloadCta): string {
   return `${DOWNLOAD_PAGE_HREF}?utm_content=${encodeURIComponent(cta)}`;
 }
 
-export const WEB_APP_HREF = '/docs/reference/cli';
-
-export const WEB_APP_LABEL = 'Run in your browser (npm)';
-
 function targetById(id: DownloadTargetId): DownloadTarget {
   const target = DOWNLOAD_TARGETS.find((candidate) => candidate.id === id);
   if (!target) throw new Error(`Unknown download target: ${id}`);

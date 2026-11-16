@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } fr
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import { ProblemDetailsSchema } from '@inkeep/open-knowledge-core';
+import { ProblemDetailsSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
@@ -66,7 +66,7 @@ async function setupUDConflict(
 }
 
 async function registerConflict(contentDir: string, file: string): Promise<void> {
-  const { LOCAL_DIR } = await import('@inkeep/open-knowledge-core');
+  const { LOCAL_DIR } = await import('@gitquire/core');
   const { mkdirSync } = await import('node:fs');
   const okLocal = join(contentDir, '.ok', LOCAL_DIR);
   mkdirSync(okLocal, { recursive: true });

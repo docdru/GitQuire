@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { BASE16_SLOTS } from '@inkeep/open-knowledge-core';
+import { BASE16_SLOTS } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
   deleteSavedTheme,

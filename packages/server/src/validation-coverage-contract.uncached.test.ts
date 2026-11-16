@@ -1,10 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  isMutatingParserReservation,
-  LINT_PLUGIN_IDS,
-  VALIDATION_SOURCES,
-} from '@inkeep/open-knowledge-core';
+import { isMutatingParserReservation, LINT_PLUGIN_IDS, VALIDATION_SOURCES } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { formatValidatorDegradationWarning } from './lint/validation-audit.ts';
 import { DESCRIPTION as AUDIT_DESCRIPTION, AUDIT_WARNINGS_DESCRIPTION } from './mcp/tools/audit.ts';

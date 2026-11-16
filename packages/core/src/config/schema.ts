@@ -688,7 +688,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project',
               description:
-                'Write per-project diagnostic spans + logs under the user-level GitQuire logs directory for `ok diagnose bundle`. Files stay local unless shared, including in a support bundle. Set false for sensitive workspaces. Shared across collaborators.',
+                'Write per-project diagnostic spans + logs under the user-level GitQuire logs directory for `gq diagnose bundle`. Files stay local unless shared, including in a support bundle. Set false for sensitive workspaces. Shared across collaborators.',
             })
             .default(true),
           spans: z
@@ -758,7 +758,7 @@ export const ConfigSchema = z.looseObject({
           reload: 'live',
           defaultScope: 'project',
           description:
-            'Record bridge loss-class events (content-free) under .ok/local/loss-capture/ for `ok diagnose bundle`. Local-only — never leaves the machine until you run bundle. Set false for sensitive workspaces. Shared across collaborators.',
+            'Record bridge loss-class events (content-free) under .ok/local/loss-capture/ for `gq diagnose bundle`. Local-only — never leaves the machine until you run bundle. Set false for sensitive workspaces. Shared across collaborators.',
         })
         .default(true),
       maxBytes: z
@@ -874,7 +874,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                'Add semantic (embeddings) ranking to the MCP search tool, fused with the lexical engine so conceptually-related pages surface even with no shared keywords. When ON and an API key is set (`ok embeddings set-key`), the search query and matching document content are sent to the configured embeddings provider — content egress. Default OFF. Per-machine (project-local) — not shared with collaborators.',
+                'Add semantic (embeddings) ranking to the MCP search tool, fused with the lexical engine so conceptually-related pages surface even with no shared keywords. When ON and an API key is set (`gq embeddings set-key`), the search query and matching document content are sent to the configured embeddings provider — content egress. Default OFF. Per-machine (project-local) — not shared with collaborators.',
             })
             .default(false),
           baseUrl: z
@@ -885,7 +885,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                'Base URL of the OpenAI-compatible embeddings API (default https://api.openai.com/v1). Override to point at a self-hosted server (Ollama / vLLM / LM Studio) or another provider. The API key is NOT stored here — set it with `ok embeddings set-key` (stored on this machine, using the OS credential store when available); it is sent to whichever endpoint this names.',
+                'Base URL of the OpenAI-compatible embeddings API (default https://api.openai.com/v1). Override to point at a self-hosted server (Ollama / vLLM / LM Studio) or another provider. The API key is NOT stored here — set it with `gq embeddings set-key` (stored on this machine, using the OS credential store when available); it is sent to whichever endpoint this names.',
             })
             .default(DEFAULT_EMBEDDINGS_BASE_URL),
           model: z
@@ -936,7 +936,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                "Maximum number of text chunks sent in one indexing request (1–2048, default 96). The ceiling follows OpenAI's input-array limit; other providers may impose different limits. Larger requests may still be split by the character budget. Changing it preserves cached vectors and document chunking; it applies to the next indexing pass. Invalid values use the default and are reported by ok config validate and server logs.",
+                "Maximum number of text chunks sent in one indexing request (1–2048, default 96). The ceiling follows OpenAI's input-array limit; other providers may impose different limits. Larger requests may still be split by the character budget. Changing it preserves cached vectors and document chunking; it applies to the next indexing pass. Invalid values use the default and are reported by gq config validate and server logs.",
             })
             .default(DEFAULT_EMBEDDINGS_MAX_BATCH_SIZE)
             .catch(DEFAULT_EMBEDDINGS_MAX_BATCH_SIZE),
@@ -951,7 +951,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                'Approximate cumulative character budget per indexing request (1–16384000, default 96000). A single chunk can exceed this budget. OpenAI separately caps total input at 300000 tokens per request; this character budget does not enforce that limit, and high values can produce rejected requests. Other providers have their own limits. Changing it preserves cached vectors and document chunking; it applies to the next indexing pass. Invalid values use the default and are reported by ok config validate and server logs.',
+                'Approximate cumulative character budget per indexing request (1–16384000, default 96000). A single chunk can exceed this budget. OpenAI separately caps total input at 300000 tokens per request; this character budget does not enforce that limit, and high values can produce rejected requests. Other providers have their own limits. Changing it preserves cached vectors and document chunking; it applies to the next indexing pass. Invalid values use the default and are reported by gq config validate and server logs.',
             })
             .default(DEFAULT_EMBEDDINGS_MAX_BATCH_CHARS)
             .catch(DEFAULT_EMBEDDINGS_MAX_BATCH_CHARS),
@@ -966,7 +966,7 @@ export const ConfigSchema = z.looseObject({
               reload: 'live',
               defaultScope: 'project-local',
               description:
-                'Timeout in milliseconds for each indexing request attempt (1–600000, default 30000). A request can retry four times, and a failed grouped request can trigger individual-document requests. There is no total indexing-pass deadline: large timeouts can delay newly queued work for hours. The query timeout remains 8 seconds per attempt. Changing it preserves cached vectors and applies to the next indexing pass; an in-progress pass keeps its current timeout. Invalid values use the default and are reported by ok config validate and server logs.',
+                'Timeout in milliseconds for each indexing request attempt (1–600000, default 30000). A request can retry four times, and a failed grouped request can trigger individual-document requests. There is no total indexing-pass deadline: large timeouts can delay newly queued work for hours. The query timeout remains 8 seconds per attempt. Changing it preserves cached vectors and applies to the next indexing pass; an in-progress pass keeps its current timeout. Invalid values use the default and are reported by gq config validate and server logs.',
             })
             .default(DEFAULT_EMBEDDINGS_DOC_TIMEOUT_MS)
             .catch(DEFAULT_EMBEDDINGS_DOC_TIMEOUT_MS),

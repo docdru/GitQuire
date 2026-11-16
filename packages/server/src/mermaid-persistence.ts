@@ -5,13 +5,9 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { isExcalidrawDocFile, isMermaidDocFile, LINEAGE_EPOCH_KEY } from '@gitquire/core';
+import { atomicWriteFile } from '@gitquire/core/server';
 import type { LocalTransactionOrigin } from '@hocuspocus/server';
-import {
-  isExcalidrawDocFile,
-  isMermaidDocFile,
-  LINEAGE_EPOCH_KEY,
-} from '@inkeep/open-knowledge-core';
-import { atomicWriteFile } from '@inkeep/open-knowledge-core/server';
 import type * as Y from 'yjs';
 import type { DiskReceipt, FileObservation } from './disk-receipts.ts';
 import { docNameToRelativePath } from './doc-extensions.ts';

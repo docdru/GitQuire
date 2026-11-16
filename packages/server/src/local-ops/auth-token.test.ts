@@ -1,4 +1,4 @@
-import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@inkeep/open-knowledge-core';
+import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runAuthTokenSubprocess } from './auth-token.ts';
 

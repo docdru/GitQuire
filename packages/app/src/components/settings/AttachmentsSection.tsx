@@ -1,5 +1,5 @@
-import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
-import { humanFormat } from '@inkeep/open-knowledge-core/config/errors';
+import type { ConfigBinding } from '@gitquire/core/config/bind-config-doc';
+import { humanFormat } from '@gitquire/core/config/errors';
 import {
   ATTACHMENT_FOLDER_PATH_VARIABLES,
   type AttachmentFolderPathInputIssue,
@@ -8,9 +8,9 @@ import {
   attachmentFolderPathInputIssue,
   canonicalAttachmentFolderPath,
   parseAttachmentFolderPath,
-} from '@inkeep/open-knowledge-core/config/schema';
-import { CONFIG_DOC_NAME_PROJECT } from '@inkeep/open-knowledge-core/constants/cc1';
-import { DEFAULT_ATTACHMENT_FOLDER_PATH } from '@inkeep/open-knowledge-core/constants/upload';
+} from '@gitquire/core/config/schema';
+import { CONFIG_DOC_NAME_PROJECT } from '@gitquire/core/constants/cc1';
+import { DEFAULT_ATTACHMENT_FOLDER_PATH } from '@gitquire/core/constants/upload';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';

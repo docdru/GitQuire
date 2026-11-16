@@ -1,12 +1,12 @@
 import { readFile } from 'node:fs/promises';
-import type { Document, Hocuspocus } from '@hocuspocus/server';
 import {
   resolveInternalHref,
   resolveWikiLinkTargetDocName,
   stripFrontmatter,
   toWikiLinkSlug,
   type WikiLinkLookupIndex,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Document, Hocuspocus } from '@hocuspocus/server';
 import type { FileIndexEntry } from './file-watcher.ts';
 import { readMarkdownLinkAt, readWikiLinkAt } from './link-syntax.ts';
 import { getLogger } from './logger.ts';

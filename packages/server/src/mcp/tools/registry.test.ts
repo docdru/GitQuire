@@ -1,4 +1,4 @@
-import { OPEN_KNOWLEDGE_MCP_TOOLS } from '@inkeep/open-knowledge-core';
+import { OPEN_KNOWLEDGE_MCP_TOOLS } from '@gitquire/core';
 import { afterAll, describe, expect, test } from 'vitest';
 import { createTempDirFactory } from '../../../../../test-support/temp-dir.test-helper.ts';
 import { type Config, ConfigSchema } from '../../config/schema.ts';

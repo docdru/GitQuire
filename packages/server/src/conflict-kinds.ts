@@ -1,8 +1,4 @@
-import {
-  CONFLICT_KINDS,
-  RECONCILE_REASONS,
-  type RESOLVE_STRATEGIES,
-} from '@inkeep/open-knowledge-core';
+import { CONFLICT_KINDS, RECONCILE_REASONS, type RESOLVE_STRATEGIES } from '@gitquire/core';
 
 export type ConflictKind = (typeof CONFLICT_KINDS)[number];
 

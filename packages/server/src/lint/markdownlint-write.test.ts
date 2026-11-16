@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEFAULT_MARKDOWNLINT_CONFIG } from '@inkeep/open-knowledge-core';
+import { DEFAULT_MARKDOWNLINT_CONFIG } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import { discoverMarkdownlintConfig, readOwnNativeRules } from './markdownlint-discovery.ts';

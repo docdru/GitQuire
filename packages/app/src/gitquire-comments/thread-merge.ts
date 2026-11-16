@@ -1,7 +1,7 @@
 import {
   parseCommentTrailer,
   serializeCommentTrailer,
-} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+} from '@gitquire/core/gitquire/comment-threads';
 import type { Thread, ThreadComment } from './thread-ops';
 
 export function normalizeThreads(threads: readonly Thread[]): Thread[] {

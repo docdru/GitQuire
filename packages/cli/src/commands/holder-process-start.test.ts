@@ -1,4 +1,4 @@
-import { readProcessStart as readServerProcessStart } from '@inkeep/open-knowledge-server';
+import { readProcessStart as readServerProcessStart } from '@gitquire/server';
 import { describe, expect, test } from 'vitest';
 import { describeHolderStartReadFailure, readHolderProcessStart } from './holder-process-start.ts';
 

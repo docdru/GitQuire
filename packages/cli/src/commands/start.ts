@@ -16,8 +16,8 @@ import {
   resolveEnvConfigLayer,
   resolveServerRuntimeConfig,
   type ServerRuntimeConfig,
-} from '@inkeep/open-knowledge-core';
-import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import {
   type BootedServer,
   type Config,
@@ -28,7 +28,7 @@ import {
   prepareSingleFileOpen,
   type ServerExitDetail,
   type ServerExitReason,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command, InvalidArgumentError, Option } from 'commander';
 import { makeLazyEmbeddingsKeyStore } from '../auth/embeddings-key-store.ts';
 import { detectGh, detectGhAccounts } from '../auth/gh-detect.ts';
@@ -319,7 +319,7 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
     resolveLockDir,
     seedEphemeralProjectDir,
     waitForServerLockDrain,
-  } = await import('@inkeep/open-knowledge-server');
+  } = await import('@gitquire/server');
 
   const log = opts.log ?? getLogger('start');
 
@@ -611,7 +611,7 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
   const reactShellDistDir = shell.dir;
   if (shell.missingBundle) {
     console.warn(
-      'bundled web UI not found — serving /api and /mcp only. Reinstall @inkeep/open-knowledge, or build packages/app in a source checkout.',
+      'bundled web UI not found — serving /api and /mcp only. Reinstall @gitquire/cli, or build packages/app in a source checkout.',
     );
   }
 
@@ -643,7 +643,7 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
       process.exit(1);
     }
 
-    const serverModule = await import('@inkeep/open-knowledge-server');
+    const serverModule = await import('@gitquire/server');
     if (
       err instanceof serverModule.GitNotAvailableError ||
       err instanceof serverModule.GitProbeTimeoutError ||
@@ -856,7 +856,7 @@ export function formatServerReuseNotice(info: ServerReuseInfo): string[] {
 
 export function isServerLockCollision(
   err: unknown,
-  serverModule: typeof import('@inkeep/open-knowledge-server'),
+  serverModule: typeof import('@gitquire/server'),
   cwd: string,
 ): boolean {
   const lockErr = serverModule.ServerLockCollisionError;
@@ -875,7 +875,7 @@ export function isServerLockCollision(
 export function tryDescribeLockCollision(
   err: unknown,
   cwd: string,
-  serverModule: typeof import('@inkeep/open-knowledge-server'),
+  serverModule: typeof import('@gitquire/server'),
 ): string | null {
   const authorityErr = serverModule.ServerAuthorityCollisionError;
   if (authorityErr !== undefined && err instanceof authorityErr) return err.message;
@@ -956,7 +956,7 @@ export function startCommand(getConfig: () => Config): Command {
 
       if (opts.mode === 'app') {
         process.stderr.write(
-          "error: '--mode app' opened the desktop app, which GitQuire does not ship; run 'ok start' to serve the web editor\n",
+          "error: '--mode app' opened the desktop app, which GitQuire does not ship; run 'gq start' to serve the web editor\n",
         );
         process.exit(2);
       }

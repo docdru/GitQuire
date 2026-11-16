@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ProcessLockMetadata } from '@inkeep/open-knowledge-server';
+import type { ProcessLockMetadata } from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { LockState } from '../lock-state.ts';
 import { makeServerLockCheck } from './server-lock.ts';
@@ -70,7 +70,7 @@ describe('server-lock check', () => {
     expect(result.status).toBe('fail');
     expect(result.summary).toContain('pid 1234');
     expect(result.summary).toContain('on this host');
-    expect(result.remediation).toContain('ok stop');
+    expect(result.remediation).toContain('gq stop');
     expect(result.detail).toContain('port: 5173');
   });
 
@@ -107,7 +107,7 @@ describe('server-lock check', () => {
     expect(result.summary).toContain('records a machine ID different from the one in');
     expect(result.remediation).not.toMatch(/^Cannot verify shutdown/);
     expect(result.remediation).toContain(
-      'If the server was started on this machine from another account, run `ok stop` as that account while it is running, or `ok clean` once it has exited.',
+      'If the server was started on this machine from another account, run `gq stop` as that account while it is running, or `gq clean` once it has exited.',
     );
     expect(result.remediation).toMatch(/with `(HOME|USERPROFILE)` set to that folder/);
   });
@@ -125,7 +125,7 @@ describe('server-lock check', () => {
     const result = await def.run({ cwd });
     expect(result.status).toBe('warn');
     expect(result.summary).toContain('999999');
-    expect(result.remediation).toContain('ok clean');
+    expect(result.remediation).toContain('gq clean');
   });
 
   test('warns on a lock whose pid now belongs to another process', async () => {
@@ -143,7 +143,7 @@ describe('server-lock check', () => {
       name: 'server-lock',
       status: 'warn',
       summary: 'stale lock; recorded pid 4242 now belongs to another process',
-      remediation: 'Run `ok clean` to prune.',
+      remediation: 'Run `gq clean` to prune.',
       detail: 'lockPath: /x/server.lock',
     });
   });
@@ -178,8 +178,8 @@ describe('server-lock remediation names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: live and dead locks name %s stop and clean', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const remediationFor = async (state: LockState) =>

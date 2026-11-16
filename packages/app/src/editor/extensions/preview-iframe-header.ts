@@ -1,4 +1,4 @@
-import { PREVIEW_THEME_TOKENS } from '@inkeep/open-knowledge-core/constants/preview-theme-tokens';
+import { PREVIEW_THEME_TOKENS } from '@gitquire/core/constants/preview-theme-tokens';
 import {
   domPreviewTokenEnv,
   type PreviewTokenEnv,

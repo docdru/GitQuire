@@ -17,7 +17,7 @@ const fullPreview: InternalDocPreview = {
   lastEditedAt: daysAgoIso(3),
   tags: ['setup', 'onboarding'],
   backlinkCount: 2,
-  excerpt: 'Install the CLI and run ok start to boot the server.',
+  excerpt: 'Install the CLI and run gq start to boot the server.',
 };
 
 function slot(container: HTMLElement, name: string): HTMLElement | null {

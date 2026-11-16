@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ConfigSchema, getLeafFieldMeta, REMOVED_KEYS } from '@inkeep/open-knowledge-core';
+import { ConfigSchema, getLeafFieldMeta, REMOVED_KEYS } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
 import {

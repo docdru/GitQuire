@@ -1,7 +1,7 @@
 import {
   INLINE_TAG_VALUE_PATTERN_SOURCE,
   INLINE_TAG_VALUE_RE,
-} from '@inkeep/open-knowledge-core/markdown/tag-promotion';
+} from '@gitquire/core/markdown/tag-promotion';
 import { t } from '@lingui/core/macro';
 import type { Editor } from '@tiptap/core';
 import type { ResolvedPos } from '@tiptap/pm/model';

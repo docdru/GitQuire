@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { type AgentPresenceEntry, SYSTEM_DOC_NAME } from '@gitquire/core';
 import type { Hocuspocus } from '@hocuspocus/server';
-import { type AgentPresenceEntry, SYSTEM_DOC_NAME } from '@inkeep/open-knowledge-core';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AgentPresenceBroadcaster } from './agent-presence.ts';
 import { getMetrics, resetMetrics } from './metrics.ts';

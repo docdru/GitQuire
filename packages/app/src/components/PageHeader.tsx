@@ -4,14 +4,14 @@
  * with the editor body (precedent #18(b) — keep all per-doc UI inside the boundary).
  */
 
-import type { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   bindFrontmatterDoc,
   type FrontmatterBinding,
   type FrontmatterSnapshot,
   readFmKeys,
   readFmRegionWithError,
-} from '@inkeep/open-knowledge-core/bridge';
+} from '@gitquire/core/bridge';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
 import { useLingui } from '@lingui/react/macro';
 import { useEffect, useRef, useState } from 'react';
 import {

@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-GitQuire (the `@inkeep/open-knowledge` CLI, server and web app in its Docker image) bundles source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.
+GitQuire (the `@gitquire/cli` CLI, server and web app in its Docker image) bundles source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.
 
 This file is generated. **Do not edit by hand.** Regenerate with `pnpm run notices` from the repo root, then commit the result.
 
@@ -212,7 +212,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ## LGPL-3.0 — transitive optional binary
 
-`node-liblzma`@2.2.0 is an **optional** transitive dependency of `just-bash`, used by `@inkeep/open-knowledge` for sandboxed shell execution. The package is licensed under LGPL-3.0. For the npm CLI tarball, `node-liblzma` is not bundled — it is resolved from the public npm registry at install time on platforms where the native build succeeds. For the Electron desktop `.app`, whether the binary lands in `Resources/app.asar.unpacked/` depends on the build host's toolchain at packaging time; if present, the binary ships subject to LGPL-3.0 obligations. Upstream source: https://github.com/Manawyrm/node-liblzma. Corresponding source can be obtained from upstream per LGPL §6.
+`node-liblzma`@2.2.0 is an **optional** transitive dependency of `just-bash`, used by `@gitquire/cli` for sandboxed shell execution. The package is licensed under LGPL-3.0. For the npm CLI tarball, `node-liblzma` is not bundled — it is resolved from the public npm registry at install time on platforms where the native build succeeds. For the Electron desktop `.app`, whether the binary lands in `Resources/app.asar.unpacked/` depends on the build host's toolchain at packaging time; if present, the binary ships subject to LGPL-3.0 obligations. Upstream source: https://github.com/Manawyrm/node-liblzma. Corresponding source can be obtained from upstream per LGPL §6.
 
 The full text of the GNU Lesser General Public License v3.0 follows.
 
@@ -2960,12 +2960,17 @@ Homepage: https://github.com/tj/commander.js
 
 Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
 
-### `commander@8.3.0`
+### `commander@15.1.0`
 Homepage: https://github.com/tj/commander.js
 
 Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
 
 ### `commander@6.2.1`
+Homepage: https://github.com/tj/commander.js
+
+Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
+
+### `commander@8.3.0`
 Homepage: https://github.com/tj/commander.js
 
 Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
@@ -3943,6 +3948,11 @@ Copyright (c) 2012-2015, JP Richardson <jprichardson@gmail.com>
 Homepage: https://github.com/vasturiano/kapsule
 
 Copyright (c) 2017 Vasco Asturiano
+
+### `katex@0.18.10`
+Homepage: https://katex.org
+
+Copyright (c) 2013-2020 Khan Academy and other contributors
 
 ### `katex@0.16.47`
 Homepage: https://katex.org
@@ -6492,6 +6502,16 @@ The following packages are patched in this repository via pnpm's `patchedDepende
 | `sirv@3.0.2` | `patches/sirv@3.0.2.patch` |
 | `y-indexeddb@9.0.12` | `patches/y-indexeddb@9.0.12.patch` |
 | `y-prosemirror@1.3.7` | `patches/y-prosemirror@1.3.7.patch` |
+
+---
+
+## Other licenses (audit needed)
+
+The generator did not auto-categorize the following packages. Each requires individual review before next-release ship.
+
+- `@gitquire/app@0.0.0-unknown` — GPL-3.0-or-later
+- `@gitquire/core@0.0.0-unknown` — GPL-3.0-or-later
+- `@gitquire/server@0.0.0-unknown` — GPL-3.0-or-later
 
 ---
 

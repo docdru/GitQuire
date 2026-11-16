@@ -35,8 +35,8 @@ import {
   TrashCleanupSuccessSchema,
   UploadAssetSuccessSchema,
   UploadRequestSchema,
-} from '@inkeep/open-knowledge-core';
-import { formatRenameSubject } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core';
+import { formatRenameSubject } from '@gitquire/core/shadow-repo-layout';
 import type { SummaryResponse } from '../agent-write-summary.ts';
 import { ManagedRenameCollisionError } from '../apply-managed-rename.ts';
 import { isConfigDoc, isSystemDoc } from '../cc1-broadcast.ts';
@@ -64,6 +64,7 @@ import { classifyFsPath, normalizeFsPath } from '../fs-traced.ts';
 import { nameRequestedPath, titleSeedFor } from '../gitquire/naming.ts';
 import type { PinoLogger } from '../logger.ts';
 import { createMultipartParser, type MultipartParser } from '../multipart.ts';
+import { isValidRelativeContentPath as isCanonicalRelativePath } from '../relative-content-path.ts';
 import { type AssetService, AttachmentFolderPathConfigError } from '../services/assets.ts';
 import { DuplicateNameExhaustedError, type FileOpsService } from '../services/file-ops.ts';
 import { type getMeter, withSpan } from '../telemetry.ts';
@@ -451,10 +452,9 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           return;
         }
         if (
-          filePath.includes('..') ||
-          filePath.startsWith('/') ||
-          filePath.includes('\x00') ||
-          filePath.includes('\\')
+          [body.path, filePath].some(
+            (candidate) => candidate.includes('..') || !isCanonicalRelativePath(candidate),
+          )
         ) {
           errorResponse(res, 400, 'urn:ok:error:path-escape', 'Invalid path.', {
             handler: 'create-page',
@@ -640,7 +640,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
           return;
         }
         const folderPath = nameRequestedPath(contentDir, body.path, false);
-        if (!isValidRelativeContentPath(folderPath)) {
+        if (!isValidRelativeContentPath(body.path) || !isValidRelativeContentPath(folderPath)) {
           errorResponse(
             res,
             400,
@@ -893,7 +893,11 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
         }
         const { kind, fromPath } = body;
         const toPath = nameRequestedPath(contentDir, body.toPath, kind !== 'folder');
-        if (!isValidRelativeContentPath(fromPath) || !isValidRelativeContentPath(toPath)) {
+        if (
+          !isValidRelativeContentPath(fromPath) ||
+          !isValidRelativeContentPath(body.toPath) ||
+          !isValidRelativeContentPath(toPath)
+        ) {
           errorResponse(
             res,
             400,

@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from 'node:fs';
 import { extname, relative, resolve, sep } from 'node:path';
-import { OK_DIR } from '@inkeep/open-knowledge-core';
+import { OK_DIR } from '@gitquire/core';
 import { isSupportedDocFile, registerDocExtension, stripDocExtension } from '../doc-extensions.ts';
 import { errnoCode } from '../http/handler-utils.ts';
 

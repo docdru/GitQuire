@@ -1,4 +1,4 @@
-import type { FrontmatterDelta } from '@inkeep/open-knowledge-core/frontmatter-diff';
+import type { FrontmatterDelta } from '@gitquire/core/frontmatter-diff';
 import {
   type ActivityAgentHeader,
   type ActivityBurst,
@@ -6,7 +6,7 @@ import {
   AgentActivitySuccessSchema,
   AgentBurstDiffSuccessSchema,
   ProblemDetailsSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { useEffect, useRef, useState } from 'react';
 import { useDocumentContext } from '@/editor/DocumentContext';
 import { HttpResponseParseError } from '@/editor/http-client';

@@ -14,8 +14,8 @@ import {
   incrementJsxStuckCopyFailed,
   incrementJsxStuckDeleteFailed,
   type JsxNodeAction,
-} from '@inkeep/open-knowledge-core/metrics/parse-health';
-import { componentPropsBudgetError } from '@inkeep/open-knowledge-core/registry';
+} from '@gitquire/core/metrics/parse-health';
+import { componentPropsBudgetError } from '@gitquire/core/registry';
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { NodeViewProps } from '@tiptap/core';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';

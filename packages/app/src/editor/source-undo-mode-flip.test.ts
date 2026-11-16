@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view';
-import { FORM_WRITE_ORIGIN } from '@inkeep/open-knowledge-core';
+import { FORM_WRITE_ORIGIN } from '@gitquire/core';
 import { beforeEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { createSourceUndoFlipTracker, setSourceViewUndoFlipActive } from './source-undo-mode-flip';

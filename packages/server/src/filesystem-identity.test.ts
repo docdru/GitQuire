@@ -8,7 +8,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createBasenameIndex } from '@inkeep/open-knowledge-core';
+import { createBasenameIndex } from '@gitquire/core';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { seedBasenameIndex } from './asset-walk.ts';
 import { bootCompositionRig } from './composition-rig.test-helper.ts';

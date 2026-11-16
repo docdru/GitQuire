@@ -9,7 +9,7 @@ import {
   recordContributor,
   shadowGit,
   swapContributors,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 

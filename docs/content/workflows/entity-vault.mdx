@@ -59,10 +59,10 @@ Founders and investors get a second brain over **people, companies, meetings, an
 
 ## What the pack creates
 
-Seeding needs an initialized project — run [`ok init`](../get-started/quickstart.mdx) first. Pick **Personal CRM** in the starter-pack picker, or run:
+Seeding needs an initialized project — run [`gq init`](../get-started/quickstart.mdx) first. Pick **Personal CRM** in the starter-pack picker, or run:
 
 ```bash
-ok seed --pack entity-vault
+gq seed --pack entity-vault
 ```
 
 By default the pack suggests a `vault/` subfolder and creates:
@@ -84,10 +84,6 @@ your-project/
 ```
 
 Each folder includes an `.ok/frontmatter.yml` description that agents see during file listings/searches, plus templates under `.ok/templates/`.
-
-<Callout type="info" title="Seeding also installs a skill">
-  `ok seed --pack entity-vault` installs the **Entity vault** project skill into your agent editors (Claude Code, Cursor, Codex, OpenCode). It's the "how to work here" guidance behind the dossier conventions — compiled-truth vs. append-only timeline, path-qualified links, the correction loop — read automatically, and editable like any other doc. It lands as a single `SKILL.md` in your repo, in your project's skills directory (`.agents/skills/` when you have one, otherwise your editor's), copied into the skills directory of each editor already set up for the project. The copies refresh from the source until you hand-edit one. See [what GitQuire writes to disk](../reference/what-gitquire-writes.mdx).
-</Callout>
 
 ## Markdown shape
 

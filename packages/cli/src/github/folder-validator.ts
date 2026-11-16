@@ -1,8 +1,8 @@
 import { statSync } from 'node:fs';
 import { realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
-import { classifyGitHubShareHost } from '@inkeep/open-knowledge-core';
-import { inspectGitRepository } from '@inkeep/open-knowledge-core/git-repository';
+import { classifyGitHubShareHost } from '@gitquire/core';
+import { inspectGitRepository } from '@gitquire/core/git-repository';
 import { parseGitUrl } from './url.ts';
 
 export type ShareFolderValidationResult =
@@ -15,7 +15,7 @@ export type ShareFolderValidationResult =
   | { kind: 'symlink-escape' };
 
 /*
- * WARN: mirrors `ExpectedShareRepo` in `@inkeep/open-knowledge-core`. Nothing
+ * WARN: mirrors `ExpectedShareRepo` in `@gitquire/core`. Nothing
  * fails when the two drift; they must move together.
  */
 export interface ExpectedShareRepo {

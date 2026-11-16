@@ -2,8 +2,8 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { pathspecArgs } from '@inkeep/open-knowledge-core';
-import { parseOkActors } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { pathspecArgs } from '@gitquire/core';
+import { parseOkActors } from '@gitquire/core/shadow-repo-layout';
 import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 import {
   tracedAppendFileSync,

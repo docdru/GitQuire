@@ -1,4 +1,4 @@
-import type { DocNoticeWire } from '@inkeep/open-knowledge-core/schemas/api';
+import type { DocNoticeWire } from '@gitquire/core/schemas/api';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { History, X } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react';

@@ -1,4 +1,4 @@
-import { JSX_SRC_REF_TAGS, normalizeDocRelativeAssetUrl } from '@inkeep/open-knowledge-core';
+import { JSX_SRC_REF_TAGS, normalizeDocRelativeAssetUrl } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   createJsxSrcAttrRe,

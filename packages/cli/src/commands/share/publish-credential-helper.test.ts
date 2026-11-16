@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { shellSingleQuote } from '@inkeep/open-knowledge-core';
+import { shellSingleQuote } from '@gitquire/core';
 import type { Octokit } from '@octokit/rest';
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../../test-support/configure-git-fixture.test-helper.ts';
@@ -241,7 +241,7 @@ describe("share publish authenticates its github.com push only through the CLI's
     expectTokenConfinedToCliHelper(PUBLISH_TOKEN);
   });
 
-  test("a publish's push authenticates through the real `ok auth git-credential get` command of the CLI entry", async () => {
+  test("a publish's push authenticates through the real `gq auth git-credential get` command of the CLI entry", async () => {
     const realEntry = writeCliEntryLauncher({ dir: workspace, callLog: cliHelperLog });
 
     const result = await publishWith(PUBLISH_TOKEN, CLONE_URL, realEntry);

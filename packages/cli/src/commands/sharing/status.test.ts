@@ -23,8 +23,8 @@ afterEach(() => {
 
 describe('config-sharing status toggle hint', () => {
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: names %s config-sharing', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     await sharingStatusCommand().parseAsync(['--project', projectDir], { from: 'user' });

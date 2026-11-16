@@ -1,7 +1,7 @@
-import { IMAGE_EXTENSIONS } from '@inkeep/open-knowledge-core/constants/upload';
-import { parseWikiLink } from '@inkeep/open-knowledge-core/extensions/wiki-link';
-import { isSafeUrl } from '@inkeep/open-knowledge-core/markdown/safe-url';
-import { toDesktopAssetHref } from '@inkeep/open-knowledge-core/utils/asset-href';
+import { IMAGE_EXTENSIONS } from '@gitquire/core/constants/upload';
+import { parseWikiLink } from '@gitquire/core/extensions/wiki-link';
+import { isSafeUrl } from '@gitquire/core/markdown/safe-url';
+import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 
 const MAX_VALUE_LENGTH = 2048;
 

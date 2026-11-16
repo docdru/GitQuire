@@ -1,4 +1,4 @@
-import { isGitHubHost, normalizeGitHostname } from '@inkeep/open-knowledge-core';
+import { isGitHubHost, normalizeGitHostname } from '@gitquire/core';
 
 export interface GitHubReferenceTarget {
   readonly host: string;

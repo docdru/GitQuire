@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { CONFIG_DOC_NAMES } from '@inkeep/open-knowledge-core';
+import { CONFIG_DOC_NAMES } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { _resetDocExtensionsForTests, registerDocExtension } from './doc-extensions.ts';

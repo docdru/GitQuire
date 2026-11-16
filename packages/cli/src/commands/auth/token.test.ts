@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
-import { isGitHubHost } from '@inkeep/open-knowledge-core';
+import { isGitHubHost } from '@gitquire/core';
 import password from '@inquirer/password';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { FileBackend } from '../../auth/token-store.ts';
@@ -75,7 +75,7 @@ describe('runTokenPaste', () => {
     expect(await store.get(key)).toMatchObject({ login: 'alice', token: 'gitea_token_abc' });
   });
 
-  test('accepts a host that is not a GitHub host, which ok auth pat refuses', async () => {
+  test('accepts a host that is not a GitHub host, which gq auth pat refuses', async () => {
     const store = makeStore(tmpDir);
     expect(isGitHubHost('gitlab.com')).toBe(false);
 
@@ -222,7 +222,7 @@ describe('runTokenPaste', () => {
     expect(await store.get('gitea.internal:8443')).toMatchObject({ login: 'alice' });
   });
 
-  test('a GitHub host is refused and pointed at ok auth pat, leaving the verified entry alone', async () => {
+  test('a GitHub host is refused and pointed at gq auth pat, leaving the verified entry alone', async () => {
     const store = makeStore(tmpDir);
     await store.set('github.com', 'octocat', 'verified', { gitProtocol: 'https' });
     const result = await runTokenPaste(
@@ -232,14 +232,14 @@ describe('runTokenPaste', () => {
     );
     expect(result).toMatchObject({
       type: 'error',
-      message: expect.stringContaining('ok auth pat --host github.com'),
+      message: expect.stringContaining('gq auth pat --host github.com'),
     });
     expect(await store.get('github.com')).toMatchObject({ login: 'octocat', token: 'verified' });
   });
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('the GitHub-host refusal names the %s auth pat command', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     try {

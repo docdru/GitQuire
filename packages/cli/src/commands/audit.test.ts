@@ -1,9 +1,9 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ValidationAuditResponse } from '@inkeep/open-knowledge-core';
-import type { Config } from '@inkeep/open-knowledge-server';
-import { RUNTIME_VERSION } from '@inkeep/open-knowledge-server';
+import type { ValidationAuditResponse } from '@gitquire/core';
+import type { Config } from '@gitquire/server';
+import { RUNTIME_VERSION } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { runAudit, toContentRelativeTarget } from './audit.ts';
 
@@ -298,20 +298,20 @@ describe('runAudit', () => {
     expect(out.join('\n')).toContain('source family "links" validation failed');
   });
 
-  test('errors with `ok start` guidance when no server lock is live', async () => {
+  test('errors with `gq start` guidance when no server lock is live', async () => {
     rmSync(join(dir, '.ok', 'local', 'server.lock'));
     const { io, err } = collectIo();
 
     const code = await runAudit(undefined, {}, minimalConfig, dir, dir, io);
 
     expect(code).toBe(1);
-    expect(err.join('\n')).toContain('ok start');
-    expect(err.join('\n')).toContain('ok lint');
+    expect(err.join('\n')).toContain('gq start');
+    expect(err.join('\n')).toContain('gq lint');
   });
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('no-server guidance names the %s command', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     rmSync(join(dir, '.ok', 'local', 'server.lock'));

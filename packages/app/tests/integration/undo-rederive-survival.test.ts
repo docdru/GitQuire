@@ -1,4 +1,4 @@
-import { prependFrontmatter } from '@inkeep/open-knowledge-core';
+import { prependFrontmatter } from '@gitquire/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';

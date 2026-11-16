@@ -1,4 +1,4 @@
-import { searchWorkspaceCorpus } from '@inkeep/open-knowledge-core';
+import { searchWorkspaceCorpus } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { loadEvalEmbedder, loadEvalSet, prepareEval, runHeldOutEval } from './semantic-eval.ts';
 

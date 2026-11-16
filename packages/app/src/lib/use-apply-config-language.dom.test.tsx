@@ -1,4 +1,4 @@
-import { LAYOUT_DEFERRED_LOCALES, type LanguagePreference } from '@inkeep/open-knowledge-core';
+import { LAYOUT_DEFERRED_LOCALES, type LanguagePreference } from '@gitquire/core';
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, test } from 'vitest';
 import { dynamicActivate } from './activate-locale';

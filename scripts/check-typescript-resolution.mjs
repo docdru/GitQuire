@@ -130,7 +130,7 @@ export function checkMember({ name, dir, declaredRange, resolvedVersion, binVers
   return violations;
 }
 
-export const SOURCE_CONDITION = '@inkeep/source';
+export const SOURCE_CONDITION = '@gitquire/source';
 
 export function checkConditions({ baseConditions, declarationBuild }) {
   const violations = [];
@@ -606,7 +606,7 @@ const EMITTED_DECLARATION = /\.d\.[cm]?ts$/;
 const EMITTED_JS = /^.+\/[^/]+\.[cm]?js$/;
 const NESTED_DECLARATION = /^.+\/[^/]+\.d\.[cm]?ts$/;
 
-export const NON_TSC_DECLARATIONS = new Set(['@inkeep/open-knowledge-native-config']);
+export const NON_TSC_DECLARATIONS = new Set(['@gitquire/native-config']);
 
 function stringLeaves(node, out = []) {
   if (typeof node === 'string') out.push(node);
@@ -830,7 +830,7 @@ export function evaluate({
     err: [
       'check-typescript-resolution: the declaration and compiler contract this workspace declares does not hold.\n',
       ...violations.map((violation) => `  ${violation}`),
-      `\nA compiler-version violation is usually a stale install: run \`pnpm install\` from ${root}, and declare typescript in any package that was added rather than letting resolution walk up to the root shim. A tsrs violation asks for the same exact tsrs version in every package whose scripts run \`tsrs\`: declare it with \`pnpm add -D -E tsrs@<version>\` in that package, then run \`pnpm install\`; a new tsrs release on another TypeScript line also needs TSRS_LINE raised in this script. A customConditions violation is a tsconfig edit, and the remedy differs by which one fired: the base tsconfig must declare \`customConditions: ["@inkeep/source"]\` so leaf typechecks resolve siblings from source; each declaration build config must extend that base and reset \`customConditions: []\` so the published surface resolves from built declarations instead; a declaration build config that is missing entirely must be added; and every other tsconfig under the root must carry no customConditions key of its own, since a child replaces the base array rather than adding to it. A dts violation is a tsdown edit: bind \`dts\` to \`{ tsconfig: 'tsconfig.build.json' }\` so the declaration emit runs under the reset config rather than the base. Do not answer a base-tsconfig violation by setting \`[]\` there, which is the opposite of what it asks.`,
+      `\nA compiler-version violation is usually a stale install: run \`pnpm install\` from ${root}, and declare typescript in any package that was added rather than letting resolution walk up to the root shim. A tsrs violation asks for the same exact tsrs version in every package whose scripts run \`tsrs\`: declare it with \`pnpm add -D -E tsrs@<version>\` in that package, then run \`pnpm install\`; a new tsrs release on another TypeScript line also needs TSRS_LINE raised in this script. A customConditions violation is a tsconfig edit, and the remedy differs by which one fired: the base tsconfig must declare \`customConditions: ["@gitquire/source"]\` so leaf typechecks resolve siblings from source; each declaration build config must extend that base and reset \`customConditions: []\` so the published surface resolves from built declarations instead; a declaration build config that is missing entirely must be added; and every other tsconfig under the root must carry no customConditions key of its own, since a child replaces the base array rather than adding to it. A dts violation is a tsdown edit: bind \`dts\` to \`{ tsconfig: 'tsconfig.build.json' }\` so the declaration emit runs under the reset config rather than the base. Do not answer a base-tsconfig violation by setting \`[]\` there, which is the opposite of what it asks.`,
     ],
   };
 }

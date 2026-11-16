@@ -3,7 +3,7 @@ import {
   encodeHrefPath,
   isMutatingParserReservation,
   type TargetNamespace,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getLogger } from '../logger.ts';
 
 export interface IndexEntry {

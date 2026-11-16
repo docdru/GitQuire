@@ -1,4 +1,4 @@
-import { summarizeLintPluginFailures } from '@inkeep/open-knowledge-core';
+import { summarizeLintPluginFailures } from '@gitquire/core';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import { z } from 'zod';
 
@@ -114,9 +114,9 @@ describe('textResult', () => {
   });
 
   test('omits isError when false or undefined', () => {
-    const result = textResult('ok', false);
+    const result = textResult('gq', false);
     expect(result).not.toHaveProperty('isError');
-    const result2 = textResult('ok');
+    const result2 = textResult('gq');
     expect(result2).not.toHaveProperty('isError');
   });
 });
@@ -164,9 +164,9 @@ describe('textPlusStructured', () => {
   });
 
   test('omits isError when false or undefined', () => {
-    const a = textPlusStructured('ok', { x: 1 }, false);
+    const a = textPlusStructured('gq', { x: 1 }, false);
     expect(a).not.toHaveProperty('isError');
-    const b = textPlusStructured('ok', { x: 1 });
+    const b = textPlusStructured('gq', { x: 1 });
     expect(b).not.toHaveProperty('isError');
   });
 
@@ -283,17 +283,17 @@ describe('normalizeDocName', () => {
 
 describe('hocuspocusNotRunningError', () => {
   test('names the recovery command', () => {
-    expect(hocuspocusNotRunningError()).toContain('ok start');
+    expect(hocuspocusNotRunningError()).toContain('gq start');
   });
 
-  test('keeps the Stable text byte-identical and names ok-beta on Beta', () => {
+  test('keeps the Stable text byte-identical and names gq-beta on Beta', () => {
     try {
       vi.stubEnv('OK_CHANNEL', 'stable');
       expect(hocuspocusNotRunningError()).toBe(
-        'Error: Hocuspocus server is not running. Start it with `ok start`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through GitQuire so attribution and live sync stay intact.',
+        'Error: Hocuspocus server is not running. Start it with `gq start`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through GitQuire so attribution and live sync stay intact.',
       );
       vi.stubEnv('OK_CHANNEL', 'beta');
-      expect(hocuspocusNotRunningError()).toContain('Start it with `ok-beta start`, then retry.');
+      expect(hocuspocusNotRunningError()).toContain('Start it with `gq-beta start`, then retry.');
     } finally {
       vi.unstubAllEnvs();
     }
@@ -714,7 +714,7 @@ describe('normalizeResponse — RFC 9457 + flat success', () => {
     expect(result.colliding).toEqual([{ existing: 'a', incoming: 'b', to: 'c' }]);
   });
 
-  test('flat D22 success (2xx, no ok wrapper): synthesizes ok=true', async () => {
+  test('flat D22 success (2xx, no gq wrapper): synthesizes ok=true', async () => {
     const result = await httpGet(baseUrl, '/d22-flat-success');
     expect(result.ok).toBe(true);
     expect(result.src).toBe('photo.png');

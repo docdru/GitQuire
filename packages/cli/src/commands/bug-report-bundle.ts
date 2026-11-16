@@ -21,9 +21,9 @@ import {
   REPORT_SIDECAR_BUNDLE_DIR,
   SERVER_CRASH_LOG,
   SPAWN_ERROR_LOG,
-} from '@inkeep/open-knowledge-core';
-import { okProjectLogsDir, okUserHomeDir } from '@inkeep/open-knowledge-core/server';
-import { withHiddenWindowsConsole } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { okProjectLogsDir, okUserHomeDir } from '@gitquire/core/server';
+import { withHiddenWindowsConsole } from '@gitquire/server';
 import type { ZipFile } from 'yazl';
 import type { DesktopMetadata } from '../diagnose/bundle.ts';
 import {
@@ -571,7 +571,7 @@ export async function collectStandardBundle(
     projectSlug,
     files: bundleFiles,
     redactions,
-    sysinfo: sysinfo as Record<string, import('@inkeep/open-knowledge-core').Loggable>,
+    sysinfo: sysinfo as Record<string, import('@gitquire/core').Loggable>,
   };
   zipfile.addBuffer(Buffer.from(JSON.stringify(manifest, null, 2), 'utf8'), 'MANIFEST.json');
 

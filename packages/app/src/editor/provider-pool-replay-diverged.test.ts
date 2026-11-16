@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { MarkdownManager } from '@inkeep/open-knowledge-core';
+import { MarkdownManager } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment } from '@tiptap/y-tiptap';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

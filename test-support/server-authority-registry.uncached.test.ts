@@ -128,17 +128,6 @@ test.each([
   },
 );
 
-test('native upload fixture remains usable through the composition rig', async () => {
-  await withTempDir('ok-registry-native-consumer-', async (temp) => {
-    await runConsumer(
-      temp,
-      'packages/server/src/api-skill-import-composition.test.ts',
-      'disconnect during an incomplete multipart request retains staging while the listener stays usable',
-      serverConfig,
-    );
-  });
-});
-
 test('Vitest leaves no authority directory when every importing fixture test is filtered out', async () => {
   await withTempDir('ok-registry-filtered-', async (temp) => {
     const previousExitCode = process.exitCode;

@@ -1,4 +1,4 @@
-import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
+import { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import { Check, ExternalLink, Plus } from 'lucide-react';
 import { useEffect } from 'react';

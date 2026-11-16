@@ -7,21 +7,15 @@ description: How to open an existing Obsidian vault in GitQuire, which markdown 
 GitQuire and Obsidian are both editors over a [folder of plain markdown](/docs/reference/core-concepts#the-file-system-is-the-database). This means that you can point GitQuire at your existing vault and your notes, links, tags, and frontmatter work out of the box.
 
 <Callout type="info">
-  GitQuire works **directly on your markdown files** — it never moves, renames, or rewrites them just for opening a vault. It keeps its own state in a `.ok/` directory and ignores Obsidian's `.obsidian/` folder, so your Obsidian setup stays exactly where it is. To back out, `ok deinit` removes everything GitQuire added to the vault and leaves your markdown untouched.
+  GitQuire works **directly on your markdown files** — it never moves, renames, or rewrites them just for opening a vault. It keeps its own state in a `.ok/` directory and ignores Obsidian's `.obsidian/` folder, so your Obsidian setup stays exactly where it is. To back out, delete `.ok/`; your markdown stays untouched.
 </Callout>
 
 ## Open your vault
 
-### Desktop app (macOS 13+, Windows, Linux)
-
-Open GitQuire, choose **Open folder on disk**, and select your existing vault folder, then proceed through the **Setup** screen. GitQuire uses the folder in place — it doesn't copy or move your notes.
-
-### Web app (any platform, including Intel Macs)
-
-Install the [ok CLI](/docs/reference/cli), `cd` into your vault, and run `ok init && ok start`.
+GitQuire serves a Git repository. Put the vault in a GitHub repository (if it is not one already), then point a GitQuire server at it as described in [Repository sync](/docs/gitquire/repository-sync) and [Run with Docker](/docs/gitquire/run-with-docker). GitQuire uses the files in place; it does not copy or move your notes.
 
 <Callout type="info">
-  Want to know exactly what these commands write to your machine — in your vault, your home directory, and your editors' configs? See [What GitQuire writes to your system](/docs/reference/what-gitquire-writes).
+  [What GitQuire writes](/docs/reference/what-gitquire-writes) lists the files GitQuire adds next to your notes.
 </Callout>
 
 ## What carries over
@@ -57,15 +51,15 @@ A handful of Obsidian features are not supported, or behave differently. None of
 | **Canvas (`.canvas`) and Bases (`.base`)** | Open in a read-only text view rather than as interactive canvases or bases. They're still indexed and linkable from your notes. |
 
 <Callout type="info">
-  GitQuire reads a standard vault as-is, wiki links included. One default differs: a file you paste or drop goes to a folder named after the note, such as `notes/meeting.assets/`, while Obsidian puts it at the vault root. To keep your vault's layout, set the [attachment folder](/docs/features/assets-and-embeds#attachment-folder): `/` matches Obsidian's "Vault folder", `./` its "Same folder as current file", `/folder` "In the folder specified below", and `./folder` "In subfolder under current folder". There's no migration step today; if you have a vault with heavily non-default settings, [let us know](https://github.com/inkeep/open-knowledge/issues).
+  GitQuire reads a standard vault as-is, wiki links included. One default differs: a file you paste or drop goes to a folder named after the note, such as `notes/meeting.assets/`, while Obsidian puts it at the vault root. To keep your vault's layout, set the [attachment folder](/docs/features/assets-and-embeds#attachment-folder): `/` matches Obsidian's "Vault folder", `./` its "Same folder as current file", `/folder` "In the folder specified below", and `./folder` "In subfolder under current folder". There's no migration step today; if you have a vault with heavily non-default settings, [let us know](https://github.com/docdru/GitQuire/issues).
 </Callout>
 
-## Agent skills, built in
+## Agents, built in
 
-Getting an AI agent to work *well* inside an Obsidian vault usually means adding an agent-skills layer on top — a set of `SKILL.md` instructions that teach the agent your conventions and how to read and write the vault. GitQuire builds that layer in, so there's nothing to bolt on:
+Getting an AI agent to work well inside an Obsidian vault usually means adding instructions that teach the agent your conventions. GitQuire builds that in:
 
-- **A project skill is installed for you.** `ok init` (or the desktop setup) drops in a project-local skill that teaches your agent GitQuire's tools and conventions — no hand-written `CLAUDE.md` to maintain.
-- **Agents get first-class tools, not just file access.** The [MCP server](/docs/reference/mcp) gives any MCP-capable agent — Claude Code, Cursor, Codex, OpenCode, OpenClaw — typed `exec` (read) / `write` / `search` / `links` tools over the same files, so edits are consistent, attributed, and keep your link graph healthy.
+- **Agents get tools, not just file access.** Through [`/mcp`](/docs/gitquire/connect-ai), Claude, Le Chat and other MCP clients search, read and write pages with the same tools, so edits are credited to the person and keep your link graph healthy.
+- **`AGENTS.md`** in the repository gets a GitQuire section with the editing rules, which agents working on the files directly also read.
 
 ## See also
 

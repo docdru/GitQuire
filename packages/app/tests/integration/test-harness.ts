@@ -16,8 +16,6 @@ import { promisify } from 'node:util';
 
 export { wait };
 
-import { HocuspocusProvider } from '@hocuspocus/provider';
-import type { Document, LocalTransactionOrigin } from '@hocuspocus/server';
 import {
   type BridgeInvariantViolation,
   BridgeInvariantViolationError,
@@ -31,7 +29,9 @@ import {
   type SyncMode,
   sharedExtensions,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import { HocuspocusProvider } from '@hocuspocus/provider';
+import type { Document, LocalTransactionOrigin } from '@hocuspocus/server';
 
 export { type BridgeInvariantViolation, BridgeInvariantViolationError, type InvariantViolation };
 
@@ -46,7 +46,7 @@ import {
   OBSERVER_SYNC_ORIGIN,
   type ServerInstance,
   type ServerOptions,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { getSchema } from '@tiptap/core';
 import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import * as Y from 'yjs';

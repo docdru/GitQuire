@@ -1,5 +1,5 @@
-import { graphemePrefix } from '@inkeep/open-knowledge-core/utils/grapheme-clip';
-import { toWikiLinkSlug } from '@inkeep/open-knowledge-core/utils/slug';
+import { graphemePrefix } from '@gitquire/core/utils/grapheme-clip';
+import { toWikiLinkSlug } from '@gitquire/core/utils/slug';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import { mirrorSourceNameFromProps } from '../components/use-mirror-source.ts';
 

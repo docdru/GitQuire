@@ -4,7 +4,7 @@ import {
   GitProbeTimeoutError,
   GitTooOldError,
   type InstallGuidance,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { describe, expect, test } from 'vitest';
 import { makeGitCheck } from './git.ts';
 

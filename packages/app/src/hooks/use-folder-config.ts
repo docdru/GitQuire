@@ -2,7 +2,7 @@ import {
   type FolderConfigWarningCode,
   type TemplatesListSuccess,
   TemplatesListSuccessSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 import { useEffect, useState } from 'react';
 import { subscribeToTemplatesChanged } from '@/lib/documents-events';

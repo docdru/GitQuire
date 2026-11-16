@@ -67,10 +67,10 @@ The agent stubs `characters/kael.md` linked to `factions/iron-pact.md` and `sett
 
 ## What's in your project after seeding
 
-In an initialized project (`ok init`), pick **Worldbuilding** in the starter-pack picker, or run:
+In an initialized project (`gq init`), pick **Worldbuilding** in the starter-pack picker, or run:
 
 ```bash
-ok seed --pack worldbuilding
+gq seed --pack worldbuilding
 ```
 
 Pass `--root world` (or pick **In a subfolder** in the picker) to nest the pack under `world/`:
@@ -86,10 +86,6 @@ your-project/
 ```
 
 Each folder's `.ok/frontmatter.yml` teaches the agent that entity type and what belongs there, so the guidance never clutters the entries themselves.
-
-<Callout type="info" title="Seeding also installs a skill">
-  `ok seed --pack worldbuilding` installs the **Worldbuilding** project skill into your agent editors (Claude Code, Cursor, Codex, OpenCode). It's the "how to work here" guidance behind the auto-stub and contradiction-flagging behaviors — read automatically, and editable like any other doc. It lands as one real `SKILL.md` in your project's skills directory (`.agents/skills/` when you have one, otherwise your editor's), committed to your repo and copied into the skills directory of each editor already set up for the project. The copies refresh from the source until you hand-edit one. See [what GitQuire writes to disk](../reference/what-gitquire-writes.mdx).
-</Callout>
 
 ## Cadence
 

@@ -6,6 +6,10 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import type { GitSyncStatus } from '@/hooks/use-git-sync-status';
 import { authPromptStore } from '@/lib/auth-prompt-store';
 
+vi.mock('@/lib/gitquire/personal-git-credentials', () => ({
+  PERSONAL_GIT_CREDENTIALS_ENABLED: true,
+}));
+
 const sync = vi.hoisted(() => ({ status: null as GitSyncStatus | null }));
 
 vi.mock('@/editor/DocumentContext', () => ({

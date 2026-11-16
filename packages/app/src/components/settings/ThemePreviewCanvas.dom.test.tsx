@@ -1,4 +1,4 @@
-import { BASE16_SLOTS, type Base16Scheme, type Base16Slot } from '@inkeep/open-knowledge-core';
+import { BASE16_SLOTS, type Base16Scheme, type Base16Slot } from '@gitquire/core';
 import { cleanup, render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, test, vi } from 'vitest';

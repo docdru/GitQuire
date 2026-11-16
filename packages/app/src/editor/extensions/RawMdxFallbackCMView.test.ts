@@ -6,7 +6,7 @@
 
 import { EditorState as CMEditorState } from '@codemirror/state';
 import type { EditorView as CMEditorView } from '@codemirror/view';
-import { sharedExtensions } from '@inkeep/open-knowledge-core';
+import { sharedExtensions } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import type { Node as PMNode } from '@tiptap/pm/model';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';

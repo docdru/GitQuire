@@ -1,4 +1,4 @@
-import { getWikiLinkText, resolveWikiLinkTargetDocName } from '@inkeep/open-knowledge-core';
+import { getWikiLinkText, resolveWikiLinkTargetDocName } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { applyRenameMap } from './apply-managed-rename.ts';
 import { matchWikiLinks } from './link-syntax.ts';

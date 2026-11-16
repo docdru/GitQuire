@@ -14,7 +14,7 @@ import {
   type RenderWarning,
   WRITE_WARNING_KINDS,
   type WriteWarning,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 
 export function parseAdvisoryWarnings(value: unknown): AdvisoryWarning[] | undefined {
   if (!Array.isArray(value)) return undefined;

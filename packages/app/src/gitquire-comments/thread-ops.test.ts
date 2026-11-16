@@ -1,7 +1,7 @@
-import { MarkdownManager } from '@inkeep/open-knowledge-core';
-import { GITQUIRE_COMMENTS_NODE } from '@inkeep/open-knowledge-core/extensions/gitquire-comments';
-import { sharedExtensions } from '@inkeep/open-knowledge-core/extensions/shared';
-import { serializeCommentTrailer } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { MarkdownManager } from '@gitquire/core';
+import { GITQUIRE_COMMENTS_NODE } from '@gitquire/core/extensions/gitquire-comments';
+import { sharedExtensions } from '@gitquire/core/extensions/shared';
+import { serializeCommentTrailer } from '@gitquire/core/gitquire/comment-threads';
 import { getSchema } from '@tiptap/core';
 import { EditorState } from '@tiptap/pm/state';
 import { describe, expect, test } from 'vitest';

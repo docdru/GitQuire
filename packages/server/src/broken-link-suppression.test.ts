@@ -1,4 +1,4 @@
-import type { BrokenLinkSuppression } from '@inkeep/open-knowledge-core';
+import type { BrokenLinkSuppression } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   createReservedLogBrokenLinkSuppression,

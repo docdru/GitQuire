@@ -1,4 +1,3 @@
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   CC1_CHANNEL_BRANCH_SWITCHED,
   CC1_CHANNEL_CONFIG_IGNORE_NESTED_ERROR,
@@ -21,7 +20,8 @@ import {
   isMermaidDocFile,
   isProjectSkillBundlePath,
   SYSTEM_DOC_NAME,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import { isRegisteredMarkdownDocName } from './doc-extensions.ts';
 import { getLogger } from './logger.ts';
 import {

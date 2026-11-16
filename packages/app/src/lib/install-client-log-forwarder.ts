@@ -4,9 +4,9 @@ import {
   RENDERER_LOG_MAX_ENTRIES,
   RENDERER_LOG_MAX_MESSAGE_BYTES,
   truncateLogMessage,
-} from '@inkeep/open-knowledge-core/logging/renderer-log';
-import { scrubSecrets } from '@inkeep/open-knowledge-core/logging/secret-scrub';
-import type { ClientLogEntry } from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/logging/renderer-log';
+import { scrubSecrets } from '@gitquire/core/logging/secret-scrub';
+import type { ClientLogEntry } from '@gitquire/core/schemas/api';
 
 const FORWARDER_MARKER = Symbol.for('ok.client.logForwarder');
 

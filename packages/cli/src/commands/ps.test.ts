@@ -647,7 +647,7 @@ describe('extractOkBinaryPath', () => {
   });
 
   test('ignores package specifier in npm exec parent command', () => {
-    expect(extractOkBinaryPath('npm exec @inkeep/open-knowledge mcp HOME=/Users/mike')).toBeNull();
+    expect(extractOkBinaryPath('npm exec @gitquire/cli mcp HOME=/Users/mike')).toBeNull();
   });
 });
 
@@ -655,8 +655,8 @@ describe('renderTable stop hint names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: the footer names %s stop', (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const output = renderTable([

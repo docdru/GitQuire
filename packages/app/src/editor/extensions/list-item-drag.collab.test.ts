@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { createRequire } from 'node:module';
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { Editor, Extension } from '@tiptap/core';
 import Collaboration from '@tiptap/extension-collaboration';
 import { TextSelection } from '@tiptap/pm/state';

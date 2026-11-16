@@ -13,7 +13,7 @@ const previewHarness: { value: InternalDocPreview } = {
     title: 'Install guide',
     folderPath: 'guides',
     lastEditedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    excerpt: 'Install the CLI and run ok start to boot the server.',
+    excerpt: 'Install the CLI and run gq start to boot the server.',
   },
 };
 
@@ -62,7 +62,13 @@ afterEach(cleanup);
 function makeEditor(target: string): Editor {
   const node = { attrs: { target, alias: null, anchor: null }, nodeSize: 1 };
   return {
-    state: { doc: { nodeAt: () => node } },
+    state: {
+      doc: {
+        nodeAt: () => node,
+        content: { size: 0 },
+        resolve: () => ({ parent: { isTextblock: false } }),
+      },
+    },
     view: { dom: document.createElement('div') },
   } as unknown as Editor;
 }

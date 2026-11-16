@@ -4,13 +4,13 @@ import {
   isGitHubHost,
   normalizeGitHostname,
   okUserHomeDisplayPath,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   findEnclosingProjectRoot,
   readDeclaredGitHubHosts,
   readOriginCredentialHost,
   resolveGitHubAuthHost,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { error as errorColor } from '../../ui/colors.ts';
 
 function authProjectDir(): string {

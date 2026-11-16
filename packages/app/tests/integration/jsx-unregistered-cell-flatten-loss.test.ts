@@ -1,4 +1,4 @@
-import { sharedExtensions } from '@inkeep/open-knowledge-core';
+import { sharedExtensions } from '@gitquire/core';
 import { Editor, type JSONContent } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';

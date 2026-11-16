@@ -1,4 +1,4 @@
-import { type BranchInfoResponse, BranchInfoResponseSchema } from '@inkeep/open-knowledge-core';
+import { type BranchInfoResponse, BranchInfoResponseSchema } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 
 import {

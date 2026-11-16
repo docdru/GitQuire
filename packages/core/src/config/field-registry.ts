@@ -11,7 +11,7 @@ export interface FieldMeta {
   description: string;
 }
 
-const SINGLETON_KEY = Symbol.for('@inkeep/open-knowledge/field-registry');
+const SINGLETON_KEY = Symbol.for('@gitquire/cli/field-registry');
 
 interface SingletonGlobal {
   [SINGLETON_KEY]?: z.core.$ZodRegistry<FieldMeta>;

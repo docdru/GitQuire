@@ -284,7 +284,7 @@ export function buildMarkdownlintRuleCatalog(schema: unknown): RuleCatalogEntry[
 
 export function renderRuleCatalogModule(catalog: readonly RuleCatalogEntry[]): string {
   const lines: string[] = [
-    '// STOP: generated file - regenerate with `pnpm --filter @inkeep/open-knowledge-core run generate:lint-catalog`; edits here are overwritten and the rule-catalog drift test fails when this is stale.',
+    '// STOP: generated file - regenerate with `pnpm --filter @gitquire/core run generate:lint-catalog`; edits here are overwritten and the rule-catalog drift test fails when this is stale.',
     "import type { RuleCatalogEntry } from './types.ts';",
     '',
     'export const MARKDOWNLINT_RULE_CATALOG: readonly RuleCatalogEntry[] = [',

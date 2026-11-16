@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { builtInComponents } from '@inkeep/open-knowledge-core';
+import { builtInComponents } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import type { JsxComponentDescriptor } from '../registry/types.ts';
 import { attrsWithChangedProp, getElementJsxAttrs, stableHash } from './JsxComponentView.tsx';

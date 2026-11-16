@@ -41,12 +41,12 @@ describe('stripJsonc', () => {
 describe('readJsoncOrError', () => {
   it('reads a commented tsconfig as the object it denotes', () => {
     const result = withFile(
-      '{\n  // the base condition\n  "compilerOptions": { "customConditions": ["@inkeep/source"] },\n}\n',
+      '{\n  // the base condition\n  "compilerOptions": { "customConditions": ["@gitquire/source"] },\n}\n',
       readJsoncOrError,
     );
 
     expect(result.ok).toBe(true);
-    expect(result.value.compilerOptions.customConditions).toEqual(['@inkeep/source']);
+    expect(result.value.compilerOptions.customConditions).toEqual(['@gitquire/source']);
   });
 
   it('separates a file that is not there from one that is malformed', () => {

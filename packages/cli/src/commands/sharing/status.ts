@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 import { Command } from 'commander';
 import {
   getExcludedOkPaths,

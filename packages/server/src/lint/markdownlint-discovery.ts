@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
-import type { MarkdownlintRuleSetting } from '@inkeep/open-knowledge-core';
+import type { MarkdownlintRuleSetting } from '@gitquire/core';
 import { type ParseError, parse as parseJsonc, printParseErrorCode } from 'jsonc-parser';
 import { parse as parseYaml } from 'yaml';
 import { isInside } from './fs-safety.ts';

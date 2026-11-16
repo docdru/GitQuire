@@ -14,9 +14,9 @@ import {
 import { ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { LOCAL_DIR } from '@gitquire/core';
+import { filesystemIdentity } from '@gitquire/core/server';
 import { Hocuspocus } from '@hocuspocus/server';
-import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
-import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { streamShowAllEntries, walkContentDirForShowAll } from '../api-extension.ts';
 import { makeCaptureRes, makeSyntheticReq } from '../composition-rig.test-helper.ts';

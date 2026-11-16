@@ -1,7 +1,7 @@
 import { type Dirent, lstatSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { readdir, stat } from 'node:fs/promises';
 import { join, posix } from 'node:path';
-import { parseTemplateFile } from '@inkeep/open-knowledge-core';
+import { parseTemplateFile } from '@gitquire/core';
 import { SymlinkEscapeError } from '../apply-managed-rename.ts';
 import { assertNoSymlinkEscape, checkSymlinkLeaf } from '../fs-safety.ts';
 import { errnoCode } from '../http/handler-utils.ts';

@@ -1,4 +1,4 @@
-import type { HeadingEntry } from '@inkeep/open-knowledge-core/utils/slug';
+import type { HeadingEntry } from '@gitquire/core/utils/slug';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, type RenderResult, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

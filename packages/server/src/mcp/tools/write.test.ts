@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { stripFrontmatter } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   CONCURRENT_OVERWRITE_REFUSED_DETAIL_WITH_POSITIONS,

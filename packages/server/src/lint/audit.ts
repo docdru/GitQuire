@@ -12,7 +12,7 @@ import {
   lintDocument,
   SUPPORTED_DOC_EXTENSIONS,
   summarizeLintPluginFailures,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { SymlinkEscapeError } from '../apply-managed-rename.ts';
 import { createContentFilter } from '../content-filter.ts';
 import { isWithinContentDir } from '../content-path.ts';

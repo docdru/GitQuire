@@ -1,4 +1,4 @@
-import { classifyMarkdownHref } from '@inkeep/open-knowledge-core';
+import { classifyMarkdownHref } from '@gitquire/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   activateAssetLink,

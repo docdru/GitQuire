@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { MACHINE_ID_FILENAME, OK_DIR } from '@inkeep/open-knowledge-core';
+import { MACHINE_ID_FILENAME, OK_DIR } from '@gitquire/core';
 import { getLogger } from './logger.ts';
 
 const MACHINE_ID_RE = /^[A-Za-z0-9-]{8,64}$/;

@@ -2,7 +2,7 @@ import {
   BROKEN_LINK_SUPPRESSION_REASONS,
   type BrokenLinkSuppression,
   type BrokenLinkSuppressionReason,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 
 type AuditSuppressionAudience = 'agent' | 'human';
 export type AuditSuppressionTarget = { surface: 'cli'; serverBaseUrl: string } | { surface: 'mcp' };

@@ -60,8 +60,8 @@ describe('ConnectingBanner placement', () => {
 });
 
 describe('ConnectingBanner terminal copy names the running channel CLI', () => {
-  test('no collab server names ok start', () => {
-    const command = 'ok';
+  test('no collab server names gq start', () => {
+    const command = 'gq';
     collabLastError = { kind: 'null-collab' };
     render(<ConnectingBanner />);
     expect(screen.getByRole('alert').textContent).toContain(
@@ -69,7 +69,7 @@ describe('ConnectingBanner terminal copy names the running channel CLI', () => {
     );
   });
 
-  test.each([['ok']])(
+  test.each([['gq']])(
     'an unreachable server offers %s status and diagnostic collection',
     (command) => {
       collabLastError = { kind: 'error', code: 'network' };

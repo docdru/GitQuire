@@ -1,4 +1,4 @@
-import type { LintPluginId } from '@inkeep/open-knowledge-core';
+import type { LintPluginId } from '@gitquire/core';
 import type { PackId } from './starter.ts';
 
 export interface FileEntry {

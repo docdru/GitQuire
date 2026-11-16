@@ -1,6 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isAbsolute, relative, resolve } from 'node:path';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   DEFAULT_LINTER_CONFIG,
   type DocumentListEntry,
@@ -14,7 +13,8 @@ import {
   summarizeLintPluginFailures,
   ValidationAuditCountsResponseSchema,
   ValidationAuditResponseSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import type { ContentFilter } from '../content-filter.ts';
 import type { DerivedDocumentIndexApiPort } from '../derived-document-index.ts';
 import { isContainmentRejection } from '../fs-safety.ts';

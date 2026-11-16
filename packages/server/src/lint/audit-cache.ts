@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { LintDiagnostic, LinterConfig } from '@inkeep/open-knowledge-core';
+import type { LintDiagnostic, LinterConfig } from '@gitquire/core';
 
 const MAX_ENTRIES = 10_000;
 

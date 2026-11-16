@@ -1,14 +1,10 @@
+import { addsBlankLines, composeWithDerivedBody, normalizeBridge } from '@gitquire/core/bridge';
+import { LINEAGE_EPOCH_KEY } from '@gitquire/core/constants/doc-lifecycle';
+import { stripFrontmatter } from '@gitquire/core/extensions/frontmatter';
+import { MarkdownManager } from '@gitquire/core/markdown';
+import { randomUUID } from '@gitquire/core/utils/random-uuid';
+import type { HocuspocusAuthRejectionReason } from '@gitquire/server';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import {
-  addsBlankLines,
-  composeWithDerivedBody,
-  normalizeBridge,
-} from '@inkeep/open-knowledge-core/bridge';
-import { LINEAGE_EPOCH_KEY } from '@inkeep/open-knowledge-core/constants/doc-lifecycle';
-import { stripFrontmatter } from '@inkeep/open-knowledge-core/extensions/frontmatter';
-import { MarkdownManager } from '@inkeep/open-knowledge-core/markdown';
-import { randomUUID } from '@inkeep/open-knowledge-core/utils/random-uuid';
-import type { HocuspocusAuthRejectionReason } from '@inkeep/open-knowledge-server';
 import { getSchema } from '@tiptap/core';
 import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import * as Y from 'yjs';

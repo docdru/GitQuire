@@ -3,14 +3,14 @@ import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { okUserHomeDisplayPath } from '@inkeep/open-knowledge-core';
+import { okUserHomeDisplayPath } from '@gitquire/core';
 import {
   type Config,
   getMachineId,
   isProcessAlive,
   lockFilePath,
   machineIdFilePath,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { LockState } from './lock-state.ts';
 import {
@@ -140,7 +140,7 @@ describe('runStop', () => {
     expect(errors.at(0)).toContain('server (pid=100)');
   });
 
-  test('dead/corrupt locks are not killed (ok clean will prune them)', async () => {
+  test('dead/corrupt locks are not killed (gq clean will prune them)', async () => {
     const killed: number[] = [];
     const outcome = await runStop({
       lockDir: '/tmp/x',
@@ -497,13 +497,13 @@ describe('runStop identity check at the signal', () => {
     expect(killed).toEqual([]);
     expect(logs).toEqual([]);
     expect(errors).toEqual([
-      `Process 100 is no longer the server that wrote ${lockPath}; it was not signalled. Run \`ok clean\` to remove the stale lock.`,
+      `Process 100 is no longer the server that wrote ${lockPath}; it was not signalled. Run \`gq clean\` to remove the stale lock.`,
     ]);
   });
 
   test('a lock naming a host with control characters reaches the refusal escaped', async () => {
     const { outcome, killed, errors } = run(
-      lockState('foreign-host', { hostname: 'evil\nRun: ok clean --all\u001b]52;c;Zm9v\u0007' }),
+      lockState('foreign-host', { hostname: 'evil\nRun: gq clean --all\u001b]52;c;Zm9v\u0007' }),
       { isAlive: () => true, readProcessStart: startedLongAfterTheLock },
     );
 
@@ -511,7 +511,7 @@ describe('runStop identity check at the signal', () => {
     expect(killed).toEqual([]);
     const text = errors.join('');
     expect(text).toContain(
-      'If evil\\u000aRun: ok clean --all\\u001b]52;c;Zm9v\\u0007 is another machine',
+      'If evil\\u000aRun: gq clean --all\\u001b]52;c;Zm9v\\u0007 is another machine',
     );
     expect(text).not.toContain('\n');
     expect(text).not.toContain('\u001b');
@@ -526,7 +526,7 @@ describe('runStop identity check at the signal', () => {
     });
     try {
       await outcome;
-      expect(errors.at(-1)).toContain('Run `ok-beta clean` to remove the stale lock.');
+      expect(errors.at(-1)).toContain('Run `gq-beta clean` to remove the stale lock.');
     } finally {
       vi.unstubAllEnvs();
     }
@@ -691,7 +691,7 @@ describe('runStop identity check at the signal', () => {
     expect(killed).toEqual([]);
     expect(logs).toEqual([]);
     expect(errors).toEqual([
-      `Process 100 is no longer the server that wrote ${lockPath}; it was not signalled. Run \`ok clean\` to remove the stale lock.`,
+      `Process 100 is no longer the server that wrote ${lockPath}; it was not signalled. Run \`gq clean\` to remove the stale lock.`,
     ]);
     expect(warnings).toEqual([]);
   });
@@ -729,7 +729,7 @@ describe('runStop identity check at the signal', () => {
         'it was not signalled, and --force does not override this check. ' +
         'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
         `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}. ` +
-        'A server you start again with this release records its machine ID, so `ok stop` can confirm it.',
+        'A server you start again with this release records its machine ID, so `gq stop` can confirm it.',
     ]);
     expect(killed).toEqual([]);
     expect(warnings.map((w) => w.obj.cause)).toEqual(['writer-identity-unrecorded']);
@@ -799,10 +799,10 @@ describe('runStop identity check at the signal', () => {
     const refusal =
       `The server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}, so process 100, which is running on this machine, cannot be confirmed as the server that wrote it; ` +
       'it was not signalled, and --force does not override this check. ' +
-      'If the server was started on this machine from another account, run `ok stop` as that account. ' +
-      'If it was started from this account with a different home folder, run `ok stop` with `HOME` set to that folder. ' +
+      'If the server was started on this machine from another account, run `gq stop` as that account. ' +
+      'If it was started from this account with a different home folder, run `gq stop` with `HOME` set to that folder. ' +
       'Otherwise stop it from the machine that owns the lock. ' +
-      'This lock records no process start; a server started by this release records one, which lets `ok stop` confirm it from any home folder.';
+      'This lock records no process start; a server started by this release records one, which lets `gq stop` confirm it from any home folder.';
 
     expect(await outcome).toEqual({
       stopped: [],
@@ -830,10 +830,10 @@ describe('runStop identity check at the signal', () => {
     expect((await outcome).failed.map((failure) => failure.error)).toEqual([
       `The server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}, so process 100, which is running on this machine, cannot be confirmed as the server that wrote it; ` +
         'it was not signalled, and --force does not override this check. ' +
-        'If the server was started on this machine from another account, run `ok stop` as that account. ' +
-        'If it was started from this account with a different home folder, run `ok stop` with `HOME` set to that folder. ' +
+        'If the server was started on this machine from another account, run `gq stop` as that account. ' +
+        'If it was started from this account with a different home folder, run `gq stop` with `HOME` set to that folder. ' +
         'Otherwise stop it from the machine that owns the lock. ' +
-        'This lock records no process start; a server started by this release records one, which lets `ok stop` confirm it from any home folder.',
+        'This lock records no process start; a server started by this release records one, which lets `gq stop` confirm it from any home folder.',
     ]);
     expect(warnings.map((w) => w.obj.cause)).toEqual(['foreign-host']);
   });
@@ -856,8 +856,8 @@ describe('runStop identity check at the signal', () => {
       expect((await outcome).failed.map((failure) => failure.error)).toEqual([
         `The server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}, so process 100, which is running on this machine, cannot be confirmed as the server that wrote it; ` +
           'it was not signalled, and --force does not override this check. ' +
-          'If the server was started on this machine from another account, run `ok stop` as that account. ' +
-          `If it was started from this account with a different home folder, run \`ok stop\` with \`${homeVariable}\` set to that folder. ` +
+          'If the server was started on this machine from another account, run `gq stop` as that account. ' +
+          `If it was started from this account with a different home folder, run \`gq stop\` with \`${homeVariable}\` set to that folder. ` +
           'Otherwise stop it from the machine that owns the lock.',
       ]);
       expect(killed).toEqual([]);
@@ -906,7 +906,7 @@ describe('formatNoTargetMessage', () => {
     const msg = formatNoTargetMessage('/proj', 2);
     expect(msg).toContain('Nothing was running for /proj');
     expect(msg).toContain('2 other open-knowledge servers are running');
-    expect(msg).toContain('ok ps');
+    expect(msg).toContain('gq ps');
     expect(msg).not.toContain('no other');
   });
 
@@ -915,8 +915,8 @@ describe('formatNoTargetMessage', () => {
   });
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: the pointer names %s ps', (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     try {
@@ -928,11 +928,11 @@ describe('formatNoTargetMessage', () => {
     }
   });
 
-  test('drops the `ok ps` pointer when the caller prints the listing itself', () => {
+  test('drops the `gq ps` pointer when the caller prints the listing itself', () => {
     const msg = formatNoTargetMessage('/proj', 2, { listingFollows: true });
     expect(msg).toContain('Nothing was running for /proj');
     expect(msg).toContain('2 other open-knowledge servers are running');
-    expect(msg).not.toContain('ok ps');
+    expect(msg).not.toContain('gq ps');
   });
 });
 
@@ -1093,7 +1093,7 @@ describe('runStop on a live lock that records no owning machine', () => {
   });
 });
 
-describe('ok stop on a project whose live lock records no owning machine', () => {
+describe('gq stop on a project whose live lock records no owning machine', () => {
   let project: string | undefined;
   let holder: ChildProcess | undefined;
   const savedExitCode = process.exitCode;

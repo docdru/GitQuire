@@ -1,4 +1,4 @@
-import type { AgentPresenceEntry } from '@inkeep/open-knowledge-core/types/awareness';
+import type { AgentPresenceEntry } from '@gitquire/core/types/awareness';
 import type { AwarenessState, AwarenessUser } from './identity.ts';
 
 export interface HumanParticipant {

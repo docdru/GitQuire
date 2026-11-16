@@ -74,7 +74,7 @@ describe('runInit', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('scaffolds .ok/ and points at ok start', async () => {
+  it('scaffolds .ok/ and points at gq start', async () => {
     const result = await runInitForTest();
     expect(existsSync(join(testDir, OK_DIR, 'config.yml'))).toBe(true);
     expect(formatInitResult(result, testDir)).toContain('start');
@@ -110,7 +110,7 @@ describe('runInit', () => {
       const output = formatInitResult(result, testDir);
       expect(output).toContain('Content:');
       expect(output).toContain(`Found ${preview.totalCount} markdown files`);
-      expect(output).toContain('Re-check anytime: open-knowledge preview');
+      expect(output).toContain('Re-check anytime: gitquire preview');
     });
 
     it('renders warning line when preview is undefined with previewWarning', async () => {
@@ -256,7 +256,7 @@ describe('runInit', () => {
         configurable: true,
       });
       try {
-        const { GitNotAvailableError } = await import('@inkeep/open-knowledge-server');
+        const { GitNotAvailableError } = await import('@gitquire/server');
         await expect(runInitForTest()).rejects.toBeInstanceOf(GitNotAvailableError);
       } finally {
         Object.defineProperty(process, 'platform', {
@@ -725,7 +725,7 @@ describe('runInit — sharing mode', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('AC1: fresh `ok init --local-only` writes the OK artifact set to .git/info/exclude', async () => {
+  it('AC1: fresh `gq init --local-only` writes the OK artifact set to .git/info/exclude', async () => {
     const result = await runInitForTest({ sharing: 'local-only' });
     expect(result.sharing.kind).toBe('applied');
     if (result.sharing.kind !== 'applied') throw new Error('expected applied');
@@ -801,7 +801,7 @@ describe('runInit — sharing mode', () => {
     const text = lines.join('\n');
     expect(text).toMatch(/--local-only requested but no git repo/);
     expect(text).toMatch(/git init/);
-    expect(text).toMatch(/ok config-sharing unshare/);
+    expect(text).toMatch(/gq config-sharing unshare/);
   });
 
   it('formatSharingOutcome is silent on no-git when no explicit flag was set', () => {
@@ -812,7 +812,7 @@ describe('runInit — sharing mode', () => {
     expect(lines).toEqual([]);
   });
 
-  it('`ok init` (no flag, non-TTY) on a fresh repo defaults to local-only, matching the desktop dialogs', async () => {
+  it('`gq init` (no flag, non-TTY) on a fresh repo defaults to local-only, matching the desktop dialogs', async () => {
     const result = await runInitForTest();
     expect(result.sharing.kind).toBe('applied');
     if (result.sharing.kind !== 'applied') throw new Error('expected applied');
@@ -822,7 +822,7 @@ describe('runInit — sharing mode', () => {
     expect(exclude).toContain('.okignore');
   });
 
-  it('re-running `ok init` (no flag) on an initialized shared repo stays shared', async () => {
+  it('re-running `gq init` (no flag) on an initialized shared repo stays shared', async () => {
     await runInitForTest({ sharing: 'shared' });
     const result = await runInitForTest();
     expect(result.sharing.kind).toBe('applied');
@@ -832,7 +832,7 @@ describe('runInit — sharing mode', () => {
     expect(exclude).not.toContain('.mcp.json');
   });
 
-  it('FR5 / D12: re-running `ok init` (no flag) on a local-only repo preserves the prior posture', async () => {
+  it('FR5 / D12: re-running `gq init` (no flag) on a local-only repo preserves the prior posture', async () => {
     await runInitForTest({ sharing: 'local-only' });
     const result = await runInitForTest();
     expect(result.sharing.kind).toBe('applied');

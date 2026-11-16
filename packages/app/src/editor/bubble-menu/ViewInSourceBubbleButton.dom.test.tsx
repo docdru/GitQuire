@@ -1,4 +1,4 @@
-import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@gitquire/core';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type Editor, getSchema } from '@tiptap/core';

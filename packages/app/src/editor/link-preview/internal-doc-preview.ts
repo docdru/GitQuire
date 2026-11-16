@@ -1,12 +1,6 @@
-import {
-  stripFrontmatter,
-  unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core/extensions/frontmatter';
-import { extractFrontmatterTags } from '@inkeep/open-knowledge-core/frontmatter/tags';
-import {
-  BacklinkCountsSuccessSchema,
-  DocumentReadSuccessSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import { stripFrontmatter, unwrapFrontmatterFences } from '@gitquire/core/extensions/frontmatter';
+import { extractFrontmatterTags } from '@gitquire/core/frontmatter/tags';
+import { BacklinkCountsSuccessSchema, DocumentReadSuccessSchema } from '@gitquire/core/schemas/api';
 import { extractDocExcerpt } from './doc-excerpt.ts';
 
 export interface InternalDocPreview {

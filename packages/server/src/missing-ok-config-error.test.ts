@@ -13,17 +13,17 @@ describe('MissingOkConfigError', () => {
     expect(b.message).toBe(missingOkConfigMessage());
   });
 
-  test('tells a Stable user to run ok init', () => {
+  test('tells a Stable user to run gq init', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     expect(new MissingOkConfigError('okdir', '/tmp/proj').message).toBe(
-      'GitQuire config not found at .ok/config.yml. Run ok init to scaffold OK in this directory.',
+      'GitQuire config not found at .ok/config.yml. Run gq init to scaffold OK in this directory.',
     );
   });
 
-  test('tells a Beta user to run ok-beta init', () => {
+  test('tells a Beta user to run gq-beta init', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     expect(new MissingOkConfigError('okdir', '/tmp/proj').message).toBe(
-      'GitQuire config not found at .ok/config.yml. Run ok-beta init to scaffold OK in this directory.',
+      'GitQuire config not found at .ok/config.yml. Run gq-beta init to scaffold OK in this directory.',
     );
   });
 

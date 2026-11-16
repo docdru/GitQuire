@@ -3,7 +3,7 @@ import {
   type CheckoutFailureReason,
   isBranchNotFoundGitError,
   REFUSED_SYMLINK_PATHS_CAP,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { truncateError } from './error-format.ts';
 import { dirtyFilesOverlapWith } from './git-dirty.ts';
 import { createGitInstance } from './git-handle.ts';

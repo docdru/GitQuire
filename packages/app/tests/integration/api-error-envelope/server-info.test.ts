@@ -2,8 +2,8 @@ import {
   ProblemDetailsSchema,
   ServerInfoBootSchema,
   ServerInfoSuccessSchema,
-} from '@inkeep/open-knowledge-core';
-import { PROTOCOL_VERSION, RUNTIME_VERSION } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { PROTOCOL_VERSION, RUNTIME_VERSION } from '@gitquire/server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from '../harness-boot-timeout';
 import { createTestServer, type TestServer } from '../test-harness';

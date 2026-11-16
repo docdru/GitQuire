@@ -5,7 +5,7 @@ import {
   projectToLf,
   type SerializeCallOptions,
   spellLineEndings,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { JSONContent } from '@tiptap/core';
 import type { RootContent } from 'mdast';
 import type { MapDrivenSpliceMemoSkipReason } from './metrics.ts';

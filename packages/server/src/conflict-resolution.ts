@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { pathspecArgs } from '@inkeep/open-knowledge-core';
+import { pathspecArgs } from '@gitquire/core';
 import type { Conflict, ConflictIo, ResolveStrategy } from './conflict-authority.ts';
 import { ConflictMarkersInContentError } from './conflict-errors.ts';
 import { isShareableOkArtifact } from './content-filter.ts';

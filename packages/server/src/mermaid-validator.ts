@@ -1,4 +1,4 @@
-import { detectFmRegion, type RenderWarning } from '@inkeep/open-knowledge-core';
+import { detectFmRegion, type RenderWarning } from '@gitquire/core';
 import { getLogger } from './logger.ts';
 
 const log = getLogger('mermaid-validator');

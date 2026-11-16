@@ -1,4 +1,4 @@
-import type { BridgeToleranceSignal, CC1Channel } from '@inkeep/open-knowledge-core';
+import type { BridgeToleranceSignal, CC1Channel } from '@gitquire/core';
 
 export type MapDrivenSpliceFallbackReason =
   | 'text-mismatch'

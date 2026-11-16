@@ -33,9 +33,9 @@ const RULE = 'no-app-core-barrel-import';
 const CODE = `ok(${RULE})`;
 const FIXTURE = `lint-plugins/ok-rules/__fixtures__/${RULE}.fixture.tsx`;
 const README = 'lint-plugins/ok-rules/README.md';
-const BARE_IMPORT = "import { sharedExtensions } from '@inkeep/open-knowledge-core';\n";
+const BARE_IMPORT = "import { sharedExtensions } from '@gitquire/core';\n";
 const SUBPATH_IMPORT =
-  "import { sharedExtensions } from '@inkeep/open-knowledge-core/extensions/shared';\n";
+  "import { sharedExtensions } from '@gitquire/core/extensions/shared';\n";
 const PRODUCTION_SHAPED = [
   'packages/app/src/App.tsx',
   'packages/app/src/server/hocuspocus-plugin.ts',
@@ -116,7 +116,7 @@ describe(`${RULE} oxlint rule`, () => {
     for (const fire of fires) {
       const [line, column] = fire.position.split(':').map(Number);
       expect(lines[line - 1].slice(column - 1)).toMatch(
-        /^['`]@inkeep\/open-knowledge-core(?:[?#][^'`]*)?['`]/,
+        /^['`]@gitquire\/core(?:[?#][^'`]*)?['`]/,
       );
       expect(fire.message).toContain('Import each binding from the core subpath');
       expect(fire.message).toMatch(/https?:\/\/[^\s]+/);

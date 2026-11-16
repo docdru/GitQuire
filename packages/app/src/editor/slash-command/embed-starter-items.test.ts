@@ -1,4 +1,4 @@
-import { PREVIEW_EMBED_STARTERS } from '@inkeep/open-knowledge-core';
+import { PREVIEW_EMBED_STARTERS } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { getEmbedStarterItems } from './embed-starter-items';
 import type { SlashCommandContext } from './items';

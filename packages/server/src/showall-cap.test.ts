@@ -1,6 +1,6 @@
 import { mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { DocumentListEntry } from '@inkeep/open-knowledge-core';
+import type { DocumentListEntry } from '@gitquire/core';
 import { afterAll, afterEach, describe, expect, test } from 'vitest';
 import { createTempDirFactory } from '../../../test-support/temp-dir.test-helper.ts';
 import {

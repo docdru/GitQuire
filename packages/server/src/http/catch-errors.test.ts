@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { BridgeMergeContentLossError } from '@inkeep/open-knowledge-core';
+import { BridgeMergeContentLossError } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { catchErrors } from './catch-errors.ts';
 

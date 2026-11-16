@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { CONCURRENT_REPLACE_WINDOW_MS } from '@inkeep/open-knowledge-server';
+import { CONCURRENT_REPLACE_WINDOW_MS } from '@gitquire/server';
 import type { CDPSession, Page } from '@playwright/test';
 import type { ApiHelpers } from './_helpers';
 import { expect, isConcurrentOverwriteRefusal, test } from './_helpers';

@@ -45,7 +45,7 @@ A test that reads files outside its own package's Turbo inputs is named `*.uncac
 Run local apps:
 
 ```bash
-pnpm --filter @inkeep/open-knowledge-app run dev
+pnpm --filter @gitquire/app run dev
 
 cd docs
 pnpm run dev

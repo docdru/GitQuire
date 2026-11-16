@@ -13,8 +13,8 @@ import {
 } from 'node:fs';
 import { lstat, readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { basename, dirname, extname, isAbsolute, join, relative, sep } from 'node:path';
-import { DOCUMENT_OPEN_BYTE_LIMIT, LINKABLE_ASSET_EXTENSIONS } from '@inkeep/open-knowledge-core';
-import { filesystemIdentity, statMtime } from '@inkeep/open-knowledge-core/server';
+import { DOCUMENT_OPEN_BYTE_LIMIT, LINKABLE_ASSET_EXTENSIONS } from '@gitquire/core';
+import { filesystemIdentity, statMtime } from '@gitquire/core/server';
 import { isConfigDoc, isReservedForUserTree, isSystemDoc } from './cc1-broadcast.ts';
 import { type ContentFilter, WATCHER_STRUCTURAL_IGNORE_DIRS } from './content-filter.ts';
 import { isWithinContentDir } from './content-path.ts';

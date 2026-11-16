@@ -1,14 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import {
-  LEGACY_SKILL_STORE_ROOT,
-  OK_DIR,
-  pathspecArgs,
-  toPathspec,
-} from '@inkeep/open-knowledge-core';
-import { discoverGitRepository } from '@inkeep/open-knowledge-core/git-repository';
-import { withHiddenWindowsConsole } from '@inkeep/open-knowledge-server';
+import { LEGACY_SKILL_STORE_ROOT, OK_DIR, pathspecArgs, toPathspec } from '@gitquire/core';
+import { discoverGitRepository } from '@gitquire/core/git-repository';
+import { withHiddenWindowsConsole } from '@gitquire/server';
 
 const OK_IGNORE_FILENAME = '.okignore';
 

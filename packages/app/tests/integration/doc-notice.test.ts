@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { getMetrics } from '@gitquire/server';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { getMetrics } from '@inkeep/open-knowledge-server';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';

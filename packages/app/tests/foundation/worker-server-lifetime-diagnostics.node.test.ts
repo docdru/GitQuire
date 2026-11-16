@@ -157,7 +157,7 @@ async function acquireProductionShellLifetime(): Promise<ProductionShellLifetime
   );
   if (initialized.status !== 0) {
     throw new Error(
-      `ok init from source failed (status=${initialized.status}, signal=${initialized.signal}, error=${initialized.error?.message ?? 'none'})\n${initialized.stderr}`,
+      `gq init from source failed (status=${initialized.status}, signal=${initialized.signal}, error=${initialized.error?.message ?? 'none'})\n${initialized.stderr}`,
     );
   }
   const port = await getFreePort(request.host);

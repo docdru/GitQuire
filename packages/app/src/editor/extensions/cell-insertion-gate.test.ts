@@ -1,4 +1,4 @@
-import { sharedExtensions as coreExtensions, MarkdownManager } from '@inkeep/open-knowledge-core';
+import { sharedExtensions as coreExtensions, MarkdownManager } from '@gitquire/core';
 import { Editor, type JSONContent } from '@tiptap/core';
 import { Fragment, type Node as ProseMirrorNode, Slice } from '@tiptap/pm/model';
 import { dropPoint, ReplaceAroundStep } from '@tiptap/pm/transform';

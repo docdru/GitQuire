@@ -1,4 +1,4 @@
-import type { DocNoticeWire } from '@inkeep/open-knowledge-core';
+import type { DocNoticeWire } from '@gitquire/core';
 import type { FileObservation } from './disk-receipts.ts';
 
 export type VisibleHoldCause = Extract<DocNoticeWire, { kind: 'save-held' }>['cause'];

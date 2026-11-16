@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { BASE16_SLOTS } from '@inkeep/open-knowledge-core';
+import { BASE16_SLOTS } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   SAVED_THEME_FILE_BYTE_LIMIT,

@@ -4,7 +4,7 @@ import {
   PageHeadingsSuccessSchema,
   PagesSuccessSchema,
   ProblemDetailsSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import {
   createWorkspaceSearchCorpus,
   createWorkspaceSearchDocument,
@@ -12,9 +12,9 @@ import {
   searchWorkspaceCorpus,
   type WorkspaceSearchCorpus,
   type WorkspaceSearchKind,
-} from '@inkeep/open-knowledge-core/search/workspace-search';
-import { isHiddenDocName } from '@inkeep/open-knowledge-core/util/doc-name';
-import type { HeadingEntry } from '@inkeep/open-knowledge-core/utils/slug';
+} from '@gitquire/core/search/workspace-search';
+import { isHiddenDocName } from '@gitquire/core/util/doc-name';
+import type { HeadingEntry } from '@gitquire/core/utils/slug';
 import { t } from '@lingui/core/macro';
 import type { Editor } from '@tiptap/core';
 import type { ResolvedPos } from '@tiptap/pm/model';

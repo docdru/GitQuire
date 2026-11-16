@@ -1,11 +1,11 @@
-import { mdastToHtml } from '@inkeep/open-knowledge-core/markdown/mdast-to-html';
+import { mdastToHtml } from '@gitquire/core/markdown/mdast-to-html';
 import {
   builtInComponents,
   type JsxAttributeValueSource,
   jsxAttributeValue,
   resolveLegacyProps,
-} from '@inkeep/open-knowledge-core/registry';
-import type { PropDef } from '@inkeep/open-knowledge-core/registry/types';
+} from '@gitquire/core/registry';
+import type { PropDef } from '@gitquire/core/registry/types';
 import { useEffect, useRef, useState } from 'react';
 import { useCollabUrl } from '@/lib/use-collab-url';
 import { authoredText } from '../utils/authored-text.ts';

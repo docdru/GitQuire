@@ -1,6 +1,6 @@
 /** Runs under the jsdom substrate (precedent #43). */
 
-import type { KeepaliveHandle, KeepaliveOptions } from '@inkeep/open-knowledge-core/keepalive';
+import type { KeepaliveHandle, KeepaliveOptions } from '@gitquire/core/keepalive';
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import { type UseServerKeepaliveOptions, useServerKeepalive } from './use-server-keepalive';

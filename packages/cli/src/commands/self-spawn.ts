@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { resolveHelperBundleBinary } from '@inkeep/open-knowledge-core/helper-bundle';
+import { resolveHelperBundleBinary } from '@gitquire/core/helper-bundle';
 
 const APP_CONTENTS_MACOS_RE = /\/[^/]+\.app\/Contents\/MacOS\/[^/]+$/;
 
@@ -38,11 +38,11 @@ export function resolveSelfSpawn(deps: ResolveSelfSpawnDeps = {}): {
   const entry = argv[1];
   if (!entry) {
     console.warn(
-      '[self-spawn] process.argv[1] is empty — falling back to `npx -y @inkeep/open-knowledge@latest`. ' +
+      '[self-spawn] process.argv[1] is empty — falling back to `npx -y @gitquire/cli@latest`. ' +
         'This re-introduces the registry-fetch surface that re-exec was fixing. ' +
         `Observed argv: ${JSON.stringify(argv)}`,
     );
-    return { command: 'npx', prefixArgs: ['-y', '@inkeep/open-knowledge@latest'] };
+    return { command: 'npx', prefixArgs: ['-y', '@gitquire/cli@latest'] };
   }
 
   const redirected = maybeRedirectToHelperBundle({ execPath, platform, exists });

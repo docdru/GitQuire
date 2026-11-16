@@ -3,7 +3,7 @@ import {
   type ClassifiedLinkTarget,
   classifyMarkdownHref,
   isExternalHref,
-} from '@inkeep/open-knowledge-core/utils/link-targets';
+} from '@gitquire/core/utils/link-targets';
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/core';
 import { posToDOMRect } from '@tiptap/core';

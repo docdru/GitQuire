@@ -16,8 +16,8 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { SPAWN_ERROR_LOG } from '@inkeep/open-knowledge-core';
-import { okProjectLogsDir, openSpawnErrorLog } from '@inkeep/open-knowledge-core/server';
+import { SPAWN_ERROR_LOG } from '@gitquire/core';
+import { okProjectLogsDir, openSpawnErrorLog } from '@gitquire/core/server';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { type BootedServer, bootServer } from './boot.ts';

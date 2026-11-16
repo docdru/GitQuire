@@ -1,7 +1,7 @@
+import { mediaKindForSidebarAssetExtension } from '@gitquire/core/constants/upload';
+import { PrincipalSuccessSchema } from '@gitquire/core/schemas/api';
+import type { Principal } from '@gitquire/core/types/principal';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { mediaKindForSidebarAssetExtension } from '@inkeep/open-knowledge-core/constants/upload';
-import { PrincipalSuccessSchema } from '@inkeep/open-knowledge-core/schemas/api';
-import type { Principal } from '@inkeep/open-knowledge-core/types/principal';
 import { createContext, type ReactNode, use, useEffect, useRef, useState } from 'react';
 import { isDocPanelOnScreen } from '@/components/doc-panel-visibility';
 import type { ResolvedNavigationTarget } from '@/components/navigation-targets';

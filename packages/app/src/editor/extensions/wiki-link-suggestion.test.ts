@@ -1,4 +1,4 @@
-import type { HeadingEntry } from '@inkeep/open-knowledge-core';
+import type { HeadingEntry } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { __resetDocumentListInflightForTests } from '@/lib/documents-fetch';
 import {

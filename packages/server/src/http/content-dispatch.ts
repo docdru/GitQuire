@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 import {
   HOST_NOT_ADMITTED_REMEDIATION,
   type IngressPolicy,

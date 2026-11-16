@@ -1,7 +1,7 @@
 import { createServer as createHttpServer } from 'node:http';
 import type { AddressInfo, Socket } from 'node:net';
 import { join } from 'node:path';
-import { decodeShareUrl } from '@inkeep/open-knowledge-core';
+import { decodeShareUrl } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   createGitTriangle,

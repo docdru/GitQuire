@@ -1,4 +1,4 @@
-import { ProblemDetailsSchema } from '@inkeep/open-knowledge-core';
+import { ProblemDetailsSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from '../harness-boot-timeout';
 import { createTestServer, type TestServer } from '../test-harness';
@@ -99,7 +99,7 @@ describe('sync-resolve-conflict envelope (RFC 9457)', () => {
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.type).toBe('urn:ok:error:no-conflict-tracked');
-      expect(parsed.data.detail).toContain('Refresh the conflict list in the OpenKnowledge app');
+      expect(parsed.data.detail).toContain('Refresh the conflict list in the GitQuire app');
       expect(parsed.data.detail).not.toContain('conflicts(');
     }
   });

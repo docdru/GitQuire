@@ -3,7 +3,7 @@ import {
   createTargetNamespace,
   type DerivedViewChannel,
   type TargetNamespace,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   type BacklinkEntry,
   BacklinkIndex,

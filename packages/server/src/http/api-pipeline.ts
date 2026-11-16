@@ -1,9 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import {
-  CLIENT_SURFACE_ATTRIBUTE,
-  CLIENT_VERSION_HEADER,
-  readClientSurface,
-} from '@inkeep/open-knowledge-core';
+import { CLIENT_SURFACE_ATTRIBUTE, CLIENT_VERSION_HEADER, readClientSurface } from '@gitquire/core';
 import { context, propagation, SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import {
   ATTR_HTTP_REQUEST_METHOD,

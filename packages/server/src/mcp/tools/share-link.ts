@@ -6,7 +6,7 @@ import {
   ShareConstructUrlResponseSchema,
   type ShareFreshness,
   ShareFreshnessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import { SUPPORTED_DOC_EXTENSIONS } from '../../doc-extensions.ts';
 import { internalRequestHeaders } from '../../gitquire/internal-request.ts';

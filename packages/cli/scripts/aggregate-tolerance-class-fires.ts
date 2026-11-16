@@ -11,7 +11,7 @@
 
 import { readFileSync } from 'node:fs';
 
-import type { ToleranceFireLine } from '@inkeep/open-knowledge-server';
+import type { ToleranceFireLine } from '@gitquire/server';
 
 // The line shape is owned by the writer (tolerance-telemetry-writer.ts) and
 // imported here so a producer-side field rename fails this script's

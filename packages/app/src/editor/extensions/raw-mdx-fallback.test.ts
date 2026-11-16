@@ -1,4 +1,4 @@
-import { sharedExtensions } from '@inkeep/open-knowledge-core';
+import { sharedExtensions } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import type { Node as PMNode } from '@tiptap/pm/model';
 import { EditorState, TextSelection } from '@tiptap/pm/state';

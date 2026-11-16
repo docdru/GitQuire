@@ -1,6 +1,6 @@
 import { accessSync, existsSync, constants as fsConstants, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 import { loadConfig } from '../../config/loader.ts';
 import { CONFIG_FILENAME, OK_DIR } from '../../constants.ts';
 import type { CheckContext, CheckDefinition, CheckResult } from './types.ts';

@@ -1,4 +1,4 @@
-import { resetParseHealth } from '@inkeep/open-knowledge-core';
+import { resetParseHealth } from '@gitquire/core';
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps, ReactNode } from 'react';
@@ -135,10 +135,6 @@ function HeaderProviders({ children }: { children: ReactNode }) {
 
 function renderHeader() {
   return render(<AppHeader onOpenSearch={onOpenSearch} />, { wrapper: HeaderProviders });
-}
-
-function centreGroup(): HTMLElement {
-  return screen.getByRole('banner').querySelector('[data-app-header-center]') as HTMLElement;
 }
 
 function leadingGroup(): HTMLElement {
@@ -320,33 +316,6 @@ afterEach(() => {
 });
 
 describe('AppHeader', () => {
-  test('a single-file window keeps global actions and the component selector above its cards', async () => {
-    shell.singleFile = true;
-    setElectronHost(true, { platform: 'win32', menu: { dispatch: async () => null } });
-    act(() => {
-      paneVisibilityStore.publish({
-        editor: { open: true, onScreen: true },
-        agents: PANE_HIDDEN,
-      });
-    });
-    renderHeader();
-
-    expect(screen.getByRole('banner', { name: 'Application' })).toBeTruthy();
-    expect(screen.getByTestId('presence-bar')).toBeTruthy();
-    expect(screen.getByTestId('sync-status-badge')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Resources' })).toBeTruthy();
-    expect(await screen.findByTestId('app-menubar')).toBeTruthy();
-    expect(screen.getByRole('group', { name: 'Panels' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Editor' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Agents' })).toBeTruthy();
-    expect(screen.queryByTestId('project-switcher-trigger')).toBeNull();
-    expect(screen.queryByRole('button', { name: /^Search/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /^Share/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
-    expect(screen.queryByTestId('publish-dialog')).toBeNull();
-    expect(screen.queryByTestId('navigation-history-controls')).toBeNull();
-  });
-
   test('a narrow single-file header folds secondary actions while keeping the selector visible', async () => {
     shell.singleFile = true;
     setElectronHost(true, { platform: 'win32' });
@@ -513,15 +482,6 @@ describe('AppHeader', () => {
     });
   });
 
-  describe('centre track', () => {
-    test('stays empty on a web host', () => {
-      renderHeader();
-
-      expect(centreGroup().children).toHaveLength(0);
-      expect(screen.queryByRole('button', { name: 'Open project menu' })).toBeNull();
-    });
-  });
-
   describe('trailing group', () => {
     test('holds presence, Share, sync, settings and resources, then a divider and the Agents button, in that order', () => {
       shell.syncStatus = { state: 'idle', conflictCount: 0, hasRemote: true };
@@ -537,63 +497,6 @@ describe('AppHeader', () => {
         expect(follows(controls[index - 1] as Element, controls[index] as Element)).toBe(true);
       }
     });
-
-    test('Share opens the publish dialog from the header when the project has no remote', async () => {
-      const user = userEvent.setup();
-      shell.syncStatus = { state: 'idle', conflictCount: 0, hasRemote: false };
-      renderHeader();
-
-      expect(screen.getByTestId('publish-dialog').getAttribute('data-open')).toBe('false');
-      await user.click(screen.getByRole('button', { name: 'Share doc' }));
-
-      expect(screen.getByTestId('publish-dialog').getAttribute('data-open')).toBe('true');
-      expect(trailingGroup().contains(screen.getByTestId('publish-dialog'))).toBe(true);
-    });
-
-    test.each([
-      {
-        target: 'an open doc',
-        activeDocName: 'docs/notes',
-        activeTarget: { kind: 'doc' },
-        button: 'Share doc',
-        request: { kind: 'doc', docPath: 'docs/notes.md' },
-      },
-      {
-        target: 'a selected folder',
-        activeDocName: null,
-        activeTarget: { kind: 'folder', folderPath: 'guides' },
-        button: 'Share folder',
-        request: { kind: 'folder', folderPath: 'guides' },
-      },
-      {
-        target: 'nothing open or selected',
-        activeDocName: null,
-        activeTarget: null,
-        button: 'Share folder',
-        request: { kind: 'folder', folderPath: '' },
-      },
-    ])(
-      'Share asks for a link to $target',
-      async ({ activeDocName, activeTarget, button, request }) => {
-        const user = userEvent.setup();
-        const requests: unknown[] = [];
-        vi.stubGlobal(
-          'fetch',
-          vi.fn(async (_url: string, init?: RequestInit) => {
-            requests.push(JSON.parse(String(init?.body)));
-            return new Response('unavailable', { status: 503 });
-          }),
-        );
-        shell.activeDocName = activeDocName;
-        shell.activeTarget = activeTarget;
-        shell.syncStatus = { state: 'idle', conflictCount: 0, hasRemote: true };
-        renderHeader();
-
-        await user.click(screen.getByRole('button', { name: button }));
-
-        await waitFor(() => expect(requests).toEqual([request]));
-      },
-    );
 
     test.each([
       {

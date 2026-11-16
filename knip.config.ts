@@ -132,7 +132,7 @@ export default {
     },
     'packages/cli': {
       entry: ['src/**/*.test.ts', 'scripts/*.ts', 'tests/**/*.ts'],
-      ignoreDependencies: ['yjs', '@inkeep/open-knowledge-app'],
+      ignoreDependencies: ['yjs', '@gitquire/app'],
     },
   },
 } satisfies KnipConfig;

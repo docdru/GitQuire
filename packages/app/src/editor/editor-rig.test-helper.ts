@@ -1,4 +1,4 @@
-import { LinkFidelity } from '@inkeep/open-knowledge-core';
+import { LinkFidelity } from '@gitquire/core';
 import { Editor, type Extensions, isiOS, isMacOS } from '@tiptap/core';
 import Collaboration from '@tiptap/extension-collaboration';
 import StarterKit from '@tiptap/starter-kit';

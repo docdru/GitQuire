@@ -1,4 +1,4 @@
-import type { LinkPreviewMetadata } from '@inkeep/open-knowledge-core';
+import type { LinkPreviewMetadata } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { loadLinkPreview, SUCCESS_CACHE_MAX_ENTRIES } from './external-link-preview.ts';
 

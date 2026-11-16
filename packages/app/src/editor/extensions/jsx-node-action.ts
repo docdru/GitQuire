@@ -1,7 +1,4 @@
-import {
-  incrementJsxActionAborted,
-  type JsxNodeAction,
-} from '@inkeep/open-knowledge-core/metrics/parse-health';
+import { incrementJsxActionAborted, type JsxNodeAction } from '@gitquire/core/metrics/parse-health';
 import { t } from '@lingui/core/macro';
 import type { NodeViewProps } from '@tiptap/core';
 import { toast } from 'sonner';

@@ -1,4 +1,4 @@
-import type { FmEditError } from '@inkeep/open-knowledge-core';
+import type { FmEditError } from '@gitquire/core';
 import { describe, expect, it } from 'vitest';
 import { describeFmEditError } from './fm-edit-error.ts';
 

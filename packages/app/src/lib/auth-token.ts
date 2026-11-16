@@ -1,4 +1,4 @@
-import type { HocuspocusAuthToken } from '@inkeep/open-knowledge-server';
+import type { HocuspocusAuthToken } from '@gitquire/server';
 import { browserClientVersionTokenFields } from './client-version';
 
 export function buildAuthToken(

@@ -21,10 +21,10 @@ import {
   type SyncModeChangeSource,
   type SyncPausedReason,
   tryLineLevelCombine,
-} from '@inkeep/open-knowledge-core';
-import { inspectGitRepository } from '@inkeep/open-knowledge-core/git-repository';
-import { resolveConfigPath } from '@inkeep/open-knowledge-core/server';
-import { resolveGitDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core';
+import { inspectGitRepository } from '@gitquire/core/git-repository';
+import { resolveConfigPath } from '@gitquire/core/server';
+import { resolveGitDir } from '@gitquire/core/shadow-repo-layout';
 import type { CC1Broadcaster } from './cc1-broadcast.ts';
 import { getLocalDir } from './config/paths.ts';
 import type { ConflictAuthority, RaiseInput } from './conflict-authority.ts';

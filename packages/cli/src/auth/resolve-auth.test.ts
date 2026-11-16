@@ -153,10 +153,7 @@ describe('resolveAuth', () => {
     const store = makeStore(tmpDir);
     await store.set('github.com', 'alice', 'gho_abc');
     const result = await resolveAuth('github.com', store, {}, ghUnavailable());
-    expect(result.gitConfig).toEqual([
-      RESET,
-      "credential.helper=!'open-knowledge' auth git-credential",
-    ]);
+    expect(result.gitConfig).toEqual([RESET, "credential.helper=!'gitquire' auth git-credential"]);
   });
 
   test('none: no gh, no stored token → empty gitConfig, no relayToken', async () => {

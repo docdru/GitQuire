@@ -13,7 +13,7 @@ import {
 import { readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative, sep } from 'node:path';
-import { createBasenameIndex } from '@inkeep/open-knowledge-core';
+import { createBasenameIndex } from '@gitquire/core';
 import { afterEach, describe, expect, type TestContext, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { seedBasenameIndex } from './asset-walk.ts';

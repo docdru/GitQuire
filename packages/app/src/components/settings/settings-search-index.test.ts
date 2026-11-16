@@ -1,4 +1,4 @@
-import { MARKDOWNLINT_RULE_CATALOG } from '@inkeep/open-knowledge-core';
+import { MARKDOWNLINT_RULE_CATALOG } from '@gitquire/core';
 import type { MessageDescriptor } from '@lingui/core';
 import { describe, expect, test, vi } from 'vitest';
 import { matchesCommandQuery } from '@/components/command-palette-search';

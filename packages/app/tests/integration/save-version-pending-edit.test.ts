@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { SaveVersionSuccessSchema } from '@inkeep/open-knowledge-core';
-import { resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { SaveVersionSuccessSchema } from '@gitquire/core';
+import { resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
 import {

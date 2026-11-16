@@ -1522,18 +1522,18 @@ describe('DocumentDurabilityStateError names the running channel CLI', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     try {
       expect(new DocumentDurabilityStateError('/p/state.json', 'corrupt').message).toBe(
-        'Cannot safely open this project: its stale-write recovery snapshot is corrupt (/p/state.json). The snapshot has been preserved because it may contain the only copy of protected edits. Restore this snapshot from a known-good backup, or contact support to recover its protected edits. Run ok bug-report from the project directory to collect diagnostics without starting the server. Do not delete it to bypass recovery.',
+        'Cannot safely open this project: its stale-write recovery snapshot is corrupt (/p/state.json). The snapshot has been preserved because it may contain the only copy of protected edits. Restore this snapshot from a known-good backup, or contact support to recover its protected edits. Run gq bug-report from the project directory to collect diagnostics without starting the server. Do not delete it to bypass recovery.',
       );
     } finally {
       vi.unstubAllEnvs();
     }
   });
 
-  test('Beta names ok-beta bug-report', () => {
+  test('Beta names gq-beta bug-report', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     try {
       expect(new DocumentDurabilityStateError('/p/state.json', 'corrupt').message).toContain(
-        'Run ok-beta bug-report from the project directory',
+        'Run gq-beta bug-report from the project directory',
       );
     } finally {
       vi.unstubAllEnvs();

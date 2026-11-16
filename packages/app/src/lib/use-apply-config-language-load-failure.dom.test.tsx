@@ -1,4 +1,4 @@
-import type { LanguagePreference, SupportedLocale } from '@inkeep/open-knowledge-core';
+import type { LanguagePreference, SupportedLocale } from '@gitquire/core';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';
@@ -128,7 +128,7 @@ describe('a catalog that never arrives', () => {
       rerender(tree('bn'));
     });
     await act(async () => {
-      await import('@/locales/bn/messages.json');
+      await vi.dynamicImportSettled();
     });
 
     await waitFor(() => {

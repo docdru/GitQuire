@@ -9,7 +9,7 @@ import {
   removeSchemaField,
   renameSchemaField,
   type SchemaParentPathSegment,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { tracedUnlinkSync } from '../fs-traced.ts';
 import { isInside, writeFileAtomic } from './fs-safety.ts';
 

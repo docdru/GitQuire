@@ -1,4 +1,4 @@
-import { SUPPORTED_LOCALES, type SupportedLocale } from '@inkeep/open-knowledge-core/i18n/locales';
+import { SUPPORTED_LOCALES, type SupportedLocale } from '@gitquire/core/i18n/locales';
 
 export const EXCALIDRAW_FALLBACK_LANG_CODE = 'en';
 

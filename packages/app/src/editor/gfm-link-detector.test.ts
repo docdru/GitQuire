@@ -1,4 +1,4 @@
-import { MarkdownManager, SAFE_URL_SCHEMES, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, SAFE_URL_SCHEMES, sharedExtensions } from '@gitquire/core';
 import type { JSONContent } from '@tiptap/core';
 import { describe, expect, test } from 'vitest';
 import { detectGfmLinkToken, type GfmLinkToken } from './gfm-link-detector';

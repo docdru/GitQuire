@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { BridgeMergeContentLossError } from '@inkeep/open-knowledge-core';
+import { BridgeMergeContentLossError } from '@gitquire/core';
 import busboy from 'busboy';
 import { afterAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';

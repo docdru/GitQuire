@@ -286,7 +286,7 @@ describe('findFloorViolations', () => {
 
   it('reads a workspace member devDependency, which is installed unlike a third party one', () => {
     const member = {
-      name: '@inkeep/open-knowledge-app',
+      name: '@gitquire/app',
       version: '0.67.0',
       devDependencies: { '@tiptap/starter-kit': '^3.23.0' },
     };
@@ -335,7 +335,7 @@ describe('collectViolations', () => {
   it('gives the workspace bucket the wider field list and the installed bucket the narrower one', () => {
     const third = { name: 'third-party', version: '1.0.0', devDependencies: { pinned: '^2.0.0' } };
     const member = {
-      name: '@inkeep/member',
+      name: '@gitquire/member',
       version: '0.1.0',
       devDependencies: { pinned: '^2.0.0' },
     };
@@ -344,7 +344,7 @@ describe('collectViolations', () => {
       workspace: [member],
     });
     expect(found).toEqual([
-      expect.objectContaining({ dependant: '@inkeep/member@0.1.0', field: 'devDependencies' }),
+      expect.objectContaining({ dependant: '@gitquire/member@0.1.0', field: 'devDependencies' }),
     ]);
   });
 });
@@ -359,7 +359,7 @@ describe('workspaceManifests', () => {
     const yamlText = fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8');
     const names = [...workspaceManifests(root, yamlText, refuse, refuse)].map((m) => m.name);
     expect(names).toContain('open-knowledge');
-    expect(names).toContain('@inkeep/open-knowledge-app');
+    expect(names).toContain('@gitquire/app');
   });
 
   it('reports an empty corpus even though the root always parses', () => {
@@ -395,7 +395,7 @@ describe('workspaceManifests', () => {
       (m) => m.name,
     );
     expect(empty).toEqual(['workspaces/*']);
-    expect(names).toContain('@inkeep/open-knowledge-docs');
+    expect(names).toContain('@gitquire/docs');
   });
 });
 

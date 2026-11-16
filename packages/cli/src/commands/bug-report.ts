@@ -23,14 +23,14 @@ export function bugReportCommand(): Command {
 
         if (summary.redactedLineCount > 0) {
           process.stderr.write(
-            `ok bug-report: ${summary.redactedLineCount} line(s) auto-redacted across ${summary.redactions.length} file(s)\n`,
+            `gq bug-report: ${summary.redactedLineCount} line(s) auto-redacted across ${summary.redactions.length} file(s)\n`,
           );
         }
 
         if (opts.reveal) revealBundle(zipPath);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        process.stderr.write(`ok bug-report: failed — ${msg}\n`);
+        process.stderr.write(`gq bug-report: failed — ${msg}\n`);
         process.exitCode = 1;
       }
     });

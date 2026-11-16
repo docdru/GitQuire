@@ -3,20 +3,20 @@ import {
   parseLegacyTemplateDocName,
   parseTemplateContentDocName,
   templateContentDocName,
-} from '@inkeep/open-knowledge-core/constants/cc1';
-import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
+} from '@gitquire/core/constants/cc1';
+import { isEditableTextDocFile } from '@gitquire/core/constants/code-languages';
 import {
   DOCUMENT_OPEN_BYTE_LIMIT,
   isDocumentOverOpenByteLimit,
-} from '@inkeep/open-knowledge-core/constants/document-open';
+} from '@gitquire/core/constants/document-open';
 import {
   type InlineAssetMediaKind,
   isExcalidrawDocFile,
   isMermaidDocFile,
   mediaKindForSidebarAssetExtension,
-} from '@inkeep/open-knowledge-core/constants/upload';
-import { resolveName } from '@inkeep/open-knowledge-core/utils/target-namespace';
-import { resolveWikiLinkTargetDocName } from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
+} from '@gitquire/core/constants/upload';
+import { resolveName } from '@gitquire/core/utils/target-namespace';
+import { resolveWikiLinkTargetDocName } from '@gitquire/core/utils/wiki-link-resolve';
 import { normalizeDocNameInput } from '@/lib/doc-paths';
 import { computeAncestors, hasOkPathSegment } from './file-tree-utils';
 

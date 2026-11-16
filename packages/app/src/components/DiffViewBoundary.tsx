@@ -3,7 +3,7 @@ import {
   type ResolveStrategyWire,
   type SyncConflictContentSuccess,
   SyncConflictContentSuccessSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';

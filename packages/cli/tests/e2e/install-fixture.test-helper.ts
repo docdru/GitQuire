@@ -129,7 +129,7 @@ export async function createInstallFixture(optionalParent = false) {
       }),
     );
     const manifest = {
-      name: '@inkeep/open-knowledge',
+      name: '@gitquire/cli',
       version: '1.0.0',
       type: 'module',
       bin: { ok: 'dist/cli.mjs' },

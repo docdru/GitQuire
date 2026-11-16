@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
-import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
+import { filesystemIdentity } from '@gitquire/core/server';
 import { describe, expect, test } from 'vitest';
 import {
   createApiExtension,

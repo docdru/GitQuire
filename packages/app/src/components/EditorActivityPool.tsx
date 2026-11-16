@@ -1,14 +1,14 @@
 import {
   isManagedArtifactDocName,
   parseTemplateContentDocName,
-} from '@inkeep/open-knowledge-core/constants/cc1';
-import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
+} from '@gitquire/core/constants/cc1';
+import { isEditableTextDocFile } from '@gitquire/core/constants/code-languages';
 import {
   isExcalidrawDocFile,
   isMarkdownDocFile,
   isMermaidDocFile,
-} from '@inkeep/open-knowledge-core/constants/upload';
-import { randomUUID } from '@inkeep/open-knowledge-core/utils/random-uuid';
+} from '@gitquire/core/constants/upload';
+import { randomUUID } from '@gitquire/core/utils/random-uuid';
 import { t } from '@lingui/core/macro';
 import { RefreshCw } from 'lucide-react';
 import {

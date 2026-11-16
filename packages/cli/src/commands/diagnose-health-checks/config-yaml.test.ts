@@ -27,7 +27,7 @@ describe('config-yaml check', () => {
     expect(result.status).toBe('warn');
     expect(result.summary).toContain('not found');
     expect(result.summary).toContain('not initialized');
-    expect(result.remediation).toContain('ok init');
+    expect(result.remediation).toContain('gq init');
   });
 
   test('passes when config parses; summary surfaces content.dir', async () => {
@@ -68,8 +68,8 @@ describe('config-yaml remediation names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: an uninitialized project names %s init', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const result = await makeConfigYamlCheck().run({ cwd: makeProject() });

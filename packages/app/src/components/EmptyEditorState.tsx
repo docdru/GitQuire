@@ -1,7 +1,4 @@
-import {
-  DocumentListSuccessSchema,
-  type TemplatesListSuccess,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import { DocumentListSuccessSchema, type TemplatesListSuccess } from '@gitquire/core/schemas/api';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { Info } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

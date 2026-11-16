@@ -109,7 +109,7 @@ const PS_PROCESS_START_QUERY_TIMEOUT_MS = 5000;
 const PS_LSTART_PATTERN = /^\w{3}\s+\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4}$/;
 
 const NATIVE_PROCESS_START_READER: unique symbol = Symbol.for(
-  '@inkeep/open-knowledge/native-process-start-reader',
+  '@gitquire/cli/native-process-start-reader',
 );
 
 const nativeReaderHost = globalThis as typeof globalThis & {

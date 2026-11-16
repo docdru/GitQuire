@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
-import { resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import { GitDirAccessError, MalformedGitPointerError } from '@inkeep/open-knowledge-server';
+import { currentCliCommandName } from '@gitquire/core';
+import { resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
+import { GitDirAccessError, MalformedGitPointerError } from '@gitquire/server';
 import type { CheckContext, CheckDefinition, CheckResult } from './types.ts';
 
 interface ShadowRepoCheckDeps {

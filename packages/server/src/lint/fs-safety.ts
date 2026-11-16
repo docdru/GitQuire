@@ -1,5 +1,5 @@
 import { isAbsolute, relative } from 'node:path';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+import { atomicTempPath } from '@gitquire/core/server';
 import { tracedRenameSync, tracedUnlinkSync, tracedWriteFileSync } from '../fs-traced.ts';
 
 export function isInside(path: string, root: string): boolean {

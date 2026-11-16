@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createStructuralFreshnessChecker, stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { createStructuralFreshnessChecker, stripFrontmatter } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { mdManager } from './test-harness';
 

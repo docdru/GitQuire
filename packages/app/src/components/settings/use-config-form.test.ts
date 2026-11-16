@@ -3,7 +3,7 @@ import type {
   ConfigBindingPatchResult,
   ConfigPatch,
   ConfigValidationError,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { describe, expect, test, vi } from 'vitest';
 import {
   type ApplyExternalUpdateForm,

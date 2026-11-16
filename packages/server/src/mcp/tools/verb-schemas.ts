@@ -4,7 +4,7 @@ import {
   frontmatterRecord,
   TEMPLATE_NAME_REGEX,
   TEMPLATE_NAME_RULE,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import { SUPPORTED_DOC_EXTENSIONS } from '../../doc-extensions.ts';
 

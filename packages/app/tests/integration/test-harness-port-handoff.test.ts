@@ -4,10 +4,8 @@ import { afterEach, expect, test, vi } from 'vitest';
 
 let createdServer: { destroy: () => Promise<unknown> } | undefined;
 
-vi.mock('@inkeep/open-knowledge-server', async () => {
-  const actual = await vi.importActual<typeof import('@inkeep/open-knowledge-server')>(
-    '@inkeep/open-knowledge-server',
-  );
+vi.mock('@gitquire/server', async () => {
+  const actual = await vi.importActual<typeof import('@gitquire/server')>('@gitquire/server');
   return {
     ...actual,
     createServer: (...args: Parameters<typeof actual.createServer>) => {

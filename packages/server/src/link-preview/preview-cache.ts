@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { type LinkPreviewMetadata, LinkPreviewMetadataSchema } from '@inkeep/open-knowledge-core';
+import { type LinkPreviewMetadata, LinkPreviewMetadataSchema } from '@gitquire/core';
 import {
   tracedMkdir,
   tracedRename,

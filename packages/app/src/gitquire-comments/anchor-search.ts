@@ -1,11 +1,11 @@
-import { commentLeafText, commentQuoteText } from '@inkeep/open-knowledge-core/comments/leaf-text';
+import { commentLeafText, commentQuoteText } from '@gitquire/core/comments/leaf-text';
 import {
   contextEvidenceFloor,
   contextMatchScore,
   findAllPassages,
   type PassageMatch,
   rewriteCeiling,
-} from '@inkeep/open-knowledge-core/comments/passage-match';
+} from '@gitquire/core/comments/passage-match';
 import type { Node as PMNode } from '@tiptap/pm/model';
 
 interface TextIndex {

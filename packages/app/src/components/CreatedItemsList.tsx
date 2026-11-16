@@ -1,4 +1,4 @@
-import type { LintPluginId } from '@inkeep/open-knowledge-core/markdown/lint';
+import type { LintPluginId } from '@gitquire/core/markdown/lint';
 import { plural } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { File, Folder, type LucideIcon, Puzzle } from 'lucide-react';

@@ -1,11 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
-import { isDevChannel } from '@inkeep/open-knowledge-core/constants/product';
+import { isDevChannel } from '@gitquire/core/constants/product';
 import {
   ASSET_EXTENSIONS,
   EXECUTABLE_BLOCKLIST_EXTENSIONS,
   INLINE_RENDERABLE_EXTENSIONS,
-} from '@inkeep/open-knowledge-core/constants/upload';
+} from '@gitquire/core/constants/upload';
 import {
   buildIngressPolicy,
   createAssetServeMiddleware,
@@ -15,7 +15,7 @@ import {
   makeLazyEmbeddingsKeyStore,
   releaseServerLock,
   updateServerLockPort,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import sirv from 'sirv';
 import type { Plugin, ViteDevServer } from 'vite';
 import type { WebSocketServer } from 'ws';

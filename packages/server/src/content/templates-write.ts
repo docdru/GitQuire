@@ -16,8 +16,8 @@ import {
   TEMPLATE_NAME_RULE,
   type TemplateIdentity,
   unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { atomicTempPath } from '@gitquire/core/server';
 import { validateSubstitution } from './substitution.ts';
 
 type TemplateWriteResult =

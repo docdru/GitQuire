@@ -5,7 +5,7 @@ import {
   type NamingRule,
   parseNamingRule,
   titleSeed,
-} from '@inkeep/open-knowledge-core/gitquire/naming';
+} from '@gitquire/core/gitquire/naming';
 
 type Env = Readonly<Record<string, string | undefined>>;
 

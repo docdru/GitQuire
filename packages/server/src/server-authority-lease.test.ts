@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { SERVER_AUTHORITY_LEASES_DIRNAME } from '@inkeep/open-knowledge-core';
+import { SERVER_AUTHORITY_LEASES_DIRNAME } from '@gitquire/core';
 import { afterEach, expect, test, vi } from 'vitest';
 import * as fsTraced from './fs-traced.ts';
 import {

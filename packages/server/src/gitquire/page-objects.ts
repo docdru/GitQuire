@@ -1,5 +1,5 @@
-import { parseFrontmatterRecord, stripFrontmatter } from '@inkeep/open-knowledge-core';
-import { pageTextWithoutComments } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { parseFrontmatterRecord, stripFrontmatter } from '@gitquire/core';
+import { pageTextWithoutComments } from '@gitquire/core/gitquire/comment-threads';
 import { docNameForPath, type ScannedPage } from './page-scan.ts';
 
 const MAX_KEYS = 50;

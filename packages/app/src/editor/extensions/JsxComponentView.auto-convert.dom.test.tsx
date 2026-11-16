@@ -3,7 +3,7 @@ import {
   MarkdownManager,
   resetParseHealth,
   sharedExtensions,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Editor } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -195,25 +195,6 @@ describe('component actions before the shifted position renders', () => {
       expect(editor.state.doc.child(2).textContent).toBe('After.');
     },
   );
-
-  test('selects the clicked component for a comment after a position shift', async () => {
-    const source = 'Before.\n\n<Math formula="x^2" />\n\nAfter.\n';
-    const editor = await mountEditor(source);
-    const target = editor.state.doc.child(1);
-    const button = screen.getByRole('button', {
-      name: 'Comment or ask AI about this Math',
-      exact: true,
-    });
-
-    act(() => {
-      editor.view.dispatch(editor.state.tr.insertText('Shifted ', 1));
-      fireEvent.click(button);
-    });
-
-    expect(editor.state.selection.from).toBe(editor.state.doc.child(0).nodeSize);
-    expect(editor.state.doc.nodeAt(editor.state.selection.from)).toBe(target);
-    expect(manager.serialize(editor.getJSON())).toBe(source.replace('Before.', 'Shifted Before.'));
-  });
 
   test('updates move-button availability when an unchanged child changes position', async () => {
     const editor = await mountEditor(

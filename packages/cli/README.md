@@ -1,42 +1,39 @@
-# @inkeep/open-knowledge
+# @gitquire/cli
 
-[OpenKnowledge](https://openknowledge.ai) is a local-first, agent-friendly Markdown knowledge base with a rich editor. It is available as a desktop app for **macOS, Windows, and Linux**, or as the same local web app served from your terminal.
+The GitQuire command line: the self-hosted server and the web app GitQuire serves, plus commands for working on a project (`init`, `sync`, `lint`, `comments convert`, …). It installs two names for the same command, `gq` and `gitquire`. The old names `ok` and `open-knowledge` still work for now and print a notice.
 
-This package installs the cross-platform `ok` / `open-knowledge` CLI and bundles the web app. Use it on Linux, Windows, macOS, an Intel Mac, or a server. The macOS desktop app currently requires Apple silicon, so Intel Mac users should use this CLI and the web app.
+This package is not published to npm. It ships inside GitQuire's Docker image (`ghcr.io/docdru/gitquire`); see [DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md).
 
-## Install
+## Install from a checkout
 
 ```bash
-npm install -g @inkeep/open-knowledge
+git clone https://github.com/docdru/GitQuire.git
+cd GitQuire
+pnpm install
+pnpm exec turbo run build --filter=@gitquire/cli
+cd packages/cli && pnpm pack && npm install -g ./gitquire-cli-*.tgz
 ```
 
-Requires [Node.js 24+](https://nodejs.org) and Git.
+Requires [Node.js 24+](https://nodejs.org), pnpm and Git.
 
-To remove it from a project, delete the project's `.ok/` folder.
+To remove GitQuire from a project, delete the project's `.ok/` folder.
 
 ## Quick start
 
 ```bash
 cd your-project
-ok init          # scaffold .ok/
-ok start         # serve the editor and open it in your browser
+gq init          # scaffold .ok/
+gq start         # serve the editor and open it in your browser
 ```
 
-- `ok init` — turn a folder into an OpenKnowledge project.
-- `ok start` — run the local server and web editor, then open it in your browser.
-- `ok --help` — list every command.
-
-## Desktop app
-
-For the native desktop experience, [download OpenKnowledge](https://openknowledge.ai/download) for macOS, Windows, or Linux.
+- `gq init` — turn a folder into a GitQuire project.
+- `gq start` — run the local server and web editor, then open it in your browser.
+- `gq --help` — list every command.
 
 ## Documentation
 
-Full docs, integrations, and configuration: <https://openknowledge.ai/docs>.
-
-- [CLI and web app guide](https://openknowledge.ai/docs/reference/cli)
-- [Quickstart](https://openknowledge.ai/docs/get-started/quickstart)
+<https://docdru.github.io/GitQuire/docs>, in particular the [CLI and web app guide](https://docdru.github.io/GitQuire/docs/reference/cli).
 
 ## License
 
-[GPL-3.0-or-later](https://github.com/inkeep/open-knowledge/blob/main/LICENSE).
+[GPL-3.0-or-later](https://github.com/docdru/GitQuire/blob/main/LICENSE). GitQuire started as a fork of [OpenKnowledge](https://github.com/inkeep/open-knowledge) by Inkeep, Inc.

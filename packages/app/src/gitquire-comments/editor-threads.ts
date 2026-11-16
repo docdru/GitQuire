@@ -1,13 +1,13 @@
-import { commentQuoteText } from '@inkeep/open-knowledge-core/comments/leaf-text';
+import { commentQuoteText } from '@gitquire/core/comments/leaf-text';
 import {
   ALLOW_COMMENT_TRAILER_REMOVAL,
   GITQUIRE_COMMENT_MARK_NODE,
   GITQUIRE_COMMENTS_NODE,
-} from '@inkeep/open-knowledge-core/extensions/gitquire-comments';
+} from '@gitquire/core/extensions/gitquire-comments';
 import {
   parseCommentTrailer,
   serializeCommentTrailer,
-} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+} from '@gitquire/core/gitquire/comment-threads';
 import type { Node as PMNode } from '@tiptap/pm/model';
 import type { EditorState, Transaction } from '@tiptap/pm/state';
 import { captureSelectionContext, createAnchorResolver } from './anchor-search';

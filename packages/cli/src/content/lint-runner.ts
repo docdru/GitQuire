@@ -11,8 +11,8 @@ import {
   lintDocument,
   SUPPORTED_DOC_EXTENSIONS,
   summarizeLintPluginFailures,
-} from '@inkeep/open-knowledge-core';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { atomicTempPath } from '@gitquire/core/server';
 import {
   type AuditScope,
   composeEffectiveLinterConfig,
@@ -20,7 +20,7 @@ import {
   createContentFilter,
   resolveAuditScope,
   resolveNativeConfigForDoc,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 
 interface FileLintResult {
   file: string;

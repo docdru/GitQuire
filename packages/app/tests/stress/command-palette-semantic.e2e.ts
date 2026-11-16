@@ -1,4 +1,4 @@
-import type { SemanticIndexStatus } from '@inkeep/open-knowledge-core';
+import type { SemanticIndexStatus } from '@gitquire/core';
 import type { Page } from '@playwright/test';
 import { expect, test } from './_helpers';
 

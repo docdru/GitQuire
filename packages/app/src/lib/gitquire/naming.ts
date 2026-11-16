@@ -1,8 +1,4 @@
-import {
-  type NamingRule,
-  parseNamingRule,
-  slugifySegment,
-} from '@inkeep/open-knowledge-core/gitquire/naming';
+import { type NamingRule, parseNamingRule, slugifySegment } from '@gitquire/core/gitquire/naming';
 
 interface NamingResponse {
   rule?: unknown;

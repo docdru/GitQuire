@@ -1,4 +1,4 @@
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 import { resolveLockDir } from '../../config/paths.ts';
 import { lockBaseUrl } from '../../process-lock.ts';
 import { lockAdvertisesUi, readServerLock } from '../../server-lock.ts';

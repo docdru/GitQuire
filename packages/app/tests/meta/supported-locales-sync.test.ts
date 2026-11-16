@@ -1,4 +1,4 @@
-import { PICKER_LOCALES, SUPPORTED_LOCALES } from '@inkeep/open-knowledge-core';
+import { PICKER_LOCALES, SUPPORTED_LOCALES } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import linguiConfig from '../../lingui.config';
 import appPackage from '../../package.json';

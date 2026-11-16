@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { LintPluginId } from '@inkeep/open-knowledge-core';
+import type { LintPluginId } from '@gitquire/core';
 import { parseDocument } from 'yaml';
 import { tracedWriteFileSync } from '../fs-traced.ts';
 import { CONFIG_FILENAME } from '../init-project.ts';

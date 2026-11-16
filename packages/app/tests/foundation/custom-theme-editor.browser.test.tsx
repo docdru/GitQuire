@@ -1,7 +1,4 @@
-import {
-  bindConfigDoc,
-  type ConfigBinding,
-} from '@inkeep/open-knowledge-core/config/bind-config-doc';
+import { bindConfigDoc, type ConfigBinding } from '@gitquire/core/config/bind-config-doc';
 import { type RenderResult, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

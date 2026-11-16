@@ -1,4 +1,4 @@
-import { shellSingleQuote } from '@inkeep/open-knowledge-core';
+import { shellSingleQuote } from '@gitquire/core';
 import { detectGh } from './gh-detect.ts';
 import type { TokenStore } from './token-store.ts';
 
@@ -48,7 +48,7 @@ export async function resolveAuth(
     options?: { login?: string },
   ) => ReturnType<typeof detectGh> = detectGh,
 ): Promise<ResolvedAuth> {
-  const selfHelper = buildCliCredentialHelper(options.selfCliArgs ?? ['open-knowledge']);
+  const selfHelper = buildCliCredentialHelper(options.selfCliArgs ?? ['gitquire']);
   const authenticatedConfig = ['credential.helper=', selfHelper];
 
   if (!options.skipGhDetect) {

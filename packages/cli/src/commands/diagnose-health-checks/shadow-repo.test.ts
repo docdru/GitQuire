@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { MalformedGitPointerError } from '@inkeep/open-knowledge-server';
+import { MalformedGitPointerError } from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { makeShadowRepoCheck } from './shadow-repo.ts';
 
@@ -27,7 +27,7 @@ describe('shadow-repo check', () => {
     const result = await def.run({ cwd });
     expect(result.status).toBe('warn');
     expect(result.summary).toContain('no .git/');
-    expect(result.remediation).toContain('ok start');
+    expect(result.remediation).toContain('gq start');
   });
 
   test('warns when shadow dir is not yet initialized', async () => {
@@ -59,7 +59,7 @@ describe('shadow-repo check', () => {
   test('passes when shadow dir exists and HEAD is readable', async () => {
     const cwd = makeProject();
     mkdirSync(join(cwd, '.git'), { recursive: true });
-    const shadowDir = join(cwd, '.git', 'ok');
+    const shadowDir = join(cwd, '.git', 'gq');
     mkdirSync(shadowDir, { recursive: true });
     writeFileSync(join(shadowDir, 'HEAD'), 'ref: refs/wip/local/main\n');
 
@@ -74,7 +74,7 @@ describe('shadow-repo check', () => {
   test('fails when HEAD is missing', async () => {
     const cwd = makeProject();
     mkdirSync(join(cwd, '.git'), { recursive: true });
-    const shadowDir = join(cwd, '.git', 'ok');
+    const shadowDir = join(cwd, '.git', 'gq');
     mkdirSync(shadowDir, { recursive: true });
 
     const def = makeShadowRepoCheck({
@@ -90,8 +90,8 @@ describe('shadow-repo remediation names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: both uninitialized states name %s start', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const remediation = `Run \`${command} start\` once to initialize the shadow repo.`;

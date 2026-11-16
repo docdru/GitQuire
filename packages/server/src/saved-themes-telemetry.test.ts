@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { BASE16_SLOTS, type Base16Scheme } from '@inkeep/open-knowledge-core';
+import { BASE16_SLOTS, type Base16Scheme } from '@gitquire/core';
 import { metrics } from '@opentelemetry/api';
 import {
   AggregationTemporality,

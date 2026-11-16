@@ -1,6 +1,5 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { Document, Hocuspocus } from '@hocuspocus/server';
 import {
   CONFIG_DOC_NAME_OKIGNORE,
   EmptyRequestSchema,
@@ -8,7 +7,8 @@ import {
   TestRescanBacklinksSuccessSchema,
   TestRescanFilesSuccessSchema,
   TestResetSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Document, Hocuspocus } from '@hocuspocus/server';
 import type { AgentPresenceBroadcaster } from '../agent-presence.ts';
 import type { AgentSessionManager } from '../agent-sessions.ts';
 import { isConfigDoc, isSystemDoc } from '../cc1-broadcast.ts';

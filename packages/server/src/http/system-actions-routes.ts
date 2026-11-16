@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { ClientLogsRequestSchema, ClientLogsSuccessSchema } from '@inkeep/open-knowledge-core';
+import { ClientLogsRequestSchema, ClientLogsSuccessSchema } from '@gitquire/core';
 import { getIngressContext } from '../ingress-policy.ts';
 import { getLogger } from '../logger.ts';
 import { type ApiRouteGroup, createApiRouteGroup } from './api-pipeline.ts';

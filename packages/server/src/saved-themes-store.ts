@@ -17,8 +17,8 @@ import {
   parseBase16Scheme,
   SAVED_THEMES_DIRNAME,
   type SavedThemeIdError,
-} from '@inkeep/open-knowledge-core';
-import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { okUserHomeDir } from '@gitquire/core/server';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
 import {

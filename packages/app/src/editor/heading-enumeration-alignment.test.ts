@@ -1,5 +1,5 @@
 import { EditorState } from '@codemirror/state';
-import { extractHeadings } from '@inkeep/open-knowledge-server';
+import { extractHeadings } from '@gitquire/server';
 import { describe, expect, test } from 'vitest';
 import { type SourceHeadingLine, sourceHeadingLines } from './source-heading-lines';
 

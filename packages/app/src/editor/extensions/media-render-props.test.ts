@@ -96,7 +96,7 @@ describe('normalizeDocRelativeMediaRenderProps', () => {
 
 describe('JSX src-ref registry ↔ render-prop normalization parity', () => {
   test("every registry row's resolution matches the renderer's doc-relative set", async () => {
-    const { JSX_SRC_REF_TAGS } = await import('@inkeep/open-knowledge-core');
+    const { JSX_SRC_REF_TAGS } = await import('@gitquire/core');
     const { DOC_RELATIVE_SRC_COMPONENTS } = await import('./media-render-props.ts');
     for (const spec of JSX_SRC_REF_TAGS) {
       const rendererResolvesDocRelative = DOC_RELATIVE_SRC_COMPONENTS.has(spec.tagName);

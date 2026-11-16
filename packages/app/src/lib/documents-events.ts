@@ -1,4 +1,4 @@
-import { DerivedViewChannelSchema } from '@inkeep/open-knowledge-core/schemas/cc1';
+import { DerivedViewChannelSchema } from '@gitquire/core/schemas/cc1';
 import type { DerivedViewChannel } from '@/lib/cc1';
 
 const DOCUMENTS_CHANGED_EVENT = 'open-knowledge:documents-changed';

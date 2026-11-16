@@ -1,4 +1,4 @@
-import { OkCliCommand } from '@inkeep/open-knowledge-core';
+import { OkCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runPatSubprocess } from './auth-pat.ts';
 

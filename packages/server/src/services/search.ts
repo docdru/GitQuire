@@ -18,7 +18,7 @@ import {
   type WorkspaceSearchResult,
   type WorkspaceSearchScope,
   type WorkspaceSemanticInput,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { isConfigDoc, isSystemDoc } from '../cc1-broadcast.ts';
 import { recordSemanticQuery } from '../embeddings/embeddings-telemetry.ts';
 import { SEMANTIC_MIN_QUERY_LENGTH, type SemanticSearchService } from '../embeddings/index.ts';

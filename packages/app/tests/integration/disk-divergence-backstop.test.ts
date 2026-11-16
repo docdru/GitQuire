@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { getMetrics } from '@inkeep/open-knowledge-server';
+import { getMetrics } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   agentWriteMd,

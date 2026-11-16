@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { getLocalDir } from '@inkeep/open-knowledge-server';
+import { getLocalDir } from '@gitquire/server';
 import type { Config } from './schema.ts';
 
 export function resolveContentDir(config: Config, cwd: string): string {

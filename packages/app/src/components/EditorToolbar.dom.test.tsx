@@ -1,4 +1,4 @@
-import { isEditableTextDocFile, type LintDiagnostic } from '@inkeep/open-knowledge-core';
+import { isEditableTextDocFile, type LintDiagnostic } from '@gitquire/core';
 import * as actualLinguiMacro from '@lingui/react/macro';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

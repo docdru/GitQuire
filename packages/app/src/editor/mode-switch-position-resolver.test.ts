@@ -3,7 +3,7 @@ import {
   MIN_CARRIED_TRAILING_EMPTIES,
   sharedExtensions,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import { commonmark } from 'commonmark.json';

@@ -6,7 +6,7 @@
 
 import type { Server as HttpServer, IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';
-import { defaultScheduler, type Scheduler } from '@inkeep/open-knowledge-core';
+import { defaultScheduler, type Scheduler } from '@gitquire/core';
 import type { PinoLogger } from './logger.ts';
 
 const DEFAULT_WARN_BEFORE_MS = 5 * 60 * 1000;

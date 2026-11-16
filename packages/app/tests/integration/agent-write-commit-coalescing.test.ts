@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { parseWriterId, resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { parseWriterId, resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, describe, expect, test } from 'vitest';
 import { agentWriteMd, createTestServer, type TestServer } from './test-harness';
 

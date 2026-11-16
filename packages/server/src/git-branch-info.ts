@@ -1,4 +1,4 @@
-import { isValidBranchName } from '@inkeep/open-knowledge-core';
+import { isValidBranchName } from '@gitquire/core';
 import { truncateError } from './error-format.ts';
 import { type DirtyOverlapResult, dirtyFilesOverlapWith } from './git-dirty.ts';
 import { createGitInstance } from './git-handle.ts';

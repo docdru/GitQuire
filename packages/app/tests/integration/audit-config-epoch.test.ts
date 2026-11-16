@@ -1,11 +1,11 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   bindConfigDoc,
   CONFIG_DOC_NAME_PROJECT,
   ValidationAuditResponseSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { type AuditBarrier, pauseAuditAtDocument } from './audit-barrier.test-helper.ts';

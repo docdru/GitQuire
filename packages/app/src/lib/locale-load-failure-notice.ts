@@ -1,4 +1,4 @@
-import type { SupportedLocale } from '@inkeep/open-knowledge-core/i18n/locales';
+import type { SupportedLocale } from '@gitquire/core/i18n/locales';
 import { t } from '@lingui/core/macro';
 import { toast } from 'sonner';
 import { i18n } from './i18n';

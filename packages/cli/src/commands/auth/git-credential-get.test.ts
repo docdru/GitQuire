@@ -110,7 +110,7 @@ describe('handleCredentialGet', () => {
     expect(result()).toBe('username=alice\npassword=gho_abc\n');
   });
 
-  test('serves the credential that ok auth token stored for a non-GitHub host', async () => {
+  test('serves the credential that gq auth token stored for a non-GitHub host', async () => {
     const store = makeStore(tmpDir);
     const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     try {

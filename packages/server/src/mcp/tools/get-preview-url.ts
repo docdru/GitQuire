@@ -1,6 +1,6 @@
 import { isAbsolute } from 'node:path';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
-import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+import { currentCliCommandName } from '@gitquire/core';
+import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { z } from 'zod';
 import { AutoStartDisabledError } from '../../autostart.ts';
 import { resolveLockDir } from '../../config/paths.ts';

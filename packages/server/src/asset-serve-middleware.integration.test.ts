@@ -8,7 +8,7 @@ import {
   createTargetNamespace,
   EXECUTABLE_BLOCKLIST_EXTENSIONS,
   INLINE_RENDERABLE_EXTENSIONS,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import sirv from 'sirv';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { createAssetServeMiddleware } from './asset-serve-middleware.ts';

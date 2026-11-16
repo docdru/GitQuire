@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import type { BridgeMergeContentLossWhich } from '@inkeep/open-knowledge-core';
+import type { BridgeMergeContentLossWhich } from '@gitquire/core';
 import { z } from 'zod';
 import { getLogger } from './logger.ts';
 import { RotatingAppender } from './telemetry-file-sink.ts';

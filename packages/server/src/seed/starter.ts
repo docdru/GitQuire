@@ -1,4 +1,4 @@
-import type { LintPluginId } from '@inkeep/open-knowledge-core';
+import type { LintPluginId } from '@gitquire/core';
 
 export type PackId =
   | 'knowledge-base'

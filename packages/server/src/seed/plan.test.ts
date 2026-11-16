@@ -36,11 +36,11 @@ describe('planSeed — nested .ok/ era', () => {
     try {
       vi.stubEnv('OK_CHANNEL', 'stable');
       await expect(planSeed({ projectDir: bare })).rejects.toThrow(
-        'Run `ok init` first to scaffold the tool config.',
+        'Run `gq init` first to scaffold the tool config.',
       );
       vi.stubEnv('OK_CHANNEL', 'beta');
       await expect(planSeed({ projectDir: bare })).rejects.toThrow(
-        'Run `ok-beta init` first to scaffold the tool config.',
+        'Run `gq-beta init` first to scaffold the tool config.',
       );
     } finally {
       vi.unstubAllEnvs();

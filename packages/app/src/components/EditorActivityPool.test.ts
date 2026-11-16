@@ -1,4 +1,4 @@
-import { SYSTEM_DOC_NAME } from '@inkeep/open-knowledge-core';
+import { SYSTEM_DOC_NAME } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   ACTIVITY_MOUNT_LIMIT,

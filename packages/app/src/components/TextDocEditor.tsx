@@ -6,12 +6,12 @@
 import { type Language, syntaxHighlighting } from '@codemirror/language';
 import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import type { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   codeLanguageForExtension,
   EDITABLE_TEXT_EXTRA_LANGUAGE,
-} from '@inkeep/open-knowledge-core/constants/code-languages';
-import { extensionOf } from '@inkeep/open-knowledge-core/utils/extension';
+} from '@gitquire/core/constants/code-languages';
+import { extensionOf } from '@gitquire/core/utils/extension';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
 import { useLingui } from '@lingui/react/macro';
 import { basicSetup } from 'codemirror';
 import { useTheme } from 'next-themes';

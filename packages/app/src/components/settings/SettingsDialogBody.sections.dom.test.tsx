@@ -48,6 +48,10 @@ let publishDialogProps: Array<{ open: boolean }> = [];
 
 import * as actualLinguiMacro from '@lingui/react/macro';
 
+vi.mock('@/lib/gitquire/personal-git-credentials', () => ({
+  PERSONAL_GIT_CREDENTIALS_ENABLED: true,
+}));
+
 vi.doMock('@lingui/react/macro', () => ({
   ...actualLinguiMacro,
   Plural: ({ value, one, other }: { value: number; one: string; other: string }) => (
@@ -379,7 +383,7 @@ describe('SettingsDialogBody section runtime dispatch', () => {
   });
 
   test('the Account page mounts the Enterprise hosts card from the user binding', async () => {
-    const { bindConfigDoc } = await import('@inkeep/open-knowledge-core');
+    const { bindConfigDoc } = await import('@gitquire/core');
     const { Doc } = await import('yjs');
     const listeners = new Set<() => void>();
     const binding = bindConfigDoc(

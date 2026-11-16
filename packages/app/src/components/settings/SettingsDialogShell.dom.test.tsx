@@ -1,5 +1,5 @@
-import type { ConfigBinding, OkignoreBinding } from '@inkeep/open-knowledge-core';
-import type { DocNoticeWire } from '@inkeep/open-knowledge-core/schemas/api';
+import type { ConfigBinding, OkignoreBinding } from '@gitquire/core';
+import type { DocNoticeWire } from '@gitquire/core/schemas/api';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -66,8 +66,8 @@ let mockMerged: unknown = null;
 
 const servedCore = createServedBindingLog();
 
-vi.doMock('@inkeep/open-knowledge-core/markdown/lint', () =>
-  servedCore.serve('@inkeep/open-knowledge-core/markdown/lint', {
+vi.doMock('@gitquire/core/markdown/lint', () =>
+  servedCore.serve('@gitquire/core/markdown/lint', {
     MARKDOWNLINT_RULE_CATALOG: [],
   }),
 );
@@ -240,9 +240,9 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     expect(screen.getByText('Slidev')).toBeTruthy();
   });
 
-  test('has a per-scope Plugins manage item under both User and This project', () => {
+  test('has a Plugins manage item for the project only, with personal plugins listed directly', () => {
     render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
-    expect(screen.getByTestId('settings-sidebar-item-user-plugins-manage')).toBeTruthy();
+    expect(screen.queryByTestId('settings-sidebar-item-user-plugins-manage')).toBeNull();
     expect(screen.getByTestId('settings-sidebar-item-plugins-manage')).toBeTruthy();
     expect(screen.getByTestId('settings-sidebar-item-plugin:markdownlint')).toBeTruthy();
     expect(screen.getByTestId('settings-sidebar-item-plugin:theme')).toBeTruthy();
@@ -348,11 +348,7 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     });
     expect(screen.queryByTestId('settings-search-result-rule:MD013')).toBeNull();
     expect(
-      servedCore.readersOf(
-        '@inkeep/open-knowledge-core/markdown/lint',
-        'MARKDOWNLINT_RULE_CATALOG',
-        since,
-      ),
+      servedCore.readersOf('@gitquire/core/markdown/lint', 'MARKDOWNLINT_RULE_CATALOG', since),
     ).toEqual(['components/settings/settings-search-index.ts']);
   });
 });

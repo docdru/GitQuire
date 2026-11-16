@@ -6,7 +6,7 @@ description: The markdownlint linter for content rules — VS Code-parity defaul
 
 markdownlint is the content-rules linter for markdown style — the standard [markdownlint](https://github.com/DavidAnson/markdownlint) engine, the same one behind `markdownlint-cli2` and the popular editor extensions.
 
-This page covers its defaults, how it reads your project's config, and the built-in rule browser. For the linter-agnostic parts — where problems appear, the Problems panel, `ok lint`, and agent advisories — see the [content rules overview](/docs/advanced/content-rules/overview). For validating frontmatter rather than markdown style, see [Frontmatter schemas](/docs/advanced/content-rules/frontmatter).
+This page covers its defaults, how it reads your project's config, and the built-in rule browser. For the linter-agnostic parts — where problems appear, the Problems panel, `gq lint`, and agent advisories — see the [content rules overview](/docs/advanced/content-rules/overview). For validating frontmatter rather than markdown style, see [Frontmatter schemas](/docs/advanced/content-rules/frontmatter).
 
 ## Default rules
 
@@ -39,14 +39,14 @@ Every edit writes back to your native `.markdownlint.*` file, and a rule you con
 
 ## What a finding looks like
 
-A markdownlint finding carries the rule id as its `code` under source `markdownlint` — rendered as `markdownlint/MD010` in reports — with the upstream engine's message. In `ok lint` text output:
+A markdownlint finding carries the rule id as its `code` under source `markdownlint` — rendered as `markdownlint/MD010` in reports — with the upstream engine's message. In `gq lint` text output:
 
 ```text
 docs/guide.md
   7:5     warning  Hard tabs: Column: 5  markdownlint/MD010
 ```
 
-And as a diagnostic in `ok lint --json` (or the MCP `lint` tool's structured content), where an auto-fixable rule also carries its `fixes` — the exact text edits `--fix` or the editor's **Fix** action would apply:
+And as a diagnostic in `gq lint --json` (or the MCP `lint` tool's structured content), where an auto-fixable rule also carries its `fixes` — the exact text edits `--fix` or the editor's **Fix** action would apply:
 
 ```json
 {
@@ -65,12 +65,12 @@ JSON ranges are 0-based and end-exclusive; the text report is 1-based. A rule th
 
 ## Auto-fix and severities
 
-- **Auto-fix covers only some rules.** markdownlint can mechanically fix problems like hard tabs, trailing whitespace, list-marker style, and blank-line spacing — but not ones that need a human decision, such as inline HTML (`MD033`) or a missing top-level heading (`MD041`). In source mode the **Fix** action appears only on a problem markdownlint can fix; the Problems panel offers **Fix all** to apply every fixable problem in the current scope at once; and `ok lint --fix` does the same across the whole project. Whatever's left is still reported, untouched — no affordance resolves the rules that need a human decision.
-- **Severities.** A rule reports as a warning unless your config promotes it to `"error"`. Set `"error"` as the rule's value or via a `severity` key, then gate CI on just those rules with `ok lint --errors-only`.
+- **Auto-fix covers only some rules.** markdownlint can mechanically fix problems like hard tabs, trailing whitespace, list-marker style, and blank-line spacing — but not ones that need a human decision, such as inline HTML (`MD033`) or a missing top-level heading (`MD041`). In source mode the **Fix** action appears only on a problem markdownlint can fix; the Problems panel offers **Fix all** to apply every fixable problem in the current scope at once; and `gq lint --fix` does the same across the whole project. Whatever's left is still reported, untouched — no affordance resolves the rules that need a human decision.
+- **Severities.** A rule reports as a warning unless your config promotes it to `"error"`. Set `"error"` as the rule's value or via a `severity` key, then gate CI on just those rules with `gq lint --errors-only`.
 
 ## See also
 
-- [Content rules overview](/docs/advanced/content-rules/overview): where problems show up, the Problems panel, `ok lint`, and agents
+- [Content rules overview](/docs/advanced/content-rules/overview): where problems show up, the Problems panel, `gq lint`, and agents
 - [Frontmatter schemas](/docs/advanced/content-rules/frontmatter): the sibling linter for frontmatter validation
 - [Configuration reference](/docs/reference/configuration): `config.yml` and what's shared via git
 - [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md): the upstream rule reference

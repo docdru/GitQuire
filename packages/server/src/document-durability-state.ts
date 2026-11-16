@@ -1,8 +1,8 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { currentCliCommandName, type ReconcileMergeOutcome } from '@inkeep/open-knowledge-core';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+import { currentCliCommandName, type ReconcileMergeOutcome } from '@gitquire/core';
+import { atomicTempPath } from '@gitquire/core/server';
 import { type Doc, getState } from 'yjs';
 import { type DiskReceipt, DiskReceiptLog, type FileObservation } from './disk-receipts.ts';
 import {

@@ -10,8 +10,8 @@ export type {
   readFmRegionWithError,
   SynthesisedConflictRegion,
   synthesiseConflictMarkersWithRegions,
-} from '@inkeep/open-knowledge-core/bridge';
-export type { isSurfacedCheckpointKind } from '@inkeep/open-knowledge-core/checkpoint-kinds';
+} from '@gitquire/core/bridge';
+export type { isSurfacedCheckpointKind } from '@gitquire/core/checkpoint-kinds';
 export type {
   CLIENT_RUNTIME_VERSION_FALLBACK,
   CLIENT_SURFACE_ATTRIBUTE,
@@ -22,24 +22,24 @@ export type {
   clientVersionTokenFields,
   deriveClientSurface,
   readClientSurface,
-} from '@inkeep/open-knowledge-core/client-version';
+} from '@gitquire/core/client-version';
 export type {
   COMMAND_IDENTITIES,
   CommandContext,
   CommandIdentity,
   evaluateCommandAvailability,
-} from '@inkeep/open-knowledge-core/commands/command-identity';
+} from '@gitquire/core/commands/command-identity';
 export type {
   commentLeafText,
   commentQuoteText,
-} from '@inkeep/open-knowledge-core/comments/leaf-text';
+} from '@gitquire/core/comments/leaf-text';
 export type {
   contextEvidenceFloor,
   contextMatchScore,
   findAllPassages,
   PassageMatch,
   rewriteCeiling,
-} from '@inkeep/open-knowledge-core/comments/passage-match';
+} from '@gitquire/core/comments/passage-match';
 export type {
   isSyncMode,
   modeFromCommittedDefault,
@@ -50,25 +50,25 @@ export type {
   SYNC_INTERVAL_PRESET_SECONDS,
   SyncActiveMode,
   SyncMode,
-} from '@inkeep/open-knowledge-core/config/auto-sync-mode';
+} from '@gitquire/core/config/auto-sync-mode';
 export type {
   bindConfigDoc,
   ConfigBinding,
   ConfigBindingPatchResult,
-} from '@inkeep/open-knowledge-core/config/bind-config-doc';
+} from '@gitquire/core/config/bind-config-doc';
 export type {
   bindOkignoreDoc,
   OkignoreBinding,
-} from '@inkeep/open-knowledge-core/config/bind-okignore-doc';
+} from '@gitquire/core/config/bind-okignore-doc';
 export type {
   ConfigIssue,
   ConfigValidationError,
   humanFormat,
   isKnownConfigError,
   WriteScope,
-} from '@inkeep/open-knowledge-core/config/errors';
-export type { getFieldMeta } from '@inkeep/open-knowledge-core/config/field-registry';
-export type { mergeLayered } from '@inkeep/open-knowledge-core/config/merge-layered';
+} from '@gitquire/core/config/errors';
+export type { getFieldMeta } from '@gitquire/core/config/field-registry';
+export type { mergeLayered } from '@gitquire/core/config/merge-layered';
 export type {
   Config,
   ConfigPatch,
@@ -87,14 +87,14 @@ export type {
   MIN_EMBEDDINGS_MAX_BATCH_CHARS,
   MIN_EMBEDDINGS_MAX_BATCH_SIZE,
   normalizeAttachmentFolderPath,
-} from '@inkeep/open-knowledge-core/config/schema';
-export type { resolveLeafSchema } from '@inkeep/open-knowledge-core/config/schema-leaf';
+} from '@gitquire/core/config/schema';
+export type { resolveLeafSchema } from '@gitquire/core/config/schema-leaf';
 export type {
   evictStaleEntries,
   FLASH_DEBOUNCE_MS,
   FLASH_DURATION_MS,
   hasNewEntries,
-} from '@inkeep/open-knowledge-core/constants/activity';
+} from '@gitquire/core/constants/activity';
 export type {
   CC1_CONTRACT_VERSION,
   CONFIG_DOC_NAME_OKIGNORE,
@@ -108,48 +108,48 @@ export type {
   SYSTEM_DOC_NAME,
   stripMdExt,
   templateContentDocName,
-} from '@inkeep/open-knowledge-core/constants/cc1';
-export type { CHROME_BG_DARK, CHROME_BG_LIGHT } from '@inkeep/open-knowledge-core/constants/chrome';
+} from '@gitquire/core/constants/cc1';
+export type { CHROME_BG_DARK, CHROME_BG_LIGHT } from '@gitquire/core/constants/chrome';
 export type {
   codeLanguageForExtension,
   EDITABLE_TEXT_EXTRA_LANGUAGE,
   isEditableTextDocFile,
-} from '@inkeep/open-knowledge-core/constants/code-languages';
-export type { LINEAGE_EPOCH_KEY } from '@inkeep/open-knowledge-core/constants/doc-lifecycle';
+} from '@gitquire/core/constants/code-languages';
+export type { LINEAGE_EPOCH_KEY } from '@gitquire/core/constants/doc-lifecycle';
 export type {
   DOCUMENT_OPEN_BYTE_LIMIT,
   isDocumentOverOpenByteLimit,
   TEXT_DOC_OPEN_BYTE_LIMIT,
-} from '@inkeep/open-knowledge-core/constants/document-open';
+} from '@gitquire/core/constants/document-open';
 export type {
   detectEmbeddedHostFromBrowser,
   EmbeddedHost,
-} from '@inkeep/open-knowledge-core/constants/embedded-host';
-export type { normalizeGitHostname } from '@inkeep/open-knowledge-core/constants/github';
+} from '@gitquire/core/constants/embedded-host';
+export type { normalizeGitHostname } from '@gitquire/core/constants/github';
 export type {
   isOrphanMode,
   ORPHAN_MODES,
   OrphanMode,
-} from '@inkeep/open-knowledge-core/constants/graph';
+} from '@gitquire/core/constants/graph';
 export type {
   OPEN_KNOWLEDGE_DOCS_URL,
   OPEN_KNOWLEDGE_GITHUB_URL,
   OPEN_KNOWLEDGE_ISSUES_URL,
-} from '@inkeep/open-knowledge-core/constants/menu-labels';
+} from '@gitquire/core/constants/menu-labels';
 export type {
   OK_USER_HOME_AUTH_FILE,
   okUserHomeDisplayPath,
-} from '@inkeep/open-knowledge-core/constants/ok-dir';
-export type { okUserHomeDir } from '@inkeep/open-knowledge-core/constants/ok-user-home';
+} from '@gitquire/core/constants/ok-dir';
+export type { okUserHomeDir } from '@gitquire/core/constants/ok-user-home';
 export type {
   PREVIEW_EMBED_STARTERS,
   PreviewEmbedStarter,
-} from '@inkeep/open-knowledge-core/constants/preview-embed-starters';
-export type { PREVIEW_THEME_TOKENS } from '@inkeep/open-knowledge-core/constants/preview-theme-tokens';
+} from '@gitquire/core/constants/preview-embed-starters';
+export type { PREVIEW_THEME_TOKENS } from '@gitquire/core/constants/preview-theme-tokens';
 export type {
   DESKTOP_PRODUCTS,
   desktopChannelLabel,
-} from '@inkeep/open-knowledge-core/constants/product';
+} from '@gitquire/core/constants/product';
 export type {
   ALLOWED_IMAGE_MIME_TYPES,
   ASSET_EXTENSIONS,
@@ -168,42 +168,42 @@ export type {
   mediaKindForSidebarAssetExtension,
   VIDEO_EXTENSIONS,
   WIKI_EMBED_EXTENSIONS,
-} from '@inkeep/open-knowledge-core/constants/upload';
-export type { CodeBlockFidelity } from '@inkeep/open-knowledge-core/extensions/code-block-fidelity';
+} from '@gitquire/core/constants/upload';
+export type { CodeBlockFidelity } from '@gitquire/core/extensions/code-block-fidelity';
 export type {
   collectFootnoteIdentifiers,
   findFootnoteDefinitionInsertPos,
   nextFootnoteIdentifier,
-} from '@inkeep/open-knowledge-core/extensions/footnote-reference';
+} from '@gitquire/core/extensions/footnote-reference';
 export type {
   FM_FENCE_LINE_RE,
   stripFrontmatter,
   unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core/extensions/frontmatter';
-export type { ImageReferenceFidelity } from '@inkeep/open-knowledge-core/extensions/image-reference-fidelity';
-export type { ImageSrcFidelity } from '@inkeep/open-knowledge-core/extensions/image-src-fidelity';
-export type { JsxComponent } from '@inkeep/open-knowledge-core/extensions/jsx-component';
-export type { JsxInline } from '@inkeep/open-knowledge-core/extensions/jsx-inline';
+} from '@gitquire/core/extensions/frontmatter';
+export type { ImageReferenceFidelity } from '@gitquire/core/extensions/image-reference-fidelity';
+export type { ImageSrcFidelity } from '@gitquire/core/extensions/image-src-fidelity';
+export type { JsxComponent } from '@gitquire/core/extensions/jsx-component';
+export type { JsxInline } from '@gitquire/core/extensions/jsx-inline';
 export type {
   isAllowedLinkUri,
   LinkFidelity,
   LinkStyle,
-} from '@inkeep/open-knowledge-core/extensions/link-fidelity';
-export type { MathInline } from '@inkeep/open-knowledge-core/extensions/math-inline';
-export type { RawMdxFallback } from '@inkeep/open-knowledge-core/extensions/raw-mdx-fallback';
-export type { sharedExtensions } from '@inkeep/open-knowledge-core/extensions/shared';
-export type { Tag } from '@inkeep/open-knowledge-core/extensions/tag';
+} from '@gitquire/core/extensions/link-fidelity';
+export type { MathInline } from '@gitquire/core/extensions/math-inline';
+export type { RawMdxFallback } from '@gitquire/core/extensions/raw-mdx-fallback';
+export type { sharedExtensions } from '@gitquire/core/extensions/shared';
+export type { Tag } from '@gitquire/core/extensions/tag';
 export type {
   getWikiLinkText,
   normalizeNullableString,
   parseWikiLink,
   WikiLink,
-} from '@inkeep/open-knowledge-core/extensions/wiki-link';
-export type { WikiLinkEmbed } from '@inkeep/open-knowledge-core/extensions/wiki-link-embed';
+} from '@gitquire/core/extensions/wiki-link';
+export type { WikiLinkEmbed } from '@gitquire/core/extensions/wiki-link-embed';
 export type {
   FrontmatterValidationError,
   fieldErrorsFromError,
-} from '@inkeep/open-knowledge-core/frontmatter/errors';
+} from '@gitquire/core/frontmatter/errors';
 export type {
   FrontmatterMap,
   FrontmatterPatch,
@@ -213,43 +213,43 @@ export type {
   inferType,
   isFrontmatterValueEmpty,
   RESERVED_FRONTMATTER_KEY,
-} from '@inkeep/open-knowledge-core/frontmatter/schema';
+} from '@gitquire/core/frontmatter/schema';
 export type {
   extractFrontmatterTags,
   FRONTMATTER_TAG_GRAMMAR_HINT,
   FRONTMATTER_TAG_VALUE_RE,
   isValidFrontmatterTagValue,
-} from '@inkeep/open-knowledge-core/frontmatter/tags';
+} from '@gitquire/core/frontmatter/tags';
 export type {
   diffFrontmatter,
   FrontmatterDelta,
   PropertyChange,
-} from '@inkeep/open-knowledge-core/frontmatter-diff';
+} from '@gitquire/core/frontmatter-diff';
 export type {
   WorktreeInventoryEntry,
   WorktreeInventoryLocation,
   WorktreeInventoryModel,
   WorktreeInventoryOpenRequest,
-} from '@inkeep/open-knowledge-core/git/worktree-inventory-model';
+} from '@gitquire/core/git/worktree-inventory-model';
 export type {
   stripRemotePrefix,
   WorktreeCreateResult,
   WorktreeSelectorEntry,
   WorktreeSelectorModel,
-} from '@inkeep/open-knowledge-core/git/worktree-selector-model';
-export type { readBrowserLanguages } from '@inkeep/open-knowledge-core/i18n/browser-locale-provider';
-export type { localeDirection } from '@inkeep/open-knowledge-core/i18n/direction';
+} from '@gitquire/core/git/worktree-selector-model';
+export type { readBrowserLanguages } from '@gitquire/core/i18n/browser-locale-provider';
+export type { localeDirection } from '@gitquire/core/i18n/direction';
 export type {
   AUTO_DETECTABLE_LOCALES,
   LanguagePreference,
   PICKER_LOCALES,
   SUPPORTED_LOCALES,
   SupportedLocale,
-} from '@inkeep/open-knowledge-core/i18n/locales';
+} from '@gitquire/core/i18n/locales';
 export type {
   FALLBACK_LOCALE,
   resolveLocale,
-} from '@inkeep/open-knowledge-core/i18n/resolve-locale';
+} from '@gitquire/core/i18n/resolve-locale';
 export type {
   BUG_REPORT_ATTACHMENT_CONTENT_TYPES,
   BUG_REPORT_ATTACHMENT_EXTENSIONS,
@@ -266,7 +266,7 @@ export type {
   OkBugReportSendResult,
   OkImageAttachmentContentType,
   ReportBundleSummary,
-} from '@inkeep/open-knowledge-core/logger-types';
+} from '@gitquire/core/logger-types';
 export type {
   LOGGER_OWNED_FIELDS,
   parseStructuredConsoleMessage,
@@ -274,18 +274,18 @@ export type {
   RENDERER_LOG_MAX_ENTRIES,
   RENDERER_LOG_MAX_MESSAGE_BYTES,
   truncateLogMessage,
-} from '@inkeep/open-knowledge-core/logging/renderer-log';
-export type { scrubSecrets } from '@inkeep/open-knowledge-core/logging/secret-scrub';
-export type { MarkdownManager } from '@inkeep/open-knowledge-core/markdown';
+} from '@gitquire/core/logging/renderer-log';
+export type { scrubSecrets } from '@gitquire/core/logging/secret-scrub';
+export type { MarkdownManager } from '@gitquire/core/markdown';
 export type {
   selectFenceChar,
   widenFenceLength,
-} from '@inkeep/open-knowledge-core/markdown/code-fence';
+} from '@gitquire/core/markdown/code-fence';
 export type {
   HtmlPayloadTooLargeError,
   htmlToMdast,
   mdastToMarkdown,
-} from '@inkeep/open-knowledge-core/markdown/html-to-mdast';
+} from '@gitquire/core/markdown/html-to-mdast';
 export type {
   AppliesToPatternSummary,
   assertNeverOkfRuleGroupId,
@@ -345,20 +345,20 @@ export type {
   ValidationDocResult,
   ValidationSourceCounts,
   ValidationSourceKey,
-} from '@inkeep/open-knowledge-core/markdown/lint';
+} from '@gitquire/core/markdown/lint';
 export type {
   markdownToHtml,
   mdastToHtml,
-} from '@inkeep/open-knowledge-core/markdown/mdast-to-html';
-export type { normalizeReferenceLabel } from '@inkeep/open-knowledge-core/markdown/reference-label';
-export type { normalizeDocRelativeAssetUrl } from '@inkeep/open-knowledge-core/markdown/resolve-image-url';
+} from '@gitquire/core/markdown/mdast-to-html';
+export type { normalizeReferenceLabel } from '@gitquire/core/markdown/reference-label';
+export type { normalizeDocRelativeAssetUrl } from '@gitquire/core/markdown/resolve-image-url';
 export type {
   isRelativeUrl,
   isSafeUrl,
   SAFE_URL_SCHEME_RE,
   SAFE_URL_SCHEMES,
-} from '@inkeep/open-knowledge-core/markdown/safe-url';
-export type { INLINE_TAG_VALUE_RE } from '@inkeep/open-knowledge-core/markdown/tag-promotion';
+} from '@gitquire/core/markdown/safe-url';
+export type { INLINE_TAG_VALUE_RE } from '@gitquire/core/markdown/tag-promotion';
 export type {
   incrementBlockGripClickSelectFailed,
   incrementJsxActionAborted,
@@ -374,13 +374,13 @@ export type {
   incrementJsxStuckCopyFailed,
   incrementJsxStuckDeleteFailed,
   JsxNodeAction,
-} from '@inkeep/open-knowledge-core/metrics/parse-health';
-export type { createRegistry } from '@inkeep/open-knowledge-core/registry';
+} from '@gitquire/core/metrics/parse-health';
+export type { createRegistry } from '@gitquire/core/registry';
 export type {
   JsxComponentMeta,
   PropDef,
   PropDefString,
-} from '@inkeep/open-knowledge-core/registry/types';
+} from '@gitquire/core/registry/types';
 export type {
   ActivityAgentHeader,
   ActivityBurst,
@@ -485,7 +485,7 @@ export type {
   UploadAssetSuccess,
   UploadAssetSuccessSchema,
   WorkspaceSuccessSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 export type {
   CC1_CHANNEL_BRANCH_SWITCHED,
   CC1_CHANNEL_CONFIG_IGNORE_NESTED_ERROR,
@@ -504,7 +504,7 @@ export type {
   CC1ServerInfoPayloadSchema,
   DerivedViewChannel,
   DerivedViewChannelSchema,
-} from '@inkeep/open-knowledge-core/schemas/cc1';
+} from '@gitquire/core/schemas/cc1';
 export type {
   createWorkspaceSearchCorpus,
   createWorkspaceSearchDocument,
@@ -514,9 +514,9 @@ export type {
   WorkspaceSearchDocument,
   WorkspaceSearchKind,
   workspaceSearchBasename,
-} from '@inkeep/open-knowledge-core/search/workspace-search';
-export type { planHasOutstandingWork } from '@inkeep/open-knowledge-core/seed-plan-work';
-export type { SyncPausedReason } from '@inkeep/open-knowledge-core/sync-paused-reason';
+} from '@gitquire/core/search/workspace-search';
+export type { planHasOutstandingWork } from '@gitquire/core/seed-plan-work';
+export type { SyncPausedReason } from '@gitquire/core/sync-paused-reason';
 export type {
   AnsiSlotName,
   BASE16_SLOT_ROLES,
@@ -534,7 +534,7 @@ export type {
   nearestReading,
   parseBase16Scheme,
   relativeLuminance,
-} from '@inkeep/open-knowledge-core/theme/base16';
+} from '@gitquire/core/theme/base16';
 export type {
   ColorThemeSelection,
   ColorThemeSelectionInput,
@@ -548,40 +548,40 @@ export type {
   resolveThemePlugin,
   THEME_PLUGINS,
   ThemePlugin,
-} from '@inkeep/open-knowledge-core/theme/theme-plugins';
+} from '@gitquire/core/theme/theme-plugins';
 export type {
   AgentFlashEntry,
   AgentPresenceEntry,
   AwarenessState,
   AwarenessUser,
   isPresenceSentinelDocName,
-} from '@inkeep/open-knowledge-core/types/awareness';
-export type { Identity } from '@inkeep/open-knowledge-core/types/identity';
-export type { Principal } from '@inkeep/open-knowledge-core/types/principal';
-export type { TimelineEntry } from '@inkeep/open-knowledge-core/types/timeline';
+} from '@gitquire/core/types/awareness';
+export type { Identity } from '@gitquire/core/types/identity';
+export type { Principal } from '@gitquire/core/types/principal';
+export type { TimelineEntry } from '@gitquire/core/types/timeline';
 export type {
   atomicWriteFile,
   atomicWriteFileSync,
-} from '@inkeep/open-knowledge-core/util/atomic-yaml-write';
+} from '@gitquire/core/util/atomic-yaml-write';
 export type {
   isHiddenDocName,
   isProjectSkillBundlePath,
-} from '@inkeep/open-knowledge-core/util/doc-name';
-export type { toDesktopAssetHref } from '@inkeep/open-knowledge-core/utils/asset-href';
+} from '@gitquire/core/util/doc-name';
+export type { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 export type {
   ChunkedInsertError,
   chunkedYTextInsert,
-} from '@inkeep/open-knowledge-core/utils/chunked-insert';
-export type { createCodeFenceTracker } from '@inkeep/open-knowledge-core/utils/code-fence-tracker';
-export type { rewriteEmbedUrl } from '@inkeep/open-knowledge-core/utils/embed-url-rewrite';
-export type { extensionOf } from '@inkeep/open-knowledge-core/utils/extension';
-export type { formatFileSize } from '@inkeep/open-knowledge-core/utils/file-size';
-export type { getGitHubStars } from '@inkeep/open-knowledge-core/utils/github-stars';
+} from '@gitquire/core/utils/chunked-insert';
+export type { createCodeFenceTracker } from '@gitquire/core/utils/code-fence-tracker';
+export type { rewriteEmbedUrl } from '@gitquire/core/utils/embed-url-rewrite';
+export type { extensionOf } from '@gitquire/core/utils/extension';
+export type { formatFileSize } from '@gitquire/core/utils/file-size';
+export type { getGitHubStars } from '@gitquire/core/utils/github-stars';
 export type {
   graphemePrefix,
   graphemeSuffix,
-} from '@inkeep/open-knowledge-core/utils/grapheme-clip';
-export type { scanHeadingLine } from '@inkeep/open-knowledge-core/utils/heading-scan';
+} from '@gitquire/core/utils/grapheme-clip';
+export type { scanHeadingLine } from '@gitquire/core/utils/heading-scan';
 export type {
   AGENT_ICON_COLORS,
   AGENT_ICON_COLORS_DARK,
@@ -593,7 +593,7 @@ export type {
   HUMAN_COLORS,
   iconFromClientName,
   SYSTEM_WRITER_DISPLAY_NAMES,
-} from '@inkeep/open-knowledge-core/utils/identity';
+} from '@gitquire/core/utils/identity';
 export type {
   assertNeverLinkTarget,
   buildRelativeMarkdownHref,
@@ -603,18 +603,18 @@ export type {
   extractAssetExtension,
   isExternalHref,
   resolveAssetProjectPath,
-} from '@inkeep/open-knowledge-core/utils/link-targets';
-export type { localIsoDate } from '@inkeep/open-knowledge-core/utils/local-iso-date';
-export type { isLoomUrl, parseLoomUrl } from '@inkeep/open-knowledge-core/utils/loom-embed';
-export type { parsePdfAnchor } from '@inkeep/open-knowledge-core/utils/pdf-anchor';
-export type { randomUUID } from '@inkeep/open-knowledge-core/utils/random-uuid';
-export type { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
+} from '@gitquire/core/utils/link-targets';
+export type { localIsoDate } from '@gitquire/core/utils/local-iso-date';
+export type { isLoomUrl, parseLoomUrl } from '@gitquire/core/utils/loom-embed';
+export type { parsePdfAnchor } from '@gitquire/core/utils/pdf-anchor';
+export type { randomUUID } from '@gitquire/core/utils/random-uuid';
+export type { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 export type {
   getHeadingSlug,
   HeadingEntry,
   toWikiLinkSlug,
   wikiLinkHref,
-} from '@inkeep/open-knowledge-core/utils/slug';
+} from '@gitquire/core/utils/slug';
 export type {
   asTargetNamespace,
   createTargetNamespace,
@@ -623,8 +623,8 @@ export type {
   resolveName,
   TargetMatch,
   TargetNamespace,
-} from '@inkeep/open-knowledge-core/utils/target-namespace';
-export type { isVimeoUrl } from '@inkeep/open-knowledge-core/utils/vimeo-embed';
+} from '@gitquire/core/utils/target-namespace';
+export type { isVimeoUrl } from '@gitquire/core/utils/vimeo-embed';
 export type {
   buildPagesByBasenameIndex,
   buildPagesBySlugIndex,
@@ -635,8 +635,8 @@ export type {
   resolveWikiLinkTarget,
   resolveWikiLinkTargetDocName,
   WikiLinkLookupIndex,
-} from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
+} from '@gitquire/core/utils/wiki-link-resolve';
 export type {
   ParsedYouTubeUrl,
   parseYouTubeUrl,
-} from '@inkeep/open-knowledge-core/utils/youtube-embed';
+} from '@gitquire/core/utils/youtube-embed';

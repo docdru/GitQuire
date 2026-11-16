@@ -1,5 +1,5 @@
-import { okUserHomeDisplayPath } from '@inkeep/open-knowledge-core';
-import { type ProcessStart, readProcessStart } from '@inkeep/open-knowledge-server';
+import { okUserHomeDisplayPath } from '@gitquire/core';
+import { type ProcessStart, readProcessStart } from '@gitquire/server';
 
 type NativeFailureKind = 'unavailable' | 'query-failed';
 

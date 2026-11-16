@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { emitToleranceFire, OK_DIR, resolveServerRuntimeConfig } from '@inkeep/open-knowledge-core';
+import { emitToleranceFire, OK_DIR, resolveServerRuntimeConfig } from '@gitquire/core';
 import { context, metrics, propagation, trace } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
@@ -85,7 +85,7 @@ describe('bootServer — MissingOkConfigError pre-listen check', () => {
     expect(e.kind).toBe('okdir');
     expect(e.projectDir).toBe(contentDir);
     expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
-    expect(e.message).toContain('Run ok init');
+    expect(e.message).toContain('Run gq init');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 
@@ -201,7 +201,7 @@ describe('bootServer — MissingOkConfigError pre-listen check', () => {
         .filter((w) => w.includes('.gitignore is missing'));
       expect(bootWarnings.length).toBe(1);
       expect(bootWarnings[0]).toContain('.ok/.gitignore');
-      expect(bootWarnings[0]).toContain('Run `ok init` to add the recommended ignore entries.');
+      expect(bootWarnings[0]).toContain('Run `gq init` to add the recommended ignore entries.');
     } finally {
       warnSpy.mockRestore();
       if (booted) await booted.destroy();

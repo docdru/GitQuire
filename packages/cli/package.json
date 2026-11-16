@@ -1,5 +1,5 @@
 {
-  "name": "@inkeep/open-knowledge",
+  "name": "@gitquire/cli",
   "version": "0.0.0-unknown",
   "description": "Local-first, agent-friendly Markdown knowledge base with a cross-platform CLI and web editor",
   "keywords": [
@@ -26,6 +26,8 @@
     }
   },
   "bin": {
+    "gitquire": "dist/cli.mjs",
+    "gq": "dist/cli.mjs",
     "open-knowledge": "dist/cli.mjs",
     "ok": "dist/cli.mjs"
   },
@@ -76,9 +78,9 @@
     "@parcel/watcher": "^2.5.6"
   },
   "devDependencies": {
-    "@inkeep/open-knowledge-app": "workspace:*",
-    "@inkeep/open-knowledge-core": "workspace:*",
-    "@inkeep/open-knowledge-server": "workspace:*",
+    "@gitquire/app": "workspace:*",
+    "@gitquire/core": "workspace:*",
+    "@gitquire/server": "workspace:*",
     "@types/node": "^24.7.0",
     "@types/yazl": "^3.3.1",
     "ajv": "^8.18.0",

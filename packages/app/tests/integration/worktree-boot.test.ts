@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSy
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { bootServer, ConfigSchema, getLogger } from '@inkeep/open-knowledge-server';
+import { bootServer, ConfigSchema, getLogger } from '@gitquire/server';
 import { context, metrics, trace } from '@opentelemetry/api';
 import {
   BasicTracerProvider,
@@ -229,8 +229,8 @@ describe('bootServer pre-listen check on main worktree (FR3)', () => {
     expect(e.name).toBe('MissingOkConfigError');
     expect(e.kind).toBe('okdir');
     expect(e.projectDir).toBe(contentDir);
-    expect(e.message).toContain('OpenKnowledge config not found at .ok/config.yml');
-    expect(e.message).toContain('Run ok init');
+    expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
+    expect(e.message).toContain('Run gq init');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 
@@ -256,7 +256,7 @@ describe('bootServer pre-listen check on main worktree (FR3)', () => {
     const e = caught as Error & { name?: string; kind?: string };
     expect(e.name).toBe('MissingOkConfigError');
     expect(e.kind).toBe('config');
-    expect(e.message).toContain('OpenKnowledge config not found at .ok/config.yml');
+    expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 });

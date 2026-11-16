@@ -1,4 +1,4 @@
-import type { MarkdownManager } from '@inkeep/open-knowledge-core/markdown';
+import type { MarkdownManager } from '@gitquire/core/markdown';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import {
   blockIndexForLine,

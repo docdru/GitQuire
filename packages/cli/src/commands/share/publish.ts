@@ -9,7 +9,7 @@ import {
   isHomeDir,
   simpleGit,
   withHiddenWindowsConsole,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Octokit } from '@octokit/rest';
 import { Command } from 'commander';
 import type { SimpleGit } from 'simple-git';

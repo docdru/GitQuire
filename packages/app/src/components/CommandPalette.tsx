@@ -7,7 +7,7 @@ import {
   classifySemanticProviderError,
   isSemanticSearchOffered,
   semanticProviderErrorBlocks,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { Check, FileText, Hash, Sparkles } from 'lucide-react';
 import {

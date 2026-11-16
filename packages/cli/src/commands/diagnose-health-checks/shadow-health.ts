@@ -1,14 +1,14 @@
 import { existsSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
-import { parseCheckpoint, resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { currentCliCommandName } from '@gitquire/core';
+import { parseCheckpoint, resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
 import {
   countShadowObjects,
   countStaleAgentWipRefs,
   countWipRefs,
   hasGcLogLatch,
   simpleGit,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import type { CheckContext, CheckDefinition, CheckResult } from './types.ts';
 
 const LOOSE_WARN = 2000;

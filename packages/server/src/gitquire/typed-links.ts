@@ -1,8 +1,5 @@
-import { resolveWikiLinkTargetDocName } from '@inkeep/open-knowledge-core';
-import type {
-  RelationLink,
-  RelationOrigin,
-} from '@inkeep/open-knowledge-core/gitquire/typed-links';
+import { resolveWikiLinkTargetDocName } from '@gitquire/core';
+import type { RelationLink, RelationOrigin } from '@gitquire/core/gitquire/typed-links';
 import { buildProjectWikiLinkLookup } from '../project-wiki-link-lookup.ts';
 import { docNameForPath, type ScannedPage } from './page-scan.ts';
 

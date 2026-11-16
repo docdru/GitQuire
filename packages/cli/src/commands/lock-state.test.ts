@@ -1,7 +1,7 @@
 import { chmodSync, writeFileSync } from 'node:fs';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
-import { machineIdFilePath, type ProcessStart } from '@inkeep/open-knowledge-server';
+import { machineIdFilePath, type ProcessStart } from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createTempDirFactory } from '../../../../test-support/temp-dir.test-helper.ts';
 import { describeLockOwnershipRefusal, inspectLock } from './lock-state.ts';
@@ -307,7 +307,7 @@ describe('inspectLock', () => {
     ).toBe('dead-pid');
   });
 
-  test('peeks do not mutate filesystem (dead pid lock remains for ok clean)', () => {
+  test('peeks do not mutate filesystem (dead pid lock remains for gq clean)', () => {
     const dir = freshLockDir();
     writeFileSync(
       join(dir, 'server.lock'),
@@ -373,10 +373,10 @@ describe('describeLockOwnershipRefusal', () => {
       ),
     ).toBe(
       `Cannot verify shutdown: the server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}. ` +
-        'If the server was started on this machine from another account, run `ok stop` as that account while it is running, or `ok clean` once it has exited. ' +
+        'If the server was started on this machine from another account, run `gq stop` as that account while it is running, or `gq clean` once it has exited. ' +
         'If it was started from this account with a different home folder, run the same command with `HOME` set to that folder. ' +
         'Otherwise run the same command on the machine that owns the lock. ' +
-        'This lock records no process start; a server started by this release records one, which lets `ok stop` confirm it from any home folder. ' +
+        'This lock records no process start; a server started by this release records one, which lets `gq stop` confirm it from any home folder. ' +
         keepTheLockUntilConfirmed,
     );
   });
@@ -386,16 +386,16 @@ describe('describeLockOwnershipRefusal', () => {
       {
         status: 'foreign-host',
         lockPath,
-        lock: { ...lock, hostname: 'evil\nRun: ok clean --all\u001b]52;c;Zm9v\u0007' },
+        lock: { ...lock, hostname: 'evil\nRun: gq clean --all\u001b]52;c;Zm9v\u0007' },
       },
       'darwin',
     );
 
     expect(text).toContain(
-      'records only the host evil\\u000aRun: ok clean --all\\u001b]52;c;Zm9v\\u0007,',
+      'records only the host evil\\u000aRun: gq clean --all\\u001b]52;c;Zm9v\\u0007,',
     );
     expect(text).toContain(
-      'If evil\\u000aRun: ok clean --all\\u001b]52;c;Zm9v\\u0007 is another machine',
+      'If evil\\u000aRun: gq clean --all\\u001b]52;c;Zm9v\\u0007 is another machine',
     );
     expect(text).not.toContain('\n');
     expect(text).not.toContain('\u001b');
@@ -418,9 +418,9 @@ describe('describeLockOwnershipRefusal', () => {
         'darwin',
       );
       expect(text).toContain(
-        'run `ok-beta stop` as that account while it is running, or `ok-beta clean` once it has exited',
+        'run `gq-beta stop` as that account while it is running, or `gq-beta clean` once it has exited',
       );
-      expect(text).toContain('which lets `ok-beta stop` confirm it');
+      expect(text).toContain('which lets `gq-beta stop` confirm it');
       expect(text).not.toMatch(/`ok (stop|clean)/);
     } finally {
       vi.unstubAllEnvs();

@@ -1,8 +1,4 @@
-import {
-  parseTemplateFile,
-  stripFrontmatter,
-  unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
+import { parseTemplateFile, stripFrontmatter, unwrapFrontmatterFences } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import { STARTER_PACKS } from './starter.ts';

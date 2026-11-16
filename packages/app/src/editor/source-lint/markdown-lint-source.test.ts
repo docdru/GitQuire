@@ -1,10 +1,6 @@
 import { lintGutter } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
-import {
-  DEFAULT_LINTER_CONFIG,
-  type LintDiagnostic,
-  type LintRange,
-} from '@inkeep/open-knowledge-core';
+import { DEFAULT_LINTER_CONFIG, type LintDiagnostic, type LintRange } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { createMarkdownLintExtension, mapLintDiagnostics } from './markdown-lint-source.ts';
 

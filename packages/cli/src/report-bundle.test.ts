@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { SERVER_CRASH_LOG } from '@inkeep/open-knowledge-core';
+import { SERVER_CRASH_LOG } from '@gitquire/core';
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import type { OsTerminationEvidenceDeps } from './diagnose/os-termination-evidence.ts';
 import { collectReportBundle as collectReportBundleFromIndex } from './index.ts';

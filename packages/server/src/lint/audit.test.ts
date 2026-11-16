@@ -6,7 +6,7 @@ import {
   DEFAULT_LINTER_CONFIG,
   LINT_PLUGINS,
   type LinterConfig,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { auditProject, lintDoc, resolveScope } from './audit.ts';
 import { AuditCache } from './audit-cache.ts';

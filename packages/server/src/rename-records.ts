@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { formatRenameSubject } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { formatRenameSubject } from '@gitquire/core/shadow-repo-layout';
 import { recordContributor } from './contributor-tracker.ts';
 import { stripDocExtension } from './doc-extensions.ts';
 import {

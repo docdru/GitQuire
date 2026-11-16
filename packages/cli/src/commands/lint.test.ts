@@ -1,5 +1,5 @@
 import { isAbsolute } from 'node:path';
-import { AUDIT_EMPTY_SCOPE_WARNING } from '@inkeep/open-knowledge-core';
+import { AUDIT_EMPTY_SCOPE_WARNING } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import type { LintRunResult } from '../content/lint-runner.ts';
 import { formatLintReport, resolveTarget } from './lint.ts';

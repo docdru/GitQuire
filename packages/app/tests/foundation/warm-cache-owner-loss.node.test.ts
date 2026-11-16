@@ -94,11 +94,15 @@ test('warm-cache chain terminates when its setup owner exits', async () => {
     TMPDIR: runtimeTmp,
     OTEL_SDK_DISABLED: 'true',
   };
-  const holder = spawn(process.execPath, ['--conditions=@inkeep/source', '--import', TSX, HOLDER], {
-    cwd: APP_ROOT,
-    env,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const holder = spawn(
+    process.execPath,
+    ['--conditions=@gitquire/source', '--import', TSX, HOLDER],
+    {
+      cwd: APP_ROOT,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
   let transcript = '';
   holder.stdout?.on('data', (chunk: Buffer) => {
     transcript += chunk.toString('utf8');

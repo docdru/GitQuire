@@ -15,7 +15,7 @@ import {
   resolveAssetProjectPath,
   toWikiLinkSlug,
   wikiAssetPathKey,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { isLinkIndexExcludedDoc } from './cc1-broadcast.ts';
 import type { ContentFilter } from './content-filter.ts';
 import { resolveDirectoryRoot } from './directory-root.ts';

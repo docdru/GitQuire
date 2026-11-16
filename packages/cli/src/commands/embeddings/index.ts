@@ -11,15 +11,15 @@ import {
   okUserHomeDisplayPath,
   type SemanticIndexStatus,
   SemanticIndexStatusSchema,
-} from '@inkeep/open-knowledge-core';
-import { writeConfigPatch } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { writeConfigPatch } from '@gitquire/core/server';
 import {
   EMBEDDINGS_API_KEY_ENV,
   isProcessAlive,
   readProjectLocalSemanticConfig,
   readServerLock,
   resolveLockDir,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import password from '@inquirer/password';
 import { Command } from 'commander';
 import {

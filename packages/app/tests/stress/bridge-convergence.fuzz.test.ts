@@ -2,8 +2,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { chunkedYTextInsert } from '@inkeep/open-knowledge-core';
-import { applyExternalChange, isPairedWriteOrigin } from '@inkeep/open-knowledge-server';
+import { chunkedYTextInsert } from '@gitquire/core';
+import { applyExternalChange, isPairedWriteOrigin } from '@gitquire/server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 

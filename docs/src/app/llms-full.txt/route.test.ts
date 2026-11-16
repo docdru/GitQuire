@@ -29,7 +29,7 @@ describe('GET /llms-full.txt', () => {
   test('carries every page in the corpus', async () => {
     const body = await (await GET()).text();
     for (const page of pages) {
-      expect(body).toContain(`(https://openknowledge.ai${page.url})`);
+      expect(body).toContain(`(https://docdru.github.io/GitQuire${page.url})`);
     }
   });
 });

@@ -4,7 +4,7 @@ import {
   DEFAULT_MARKDOWNLINT_CONFIG,
   findRuleConfigEntry,
   type MarkdownlintRuleSetting,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { applyEdits, modify, parse as parseJsonc, stripComments } from 'jsonc-parser';
 import { stringify as stringifyYaml } from 'yaml';
 import { tracedUnlinkSync } from '../fs-traced.ts';

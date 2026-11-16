@@ -1,10 +1,10 @@
-import { getHeadingSlug, toWikiLinkSlug } from '@inkeep/open-knowledge-core/utils/slug';
+import { getHeadingSlug, toWikiLinkSlug } from '@gitquire/core/utils/slug';
 import {
   getWikiLinkResolutionCandidates,
   isResolvedWikiLinkTarget,
   resolveWikiLinkAssetTarget,
   resolveWikiLinkTargetDocName,
-} from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
+} from '@gitquire/core/utils/wiki-link-resolve';
 
 export {
   getHeadingSlug,

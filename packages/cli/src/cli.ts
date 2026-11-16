@@ -15,8 +15,8 @@ import {
   currentDesktopProduct,
   formatIgnoredCommittedKey,
   humanFormat,
-} from '@inkeep/open-knowledge-core';
-import { type Config, loggerFactory, trustSystemCertificates } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { type Config, loggerFactory, trustSystemCertificates } from '@gitquire/server';
 import { Command } from 'commander';
 import { getCliLogger, initCliLogger } from './cli-logger.ts';
 import { auditCommand } from './commands/audit.ts';
@@ -45,8 +45,12 @@ import { stopCommand } from './commands/stop.ts';
 import { syncCommand } from './commands/sync.ts';
 import { PACKAGE_VERSION } from './constants.ts';
 import { loadConfig } from './index.ts';
+import { legacyCommandNotice } from './legacy-command-name.ts';
 import { recordInvocationCwd, resolveProjectAnchor } from './project-anchor.ts';
 import { buildVersionNotice } from './version-notice.ts';
+
+const legacyNotice = legacyCommandNotice(process.argv[1]);
+if (legacyNotice !== null) process.stderr.write(legacyNotice);
 
 const program = new Command();
 

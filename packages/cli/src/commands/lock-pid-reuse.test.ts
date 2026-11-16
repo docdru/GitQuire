@@ -7,7 +7,7 @@ import {
   lockFilePath,
   type ProcessLockMetadata,
   resolveLockDir,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   installSignalBoundary,
@@ -94,7 +94,7 @@ describe('a server lock whose pid now belongs to a process started after the loc
     expect(inspectLock(lockDir, 'server').status).not.toBe('alive');
   });
 
-  test('ok status does not report the server alive', async () => {
+  test('gq status does not report the server alive', async () => {
     const { lockDir } = await seedServerLock(lockWrittenBeforeProcessStarted);
 
     const report = runStatus({ lockDir, log: () => {} });
@@ -103,7 +103,7 @@ describe('a server lock whose pid now belongs to a process started after the loc
     expect(report.server.alive).toBe(false);
   });
 
-  test('ok clean prunes the lock', async () => {
+  test('gq clean prunes the lock', async () => {
     const { lockDir, lockPath, holder } = await seedServerLock(lockWrittenBeforeProcessStarted);
 
     const outcome = runClean({ lockDir, log: () => {}, error: () => {} });
@@ -114,7 +114,7 @@ describe('a server lock whose pid now belongs to a process started after the loc
     expect(ownedProcessHasExited(holder)).toBe(false);
   });
 
-  test('ok stop signals nothing to the process now holding the pid', async () => {
+  test('gq stop signals nothing to the process now holding the pid', async () => {
     const { lockDir, holder } = await seedServerLock(lockWrittenBeforeProcessStarted);
     boundary = installSignalBoundary({ deliverToHeldChildren: false });
 
@@ -130,7 +130,7 @@ describe('a server lock whose pid now belongs to a process started after the loc
     expect(ownedProcessHasExited(holder)).toBe(false);
   });
 
-  test('ok ps reports the lock stale and attributes no process to it', async () => {
+  test('gq ps reports the lock stale and attributes no process to it', async () => {
     const { lockDir, lockPath, holder } = await seedServerLock(lockWrittenBeforeProcessStarted);
 
     expect(await psEntries(lockDir, holder.pid)).toEqual([
@@ -144,17 +144,17 @@ describe('a server lock whose pid now belongs to a process started after the loc
     ]);
   });
 
-  test('ok diagnose warns about a stale lock and points at ok clean', async () => {
+  test('gq diagnose warns about a stale lock and points at gq clean', async () => {
     const { root, lockDir } = await seedServerLock(lockWrittenBeforeProcessStarted);
     expect(resolveLockDir(root)).toBe(lockDir);
 
     const result = await makeServerLockCheck().run({ cwd: root });
 
     expect(result).toMatchObject({ name: 'server-lock', status: 'warn' });
-    expect(result.remediation).toContain('ok clean');
+    expect(result.remediation).toContain('gq clean');
   });
 
-  test('ok stop signals nothing when the reading it was handed still showed the lock live', async () => {
+  test('gq stop signals nothing when the reading it was handed still showed the lock live', async () => {
     const { lockDir, lockPath, lock, holder } = await seedServerLock(
       lockWrittenBeforeProcessStarted,
     );
@@ -175,7 +175,7 @@ describe('a server lock whose pid now belongs to a process started after the loc
 });
 
 describe('a server lock from another machine whose pid is a local process started after the lock was written', () => {
-  test('ok stop signals nothing to that local process', async () => {
+  test('gq stop signals nothing to that local process', async () => {
     const { lockDir, holder } = await seedServerLock(lockWrittenBeforeProcessStarted, {
       machineId: randomUUID(),
       hostname: 'another-machine.example',
@@ -205,7 +205,7 @@ describe('a server lock held by the live process that wrote it', () => {
     });
   });
 
-  test('ok status reports the server alive', async () => {
+  test('gq status reports the server alive', async () => {
     const { lockDir, holder } = await seedServerLock(lockWrittenByRunningProcess);
 
     const report = runStatus({ lockDir, log: () => {} });
@@ -213,7 +213,7 @@ describe('a server lock held by the live process that wrote it', () => {
     expect(report.server).toMatchObject({ state: 'alive', alive: true, pid: holder.pid });
   });
 
-  test('ok clean leaves the lock in place', async () => {
+  test('gq clean leaves the lock in place', async () => {
     const { lockDir, lockPath } = await seedServerLock(lockWrittenByRunningProcess);
 
     const outcome = runClean({ lockDir, log: () => {}, error: () => {} });
@@ -222,7 +222,7 @@ describe('a server lock held by the live process that wrote it', () => {
     expect(existsSync(lockPath)).toBe(true);
   });
 
-  test('ok stop sends SIGTERM to the writer', async () => {
+  test('gq stop sends SIGTERM to the writer', async () => {
     const { lockDir, holder } = await seedServerLock(lockWrittenByRunningProcess);
     boundary = installSignalBoundary({ deliverToHeldChildren: true });
     boundary.hold(holder.child);
@@ -238,7 +238,7 @@ describe('a server lock held by the live process that wrote it', () => {
     expect(outcome.stopped).toEqual([expect.objectContaining({ pid: holder.pid })]);
   });
 
-  test('ok ps reports the writer running', async () => {
+  test('gq ps reports the writer running', async () => {
     const { lockDir, lockPath, holder } = await seedServerLock(lockWrittenByRunningProcess);
 
     expect(await psEntries(lockDir, holder.pid)).toEqual([
@@ -254,7 +254,7 @@ describe('a server lock held by the live process that wrote it', () => {
     ]);
   });
 
-  test('ok diagnose reports the lock held by the writer', async () => {
+  test('gq diagnose reports the lock held by the writer', async () => {
     const { root, lockDir, holder } = await seedServerLock(lockWrittenByRunningProcess);
     expect(resolveLockDir(root)).toBe(lockDir);
 
@@ -264,7 +264,7 @@ describe('a server lock held by the live process that wrote it', () => {
     expect(result.summary).toContain(`pid ${holder.pid}`);
   });
 
-  test('ok stop sends SIGTERM to the writer when handed a reading of its lock', async () => {
+  test('gq stop sends SIGTERM to the writer when handed a reading of its lock', async () => {
     const { lockDir, lockPath, lock, holder } = await seedServerLock(lockWrittenByRunningProcess);
     boundary = installSignalBoundary({ deliverToHeldChildren: true });
     boundary.hold(holder.child);

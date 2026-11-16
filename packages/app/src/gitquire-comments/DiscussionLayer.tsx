@@ -1,4 +1,4 @@
-import { GITQUIRE_COMMENT_MARK_NODE } from '@inkeep/open-knowledge-core/extensions/gitquire-comments';
+import { GITQUIRE_COMMENT_MARK_NODE } from '@gitquire/core/extensions/gitquire-comments';
 import type { Node as PMNode } from '@tiptap/pm/model';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';

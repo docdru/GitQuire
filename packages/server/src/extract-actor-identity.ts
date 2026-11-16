@@ -1,4 +1,4 @@
-import type { Principal } from '@inkeep/open-knowledge-core';
+import type { Principal } from '@gitquire/core';
 import { parseAgentBodyFields, resolveAgentType } from './agent-id.ts';
 import { type NormalizedSummary, normalizeSummary } from './agent-write-summary.ts';
 

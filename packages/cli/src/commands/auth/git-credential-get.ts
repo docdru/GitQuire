@@ -1,5 +1,5 @@
 import type { Readable, Writable } from 'node:stream';
-import { gitCredentialHostKey } from '@inkeep/open-knowledge-core/constants/github';
+import { gitCredentialHostKey } from '@gitquire/core/constants/github';
 import type { Logger as PinoLoggerInstance } from 'pino';
 import type { TokenStore, TokenStoreDiagnostics } from '../../auth/token-store.ts';
 

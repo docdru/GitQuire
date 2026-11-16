@@ -11,7 +11,6 @@ import { AgentIcons } from '@/components/agent-icons';
 import { ComponentPreview } from '@/components/component-preview';
 import { CopyPrompt } from '@/components/copy-prompt';
 import { CtaButton } from '@/components/cta-button';
-import { DownloadButton } from '@/components/download-button';
 import { HtmlPreview } from '@/components/html-preview';
 import { McpInstall } from '@/components/mcp-install';
 import { Mermaid } from '@/components/mermaid';
@@ -62,7 +61,6 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     ComponentPreview,
     CopyPrompt,
     CtaButton,
-    DownloadButton,
     EmbedPreview,
     FilePreview,
     HtmlPreview,

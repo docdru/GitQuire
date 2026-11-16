@@ -1,4 +1,4 @@
-import { THEME_PLUGINS } from '@inkeep/open-knowledge-core/theme/theme-plugins';
+import { THEME_PLUGINS } from '@gitquire/core/theme/theme-plugins';
 import { cleanup, screen } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { commands } from 'vitest/browser';

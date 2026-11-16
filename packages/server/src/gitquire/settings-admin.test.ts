@@ -2,7 +2,7 @@ import {
   CONFIG_DOC_NAME_OKIGNORE,
   CONFIG_DOC_NAME_PROJECT,
   CONFIG_DOC_NAME_PROJECT_LOCAL,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import {

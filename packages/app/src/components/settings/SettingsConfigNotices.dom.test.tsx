@@ -1,4 +1,4 @@
-import type { DocNoticeWire } from '@inkeep/open-knowledge-core/schemas/api';
+import type { DocNoticeWire } from '@gitquire/core/schemas/api';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { DocNoticesProvider } from '@/hooks/use-doc-notices';

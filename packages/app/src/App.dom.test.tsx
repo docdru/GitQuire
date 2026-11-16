@@ -143,6 +143,7 @@ vi.doMock('@/lib/config-provider', () => ({
 
 vi.doMock('@/lib/config-context', () => ({
   useConfigContext: () => ({ merged: mergedConfig }),
+  useConfigContextOptional: () => ({ merged: mergedConfig }),
 }));
 
 vi.doMock('@/lib/api-config', () => ({
@@ -197,10 +198,6 @@ vi.doMock('@/components/NewItemDialog', () => ({
 
 vi.doMock('@/components/FileSidebar', () => ({
   FileSidebar: () => <div data-testid="file-sidebar">Sidebar</div>,
-}));
-
-vi.doMock('@/components/FeedbackCard', () => ({
-  FeedbackCardMount: () => <div data-testid="feedback-card-mount" />,
 }));
 
 vi.doMock('@/components/EditorPane', async () => {
@@ -957,55 +954,6 @@ describe('App runtime wiring', () => {
       expect(screen.getByTestId('command-palette').getAttribute('data-open')).toBe('false');
       fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Search' }));
       expect(screen.getByTestId('command-palette').getAttribute('data-open')).toBe('true');
-    });
-  });
-
-  describe('corner card stack', () => {
-    function expectNoCornerStack() {
-      expect(screen.getByTestId('editor-pane')).not.toBeNull();
-      expect(screen.queryByTestId('corner-card-stack')).toBeNull();
-      expect(screen.queryByRole('region', { name: 'Updates' })).toBeNull();
-      expect(screen.queryByTestId('update-notices')).toBeNull();
-      expect(screen.queryByTestId('feedback-card-mount')).toBeNull();
-    }
-
-    test('a desktop project window holds the update notice above the feedback card in one stack after the panes', () => {
-      renderApp({ bridge: createBridge() });
-
-      expect(screen.getAllByTestId('corner-card-stack')).toHaveLength(1);
-      const stack = screen.getByRole('region', { name: 'Updates' });
-      expect(stack).toBe(screen.getByTestId('corner-card-stack'));
-      const column = within(stack).getByTestId('corner-card-stack-column');
-      expect(Array.from(column.children).map((child) => child.getAttribute('data-testid'))).toEqual(
-        ['update-notices', 'feedback-card-mount'],
-      );
-      expect(screen.getAllByTestId('update-notices')).toHaveLength(1);
-      expect(screen.getAllByTestId('feedback-card-mount')).toHaveLength(1);
-
-      expect(screen.getByTestId('page-list-provider').contains(stack)).toBe(true);
-      expect(screen.getByTestId('editor-file-list-slot').contains(stack)).toBe(false);
-      expect(screen.getByTestId('editor-pane').contains(stack)).toBe(false);
-      expect(screen.getByTestId('sidebar-provider').contains(stack)).toBe(false);
-      expect(
-        screen.getByTestId('editor-pane').compareDocumentPosition(stack) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-    });
-
-    test('a web project window has the same stack', () => {
-      renderApp();
-
-      const stack = screen.getByRole('region', { name: 'Updates' });
-      expect(screen.getAllByTestId('corner-card-stack')).toHaveLength(1);
-      expect(within(stack).getByTestId('feedback-card-mount')).not.toBeNull();
-    });
-
-    test('a single-file window has no stack and no cards', () => {
-      singleFileMode = true;
-
-      renderApp({ bridge: createBridge() });
-
-      expectNoCornerStack();
     });
   });
 

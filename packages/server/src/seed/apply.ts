@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { LintPluginId } from '@inkeep/open-knowledge-core';
+import type { LintPluginId } from '@gitquire/core';
 import { tracedWriteFileSync } from '../fs-traced.ts';
 import { CONFIG_FILENAME } from '../init-project.ts';
 import { assertEntryPathInProject } from './path-safety.ts';

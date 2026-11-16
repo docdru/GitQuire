@@ -24,13 +24,9 @@ import {
   LOCAL_DIR,
   lintDocument,
   REMOVED_KEYS,
-} from '@inkeep/open-knowledge-core';
-import {
-  readConfigSafely,
-  resolveConfigPath,
-  writeConfigPatch,
-} from '@inkeep/open-knowledge-core/server';
-import { parseCheckpoint } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core';
+import { readConfigSafely, resolveConfigPath, writeConfigPatch } from '@gitquire/core/server';
+import { parseCheckpoint } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { stringify as stringifyYaml } from 'yaml';
 import * as Y from 'yjs';
