@@ -20,7 +20,7 @@
 </div>
 
 <p align="center">
-  <img src="docs/public/screenshots/comments.png" alt="The GitQuire editor with a page open and a comment thread in the side panel" width="860">
+  <img src="docs/public/screenshots/comments.png" alt="The GitQuire editor with a page open and a comment thread in the Comments panel" width="860">
 </p>
 
 Write together in a Notion-like editor while every page, link and comment stays a plain Markdown
