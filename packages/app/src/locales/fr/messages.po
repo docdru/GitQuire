@@ -3569,9 +3569,6 @@ msgstr "Masquer le panneau ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "Masquer le remplacement"
 
-msgid "Hide resolved"
-msgstr "Masquer les éléments résolus"
-
 msgid "Hide sidebar"
 msgstr "Masquer la barre latérale"
 
@@ -5841,9 +5838,6 @@ msgstr "erreur de rendu"
 msgid "Rendered"
 msgstr "Rendu"
 
-msgid "Reopen"
-msgstr "Rouvrir"
-
 msgid "Reopen closed tab"
 msgstr "Rouvrir l'onglet fermé"
 
@@ -5970,9 +5964,6 @@ msgstr "Résolvez le conflit sur {files} avant de supprimer."
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "Résolvez le conflit sur {files} et {overflow} autres fichiers avant de supprimer."
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "Résolution des deltas"
@@ -6522,9 +6513,6 @@ msgstr "Afficher le panneau ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "Afficher le remplacement"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "Afficher la barre latérale"

@@ -1,3 +1,4 @@
+import { GITQUIRE_COMMENT_MARK_NODE } from '@inkeep/open-knowledge-core/extensions/gitquire-comments';
 import type { Node as PMNode } from '@tiptap/pm/model';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
@@ -49,6 +50,11 @@ function createDiscussionPlugin(docName: string): Plugin<DecorationSet> {
     },
     props: {
       decorations: (state) => discussionKey.getState(state),
+      handleClickOn: (_view, _pos, node) => {
+        if (node.type.name !== GITQUIRE_COMMENT_MARK_NODE) return false;
+        openDiscussions(docName, String(node.attrs.id ?? ''));
+        return true;
+      },
       handleClick: (view, pos) => {
         const open = readThreads(view.state.doc).filter((thread) => !thread.resolved);
         let hit: { id: string; size: number } | undefined;

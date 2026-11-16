@@ -3565,9 +3565,6 @@ msgstr "पैनल छिपाएँ ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "बदलें छिपाएँ"
 
-msgid "Hide resolved"
-msgstr "सुलझे हुए छिपाएँ"
-
 msgid "Hide sidebar"
 msgstr "साइडबार छिपाएँ"
 
@@ -5837,9 +5834,6 @@ msgstr "रेंडर त्रुटि"
 msgid "Rendered"
 msgstr "रेंडर किया गया"
 
-msgid "Reopen"
-msgstr "फिर से खोलें"
-
 msgid "Reopen closed tab"
 msgstr "बंद किया गया टैब फिर से खोलें"
 
@@ -5966,9 +5960,6 @@ msgstr "हटाने से पहले {files} का विरोध ह�
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "हटाने से पहले {files} और {overflow} अन्य फ़ाइलों का विरोध हल करें।"
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "डेल्टा सुलझाए जा रहे हैं"
@@ -6518,9 +6509,6 @@ msgstr "पैनल दिखाएँ ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "बदलें दिखाएँ"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "साइडबार दिखाएँ"

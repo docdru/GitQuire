@@ -3565,9 +3565,6 @@ msgstr "Sembunyikan panel ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "Sembunyikan penggantian"
 
-msgid "Hide resolved"
-msgstr "Sembunyikan yang sudah selesai"
-
 msgid "Hide sidebar"
 msgstr "Sembunyikan bilah sisi"
 
@@ -5837,9 +5834,6 @@ msgstr "galat render"
 msgid "Rendered"
 msgstr "Dirender"
 
-msgid "Reopen"
-msgstr "Buka lagi"
-
 msgid "Reopen closed tab"
 msgstr "Buka lagi tab yang ditutup"
 
@@ -5966,9 +5960,6 @@ msgstr "Selesaikan konflik pada {files} sebelum menghapus."
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "Selesaikan konflik pada {files} dan {overflow} berkas lainnya sebelum menghapus."
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "Menyelesaikan delta"
@@ -6518,9 +6509,6 @@ msgstr "Tampilkan panel ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "Tampilkan penggantian"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "Tampilkan bilah sisi"

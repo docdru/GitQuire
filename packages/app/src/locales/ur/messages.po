@@ -3569,9 +3569,6 @@ msgstr "پینل چھپائیں ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "تبدیلی چھپائیں"
 
-msgid "Hide resolved"
-msgstr "حل شدہ چھپائیں"
-
 msgid "Hide sidebar"
 msgstr "سائیڈ بار چھپائیں"
 
@@ -5841,9 +5838,6 @@ msgstr "رینڈر کی خرابی"
 msgid "Rendered"
 msgstr "رینڈر شدہ"
 
-msgid "Reopen"
-msgstr "دوبارہ کھولیں"
-
 msgid "Reopen closed tab"
 msgstr "بند کیا گیا ٹیب دوبارہ کھولیں"
 
@@ -5970,9 +5964,6 @@ msgstr "حذف کرنے سے پہلے {files} کا تنازع حل کریں۔"
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "حذف کرنے سے پہلے {files} اور مزید {overflow} فائلوں کا تنازع حل کریں۔"
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "ڈیلٹا حل کیے جا رہے ہیں"
@@ -6522,9 +6513,6 @@ msgstr "پینل دکھائیں ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "تبدیلی دکھائیں"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "سائیڈ بار دکھائیں"

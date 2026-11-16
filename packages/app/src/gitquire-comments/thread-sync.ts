@@ -2,7 +2,13 @@ import type { Transaction } from '@tiptap/pm/state';
 import type { Editor } from '@tiptap/react';
 import { ySyncPluginKey } from '@tiptap/y-tiptap';
 import { useEffect } from 'react';
-import { commentBlockKey, countTrailers, readThreads, writeThreads } from './editor-threads';
+import {
+  commentBlockKey,
+  countTrailers,
+  type MarkPlacement,
+  readThreads,
+  writeThreads,
+} from './editor-threads';
 import {
   normalizeThreads,
   notePendingWrite,
@@ -24,11 +30,15 @@ function syncedCommentChange(transaction: Transaction): SyncedChange {
   return meta.isUndoRedoOperation === true ? 'undo' : 'remote';
 }
 
-export function writeAndTrack(editor: Editor, next: readonly Thread[]): boolean {
+export function writeAndTrack(
+  editor: Editor,
+  next: readonly Thread[],
+  mark?: MarkPlacement,
+): boolean {
   if (editor.isDestroyed) return false;
   const base = readThreads(editor.state.doc);
   const threads = normalizeThreads(next);
-  const tr = writeThreads(editor.state, threads);
+  const tr = writeThreads(editor.state, threads, mark);
   if (tr === undefined) return false;
   const pending = pendingWrites.get(editor) ?? [];
   pendingWrites.set(editor, notePendingWrite(pending, base, threads, Date.now()));

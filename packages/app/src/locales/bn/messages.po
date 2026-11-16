@@ -3565,9 +3565,6 @@ msgstr "প্যানেল লুকান ({panelShortcutLabel})"
 msgid "Hide replace"
 msgstr "বদলানো লুকান"
 
-msgid "Hide resolved"
-msgstr "মীমাংসিত লুকান"
-
 msgid "Hide sidebar"
 msgstr "সাইডবার লুকান"
 
@@ -5837,9 +5834,6 @@ msgstr "রেন্ডার ত্রুটি"
 msgid "Rendered"
 msgstr "রেন্ডার করা"
 
-msgid "Reopen"
-msgstr "আবার খুলুন"
-
 msgid "Reopen closed tab"
 msgstr "বন্ধ করা ট্যাব আবার খুলুন"
 
@@ -5966,9 +5960,6 @@ msgstr "মোছার আগে {files}-এর দ্বন্দ্ব মি
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "মোছার আগে {files} এবং আরও {overflow}টি ফাইলের দ্বন্দ্ব মিটিয়ে নিন।"
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "ডেল্টা মীমাংসা করা হচ্ছে"
@@ -6518,9 +6509,6 @@ msgstr "প্যানেল দেখান ({panelShortcutLabel})"
 
 msgid "Show replace"
 msgstr "বদলানো দেখান"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "সাইডবার দেখান"

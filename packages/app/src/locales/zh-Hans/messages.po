@@ -3569,9 +3569,6 @@ msgstr "隐藏面板（{panelShortcutLabel}）"
 msgid "Hide replace"
 msgstr "隐藏替换"
 
-msgid "Hide resolved"
-msgstr "隐藏已解决的"
-
 msgid "Hide sidebar"
 msgstr "隐藏侧边栏"
 
@@ -5841,9 +5838,6 @@ msgstr "渲染错误"
 msgid "Rendered"
 msgstr "已渲染"
 
-msgid "Reopen"
-msgstr "重新打开"
-
 msgid "Reopen closed tab"
 msgstr "重新打开已关闭的标签页"
 
@@ -5970,9 +5964,6 @@ msgstr "删除前请先解决 {files} 上的冲突。"
 
 msgid "Resolve the conflict on {files}, +{overflow} more before deleting."
 msgstr "删除前请先解决 {files} 以及另外 {overflow} 个文件上的冲突。"
-
-msgid "Resolved by {resolvedBy}"
-msgstr ""
 
 msgid "Resolving deltas"
 msgstr "正在解析差异"
@@ -6522,9 +6513,6 @@ msgstr "显示面板（{panelShortcutLabel}）"
 
 msgid "Show replace"
 msgstr "显示替换"
-
-msgid "Show resolved ({resolvedCount})"
-msgstr ""
 
 msgid "Show sidebar"
 msgstr "显示侧边栏"
