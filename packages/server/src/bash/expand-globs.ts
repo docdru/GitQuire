@@ -1,5 +1,5 @@
 import { glob } from 'node:fs/promises';
-import { basename, isAbsolute } from 'node:path';
+import { basename, isAbsolute, posix } from 'node:path';
 import {
   checkStage,
   classifyArgs,
@@ -38,7 +38,13 @@ export async function expandGlobStages(
   stages: GlobStage[],
   cwd: string,
   cap: number = GLOB_EXPANSION_CAP,
+  hidden: readonly string[] = [],
 ): Promise<ExpandResult> {
+  const hiddenRoots = hidden.map((dir) => posix.normalize(dir.replace(/\\/g, '/')).toLowerCase());
+  const isHidden = (match: string) => {
+    const path = posix.normalize(match.replace(/\\/g, '/')).toLowerCase();
+    return hiddenRoots.some((root) => path === root || path.startsWith(`${root}/`));
+  };
   const expanded: Stage[] = [];
   for (const stage of stages) {
     const globs = stage.globArgIndices;
@@ -66,7 +72,7 @@ export async function expandGlobStages(
           exclude: (entry: unknown) => EXCLUDED.has(basename(String(entry))),
         })) {
           const m = String(match);
-          if (isAbsolute(m) || m.startsWith('..')) continue;
+          if (isAbsolute(m) || m.startsWith('..') || isHidden(m)) continue;
           matches.push(m);
           if (matches.length > cap) return overCap(arg, cap);
         }

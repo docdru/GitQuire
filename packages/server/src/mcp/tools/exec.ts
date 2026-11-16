@@ -14,6 +14,7 @@ import {
   execBash,
   hiddenFromExec,
   isHiddenFromExec,
+  isLocalDataPath,
   StdoutOverflowError,
 } from '../../bash/index.ts';
 import {
@@ -450,7 +451,14 @@ export async function buildExecResult(
   if ('error' in parsed) {
     return errorCategoryResult(parsed.error.category, parsed.error.message);
   }
-  const expanded = await expandGlobStages(parsed.stages, executionCwd);
+  const hidden = hiddenFromExec(cwd, executionCwd);
+  if (hidden === 'inside') {
+    return errorCategoryResult(
+      'path_traversal',
+      "exec failed: the server's local data folder is not readable through exec",
+    );
+  }
+  const expanded = await expandGlobStages(parsed.stages, executionCwd, undefined, hidden);
   if ('error' in expanded) {
     return errorCategoryResult(expanded.error.category, expanded.error.message);
   }
@@ -467,13 +475,6 @@ export async function buildExecResult(
   ];
   const pre = await snapshotMtimesForRoots(executionCwd, scanRoots);
 
-  const hidden = hiddenFromExec(cwd, executionCwd);
-  if (hidden === 'inside') {
-    return errorCategoryResult(
-      'path_traversal',
-      "exec failed: the server's local data folder is not readable through exec",
-    );
-  }
   const bash = createBashInstance(executionCwd, hidden);
   let stdout = '';
   let stderr = '';
@@ -518,7 +519,7 @@ export async function buildExecResult(
   const paths = rawPaths
     .filter((p) => resolveWithinRoot(executionCwd, p).ok)
     .map(rebaseToProject)
-    .filter((p) => !isHiddenFromExec(cwd, p));
+    .filter((p) => !isHiddenFromExec(cwd, p) && !isLocalDataPath(cwd, p));
   const { files, dirs } = await classifyPaths(cwd, paths);
   const isSinglePathCat = stages.length === 1 && stages[0].command === 'cat' && files.length === 1;
   const fileEnriched: EnrichedMeta[] = await Promise.all(

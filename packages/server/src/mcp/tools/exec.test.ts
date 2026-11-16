@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -1465,6 +1465,49 @@ describe('exec — the local data folder is not readable', () => {
     expect(grep.content[0].text).toContain('notes.md');
     const ls = await run(project, 'ls .ok');
     expect(ls.content[0].text).toContain('config.yml');
+  });
+
+  test('a symlinked working folder that points into the folder is refused', async () => {
+    const project = await withSecrets();
+    mkdirSync(resolve(project, 'docs'), { recursive: true });
+    symlinkSync('../.gitquire/local/chat', resolve(project, 'docs', 'dirlink'));
+    const result = await run(project, 'cat keys.json', resolve(project, 'docs', 'dirlink'));
+    expect(result.isError).toBe(true);
+    expect(result.content.map((part) => part.text).join('\n')).not.toContain('secret-token');
+  });
+
+  test('a working folder spelled in other case is refused', async () => {
+    const project = await withSecrets();
+    const result = await run(project, 'ls', resolve(project, '.OK/LOCAL'));
+    expect(result.content.map((part) => part.text).join('\n')).not.toContain('keys.json');
+  });
+
+  test.each(['wc -c .gitquire/local/chat/*', 'ls .gitquire/local/*', 'ls .ok/*/chat'])(
+    'the glob %s does not name hidden files',
+    async (command) => {
+      const project = await withSecrets();
+      const result = await run(project, command);
+      const text = result.content.map((part) => part.text).join('\n');
+      expect(text).not.toContain('keys.json');
+      expect(text).not.toContain('conv.md');
+    },
+  );
+
+  test('the listing summary does not describe pages in the folder', async () => {
+    const project = await withSecrets();
+    writeFileSync(
+      resolve(project, '.ok/local/chat/conv.md'),
+      '---\ntitle: SECRETTITLE\n---\n# SECRETTITLE\n',
+    );
+    mkdirSync(resolve(project, 'docs'), { recursive: true });
+    symlinkSync('../.ok/local/chat/conv.md', resolve(project, 'docs', 'link.md'));
+    symlinkSync('../.ok/local/chat', resolve(project, 'docs', 'dirlink'));
+    for (const command of ['ls .ok', 'ls -d .ok', 'ls .gitquire', 'ls docs', 'cat docs/link.md']) {
+      const result = await run(project, command);
+      const text = result.content.map((part) => part.text).join('\n');
+      expect(text, command).not.toContain('SECRETTITLE');
+      expect(text, command).not.toContain('conv.md');
+    }
   });
 
   test('exec cannot run from inside the folder', async () => {
