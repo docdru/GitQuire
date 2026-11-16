@@ -4,6 +4,6 @@ import { ImageInlineZoomView } from './ImageInlineZoomView';
 
 export const ImageInlineZoom = ImageSrcFidelity.extend({
   addNodeView() {
-    return ReactNodeViewRenderer(ImageInlineZoomView);
+    return ReactNodeViewRenderer(ImageInlineZoomView, { trackNodeViewPosition: true });
   },
 });

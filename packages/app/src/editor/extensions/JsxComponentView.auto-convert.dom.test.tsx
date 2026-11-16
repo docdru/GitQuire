@@ -128,14 +128,14 @@ describe('unknown component conversion', () => {
       .nodeFromJSON(manager.parse('<Badge>\nUpdated\n</Badge>\n'))
       .child(0);
 
-    act(() => {
+    await act(async () => {
       editor.view.dispatch(
         editor.state.tr.replaceWith(0, editor.state.doc.child(0).nodeSize, replacement),
       );
       vi.advanceTimersToNextFrame();
     });
     const edited = manager.serialize(editor.getJSON());
-    act(() => vi.advanceTimersToNextFrame());
+    await act(async () => vi.advanceTimersToNextFrame());
 
     expect(editor.state.doc.child(0).type.name).toBe('rawMdxFallback');
     expect(editor.state.doc.child(0).textContent).toContain('Updated');
@@ -282,7 +282,7 @@ describe('component actions before the shifted position renders', () => {
   test('attributes a stale keyboard delete to the keyboard entry point', async () => {
     const warn = vi.spyOn(console, 'warn');
     const editor = await mountEditor('<Callout title="Target">\nOriginal body.\n</Callout>\n');
-    act(() => {
+    await act(async () => {
       editor.commands.setNodeSelection(0);
     });
     const wrapper = document.querySelector('[data-component-name="Callout"][data-selected="true"]');

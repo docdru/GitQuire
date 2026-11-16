@@ -12,7 +12,7 @@ export const JsxInline = BaseJsxInline.extend<{ docName: string }>({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(JsxInlineView);
+    return ReactNodeViewRenderer(JsxInlineView, { trackNodeViewPosition: true });
   },
 
   addProseMirrorPlugins() {

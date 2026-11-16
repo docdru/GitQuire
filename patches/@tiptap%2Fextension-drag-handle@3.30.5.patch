@@ -1,0 +1,46 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 5bb8934..46fbe55 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -549,10 +549,16 @@ function dragHandler(event, editor, nestedOptions, dragContext, dragImagePropert
+ 	});
+ 	wrapper.style.position = "absolute";
+ 	wrapper.style.top = "-10000px";
++	wrapper.style.contentVisibility = "visible";
+ 	document.body.append(wrapper);
++	for (const el of wrapper.querySelectorAll("*")) if (el.style && el.style.contentVisibility === "auto") el.style.contentVisibility = "visible";
+ 	event.dataTransfer.clearData();
+-	const dragImageX = getDragImageOffset(direction, wrapper.getBoundingClientRect().width);
+-	event.dataTransfer.setDragImage(wrapper, dragImageX, 0);
++	const wrapperRect = wrapper.getBoundingClientRect();
++	const sourceDom = view.nodeDOM(from);
++	const sourceRect = sourceDom && sourceDom.nodeType === 1 ? sourceDom.getBoundingClientRect() : null;
++	const dragImageX = sourceRect ? Math.min(event.clientX - sourceRect.left, wrapperRect.width) : getDragImageOffset(direction, wrapperRect.width);
++	const dragImageY = sourceRect ? Math.min(Math.max(event.clientY - sourceRect.top, 0), wrapperRect.height) : 0;
++	event.dataTransfer.setDragImage(wrapper, dragImageX, dragImageY);
+ 	let cleanedUp = false;
+ 	const cleanupDragPreview = () => {
+ 		if (cleanedUp) return;
+diff --git a/dist/index.js b/dist/index.js
+index 48ce5ba..96e3176 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -545,10 +545,16 @@ function dragHandler(event, editor, nestedOptions, dragContext, dragImagePropert
+ 	});
+ 	wrapper.style.position = "absolute";
+ 	wrapper.style.top = "-10000px";
++	wrapper.style.contentVisibility = "visible";
+ 	document.body.append(wrapper);
++	for (const el of wrapper.querySelectorAll("*")) if (el.style && el.style.contentVisibility === "auto") el.style.contentVisibility = "visible";
+ 	event.dataTransfer.clearData();
+-	const dragImageX = getDragImageOffset(direction, wrapper.getBoundingClientRect().width);
+-	event.dataTransfer.setDragImage(wrapper, dragImageX, 0);
++	const wrapperRect = wrapper.getBoundingClientRect();
++	const sourceDom = view.nodeDOM(from);
++	const sourceRect = sourceDom && sourceDom.nodeType === 1 ? sourceDom.getBoundingClientRect() : null;
++	const dragImageX = sourceRect ? Math.min(event.clientX - sourceRect.left, wrapperRect.width) : getDragImageOffset(direction, wrapperRect.width);
++	const dragImageY = sourceRect ? Math.min(Math.max(event.clientY - sourceRect.top, 0), wrapperRect.height) : 0;
++	event.dataTransfer.setDragImage(wrapper, dragImageX, dragImageY);
+ 	let cleanedUp = false;
+ 	const cleanupDragPreview = () => {
+ 		if (cleanedUp) return;

@@ -2140,42 +2140,42 @@ Homepage: https://tanstack.com/query
 
 Copyright (c) 2021-present Tanner Linsley
 
-### `@tiptap/core@3.22.3`
+### `@tiptap/core@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-blockquote@3.22.3`
+### `@tiptap/extension-blockquote@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-bold@3.22.3`
+### `@tiptap/extension-bold@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-bubble-menu@3.22.3`
+### `@tiptap/extension-bubble-menu@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-bullet-list@3.22.3`
+### `@tiptap/extension-bullet-list@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-code@3.22.3`
+### `@tiptap/extension-code@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-code-block@3.22.3`
+### `@tiptap/extension-code-block@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-collaboration@3.22.3`
+### `@tiptap/extension-collaboration@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
@@ -2185,147 +2185,147 @@ Homepage: https://tiptap.dev
 
 _(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
 
-### `@tiptap/extension-document@3.22.3`
+### `@tiptap/extension-document@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-drag-handle@3.22.3`
+### `@tiptap/extension-drag-handle@3.30.5`
 Homepage: https://tiptap.dev/docs/editor/extensions/functionality/drag-handle
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-dropcursor@3.22.3`
+### `@tiptap/extension-dropcursor@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-file-handler@3.22.3`
+### `@tiptap/extension-file-handler@3.30.5`
 Homepage: https://tiptap.dev/docs/editor/extensions/functionality/filehandler
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-floating-menu@3.22.3`
+### `@tiptap/extension-floating-menu@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-gapcursor@3.22.3`
+### `@tiptap/extension-gapcursor@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-hard-break@3.22.3`
+### `@tiptap/extension-hard-break@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-heading@3.22.3`
+### `@tiptap/extension-heading@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-highlight@3.22.3`
+### `@tiptap/extension-highlight@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-horizontal-rule@3.22.3`
+### `@tiptap/extension-horizontal-rule@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-image@3.22.3`
+### `@tiptap/extension-image@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-italic@3.22.3`
+### `@tiptap/extension-italic@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-link@3.22.3`
+### `@tiptap/extension-link@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-list@3.22.3`
+### `@tiptap/extension-list@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-list-item@3.22.3`
+### `@tiptap/extension-list-item@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-list-keymap@3.22.3`
+### `@tiptap/extension-list-keymap@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-ordered-list@3.22.3`
+### `@tiptap/extension-ordered-list@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-paragraph@3.22.3`
+### `@tiptap/extension-paragraph@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-placeholder@3.22.3`
+### `@tiptap/extension-placeholder@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-strike@3.22.3`
+### `@tiptap/extension-strike@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-table@3.22.3`
+### `@tiptap/extension-table@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-text@3.22.3`
+### `@tiptap/extension-text@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extension-underline@3.22.3`
+### `@tiptap/extension-underline@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/extensions@3.22.3`
+### `@tiptap/extensions@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/pm@3.22.4`
+### `@tiptap/pm@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/react@3.22.3`
+### `@tiptap/react@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/starter-kit@3.22.3`
+### `@tiptap/starter-kit@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/suggestion@3.22.3`
+### `@tiptap/suggestion@3.30.5`
 Homepage: https://tiptap.dev
 
 Copyright (c) 2025, Tiptap GmbH
 
-### `@tiptap/y-tiptap@3.0.3`
+### `@tiptap/y-tiptap@3.0.7`
 Homepage: https://github.com/ueberdosis/y-tiptap
 
 Copyright (c) 2019 Kevin Jahns <kevin.jahns@protonmail.com>. Copyright (c) 2025 Tiptap GmbH.
@@ -4914,12 +4914,17 @@ Homepage: https://github.com/prosemirror/prosemirror-history
 
 Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
+### `prosemirror-inputrules@1.5.1`
+Homepage: https://github.com/prosemirror/prosemirror-inputrules
+
+Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
+
 ### `prosemirror-keymap@1.2.3`
 Homepage: https://github.com/prosemirror/prosemirror-keymap
 
 Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
-### `prosemirror-model@1.25.8`
+### `prosemirror-model@1.25.13`
 Homepage: https://code.haverbeke.berlin/prosemirror/prosemirror-model
 
 Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -6562,8 +6567,9 @@ The following packages are patched in this repository via pnpm's `patchedDepende
 | `@pierre/diffs@1.3.6` | `patches/@pierre%2Fdiffs@1.3.6.patch` |
 | `@pierre/trees@1.0.0-beta.4` | `patches/@pierre%2Ftrees@1.0.0-beta.4.patch` |
 | `@radix-ui/react-tooltip@1.2.8` | `patches/@radix-ui__react-tooltip@1.2.8.patch` |
-| `@tiptap/extension-drag-handle@3.22.3` | `patches/@tiptap%2Fextension-drag-handle@3.22.3.patch` |
-| `@tiptap/y-tiptap@3.0.3` | `patches/@tiptap%2Fy-tiptap@3.0.3.patch` |
+| `@tiptap/core@3.30.5` | `patches/@tiptap%2Fcore@3.30.5.patch` |
+| `@tiptap/extension-drag-handle@3.30.5` | `patches/@tiptap%2Fextension-drag-handle@3.30.5.patch` |
+| `@tiptap/y-tiptap@3.0.7` | `patches/@tiptap%2Fy-tiptap@3.0.7.patch` |
 | `cmdk@1.1.1` | `patches/cmdk@1.1.1.patch` |
 | `just-bash@2.14.5` | `patches/just-bash@2.14.5.patch` |
 | `react-medium-image-zoom@5.4.3` | `patches/react-medium-image-zoom@5.4.3.patch` |

@@ -156,6 +156,16 @@ describe('preserved stock behaviors (controls — must hold before and after the
     expect(hasOrphanParagraph(md)).toBe(false);
   });
 
+  test('Backspace after an item that ends in a non-paragraph block keeps the item in the list', () => {
+    const editor = mountEditor('- a\n\n  > q\n- b');
+    setCaret(editor, itemPos(editor, 1, 'start'));
+    expect(press(editor, 'Backspace')).toBe(true);
+
+    const md = serialize(editor);
+    expect(md).not.toMatch(/^b$/m);
+    expect(md).toContain('- a');
+  });
+
   test('flat-list Delete merge stays clean (ListKeymap joinItemForward)', () => {
     const editor = mountEditor('- [ ] alpha\n- [ ] bravo\n- [x] charlie');
     setCaret(editor, itemPos(editor, 1, 'end'));

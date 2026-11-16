@@ -18,6 +18,7 @@ import {
   type Person,
   subscribePeople,
 } from '@/lib/gitquire/people';
+import { settledSuggestionRender } from '../editor/extensions/suggestion-settled';
 import { PeopleSuggestionMenu } from './PeopleSuggestionMenu';
 
 const TRIGGER_RE = /(^|[\s(￼])@([A-Za-z0-9-]{0,39})$/;
@@ -105,7 +106,7 @@ function suggestionPlugin(editor: Parameters<typeof Suggestion>[0]['editor']) {
     command: ({ editor: target, range, props: person }) => {
       target.chain().focus().deleteRange(range).insertContent(`@${person.login} `).run();
     },
-    render: () => {
+    render: settledSuggestionRender(() => {
       let renderer: ReactRenderer<typeof PeopleSuggestionMenu> | null = null;
       let current: SuggestionProps<Person> | null = null;
       let selected = 0;
@@ -185,7 +186,7 @@ function suggestionPlugin(editor: Parameters<typeof Suggestion>[0]['editor']) {
           selected = 0;
         },
       };
-    },
+    }),
   });
 }
 

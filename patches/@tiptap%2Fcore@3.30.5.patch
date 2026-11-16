@@ -1,0 +1,38 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 76e34ae..c47df4e 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -4774,7 +4774,13 @@ function run$1(config) {
+ 		const matchedDocLength = match[0].length - text.length;
+ 		if (matchedDocLength > 0) {
+ 			const matchStartOffset = $from.parentOffset - matchedDocLength;
+-			if (matchStartOffset < 0 || $from.parent.textBetween(matchStartOffset, $from.parentOffset) !== match[0].slice(0, matchedDocLength)) return;
++			if (matchStartOffset < 0) return;
++			let startsInsideContent = false;
++			$from.parent.nodesBetween(matchStartOffset, $from.parentOffset, (node, pos) => {
++				if (!node.isText && !node.isLeaf && pos < matchStartOffset && pos + node.nodeSize > matchStartOffset) startsInsideContent = true;
++				return false;
++			});
++			if (startsInsideContent) return;
+ 		}
+ 		const tr = view.state.tr;
+ 		const state = createChainableState({
+diff --git a/dist/index.js b/dist/index.js
+index 8329cc7..c1fe421 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -4762,7 +4762,13 @@ function run$1(config) {
+ 		const matchedDocLength = match[0].length - text.length;
+ 		if (matchedDocLength > 0) {
+ 			const matchStartOffset = $from.parentOffset - matchedDocLength;
+-			if (matchStartOffset < 0 || $from.parent.textBetween(matchStartOffset, $from.parentOffset) !== match[0].slice(0, matchedDocLength)) return;
++			if (matchStartOffset < 0) return;
++			let startsInsideContent = false;
++			$from.parent.nodesBetween(matchStartOffset, $from.parentOffset, (node, pos) => {
++				if (!node.isText && !node.isLeaf && pos < matchStartOffset && pos + node.nodeSize > matchStartOffset) startsInsideContent = true;
++				return false;
++			});
++			if (startsInsideContent) return;
+ 		}
+ 		const tr = view.state.tr;
+ 		const state = createChainableState({

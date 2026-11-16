@@ -31,16 +31,18 @@ function cursorOf(state: EditorState): ResolvedPos | null {
   return selection instanceof TextSelection ? selection.$cursor : null;
 }
 
-function isNestedBoundaryBackspace(state: EditorState): boolean {
+type BackspaceBoundary = 'nested' | 'flat' | null;
+
+function backspaceBoundary(state: EditorState): BackspaceBoundary {
   const $cursor = cursorOf(state);
-  if ($cursor?.parentOffset !== 0) return false;
+  if ($cursor?.parentOffset !== 0) return null;
   const li = listItemDepth($cursor);
-  if (li === null) return false;
-  if ($cursor.depth !== li + 1 || $cursor.index(li) !== 0) return false;
+  if (li === null) return null;
+  if ($cursor.depth !== li + 1 || $cursor.index(li) !== 0) return null;
   const itemIndex = $cursor.index(li - 1);
-  if (itemIndex === 0) return false;
+  if (itemIndex === 0) return null;
   const prevItem = $cursor.node(li - 1).child(itemIndex - 1);
-  return itemContainsSublist(prevItem);
+  return itemContainsSublist(prevItem) ? 'nested' : 'flat';
 }
 
 function nextListItemDepthAfter($cursor: ResolvedPos, li: number): number | null {
@@ -78,8 +80,12 @@ export const ListBoundaryMerge = Extension.create({
   addKeyboardShortcuts() {
     const backspace = () => {
       const { editor } = this;
-      if (!isNestedBoundaryBackspace(editor.state)) return false;
+      const boundary = backspaceBoundary(editor.state);
+      if (boundary === null) return false;
       if (editor.commands.undoInputRule()) return true;
+      if (boundary === 'flat') {
+        return editor.commands.joinItemBackward() || editor.commands.joinBackward();
+      }
       const { state, view } = editor;
       return joinTextblockBackward(state, view.dispatch, view);
     };

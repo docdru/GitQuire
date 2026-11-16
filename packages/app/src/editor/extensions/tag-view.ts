@@ -7,7 +7,7 @@ export const Tag = BaseTag.extend({
   priority: 200,
 
   addNodeView() {
-    return ReactNodeViewRenderer(TagView);
+    return ReactNodeViewRenderer(TagView, { trackNodeViewPosition: true });
   },
 
   addKeyboardShortcuts() {

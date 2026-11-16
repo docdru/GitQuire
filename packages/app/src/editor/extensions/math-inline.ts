@@ -4,6 +4,6 @@ import { MathInlineView } from './MathInlineView';
 
 export const MathInline = BaseMathInline.extend({
   addNodeView() {
-    return ReactNodeViewRenderer(MathInlineView);
+    return ReactNodeViewRenderer(MathInlineView, { trackNodeViewPosition: true });
   },
 });
