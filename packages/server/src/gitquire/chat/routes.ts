@@ -24,6 +24,7 @@ import {
   normalizePagePath,
   suggestedPagePath,
 } from './transcript.ts';
+import type { ChatUsageStore } from './usage.ts';
 import type { OpenWikiTools } from './wiki-tools.ts';
 
 const MAX_MESSAGE_CHARS = 20_000;
@@ -79,6 +80,7 @@ function sameOrigin(req: IncomingMessage): boolean {
 export interface ChatRoutesDeps {
   keys: ChatKeyStore;
   history: ChatHistoryStore;
+  usage: ChatUsageStore;
   providers: ChatProviders;
   openTools: OpenWikiTools;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
@@ -101,6 +103,8 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
     try {
       const removed = deps.history.purgeExpired(now());
       if (removed > 0) deps.log.info({ removed }, '[gitquire-chat] removed expired chats');
+      const usage = deps.usage.purgeExpired(now());
+      if (usage > 0) deps.log.info({ removed: usage }, '[gitquire-chat] removed expired usage');
     } catch (err) {
       deps.log.warn({ err }, '[gitquire-chat] could not remove expired chats');
     }
@@ -242,7 +246,23 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       'Cache-Control': 'no-store',
       'X-Accel-Buffering': 'no',
     });
+    const record = (event: ChatEvent & { type: 'usage' }) => {
+      try {
+        deps.usage.add(user.id, {
+          day: now().toISOString().slice(0, 10),
+          chatId: chat.id,
+          title: chat.title,
+          provider: chat.provider,
+          model: chat.model,
+          inputTokens: event.inputTokens,
+          outputTokens: event.outputTokens,
+        });
+      } catch (err) {
+        deps.log.warn({ err }, '[gitquire-chat] could not record token usage');
+      }
+    };
     const emit = (event: ChatEvent) => {
+      if (event.type === 'usage') record(event);
       if (!res.writableEnded) res.write(`${JSON.stringify(event)}\n`);
     };
     try {
@@ -366,6 +386,10 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
         sendJson(res, 200, { provider, key: deps.keys.info(user.id)[provider] });
         return;
       }
+    }
+    if (path === `${CHAT_API_PREFIX}/usage` && method === 'GET') {
+      sendJson(res, 200, deps.usage.report(requireUser(req).id, now()));
+      return;
     }
     if (path === `${CHAT_API_PREFIX}/chats` && method === 'GET') {
       sendJson(res, 200, { chats: deps.history.list(requireUser(req).id) });

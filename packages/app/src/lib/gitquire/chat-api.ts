@@ -125,6 +125,33 @@ export async function removeChatKey(provider: ChatProvider): Promise<ChatKeyInfo
   return body.key;
 }
 
+interface ChatUsageDay {
+  day: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+interface ChatUsageChat {
+  chatId: string;
+  title: string;
+  provider: ChatProvider;
+  model: string;
+  lastDay: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+export interface ChatUsageReport {
+  retentionDays: number;
+  total: { inputTokens: number; outputTokens: number };
+  days: ChatUsageDay[];
+  chats: ChatUsageChat[];
+}
+
+export function fetchChatUsage(): Promise<ChatUsageReport> {
+  return request<ChatUsageReport>('/usage');
+}
+
 export async function listChats(): Promise<ChatSummary[]> {
   return (await request<{ chats: ChatSummary[] }>('/chats')).chats;
 }

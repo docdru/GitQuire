@@ -264,7 +264,8 @@ People can chat with Claude or Mistral in the ✨ pane (⌘L) and from the box u
 assistant searches, reads and, when asked, edits pages through the same tools as `/mcp`, so its
 changes appear live, are credited to the person chatting, and follow their **Put my AI assistant's
 edits into a draft** setting. It cannot delete pages, change settings, read hidden folders such as
-`.ok` (where keys and chats are kept) or run commands.
+`.ok` (where keys and chats are kept) or run commands. No `/mcp` client can read `.ok/local`
+through `exec`; the server enforces that for connectors, agent tokens and the chat alike.
 
 It is on whenever GitHub sign-in is on; the ✨ pane
 shows the chat. Nothing runs until someone adds a key:
@@ -282,6 +283,12 @@ shows the chat. Nothing runs until someone adds a key:
 - **Chats are kept per person** in `/data/.ok/local/gitquire/chats/<GitHub user id>/`, outside Git,
   and deleted 90 days after their last message. Only their owner sees them in the app; whoever runs
   the server can read the files. **Save as page** writes a chat into the wiki.
+- **Token counts** per day and per chat are kept per person in
+  `/data/.ok/local/gitquire/chat-usage/<GitHub user id>.json` for the same 90 days (also after a
+  chat is deleted) and shown in **Settings → AI chat**. Tokens only, no prices.
+- Answers are **streamed** from the provider and passed on as they arrive. Behind nginx, the chat
+  response already sends `X-Accel-Buffering: no`; a gateway set with the variables below may ignore
+  streaming, which still works, only without the gradual display.
 - The server calls `api.anthropic.com` and `api.mistral.ai` directly, so the container needs
   outbound HTTPS to them.
 

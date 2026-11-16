@@ -13,8 +13,8 @@ The assistant uses the same wiki tools as connected AI assistants: it searches, 
 follows links and history, writes new pages and edits, renames or moves existing ones. It cannot
 delete pages, change settings, look into hidden folders such as `.ok` or run commands. Every change is saved as your edit and shows up live for
 everyone; if **Put my AI assistant's edits into a draft** is on (Settings → Connect AI), its
-changes go into a draft for you to review first. Each step shows in the chat, with a link to the
-page it changed.
+changes go into a draft for you to review first. Answers appear as they are written, and each step
+shows in the chat, with a link to the page it changed. **Stop** ends the answer at once.
 
 ## Add your API key
 
@@ -36,6 +36,9 @@ You can save a key for both providers and switch between them, even within one c
   you so.
 - **Watch the token count** at the bottom of the chat. The whole conversation is sent with every
   message, so long chats cost more; start a new chat (**+**) for a new topic.
+- **Look at your usage** in **Settings → AI chat**: tokens per day and per chat for the last 90
+  days, also for chats you have deleted. GitQuire counts tokens only; your provider's bill shows
+  the price.
 - **Pick a smaller model** (Claude Haiku, Mistral Small) for everyday questions.
 
 Each answer is limited to 16,000 output tokens (the model's thinking counts too) and 12 steps of

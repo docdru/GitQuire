@@ -9,6 +9,7 @@ import { createChatHistoryStore } from './history.ts';
 import { createChatKeyStore } from './key-store.ts';
 import { type ChatProviders, ProviderError, type ProviderTurn } from './providers.ts';
 import { type ChatRoutes, createChatRoutes } from './routes.ts';
+import { createChatUsageStore } from './usage.ts';
 import type { OpenWikiTools } from './wiki-tools.ts';
 
 const ALICE: SessionUser = { id: 7, login: 'alice', name: 'Alice', avatarUrl: '' };
@@ -61,6 +62,7 @@ async function harness(options: {
   const routes = createChatRoutes({
     keys: createChatKeyStore(dir, 's'.repeat(40)),
     history: createChatHistoryStore(dir),
+    usage: createChatUsageStore(dir),
     providers,
     openTools,
     sessionUser: (req) => {
@@ -256,6 +258,27 @@ describe('AI chat routes', () => {
     expect(
       (await (await call(h, '/api/gitquire/chat/chats', { user: 'alice' })).json()).chats,
     ).toEqual([]);
+
+    const usage = await (await call(h, '/api/gitquire/chat/usage', { user: 'alice' })).json();
+    expect(usage).toEqual({
+      retentionDays: 90,
+      total: { inputTokens: 250, outputTokens: 22 },
+      days: [{ day: '2026-11-14', inputTokens: 250, outputTokens: 22 }],
+      chats: [
+        {
+          chatId: first.id,
+          title: 'Where is the plan?',
+          provider: 'claude',
+          model: 'claude-sonnet-5-5',
+          lastDay: '2026-11-14',
+          inputTokens: 250,
+          outputTokens: 22,
+        },
+      ],
+    });
+    const bobs = await (await call(h, '/api/gitquire/chat/usage', { user: 'bob' })).json();
+    expect(bobs.total).toEqual({ inputTokens: 0, outputTokens: 0 });
+    expect((await call(h, '/api/gitquire/chat/usage', {})).status).toBe(401);
   });
 
   it('streams provider errors so the person sees what to do', async () => {

@@ -12,7 +12,10 @@ import {
   type ChatKeyInfo,
   type ChatOverview,
   type ChatProviderInfo,
+  type ChatUsageReport,
   fetchChatOverview,
+  fetchChatUsage,
+  formatTokens,
   removeChatKey,
   saveChatKey,
 } from '@/lib/gitquire/chat-api';
@@ -143,6 +146,118 @@ function ProviderKey({
   );
 }
 
+const DAYS_SHOWN = 14;
+const CHATS_SHOWN = 10;
+
+function UsageTable({
+  label,
+  rows,
+}: {
+  label: string;
+  rows: Array<{ key: string; name: string; detail?: string; input: number; output: number }>;
+}) {
+  return (
+    <table className="w-full text-sm" aria-label={label}>
+      <thead className="text-muted-foreground text-xs">
+        <tr>
+          <th className="py-1 text-start font-normal">{label}</th>
+          <th className="py-1 text-end font-normal">
+            <Trans>In</Trans>
+          </th>
+          <th className="py-1 text-end font-normal">
+            <Trans>Out</Trans>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.key} className="border-t">
+            <td className="py-1 pe-2">
+              <span className="block truncate">{row.name}</span>
+              {row.detail === undefined ? null : (
+                <span className="block text-muted-foreground text-xs">{row.detail}</span>
+              )}
+            </td>
+            <td className="py-1 text-end tabular-nums">{formatTokens(row.input)}</td>
+            <td className="py-1 text-end tabular-nums">{formatTokens(row.output)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function UsageHistory() {
+  const { t } = useLingui();
+  const titleId = useId();
+  const [usage, setUsage] = useState<ChatUsageReport | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let stale = false;
+    fetchChatUsage().then(
+      (value) => {
+        if (!stale) setUsage(value);
+      },
+      () => {
+        if (!stale) setFailed(true);
+      },
+    );
+    return () => {
+      stale = true;
+    };
+  }, []);
+
+  if (usage === null) {
+    return failed ? (
+      <p className="text-muted-foreground text-sm">{t`Your token usage could not be loaded.`}</p>
+    ) : null;
+  }
+  const input = formatTokens(usage.total.inputTokens);
+  const output = formatTokens(usage.total.outputTokens);
+  const days = usage.retentionDays;
+  return (
+    <section aria-labelledby={titleId} className="space-y-3" data-testid="ai-chat-usage-history">
+      <p id={titleId} className="font-medium text-sm">
+        <Trans>Your token usage</Trans>
+      </p>
+      {usage.days.length === 0 ? (
+        <p className="text-muted-foreground text-sm">
+          <Trans>No tokens used in the last {days} days.</Trans>
+        </p>
+      ) : (
+        <>
+          <p className="text-muted-foreground text-sm" data-testid="ai-chat-usage-total">
+            <Trans>
+              Last {days} days: {input} tokens in, {output} out. Your provider's bill is based on
+              these counts; GitQuire does not know the prices.
+            </Trans>
+          </p>
+          <UsageTable
+            label={t`Day`}
+            rows={usage.days.slice(0, DAYS_SHOWN).map((day) => ({
+              key: day.day,
+              name: day.day,
+              input: day.inputTokens,
+              output: day.outputTokens,
+            }))}
+          />
+          <UsageTable
+            label={t`Chat`}
+            rows={usage.chats.slice(0, CHATS_SHOWN).map((chat) => ({
+              key: chat.chatId,
+              name: chat.title,
+              detail: `${chat.model} · ${chat.lastDay}`,
+              input: chat.inputTokens,
+              output: chat.outputTokens,
+            }))}
+          />
+        </>
+      )}
+    </section>
+  );
+}
+
 export function AiChatSettings() {
   const { t } = useLingui();
   const titleId = useId();
@@ -221,12 +336,14 @@ export function AiChatSettings() {
               />
             ))}
           </div>
+          <UsageHistory />
           <p className="text-muted-foreground text-sm">
             <Trans>
               Keys are stored encrypted on the wiki server, used only for your own chats and never
               shown again. Your chats are kept on the server for {overview.retentionDays} days after
               the last message and are only shown to you; whoever runs the server can technically
-              read both. Use “Save as page” to keep a chat in the wiki.
+              read both. Token counts per day and per chat are kept for the same time, also after
+              you delete a chat. Use “Save as page” to keep a chat in the wiki.
             </Trans>
           </p>
         </>
