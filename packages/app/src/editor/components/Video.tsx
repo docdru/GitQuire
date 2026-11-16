@@ -5,6 +5,7 @@ import {
   type ParsedYouTubeUrl,
   parseYouTubeUrl,
 } from '@inkeep/open-knowledge-core/utils/youtube-embed';
+import { t } from '@lingui/core/macro';
 import Vimeo from '@u-wave/react-vimeo';
 import { type CSSProperties, useEffect, useRef } from 'react';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
@@ -53,7 +54,7 @@ interface VimeoPlayerWithElement {
 
 function VimeoEmbed(props: VideoProps & { src: string }) {
   const playerRef = useRef<VimeoPlayerWithElement | null>(null);
-  const fallbackTitle = 'Vimeo video player';
+  const fallbackTitle = t`Vimeo video player`;
   const effectiveTitle = props.title ?? fallbackTitle;
 
   const handleReady = (player: unknown) => {
@@ -116,7 +117,7 @@ function LoomEmbed(props: VideoProps & { src: string }) {
       <iframe
         className="ok-video-loom-iframe"
         src={embedUrl}
-        title={props.title ?? 'Loom video player'}
+        title={props.title ?? t`Loom video player`}
         width={props.width}
         height={props.height}
         allow="autoplay; fullscreen"

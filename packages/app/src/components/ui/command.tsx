@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro';
 import { Command as CommandPrimitive } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import { type ComponentProps, type RefObject, useLayoutEffect, useRef } from 'react';
@@ -28,8 +29,8 @@ interface CommandDialogProps extends ComponentProps<typeof Dialog> {
 }
 
 function CommandDialog({
-  title = 'Command Palette',
-  description = 'Search for a command to run',
+  title,
+  description,
   children,
   className,
   showCloseButton = true,
@@ -38,6 +39,8 @@ function CommandDialog({
   contentAttributes,
   ...props
 }: CommandDialogProps) {
+  const dialogTitle = title ?? t`Command palette`;
+  const dialogDescription = description ?? t`Search for a command to run`;
   const { className: commandClassName, ...restCommandProps } = commandProps ?? {};
   return (
     <Dialog {...props}>
@@ -47,8 +50,8 @@ function CommandDialog({
         onEscapeKeyDown={onEscapeKeyDown}
         {...contentAttributes}
       >
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-        <DialogDescription className="sr-only">{description}</DialogDescription>
+        <DialogTitle className="sr-only">{dialogTitle}</DialogTitle>
+        <DialogDescription className="sr-only">{dialogDescription}</DialogDescription>
         <Command
           className={cn(
             '[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5',

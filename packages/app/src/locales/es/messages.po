@@ -413,6 +413,15 @@ msgstr "hace {minutes} min"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
+msgid "{name} icon"
+msgstr ""
+
+msgid "{name} URLs are not direct audio files. Paste a direct audio file URL."
+msgstr ""
+
+msgid "{name} URLs are not direct image files. Paste a direct image file URL."
+msgstr ""
+
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, one {# nodo} many {# nodos} other {# nodos}}"
 
@@ -549,6 +558,9 @@ msgstr "# Un patrón por línea.\n"
 "#   drafts/\n"
 "#   *.draft.md\n"
 "#   !keep.md"
+
+msgid "#F05032 or rgb(240,80,50)"
+msgstr ""
 
 msgid "+ {overflow} more"
 msgstr "+ {overflow} más"
@@ -859,6 +871,9 @@ msgstr "Añadiendo"
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "Ajusta el tamaño y el tiempo de espera de las solicitudes de indexación para servidores de embeddings lentos o con poca memoria. La mayoría de las configuraciones deberían mantener los valores predeterminados."
 
+msgid "Admiral"
+msgstr ""
+
 msgid "Advanced"
 msgstr "Avanzado"
 
@@ -1125,6 +1140,9 @@ msgstr "Sugerencias de recursos"
 
 msgid "Asset: {title}"
 msgstr "Recurso: {title}"
+
+msgid "Attach a downloadable file (.pdf, .docx, .zip and more)."
+msgstr ""
 
 msgid "Attach images"
 msgstr "Adjuntar imágenes"
@@ -1509,6 +1527,9 @@ msgstr "Borra el contenido de un campo para restaurar su valor predeterminado."
 
 msgid "Clear color"
 msgstr "Quitar color"
+
+msgid "Clear icon"
+msgstr ""
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "Vacía el campo para volver al endpoint de OpenAI por defecto."
@@ -2221,6 +2242,9 @@ msgstr "Personaliza el aspecto y el comportamiento del editor."
 msgid "Dark"
 msgstr "Oscuro"
 
+msgid "Data URIs are not supported for media fields. Use a hosted file URL."
+msgstr ""
+
 msgid "Date"
 msgstr "Fecha"
 
@@ -2497,6 +2521,9 @@ msgstr "Arrastra {patternText} para reordenar"
 msgid "Drag item {0} to reorder"
 msgstr "Arrastra el elemento {0} para reordenar"
 
+msgid "Drag to adjust"
+msgstr ""
+
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "Arrastra, pega o adjunta hasta {MAX_ATTACHMENTS} imágenes."
 
@@ -2662,6 +2689,9 @@ msgstr ""
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
 msgstr "Inserta una instantánea en vivo de una pizarra .excalidraw de este espacio de trabajo."
 
+msgid "Embed a URL"
+msgstr ""
+
 msgid "Embed a video with native player controls."
 msgstr "Incrusta un vídeo con los controles nativos del reproductor."
 
@@ -2673,6 +2703,12 @@ msgstr "Incrusta una página externa en un iframe en línea (documentación, dem
 
 msgid "Embed an image with optional alt text."
 msgstr "Incrusta una imagen con texto alternativo opcional."
+
+msgid "Embed only supports cross-origin URLs"
+msgstr ""
+
+msgid "Embedded line break — the row spans multiple lines."
+msgstr ""
 
 msgid "Embedding request settings"
 msgstr "Ajustes de las solicitudes de embeddings"
@@ -2747,6 +2783,9 @@ msgstr "Activar los temas"
 msgid "Enabling index generation"
 msgstr "Activando la generación de índices"
 
+msgid "End"
+msgstr ""
+
 msgid "Ended"
 msgstr "Terminado"
 
@@ -2755,6 +2794,9 @@ msgstr "Endpoint"
 
 msgid "Eng specs"
 msgstr "Especificaciones de ingeniería"
+
+msgid "Engineer"
+msgstr ""
 
 msgid "Enter"
 msgstr "Intro"
@@ -2772,6 +2814,9 @@ msgid "Enter a name for this theme."
 msgstr "Introduce un nombre para este tema."
 
 msgid "Enter a name."
+msgstr ""
+
+msgid "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
 msgstr ""
 
 msgid "Enter a number of seconds between {minimum} and {maximum}."
@@ -2985,6 +3030,9 @@ msgstr "No se pudo cargar el grafo"
 msgid "Failed to load headings"
 msgstr "No se pudieron cargar los encabezados"
 
+msgid "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+msgstr ""
+
 msgid "Failed to load hub pages"
 msgstr "No se pudieron cargar las páginas índice"
 
@@ -2997,6 +3045,9 @@ msgstr "No se pudieron cargar los enlaces salientes"
 msgid "Failed to load pages"
 msgstr "No se pudieron cargar las páginas"
 
+msgid "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+msgstr ""
+
 msgid "Failed to load PDF"
 msgstr "No se pudo cargar el PDF"
 
@@ -3008,6 +3059,9 @@ msgstr "No se pudieron cargar las plantillas del proyecto"
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "No se pudieron cargar las etiquetas. Pulsa <0>Esc</0> y vuelve a abrirlo para reintentarlo."
+
+msgid "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
+msgstr ""
 
 msgid "Failed to load templates: {message}"
 msgstr "No se pudieron cargar las plantillas: {message}"
@@ -3812,6 +3866,9 @@ msgstr "Propiedades de la fórmula en línea"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "Fila en línea para un archivo descargable. También funciona arrastrar y soltar."
 
+msgid "Inline tag (#tagname) that links pages with the same tag."
+msgstr ""
+
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "Inserta una referencia a nota al pie y su definición correspondiente."
 
@@ -3832,6 +3889,9 @@ msgstr "Insertar fila encima"
 
 msgid "Insert row below"
 msgstr "Insertar fila debajo"
+
+msgid "Insert unresolved link \"{title}\""
+msgstr ""
 
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "Inserta, elimina, mueve, copia y sangra líneas del editor de código con el mapa de teclas por defecto de CodeMirror."
@@ -3963,6 +4023,9 @@ msgid "Layout options"
 msgstr "Opciones de diseño"
 
 msgid "Le Chat"
+msgstr ""
+
+msgid "Leading whitespace — the rule may not match as expected."
 msgstr ""
 
 msgid "Learn more"
@@ -4181,6 +4244,9 @@ msgstr "Hay commits locales que impiden actualizar esta copia"
 msgid "Local path"
 msgstr "Ruta local"
 
+msgid "Lone ! — negation needs a pattern after it."
+msgstr ""
+
 msgid "Looked at links"
 msgstr ""
 
@@ -4190,11 +4256,17 @@ msgstr ""
 msgid "Looked at: {detail}"
 msgstr ""
 
+msgid "Loom video player"
+msgstr ""
+
 msgid "Lost connection to \"{docName}\"."
 msgstr "Se perdió la conexión con \"{docName}\"."
 
 msgid "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
 msgstr "Redúcelo para disminuir el uso de memoria y el trabajo por solicitud. Los lotes más pequeños envían más solicitudes y pueden hacer que la indexación sea más lenta en conjunto."
+
+msgid "lucide:Lightbulb or 📘"
+msgstr ""
 
 msgid "Maintain generated indexes in every folder?"
 msgstr "¿Mantener índices generados en cada carpeta?"
@@ -4289,6 +4361,9 @@ msgstr "Controles del diagrama de Mermaid"
 msgid "Mermaid diagram failed to render."
 msgstr "No se pudo renderizar el diagrama de Mermaid."
 
+msgid "Mermaid flowchart preview"
+msgstr ""
+
 msgid "Message"
 msgstr ""
 
@@ -4321,6 +4396,9 @@ msgstr "Faltaba una función"
 
 msgid "Missing file {identity}. Go to reference."
 msgstr "Falta el archivo {identity}. Ir a la referencia."
+
+msgid "Missing file extension. Accepts: {accepted}."
+msgstr ""
 
 msgid "Missing image {identity}. Go to reference."
 msgstr "Falta la imagen {identity}. Ir a la referencia."
@@ -4916,6 +4994,9 @@ msgstr "No es un tema base16"
 msgid "Not a hex color: {0}"
 msgstr "No es un color hexadecimal: {0}"
 
+msgid "Not a valid URL."
+msgstr ""
+
 msgid "Not connected"
 msgstr "Sin conexión"
 
@@ -5378,6 +5459,12 @@ msgstr ""
 msgid "Paste your API key"
 msgstr "Pega tu clave de API"
 
+msgid "Pasted as plain text — some formatting could not be converted."
+msgstr ""
+
+msgid "Pasted without linking — the link could not be applied."
+msgstr ""
+
 msgid "Path cannot contain \"..\""
 msgstr "La ruta no puede contener \"..\""
 
@@ -5718,6 +5805,9 @@ msgstr "Carpetas y plantillas ya hechas para empezar rápido."
 msgid "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 msgstr "Carpetas y plantillas ya hechas para empezar rápido. Selecciona un paquete para ver qué se crea y añádelo después a tu proyecto."
 
+msgid "Ready?"
+msgstr ""
+
 msgid "Receiving objects"
 msgstr "Recibiendo objetos"
 
@@ -5943,6 +6033,9 @@ msgstr "No se encontró el repositorio: puede que no exista o que la cuenta util
 msgid "Repository not found. It may have been renamed, deleted, or moved."
 msgstr "No se encontró el repositorio. Puede que lo hayan renombrado, eliminado o movido."
 
+msgid "Request failed (HTTP {status})."
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "requests"
 msgstr "solicitudes"
@@ -6054,6 +6147,9 @@ msgstr "Mostrar en el Finder"
 
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "Mostrar en Finder muestra la aplicación para que puedas arrastrarla a la Papelera."
+
+msgid "Revenue"
+msgstr ""
 
 msgid "Review"
 msgstr "Revisar"
@@ -6192,6 +6288,9 @@ msgstr "Busca archivos, carpetas o comandos"
 
 msgid "Search folders"
 msgstr "Buscar carpetas"
+
+msgid "Search for a command to run"
+msgstr ""
 
 msgid "Search for a page and choose it to insert a link."
 msgstr ""
@@ -6361,6 +6460,9 @@ msgstr "El servidor no puede abrir documentos"
 msgid "Server error (HTTP {status})"
 msgstr "Error del servidor (HTTP {status})"
 
+msgid "Server error (HTTP {status}): {detail}"
+msgstr ""
+
 msgid "Server error: {status}"
 msgstr "Error del servidor: {status}"
 
@@ -6489,6 +6591,9 @@ msgstr "Mostrar las opciones avanzadas"
 
 msgid "Show Agents"
 msgstr "Mostrar Agentes"
+
+msgid "Show All Files stream failed."
+msgstr ""
 
 msgid "Show diagram"
 msgstr "Mostrar el diagrama"
@@ -6706,6 +6811,9 @@ msgstr ""
 msgid "Split list item"
 msgstr "Dividir el elemento de lista"
 
+msgid "Start"
+msgstr ""
+
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -6900,6 +7008,12 @@ msgstr "Sincronizando"
 
 msgid "System"
 msgstr "Sistema"
+
+msgid "Tab 1"
+msgstr ""
+
+msgid "Tab 2"
+msgstr ""
 
 msgid "Table"
 msgstr "Tabla"
@@ -7486,6 +7600,9 @@ msgstr ""
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "Esta ventana no puede guardar un token: abre Ajustes desde la ventana principal de la aplicación."
 
+msgid "Thumbnails"
+msgstr ""
+
 msgid "Timeline"
 msgstr "Cronología"
 
@@ -7607,6 +7724,9 @@ msgstr "Demasiado lento"
 
 msgid "Top linked pages"
 msgstr "Páginas más enlazadas"
+
+msgid "Trailing backslash — line continuation isn't supported."
+msgstr ""
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Retrocede por el historial de navegación de GitQuire."
@@ -7740,11 +7860,17 @@ msgstr "Componente desconocido: {componentName}; el código se puede editar abaj
 msgid "Unknown component: {unregisteredComponentName}"
 msgstr "Componente desconocido: {unregisteredComponentName}"
 
+msgid "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+msgstr ""
+
 msgid "Unknown error"
 msgstr "Error desconocido"
 
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "Variable desconocida {unknownList}. Variables disponibles: {supportedVariables}."
+
+msgid "Unmatched [ — character class is open."
+msgstr ""
 
 msgid "Unmerged"
 msgstr "Sin fusionar"
@@ -7761,6 +7887,9 @@ msgstr "Dejar de fijar la pestaña"
 msgid "Unread"
 msgstr ""
 
+msgid "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "Enlace no reconocido"
 
@@ -7775,6 +7904,9 @@ msgstr "No se puede resolver el archivo {identity}. Ir a la referencia."
 
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "No se puede resolver la imagen {identity}. Ir a la referencia."
+
+msgid "Unsupported extension .{extension}. Accepts: {accepted}."
+msgstr ""
 
 msgid "Unsupported file type: {fileType}."
 msgstr "Tipo de archivo no admitido: {fileType}."
@@ -7851,6 +7983,9 @@ msgstr "Subiendo el archivo"
 msgid "Upstream sync"
 msgstr "Sincronización con el remoto"
 
+msgid "URL must start with http:// or https://"
+msgstr ""
+
 msgid "Use {0} as the dark theme"
 msgstr "Usar {0} como tema oscuro"
 
@@ -7908,6 +8043,9 @@ msgstr "Los complementos de usuario son personales de este dispositivo: actíval
 msgid "Username"
 msgstr "Nombre de usuario"
 
+msgid "Users"
+msgstr ""
+
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "Se está usando la variable de entorno <0>OK_EMBEDDINGS_API_KEY</0> (gestionada fuera de GitQuire)."
 
@@ -7951,6 +8089,9 @@ msgid "View only"
 msgstr "Solo lectura"
 
 msgid "Views"
+msgstr ""
+
+msgid "Vimeo video player"
 msgstr ""
 
 msgid "Visibility"
@@ -8123,6 +8264,9 @@ msgstr ""
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML o JSON, en cualquiera de las dos disposiciones base16."
+
+msgid "yes"
+msgstr ""
 
 msgid "yesterday"
 msgstr "ayer"

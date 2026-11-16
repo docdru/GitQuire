@@ -1,4 +1,5 @@
 import type { SVGProps } from 'react';
+import { iconLabel } from './icon-label';
 
 export function LmStudioIcon(props: SVGProps<SVGSVGElement>) {
   const bars = [
@@ -12,7 +13,7 @@ export function LmStudioIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="LM Studio icon"
+      aria-label={iconLabel('LM Studio')}
       xmlns="http://www.w3.org/2000/svg"
       width={24}
       height={24}

@@ -1,11 +1,12 @@
 import { type SVGProps, useId } from 'react';
+import { iconLabel } from './icon-label';
 
 export function OkIcon(props: SVGProps<SVGSVGElement>) {
   const gradientId = `gq-bg-${useId().replace(/:/g, '')}`;
   return (
     <svg
       role="img"
-      aria-label="GitQuire icon"
+      aria-label={iconLabel('GitQuire')}
       fill="none"
       height={24}
       width={24}

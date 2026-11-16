@@ -2,6 +2,7 @@
 
 import type { MarkdownManager } from '@inkeep/open-knowledge-core/markdown';
 import { htmlToMdast, mdastToMarkdown } from '@inkeep/open-knowledge-core/markdown/html-to-mdast';
+import { t } from '@lingui/core/macro';
 import type { JSONContent } from '@tiptap/core';
 import { Fragment, type Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { type EditorState, TextSelection, type Transaction } from '@tiptap/pm/state';
@@ -199,7 +200,7 @@ function linkifySelection(view: EditorView, href: string, source: ClipboardSourc
       reason: `${(err as Error)?.message ?? 'unknown'} (href=${href})`,
       errorClass: classifyError(err),
     });
-    notifyPasteDegraded('wysiwyg', 'Pasted without linking — the link could not be applied.');
+    notifyPasteDegraded('wysiwyg', t`Pasted without linking — the link could not be applied.`);
     return false;
   }
 }

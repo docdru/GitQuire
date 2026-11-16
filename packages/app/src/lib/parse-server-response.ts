@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro';
 import type { z } from 'zod';
 import { parseApiError } from './parse-api-error.ts';
 
@@ -26,7 +27,8 @@ export async function parseServerResponse(
   }
   if (parseErr !== undefined) {
     const detail = parseErr instanceof Error ? parseErr.message : String(parseErr);
-    return { ok: false, title: `Server error (HTTP ${res.status}): ${detail}` };
+    const status = res.status;
+    return { ok: false, title: t`Server error (HTTP ${status}): ${detail}` };
   }
   return { ok: false, title: parseApiError(body) ?? fallbackErrorTitle };
 }

@@ -1,10 +1,11 @@
 import { type SVGProps, useId } from 'react';
+import { iconLabel } from './icon-label';
 
 export function CodexIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="Codex icon"
+      aria-label={iconLabel('Codex')}
       xmlns="http://www.w3.org/2000/svg"
       width={24}
       height={24}
@@ -26,7 +27,7 @@ export function CodexBrandIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       role="img"
-      aria-label="Codex icon"
+      aria-label={iconLabel('Codex')}
       xmlns="http://www.w3.org/2000/svg"
       width={9}
       height={9}

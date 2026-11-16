@@ -15,6 +15,7 @@ import {
 } from '@inkeep/open-knowledge-core/search/workspace-search';
 import { isHiddenDocName } from '@inkeep/open-knowledge-core/util/doc-name';
 import type { HeadingEntry } from '@inkeep/open-knowledge-core/utils/slug';
+import { t } from '@lingui/core/macro';
 import type { Editor } from '@tiptap/core';
 import type { ResolvedPos } from '@tiptap/pm/model';
 import { PluginKey } from '@tiptap/pm/state';
@@ -211,6 +212,10 @@ export function filterHeadings(headings: HeadingEntry[], anchorQuery: string): H
     .filter((heading) => !!heading);
 }
 
+function insertUnresolvedLabel(title: string): string {
+  return t`Insert unresolved link "${title}"`;
+}
+
 export function buildSuggestionItems(
   pages: PageItem[],
   query: string,
@@ -238,7 +243,7 @@ export function buildSuggestionItems(
       kind: 'create',
       docName: attrs.target,
       title: query.trim(),
-      actionLabel: `Insert unresolved link "${query.trim()}"`,
+      actionLabel: insertUnresolvedLabel(query.trim()),
     },
   ];
 }
@@ -467,7 +472,7 @@ export function configureWikiLinkSuggestion(editor: Editor) {
           } catch (err) {
             console.error('[wiki-link-suggestion] Failed to fetch headings:', err);
             cachedHeadings.set(pageTarget, []);
-            anchorFetchError = `Failed to load headings for ${pageTarget}. Press Escape and type [[ again to retry.`;
+            anchorFetchError = t`Failed to load headings for ${pageTarget}. Press Escape and type [[ again to retry.`;
           } finally {
             anchorFetchingFor = null;
           }
@@ -488,8 +493,7 @@ export function configureWikiLinkSuggestion(editor: Editor) {
           fetchError = null;
         } else {
           console.error('[wiki-link-suggestion] Failed to fetch pages:', pagesResult.reason);
-          fetchError =
-            'Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link.';
+          fetchError = t`Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link.`;
           cachedPages = [];
         }
         if (contextResult.status === 'fulfilled') {

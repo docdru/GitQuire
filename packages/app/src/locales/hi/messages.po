@@ -413,6 +413,15 @@ msgstr "{minutes} मिनट पहले"
 msgid "{moreDecisions, plural, one {# more decision} other {# more decisions}}"
 msgstr ""
 
+msgid "{name} icon"
+msgstr ""
+
+msgid "{name} URLs are not direct audio files. Paste a direct audio file URL."
+msgstr ""
+
+msgid "{name} URLs are not direct image files. Paste a direct image file URL."
+msgstr ""
+
 msgid "{nodeCount, plural, one {# node} other {# nodes}}"
 msgstr "{nodeCount, plural, one {# नोड} other {# नोड}}"
 
@@ -545,6 +554,9 @@ msgid "# One pattern per line.\n"
 "#   *.draft.md\n"
 "#   !keep.md"
 msgstr "# प्रति पंक्ति एक पैटर्न।\\n# उदाहरण:\\n#   drafts/\\n#   *.draft.md\\n#   !keep.md"
+
+msgid "#F05032 or rgb(240,80,50)"
+msgstr ""
 
 msgid "+ {overflow} more"
 msgstr "+ {overflow} और"
@@ -855,6 +867,9 @@ msgstr "जोड़ा जा रहा है"
 msgid "Adjust indexing request size and timeout for slow or memory-constrained embedding servers. Most setups should keep the defaults."
 msgstr "धीमे या कम मेमोरी वाले एम्बेडिंग सर्वर के लिए इंडेक्सिंग अनुरोध का आकार और टाइमआउट समायोजित करें। अधिकांश सेटअप में डिफ़ॉल्ट मान ही रखने चाहिए।"
 
+msgid "Admiral"
+msgstr ""
+
 msgid "Advanced"
 msgstr "उन्नत"
 
@@ -1121,6 +1136,9 @@ msgstr "एसेट सुझाव"
 
 msgid "Asset: {title}"
 msgstr "एसेट: {title}"
+
+msgid "Attach a downloadable file (.pdf, .docx, .zip and more)."
+msgstr ""
 
 msgid "Attach images"
 msgstr "छवियाँ संलग्न करें"
@@ -1505,6 +1523,9 @@ msgstr "किसी फ़ील्ड का डिफ़ॉल्ट मा�
 
 msgid "Clear color"
 msgstr "रंग हटाएँ"
+
+msgid "Clear icon"
+msgstr ""
 
 msgid "Clear the field to reset back to the default OpenAI endpoint."
 msgstr "डिफ़ॉल्ट OpenAI एंडपॉइंट पर लौटने के लिए फ़ील्ड साफ़ करें।"
@@ -2217,6 +2238,9 @@ msgstr "संपादक कैसा दिखे और कैसे का�
 msgid "Dark"
 msgstr "गहरा"
 
+msgid "Data URIs are not supported for media fields. Use a hosted file URL."
+msgstr ""
+
 msgid "Date"
 msgstr "तारीख़"
 
@@ -2493,6 +2517,9 @@ msgstr "क्रम बदलने के लिए {patternText} खींच
 msgid "Drag item {0} to reorder"
 msgstr "क्रम बदलने के लिए आइटम {0} खींचें"
 
+msgid "Drag to adjust"
+msgstr ""
+
 msgid "Drop, paste, or attach up to {MAX_ATTACHMENTS} images."
 msgstr "अधिकतम {MAX_ATTACHMENTS} चित्र छोड़ें, पेस्ट करें या संलग्न करें।"
 
@@ -2658,6 +2685,9 @@ msgstr ""
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
 msgstr "इस वर्कस्पेस के किसी .excalidraw बोर्ड का लाइव स्नैपशॉट एम्बेड करें।"
 
+msgid "Embed a URL"
+msgstr ""
+
 msgid "Embed a video with native player controls."
 msgstr "मूल प्लेयर नियंत्रणों के साथ एक वीडियो एम्बेड करें।"
 
@@ -2669,6 +2699,12 @@ msgstr "एक बाहरी पेज को इनलाइन iframe मे
 
 msgid "Embed an image with optional alt text."
 msgstr "वैकल्पिक वैकल्पिक-पाठ के साथ एक छवि एम्बेड करें।"
+
+msgid "Embed only supports cross-origin URLs"
+msgstr ""
+
+msgid "Embedded line break — the row spans multiple lines."
+msgstr ""
 
 msgid "Embedding request settings"
 msgstr "एम्बेडिंग अनुरोध सेटिंग्स"
@@ -2743,6 +2779,9 @@ msgstr "थीम सक्षम करें"
 msgid "Enabling index generation"
 msgstr "सूचकांक निर्माण सक्षम करना"
 
+msgid "End"
+msgstr ""
+
 msgid "Ended"
 msgstr "समाप्त"
 
@@ -2751,6 +2790,9 @@ msgstr "एंडपॉइंट"
 
 msgid "Eng specs"
 msgstr "इंजीनियरिंग स्पेक"
+
+msgid "Engineer"
+msgstr ""
 
 msgid "Enter"
 msgstr "Enter"
@@ -2768,6 +2810,9 @@ msgid "Enter a name for this theme."
 msgstr "इस थीम का नाम दर्ज करें।"
 
 msgid "Enter a name."
+msgstr ""
+
+msgid "Enter a number (e.g. 100), a number with a CSS unit (e.g. 100px, 50%, 26rem), or one of: auto, inherit, initial, unset."
 msgstr ""
 
 msgid "Enter a number of seconds between {minimum} and {maximum}."
@@ -2981,6 +3026,9 @@ msgstr "ग्राफ़ लोड करने में विफल"
 msgid "Failed to load headings"
 msgstr "शीर्षक लोड करने में विफल"
 
+msgid "Failed to load headings for {pageTarget}. Press Escape and type [[ again to retry."
+msgstr ""
+
 msgid "Failed to load hub pages"
 msgstr "हब पेज लोड करने में विफल"
 
@@ -2993,6 +3041,9 @@ msgstr "बाहर जाने वाले लिंक लोड करन�
 msgid "Failed to load pages"
 msgstr "पेज लोड नहीं हो सके"
 
+msgid "Failed to load pages. Press Escape and type [[ again to retry, or continue typing to insert an unresolved link."
+msgstr ""
+
 msgid "Failed to load PDF"
 msgstr "PDF लोड करने में विफल"
 
@@ -3004,6 +3055,9 @@ msgstr "प्रोजेक्ट टेम्पलेट लोड करन
 
 msgid "Failed to load tags. Press <0>Esc</0> and re-open to retry."
 msgstr "टैग लोड करने में विफल। <0>Esc</0> दबाएँ और फिर कोशिश करने के लिए दोबारा खोलें।"
+
+msgid "Failed to load tags. Press Escape and type # again to retry, or continue typing to create a new tag."
+msgstr ""
 
 msgid "Failed to load templates: {message}"
 msgstr "टेम्पलेट लोड करने में विफल: {message}"
@@ -3808,6 +3862,9 @@ msgstr "इनलाइन गणित प्रॉपर्टी"
 msgid "Inline row for a downloadable file. Drag-drop also works."
 msgstr "डाउनलोड की जा सकने वाली फ़ाइल के लिए इनलाइन पंक्ति। खींचकर छोड़ना भी काम करता है।"
 
+msgid "Inline tag (#tagname) that links pages with the same tag."
+msgstr ""
+
 msgid "Insert a footnote reference + matching definition stub."
 msgstr "एक फ़ुटनोट संदर्भ + उससे मेल खाती परिभाषा का ढाँचा डालें।"
 
@@ -3828,6 +3885,9 @@ msgstr "ऊपर पंक्ति जोड़ें"
 
 msgid "Insert row below"
 msgstr "नीचे पंक्ति जोड़ें"
+
+msgid "Insert unresolved link \"{title}\""
+msgstr ""
 
 msgid "Insert, delete, move, copy, and indent source editor lines through CodeMirror's default keymap."
 msgstr "CodeMirror के डिफ़ॉल्ट कीमैप से स्रोत संपादक की पंक्तियाँ डालें, हटाएँ, हिलाएँ, कॉपी करें और अंदर करें।"
@@ -3959,6 +4019,9 @@ msgid "Layout options"
 msgstr "लेआउट विकल्प"
 
 msgid "Le Chat"
+msgstr ""
+
+msgid "Leading whitespace — the rule may not match as expected."
 msgstr ""
 
 msgid "Learn more"
@@ -4177,6 +4240,9 @@ msgstr "स्थानीय कमिट इस प्रति को अद�
 msgid "Local path"
 msgstr "स्थानीय पथ"
 
+msgid "Lone ! — negation needs a pattern after it."
+msgstr ""
+
 msgid "Looked at links"
 msgstr ""
 
@@ -4186,11 +4252,17 @@ msgstr ""
 msgid "Looked at: {detail}"
 msgstr ""
 
+msgid "Loom video player"
+msgstr ""
+
 msgid "Lost connection to \"{docName}\"."
 msgstr "\"{docName}\" से कनेक्शन टूट गया।"
 
 msgid "Lower this to reduce memory use and work per request. Smaller batches send more requests and may make indexing slower overall."
 msgstr "प्रति अनुरोध मेमोरी उपयोग और काम घटाने के लिए इसे कम करें। छोटे बैच अधिक अनुरोध भेजते हैं और कुल मिलाकर इंडेक्सिंग धीमी कर सकते हैं।"
+
+msgid "lucide:Lightbulb or 📘"
+msgstr ""
 
 msgid "Maintain generated indexes in every folder?"
 msgstr "प्रत्येक फ़ोल्डर में generated अनुक्रमणिका बनाए रखें?"
@@ -4285,6 +4357,9 @@ msgstr "Mermaid आरेख नियंत्रण"
 msgid "Mermaid diagram failed to render."
 msgstr "Mermaid आरेख रेंडर नहीं हो सका।"
 
+msgid "Mermaid flowchart preview"
+msgstr ""
+
 msgid "Message"
 msgstr ""
 
@@ -4317,6 +4392,9 @@ msgstr "एक सुविधा अनुपस्थित"
 
 msgid "Missing file {identity}. Go to reference."
 msgstr "गुम फ़ाइल {identity}। संदर्भ पर जाएँ।"
+
+msgid "Missing file extension. Accepts: {accepted}."
+msgstr ""
 
 msgid "Missing image {identity}. Go to reference."
 msgstr "गुम चित्र {identity}। संदर्भ पर जाएँ।"
@@ -4912,6 +4990,9 @@ msgstr "यह base16 थीम नहीं है"
 msgid "Not a hex color: {0}"
 msgstr "हेक्स रंग नहीं: {0}"
 
+msgid "Not a valid URL."
+msgstr ""
+
 msgid "Not connected"
 msgstr "जुड़ा नहीं"
 
@@ -5374,6 +5455,12 @@ msgstr ""
 msgid "Paste your API key"
 msgstr "अपनी API कुंजी चिपकाएँ"
 
+msgid "Pasted as plain text — some formatting could not be converted."
+msgstr ""
+
+msgid "Pasted without linking — the link could not be applied."
+msgstr ""
+
 msgid "Path cannot contain \"..\""
 msgstr "पथ में \"..\" नहीं हो सकता"
 
@@ -5714,6 +5801,9 @@ msgstr "जल्दी शुरू करने के लिए तैया�
 msgid "Ready-made folders and templates to get you started quickly. Select a pack to preview what gets created, then add it to your project."
 msgstr "जल्दी शुरू करने के लिए तैयार फ़ोल्डर और टेम्पलेट। क्या बनेगा इसका पूर्वावलोकन देखने के लिए कोई पैक चुनें, फिर उसे अपने प्रोजेक्ट में जोड़ें।"
 
+msgid "Ready?"
+msgstr ""
+
 msgid "Receiving objects"
 msgstr "ऑब्जेक्ट प्राप्त किए जा रहे हैं"
 
@@ -5939,6 +6029,9 @@ msgstr "रिपॉज़िटरी नहीं मिली — हो स�
 msgid "Repository not found. It may have been renamed, deleted, or moved."
 msgstr "रिपॉज़िटरी नहीं मिली। शायद इसका नाम बदला गया, इसे हटाया गया, या हिलाया गया।"
 
+msgid "Request failed (HTTP {status})."
+msgstr ""
+
 msgctxt "settings search keyword"
 msgid "requests"
 msgstr "अनुरोध"
@@ -6050,6 +6143,9 @@ msgstr "Finder में दिखाएँ"
 
 msgid "Reveal in Finder shows the app so you can drag it to the Trash."
 msgstr "Finder में दिखाएँ से ऐप दिखाई देता है, ताकि आप उसे ट्रैश में खींच सकें।"
+
+msgid "Revenue"
+msgstr ""
 
 msgid "Review"
 msgstr "समीक्षा करें"
@@ -6188,6 +6284,9 @@ msgstr "फ़ाइलें, फ़ोल्डर या कमांड ख�
 
 msgid "Search folders"
 msgstr "फ़ोल्डर खोजें"
+
+msgid "Search for a command to run"
+msgstr ""
 
 msgid "Search for a page and choose it to insert a link."
 msgstr ""
@@ -6357,6 +6456,9 @@ msgstr "सर्वर दस्तावेज़ नहीं खोल स�
 msgid "Server error (HTTP {status})"
 msgstr "सर्वर त्रुटि (HTTP {status})"
 
+msgid "Server error (HTTP {status}): {detail}"
+msgstr ""
+
 msgid "Server error: {status}"
 msgstr "सर्वर त्रुटि: {status}"
 
@@ -6485,6 +6587,9 @@ msgstr "उन्नत दिखाएँ"
 
 msgid "Show Agents"
 msgstr "Agents दिखाएँ"
+
+msgid "Show All Files stream failed."
+msgstr ""
 
 msgid "Show diagram"
 msgstr "आरेख दिखाएँ"
@@ -6702,6 +6807,9 @@ msgstr ""
 msgid "Split list item"
 msgstr "सूची आइटम बाँटें"
 
+msgid "Start"
+msgstr ""
+
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
@@ -6896,6 +7004,12 @@ msgstr "सिंक हो रहा है"
 
 msgid "System"
 msgstr "सिस्टम"
+
+msgid "Tab 1"
+msgstr ""
+
+msgid "Tab 2"
+msgstr ""
 
 msgid "Table"
 msgstr "तालिका"
@@ -7482,6 +7596,9 @@ msgstr ""
 msgid "This window can't store a token — open Settings from the main app window."
 msgstr "यह विंडो कोई टोकन नहीं सहेज सकती — मुख्य ऐप विंडो से Settings खोलें।"
 
+msgid "Thumbnails"
+msgstr ""
+
 msgid "Timeline"
 msgstr "समयरेखा"
 
@@ -7603,6 +7720,9 @@ msgstr "बहुत धीमा"
 
 msgid "Top linked pages"
 msgstr "सबसे ज़्यादा लिंक किए गए पेज"
+
+msgid "Trailing backslash — line continuation isn't supported."
+msgstr ""
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "GitQuire के नेविगेशन इतिहास में पीछे जाएँ।"
@@ -7736,11 +7856,17 @@ msgstr "अज्ञात कंपोनेंट: {componentName} — स्�
 msgid "Unknown component: {unregisteredComponentName}"
 msgstr "अज्ञात कंपोनेंट: {unregisteredComponentName}"
 
+msgid "Unknown CSS unit. Use px, %, rem, em, vh, vw, ch, ex, or fr."
+msgstr ""
+
 msgid "Unknown error"
 msgstr "अज्ञात त्रुटि"
 
 msgid "Unknown variable {unknownList}. Available variables: {supportedVariables}."
 msgstr "अज्ञात वेरिएबल {unknownList}। उपलब्ध वेरिएबल: {supportedVariables}।"
+
+msgid "Unmatched [ — character class is open."
+msgstr ""
 
 msgid "Unmerged"
 msgstr "मर्ज नहीं हुआ"
@@ -7757,6 +7883,9 @@ msgstr "टैब अनपिन करें"
 msgid "Unread"
 msgstr ""
 
+msgid "Unrecognized {name} URL. Paste a valid {name} share or embed link, or a direct video file URL."
+msgstr ""
+
 msgid "Unrecognized link"
 msgstr "अपरिचित लिंक"
 
@@ -7771,6 +7900,9 @@ msgstr "हल न की जा सकने वाली फ़ाइल {iden
 
 msgid "Unresolvable image {identity}. Go to reference."
 msgstr "हल न की जा सकने वाला चित्र {identity}। संदर्भ पर जाएँ।"
+
+msgid "Unsupported extension .{extension}. Accepts: {accepted}."
+msgstr ""
 
 msgid "Unsupported file type: {fileType}."
 msgstr "असमर्थित फ़ाइल प्रकार: {fileType}।"
@@ -7847,6 +7979,9 @@ msgstr "फ़ाइल अपलोड की जा रही है"
 msgid "Upstream sync"
 msgstr "अपस्ट्रीम सिंक"
 
+msgid "URL must start with http:// or https://"
+msgstr ""
+
 msgid "Use {0} as the dark theme"
 msgstr "{0} को गहरी थीम के रूप में उपयोग करें"
 
@@ -7904,6 +8039,9 @@ msgstr "उपयोगकर्ता प्लगइन इस डिवाइ
 msgid "Username"
 msgstr "उपयोगकर्ता नाम"
 
+msgid "Users"
+msgstr ""
+
 msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
 msgstr "<0>OK_EMBEDDINGS_API_KEY</0> पर्यावरण चर का उपयोग किया जा रहा है (GitQuire के बाहर प्रबंधित)।"
 
@@ -7947,6 +8085,9 @@ msgid "View only"
 msgstr "केवल देखने के लिए"
 
 msgid "Views"
+msgstr ""
+
+msgid "Vimeo video player"
 msgstr ""
 
 msgid "Visibility"
@@ -8119,6 +8260,9 @@ msgstr ""
 
 msgid "YAML or JSON, in either base16 layout."
 msgstr "YAML या JSON, दोनों में से किसी भी base16 विन्यास में।"
+
+msgid "yes"
+msgstr ""
 
 msgid "yesterday"
 msgstr "कल"
