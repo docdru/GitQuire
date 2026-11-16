@@ -382,7 +382,7 @@ describe('what each refusal and each kind of document reports', () => {
       saved: false,
       nextStep: 'retry',
     });
-    expect(String(answer.body.detail)).toContain('Write the skill or template by its file path');
+    expect(String(answer.body.detail)).toContain('Write the template by its file path');
   }, 60_000);
 });
 
