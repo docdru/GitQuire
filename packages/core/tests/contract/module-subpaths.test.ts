@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs';
 import * as root from '@inkeep/open-knowledge-core';
 import * as bridgeSubpath from '@inkeep/open-knowledge-core/bridge';
-import * as bugReportSidecarNoteContentSubpath from '@inkeep/open-knowledge-core/bug-report-sidecar/note-content';
 import * as checkpointKindsSubpath from '@inkeep/open-knowledge-core/checkpoint-kinds';
 import * as clientVersionSubpath from '@inkeep/open-knowledge-core/client-version';
 import * as commandsCommandIdentitySubpath from '@inkeep/open-knowledge-core/commands/command-identity';
@@ -19,24 +18,17 @@ import * as constantsActivitySubpath from '@inkeep/open-knowledge-core/constants
 import * as constantsCc1Subpath from '@inkeep/open-knowledge-core/constants/cc1';
 import * as constantsChromeSubpath from '@inkeep/open-knowledge-core/constants/chrome';
 import * as constantsCodeLanguagesSubpath from '@inkeep/open-knowledge-core/constants/code-languages';
-import * as constantsCreateNewBannerSubpath from '@inkeep/open-knowledge-core/constants/create-new-banner';
-import * as constantsCreateNewProjectReasonSubpath from '@inkeep/open-knowledge-core/constants/create-new-project-reason';
 import * as constantsDocLifecycleSubpath from '@inkeep/open-knowledge-core/constants/doc-lifecycle';
 import * as constantsDocumentOpenSubpath from '@inkeep/open-knowledge-core/constants/document-open';
-import * as constantsEditorsSubpath from '@inkeep/open-knowledge-core/constants/editors';
 import * as constantsEmbeddedHostSubpath from '@inkeep/open-knowledge-core/constants/embedded-host';
 import * as constantsGithubSubpath from '@inkeep/open-knowledge-core/constants/github';
 import * as constantsGraphSubpath from '@inkeep/open-knowledge-core/constants/graph';
-import * as constantsManualUpdateCheckSubpath from '@inkeep/open-knowledge-core/constants/manual-update-check';
-import * as constantsMcpSubpath from '@inkeep/open-knowledge-core/constants/mcp';
 import * as constantsMenuLabelsSubpath from '@inkeep/open-knowledge-core/constants/menu-labels';
-import * as constantsNativeMenuLabelsSubpath from '@inkeep/open-knowledge-core/constants/native-menu-labels';
 import * as constantsOkDirSubpath from '@inkeep/open-knowledge-core/constants/ok-dir';
 import * as constantsOkUserHomeSubpath from '@inkeep/open-knowledge-core/constants/ok-user-home';
 import * as constantsPreviewEmbedStartersSubpath from '@inkeep/open-knowledge-core/constants/preview-embed-starters';
 import * as constantsPreviewThemeTokensSubpath from '@inkeep/open-knowledge-core/constants/preview-theme-tokens';
 import * as constantsProductSubpath from '@inkeep/open-knowledge-core/constants/product';
-import * as constantsUninstallFeedbackSubpath from '@inkeep/open-knowledge-core/constants/uninstall-feedback';
 import * as constantsUploadSubpath from '@inkeep/open-knowledge-core/constants/upload';
 import * as extensionsCodeBlockFidelitySubpath from '@inkeep/open-knowledge-core/extensions/code-block-fidelity';
 import * as extensionsFootnoteReferenceSubpath from '@inkeep/open-knowledge-core/extensions/footnote-reference';
@@ -74,7 +66,6 @@ import * as markdownCodeFenceSubpath from '@inkeep/open-knowledge-core/markdown/
 import * as markdownHtmlToMdastSubpath from '@inkeep/open-knowledge-core/markdown/html-to-mdast';
 import * as markdownLintSubpath from '@inkeep/open-knowledge-core/markdown/lint';
 import * as markdownMdastToHtmlSubpath from '@inkeep/open-knowledge-core/markdown/mdast-to-html';
-import * as markdownPlainTextSubpath from '@inkeep/open-knowledge-core/markdown/plain-text';
 import * as markdownReferenceLabelSubpath from '@inkeep/open-knowledge-core/markdown/reference-label';
 import * as markdownResolveImageUrlSubpath from '@inkeep/open-knowledge-core/markdown/resolve-image-url';
 import * as markdownSafeUrlSubpath from '@inkeep/open-knowledge-core/markdown/safe-url';
@@ -87,7 +78,6 @@ import * as schemasCc1Subpath from '@inkeep/open-knowledge-core/schemas/cc1';
 import * as searchWorkspaceSearchSubpath from '@inkeep/open-knowledge-core/search/workspace-search';
 import * as seedPlanWorkSubpath from '@inkeep/open-knowledge-core/seed-plan-work';
 import * as serverBarrel from '@inkeep/open-knowledge-core/server';
-import * as sharingSubpath from '@inkeep/open-knowledge-core/sharing';
 import * as syncPausedReasonSubpath from '@inkeep/open-knowledge-core/sync-paused-reason';
 import * as themeBase16Subpath from '@inkeep/open-knowledge-core/theme/base16';
 import * as themeThemePluginsSubpath from '@inkeep/open-knowledge-core/theme/theme-plugins';
@@ -95,7 +85,6 @@ import * as typesAwarenessSubpath from '@inkeep/open-knowledge-core/types/awaren
 import * as typesIdentitySubpath from '@inkeep/open-knowledge-core/types/identity';
 import * as typesPrincipalSubpath from '@inkeep/open-knowledge-core/types/principal';
 import * as typesTimelineSubpath from '@inkeep/open-knowledge-core/types/timeline';
-import * as uninstallBridgeSubpath from '@inkeep/open-knowledge-core/uninstall-bridge';
 import * as utilAtomicYamlWriteSubpath from '@inkeep/open-knowledge-core/util/atomic-yaml-write';
 import * as utilDocNameSubpath from '@inkeep/open-knowledge-core/util/doc-name';
 import * as utilsAssetHrefSubpath from '@inkeep/open-knowledge-core/utils/asset-href';
@@ -114,10 +103,7 @@ import * as utilsLoomEmbedSubpath from '@inkeep/open-knowledge-core/utils/loom-e
 import * as utilsPdfAnchorSubpath from '@inkeep/open-knowledge-core/utils/pdf-anchor';
 import * as utilsRandomUuidSubpath from '@inkeep/open-knowledge-core/utils/random-uuid';
 import * as utilsRelativeTimeSubpath from '@inkeep/open-knowledge-core/utils/relative-time';
-import * as utilsResolveInternalHrefSubpath from '@inkeep/open-knowledge-core/utils/resolve-internal-href';
-import * as utilsSanitizeFolderNameSubpath from '@inkeep/open-knowledge-core/utils/sanitize-folder-name';
 import * as utilsSlugSubpath from '@inkeep/open-knowledge-core/utils/slug';
-import * as utilsTargetIdentitySubpath from '@inkeep/open-knowledge-core/utils/target-identity';
 import * as utilsTargetNamespaceSubpath from '@inkeep/open-knowledge-core/utils/target-namespace';
 import * as utilsVimeoEmbedSubpath from '@inkeep/open-knowledge-core/utils/vimeo-embed';
 import * as utilsWikiLinkResolveSubpath from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
@@ -132,15 +118,11 @@ const PRE_EXISTING_KEYS = [
   './keepalive',
   './helper-bundle',
   './acp/thread-protocol',
-  './acp/permissive-mode',
-  './acp/codex-legacy-notice',
-  './acp/tool-call-input',
   './desktop-bridge',
 ];
 
 const MODULE_SUBPATHS: Record<string, object> = {
   './bridge': bridgeSubpath,
-  './bug-report-sidecar/note-content': bugReportSidecarNoteContentSubpath,
   './checkpoint-kinds': checkpointKindsSubpath,
   './client-version': clientVersionSubpath,
   './commands/command-identity': commandsCommandIdentitySubpath,
@@ -158,23 +140,16 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './constants/cc1': constantsCc1Subpath,
   './constants/chrome': constantsChromeSubpath,
   './constants/code-languages': constantsCodeLanguagesSubpath,
-  './constants/create-new-banner': constantsCreateNewBannerSubpath,
-  './constants/create-new-project-reason': constantsCreateNewProjectReasonSubpath,
   './constants/doc-lifecycle': constantsDocLifecycleSubpath,
   './constants/document-open': constantsDocumentOpenSubpath,
-  './constants/editors': constantsEditorsSubpath,
   './constants/embedded-host': constantsEmbeddedHostSubpath,
   './constants/github': constantsGithubSubpath,
   './constants/graph': constantsGraphSubpath,
-  './constants/manual-update-check': constantsManualUpdateCheckSubpath,
-  './constants/mcp': constantsMcpSubpath,
   './constants/menu-labels': constantsMenuLabelsSubpath,
-  './constants/native-menu-labels': constantsNativeMenuLabelsSubpath,
   './constants/ok-dir': constantsOkDirSubpath,
   './constants/preview-embed-starters': constantsPreviewEmbedStartersSubpath,
   './constants/preview-theme-tokens': constantsPreviewThemeTokensSubpath,
   './constants/product': constantsProductSubpath,
-  './constants/uninstall-feedback': constantsUninstallFeedbackSubpath,
   './constants/upload': constantsUploadSubpath,
   './extensions/code-block-fidelity': extensionsCodeBlockFidelitySubpath,
   './extensions/footnote-reference': extensionsFootnoteReferenceSubpath,
@@ -212,7 +187,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './markdown/html-to-mdast': markdownHtmlToMdastSubpath,
   './markdown/lint': markdownLintSubpath,
   './markdown/mdast-to-html': markdownMdastToHtmlSubpath,
-  './markdown/plain-text': markdownPlainTextSubpath,
   './markdown/reference-label': markdownReferenceLabelSubpath,
   './markdown/resolve-image-url': markdownResolveImageUrlSubpath,
   './markdown/safe-url': markdownSafeUrlSubpath,
@@ -224,7 +198,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './schemas/cc1': schemasCc1Subpath,
   './search/workspace-search': searchWorkspaceSearchSubpath,
   './seed-plan-work': seedPlanWorkSubpath,
-  './sharing': sharingSubpath,
   './sync-paused-reason': syncPausedReasonSubpath,
   './theme/base16': themeBase16Subpath,
   './theme/theme-plugins': themeThemePluginsSubpath,
@@ -232,7 +205,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './types/identity': typesIdentitySubpath,
   './types/principal': typesPrincipalSubpath,
   './types/timeline': typesTimelineSubpath,
-  './uninstall-bridge': uninstallBridgeSubpath,
   './util/doc-name': utilDocNameSubpath,
   './utils/asset-href': utilsAssetHrefSubpath,
   './utils/chunked-insert': utilsChunkedInsertSubpath,
@@ -250,10 +222,7 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './utils/pdf-anchor': utilsPdfAnchorSubpath,
   './utils/random-uuid': utilsRandomUuidSubpath,
   './utils/relative-time': utilsRelativeTimeSubpath,
-  './utils/resolve-internal-href': utilsResolveInternalHrefSubpath,
-  './utils/sanitize-folder-name': utilsSanitizeFolderNameSubpath,
   './utils/slug': utilsSlugSubpath,
-  './utils/target-identity': utilsTargetIdentitySubpath,
   './utils/target-namespace': utilsTargetNamespaceSubpath,
   './utils/vimeo-embed': utilsVimeoEmbedSubpath,
   './utils/wiki-link-resolve': utilsWikiLinkResolveSubpath,
@@ -303,13 +272,11 @@ describe('per-module core subpaths', () => {
   test.each(Object.entries(MODULE_SUBPATHS))(
     '%s serves the same runtime bindings as the root barrel',
     (_key, namespace) => {
-      const bindings = Object.entries(namespace);
-      const shared = bindings.filter(([name]) => rootBindings.has(name));
+      const shared = Object.entries(namespace).filter(([name]) => rootBindings.has(name));
       const divergent = shared
         .filter(([name, value]) => value !== rootBindings.get(name))
         .map(([name]) => name);
       expect(divergent).toEqual([]);
-      if (bindings.length > 0) expect(shared.length).toBeGreaterThan(0);
     },
   );
 

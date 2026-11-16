@@ -1,8 +1,6 @@
 import {
   getWikiLinkText,
-  resolveSkillBundleWikiTarget,
   resolveWikiLinkTargetDocName,
-  skillLiveDocName,
 } from '@inkeep/open-knowledge-core';
 import { describe, expect, test } from 'vitest';
 import { applyRenameMap } from './apply-managed-rename.ts';
@@ -16,20 +14,13 @@ function rewrite(content: string, pages: string[], renames: [string, string][], 
   const afterLinks = result.markdown.split('\n').flatMap(matchWikiLinks);
   expect(afterLinks).toHaveLength(beforeLinks.length);
   for (const [i, before] of beforeLinks.entries()) {
-    const original = resolveWikiLinkTargetDocName(
-      resolveSkillBundleWikiTarget(before.target, source) ?? before.target,
-      context.before,
-    );
+    const original = resolveWikiLinkTargetDocName(before.target, context.before);
     const after = afterLinks[i];
     expect(getWikiLinkText(after)).toBe(getWikiLinkText(before));
     expect(after.anchor).toBe(before.anchor);
     if (original !== undefined) {
       expect(
-        resolveWikiLinkTargetDocName(
-          resolveSkillBundleWikiTarget(after.target, context.renames.get(source) ?? source) ??
-            after.target,
-          context.after,
-        ),
+        resolveWikiLinkTargetDocName(after.target, context.after),
       ).toBe(context.renames.get(original) ?? original);
     }
   }
@@ -129,44 +120,6 @@ describe('managed rename preserves resolved wiki identity', () => {
     ).toEqual({ markdown: '[[beta]] [Beta](beta.md)', rewrites: 2 });
   });
 
-  test('ordinary fuzzy links ignore global skills while explicit and project skill targets stay supported', () => {
-    const global = skillLiveDocName('global', 'demo');
-    const reference = `${global}/references/beta`;
-    expect(
-      rewrite('[[beta]]', ['source', reference, 'notes/beta'], [['notes/beta', 'archive/new']])
-        .markdown,
-    ).toBe('[[archive/new|beta]]');
-    expect(
-      rewrite(`[[${global}]]`, ['source', global, 'notes/beta'], [['notes/beta', 'archive/new']])
-        .rewrites,
-    ).toBe(0);
-    const skill = '.agents/skills/demo/references/beta';
-    expect(
-      rewrite('[[beta]]', ['source', skill], [[skill, '.agents/skills/renamed/references/new']])
-        .markdown,
-    ).toBe('[[.agents/skills/renamed/references/new|beta]]');
-  });
-
-  test.each(['SKILL', 'references/nested/guide'])(
-    'rewrites a bundle-relative internal target from %s',
-    (sourcePath) => {
-      const bundle = '.agents/skills/demo';
-      const source = `${bundle}/${sourcePath}`;
-      const target = `${bundle}/references/beta`;
-      expect(
-        rewrite(
-          '[[references/beta.md#intro| Beta ]]',
-          [source, target, '.agents/skills/other/references/beta'],
-          [[target, `${bundle}/references/renamed`]],
-          source,
-        ),
-      ).toEqual({
-        markdown: '[[.agents/skills/demo/references/renamed.md#intro| Beta ]]',
-        rewrites: 1,
-      });
-    },
-  );
-
   test('moving an entire bundle preserves relative wiki bytes from the skill and nested references', () => {
     const bundle = '.agents/skills/demo';
     const pages = [
@@ -190,7 +143,7 @@ describe('managed rename preserves resolved wiki identity', () => {
       ['source', 'notes/beta'],
       new Map([['notes/beta', 'archive/new']]),
     );
-    expect(rewriteWikiLinksForRenameMap(content, 'source', context)).toEqual({
+    expect(rewriteWikiLinksForRenameMap(content, context)).toEqual({
       markdown: content,
       rewrites: 0,
     });

@@ -32,15 +32,6 @@ describe('resolveNavigationTarget', () => {
     }
   });
 
-  test('resolves managed-artifact docs as real doc targets (never missing)', () => {
-    const docName = '__skill__/global/foo';
-    expect(resolveNavigationTarget(docName, { pages: new Set() })).toEqual({
-      kind: 'doc',
-      target: docName,
-      docName,
-    });
-  });
-
   test('redirects a stale `__template__/…` deep-link to the content doc', () => {
     expect(resolveNavigationTarget('__template__/notes/daily', { pages: new Set() })).toEqual({
       kind: 'doc',
@@ -56,48 +47,6 @@ describe('resolveNavigationTarget', () => {
       kind: 'doc',
       target: 'My Notes/.ok/templates/daily',
       docName: 'My Notes/.ok/templates/daily',
-    });
-  });
-
-  test('resolves a PROJECT skill content doc without page-index membership', () => {
-    const target = '.ok/skills/new-skill/SKILL';
-    expect(resolveNavigationTarget(target, { pages: new Set() })).toEqual({
-      kind: 'doc',
-      target,
-      docName: target,
-    });
-  });
-
-  test('resolves a GLOBAL skill bundle .md reference to an EDITABLE doc target', () => {
-    expect(
-      resolveNavigationTarget('__skill__/global/demo/references/notes', { pages: new Set() }),
-    ).toEqual({
-      kind: 'doc',
-      target: '__skill__/global/demo/references/notes',
-      docName: '__skill__/global/demo/references/notes',
-    });
-    expect(
-      resolveNavigationTarget('__skill__/global/demo/references/sub/deep', { pages: new Set() }),
-    ).toEqual({
-      kind: 'doc',
-      target: '__skill__/global/demo/references/sub/deep',
-      docName: '__skill__/global/demo/references/sub/deep',
-    });
-  });
-
-  test('the GLOBAL SKILL doc itself stays a normal editor doc target (not skill-file)', () => {
-    expect(resolveNavigationTarget('__skill__/global/demo', { pages: new Set() })).toEqual({
-      kind: 'doc',
-      target: '__skill__/global/demo',
-      docName: '__skill__/global/demo',
-    });
-  });
-
-  test('redirects a stale `__skill__/project/<name>` deep-link to the content doc', () => {
-    expect(resolveNavigationTarget('__skill__/project/foo', { pages: new Set() })).toEqual({
-      kind: 'doc',
-      target: '.ok/skills/foo/SKILL',
-      docName: '.ok/skills/foo/SKILL',
     });
   });
 
@@ -789,29 +738,6 @@ describe('editable text docs resolve as doc targets', () => {
 });
 
 describe('markdown-extension normalization preserves document identity', () => {
-  test('a managed-artifact skill reference normalizes before the early return', () => {
-    expect(
-      resolveNavigationTarget('__skill__/global/my-skill/references/guide.md', {
-        pages: new Set<string>(),
-      }),
-    ).toEqual({
-      kind: 'doc',
-      target: '__skill__/global/my-skill/references/guide',
-      docName: '__skill__/global/my-skill/references/guide',
-    });
-  });
-
-  test('an external-skill bundle reference normalizes too', () => {
-    expect(
-      resolveNavigationTarget('__extskill__/my-skill/references/guide.mdx', {
-        pages: new Set<string>(),
-      }),
-    ).toMatchObject({
-      kind: 'doc',
-      docName: '__extskill__/my-skill/references/guide',
-    });
-  });
-
   test('an exact dotted identity wins over its stripped twin', () => {
     const pages = new Set(['specs/demo/SPEC', 'specs/demo/SPEC.md']);
     expect(resolveNavigationTarget('specs/demo/SPEC.md', { pages })).toEqual({

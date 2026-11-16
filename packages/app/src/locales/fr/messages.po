@@ -175,9 +175,6 @@ msgstr ""
 msgid "{0} is over {destination}."
 msgstr "{0} est au-dessus de {destination}."
 
-msgid "{0} of {1} projects selected"
-msgstr "{0} projet(s) sélectionné(s) sur {1}"
-
 msgid "{0} pages changed"
 msgstr ""
 
@@ -754,9 +751,6 @@ msgstr "Active l'onglet suivant de l'éditeur."
 msgid "Activate the previous editor tab."
 msgstr "Active l'onglet précédent de l'éditeur."
 
-msgid "active"
-msgstr "actif"
-
 msgid "Active"
 msgstr "Actif"
 
@@ -955,9 +949,6 @@ msgstr "Valeurs autorisées (vide = toutes)"
 msgid "Allowed values for {field}"
 msgstr "Valeurs autorisées pour {field}"
 
-msgid "Almost done. Here's what happened and what's left."
-msgstr "Presque terminé. Voici ce qui a été fait et ce qu’il reste à faire."
-
 msgid "Already at {assetContentPath} — reusing."
 msgstr "Déjà dans {assetContentPath} — réutilisation."
 
@@ -1014,9 +1005,6 @@ msgstr ""
 
 msgid "Anyone can see"
 msgstr "Visible par tout le monde"
-
-msgid "Anything you'd like to add? (optional)"
-msgstr "Vous souhaitez ajouter quelque chose ? (facultatif)"
 
 msgid "API key"
 msgstr ""
@@ -1250,9 +1238,6 @@ msgstr "Avant la fusion d'une modification externe"
 msgid "Before syncing, set your identity for git commits:"
 msgstr "Avant de synchroniser, définissez votre identité pour les commits git :"
 
-msgid "Before you go, mind sharing why?"
-msgstr "Avant de partir, accepteriez-vous de nous dire pourquoi ?"
-
 msgid "Being written"
 msgstr ""
 
@@ -1328,9 +1313,6 @@ msgstr "Parcourir des centaines de thèmes"
 
 msgid "Browse your repos:"
 msgstr "Parcourez vos dépôts :"
-
-msgid "Bugs, crashes, or it felt unreliable"
-msgstr "Bugs, plantages, ou manque de fiabilité"
 
 msgid "Build a competitor research knowledge base. Start with an overview page, then add cross-linked pages for each competitor, their products and pricing, and the sources behind every claim."
 msgstr "Construis une base de connaissances d'étude concurrentielle. Commence par une page de synthèse, puis ajoute des pages liées entre elles pour chaque concurrent, leurs produits et leurs tarifs, ainsi que les sources derrière chaque affirmation."
@@ -1506,15 +1488,6 @@ msgstr ""
 
 msgid "Claude, for {0}"
 msgstr ""
-
-msgid "Cleanup didn’t finish"
-msgstr "Le nettoyage n’a pas abouti"
-
-msgid "Cleanup log"
-msgstr "Journal de nettoyage"
-
-msgid "Cleanup may still be running."
-msgstr "Le nettoyage est peut-être encore en cours."
 
 msgid "Clear"
 msgstr "Effacer"
@@ -2359,9 +2332,6 @@ msgstr "HEAD détachée — extrayez une branche pour reprendre"
 msgid "Details"
 msgstr "Détails"
 
-msgid "Detected GitQuire projects"
-msgstr "Projets GitQuire détectés"
-
 msgid "Diagram"
 msgstr "Diagramme"
 
@@ -2484,9 +2454,6 @@ msgstr "Terminé"
 
 msgid "Done, due earlier"
 msgstr ""
-
-msgid "Done."
-msgstr "Terminé."
 
 msgid "Double-click to edit"
 msgstr "Double-cliquez pour modifier"
@@ -3434,9 +3401,6 @@ msgstr "GitQuire n'a pas pu atteindre le serveur du projet pour vérifier la mai
 msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
 msgstr "GitQuire crée et gère un fichier de navigation nommé index.md dans chaque dossier contenant Markdown."
 
-msgid "GitQuire files were removed"
-msgstr "Les fichiers GitQuire ont été supprimés"
-
 msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
 msgstr "GitQuire n'a aucun identifiant enregistré pour cet hôte. Ajoutez un jeton dans les Paramètres, ou laissez git utiliser les identifiants dont il dispose déjà."
 
@@ -3698,9 +3662,6 @@ msgstr "https://github.com/owner/repo ou owner/repo"
 msgid "Hubs"
 msgstr "Pivots"
 
-msgid "I'm switching to another tool"
-msgstr "Je passe à un autre outil"
-
 msgid "Icon picker"
 msgstr "Sélecteur d'icônes"
 
@@ -3908,18 +3869,6 @@ msgstr "Charge utile de correctif invalide"
 msgid "Invalid YAML"
 msgstr "YAML non valide"
 
-msgid "It didn't fit into my workflow"
-msgstr "Cela ne correspondait pas à mon flux de travail"
-
-msgid "It was a trial or one-off project"
-msgstr "C'était un essai ou un projet ponctuel"
-
-msgid "It was missing a feature I needed"
-msgstr "Il manquait une fonctionnalité dont j'avais besoin"
-
-msgid "It was too hard to set up or get started"
-msgstr "C'était trop compliqué à installer ou à prendre en main"
-
 msgid "Italic"
 msgstr "Italique"
 
@@ -3979,9 +3928,6 @@ msgstr ""
 
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "Maintient votre base de connaissances alignée sur l’Open Knowledge Format."
-
-msgid "Kept your content"
-msgstr "Votre contenu a été conservé"
 
 msgid "Key ending in {keyHint}"
 msgstr "Clé se terminant par {keyHint}"
@@ -4045,9 +3991,6 @@ msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Laisser la touche Tab quitter l'éditeur de source au lieu d'ajouter un retrait."
-
-msgid "Let us follow up by email"
-msgstr "Autorisez-nous à vous recontacter par e-mail"
 
 msgid "Light"
 msgstr "Clair"
@@ -4313,9 +4256,6 @@ msgstr "Markdown"
 msgid "Markdown checks do not apply to this file."
 msgstr "Les vérifications Markdown ne s’appliquent pas à ce fichier."
 
-msgid "Markdown files and authored skills were left untouched."
-msgstr "Les fichiers Markdown et les compétences que vous avez créées sont restés intacts."
-
 msgid "Markdown source"
 msgstr "Source markdown"
 
@@ -4501,9 +4441,6 @@ msgstr "Déplacer l’éditeur vers le bord droit de la fenêtre"
 
 msgid "Move Editor to the top edge of the window"
 msgstr "Déplacer l’éditeur vers le bord supérieur de la fenêtre"
-
-msgid "Move GitQuire.app to the Trash"
-msgstr "Placez GitQuire.app dans la Corbeille"
 
 msgid "Move into draft"
 msgstr ""
@@ -4717,9 +4654,6 @@ msgstr "Pas encore de fichier <0>.markdownlint.*</0> — chaque règle s'exécut
 
 msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
 msgstr ""
-
-msgid "No active or recent GitQuire projects were found."
-msgstr "Aucun projet GitQuire actif ou récent n'a été trouvé."
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "Aucune clé API n'est définie pour ce point de terminaison. Ajoutez-en une ci-dessus."
@@ -5571,9 +5505,6 @@ msgstr "Préparation de la recherche"
 msgid "Preparing share URL..."
 msgstr "Préparation de l'URL de partage…"
 
-msgid "Preparing to uninstall GitQuire"
-msgstr "Préparation de la désinstallation de GitQuire"
-
 msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
 msgstr "Présentez un document sous forme de diaporama dans sa propre fenêtre. Fonctionne uniquement dans l'application de bureau GitQuire et nécessite la CLI Slidev, à installer séparément. Une fois activé, il apparaît sous Plugins dans la barre latérale."
 
@@ -5811,9 +5742,6 @@ msgstr ""
 msgid "Receiving objects"
 msgstr "Réception des objets"
 
-msgid "recent"
-msgstr "récent"
-
 msgid "Recently closed"
 msgstr ""
 
@@ -5904,9 +5832,6 @@ msgstr "Retirer le champ {field}"
 msgid "Remove from recent projects"
 msgstr "Retirer des projets récents"
 
-msgid "Remove GitQuire from {0}"
-msgstr "Retirer GitQuire de {0}"
-
 msgid "Remove item {0}"
 msgstr "Retirer l'élément {0}"
 
@@ -5924,12 +5849,6 @@ msgstr "Supprimez les espaces au début ou à la fin du chemin."
 
 msgid "Removed"
 msgstr "Supprimé"
-
-msgid "Removed GitQuire files"
-msgstr "Fichiers GitQuire supprimés"
-
-msgid "Removing GitQuire files…"
-msgstr "Suppression des fichiers GitQuire…"
 
 msgid "Rename"
 msgstr "Renommer"
@@ -6141,12 +6060,6 @@ msgstr "Réutiliser un même onglet lors des clics dans les barres latérales. D
 
 msgid "Reused if it already exists, created if not."
 msgstr "Réutilisé s'il existe déjà, créé sinon."
-
-msgid "Reveal in Finder"
-msgstr "Afficher dans le Finder"
-
-msgid "Reveal in Finder shows the app so you can drag it to the Trash."
-msgstr "Afficher dans le Finder affiche l’application pour que vous puissiez la faire glisser dans la Corbeille."
 
 msgid "Revenue"
 msgstr ""
@@ -6367,9 +6280,6 @@ msgstr "Sélectionner {slot} — {0}"
 msgid "Select a value"
 msgstr "Sélectionnez une valeur"
 
-msgid "Select all"
-msgstr "Tout sélectionner"
-
 msgid "Select all files and folders"
 msgstr "Sélectionner tous les fichiers et dossiers"
 
@@ -6432,9 +6342,6 @@ msgstr "La recherche sémantique est activée, mais aucune clé API n'est défin
 
 msgid "Send"
 msgstr "Envoyer"
-
-msgid "Send & continue"
-msgstr "Envoyer et continuer"
 
 msgid "Send a new code"
 msgstr ""
@@ -6511,9 +6418,6 @@ msgstr "Configuration en cours"
 msgid "Settings"
 msgstr "Paramètres"
 
-msgid "Settings and integrations were cleaned up."
-msgstr "Les réglages et les intégrations ont été supprimés."
-
 msgid "Settings are still loading. Try again in a moment."
 msgstr "Les paramètres sont toujours en cours de chargement. Réessayez dans un instant."
 
@@ -6540,9 +6444,6 @@ msgstr "Partager"
 
 msgid "Share doc"
 msgstr "Partager le document"
-
-msgid "Share feedback"
-msgstr "Donner votre avis"
 
 msgid "Share folder"
 msgstr "Partager le dossier"
@@ -6733,9 +6634,6 @@ msgstr "Certaines modifications ne sont pas encore parvenues au serveur, l'ongle
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "Certains fichiers ne sont pas listés : l'arbre de travail contient trop de modifications."
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
-msgstr "Certains fichiers n’ont peut-être pas été supprimés. Ouvrez le journal de nettoyage pour en savoir plus. Vous pouvez rouvrir GitQuire pour réessayer."
-
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Certains thèmes enregistrés ne sont pas affichés car le dossier des thèmes dépasse la limite d’analyse."
 
@@ -6747,9 +6645,6 @@ msgstr "Quelqu'un a peut-être déjà résolu {filePath} — vérifiez le conten
 
 msgid "Something broke"
 msgstr "Quelque chose s'est cassé"
-
-msgid "Something else"
-msgstr "Autre chose"
 
 msgid "Something went wrong"
 msgstr "Une erreur s'est produite"
@@ -7048,9 +6943,6 @@ msgstr "Liste de tâches"
 msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
 msgstr ""
 
-msgid "Tell us how it's going"
-msgstr "Dites-nous comment ça se passe"
-
 msgid "Tell us more (optional)"
 msgstr "Dites-nous en plus (facultatif)"
 
@@ -7089,9 +6981,6 @@ msgstr "Test en cours"
 
 msgid "Text"
 msgstr "Texte"
-
-msgid "Thanks for giving GitQuire a try."
-msgstr "Merci d'avoir essayé GitQuire."
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "Merci pour votre abonnement. Surveillez votre boîte mail pour les nouveautés du produit."
@@ -7498,9 +7387,6 @@ msgstr "Cette liste n'est peut-être pas à jour — dernière lecture {staleRel
 msgid "This list may be out of date."
 msgstr "Cette liste n'est peut-être pas à jour."
 
-msgid "This may take a moment. Your markdown content is kept."
-msgstr "Cela peut prendre un moment. Votre contenu markdown est conservé."
-
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
@@ -7545,9 +7431,6 @@ msgstr "Ce projet n'existe que sur cet ordinateur. Connectez-le à GitHub pour l
 
 msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
 msgstr "Le serveur en cours d'exécution de ce projet ne prend pas en charge l'édition en direct. Redémarrez GitQuire pour corriger cela."
-
-msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "Ceci retire les paramètres et les intégrations de GitQuire de votre Mac et des projets que vous sélectionnez ci-dessous, mais conserve votre contenu markdown et les compétences que vous avez écrites."
 
 msgid "This repository has no commits yet — reopen the project to create the first commit, then Push will work"
 msgstr "Ce dépôt ne contient encore aucun commit — rouvrez le projet pour créer le premier commit, puis Pousser fonctionnera"
@@ -7621,9 +7504,6 @@ msgstr "Titre"
 
 msgid "To do"
 msgstr "À faire"
-
-msgid "To do."
-msgstr "À faire."
 
 msgid "Today"
 msgstr "Aujourd’hui"
@@ -7800,9 +7680,6 @@ msgstr "Saisissez pour modifier ; <0>Cmd/Ctrl+Enter</0> enregistre, <1>Échap</1
 msgid "Type to find a doc"
 msgstr "Saisissez pour trouver un document"
 
-msgid "Unable to show the cleanup result"
-msgstr "Impossible d’afficher le résultat du nettoyage"
-
 msgid "Uncommitted changes"
 msgstr "Modifications non validées"
 
@@ -7841,12 +7718,6 @@ msgstr "Annulez vos résolutions pour modifier ceci."
 
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "Annulez, rétablissez, ou parcourez les changements de sélection dans le volet Modifier la source ou dans un champ de propriété de type code."
-
-msgid "Uninstall GitQuire"
-msgstr "Désinstaller GitQuire"
-
-msgid "Uninstall GitQuire?"
-msgstr "Désinstaller GitQuire ?"
 
 msgid "unknown"
 msgstr "inconnu"
@@ -8174,9 +8045,6 @@ msgstr "Que souhaitez-vous créer ?"
 
 msgid "What you are looking at"
 msgstr ""
-
-msgid "What you share is sent to the GitQuire team."
-msgstr "Ce que vous partagez est envoyé à l'équipe GitQuire."
 
 msgid "What's new"
 msgstr "Nouveautés"

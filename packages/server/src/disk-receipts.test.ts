@@ -187,7 +187,7 @@ describe('DiskReceiptLog', () => {
     expect(isGone('value.ts')).toBe(false);
     expect(isGone('gone')).toBe(true);
     expect(isGone('diagrams/gone.mmd')).toBe(true);
-    expect(isGone('__skill__/global/demo')).toBe(false);
+    expect(isGone('__template__/demo')).toBe(false);
     expect(isGone('__config__/project')).toBe(false);
     expect(isGone('../outside')).toBe(false);
   });

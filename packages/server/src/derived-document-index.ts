@@ -130,7 +130,6 @@ export interface DerivedDocumentIndexOptions {
   projectDir: string;
   contentDir: string;
   contentFilter: ContentFilter;
-  getGlobalSkillRoots: () => string[];
   signalChannel: (channel: DerivedDocumentRelationChannel) => void;
   getLocalTargetInventory?: () => WatcherLocalTargetInventory | null;
   onRecoveredFileTarget?: (relativePath: string, exists: boolean) => void;
@@ -174,7 +173,6 @@ export class DerivedDocumentIndex
   private readonly tagIndex: TagIndex;
   private readonly localTargetIndex: LocalTargetIndex;
   private readonly contentFilter: ContentFilter;
-  private readonly getGlobalSkillRoots: () => string[];
   private readonly getLocalTargetInventory: () => WatcherLocalTargetInventory | null;
   private readonly signalChannel: (channel: DerivedDocumentRelationChannel) => void;
   private readonly onRecoveredFileTarget?: (relativePath: string, exists: boolean) => void;
@@ -218,7 +216,6 @@ export class DerivedDocumentIndex
       contentFilter: options.contentFilter,
     });
     this.contentFilter = options.contentFilter;
-    this.getGlobalSkillRoots = options.getGlobalSkillRoots;
     this.getLocalTargetInventory =
       options.getLocalTargetInventory ??
       (() => ({ documentTargets: [], fileTargets: [], folderTargets: [] }));
@@ -353,14 +350,6 @@ export class DerivedDocumentIndex
         } else {
           await this.backlinkIndex.rebuildFromDisk(branch);
         }
-        let globalIngestFailed = false;
-        let globalIngestFailure: unknown;
-        try {
-          await this.backlinkIndex.ingestGlobalSkillBundles(this.getGlobalSkillRoots(), branch);
-        } catch (err) {
-          globalIngestFailed = true;
-          globalIngestFailure = err;
-        }
         await this.saveBacklinksLogOnly('branch-switch', branch);
 
         try {
@@ -377,7 +366,6 @@ export class DerivedDocumentIndex
         }
         await this.saveTagsLogOnly('branch-switch');
         if (await this.rebuildLocalTargets('branch-switch')) this.syncLocalTargetBaseline();
-        if (globalIngestFailed) throw globalIngestFailure;
       });
     } finally {
       this.releaseBranchTransition(transition);
@@ -530,26 +518,10 @@ export class DerivedDocumentIndex
     });
   }
 
-  refreshGlobalSkillNodes(): Promise<void> {
-    return this.runCommand(async () => {
-      await this.backlinkIndex.ingestGlobalSkillBundles(this.getGlobalSkillRoots());
-      this.reconcileLocalTargetInventory();
-      this.signalBacklinks();
-    });
-  }
-
   refreshContentScope(): Promise<void> {
     return this.runCommand(async () => {
       const branch = this.backlinkIndex.getActiveBranch();
       const scopeDiff = await this.backlinkIndex.reconcileWithDisk(branch);
-      let globalIngestFailed = false;
-      let globalIngestFailure: unknown;
-      try {
-        await this.backlinkIndex.ingestGlobalSkillBundles(this.getGlobalSkillRoots(), branch);
-      } catch (err) {
-        globalIngestFailed = true;
-        globalIngestFailure = err;
-      }
       await this.tagIndex.reconcileWithDisk();
       this.reconcileLocalTargetInventory();
       for (const { docName, filePath } of scopeDiff.changedDocs) {
@@ -564,7 +536,6 @@ export class DerivedDocumentIndex
       }
       await this.saveBothLogOnly('content-filter', branch);
       this.signalAllRelations();
-      if (globalIngestFailed) throw globalIngestFailure;
     });
   }
 
@@ -716,7 +687,6 @@ export class DerivedDocumentIndex
     return this.runCommand(async () => {
       const branch = this.backlinkIndex.getActiveBranch();
       await this.backlinkIndex.rebuildFromDisk(branch);
-      await this.backlinkIndex.ingestGlobalSkillBundles(this.getGlobalSkillRoots(), branch);
       this.reconcileLocalTargetInventory();
       await this.saveBacklinksLogOnly('test-rescan', branch);
       this.signalBacklinks();
@@ -746,7 +716,6 @@ export class DerivedDocumentIndex
         resolveOfflineDeletions([]);
         await this.backlinkIndex.rebuildFromDisk(branch);
       }
-      await this.ingestGlobalSkillNodesLogOnly(branch, 'startup');
       await this.saveBacklinksLogOnly('startup', branch);
       return { backlinkIndexDegraded: false };
     } catch (err) {
@@ -1023,14 +992,6 @@ export class DerivedDocumentIndex
       await this.tagIndex.saveToDisk();
     } catch (err) {
       log.warn({ err, reason }, 'Failed to persist tag snapshot');
-    }
-  }
-
-  private async ingestGlobalSkillNodesLogOnly(branch: string, reason: string): Promise<void> {
-    try {
-      await this.backlinkIndex.ingestGlobalSkillBundles(this.getGlobalSkillRoots(), branch);
-    } catch (err) {
-      log.warn({ err, branch, reason }, 'Global skill bundle ingest failed');
     }
   }
 

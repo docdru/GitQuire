@@ -179,13 +179,6 @@ vi.doMock('@/components/ConflictsSection', () => ({
   ConflictsSection: () => <div data-testid="conflicts-section" />,
 }));
 
-vi.doMock('@/components/FeedbackCard', async () => ({
-  ...(await vi.importActual<typeof import('@/components/FeedbackCard')>(
-    '@/components/FeedbackCard',
-  )),
-  FeedbackCardMount: () => <div data-testid="feedback-card-mount" />,
-}));
-
 vi.doMock('@/components/ui/button', () => ({
   Button,
 }));

@@ -17,7 +17,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { installClientFetchWrapper } from '@/lib/client-fetch';
 import { installContactEmailStore } from '@/lib/contact-email-store';
-import { installFeedbackNudgeStore } from '@/lib/feedback-nudge-store';
 import { i18n } from '@/lib/i18n';
 import { installClientLogForwarder } from '@/lib/install-client-log-forwarder';
 import { initWebVitals } from '@/lib/perf';
@@ -48,7 +47,6 @@ if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
 
 installSubscribeCardStore();
 
-installFeedbackNudgeStore();
 
 installContactEmailStore();
 

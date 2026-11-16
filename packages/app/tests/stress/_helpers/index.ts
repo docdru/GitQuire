@@ -41,11 +41,6 @@ export {
   hasExternalCue,
 } from './external-link-cue.ts';
 export {
-  FEEDBACK_NUDGE_KEY,
-  seedFeedbackEligibleDocs,
-  seedFeedbackNudgeStateBeforeLoad,
-} from './feedback-nudge.ts';
-export {
   type AgentIdentity,
   type ApiHelpers,
   expect,

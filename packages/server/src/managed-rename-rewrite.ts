@@ -9,7 +9,6 @@ import {
   resolveAssetProjectPath,
   resolveInternalHref,
   resolveName,
-  resolveSkillBundleWikiTarget,
   resolveWikiLinkTargetDocName,
   type WikiLinkLookupIndex,
 } from '@inkeep/open-knowledge-core';
@@ -851,44 +850,27 @@ export function canonicalDocNameBeforeRename(context: WikiRenameContext): Canoni
   return (docName) => resolveName(context.before.pages, docName) ?? docName;
 }
 
-function resolveRenameWikiTarget(
-  target: string,
-  sourceDocName: string,
-  lookup: WikiLinkLookupIndex,
-): string | undefined {
-  return resolveWikiLinkTargetDocName(
-    resolveSkillBundleWikiTarget(target, sourceDocName) ?? target,
-    lookup,
-  );
-}
-
 export function wikiLinkRenameDestination(
   target: string,
-  sourceDocName: string,
   context: WikiRenameContext,
 ): string | null {
-  const originalTarget = resolveRenameWikiTarget(target, sourceDocName, context.before);
+  const originalTarget = resolveWikiLinkTargetDocName(target, context.before);
   if (originalTarget === undefined) return null;
   const desired = context.renames.get(originalTarget) ?? originalTarget;
-  const nextSource = context.renames.get(sourceDocName) ?? sourceDocName;
-  return resolveRenameWikiTarget(target, nextSource, context.after) === desired ? null : desired;
+  return resolveWikiLinkTargetDocName(target, context.after) === desired ? null : desired;
 }
 
 export function rewriteWikiLinksForRenameMap(
   markdown: string,
-  sourceDocName: string,
   context: WikiRenameContext,
 ): RenameRewriteResult {
-  const nextSource = context.renames.get(sourceDocName) ?? sourceDocName;
   return rewriteWikiLinksForDocumentRename(markdown, '', '', (link, inTable) => {
-    const desired = wikiLinkRenameDestination(link.target, sourceDocName, context);
+    const desired = wikiLinkRenameDestination(link.target, context);
     if (desired === null) return null;
     const suffix = link.target.match(/\.(md|mdx)$/i)?.[0];
     const withSuffix = suffix ? `${desired}${suffix}` : desired;
     const nextTarget =
-      resolveRenameWikiTarget(withSuffix, nextSource, context.after) === desired
-        ? withSuffix
-        : desired;
+      resolveWikiLinkTargetDocName(withSuffix, context.after) === desired ? withSuffix : desired;
     if (link.alias) return renderWikiLinkSegments(link, nextTarget);
     const display = getWikiLinkText({ target: link.target, alias: null, anchor: link.anchor });
     return renderWikiLinkSegments(

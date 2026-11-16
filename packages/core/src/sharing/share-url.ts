@@ -8,11 +8,11 @@ const V2_HEADER_BYTES = 3;
 const SHARE_OWNER_REPO_PATTERN = /^[A-Za-z0-9._-]+$/;
 const IPV4_AUTHORITY_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$/;
 
-export const MAX_V2_SHARE_TOKEN_CHARS = 3984;
-export const MAX_V2_SHARE_PAYLOAD_BYTES = 2988;
-export const MAX_V2_SHARED_URL_UTF8_BYTES = 2985;
+const MAX_V2_SHARE_TOKEN_CHARS = 3984;
+const MAX_V2_SHARE_PAYLOAD_BYTES = 2988;
+const MAX_V2_SHARED_URL_UTF8_BYTES = 2985;
 
-export interface DecodedShareV1 {
+interface DecodedShareV1 {
   readonly version: 1;
   readonly sharedUrl: string;
 }
@@ -26,7 +26,7 @@ export interface CanonicalGitHubShareSource {
   readonly targetSegments: readonly string[];
 }
 
-export interface DecodedShareV2 {
+interface DecodedShareV2 {
   readonly version: 2;
   readonly sharedUrl: string;
   readonly contentRootDepth: number;
@@ -171,7 +171,7 @@ export function parseCanonicalGitHubShareUrl(sharedUrl: string): CanonicalGitHub
   return source;
 }
 
-export function serializeCanonicalGitHubShareUrl(source: CanonicalGitHubShareSource): string {
+function serializeCanonicalGitHubShareUrl(source: CanonicalGitHubShareSource): string {
   assertCanonicalGitHubHost(source.host);
   assertDecodedRepositoryComponent(source.owner, 'owner');
   assertDecodedRepositoryComponent(source.repo, 'repository');
@@ -199,7 +199,7 @@ export function serializeCanonicalGitHubShareUrl(source: CanonicalGitHubShareSou
   return `https://${source.host}/${structuralSegments.join('/')}`;
 }
 
-export function projectCanonicalGitHubShareTarget(
+function projectCanonicalGitHubShareTarget(
   source: CanonicalGitHubShareSource,
   contentRootDepth: number,
 ): ShareTarget {

@@ -124,7 +124,7 @@ export default defineConfig({
     // catches a future regression but doesn't fire on every clean build.
     chunkSizeWarningLimit: 1500,
     rolldownOptions: {
-      // Two HTML entries: the editor shell and the self-uninstall window.
+      // The editor shell is the only HTML entry.
       // Absolute paths (not root-relative strings) because rollup resolves
       // input ids against CWD, not Vite's `root`. Built from the shared map
       // so this build and the Electron renderer build cannot disagree about

@@ -989,7 +989,6 @@ describe('forceStore dispatch (staleness watchdog entry point)', () => {
     for (const name of [
       '__system__',
       '__config__/project',
-      '__skill__/project/foo',
       'diagram.mmd',
       'assets/flow.mermaid',
     ]) {

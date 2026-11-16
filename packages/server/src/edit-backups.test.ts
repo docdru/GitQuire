@@ -51,9 +51,9 @@ describe('backUpDisplacedVersion', () => {
   });
 
   test('a document with no project keeps the folder it had before', async () => {
-    await backUpDisplacedVersion(home, null, '__skill__/global/demo', 'outside\n', 'SKILL.md');
+    await backUpDisplacedVersion(home, null, '__template__/demo', 'outside\n', 'demo.md');
 
-    expect(readdirSync(discarded())).toEqual(['__skill____global__demo']);
-    expect(contentsOf(discarded('__skill____global__demo'))).toEqual(['outside\n']);
+    expect(readdirSync(discarded())).toEqual(['__template____demo']);
+    expect(contentsOf(discarded('__template____demo'))).toEqual(['outside\n']);
   });
 });

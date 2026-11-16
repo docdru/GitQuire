@@ -44,7 +44,6 @@ function createRig(
     projectDir,
     contentDir,
     contentFilter,
-    getGlobalSkillRoots: () => [],
     signalChannel: (channel) => signals.push(channel),
     ...(getLocalTargetInventory ? { getLocalTargetInventory } : {}),
     ...(onRecoveredFileTarget ? { onRecoveredFileTarget } : {}),
@@ -674,59 +673,13 @@ describe('DerivedDocumentIndex', () => {
     expect(rig.signals).toEqual(['backlinks', 'graph', 'tags']);
   });
 
-  test('content-scope refresh surfaces global ingest failure and the queue recovers', async () => {
-    const rig = createRig();
-    await settleStartup(rig);
-    writeDoc(rig, 'hidden.md', 'See [[target]]. #hidden\n');
-    await rig.index.recordDirectDocument('hidden', 'See [[target]]. #hidden\n');
-    writeFileSync(join(rig.projectDir, '.okignore'), 'content/hidden.md\n');
-    const rebuilt = await rig.contentFilter.rebuildIgnorePatterns();
-    expect(rebuilt.ok).toBe(true);
-    rig.signals.length = 0;
-    vi.spyOn(BacklinkIndex.prototype, 'ingestGlobalSkillBundles').mockRejectedValueOnce(
-      new Error('global ingest failed'),
-    );
-
-    await expect(rig.index.refreshContentScope()).rejects.toThrow('global ingest failed');
-    expect(await rig.index.getBacklinks('target')).toEqual([]);
-    expect(await rig.index.getDocsForTagWithMatches('hidden')).toEqual([]);
-    expect(rig.signals).toEqual(['backlinks', 'graph', 'tags']);
-
-    await expect(
-      rig.index.recordDirectDocument('recovered', 'See [[target]]. #recovered\n'),
-    ).resolves.toBeUndefined();
-    expect(await rig.index.getBacklinks('target')).toHaveLength(1);
-    expect(await rig.index.getDocsForTagWithMatches('recovered')).toHaveLength(1);
-  });
-
-  test('test rescan surfaces global ingest failure and leaves the queue available', async () => {
-    const rig = createRig();
-    await settleStartup(rig);
-    vi.spyOn(BacklinkIndex.prototype, 'ingestGlobalSkillBundles').mockRejectedValueOnce(
-      new Error('rescan global ingest failed'),
-    );
-
-    await expect(rig.index.testOnly.rescanBacklinksForTest()).rejects.toThrow(
-      'rescan global ingest failed',
-    );
-    expect(rig.signals).toEqual([]);
-
-    await expect(
-      rig.index.recordDirectDocument('recovered', 'See [[target]].\n'),
-    ).resolves.toBeUndefined();
-    expect(await rig.index.getBacklinks('target')).toHaveLength(1);
-  });
-
-  test('branch settlement rebuilds, ingests global nodes, then saves and falls back for tags', async () => {
+  test('branch settlement rebuilds, then saves and falls back for tags', async () => {
     const rig = createRig();
     await settleStartup(rig);
     const transition = await rig.index.beginBranchSwitch('feature');
     const load = vi.spyOn(BacklinkIndex.prototype, 'loadFromDisk').mockResolvedValueOnce(false);
     const rebuild = vi
       .spyOn(BacklinkIndex.prototype, 'rebuildFromDisk')
-      .mockResolvedValueOnce(undefined);
-    const ingest = vi
-      .spyOn(BacklinkIndex.prototype, 'ingestGlobalSkillBundles')
       .mockResolvedValueOnce(undefined);
     const backlinkSave = vi
       .spyOn(BacklinkIndex.prototype, 'saveToDisk')
@@ -741,11 +694,7 @@ describe('DerivedDocumentIndex', () => {
 
     expect(load).toHaveBeenCalledWith('feature');
     expect(rebuild).toHaveBeenCalledWith('feature');
-    expect(ingest).toHaveBeenCalledWith([], 'feature');
     expect(rebuild.mock.invocationCallOrder[0]).toBeLessThan(
-      ingest.mock.invocationCallOrder[0] ?? 0,
-    );
-    expect(ingest.mock.invocationCallOrder[0]).toBeLessThan(
       backlinkSave.mock.invocationCallOrder[0] ?? 0,
     );
     expect(reconcileTags).toHaveBeenCalledTimes(1);
@@ -753,7 +702,7 @@ describe('DerivedDocumentIndex', () => {
     expect(tagSave).toHaveBeenCalledTimes(1);
   });
 
-  test('branch settlement reconciles a warm cache before global ingest and save', async () => {
+  test('branch settlement reconciles a warm cache before save', async () => {
     const rig = createRig();
     await settleStartup(rig);
     const transition = await rig.index.beginBranchSwitch('warm');
@@ -764,36 +713,13 @@ describe('DerivedDocumentIndex', () => {
       deleted: 0,
       deletedDocNames: [],
     });
-    const ingest = vi
-      .spyOn(BacklinkIndex.prototype, 'ingestGlobalSkillBundles')
-      .mockResolvedValueOnce(undefined);
     const save = vi.spyOn(BacklinkIndex.prototype, 'saveToDisk').mockResolvedValueOnce(undefined);
 
     await rig.index.settleBranchFromDisk(transition);
 
     expect(reconcile.mock.invocationCallOrder[0]).toBeLessThan(
-      ingest.mock.invocationCallOrder[0] ?? 0,
+      save.mock.invocationCallOrder[0] ?? 0,
     );
-    expect(ingest.mock.invocationCallOrder[0]).toBeLessThan(save.mock.invocationCallOrder[0] ?? 0);
-  });
-
-  test('branch global-ingest failure still replaces local indexes and releases callers', async () => {
-    const rig = createRig();
-    writeDoc(rig, 'old.md', '# Old\n\n#old-branch\n');
-    await settleStartup(rig);
-    unlinkSync(join(rig.contentDir, 'old.md'));
-    writeDoc(rig, 'target.md', '# Target\n\n#target-branch\n');
-    const transition = await rig.index.beginBranchSwitch('feature');
-    vi.spyOn(BacklinkIndex.prototype, 'ingestGlobalSkillBundles').mockRejectedValueOnce(
-      new Error('branch global ingest failed'),
-    );
-    const query = rig.index.getDocsForTagWithMatches('target-branch');
-
-    await expect(rig.index.settleBranchFromDisk(transition)).rejects.toThrow(
-      'branch global ingest failed',
-    );
-    await expect(query).resolves.toEqual([{ docName: 'target', matchingTags: ['target-branch'] }]);
-    expect(await rig.index.getDocsForTagWithMatches('old-branch')).toEqual([]);
   });
 
   test('beginBranchSwitch cancels an old-branch save timer before changing scope', async () => {
@@ -861,7 +787,6 @@ describe('DerivedDocumentIndex', () => {
       projectDir,
       contentDir,
       contentFilter,
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
     });
     cleanups.push(async () => {
@@ -1391,7 +1316,6 @@ describe('DerivedDocumentIndex local-target projection', () => {
       projectDir: rig.projectDir,
       contentDir: rig.contentDir,
       contentFilter: rig.contentFilter,
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
     });
     cleanups.unshift(() => restarted.close());
@@ -1427,7 +1351,6 @@ describe('DerivedDocumentIndex local-target projection', () => {
       projectDir: rig.projectDir,
       contentDir: rig.contentDir,
       contentFilter: rig.contentFilter,
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
     });
     cleanups.unshift(() => restarted.close());

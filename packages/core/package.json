@@ -65,24 +65,6 @@
       "types": "./dist/acp-thread-protocol.d.mts",
       "default": "./dist/acp-thread-protocol.mjs"
     },
-    "./acp/permissive-mode": {
-      "@inkeep/source": "./src/acp/permissive-mode.ts",
-      "development": "./src/acp/permissive-mode.ts",
-      "types": "./dist/acp-permissive-mode.d.mts",
-      "default": "./dist/acp-permissive-mode.mjs"
-    },
-    "./acp/codex-legacy-notice": {
-      "@inkeep/source": "./src/acp/codex-legacy-notice.ts",
-      "development": "./src/acp/codex-legacy-notice.ts",
-      "types": "./dist/acp-codex-legacy-notice.d.mts",
-      "default": "./dist/acp-codex-legacy-notice.mjs"
-    },
-    "./acp/tool-call-input": {
-      "@inkeep/source": "./src/acp/tool-call-input.ts",
-      "development": "./src/acp/tool-call-input.ts",
-      "types": "./dist/acp-tool-call-input.d.mts",
-      "default": "./dist/acp-tool-call-input.mjs"
-    },
     "./desktop-bridge": {
       "@inkeep/source": "./src/desktop-bridge.ts",
       "development": "./src/desktop-bridge.ts",
@@ -94,12 +76,6 @@
       "development": "./src/bridge/index.ts",
       "types": "./dist/bridge.d.mts",
       "default": "./dist/bridge.mjs"
-    },
-    "./bug-report-sidecar/note-content": {
-      "@inkeep/source": "./src/bug-report-sidecar/note-content.ts",
-      "development": "./src/bug-report-sidecar/note-content.ts",
-      "types": "./dist/bug-report-sidecar-note-content.d.mts",
-      "default": "./dist/bug-report-sidecar-note-content.mjs"
     },
     "./checkpoint-kinds": {
       "@inkeep/source": "./src/checkpoint-kinds.ts",
@@ -203,18 +179,6 @@
       "types": "./dist/constants-code-languages.d.mts",
       "default": "./dist/constants-code-languages.mjs"
     },
-    "./constants/create-new-banner": {
-      "@inkeep/source": "./src/constants/create-new-banner.ts",
-      "development": "./src/constants/create-new-banner.ts",
-      "types": "./dist/constants-create-new-banner.d.mts",
-      "default": "./dist/constants-create-new-banner.mjs"
-    },
-    "./constants/create-new-project-reason": {
-      "@inkeep/source": "./src/constants/create-new-project-reason.ts",
-      "development": "./src/constants/create-new-project-reason.ts",
-      "types": "./dist/constants-create-new-project-reason.d.mts",
-      "default": "./dist/constants-create-new-project-reason.mjs"
-    },
     "./constants/doc-lifecycle": {
       "@inkeep/source": "./src/constants/doc-lifecycle.ts",
       "development": "./src/constants/doc-lifecycle.ts",
@@ -226,12 +190,6 @@
       "development": "./src/constants/document-open.ts",
       "types": "./dist/constants-document-open.d.mts",
       "default": "./dist/constants-document-open.mjs"
-    },
-    "./constants/editors": {
-      "@inkeep/source": "./src/constants/editors.ts",
-      "development": "./src/constants/editors.ts",
-      "types": "./dist/constants-editors.d.mts",
-      "default": "./dist/constants-editors.mjs"
     },
     "./constants/embedded-host": {
       "@inkeep/source": "./src/constants/embedded-host.ts",
@@ -251,29 +209,11 @@
       "types": "./dist/constants-graph.d.mts",
       "default": "./dist/constants-graph.mjs"
     },
-    "./constants/manual-update-check": {
-      "@inkeep/source": "./src/constants/manual-update-check.ts",
-      "development": "./src/constants/manual-update-check.ts",
-      "types": "./dist/constants-manual-update-check.d.mts",
-      "default": "./dist/constants-manual-update-check.mjs"
-    },
-    "./constants/mcp": {
-      "@inkeep/source": "./src/constants/mcp.ts",
-      "development": "./src/constants/mcp.ts",
-      "types": "./dist/constants-mcp.d.mts",
-      "default": "./dist/constants-mcp.mjs"
-    },
     "./constants/menu-labels": {
       "@inkeep/source": "./src/constants/menu-labels.ts",
       "development": "./src/constants/menu-labels.ts",
       "types": "./dist/constants-menu-labels.d.mts",
       "default": "./dist/constants-menu-labels.mjs"
-    },
-    "./constants/native-menu-labels": {
-      "@inkeep/source": "./src/constants/native-menu-labels.ts",
-      "development": "./src/constants/native-menu-labels.ts",
-      "types": "./dist/constants-native-menu-labels.d.mts",
-      "default": "./dist/constants-native-menu-labels.mjs"
     },
     "./constants/ok-dir": {
       "@inkeep/source": "./src/constants/ok-dir.ts",
@@ -304,12 +244,6 @@
       "development": "./src/constants/product.ts",
       "types": "./dist/constants-product.d.mts",
       "default": "./dist/constants-product.mjs"
-    },
-    "./constants/uninstall-feedback": {
-      "@inkeep/source": "./src/constants/uninstall-feedback.ts",
-      "development": "./src/constants/uninstall-feedback.ts",
-      "types": "./dist/constants-uninstall-feedback.d.mts",
-      "default": "./dist/constants-uninstall-feedback.mjs"
     },
     "./constants/upload": {
       "@inkeep/source": "./src/constants/upload.ts",
@@ -515,12 +449,6 @@
       "types": "./dist/markdown-mdast-to-html.d.mts",
       "default": "./dist/markdown-mdast-to-html.mjs"
     },
-    "./markdown/plain-text": {
-      "@inkeep/source": "./src/markdown/plain-text.ts",
-      "development": "./src/markdown/plain-text.ts",
-      "types": "./dist/markdown-plain-text.d.mts",
-      "default": "./dist/markdown-plain-text.mjs"
-    },
     "./markdown/reference-label": {
       "@inkeep/source": "./src/markdown/reference-label.ts",
       "development": "./src/markdown/reference-label.ts",
@@ -587,12 +515,6 @@
       "types": "./dist/seed-plan-work.d.mts",
       "default": "./dist/seed-plan-work.mjs"
     },
-    "./sharing": {
-      "@inkeep/source": "./src/sharing/index.ts",
-      "development": "./src/sharing/index.ts",
-      "types": "./dist/sharing.d.mts",
-      "default": "./dist/sharing.mjs"
-    },
     "./sync-paused-reason": {
       "@inkeep/source": "./src/sync-paused-reason.ts",
       "development": "./src/sync-paused-reason.ts",
@@ -634,12 +556,6 @@
       "development": "./src/types/timeline.ts",
       "types": "./dist/types-timeline.d.mts",
       "default": "./dist/types-timeline.mjs"
-    },
-    "./uninstall-bridge": {
-      "@inkeep/source": "./src/uninstall-bridge.ts",
-      "development": "./src/uninstall-bridge.ts",
-      "types": "./dist/uninstall-bridge.d.mts",
-      "default": "./dist/uninstall-bridge.mjs"
     },
     "./util/atomic-yaml-write": {
       "@inkeep/source": "./src/util/atomic-yaml-write.ts",
@@ -749,29 +665,11 @@
       "types": "./dist/utils-relative-time.d.mts",
       "default": "./dist/utils-relative-time.mjs"
     },
-    "./utils/resolve-internal-href": {
-      "@inkeep/source": "./src/utils/resolve-internal-href.ts",
-      "development": "./src/utils/resolve-internal-href.ts",
-      "types": "./dist/utils-resolve-internal-href.d.mts",
-      "default": "./dist/utils-resolve-internal-href.mjs"
-    },
-    "./utils/sanitize-folder-name": {
-      "@inkeep/source": "./src/utils/sanitize-folder-name.ts",
-      "development": "./src/utils/sanitize-folder-name.ts",
-      "types": "./dist/utils-sanitize-folder-name.d.mts",
-      "default": "./dist/utils-sanitize-folder-name.mjs"
-    },
     "./utils/slug": {
       "@inkeep/source": "./src/utils/slug.ts",
       "development": "./src/utils/slug.ts",
       "types": "./dist/utils-slug.d.mts",
       "default": "./dist/utils-slug.mjs"
-    },
-    "./utils/target-identity": {
-      "@inkeep/source": "./src/utils/target-identity.ts",
-      "development": "./src/utils/target-identity.ts",
-      "types": "./dist/utils-target-identity.d.mts",
-      "default": "./dist/utils-target-identity.mjs"
     },
     "./utils/target-namespace": {
       "@inkeep/source": "./src/utils/target-namespace.ts",
@@ -854,7 +752,6 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
     "remark-stringify": "^11.0.0",
-    "remend": "1.3.0",
     "unified": "^11.0.5",
     "unified-lint-rule": "^3.0.0",
     "unist-util-visit": "^5.1.0",

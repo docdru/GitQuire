@@ -613,11 +613,6 @@ describe('isProblemsPlaneExcludedDoc', () => {
   });
 
   test('excludes managed artifact names, which carry no dot segment', () => {
-    expect(isProblemsPlaneExcludedDoc('__skill__/global/record-a-decision')).toBe(true);
-    expect(
-      isProblemsPlaneExcludedDoc('__skill__/global/record-a-decision/references/patterns'),
-    ).toBe(true);
-    expect(isProblemsPlaneExcludedDoc('__extskill__/record-a-decision')).toBe(true);
     expect(isProblemsPlaneExcludedDoc('__template__/docs/my-template')).toBe(true);
   });
 

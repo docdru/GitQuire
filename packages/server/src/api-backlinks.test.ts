@@ -510,7 +510,6 @@ describe('graph endpoints', () => {
       projectDir,
       contentDir,
       contentFilter,
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
     });
     await derivedDocumentIndex.close();
@@ -594,7 +593,6 @@ describe('graph endpoints', () => {
       projectDir,
       contentDir,
       contentFilter: createContentFilter({ projectDir, contentDir }),
-      getGlobalSkillRoots: () => [],
       getLocalTargetInventory: () => null,
       signalChannel: () => {},
     });

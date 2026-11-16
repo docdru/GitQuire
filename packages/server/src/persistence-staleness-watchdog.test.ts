@@ -245,7 +245,6 @@ describe('exclusions', () => {
       '__config__/project',
       '__user__/config.yml',
       '__local__/project',
-      '__skill__/project/foo',
       '__template__/notes/weekly',
       'diagram.mmd',
       'assets/flow.mermaid',
@@ -266,7 +265,6 @@ describe('exclusions', () => {
       '__config__/project',
       '__user__/config.yml',
       '__local__/project',
-      '__skill__/project/foo',
       '__template__/notes/weekly',
       'diagram.mmd',
     ]) {

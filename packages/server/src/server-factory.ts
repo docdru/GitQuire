@@ -2159,7 +2159,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       projectDir,
       contentDir,
       contentFilter,
-      getGlobalSkillRoots: () => [],
       signalChannel,
       getLocalTargetInventory: () => localTargetInventoryFromWatcher(watcher, canonicalContentDir),
       onRecoveredFileTarget: (relativePath, exists) => {

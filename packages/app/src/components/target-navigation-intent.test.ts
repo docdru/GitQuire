@@ -110,21 +110,4 @@ describe('resolveTargetNavigationIntent', () => {
       displayState: 'doc',
     });
   });
-
-  test('a GLOBAL skill bundle reference node routes to its editable doc', () => {
-    expect(
-      resolveTargetNavigationIntent('__skill__/global/demo/references/notes', {
-        pages: new Set(),
-      }),
-    ).toEqual({
-      resolvedTarget: {
-        kind: 'doc',
-        docName: '__skill__/global/demo/references/notes',
-        target: '__skill__/global/demo/references/notes',
-      },
-      hashDocName: '__skill__/global/demo/references/notes',
-      hash: null,
-      displayState: 'doc',
-    });
-  });
 });

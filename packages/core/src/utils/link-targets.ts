@@ -1,4 +1,3 @@
-import { resolveSkillBundleWikiTarget, resolveSkillSlashTarget } from '../constants/cc1.ts';
 import { DEFAULT_DOC_EXTENSION } from '../constants/doc-extensions.ts';
 import {
   decodeHrefPath,
@@ -73,24 +72,7 @@ export function classifyMarkdownHref(
   }
 
   const hashAt = trimmed.indexOf('#');
-  const bundlePath = decodeHrefPath(hashAt < 0 ? trimmed : trimmed.slice(0, hashAt));
-  const bundleDoc = resolveSkillBundleWikiTarget(bundlePath, sourceDocName);
-  if (bundleDoc) {
-    return {
-      kind: 'doc',
-      docName: bundleDoc,
-      anchor: hashAt < 0 ? null : trimmed.slice(hashAt + 1),
-    };
-  }
-
-  const slashDoc = resolveSkillSlashTarget(bundlePath, sourceDocName);
-  if (slashDoc) {
-    return {
-      kind: 'doc',
-      docName: slashDoc,
-      anchor: hashAt < 0 ? null : trimmed.slice(hashAt + 1),
-    };
-  }
+  const hrefPath = decodeHrefPath(hashAt < 0 ? trimmed : trimmed.slice(0, hashAt));
 
   const internal = resolveInternalHref(trimmed, sourceDocName);
   if (internal) {
@@ -101,7 +83,7 @@ export function classifyMarkdownHref(
     };
   }
 
-  const ext = extractAssetExtension(bundlePath);
+  const ext = extractAssetExtension(hrefPath);
   if (ext && ext !== 'md' && ext !== 'mdx') {
     return { kind: 'asset', url: trimmed, ext, literal: false };
   }

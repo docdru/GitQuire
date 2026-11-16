@@ -11,11 +11,6 @@ export type {
   SynthesisedConflictRegion,
   synthesiseConflictMarkersWithRegions,
 } from '@inkeep/open-knowledge-core/bridge';
-export type {
-  clampToCodeUnits,
-  mapControlCharactersToSpace,
-  stripInvisibleCharacters,
-} from '@inkeep/open-knowledge-core/bug-report-sidecar/note-content';
 export type { isSurfacedCheckpointKind } from '@inkeep/open-knowledge-core/checkpoint-kinds';
 export type {
   CLIENT_RUNTIME_VERSION_FALLBACK,
@@ -107,22 +102,10 @@ export type {
   CONFIG_DOC_NAME_PROJECT_LOCAL,
   CONFIG_DOC_NAME_USER,
   CONFIG_DOC_NAMES,
-  externalSkillFileLiveDocName,
-  externalSkillLiveDocName,
-  isExternalSkillDocName,
   isManagedArtifactDocName,
-  MANAGED_ARTIFACT_SCOPES,
-  ManagedArtifactScope,
-  parseExternalSkillDocName,
-  parseGlobalSkillBundleDoc,
   parseLegacyTemplateDocName,
-  parseManagedArtifactName,
-  parseProjectSkillBundleDoc,
   parseTemplateContentDocName,
-  projectSkillContentDocName,
   SYSTEM_DOC_NAME,
-  skillFileLiveDocName,
-  skillLiveDocName,
   stripMdExt,
   templateContentDocName,
 } from '@inkeep/open-knowledge-core/constants/cc1';
@@ -132,26 +115,12 @@ export type {
   EDITABLE_TEXT_EXTRA_LANGUAGE,
   isEditableTextDocFile,
 } from '@inkeep/open-knowledge-core/constants/code-languages';
-export type { CreateNewBannerKind } from '@inkeep/open-knowledge-core/constants/create-new-banner';
-export type {
-  CREATE_NEW_PROJECT_FAILURE_REASONS,
-  CreateNewProjectFailureReason,
-} from '@inkeep/open-knowledge-core/constants/create-new-project-reason';
 export type { LINEAGE_EPOCH_KEY } from '@inkeep/open-knowledge-core/constants/doc-lifecycle';
 export type {
   DOCUMENT_OPEN_BYTE_LIMIT,
   isDocumentOverOpenByteLimit,
   TEXT_DOC_OPEN_BYTE_LIMIT,
 } from '@inkeep/open-knowledge-core/constants/document-open';
-export type {
-  EDITOR_LABELS,
-  EDITOR_PROJECT_SKILL_ROOT,
-  EDITOR_USER_SKILL_ROOT,
-  EditorId,
-  RESERVED_PROJECT_SKILL_NAME,
-  receivesProjectIntegrationWrite,
-  STABLE_EDITOR_PROJECT_CONFIG_PATH,
-} from '@inkeep/open-knowledge-core/constants/editors';
 export type {
   detectEmbeddedHostFromBrowser,
   EmbeddedHost,
@@ -162,18 +131,11 @@ export type {
   ORPHAN_MODES,
   OrphanMode,
 } from '@inkeep/open-knowledge-core/constants/graph';
-export type { MANUAL_CHECK_NOTICE_EXPIRY_MS } from '@inkeep/open-knowledge-core/constants/manual-update-check';
-export type {
-  OPEN_KNOWLEDGE_MCP_WRITE_TOOLS,
-  SERVER_TIMEOUT_ERROR_PREFIX,
-  SERVER_UNREACHABLE_ERROR_PREFIX,
-} from '@inkeep/open-knowledge-core/constants/mcp';
 export type {
   OPEN_KNOWLEDGE_DOCS_URL,
   OPEN_KNOWLEDGE_GITHUB_URL,
   OPEN_KNOWLEDGE_ISSUES_URL,
 } from '@inkeep/open-knowledge-core/constants/menu-labels';
-export type { NativeMenuLabelKey } from '@inkeep/open-knowledge-core/constants/native-menu-labels';
 export type {
   OK_USER_HOME_AUTH_FILE,
   okUserHomeDisplayPath,
@@ -188,12 +150,6 @@ export type {
   DESKTOP_PRODUCTS,
   desktopChannelLabel,
 } from '@inkeep/open-knowledge-core/constants/product';
-export type {
-  UNINSTALL_FEEDBACK_EMAIL_MAX_LEN,
-  UNINSTALL_FEEDBACK_NOTE_MAX_LEN,
-  UNINSTALL_FEEDBACK_REASONS,
-  UninstallFeedbackReason,
-} from '@inkeep/open-knowledge-core/constants/uninstall-feedback';
 export type {
   ALLOWED_IMAGE_MIME_TYPES,
   ASSET_EXTENSIONS,
@@ -394,7 +350,6 @@ export type {
   markdownToHtml,
   mdastToHtml,
 } from '@inkeep/open-knowledge-core/markdown/mdast-to-html';
-export type { markdownToPlainText } from '@inkeep/open-knowledge-core/markdown/plain-text';
 export type { normalizeReferenceLabel } from '@inkeep/open-knowledge-core/markdown/reference-label';
 export type { normalizeDocRelativeAssetUrl } from '@inkeep/open-knowledge-core/markdown/resolve-image-url';
 export type {
@@ -561,12 +516,6 @@ export type {
   workspaceSearchBasename,
 } from '@inkeep/open-knowledge-core/search/workspace-search';
 export type { planHasOutstandingWork } from '@inkeep/open-knowledge-core/seed-plan-work';
-export type {
-  BranchMatchOutcome,
-  canonicalGitHubRemoteUrl,
-  classifyBranchMatch,
-  ExpectedShareRepo,
-} from '@inkeep/open-knowledge-core/sharing';
 export type { SyncPausedReason } from '@inkeep/open-knowledge-core/sync-paused-reason';
 export type {
   AnsiSlotName,
@@ -610,16 +559,6 @@ export type {
 export type { Identity } from '@inkeep/open-knowledge-core/types/identity';
 export type { Principal } from '@inkeep/open-knowledge-core/types/principal';
 export type { TimelineEntry } from '@inkeep/open-knowledge-core/types/timeline';
-export type {
-  OkUninstallBridge,
-  UNINSTALL_RESULT_WAIT_TIMEOUT_MS,
-  UninstallDispatchResult,
-  UninstallIntent,
-  UninstallNoticeChecklistItem,
-  UninstallNoticeScreen,
-  UninstallProjectRow,
-  UninstallScreenSpec,
-} from '@inkeep/open-knowledge-core/uninstall-bridge';
 export type {
   atomicWriteFile,
   atomicWriteFileSync,
@@ -671,25 +610,11 @@ export type { parsePdfAnchor } from '@inkeep/open-knowledge-core/utils/pdf-ancho
 export type { randomUUID } from '@inkeep/open-knowledge-core/utils/random-uuid';
 export type { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
 export type {
-  decodeHrefPath,
-  resolveInternalHref,
-} from '@inkeep/open-knowledge-core/utils/resolve-internal-href';
-export type { sanitizeFolderName } from '@inkeep/open-knowledge-core/utils/sanitize-folder-name';
-export type {
   getHeadingSlug,
   HeadingEntry,
   toWikiLinkSlug,
   wikiLinkHref,
 } from '@inkeep/open-knowledge-core/utils/slug';
-export type {
-  DependencySlug,
-  dependencySlug,
-  IdentityKey,
-  identityKey,
-  leafKey,
-  TARGET_IDENTITY,
-  TargetKind,
-} from '@inkeep/open-knowledge-core/utils/target-identity';
 export type {
   asTargetNamespace,
   createTargetNamespace,

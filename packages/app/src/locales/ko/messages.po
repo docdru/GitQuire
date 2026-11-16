@@ -175,9 +175,6 @@ msgstr ""
 msgid "{0} is over {destination}."
 msgstr "{0}이 {destination} 위에 있습니다."
 
-msgid "{0} of {1} projects selected"
-msgstr "{0}개 선택됨 (전체 {1}개 프로젝트 중)"
-
 msgid "{0} pages changed"
 msgstr ""
 
@@ -754,9 +751,6 @@ msgstr "다음 편집기 탭 활성화"
 msgid "Activate the previous editor tab."
 msgstr "이전 편집기 탭 활성화"
 
-msgid "active"
-msgstr "활성"
-
 msgid "Active"
 msgstr "활성"
 
@@ -955,9 +949,6 @@ msgstr "허용되는 값 (비워 두면 모두 허용)"
 msgid "Allowed values for {field}"
 msgstr "{field}에 허용되는 값"
 
-msgid "Almost done. Here's what happened and what's left."
-msgstr "거의 완료되었습니다. 완료된 작업과 남은 작업을 확인하세요."
-
 msgid "Already at {assetContentPath} — reusing."
 msgstr "이미 {assetContentPath}에 있으므로 재사용합니다."
 
@@ -1014,9 +1005,6 @@ msgstr ""
 
 msgid "Anyone can see"
 msgstr "누구나 볼 수 있음"
-
-msgid "Anything you'd like to add? (optional)"
-msgstr "추가할 내용이 있나요? (선택 사항)"
 
 msgid "API key"
 msgstr ""
@@ -1250,9 +1238,6 @@ msgstr "외부 변경을 병합하기 전"
 msgid "Before syncing, set your identity for git commits:"
 msgstr "동기화하기 전에 git 커밋에 사용할 사용자 정보를 설정하세요:"
 
-msgid "Before you go, mind sharing why?"
-msgstr "떠나기 전에 이유를 알려주시겠어요?"
-
 msgid "Being written"
 msgstr ""
 
@@ -1328,9 +1313,6 @@ msgstr "수백 개의 테마 찾아보기"
 
 msgid "Browse your repos:"
 msgstr "저장소 찾아보기:"
-
-msgid "Bugs, crashes, or it felt unreliable"
-msgstr "버그, 충돌 또는 불안정한 동작"
 
 msgid "Build a competitor research knowledge base. Start with an overview page, then add cross-linked pages for each competitor, their products and pricing, and the sources behind every claim."
 msgstr "경쟁사 조사를 위한 지식 베이스를 구축합니다. 개요 페이지로 시작한 다음, 각 경쟁사와 제품 및 가격, 모든 주장에 대한 출처를 서로 연결된 페이지로 추가합니다."
@@ -1506,15 +1488,6 @@ msgstr ""
 
 msgid "Claude, for {0}"
 msgstr ""
-
-msgid "Cleanup didn’t finish"
-msgstr "정리가 완료되지 않았습니다"
-
-msgid "Cleanup log"
-msgstr "정리 로그"
-
-msgid "Cleanup may still be running."
-msgstr "정리가 아직 진행 중일 수 있습니다."
 
 msgid "Clear"
 msgstr "지우기"
@@ -2359,9 +2332,6 @@ msgstr "HEAD가 분리되었습니다. 계속하려면 브랜치를 체크아웃
 msgid "Details"
 msgstr "세부 정보"
 
-msgid "Detected GitQuire projects"
-msgstr "감지된 GitQuire 프로젝트"
-
 msgid "Diagram"
 msgstr "다이어그램"
 
@@ -2484,9 +2454,6 @@ msgstr "완료"
 
 msgid "Done, due earlier"
 msgstr ""
-
-msgid "Done."
-msgstr "완료"
 
 msgid "Double-click to edit"
 msgstr "편집하려면 두 번 클릭"
@@ -3434,9 +3401,6 @@ msgstr "GitQuire가 프로젝트 서버에 연결할 수 없어 인덱스 유지
 msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
 msgstr "GitQuire는 Markdown이 있는 모든 폴더에 index.md라는 탐색 파일을 만들고 유지합니다."
 
-msgid "GitQuire files were removed"
-msgstr "GitQuire 파일을 제거했습니다"
-
 msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
 msgstr "GitQuire에 이 호스트용으로 저장된 자격 증명이 없습니다. 설정에서 토큰을 추가하거나, git이 이미 가지고 있는 자격 증명을 사용하도록 두세요."
 
@@ -3698,9 +3662,6 @@ msgstr "https://github.com/owner/repo 또는 owner/repo"
 msgid "Hubs"
 msgstr "허브"
 
-msgid "I'm switching to another tool"
-msgstr "다른 도구로 전환하려고 합니다"
-
 msgid "Icon picker"
 msgstr "아이콘 선택기"
 
@@ -3908,18 +3869,6 @@ msgstr "잘못된 패치 페이로드"
 msgid "Invalid YAML"
 msgstr "잘못된 YAML"
 
-msgid "It didn't fit into my workflow"
-msgstr "내 작업 방식에 맞지 않았습니다"
-
-msgid "It was a trial or one-off project"
-msgstr "시험 삼아 사용했거나 일회성 프로젝트였습니다"
-
-msgid "It was missing a feature I needed"
-msgstr "필요한 기능이 없었습니다"
-
-msgid "It was too hard to set up or get started"
-msgstr "설정하거나 시작하기가 너무 어려웠습니다"
-
 msgid "Italic"
 msgstr "기울임꼴"
 
@@ -3979,9 +3928,6 @@ msgstr ""
 
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "지식 베이스를 Open Knowledge Format에 맞게 유지합니다."
-
-msgid "Kept your content"
-msgstr "콘텐츠를 보관했습니다"
 
 msgid "Key ending in {keyHint}"
 msgstr "끝이 {keyHint}인 키"
@@ -4045,9 +3991,6 @@ msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "들여쓰기 대신 Tab 키로 소스 편집기를 빠져나갑니다."
-
-msgid "Let us follow up by email"
-msgstr "이메일로 후속 연락 받기"
 
 msgid "Light"
 msgstr "밝은 테마"
@@ -4313,9 +4256,6 @@ msgstr "Markdown"
 msgid "Markdown checks do not apply to this file."
 msgstr "Markdown 검사는 이 파일에 적용되지 않습니다."
 
-msgid "Markdown files and authored skills were left untouched."
-msgstr "Markdown 파일과 직접 작성한 스킬은 변경하지 않았습니다."
-
 msgid "Markdown source"
 msgstr "Markdown 소스"
 
@@ -4501,9 +4441,6 @@ msgstr "편집기를 창 오른쪽 가장자리로 이동"
 
 msgid "Move Editor to the top edge of the window"
 msgstr "편집기를 창 위쪽 가장자리로 이동"
-
-msgid "Move GitQuire.app to the Trash"
-msgstr "GitQuire.app을 휴지통으로 이동하세요"
 
 msgid "Move into draft"
 msgstr ""
@@ -4717,9 +4654,6 @@ msgstr "아직 <0>.markdownlint.*</0> 파일이 없습니다. 모든 규칙은 V
 
 msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
 msgstr ""
-
-msgid "No active or recent GitQuire projects were found."
-msgstr "활성 상태이거나 최근에 사용한 GitQuire 프로젝트가 없습니다."
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "이 엔드포인트에 API 키가 설정되지 않았습니다. 위에서 추가합니다."
@@ -5571,9 +5505,6 @@ msgstr "검색 준비 중"
 msgid "Preparing share URL..."
 msgstr "공유 URL 준비 중…"
 
-msgid "Preparing to uninstall GitQuire"
-msgstr "GitQuire 제거 준비 중"
-
 msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
 msgstr "문서를 별도 창에서 슬라이드 덱으로 표시합니다. GitQuire 데스크톱 앱에서만 작동하며 별도로 설치한 Slidev CLI가 필요합니다. 켜면 사이드바의 플러그인 아래에 나타납니다."
 
@@ -5811,9 +5742,6 @@ msgstr ""
 msgid "Receiving objects"
 msgstr "객체 수신 중"
 
-msgid "recent"
-msgstr "최근"
-
 msgid "Recently closed"
 msgstr ""
 
@@ -5904,9 +5832,6 @@ msgstr "필드 {field} 제거"
 msgid "Remove from recent projects"
 msgstr "최근 프로젝트에서 제거"
 
-msgid "Remove GitQuire from {0}"
-msgstr "{0}에서 GitQuire 제거"
-
 msgid "Remove item {0}"
 msgstr "항목 {0} 제거"
 
@@ -5924,12 +5849,6 @@ msgstr "경로 앞이나 뒤의 공백을 지우세요."
 
 msgid "Removed"
 msgstr "제거됨"
-
-msgid "Removed GitQuire files"
-msgstr "GitQuire 파일 제거 완료"
-
-msgid "Removing GitQuire files…"
-msgstr "GitQuire 파일 제거 중…"
 
 msgid "Rename"
 msgstr "이름 변경"
@@ -6141,12 +6060,6 @@ msgstr "사이드바를 클릭할 때 탭 하나를 재사용합니다. 끄면 �
 
 msgid "Reused if it already exists, created if not."
 msgstr "이미 있으면 재사용하고, 없으면 생성합니다."
-
-msgid "Reveal in Finder"
-msgstr "Finder에서 보기"
-
-msgid "Reveal in Finder shows the app so you can drag it to the Trash."
-msgstr "Finder에서 보기를 누르면 앱이 표시되어 휴지통으로 드래그할 수 있습니다."
 
 msgid "Revenue"
 msgstr ""
@@ -6367,9 +6280,6 @@ msgstr "{slot} 선택, {0}"
 msgid "Select a value"
 msgstr "값 선택"
 
-msgid "Select all"
-msgstr "모두 선택"
-
 msgid "Select all files and folders"
 msgstr "모든 파일과 폴더 선택"
 
@@ -6432,9 +6342,6 @@ msgstr "의미 기반 검색이 켜져 있지만 API 키가 설정되지 않아 
 
 msgid "Send"
 msgstr "전송"
-
-msgid "Send & continue"
-msgstr "보내고 계속하기"
 
 msgid "Send a new code"
 msgstr ""
@@ -6511,9 +6418,6 @@ msgstr "설정 중"
 msgid "Settings"
 msgstr "설정"
 
-msgid "Settings and integrations were cleaned up."
-msgstr "설정과 연동을 정리했습니다."
-
 msgid "Settings are still loading. Try again in a moment."
 msgstr "설정을 아직 불러오는 중입니다. 잠시 후 다시 시도하세요."
 
@@ -6540,9 +6444,6 @@ msgstr "공유"
 
 msgid "Share doc"
 msgstr "문서 공유"
-
-msgid "Share feedback"
-msgstr "피드백 공유"
 
 msgid "Share folder"
 msgstr "폴더 공유"
@@ -6733,9 +6634,6 @@ msgstr "일부 편집 내용이 아직 서버에 도달하지 않아 탭을 새�
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "일부 파일이 표시되지 않았습니다. 작업 트리의 변경 사항이 너무 많습니다."
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
-msgstr "일부 파일이 제거되지 않았을 수 있습니다. 정리 로그를 열어 자세한 내용을 확인하세요. GitQuire를 다시 열어 재시도할 수 있습니다."
-
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "테마 폴더가 스캔 한도를 초과해 일부 저장된 테마가 나타나지 않습니다."
 
@@ -6747,9 +6645,6 @@ msgstr "누군가 이미 {filePath}의 충돌을 해결했을 수 있습니다 �
 
 msgid "Something broke"
 msgstr "문제가 발생했습니다"
-
-msgid "Something else"
-msgstr "기타"
 
 msgid "Something went wrong"
 msgstr "문제가 발생했습니다"
@@ -7048,9 +6943,6 @@ msgstr "할 일 목록"
 msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
 msgstr ""
 
-msgid "Tell us how it's going"
-msgstr "진행 상황을 알려 주세요"
-
 msgid "Tell us more (optional)"
 msgstr "더 알려 주세요 (선택 사항)"
 
@@ -7089,9 +6981,6 @@ msgstr "테스트"
 
 msgid "Text"
 msgstr "텍스트"
-
-msgid "Thanks for giving GitQuire a try."
-msgstr "GitQuire를 사용해 주셔서 감사합니다."
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "구독해 주셔서 감사합니다. 받은 편지함에서 제품 업데이트를 확인하세요."
@@ -7498,9 +7387,6 @@ msgstr "이 목록은 최신 상태가 아닐 수 있습니다. 마지막으로 
 msgid "This list may be out of date."
 msgstr "이 목록은 최신 상태가 아닐 수 있습니다."
 
-msgid "This may take a moment. Your markdown content is kept."
-msgstr "잠시 시간이 걸릴 수 있습니다. markdown 콘텐츠는 유지됩니다."
-
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
@@ -7545,9 +7431,6 @@ msgstr "이 프로젝트는 이 컴퓨터에만 있습니다. 백업하고 다�
 
 msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
 msgstr "이 프로젝트에서 실행 중인 서버는 실시간 편집을 지원하지 않습니다. GitQuire를 다시 시작하여 수정하세요."
-
-msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "이 작업은 Mac과 아래에서 선택한 프로젝트에서 GitQuire의 설정과 통합을 제거하지만, markdown 콘텐츠와 직접 작성한 스킬은 유지합니다."
 
 msgid "This repository has no commits yet — reopen the project to create the first commit, then Push will work"
 msgstr "이 저장소에는 아직 커밋이 없습니다. 프로젝트를 다시 열면 첫 커밋이 만들어지고, 그때부터 푸시가 동작합니다."
@@ -7620,9 +7503,6 @@ msgid "Title"
 msgstr "제목"
 
 msgid "To do"
-msgstr "할 일"
-
-msgid "To do."
 msgstr "할 일"
 
 msgid "Today"
@@ -7800,9 +7680,6 @@ msgstr "입력하여 편집하세요. <0>Cmd/Ctrl+Enter</0>로 저장하고 <1>E
 msgid "Type to find a doc"
 msgstr "문서를 찾으려면 입력"
 
-msgid "Unable to show the cleanup result"
-msgstr "정리 결과를 표시할 수 없습니다"
-
 msgid "Uncommitted changes"
 msgstr "커밋되지 않은 변경 사항"
 
@@ -7841,12 +7718,6 @@ msgstr "이 설정을 바꾸려면 해결을 실행 취소하세요."
 
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "소스 편집 창 또는 코드 형태의 속성 필드에서 선택 영역 변경을 실행 취소, 다시 실행하거나 단계별로 이동합니다."
-
-msgid "Uninstall GitQuire"
-msgstr "GitQuire 제거"
-
-msgid "Uninstall GitQuire?"
-msgstr "GitQuire를 제거하시겠습니까?"
 
 msgid "unknown"
 msgstr "알 수 없음"
@@ -8174,9 +8045,6 @@ msgstr "무엇을 만들까요?"
 
 msgid "What you are looking at"
 msgstr ""
-
-msgid "What you share is sent to the GitQuire team."
-msgstr "공유하신 내용은 GitQuire 팀에 전송됩니다."
 
 msgid "What's new"
 msgstr "새로운 기능"

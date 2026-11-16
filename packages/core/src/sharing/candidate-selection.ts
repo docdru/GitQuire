@@ -53,7 +53,7 @@ export type CandidateSelection =
     }
   | { readonly kind: 'miss' };
 
-export function isGitWorkingTree(kind: ResolvedGitDirKind): kind is 'directory' | 'linked' {
+function isGitWorkingTree(kind: ResolvedGitDirKind): kind is 'directory' | 'linked' {
   return kind === 'directory' || kind === 'linked';
 }
 

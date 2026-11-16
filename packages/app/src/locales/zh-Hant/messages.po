@@ -175,9 +175,6 @@ msgstr ""
 msgid "{0} is over {destination}."
 msgstr "{0} 位於 {destination} 上方。"
 
-msgid "{0} of {1} projects selected"
-msgstr "已選取 {1} 個專案中的 {0} 個"
-
 msgid "{0} pages changed"
 msgstr ""
 
@@ -754,9 +751,6 @@ msgstr "切換到編輯器的下一個分頁。"
 msgid "Activate the previous editor tab."
 msgstr "切換到編輯器的上一個分頁。"
 
-msgid "active"
-msgstr "使用中"
-
 msgid "Active"
 msgstr "使用中"
 
@@ -955,9 +949,6 @@ msgstr "允許的值（留空 = 任意）"
 msgid "Allowed values for {field}"
 msgstr "{field} 允許的值"
 
-msgid "Almost done. Here's what happened and what's left."
-msgstr "即將完成。以下是已完成和尚待完成的事項。"
-
 msgid "Already at {assetContentPath} — reusing."
 msgstr "已經在 {assetContentPath} 了——直接重複使用。"
 
@@ -1014,9 +1005,6 @@ msgstr ""
 
 msgid "Anyone can see"
 msgstr "任何人都看得到"
-
-msgid "Anything you'd like to add? (optional)"
-msgstr "還有什麼想補充的嗎？（選填）"
 
 msgid "API key"
 msgstr ""
@@ -1250,9 +1238,6 @@ msgstr "合併外部變更之前"
 msgid "Before syncing, set your identity for git commits:"
 msgstr "同步之前，請先設定你用於 git 提交的身分："
 
-msgid "Before you go, mind sharing why?"
-msgstr "在你離開之前，方便說說原因嗎？"
-
 msgid "Being written"
 msgstr ""
 
@@ -1328,9 +1313,6 @@ msgstr "瀏覽數百個主題"
 
 msgid "Browse your repos:"
 msgstr "瀏覽你的儲存庫："
-
-msgid "Bugs, crashes, or it felt unreliable"
-msgstr "有錯誤、當機，或者覺得不太可靠"
 
 msgid "Build a competitor research knowledge base. Start with an overview page, then add cross-linked pages for each competitor, their products and pricing, and the sources behind every claim."
 msgstr "建立一個競品研究知識庫。先寫一頁總覽，再為每個競爭對手、他們的產品與定價，以及每項說法背後的來源，加上互相連結的頁面。"
@@ -1506,15 +1488,6 @@ msgstr ""
 
 msgid "Claude, for {0}"
 msgstr ""
-
-msgid "Cleanup didn’t finish"
-msgstr "清理未完成"
-
-msgid "Cleanup log"
-msgstr "清理記錄"
-
-msgid "Cleanup may still be running."
-msgstr "清理可能仍在進行中。"
 
 msgid "Clear"
 msgstr "清除"
@@ -2359,9 +2332,6 @@ msgstr "HEAD 處於分離狀態——請簽出一個分支再繼續"
 msgid "Details"
 msgstr "詳細資料"
 
-msgid "Detected GitQuire projects"
-msgstr "偵測到的 GitQuire 專案"
-
 msgid "Diagram"
 msgstr "圖表"
 
@@ -2484,9 +2454,6 @@ msgstr "完成"
 
 msgid "Done, due earlier"
 msgstr ""
-
-msgid "Done."
-msgstr "完成。"
 
 msgid "Double-click to edit"
 msgstr "按兩下即可編輯"
@@ -3434,9 +3401,6 @@ msgstr "GitQuire 無法連線到專案伺服器以檢查索引維護。專案重
 msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
 msgstr "GitQuire 在包含 Markdown 的每個資料夾中建立並維護名為 index.md 的導覽檔案。"
 
-msgid "GitQuire files were removed"
-msgstr "已移除 GitQuire 檔案"
-
 msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
 msgstr "GitQuire 沒有為這個主機儲存任何憑證。請在「設定」中新增一個權杖，或者讓 git 使用它已有的憑證。"
 
@@ -3698,9 +3662,6 @@ msgstr "https://github.com/owner/repo 或 owner/repo"
 msgid "Hubs"
 msgstr "樞紐頁"
 
-msgid "I'm switching to another tool"
-msgstr "我要改用別的工具"
-
 msgid "Icon picker"
 msgstr "圖示選擇器"
 
@@ -3908,18 +3869,6 @@ msgstr "修補內容無效"
 msgid "Invalid YAML"
 msgstr "無效的 YAML"
 
-msgid "It didn't fit into my workflow"
-msgstr "它不符合我的工作流程"
-
-msgid "It was a trial or one-off project"
-msgstr "那只是一次試用或一次性的專案"
-
-msgid "It was missing a feature I needed"
-msgstr "它缺少我需要的功能"
-
-msgid "It was too hard to set up or get started"
-msgstr "設定或上手太麻煩了"
-
 msgid "Italic"
 msgstr "斜體"
 
@@ -3979,9 +3928,6 @@ msgstr ""
 
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "讓您的知識庫與 Open Knowledge Format 保持一致。"
-
-msgid "Kept your content"
-msgstr "已保留你的內容"
 
 msgid "Key ending in {keyHint}"
 msgstr "以 {keyHint} 結尾的金鑰"
@@ -4045,9 +3991,6 @@ msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "讓 Tab 鍵離開原始碼編輯器，而不是縮排。"
-
-msgid "Let us follow up by email"
-msgstr "允許我們用電子郵件跟進"
 
 msgid "Light"
 msgstr "淺色"
@@ -4313,9 +4256,6 @@ msgstr "Markdown"
 msgid "Markdown checks do not apply to this file."
 msgstr "此檔案不適用 Markdown 檢查。"
 
-msgid "Markdown files and authored skills were left untouched."
-msgstr "Markdown 檔案和你編寫的技能未被更動。"
-
 msgid "Markdown source"
 msgstr "Markdown 原始碼"
 
@@ -4501,9 +4441,6 @@ msgstr "將編輯器移到視窗右邊緣"
 
 msgid "Move Editor to the top edge of the window"
 msgstr "將編輯器移到視窗頂部邊緣"
-
-msgid "Move GitQuire.app to the Trash"
-msgstr "將 GitQuire.app 移到垃圾桶"
 
 msgid "Move into draft"
 msgstr ""
@@ -4717,9 +4654,6 @@ msgstr "還沒有 <0>.markdownlint.*</0> 檔案——所有規則都按照和 VS
 
 msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
 msgstr ""
-
-msgid "No active or recent GitQuire projects were found."
-msgstr "找不到使用中或最近的 GitQuire 專案。"
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "這個端點還沒有設定 API 金鑰。請在上面加一個。"
@@ -5571,9 +5505,6 @@ msgstr "正在準備搜尋"
 msgid "Preparing share URL..."
 msgstr "正在準備分享 URL…"
 
-msgid "Preparing to uninstall GitQuire"
-msgstr "正在準備解除安裝 GitQuire"
-
 msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
 msgstr "在獨立視窗中將文件展示為簡報。僅能在 GitQuire 桌面應用程式中使用，並需要另外安裝 Slidev CLI。啟用後會顯示在側邊欄的 Plugins 下。"
 
@@ -5811,9 +5742,6 @@ msgstr ""
 msgid "Receiving objects"
 msgstr "正在接收物件"
 
-msgid "recent"
-msgstr "最近"
-
 msgid "Recently closed"
 msgstr ""
 
@@ -5904,9 +5832,6 @@ msgstr "移除欄位 {field}"
 msgid "Remove from recent projects"
 msgstr "從最近的專案中移除"
 
-msgid "Remove GitQuire from {0}"
-msgstr "把 GitQuire 從 {0} 中移除"
-
 msgid "Remove item {0}"
 msgstr "移除項目 {0}"
 
@@ -5924,12 +5849,6 @@ msgstr "刪除路徑開頭或結尾的空格。"
 
 msgid "Removed"
 msgstr "已移除"
-
-msgid "Removed GitQuire files"
-msgstr "已移除 GitQuire 檔案"
-
-msgid "Removing GitQuire files…"
-msgstr "正在移除 GitQuire 的檔案…"
 
 msgid "Rename"
 msgstr "重新命名"
@@ -6141,12 +6060,6 @@ msgstr "在側邊欄中一路點下去時重複使用同一個分頁。關掉之
 
 msgid "Reused if it already exists, created if not."
 msgstr "如果已經存在就重複使用，否則就建立。"
-
-msgid "Reveal in Finder"
-msgstr "在 Finder 中顯示"
-
-msgid "Reveal in Finder shows the app so you can drag it to the Trash."
-msgstr "「在 Finder 中顯示」會顯示應用程式，讓你將其拖曳到垃圾桶。"
 
 msgid "Revenue"
 msgstr ""
@@ -6367,9 +6280,6 @@ msgstr "選取 {slot} — {0}"
 msgid "Select a value"
 msgstr "選一個值"
 
-msgid "Select all"
-msgstr "全選"
-
 msgid "Select all files and folders"
 msgstr "選取所有檔案和資料夾"
 
@@ -6432,9 +6342,6 @@ msgstr "語意搜尋已開啟，但沒有設定 API 金鑰——搜尋會退回�
 
 msgid "Send"
 msgstr "傳送"
-
-msgid "Send & continue"
-msgstr "傳送並繼續"
 
 msgid "Send a new code"
 msgstr ""
@@ -6511,9 +6418,6 @@ msgstr "正在設定"
 msgid "Settings"
 msgstr "設定"
 
-msgid "Settings and integrations were cleaned up."
-msgstr "已清理設定和整合。"
-
 msgid "Settings are still loading. Try again in a moment."
 msgstr "設定仍在載入中。請稍候再試。"
 
@@ -6540,9 +6444,6 @@ msgstr "分享"
 
 msgid "Share doc"
 msgstr "分享文件"
-
-msgid "Share feedback"
-msgstr "分享意見回饋"
 
 msgid "Share folder"
 msgstr "分享資料夾"
@@ -6733,9 +6634,6 @@ msgstr "部分編輯尚未送達伺服器，因此沒有重新載入分頁。你
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "部分檔案未列出：工作區的變更過多。"
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
-msgstr "部分檔案可能尚未移除。開啟清理記錄以查看詳細資訊。你可以重新開啟 GitQuire 後再試一次。"
-
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "因為主題資料夾超出掃描限制，部分已儲存的主題未顯示。"
 
@@ -6747,9 +6645,6 @@ msgstr "可能已有人解決了 {filePath} 的衝突 — 請先查看文件的�
 
 msgid "Something broke"
 msgstr "有東西壞了"
-
-msgid "Something else"
-msgstr "其他原因"
 
 msgid "Something went wrong"
 msgstr "出了點問題"
@@ -7048,9 +6943,6 @@ msgstr "工作清單"
 msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
 msgstr ""
 
-msgid "Tell us how it's going"
-msgstr "告訴我們進行得怎麼樣"
-
 msgid "Tell us more (optional)"
 msgstr "再多說一些（選填）"
 
@@ -7089,9 +6981,6 @@ msgstr "正在測試"
 
 msgid "Text"
 msgstr "文字"
-
-msgid "Thanks for giving GitQuire a try."
-msgstr "謝謝你試用 GitQuire。"
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "謝謝訂閱。請留意你的信箱，我們會寄出產品動態。"
@@ -7498,9 +7387,6 @@ msgstr "這份清單可能不是最新的——上次讀取：{staleRelative}。
 msgid "This list may be out of date."
 msgstr "這份清單可能不是最新的。"
 
-msgid "This may take a moment. Your markdown content is kept."
-msgstr "這可能要花一點時間。你的 markdown 內容會保留。"
-
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
@@ -7545,9 +7431,6 @@ msgstr "這個專案只存在於這台電腦上。把它連接到 GitHub 就能�
 
 msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
 msgstr "這個專案正在執行的伺服器不支援即時編輯。重新啟動 GitQuire 即可修正。"
-
-msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "這會從你的 Mac 以及你在下面選的專案中移除 GitQuire 的設定和整合，但會保留你的 markdown 內容和你自己寫的技能。"
 
 msgid "This repository has no commits yet — reopen the project to create the first commit, then Push will work"
 msgstr "這個儲存庫還沒有任何提交——重新開啟專案即可建立第一個提交，之後就能推送了"
@@ -7621,9 +7504,6 @@ msgstr "標題"
 
 msgid "To do"
 msgstr "待辦"
-
-msgid "To do."
-msgstr "待辦。"
 
 msgid "Today"
 msgstr "今天"
@@ -7800,9 +7680,6 @@ msgstr "輸入即可編輯；<0>Cmd/Ctrl+Enter</0> 儲存，<1>Esc</1> 取消。
 msgid "Type to find a doc"
 msgstr "輸入以尋找文件"
 
-msgid "Unable to show the cleanup result"
-msgstr "無法顯示清理結果"
-
 msgid "Uncommitted changes"
 msgstr "尚未提交的變更"
 
@@ -7841,12 +7718,6 @@ msgstr "復原已做的解決操作後才能變更。"
 
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "在「編輯原始碼」窗格或程式碼類屬性欄位中復原、重做，或逐步回溯選取範圍的變化。"
-
-msgid "Uninstall GitQuire"
-msgstr "解除安裝 GitQuire"
-
-msgid "Uninstall GitQuire?"
-msgstr "要解除安裝 GitQuire 嗎？"
 
 msgid "unknown"
 msgstr "未知"
@@ -8174,9 +8045,6 @@ msgstr "你想建立什麼？"
 
 msgid "What you are looking at"
 msgstr ""
-
-msgid "What you share is sent to the GitQuire team."
-msgstr "你分享的內容會寄給 GitQuire 團隊。"
 
 msgid "What's new"
 msgstr "新功能"

@@ -1,7 +1,7 @@
 import type { Root as MdastRoot, Paragraph } from 'mdast';
 import type { SourceDocBoundary } from './mdast-augmentation.ts';
 
-export const MIN_CARRIED_LEADING_EMPTIES = 2;
+const MIN_CARRIED_LEADING_EMPTIES = 2;
 
 export const MIN_CARRIED_TRAILING_EMPTIES = 1;
 
