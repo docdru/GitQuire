@@ -288,6 +288,7 @@ export { sharedExtensions } from './extensions/shared.ts';
 export {
   getWikiLinkText,
   parseWikiLink,
+  WikiLink,
 } from './extensions/wiki-link.ts';
 /**
  * The re-exported attrs are schema-add-only per precedent #9, so this public import path
