@@ -8,7 +8,7 @@ export function useIsolatedHome(): () => string {
   beforeEach(() => {
     home = mkdtempSync(join(tmpdir(), 'ok-git-hosts-home-'));
     vi.stubEnv('HOME', home);
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     vi.stubEnv('USERPROFILE', home);
   });
   afterEach(() => {

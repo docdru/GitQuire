@@ -14,8 +14,8 @@ import {
   productionShellLaunch,
 } from '../production-shell-server.ts';
 
-export const E2E_SERVING_ENV = 'OK_TEST_E2E_SERVING';
-export const PREBUILT_APP_ENV = 'OK_TEST_PREBUILT_APP';
+export const E2E_SERVING_ENV = 'GITQUIRE_TEST_E2E_SERVING';
+export const PREBUILT_APP_ENV = 'GITQUIRE_TEST_PREBUILT_APP';
 export const PREBUILT_MANIFEST_FILE = 'prebuilt-manifest.json';
 
 export const E2E_SERVING_MODES = ['dev-server', 'prebuilt'] as const;

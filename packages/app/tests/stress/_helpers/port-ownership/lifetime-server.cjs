@@ -3,7 +3,7 @@ const http = require('node:http');
 const { join } = require('node:path');
 
 const nonce = process.argv[2];
-const runDir = process.env.OK_PORT_OWNERSHIP_RUN_DIR;
+const runDir = process.env.GITQUIRE_PORT_OWNERSHIP_RUN_DIR;
 if (!nonce || !runDir) throw new Error('lifetime server needs a nonce and run directory');
 
 const server = http.createServer((request, response) => {

@@ -16,7 +16,7 @@ import { resolveConfigPath, writeConfigPatch } from './write-config-patch.ts';
 let testDir: string;
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
   testDir = mkdtempSync(join(tmpdir(), 'ok-write-config-patch-'));
 });
 

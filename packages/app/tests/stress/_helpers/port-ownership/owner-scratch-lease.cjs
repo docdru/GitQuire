@@ -1,7 +1,7 @@
 const { ChildProcess } = require('node:child_process');
 const { fstatSync } = require('node:fs');
 
-const key = 'OK_PORT_OWNERSHIP_LEASE_FD';
+const key = 'GITQUIRE_PORT_OWNERSHIP_LEASE_FD';
 const inherited = process.env[key];
 
 if (inherited !== undefined) {

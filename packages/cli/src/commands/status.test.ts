@@ -227,7 +227,7 @@ describe('status hints name the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: stale and corrupt locks suggest %s clean', (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     expect(renderStatusText(buildStatusReport(dead(999)))).toContain(
       `server  stale (dead pid=999) — run \`${command} clean\``,
     );

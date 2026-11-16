@@ -3,12 +3,12 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 import stock from '../../../../playwright.config.ts';
 
-const runDir = process.env.OK_PORT_OWNERSHIP_RUN_DIR;
-if (!runDir) throw new Error('OK_PORT_OWNERSHIP_RUN_DIR is required');
+const runDir = process.env.GITQUIRE_PORT_OWNERSHIP_RUN_DIR;
+if (!runDir) throw new Error('GITQUIRE_PORT_OWNERSHIP_RUN_DIR is required');
 const stressDir = fileURLToPath(new URL('../..', import.meta.url));
 const warmCacheSetup = fileURLToPath(new URL('../global-warm-cache.ts', import.meta.url));
 const lifetimeSetup = fileURLToPath(new URL('./lifetime-global-setup.ts', import.meta.url));
-const caller = process.env.OK_PORT_OWNERSHIP_CALLER;
+const caller = process.env.GITQUIRE_PORT_OWNERSHIP_CALLER;
 
 export default defineConfig({
   ...stock,

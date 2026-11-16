@@ -210,13 +210,13 @@ export async function runOwnershipCase(ownershipCase: OwnershipCase): Promise<Ow
   });
   const env = createNestedPlaywrightEnv({
     NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require=${JSON.stringify(PRELOAD)}`.trim(),
-    OK_PORT_OWNERSHIP_CALLER: ownershipCase.caller,
-    OK_PORT_OWNERSHIP_RECORDS: join(runDir, 'events.jsonl'),
-    OK_PORT_OWNERSHIP_RUN_DIR: runDir,
-    OK_PORT_OWNERSHIP_LEASE_FD: String(RUNNER_STDIO.length),
-    OK_PORT_OWNERSHIP_CONTROL_PORT: String(ownerControl.port),
+    GITQUIRE_PORT_OWNERSHIP_CALLER: ownershipCase.caller,
+    GITQUIRE_PORT_OWNERSHIP_RECORDS: join(runDir, 'events.jsonl'),
+    GITQUIRE_PORT_OWNERSHIP_RUN_DIR: runDir,
+    GITQUIRE_PORT_OWNERSHIP_LEASE_FD: String(RUNNER_STDIO.length),
+    GITQUIRE_PORT_OWNERSHIP_CONTROL_PORT: String(ownerControl.port),
     ...(ownershipCase.caller === 'global-warm-cache.ts'
-      ? { OK_TEST_VITE_SEED_DIR: join(runDir, 'seed') }
+      ? { GITQUIRE_TEST_VITE_SEED_DIR: join(runDir, 'seed') }
       : {}),
     TMPDIR: runtimeTmp,
     TURBO_CACHE_DIR: join(SUBTREE_ROOT, '.turbo', 'cache'),
@@ -339,7 +339,7 @@ export async function runLeaseInheritanceProbe(): Promise<LeaseInheritanceRun> {
     env: {
       ...process.env,
       NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require=${JSON.stringify(PRELOAD)}`.trim(),
-      OK_PORT_OWNERSHIP_LEASE_FD: String(LEASE_PROBE_STDIO.length),
+      GITQUIRE_PORT_OWNERSHIP_LEASE_FD: String(LEASE_PROBE_STDIO.length),
     },
     stdio: [...LEASE_PROBE_STDIO, lease] as const,
   });

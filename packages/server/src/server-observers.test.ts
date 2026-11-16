@@ -632,19 +632,19 @@ describe('shouldRethrowBridgeMergeLoss (D3-LOCKED polarity)', () => {
     expect(shouldRethrowBridgeMergeLoss({ NODE_ENV: 'test' } as NodeJS.ProcessEnv)).toBe(true);
   });
 
-  test('OK_RETHROW_BRIDGE_LOSS=1 triggers rethrow regardless of NODE_ENV', () => {
+  test('GITQUIRE_RETHROW_BRIDGE_LOSS=1 triggers rethrow regardless of NODE_ENV', () => {
     expect(
       shouldRethrowBridgeMergeLoss({
         NODE_ENV: 'production',
-        OK_RETHROW_BRIDGE_LOSS: '1',
+        GITQUIRE_RETHROW_BRIDGE_LOSS: '1',
       } as NodeJS.ProcessEnv),
     ).toBe(true);
   });
 
-  test('OK_RETHROW_BRIDGE_LOSS=0 does not trigger rethrow', () => {
-    expect(shouldRethrowBridgeMergeLoss({ OK_RETHROW_BRIDGE_LOSS: '0' } as NodeJS.ProcessEnv)).toBe(
-      false,
-    );
+  test('GITQUIRE_RETHROW_BRIDGE_LOSS=0 does not trigger rethrow', () => {
+    expect(
+      shouldRethrowBridgeMergeLoss({ GITQUIRE_RETHROW_BRIDGE_LOSS: '0' } as NodeJS.ProcessEnv),
+    ).toBe(false);
   });
 });
 

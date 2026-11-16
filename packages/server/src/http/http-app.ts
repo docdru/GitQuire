@@ -43,7 +43,7 @@ export function admitRequestSurface(
       res,
       403,
       'urn:ok:error:host-not-allowed',
-      'Proxied request refused: this server has not consented to external exposure. Set OK_EXTERNAL_URL to the public origin and OK_ALLOW_EXTERNAL=1 (or server.externalUrl + server.allowExternal in config), then restart the server.',
+      'Proxied request refused: this server has not consented to external exposure. Set GITQUIRE_EXTERNAL_URL to the public origin and GITQUIRE_ALLOW_EXTERNAL=1 (or server.externalUrl + server.allowExternal in config), then restart the server.',
       { handler },
     );
     return false;

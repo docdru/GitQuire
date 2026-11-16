@@ -135,11 +135,11 @@ describe('runPatSubprocess', () => {
         let d='';
         process.stdin.on('data', c => { d += c; });
         process.stdin.on('end', () => {
-          process.stdout.write(JSON.stringify({ type: 'complete', host: 'ghes.test', login: process.env.OK_AUTH_PAT_ENV_MARKER || 'unset' }) + '\\n');
+          process.stdout.write(JSON.stringify({ type: 'complete', host: 'ghes.test', login: process.env.GITQUIRE_AUTH_PAT_ENV_MARKER || 'unset' }) + '\\n');
           process.exit(0);
         });
       `),
-        { OK_AUTH_PAT_ENV_MARKER: 'marker-from-cli-env' },
+        { GITQUIRE_AUTH_PAT_ENV_MARKER: 'marker-from-cli-env' },
       ),
       host: 'ghes.test',
       token: 'good-token',

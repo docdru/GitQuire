@@ -1,7 +1,7 @@
 import { appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const runDir = process.env.OK_BOOT_VERDICT_RUN_DIR;
+const runDir = process.env.GITQUIRE_BOOT_VERDICT_RUN_DIR;
 
 process.kill = (pid: number, signal?: string | number): true => {
   if (runDir !== undefined) {

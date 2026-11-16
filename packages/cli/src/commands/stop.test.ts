@@ -252,22 +252,22 @@ describe('runStop channel guard', () => {
     expect(killed).toEqual([[100, 'SIGTERM']]);
   });
 
-  test("OK_CHANNEL=beta refuses Stable's server", async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+  test("GITQUIRE_CHANNEL=beta refuses Stable's server", async () => {
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const { outcome, killed } = run('stable', { selfChannel: undefined });
     expect((await outcome).declined).toEqual({ otherChannel: 'stable' });
     expect(killed).toEqual([]);
   });
 
-  test("OK_CHANNEL=stable stops Stable's server", async () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+  test("GITQUIRE_CHANNEL=stable stops Stable's server", async () => {
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     const { outcome, killed } = run('stable', { selfChannel: undefined });
     expect((await outcome).declined).toBeUndefined();
     expect(killed).toEqual([[100, 'SIGTERM']]);
   });
 
-  test('an unsupported OK_CHANNEL skips the check, warns, and stops as before', async () => {
-    vi.stubEnv('OK_CHANNEL', 'bogus');
+  test('an unsupported GITQUIRE_CHANNEL skips the check, warns, and stops as before', async () => {
+    vi.stubEnv('GITQUIRE_CHANNEL', 'bogus');
     const warnings: string[] = [];
     const logger = {
       info: () => {},
@@ -276,30 +276,30 @@ describe('runStop channel guard', () => {
     const { outcome, killed } = run('stable', { selfChannel: undefined, logger });
     expect((await outcome).declined).toBeUndefined();
     expect(killed).toEqual([[100, 'SIGTERM']]);
-    expect(warnings.some((msg) => msg.includes('Unsupported OK_CHANNEL'))).toBe(true);
+    expect(warnings.some((msg) => msg.includes('Unsupported GITQUIRE_CHANNEL'))).toBe(true);
   });
 
   test("installed Stable refuses a dev build's server without --force", async () => {
-    vi.stubEnv('OK_CHANNEL', '');
+    vi.stubEnv('GITQUIRE_CHANNEL', '');
     const { outcome, killed, errors } = run('dev', { selfChannel: undefined });
     expect((await outcome).declined).toEqual({ otherChannel: 'dev' });
     expect(killed).toEqual([]);
     expect(errors[0]).toContain('OpenKnowledge Dev');
     expect(errors[0]).toContain(
-      '`node <checkout>/packages/cli/dist/cli.mjs stop` with OK_CHANNEL=dev set',
+      '`node <checkout>/packages/cli/dist/cli.mjs stop` with GITQUIRE_CHANNEL=dev set',
     );
     expect(errors[0]).toContain('--force');
   });
 
   test("a dev-channel CLI stops the dev build's server", async () => {
-    vi.stubEnv('OK_CHANNEL', 'dev');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'dev');
     const { outcome, killed } = run('dev', { selfChannel: undefined });
     expect((await outcome).declined).toBeUndefined();
     expect(killed).toEqual([[100, 'SIGTERM']]);
   });
 
   test("a dev-channel CLI refuses installed Stable's server", async () => {
-    vi.stubEnv('OK_CHANNEL', 'dev');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'dev');
     const { outcome, killed } = run('stable', { selfChannel: undefined });
     expect((await outcome).declined).toEqual({ otherChannel: 'stable' });
     expect(killed).toEqual([]);
@@ -519,7 +519,7 @@ describe('runStop identity check at the signal', () => {
   });
 
   test('a Beta CLI names its own clean command for a reused pid', async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const { outcome, errors } = run(thisMachine(), {
       isAlive: () => true,
       readProcessStart: startedLongAfterTheLock,
@@ -918,7 +918,7 @@ describe('formatNoTargetMessage', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: the pointer names %s ps', (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     try {
       expect(formatNoTargetMessage('/proj', 2)).toBe(
         `Nothing was running for /proj. 2 other open-knowledge servers are running — run \`${command} ps\` to list them.`,

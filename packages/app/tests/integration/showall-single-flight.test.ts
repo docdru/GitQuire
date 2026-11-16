@@ -84,8 +84,8 @@ describe('single-flight dedupe (AC1, AC2)', () => {
   }, 30_000);
 
   test('a truncated coalesced walk delivers truncated:true to every waiter', async () => {
-    const prev = process.env.OK_SHOWALL_MAX_ENTRIES;
-    process.env.OK_SHOWALL_MAX_ENTRIES = '50';
+    const prev = process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+    process.env.GITQUIRE_SHOWALL_MAX_ENTRIES = '50';
     try {
       __resetShowAllWalkStatsForTesting();
       const N = 6;
@@ -99,8 +99,8 @@ describe('single-flight dedupe (AC1, AC2)', () => {
         expect(body.documents.length).toBeLessThanOrEqual(50);
       }
     } finally {
-      if (prev === undefined) delete process.env.OK_SHOWALL_MAX_ENTRIES;
-      else process.env.OK_SHOWALL_MAX_ENTRIES = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+      else process.env.GITQUIRE_SHOWALL_MAX_ENTRIES = prev;
     }
   }, 30_000);
 });

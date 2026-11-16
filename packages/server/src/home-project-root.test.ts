@@ -134,7 +134,7 @@ describe('scaffold writers refuse $HOME', () => {
 
 describe('the remediation names the running channel CLI', () => {
   test('Stable keeps its exact gq init lines', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     expect(new HomeProjectRootError('/Users/x').message).toBe(
       `Refusing to set up a GitQuire project in your home directory (/Users/x).\n` +
         `  A project here would run 'git init' in your home directory and write project config\n` +
@@ -149,7 +149,7 @@ describe('the remediation names the running channel CLI', () => {
   });
 
   test('Beta names gq-beta init', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     expect(new HomeProjectRootError('/Users/x').message).toContain(
       "then run 'gq-beta init' inside it.",
     );

@@ -33,12 +33,12 @@ if (
 }
 
 // Per-worker Vite optimized-dependency cache dir. Set by the per-worker
-// Playwright fixture alongside `VITE_PORT` and `OK_TEST_CONTENT_DIR`, so N
+// Playwright fixture alongside `VITE_PORT` and `GITQUIRE_TEST_CONTENT_DIR`, so N
 // concurrent dev servers do not share `<root>/node_modules/.vite` — the
 // dependency optimizer is single-writer over its cacheDir, and re-optimization
 // rewrites chunk hashes mid-flight for any peer worker's browser. Unset
 // everywhere else (production `vite build`, plain `bun run dev`) → Vite default.
-const viteCacheDir = process.env.OK_TEST_VITE_CACHE_DIR;
+const viteCacheDir = process.env.GITQUIRE_TEST_VITE_CACHE_DIR;
 
 export default defineConfig({
   // Relative asset paths — `./assets/foo.js` in the built index.html.
@@ -49,7 +49,7 @@ export default defineConfig({
   base: './',
   // `undefined` lets Vite resolve its own default
   // (`<root>/node_modules/.vite`) for non-test paths; the per-worker
-  // Playwright fixture overrides via `OK_TEST_VITE_CACHE_DIR`.
+  // Playwright fixture overrides via `GITQUIRE_TEST_VITE_CACHE_DIR`.
   cacheDir: viteCacheDir,
   optimizeDeps: {
     // Scope the dependency scanner to the real app entries. Vite's default
@@ -63,7 +63,7 @@ export default defineConfig({
   // PROD-build override lives at `VITE_OK_PERF_INSTRUMENT` (alongside the
   // other `VITE_OK_PERF_*` rollout flags) so no custom prefix entry is
   // needed; that mechanically prevents the startsWith() namespace leak that
-  // an `OK_PERF_INSTRUMENT` prefix would have. New client-exposed perf
+  // an `GITQUIRE_PERF_INSTRUMENT` prefix would have. New client-exposed perf
   // controls follow the same `VITE_OK_PERF_*` convention.
   plugins: [
     // `rejectionLoopGuardPlugin` self-gates to `apply: 'serve'` and injects

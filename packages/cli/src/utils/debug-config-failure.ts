@@ -19,6 +19,6 @@ function describeConfigFailure(context: string, err: unknown): string {
 }
 
 export function debugConfigFailure(context: string, err: unknown): void {
-  if (!process.env.OK_DEBUG_CONFIG) return;
+  if (!process.env.GITQUIRE_DEBUG_CONFIG) return;
   process.stderr.write(`[ok] config ${describeConfigFailure(context, err)}\n`);
 }

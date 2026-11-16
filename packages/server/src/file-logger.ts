@@ -26,7 +26,7 @@ const REDACT_PATHS = [
 ];
 
 function resolveLogLevel(): string {
-  const envLevel = process.env.OK_LOG_LEVEL ?? process.env.LOG_LEVEL;
+  const envLevel = process.env.GITQUIRE_LOG_LEVEL ?? process.env.LOG_LEVEL;
   if (envLevel) {
     const allowed = ['fatal', 'error', 'warn', 'info', 'debug'];
     const normalized = envLevel.toLowerCase();

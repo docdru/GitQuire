@@ -242,7 +242,7 @@ describe('embeddings hints name the running channel CLI', () => {
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), 'ok-embeddings-channel-'));
     keyring.entries.clear();
-    vi.stubEnv('OK_EMBEDDINGS_API_KEY', undefined);
+    vi.stubEnv('GITQUIRE_EMBEDDINGS_API_KEY', undefined);
     keyring.mode = 'available';
     stdout = '';
     stderr = '';
@@ -278,7 +278,7 @@ describe('embeddings hints name the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: status, enable and set-key name %s embeddings', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     await embeddingsCommand().parseAsync(['status', '--cwd', dir], { from: 'user' });
     expect(stdout).toContain(`  Set a key:  ${command} embeddings set-key   (or export `);
     expect(stdout).toContain(

@@ -12,7 +12,7 @@ import { bindTestServerLock, bindTestUiServerLock } from './preview-url-test-hel
 import type { ServerInstance } from './shared.ts';
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
 });
 
 afterEach(() => {
@@ -325,7 +325,7 @@ describe('preview_url tool — backend demand-ensure', () => {
     const handler = captureRegistration(cwd, BASE_CONFIG, {
       serverUrl: async () => {
         throw new AutoStartDisabledError(
-          'GitQuire server is not running and OK_MCP_AUTOSTART=0 disables auto-start.',
+          'GitQuire server is not running and GITQUIRE_MCP_AUTOSTART=0 disables auto-start.',
         );
       },
     });
@@ -334,7 +334,7 @@ describe('preview_url tool — backend demand-ensure', () => {
     expect(result.structuredContent?.running).toBe(false);
     expect(result.structuredContent?.url).toBeNull();
     expect(result.content[0]?.text).toContain('`gq start`');
-    expect(result.content[0]?.text).toContain('OK_MCP_AUTOSTART=0');
+    expect(result.content[0]?.text).toContain('GITQUIRE_MCP_AUTOSTART=0');
     expect(result.content[0]?.text).not.toContain('`gq ui`');
   });
 
@@ -625,7 +625,7 @@ describe('preview_url tool — names the running channel command', () => {
   });
 
   test('a Beta hosted agent is steered to gq-beta open', async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const cwd = temporaryProject();
     bindTestUiServerLock(cwd);
     const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
@@ -636,7 +636,7 @@ describe('preview_url tool — names the running channel command', () => {
   });
 
   test('a Beta server with nothing running says gq-beta start', async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const handler = captureRegistration(temporaryProject());
     const result = await handler({ document: 'specs/foo/SPEC' });
     expect(result.content[0]?.text).toContain('Start it with `gq-beta start`');
@@ -644,7 +644,7 @@ describe('preview_url tool — names the running channel command', () => {
   });
 
   test('a Beta server without a mounted UI says gq-beta start', async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const cwd = temporaryProject();
     bindTestServerLock(cwd, 4321, ['http', 'ws']);
     const result = await captureRegistration(cwd)({ document: 'specs/foo/SPEC' });
@@ -652,7 +652,7 @@ describe('preview_url tool — names the running channel command', () => {
   });
 
   test('a Beta loose file without a session says gq-beta open', async () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const empty: OffCwdResolverDeps = {
       discover: async () => [],
       inspect: async () => null,
@@ -666,7 +666,7 @@ describe('preview_url tool — names the running channel command', () => {
   });
 
   test('Stable hints stay byte-identical', async () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     const cwd = temporaryProject();
     bindTestUiServerLock(cwd);
     const steered = await captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true })({

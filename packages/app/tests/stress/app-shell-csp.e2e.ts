@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import { type ApiHelpers, expect, test } from './_helpers';
 
-test.use({ workerServerEnv: { OK_TEST_PRODUCTION_SHELL: '1' } });
+test.use({ workerServerEnv: { GITQUIRE_TEST_PRODUCTION_SHELL: '1' } });
 
 type PolicyViolationLog = Window & { shellPolicyViolations?: string[] };
 

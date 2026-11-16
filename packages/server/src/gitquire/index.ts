@@ -77,7 +77,7 @@ export function createAccessGateFromEnv(
   if (config.mcpConnectors && config.externalUrl.protocol !== 'https:') {
     log.warn(
       { externalUrl: config.externalUrl.toString() },
-      '[gitquire-auth] GITQUIRE_MCP_CONNECTORS is on, but Claude and other cloud connectors need an https:// OK_EXTERNAL_URL',
+      '[gitquire-auth] GITQUIRE_MCP_CONNECTORS is on, but Claude and other cloud connectors need an https:// GITQUIRE_EXTERNAL_URL',
     );
   }
   const gate = createAccessGate(config, { log, agentTokens, checkAccess: check });
@@ -208,7 +208,7 @@ export function createGitQuireHttp(
           log: options.log,
           sessionUser: gate.sessionUser,
           agentOwner: (req) => gate.agentOwner?.(req),
-          secure: (env.OK_EXTERNAL_URL ?? '').trim().startsWith('https:'),
+          secure: (env.GITQUIRE_EXTERNAL_URL ?? '').trim().startsWith('https:'),
           appConfig,
           client: pulls,
           token: () => options.tokens?.current(),

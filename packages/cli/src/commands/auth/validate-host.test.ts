@@ -21,7 +21,7 @@ let home: string;
 
 beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), 'ok-validate-host-home-'));
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
   vi.stubEnv('HOME', home);
   vi.stubEnv('USERPROFILE', home);
 });
@@ -74,7 +74,7 @@ describe('gitHubHostRejection', () => {
   });
 
   test('prints the Stable remedy byte-for-byte', () => {
-    vi.stubEnv('OK_CHANNEL', '');
+    vi.stubEnv('GITQUIRE_CHANNEL', '');
     expect(gitHubHostRejection('git.example.internal')).toBe(
       `${errorColor('Error:')} git.example.internal is not a known GitHub host.\n` +
         'To use a GitHub Enterprise Server host, declare it in ~/.ok/global.yml:\n\n  git:\n    hosts:\n      git.example.internal:\n        provider: github\n\n' +
@@ -83,7 +83,7 @@ describe('gitHubHostRejection', () => {
   });
 
   test('names the Beta user config when the running channel is Beta', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const rejection = gitHubHostRejection('git.example.internal');
     expect(rejection).toContain('declare it in ~/.ok-beta/global.yml:\n');
     expect(rejection).not.toContain('~/.ok/');

@@ -16,7 +16,7 @@ interface Args {
 
 function parseArgs(argv: readonly string[]): Args {
   let target = '';
-  let navDoc = process.env.OK_SWEEP_DOC ?? null;
+  let navDoc = process.env.GITQUIRE_SWEEP_DOC ?? null;
   let sweepTimeoutMs = DEFAULT_SWEEP_TIMEOUT_MS;
   for (const raw of argv) {
     if (raw.startsWith('--target=')) target = raw.slice('--target='.length);
@@ -39,7 +39,7 @@ function usageAndExit(err: string | null): never {
     'Usage: tsx tests/perf/sweep-measure.ts --target=<url> [flags]',
     '',
     '  --target=<url>        Required. Base URL of a live OK server.',
-    '  --nav-doc=<name>      Doc to open first (default: $OK_SWEEP_DOC or app root).',
+    '  --nav-doc=<name>      Doc to open first (default: $GITQUIRE_SWEEP_DOC or app root).',
     '  --sweep-timeout=<ms>  Max wait for the sweep. Default 300000.',
   ];
   if (err) process.stderr.write(`[sweep-measure] ${err}\n\n`);
@@ -108,7 +108,7 @@ async function run(args: Args): Promise<SweepResult> {
   let consoleErrorCount = 0;
 
   const browser: Browser = await chromium.launch({
-    headless: process.env.OK_PERF_HEADED !== '1',
+    headless: process.env.GITQUIRE_PERF_HEADED !== '1',
     args: ['--enable-precise-memory-info'],
   });
   try {

@@ -187,9 +187,9 @@ describe('runAuthStatusSubprocess', () => {
     const result = await runAuthStatusSubprocess({
       cli: okCli(
         fixtureCli(`
-        console.log(JSON.stringify({type:'status', host:'github.com', authenticated:true, login: process.env.OK_AUTH_STATUS_ENV_MARKER || 'unset'}));
+        console.log(JSON.stringify({type:'status', host:'github.com', authenticated:true, login: process.env.GITQUIRE_AUTH_STATUS_ENV_MARKER || 'unset'}));
       `),
-        { OK_AUTH_STATUS_ENV_MARKER: 'marker-from-cli-env' },
+        { GITQUIRE_AUTH_STATUS_ENV_MARKER: 'marker-from-cli-env' },
       ),
     });
     expect(result.authenticated).toBe(true);
@@ -401,10 +401,10 @@ describe('runAuthReposSubprocess', () => {
       cli: okCli(
         fixtureCli(`
         console.log(JSON.stringify({type:'repos', host:'github.com', repos:[
-          {full_name: process.env.OK_AUTH_REPOS_ENV_MARKER || 'unset', clone_url:'https://github.com/octo/repo1.git', private:false},
+          {full_name: process.env.GITQUIRE_AUTH_REPOS_ENV_MARKER || 'unset', clone_url:'https://github.com/octo/repo1.git', private:false},
         ]}));
       `),
-        { OK_AUTH_REPOS_ENV_MARKER: 'marker/from-cli-env' },
+        { GITQUIRE_AUTH_REPOS_ENV_MARKER: 'marker/from-cli-env' },
       ),
     });
     expect(result.ok).toBe(true);

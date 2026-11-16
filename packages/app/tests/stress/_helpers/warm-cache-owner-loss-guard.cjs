@@ -2,11 +2,11 @@ const { appendFileSync, existsSync } = require('node:fs');
 const { tracingChannel } = require('node:diagnostics_channel');
 const { isMainThread } = require('node:worker_threads');
 
-const eventsPath = process.env.OK_TEST_WARM_CACHE_OWNER_LOSS_EVENTS;
-const ownerPid = Number(process.env.OK_TEST_WARM_CACHE_OWNER_PID);
+const eventsPath = process.env.GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_EVENTS;
+const ownerPid = Number(process.env.GITQUIRE_TEST_WARM_CACHE_OWNER_PID);
 const expectedParent = Number.isInteger(ownerPid) && ownerPid > 1 ? ownerPid : process.ppid;
-const chain = process.env.OK_TEST_WARM_CACHE_OWNER_LOSS_CHAIN === '1';
-const cleanupPath = process.env.OK_TEST_WARM_CACHE_OWNER_LOSS_CLEANUP;
+const chain = process.env.GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_CHAIN === '1';
+const cleanupPath = process.env.GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_CLEANUP;
 let changed = false;
 let ownerLost = false;
 let exited = false;
@@ -44,10 +44,10 @@ spawnChannel.start.subscribe(({ process: child, options }) => {
     chain && Number.isInteger(ownerPid) && ownerPid > 1 ? ownerPid : process.pid;
   if (Array.isArray(options.envPairs)) {
     options.envPairs = options.envPairs
-      .filter((entry) => !entry.startsWith('OK_TEST_WARM_CACHE_OWNER_PID='))
-      .filter((entry) => !entry.startsWith('OK_TEST_WARM_CACHE_OWNER_LOSS_CHAIN='))
-      .concat(`OK_TEST_WARM_CACHE_OWNER_PID=${propagatedOwnerPid}`)
-      .concat('OK_TEST_WARM_CACHE_OWNER_LOSS_CHAIN=1');
+      .filter((entry) => !entry.startsWith('GITQUIRE_TEST_WARM_CACHE_OWNER_PID='))
+      .filter((entry) => !entry.startsWith('GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_CHAIN='))
+      .concat(`GITQUIRE_TEST_WARM_CACHE_OWNER_PID=${propagatedOwnerPid}`)
+      .concat('GITQUIRE_TEST_WARM_CACHE_OWNER_LOSS_CHAIN=1');
   }
   child.once('spawn', () => {
     write({

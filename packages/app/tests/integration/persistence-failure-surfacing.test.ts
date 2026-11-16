@@ -5,7 +5,7 @@ import { createTestServer, type TestServer } from './test-harness.ts';
 let server: TestServer | undefined;
 
 afterEach(async () => {
-  delete process.env.OK_TEST_STORE_FAULT;
+  delete process.env.GITQUIRE_TEST_STORE_FAULT;
   if (server) {
     await server.cleanup();
     server = undefined;
@@ -24,7 +24,7 @@ describe('disk-persistence failure surfacing (/api/agent-write-md)', () => {
   test('reports a storage error instead of a false success when the store fails', async () => {
     server = await createTestServer();
     const docName = `fault-doc-${randomUUID()}`;
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
 
     const res = await writeMd(server.port, docName);
 

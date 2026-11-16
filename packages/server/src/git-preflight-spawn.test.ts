@@ -26,9 +26,9 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
         const { ConfigSchema } = await import('./src/config/schema.ts');
         const { GitNotAvailableError, GitTooOldError } = await import('./src/git-preflight.ts');
 
-        const projectDir = process.env.OK_TEST_PROJECT_DIR;
+        const projectDir = process.env.GITQUIRE_TEST_PROJECT_DIR;
         if (!projectDir) {
-          console.error('missing OK_TEST_PROJECT_DIR');
+          console.error('missing GITQUIRE_TEST_PROJECT_DIR');
           process.exit(99);
         }
 
@@ -75,7 +75,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
         env: {
           ...process.env,
           NO_COLOR: '1',
-          OK_TEST_PROJECT_DIR: projectDir,
+          GITQUIRE_TEST_PROJECT_DIR: projectDir,
           OTEL_SDK_DISABLED: 'true',
         },
       });
@@ -104,9 +104,9 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
         const { ConfigSchema } = await import('./src/config/schema.ts');
         const { GitNotAvailableError, GitTooOldError } = await import('./src/git-preflight.ts');
 
-        const projectDir = process.env.OK_TEST_PROJECT_DIR;
+        const projectDir = process.env.GITQUIRE_TEST_PROJECT_DIR;
         if (!projectDir) {
-          console.error('missing OK_TEST_PROJECT_DIR');
+          console.error('missing GITQUIRE_TEST_PROJECT_DIR');
           process.exit(99);
         }
 
@@ -149,7 +149,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
         env: {
           ...process.env,
           NO_COLOR: '1',
-          OK_TEST_PROJECT_DIR: projectDir,
+          GITQUIRE_TEST_PROJECT_DIR: projectDir,
           OTEL_SDK_DISABLED: 'true',
         },
       });
@@ -175,7 +175,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
         const { bootServer } = await import('./src/boot.ts');
         const { ConfigSchema } = await import('./src/config/schema.ts');
         const { GitProbeTimeoutError } = await import('./src/git-preflight.ts');
-        const projectDir = process.env.OK_TEST_PROJECT_DIR;
+        const projectDir = process.env.GITQUIRE_TEST_PROJECT_DIR;
         const guidance = { product: 'Git for Windows', url: 'https://gitforwindows.org/', options: [] };
         try {
           await bootServer({
@@ -203,7 +203,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
         env: {
           ...process.env,
           NO_COLOR: '1',
-          OK_TEST_PROJECT_DIR: projectDir,
+          GITQUIRE_TEST_PROJECT_DIR: projectDir,
           OTEL_SDK_DISABLED: 'true',
         },
       });

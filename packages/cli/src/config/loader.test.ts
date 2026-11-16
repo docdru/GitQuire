@@ -28,7 +28,7 @@ const { OK_DIR } = await import('../constants.ts');
 const { createProjectConfigResolver, loadConfig } = await import('./loader');
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
   testDir = resolve(
     tmpdir(),
     `ok-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -136,7 +136,7 @@ describe('loadConfig', () => {
     expect(joined).toContain('--bind');
     expect(joined).toContain('HOST');
     expect(joined).toContain('OPEN_KNOWLEDGE_GITHUB_CLIENT_ID');
-    expect(joined).toContain('OK_MCP_AUTOSTART');
+    expect(joined).toContain('GITQUIRE_MCP_AUTOSTART');
     expect(joined).toContain('streaming uploads have no user-facing cap');
     const expectedPath = resolve(testDir, OK_DIR, 'config.yml');
     for (const d of diagnostics) {
@@ -532,7 +532,7 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
     expect(config.server.bind).toEqual(['127.0.0.1']);
     const bindKey = ignoredCommittedKeys.find((k) => k.path.join('.') === 'server.bind');
     expect(bindKey).toBeDefined();
-    expect(bindKey?.envVar).toBe('OK_BIND');
+    expect(bindKey?.envVar).toBe('GITQUIRE_BIND');
   });
 
   test('a project-local server.bind is honored, with no ignored-committed-key warning', () => {
@@ -550,10 +550,10 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
     expect(removedKeys(diagnostics).some((k) => k.dotted === 'server.host')).toBe(true);
     const bindKey = ignoredCommittedKeys.find((k) => k.path.join('.') === 'server.bind');
     expect(bindKey).toBeDefined();
-    expect(bindKey?.envVar).toBe('OK_BIND');
+    expect(bindKey?.envVar).toBe('GITQUIRE_BIND');
   });
 
-  test('interlock resolution: a committed bind boots on loopback, but explicit OK_BIND stays exposing', () => {
+  test('interlock resolution: a committed bind boots on loopback, but explicit GITQUIRE_BIND stays exposing', () => {
     writeWorkspaceConfig('server:\n  bind:\n    - 0.0.0.0\n');
     const { config } = loadConfig(testDir);
 
@@ -562,7 +562,7 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
     expect(committedRuntime.loopbackOnly).toBe(true);
     expect(requiresExternalConsent(committedRuntime)).toBe(false);
 
-    const envLayer = resolveEnvConfigLayer({ OK_BIND: '0.0.0.0' });
+    const envLayer = resolveEnvConfigLayer({ GITQUIRE_BIND: '0.0.0.0' });
     const envConfig = applyConfigOverlay(config, envLayer.layer) as typeof config;
     const envRuntime = resolveServerRuntimeConfig(envConfig);
     expect(envRuntime.bind).toEqual(['0.0.0.0']);

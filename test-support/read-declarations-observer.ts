@@ -6,8 +6,8 @@ import { join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL, URL } from 'node:url';
 import { promisify } from 'node:util';
 
-export const READ_LOG_ENV = 'OK_READ_DECLARATION_LOG';
-export const READ_ROOT_ENV = 'OK_READ_DECLARATION_ROOT';
+export const READ_LOG_ENV = 'GITQUIRE_READ_DECLARATION_LOG';
+export const READ_ROOT_ENV = 'GITQUIRE_READ_DECLARATION_ROOT';
 
 const OBSERVER_IMPORT = `--import=${pathToFileURL(fileURLToPath(import.meta.url)).href}`;
 const INSTALLED = Symbol.for('ok.test.readDeclarations.observerInstalled');

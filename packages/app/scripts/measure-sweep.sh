@@ -221,7 +221,7 @@ FIXTURE_TAG="$(basename "$FIXTURE")"
 echo "[measure-sweep] driving the sweep (target http://localhost:$EDITOR_PORT)…"
 START_MS="$(epoch_ms)"
 set +e
-MEAS_OUT="$(OK_SWEEP_DOC="$NAV_DOC" "$TSX_BIN" "$SWEEP_SCRIPT" \
+MEAS_OUT="$(GITQUIRE_SWEEP_DOC="$NAV_DOC" "$TSX_BIN" "$SWEEP_SCRIPT" \
   --target="http://localhost:$EDITOR_PORT" \
   --nav-doc="$NAV_DOC" \
   --sweep-timeout="$SWEEP_TIMEOUT_MS")"

@@ -35,18 +35,22 @@ describe('resolveDesktopProductName', () => {
     expect(resolveDesktopProductName({}, execPath)).toBe(expected);
   });
 
-  it('lets OK_CHANNEL override the executable', () => {
-    expect(resolveDesktopProductName({ OK_CHANNEL: 'Beta' }, '/usr/local/bin/node')).toBe('beta');
+  it('lets GITQUIRE_CHANNEL override the executable', () => {
+    expect(resolveDesktopProductName({ GITQUIRE_CHANNEL: 'Beta' }, '/usr/local/bin/node')).toBe(
+      'beta',
+    );
     expect(
       resolveDesktopProductName(
-        { OK_CHANNEL: 'stable' },
+        { GITQUIRE_CHANNEL: 'stable' },
         '/Applications/OpenKnowledge Beta.app/Contents/MacOS/OpenKnowledge Beta',
       ),
     ).toBe('stable');
   });
 
-  it('rejects an unknown OK_CHANNEL instead of guessing', () => {
-    expect(() => resolveDesktopProductName({ OK_CHANNEL: 'nightly' }, '')).toThrow(/OK_CHANNEL/);
+  it('rejects an unknown GITQUIRE_CHANNEL instead of guessing', () => {
+    expect(() => resolveDesktopProductName({ GITQUIRE_CHANNEL: 'nightly' }, '')).toThrow(
+      /GITQUIRE_CHANNEL/,
+    );
   });
 
   it('gives every channel a distinct MCP server name and chain tag', () => {
@@ -116,7 +120,7 @@ describe('resolveDesktopProductName', () => {
   });
 
   it('gives the dev channel its own home, keychain, MCP key and lock channel', () => {
-    const dev = resolveDesktopProductName({ OK_CHANNEL: 'dev' }, '/usr/local/bin/node');
+    const dev = resolveDesktopProductName({ GITQUIRE_CHANNEL: 'dev' }, '/usr/local/bin/node');
     expect(dev).toBe('dev');
     expect(DESKTOP_PRODUCTS[dev]).toMatchObject({
       userHomeDirName: '.ok-dev',
@@ -143,22 +147,22 @@ describe('defaultToDevChannel', () => {
   it('selects dev when no channel is set', () => {
     const env: Record<string, string | undefined> = {};
     defaultToDevChannel(env);
-    expect(env.OK_CHANNEL).toBe('dev');
+    expect(env.GITQUIRE_CHANNEL).toBe('dev');
     expect(isDevChannel(env)).toBe(true);
     expect(resolveDesktopProductName(env, '/usr/local/bin/node')).toBe('dev');
   });
 
-  it.each(['stable', 'beta', 'Beta'])('keeps an explicit OK_CHANNEL=%s', (channel) => {
-    const env: Record<string, string | undefined> = { OK_CHANNEL: channel };
+  it.each(['stable', 'beta', 'Beta'])('keeps an explicit GITQUIRE_CHANNEL=%s', (channel) => {
+    const env: Record<string, string | undefined> = { GITQUIRE_CHANNEL: channel };
     defaultToDevChannel(env);
-    expect(env.OK_CHANNEL).toBe(channel);
+    expect(env.GITQUIRE_CHANNEL).toBe(channel);
     expect(isDevChannel(env)).toBe(false);
   });
 
-  it('treats a blank OK_CHANNEL as unset', () => {
-    const env: Record<string, string | undefined> = { OK_CHANNEL: '  ' };
+  it('treats a blank GITQUIRE_CHANNEL as unset', () => {
+    const env: Record<string, string | undefined> = { GITQUIRE_CHANNEL: '  ' };
     defaultToDevChannel(env);
-    expect(env.OK_CHANNEL).toBe('dev');
+    expect(env.GITQUIRE_CHANNEL).toBe('dev');
   });
 });
 
@@ -179,17 +183,17 @@ describe('channel CLI command name', () => {
   });
 
   it('names gq on Stable', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     expect(currentCliCommandName()).toBe('gq');
   });
 
   it('names gq-beta on Beta', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     expect(currentCliCommandName()).toBe('gq-beta');
   });
 
   it('names gq-dev on the dev channel, a bare command name like every other channel', () => {
-    vi.stubEnv('OK_CHANNEL', 'dev');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'dev');
     expect(currentCliCommandName()).toBe('gq-dev');
     expect(desktopProductForCliCommand('gq-dev')).toBe(DESKTOP_PRODUCTS.dev);
   });
@@ -211,21 +215,23 @@ describe('channel CLI command name', () => {
 
 describe('envWithoutDevChannel', () => {
   it('drops the dev channel and keeps everything else', () => {
-    expect(envWithoutDevChannel({ PATH: '/usr/bin', OK_CHANNEL: 'dev', EMPTY: undefined })).toEqual(
-      {
-        PATH: '/usr/bin',
-      },
-    );
+    expect(
+      envWithoutDevChannel({ PATH: '/usr/bin', GITQUIRE_CHANNEL: 'dev', EMPTY: undefined }),
+    ).toEqual({
+      PATH: '/usr/bin',
+    });
   });
 
   it('drops the dev channel under any key casing, as a Windows environment can carry it', () => {
-    expect(envWithoutDevChannel({ Path: 'C:\\Windows', ok_channel: ' Dev ' })).toEqual({
+    expect(envWithoutDevChannel({ Path: 'C:\\Windows', gitquire_channel: ' Dev ' })).toEqual({
       Path: 'C:\\Windows',
     });
   });
 
   it('keeps a shipped channel, which every released CLI knows', () => {
-    expect(envWithoutDevChannel({ OK_CHANNEL: 'beta' })).toEqual({ OK_CHANNEL: 'beta' });
+    expect(envWithoutDevChannel({ GITQUIRE_CHANNEL: 'beta' })).toEqual({
+      GITQUIRE_CHANNEL: 'beta',
+    });
   });
 });
 
@@ -235,22 +241,22 @@ describe('OkCliCommand', () => {
   it('pins dev only on a CLI the host supplies', () => {
     const cli = OkCliCommand.resolve({
       host: { cliArgs: checkoutCli },
-      env: { OK_CHANNEL: 'dev' },
+      env: { GITQUIRE_CHANNEL: 'dev' },
     });
     expect(cli.runnerInvocation(['auth', 'login'])).toEqual({
       cliArgs: [...checkoutCli, 'auth', 'login'],
-      cliEnv: { OK_CHANNEL: 'dev' },
+      cliEnv: { GITQUIRE_CHANNEL: 'dev' },
     });
     expect(cli.refusalFor(['auth', 'login'])).toBeUndefined();
   });
 
   it('never hands dev to the CLI on PATH, which a released build may be', () => {
-    const cli = OkCliCommand.resolve({ env: { OK_CHANNEL: 'dev' } });
+    const cli = OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
     expect(cli.runnerInvocation(['auth', 'status'])).toEqual({
       cliArgs: ['gitquire', 'auth', 'status'],
       cliEnv: {},
     });
-    expect(cli.spawn(['status'], { PATH: '/usr/bin', OK_CHANNEL: 'dev' })).toEqual({
+    expect(cli.spawn(['status'], { PATH: '/usr/bin', GITQUIRE_CHANNEL: 'dev' })).toEqual({
       command: 'gitquire',
       args: ['status'],
       env: { PATH: '/usr/bin' },
@@ -265,7 +271,7 @@ describe('OkCliCommand', () => {
     [['clone', '--json', 'https://github.com/o/r.git', '/tmp/r']],
     [['start', '--port', '0']],
   ])('refuses %j on every path when a dev build falls back to the CLI on PATH', (args) => {
-    const cli = OkCliCommand.resolve({ env: { OK_CHANNEL: 'dev' } });
+    const cli = OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
     expect(cli.refusalFor(args)).toBe(DEV_FALLBACK_CLI_REFUSAL);
     expect(cli.runnerInvocation(args)).toEqual({ refused: DEV_FALLBACK_CLI_REFUSAL });
     expect(cli.spawn(args, {})).toEqual({ refused: DEV_FALLBACK_CLI_REFUSAL });
@@ -280,7 +286,7 @@ describe('OkCliCommand', () => {
   });
 
   it('lets a fallback dev build read through the CLI on PATH', () => {
-    const cli = OkCliCommand.resolve({ env: { OK_CHANNEL: 'dev' } });
+    const cli = OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } });
     expect(cli.refusalFor(['auth', 'status'])).toBeUndefined();
     expect(cli.refusalFor(['auth', 'git-credential'])).toBeUndefined();
     expect(cli.refusalFor(['share', 'owners', '--json'])).toBeUndefined();
@@ -288,17 +294,21 @@ describe('OkCliCommand', () => {
 
   it('pins a shipped non-Stable channel on any CLI', () => {
     expect(
-      OkCliCommand.resolve({ host: { cliArgs: [] }, env: { OK_CHANNEL: 'beta' } }).runnerInvocation(
-        [],
-      ),
+      OkCliCommand.resolve({
+        host: { cliArgs: [] },
+        env: { GITQUIRE_CHANNEL: 'beta' },
+      }).runnerInvocation([]),
     ).toEqual({
       cliArgs: ['gitquire'],
-      cliEnv: { OK_CHANNEL: 'beta' },
+      cliEnv: { GITQUIRE_CHANNEL: 'beta' },
     });
   });
 
   it('pins nothing on Stable and refuses nothing', () => {
-    const cli = OkCliCommand.resolve({ host: { cliArgs: ['ok'] }, env: { OK_CHANNEL: 'stable' } });
+    const cli = OkCliCommand.resolve({
+      host: { cliArgs: ['ok'] },
+      env: { GITQUIRE_CHANNEL: 'stable' },
+    });
     expect(cli.runnerInvocation(['start'])).toEqual({ cliArgs: ['ok', 'start'], cliEnv: {} });
     expect(cli.refusalFor(['auth', 'login'])).toBeUndefined();
   });
@@ -306,20 +316,20 @@ describe('OkCliCommand', () => {
   it('carries the channel with the argv into every form a caller can take', () => {
     const cli = OkCliCommand.resolve({
       host: { cliArgs: checkoutCli },
-      env: { OK_CHANNEL: 'dev' },
+      env: { GITQUIRE_CHANNEL: 'dev' },
     });
-    expect(cli.spawn(['mcp'], { OK_CHANNEL: 'dev', HOME: '/h' })).toEqual({
+    expect(cli.spawn(['mcp'], { GITQUIRE_CHANNEL: 'dev', HOME: '/h' })).toEqual({
       command: 'node',
       args: ['/src/cli.mjs', 'mcp'],
-      env: { HOME: '/h', OK_CHANNEL: 'dev' },
+      env: { HOME: '/h', GITQUIRE_CHANNEL: 'dev' },
     });
     expect(cli.stdioServer(['mcp'])).toEqual({
       command: 'node',
       args: ['/src/cli.mjs', 'mcp'],
-      env: { OK_CHANNEL: 'dev' },
+      env: { GITQUIRE_CHANNEL: 'dev' },
     });
     expect(cli.shellCommand(['auth', 'git-credential'], (part) => part)).toBe(
-      'OK_CHANNEL=dev node /src/cli.mjs auth git-credential',
+      'GITQUIRE_CHANNEL=dev node /src/cli.mjs auth git-credential',
     );
   });
 
@@ -329,7 +339,7 @@ describe('OkCliCommand', () => {
         cliArgs: ['/app/OpenKnowledge.exe', 'cli.mjs'],
         cliEnv: { ELECTRON_RUN_AS_NODE: '1', NODE_OPTIONS: undefined },
       },
-      env: { OK_CHANNEL: 'stable' },
+      env: { GITQUIRE_CHANNEL: 'stable' },
     });
     const spawn = cli.spawn([], { NODE_OPTIONS: '--inspect', PATH: 'C:\\Windows' });
     expect('env' in spawn && spawn.env).toEqual({

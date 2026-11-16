@@ -1,7 +1,7 @@
 import { appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const runDir = process.env.OK_BOOT_VERDICT_RUN_DIR;
+const runDir = process.env.GITQUIRE_BOOT_VERDICT_RUN_DIR;
 if (runDir !== undefined) {
   appendFileSync(join(runDir, 'boot-failure-injected'), `${process.pid}\n`);
 }

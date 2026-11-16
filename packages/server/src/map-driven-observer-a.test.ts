@@ -183,7 +183,7 @@ describe('map-driven Observer A — default Path A behavior', () => {
   });
 
   test('(f) map-driven splice is the default — active with no env configuration', () => {
-    expect(process.env.OK_MAP_DRIVEN_OBSERVER_A).toBeUndefined();
+    expect(process.env.GITQUIRE_MAP_DRIVEN_OBSERVER_A).toBeUndefined();
 
     const raw = '# Notes\n\n| a | b |\n| - | - |\n| 1 | 2\n';
     const { doc, xmlFragment, ytext } = createTestDoc();

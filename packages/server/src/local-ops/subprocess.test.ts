@@ -212,17 +212,17 @@ describe('runSubprocess', () => {
 
 describe('runSubprocess — cliEnv overlay', () => {
   const printEnvCli = fixtureCli(
-    `process.stdout.write(JSON.stringify({ a: process.env.OK_TEST_A ?? null, b: process.env.OK_TEST_B ?? null }))`,
+    `process.stdout.write(JSON.stringify({ a: process.env.GITQUIRE_TEST_A ?? null, b: process.env.GITQUIRE_TEST_B ?? null }))`,
   );
 
   const withInheritedB = async (run: () => Promise<void>): Promise<void> => {
-    const previous = process.env.OK_TEST_B;
-    process.env.OK_TEST_B = 'inherited';
+    const previous = process.env.GITQUIRE_TEST_B;
+    process.env.GITQUIRE_TEST_B = 'inherited';
     try {
       await run();
     } finally {
-      if (previous === undefined) delete process.env.OK_TEST_B;
-      else process.env.OK_TEST_B = previous;
+      if (previous === undefined) delete process.env.GITQUIRE_TEST_B;
+      else process.env.GITQUIRE_TEST_B = previous;
     }
   };
 
@@ -231,7 +231,7 @@ describe('runSubprocess — cliEnv overlay', () => {
       const lines: { parsed: Record<string, unknown> | null }[] = [];
       const proc = runSubprocess({
         cliArgs: printEnvCli,
-        cliEnv: { OK_TEST_A: 'overlay', OK_TEST_B: undefined },
+        cliEnv: { GITQUIRE_TEST_A: 'overlay', GITQUIRE_TEST_B: undefined },
         trailingArgs: [],
         timeoutMs: 5000,
         onLine: (line) => lines.push(line),
@@ -243,10 +243,10 @@ describe('runSubprocess — cliEnv overlay', () => {
   });
 
   test('an inherited dev channel reaches the child only through the overlay', async () => {
-    const previous = process.env.OK_CHANNEL;
-    process.env.OK_CHANNEL = 'dev';
+    const previous = process.env.GITQUIRE_CHANNEL;
+    process.env.GITQUIRE_CHANNEL = 'dev';
     const channelCli = fixtureCli(
-      `process.stdout.write(JSON.stringify({ channel: process.env.OK_CHANNEL ?? null }))`,
+      `process.stdout.write(JSON.stringify({ channel: process.env.GITQUIRE_CHANNEL ?? null }))`,
     );
     const channelOf = async (cliEnv?: Record<string, string>): Promise<unknown> => {
       const lines: { parsed: Record<string, unknown> | null }[] = [];
@@ -262,10 +262,10 @@ describe('runSubprocess — cliEnv overlay', () => {
     };
     try {
       expect(await channelOf()).toBeNull();
-      expect(await channelOf({ OK_CHANNEL: 'dev' })).toBe('dev');
+      expect(await channelOf({ GITQUIRE_CHANNEL: 'dev' })).toBe('dev');
     } finally {
-      if (previous === undefined) delete process.env.OK_CHANNEL;
-      else process.env.OK_CHANNEL = previous;
+      if (previous === undefined) delete process.env.GITQUIRE_CHANNEL;
+      else process.env.GITQUIRE_CHANNEL = previous;
     }
   });
 

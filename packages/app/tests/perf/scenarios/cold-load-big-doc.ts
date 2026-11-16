@@ -1,7 +1,7 @@
 import { installLongtaskObserver, readLongtasks } from '../lib/longtask-observer.ts';
 import { defineScenario } from '../lib/scenario.ts';
 
-const BIG_DOC = process.env.OK_PERF_BIG_DOC ?? 'perf-fixtures/big-doc';
+const BIG_DOC = process.env.GITQUIRE_PERF_BIG_DOC ?? 'perf-fixtures/big-doc';
 
 const PM_READY_CHARS = 500;
 

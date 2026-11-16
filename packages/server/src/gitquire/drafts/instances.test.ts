@@ -91,7 +91,7 @@ describe('draft editors', () => {
     expect(spawned[0]?.env).toMatchObject({
       KEEP: 'yes',
       PORT: '40000',
-      OK_BIND: '127.0.0.1',
+      GITQUIRE_BIND: '127.0.0.1',
       GITQUIRE_DRAFT: 'plan',
       GITQUIRE_BRANCH: 'draft/plan',
       GITQUIRE_INTERNAL_SECRET: 's'.repeat(64),

@@ -234,7 +234,7 @@ const consumedCompareReadFaults = new Map<string, number>();
 
 function compareReaderFor(documentName: string): (path: string) => ObservedFileRead {
   const fault =
-    process.env.NODE_ENV === 'test' ? process.env.OK_TEST_COMPARE_READ_FAULT : undefined;
+    process.env.NODE_ENV === 'test' ? process.env.GITQUIRE_TEST_COMPARE_READ_FAULT : undefined;
   if (fault === undefined) return tracedReadObservedSync;
   const [docName, code, count] = fault.split(':');
   if (docName !== documentName || code === undefined) return tracedReadObservedSync;
@@ -242,7 +242,7 @@ function compareReaderFor(documentName: string): (path: string) => ObservedFileR
     const consumed = consumedCompareReadFaults.get(fault) ?? 0;
     if (consumed >= Number(count ?? '1')) return tracedReadObservedSync(path);
     consumedCompareReadFaults.set(fault, consumed + 1);
-    const err = new Error(`OK_TEST_COMPARE_READ_FAULT: simulated ${code} reading ${path}`);
+    const err = new Error(`GITQUIRE_TEST_COMPARE_READ_FAULT: simulated ${code} reading ${path}`);
     throw Object.assign(err, { code });
   };
 }
@@ -1848,7 +1848,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
 
         if (
           process.env.NODE_ENV === 'test' &&
-          process.env.OK_TEST_STORE_DIVERGENCE === documentName
+          process.env.GITQUIRE_TEST_STORE_DIVERGENCE === documentName
         ) {
           await tracedWriteFile(canonicalPath, '# NATIVE\n\nnative-divergence-injected\n', 'utf-8');
         }
@@ -1869,9 +1869,12 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
         const tmpPath = atomicTempPath(canonicalPath);
         let storedObservation: FileObservation | undefined;
         try {
-          if (process.env.NODE_ENV === 'test' && process.env.OK_TEST_STORE_FAULT === documentName) {
+          if (
+            process.env.NODE_ENV === 'test' &&
+            process.env.GITQUIRE_TEST_STORE_FAULT === documentName
+          ) {
             const faultErr = new Error(
-              `OK_TEST_STORE_FAULT: simulated disk failure for ${documentName}`,
+              `GITQUIRE_TEST_STORE_FAULT: simulated disk failure for ${documentName}`,
             ) as NodeJS.ErrnoException;
             faultErr.code = 'ENOSPC';
             throw faultErr;
@@ -2032,9 +2035,9 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
               options?.assertContentPath?.(canonicalPath);
               if (
                 process.env.NODE_ENV === 'test' &&
-                process.env.OK_TEST_STORE_RESTAT_RACE === documentName
+                process.env.GITQUIRE_TEST_STORE_RESTAT_RACE === documentName
               ) {
-                delete process.env.OK_TEST_STORE_RESTAT_RACE;
+                delete process.env.GITQUIRE_TEST_STORE_RESTAT_RACE;
                 tracedAppendFileSync(canonicalPath, '\nrestat-race-injected\n', 'utf-8');
               }
               const restat = restatFile(canonicalPath, comparedObservation);
@@ -2247,7 +2250,7 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
               });
             } catch (err) {
               outcome = { kind: 'failed', failure: toStoreFailure(err) };
-              const verbose = process.env.OK_TELEMETRY_VERBOSE === '1';
+              const verbose = process.env.GITQUIRE_TELEMETRY_VERBOSE === '1';
               let rawMessage = '';
               try {
                 rawMessage = String((err as { message?: unknown } | null)?.message ?? '');

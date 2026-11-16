@@ -23,7 +23,7 @@ import { parseKeepaliveConnectionId } from './mcp-mount.ts';
 import { shutdownTelemetry } from './telemetry.ts';
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
 });
 
 afterEach(() => {
@@ -246,8 +246,8 @@ describe('bootServer — runtime state lives at projectDir, not contentDir', () 
 
 describe('bootServer — tolerance-telemetry writer wired through the real boot path', () => {
   test('flag=1 boot produces tolerance-telemetry.jsonl from an emitToleranceFire', async () => {
-    const prevFlag = process.env.OK_BRIDGE_TOLERANCE_TELEMETRY;
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '1';
+    const prevFlag = process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY;
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
     const projectDir = mkdtempSync(resolve(tmpDir, 'tolerance-telemetry-'));
     await execFileAsync('git', ['init', '--initial-branch=main', projectDir]);
     configureTestGitRepository(projectDir);
@@ -267,8 +267,8 @@ describe('bootServer — tolerance-telemetry writer wired through the real boot 
       emitToleranceFire(['crlf'], 'a\r\n', 'a\n', 'smoke-doc');
     } finally {
       await booted.destroy();
-      if (prevFlag === undefined) delete process.env.OK_BRIDGE_TOLERANCE_TELEMETRY;
-      else process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = prevFlag;
+      if (prevFlag === undefined) delete process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY;
+      else process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = prevFlag;
     }
 
     const logPath = resolve(projectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
@@ -568,8 +568,8 @@ describe('bootServer — ok.boot OTel span attributes', () => {
     trace.disable();
     metrics.disable();
     context.disable();
-    savedDisableLocalSink = process.env.OK_DISABLE_LOCAL_SINK;
-    process.env.OK_DISABLE_LOCAL_SINK = '1';
+    savedDisableLocalSink = process.env.GITQUIRE_DISABLE_LOCAL_SINK;
+    process.env.GITQUIRE_DISABLE_LOCAL_SINK = '1';
     exporter = new InMemorySpanExporter();
     provider = new BasicTracerProvider({
       spanProcessors: [new SimpleSpanProcessor(exporter)],
@@ -586,9 +586,9 @@ describe('bootServer — ok.boot OTel span attributes', () => {
     exporter = null;
     provider = null;
     if (savedDisableLocalSink === undefined) {
-      delete process.env.OK_DISABLE_LOCAL_SINK;
+      delete process.env.GITQUIRE_DISABLE_LOCAL_SINK;
     } else {
-      process.env.OK_DISABLE_LOCAL_SINK = savedDisableLocalSink;
+      process.env.GITQUIRE_DISABLE_LOCAL_SINK = savedDisableLocalSink;
     }
   });
 
@@ -749,10 +749,10 @@ describe('bootServer — ok.boot OTel span attributes', () => {
     );
   });
 
-  test('OK_STARTUP_TRACEPARENT (valid): ok.boot joins the desktop-main launch trace', async () => {
+  test('GITQUIRE_STARTUP_TRACEPARENT (valid): ok.boot joins the desktop-main launch trace', async () => {
     const parentTraceId = '0af7651916cd43dd8448eb211c80319c';
-    const prev = process.env.OK_STARTUP_TRACEPARENT;
-    process.env.OK_STARTUP_TRACEPARENT = `00-${parentTraceId}-b7ad6b7169203331-01`;
+    const prev = process.env.GITQUIRE_STARTUP_TRACEPARENT;
+    process.env.GITQUIRE_STARTUP_TRACEPARENT = `00-${parentTraceId}-b7ad6b7169203331-01`;
     context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable());
     propagation.setGlobalPropagator(new W3CTraceContextPropagator());
     const contentDir = mkdtempSync(resolve(tmpDir, 'traceparent-valid-'));
@@ -776,14 +776,14 @@ describe('bootServer — ok.boot OTel span attributes', () => {
       expect(bootSpan?.spanContext().traceId).toBe(parentTraceId);
     } finally {
       if (booted) await booted.destroy();
-      if (prev === undefined) delete process.env.OK_STARTUP_TRACEPARENT;
-      else process.env.OK_STARTUP_TRACEPARENT = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_STARTUP_TRACEPARENT;
+      else process.env.GITQUIRE_STARTUP_TRACEPARENT = prev;
     }
   });
 
-  test('OK_STARTUP_TRACEPARENT (malformed): boot still completes; ok.boot is a fresh root', async () => {
-    const prev = process.env.OK_STARTUP_TRACEPARENT;
-    process.env.OK_STARTUP_TRACEPARENT = 'not-a-valid-traceparent';
+  test('GITQUIRE_STARTUP_TRACEPARENT (malformed): boot still completes; ok.boot is a fresh root', async () => {
+    const prev = process.env.GITQUIRE_STARTUP_TRACEPARENT;
+    process.env.GITQUIRE_STARTUP_TRACEPARENT = 'not-a-valid-traceparent';
     const contentDir = mkdtempSync(resolve(tmpDir, 'traceparent-malformed-'));
     await execFileAsync('git', ['init', '--initial-branch=main', contentDir]);
     configureTestGitRepository(contentDir);
@@ -806,8 +806,8 @@ describe('bootServer — ok.boot OTel span attributes', () => {
       expect(bootSpan?.spanContext().traceId).toMatch(/^[0-9a-f]{32}$/);
     } finally {
       if (booted) await booted.destroy();
-      if (prev === undefined) delete process.env.OK_STARTUP_TRACEPARENT;
-      else process.env.OK_STARTUP_TRACEPARENT = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_STARTUP_TRACEPARENT;
+      else process.env.GITQUIRE_STARTUP_TRACEPARENT = prev;
     }
   });
 });
@@ -937,7 +937,7 @@ describe('bootServer — exposure consent interlock', () => {
     const e = err as Error;
     expect(e.constructor.name).toBe('ExposureConsentError');
     expect(e.message).toContain('would bind a non-loopback address');
-    expect(e.message).toContain('OK_ALLOW_EXTERNAL=1');
+    expect(e.message).toContain('GITQUIRE_ALLOW_EXTERNAL=1');
     expect(e.message).toContain('.ok/local/config.yml');
   });
 

@@ -117,7 +117,7 @@ function computeWorktreeAttributes(projectDir: string): {
 }
 
 const DEFAULT_IDLE_THRESHOLD_MS = 30 * 60 * 1000;
-const DESTROY_STEP_TIMEOUT_MS = Number(process.env.OK_DESTROY_STEP_TIMEOUT_MS) || 5000;
+const DESTROY_STEP_TIMEOUT_MS = Number(process.env.GITQUIRE_DESTROY_STEP_TIMEOUT_MS) || 5000;
 
 export interface BootServerOptions
   extends Pick<
@@ -227,7 +227,7 @@ export async function bootServer(opts: BootServerOptions): Promise<BootedServer>
 
   const crashCapture = installCrashCapture(sinkProjectDir);
 
-  const startupTraceparent = process.env.OK_STARTUP_TRACEPARENT;
+  const startupTraceparent = process.env.GITQUIRE_STARTUP_TRACEPARENT;
   const bootSpan = () =>
     withSpan('ok.boot', { attributes: spanAttributes }, async () =>
       bootServerInner(opts, projectLogsDir),
@@ -287,7 +287,7 @@ async function bootServerInner(
       ? serverRuntime.bind
       : effectiveBindAddresses;
     throw new ExposureConsentError(
-      `refusing to start: the server would bind a non-loopback address (${exposingAddresses.join(', ')}), which exposes this server beyond this machine. Consent with OK_ALLOW_EXTERNAL=1, or server.allowExternal: true in .ok/local/config.yml.`,
+      `refusing to start: the server would bind a non-loopback address (${exposingAddresses.join(', ')}), which exposes this server beyond this machine. Consent with GITQUIRE_ALLOW_EXTERNAL=1, or server.allowExternal: true in .ok/local/config.yml.`,
     );
   }
 
@@ -323,8 +323,9 @@ async function bootServerInner(
   }
 
   const envLockKind =
-    process.env.OK_LOCK_KIND === 'mcp-spawned' || process.env.OK_LOCK_KIND === 'interactive'
-      ? process.env.OK_LOCK_KIND
+    process.env.GITQUIRE_LOCK_KIND === 'mcp-spawned' ||
+    process.env.GITQUIRE_LOCK_KIND === 'interactive'
+      ? process.env.GITQUIRE_LOCK_KIND
       : undefined;
   const lockKind = opts.lockKind ?? envLockKind ?? 'interactive';
 

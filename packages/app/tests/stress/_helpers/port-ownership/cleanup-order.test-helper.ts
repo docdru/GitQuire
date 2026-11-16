@@ -147,10 +147,10 @@ export async function createCleanupOrder(
   if (!address || typeof address === 'string') throw new Error('cleanup ordering has no address');
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    OK_PORT_OWNERSHIP_SCHEDULE_PORT: String(address.port),
+    GITQUIRE_PORT_OWNERSHIP_SCHEDULE_PORT: String(address.port),
     ...(nativeOrdering
       ? {
-          OK_PORT_OWNERSHIP_SCHEDULE_LIBRARY: library,
+          GITQUIRE_PORT_OWNERSHIP_SCHEDULE_LIBRARY: library,
           NODE_OPTIONS:
             `${process.env.NODE_OPTIONS ?? ''} --require=${JSON.stringify(PRELOAD)}`.trim(),
           [process.platform === 'darwin' ? 'DYLD_INSERT_LIBRARIES' : 'LD_PRELOAD']: library,
@@ -175,7 +175,7 @@ export async function createCleanupOrder(
           'require("node:fs").rmSync(process.argv[1], { recursive: true, force: true })',
           canary,
         ],
-        { env: { ...env, OK_PORT_OWNERSHIP_SCHEDULE_RUN_DIR: canary } },
+        { env: { ...env, GITQUIRE_PORT_OWNERSHIP_SCHEDULE_RUN_DIR: canary } },
       );
       if (!events.some((event) => event.phase === 'remove')) {
         throw new Error('native cleanup ordering did not observe the real removal canary');

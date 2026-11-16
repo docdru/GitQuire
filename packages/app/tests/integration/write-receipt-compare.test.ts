@@ -29,9 +29,9 @@ const ownedDirs: string[] = [];
 
 afterEach(async () => {
   vi.restoreAllMocks();
-  delete process.env.OK_TEST_COMPARE_READ_FAULT;
-  delete process.env.OK_TEST_STORE_RESTAT_RACE;
-  delete process.env.OK_TEST_STORE_FAULT;
+  delete process.env.GITQUIRE_TEST_COMPARE_READ_FAULT;
+  delete process.env.GITQUIRE_TEST_STORE_RESTAT_RACE;
+  delete process.env.GITQUIRE_TEST_STORE_FAULT;
   await client?.cleanup();
   client = undefined;
   await server?.cleanup();
@@ -161,14 +161,14 @@ describe('compare before every Markdown write', () => {
     await openClient(s.port, docName);
     const forcedBefore = getMetrics().persistenceStalenessForcedStores;
 
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     const failed = await fetch(`http://127.0.0.1:${s.port}/api/agent-write-md`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ docName, markdown: '\nagent line\n', position: 'append' }),
     });
     expect(failed.status).toBe(507);
-    delete process.env.OK_TEST_STORE_FAULT;
+    delete process.env.GITQUIRE_TEST_STORE_FAULT;
     writeFileSync(file, '# Doc\n\nfirst paragraph changed outside\n\nsecond paragraph\n');
 
     await expectDiskAndLiveToSettleOn(
@@ -567,7 +567,7 @@ describe('compare before every Markdown write', () => {
     const c = await openClient(s.port, docName);
     const retriesBefore = getMetrics().storeDiskCompareReadRetries;
 
-    process.env.OK_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:2`;
+    process.env.GITQUIRE_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:2`;
     typeAfter(c.doc, c.ytext, 'second paragraph', ' typed here');
 
     await expectDiskAndLiveToSettleOn(
@@ -584,7 +584,7 @@ describe('compare before every Markdown write', () => {
     const c = await openClient(s.port, docName);
     const pendingBefore = compareCount('pending-unreadable');
 
-    process.env.OK_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:1000`;
+    process.env.GITQUIRE_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:1000`;
     typeAfter(c.doc, c.ytext, 'second paragraph', ' typed here');
 
     await pollUntil(
@@ -603,7 +603,7 @@ describe('compare before every Markdown write', () => {
     const c = await openClient(s.port, docName);
     const refusedBefore = getMetrics().storeRestatRefused;
 
-    process.env.OK_TEST_STORE_RESTAT_RACE = docName;
+    process.env.GITQUIRE_TEST_STORE_RESTAT_RACE = docName;
     typeAfter(c.doc, c.ytext, 'first paragraph', ' typed here');
 
     await expectDiskAndLiveToSettleOn(

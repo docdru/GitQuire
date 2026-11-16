@@ -47,7 +47,7 @@ import {
 } from './start.ts';
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
 });
 
 afterEach(() => {
@@ -106,8 +106,8 @@ describe('resolveStartConsoleLevel', () => {
     expect(resolveStartConsoleLevel({ LOG_LEVEL: 'debug' })).toBeNull();
   });
 
-  test('returns null when OK_CONSOLE_LEVEL is already set', () => {
-    expect(resolveStartConsoleLevel({ OK_CONSOLE_LEVEL: 'info' })).toBeNull();
+  test('returns null when GITQUIRE_CONSOLE_LEVEL is already set', () => {
+    expect(resolveStartConsoleLevel({ GITQUIRE_CONSOLE_LEVEL: 'info' })).toBeNull();
   });
 });
 
@@ -1523,7 +1523,7 @@ describe('shouldWarnHostOverridesMultiBind', () => {
     expect(shouldWarnHostOverridesMultiBind({ ...base, fileBindCount: 1 })).toBe(false);
     expect(shouldWarnHostOverridesMultiBind({ ...base, fileBindCount: 0 })).toBe(false);
   });
-  test('does not warn when a flag or OK_BIND is the bind source (HOST is not)', () => {
+  test('does not warn when a flag or GITQUIRE_BIND is the bind source (HOST is not)', () => {
     expect(shouldWarnHostOverridesMultiBind({ ...base, flagBindSet: true })).toBe(false);
     expect(shouldWarnHostOverridesMultiBind({ ...base, okBindSet: true })).toBe(false);
   });
@@ -1644,7 +1644,7 @@ describe('start messages name the running channel command', () => {
   });
 
   test('Stable keeps gq in the missing-setup error and the reuse notice', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     expect(new OkDirMissingError('/p').message).toBe(
       "This directory isn't set up yet. Run `gq init` first, then `gq start` again.",
     );
@@ -1654,7 +1654,7 @@ describe('start messages name the running channel command', () => {
   });
 
   test('Beta names gq-beta in the missing-setup error and the reuse notice', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     expect(new OkDirMissingError('/p').message).toBe(
       "This directory isn't set up yet. Run `gq-beta init` first, then `gq-beta start` again.",
     );

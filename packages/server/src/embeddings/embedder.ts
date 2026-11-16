@@ -21,7 +21,7 @@ const log = getLogger('embeddings');
 
 export const DEFAULT_EMBEDDINGS_DIMENSIONS = 1536;
 
-export const EMBEDDINGS_API_KEY_ENV = 'OK_EMBEDDINGS_API_KEY';
+export const EMBEDDINGS_API_KEY_ENV = 'GITQUIRE_EMBEDDINGS_API_KEY';
 
 export type EmbeddingRole = 'query' | 'document';
 

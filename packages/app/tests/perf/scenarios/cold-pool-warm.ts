@@ -8,11 +8,11 @@ import { markerFor } from '../lib/doc-markers.ts';
 import { installLongtaskObserver, readLongtasks } from '../lib/longtask-observer.ts';
 import { defineScenario } from '../lib/scenario.ts';
 
-const BIG_DOC = process.env.OK_PERF_BIG_DOC ?? 'perf-fixtures/big-doc';
-const WARM_DOC = process.env.OK_PERF_SMALL_DOC ?? 'README';
+const BIG_DOC = process.env.GITQUIRE_PERF_BIG_DOC ?? 'perf-fixtures/big-doc';
+const WARM_DOC = process.env.GITQUIRE_PERF_SMALL_DOC ?? 'README';
 
 const EVICT_DOCS_DEFAULT = ['AGENTS', 'CLAUDE', 'README'];
-const EVICT_DOCS = (process.env.OK_PERF_EVICT_DOCS ?? EVICT_DOCS_DEFAULT.join(','))
+const EVICT_DOCS = (process.env.GITQUIRE_PERF_EVICT_DOCS ?? EVICT_DOCS_DEFAULT.join(','))
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);

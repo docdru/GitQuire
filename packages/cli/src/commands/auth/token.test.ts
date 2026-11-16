@@ -241,7 +241,7 @@ describe('runTokenPaste', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('the GitHub-host refusal names the %s auth pat command', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     try {
       const result = await runTokenPaste(
         { host: 'github.com', username: 'mallory', json: false },

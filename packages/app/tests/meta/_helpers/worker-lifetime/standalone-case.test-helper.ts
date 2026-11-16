@@ -7,8 +7,8 @@ export async function runStandaloneLifetimeCase(
   server: OwnedServer,
   kind: 'exit' | 'peer',
 ): Promise<void> {
-  const directory = process.env.OK_TEST_LIFETIME_DIR;
-  if (directory === undefined) throw new Error('OK_TEST_LIFETIME_DIR is required');
+  const directory = process.env.GITQUIRE_TEST_LIFETIME_DIR;
+  if (directory === undefined) throw new Error('GITQUIRE_TEST_LIFETIME_DIR is required');
   const response = await fetch(`${server.baseURL}/api/config`);
   expect(response.status).toBe(200);
   const identity = await fetch(`${server.baseURL}/__ok-test-server-identity`);

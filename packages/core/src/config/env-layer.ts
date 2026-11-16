@@ -30,11 +30,11 @@ export class EnvVarError extends Error {
 
 export const RECOGNIZED_ENV_VARS: ReadonlyMap<string, readonly string[]> = new Map([
   ['PORT', ['server', 'port']],
-  ['OK_BIND', ['server', 'bind']],
-  ['OK_EXTERNAL_URL', ['server', 'externalUrl']],
-  ['OK_ALLOW_EXTERNAL', ['server', 'allowExternal']],
-  ['OK_OPEN_BROWSER', ['server', 'openBrowser']],
-  ['OK_IDLE_SHUTDOWN', ['server', 'idleShutdown']],
+  ['GITQUIRE_BIND', ['server', 'bind']],
+  ['GITQUIRE_EXTERNAL_URL', ['server', 'externalUrl']],
+  ['GITQUIRE_ALLOW_EXTERNAL', ['server', 'allowExternal']],
+  ['GITQUIRE_OPEN_BROWSER', ['server', 'openBrowser']],
+  ['GITQUIRE_IDLE_SHUTDOWN', ['server', 'idleShutdown']],
 ]);
 
 function camelToScreamingSnake(segment: string): string {
@@ -43,7 +43,7 @@ function camelToScreamingSnake(segment: string): string {
 
 export function mechanicalEnvName(path: readonly string[]): string {
   const segments = path[0] === 'server' ? path.slice(1) : path;
-  return `OK_${segments.map(camelToScreamingSnake).join('_')}`;
+  return `GITQUIRE_${segments.map(camelToScreamingSnake).join('_')}`;
 }
 
 type AnyZ = z.ZodType<unknown>;
@@ -132,8 +132,8 @@ function diagnoseUnknownOkVar(
   envVar: string,
   mechanicalTable: ReadonlyMap<string, readonly string[]>,
 ): EnvDiagnostic | null {
-  if (envVar === 'OK_PORT') {
-    return { envVar, message: 'OK_PORT is not read — the port variable is unprefixed PORT.' };
+  if (envVar === 'GITQUIRE_PORT') {
+    return { envVar, message: 'GITQUIRE_PORT is not read — the port variable is unprefixed PORT.' };
   }
   const mapped = mechanicalTable.get(envVar);
   if (mapped !== undefined) {
@@ -190,7 +190,7 @@ export function resolveEnvConfigLayer(env: Record<string, string | undefined>): 
   }
 
   for (const envVar of Object.keys(env)) {
-    if (!envVar.startsWith('OK_') || RECOGNIZED_ENV_VARS.has(envVar)) continue;
+    if (!envVar.startsWith('GITQUIRE_') || RECOGNIZED_ENV_VARS.has(envVar)) continue;
     if (env[envVar] === undefined) continue;
     const diagnostic = diagnoseUnknownOkVar(envVar, mechanicalTable);
     if (diagnostic !== null) diagnostics.push(diagnostic);

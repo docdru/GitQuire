@@ -33,7 +33,7 @@ const phase = (message) => {
 };
 const envBase = {
   ...process.env,
-  OK_TEST_VITE_SEED_DIR: seedDir,
+  GITQUIRE_TEST_VITE_SEED_DIR: seedDir,
   VITE_RACE_CONSUMER_READY: consumerReady,
   VITE_RACE_PRODUCER_INTENT: producerIntent,
   VITE_RACE_PRODUCER_PUBLISHED: producerPublished,

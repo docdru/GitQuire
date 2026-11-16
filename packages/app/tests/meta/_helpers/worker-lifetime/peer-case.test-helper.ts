@@ -2,8 +2,8 @@ import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '../../../stress/_helpers/fixtures.ts';
 
-const directory = process.env.OK_TEST_LIFETIME_DIR;
-if (directory === undefined) throw new Error('OK_TEST_LIFETIME_DIR is required');
+const directory = process.env.GITQUIRE_TEST_LIFETIME_DIR;
+if (directory === undefined) throw new Error('GITQUIRE_TEST_LIFETIME_DIR is required');
 
 test('lifetime subject: peer uses its separate real server', async ({ workerServer }) => {
   const response = await fetch(`${workerServer.baseURL}/api/config`);

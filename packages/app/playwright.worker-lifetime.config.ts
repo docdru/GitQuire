@@ -1,8 +1,8 @@
 import { defineConfig } from '@playwright/test';
 import ordinary from './playwright.config.ts';
 
-const directory = process.env.OK_TEST_LIFETIME_DIR;
-if (directory === undefined) throw new Error('OK_TEST_LIFETIME_DIR is required');
+const directory = process.env.GITQUIRE_TEST_LIFETIME_DIR;
+if (directory === undefined) throw new Error('GITQUIRE_TEST_LIFETIME_DIR is required');
 
 export default defineConfig({
   ...ordinary,

@@ -615,7 +615,7 @@ describe('FR-9 — deferred-store-failed event + counter', () => {
 
   afterEach(() => {
     warnSpy.mockRestore();
-    delete process.env.OK_TELEMETRY_VERBOSE;
+    delete process.env.GITQUIRE_TELEMETRY_VERBOSE;
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -661,8 +661,8 @@ describe('FR-9 — deferred-store-failed event + counter', () => {
     document.destroy();
   });
 
-  test('OK_TELEMETRY_VERBOSE=1 surfaces raw errorMessage on the event', async () => {
-    process.env.OK_TELEMETRY_VERBOSE = '1';
+  test('GITQUIRE_TELEMETRY_VERBOSE=1 surfaces raw errorMessage on the event', async () => {
+    process.env.GITQUIRE_TELEMETRY_VERBOSE = '1';
     const docName = 'fr9-disk-write-verbose';
     const docPath = join(tmpDir, `${docName}.md`);
     writeFileSync(docPath, 'initial\n', 'utf-8');
@@ -805,8 +805,8 @@ describe('FR-9 — deferred-store-failed event + counter', () => {
     }
   });
 
-  test('classifier failure with OK_TELEMETRY_VERBOSE=1 surfaces raw classifyErrorMessage', async () => {
-    process.env.OK_TELEMETRY_VERBOSE = '1';
+  test('classifier failure with GITQUIRE_TELEMETRY_VERBOSE=1 surfaces raw classifyErrorMessage', async () => {
+    process.env.GITQUIRE_TELEMETRY_VERBOSE = '1';
     const docName = 'fr9-classifier-fail-verbose';
     const docPath = join(tmpDir, `${docName}.md`);
     writeFileSync(docPath, 'initial\n', 'utf-8');

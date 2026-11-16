@@ -434,7 +434,7 @@ async function verifyDestinationBranches(page: Page, docName: string, heading: s
 
 const APP_DIST = join(dirname(fileURLToPath(import.meta.url)), '../../dist');
 
-test.use({ video: 'off', trace: 'off', workerServerEnv: { OK_TEST_PRODUCTION_SHELL: '1' } });
+test.use({ video: 'off', trace: 'off', workerServerEnv: { GITQUIRE_TEST_PRODUCTION_SHELL: '1' } });
 
 test('responsive cycles release prior editor callback contexts', async ({
   page,

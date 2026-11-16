@@ -32,7 +32,7 @@ import {
 } from './clone.ts';
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
 });
 
 afterEach(() => {
@@ -604,59 +604,59 @@ describe('buildCloneEnv', () => {
 });
 
 describe('buildCloneAuthEnv', () => {
-  test('sets OK_GH_TOKEN and OK_GH_TOKEN_HOST when a relay token is present', () => {
+  test('sets GITQUIRE_GH_TOKEN and GITQUIRE_GH_TOKEN_HOST when a relay token is present', () => {
     const env = buildCloneAuthEnv(
       { relayToken: { token: 'ghs_relay', host: 'github.com' } },
       { PATH: '/usr/bin' },
     );
-    expect(env.OK_GH_TOKEN).toBe('ghs_relay');
-    expect(env.OK_GH_TOKEN_HOST).toBe('github.com');
+    expect(env.GITQUIRE_GH_TOKEN).toBe('ghs_relay');
+    expect(env.GITQUIRE_GH_TOKEN_HOST).toBe('github.com');
   });
 
   test('sets no relay vars when relayToken is absent (Tier B/C/none)', () => {
     const env = buildCloneAuthEnv({}, { PATH: '/usr/bin' });
-    expect('OK_GH_TOKEN' in env).toBe(false);
-    expect('OK_GH_TOKEN_HOST' in env).toBe(false);
+    expect('GITQUIRE_GH_TOKEN' in env).toBe(false);
+    expect('GITQUIRE_GH_TOKEN_HOST' in env).toBe(false);
   });
 
-  test('strips an inherited OK_GH_TOKEN when no relay token was resolved', () => {
+  test('strips an inherited GITQUIRE_GH_TOKEN when no relay token was resolved', () => {
     const env = buildCloneAuthEnv(
       {},
-      { PATH: '/usr/bin', OK_GH_TOKEN: 'ghs_stale', OK_GH_TOKEN_HOST: 'github.com' },
+      { PATH: '/usr/bin', GITQUIRE_GH_TOKEN: 'ghs_stale', GITQUIRE_GH_TOKEN_HOST: 'github.com' },
     );
-    expect('OK_GH_TOKEN' in env).toBe(false);
-    expect('OK_GH_TOKEN_HOST' in env).toBe(false);
+    expect('GITQUIRE_GH_TOKEN' in env).toBe(false);
+    expect('GITQUIRE_GH_TOKEN_HOST' in env).toBe(false);
   });
 
   test('a resolved relay token overrides an inherited stale one', () => {
     const env = buildCloneAuthEnv(
       { relayToken: { token: 'ghs_fresh', host: 'ghes.acme.test' } },
-      { PATH: '/usr/bin', OK_GH_TOKEN: 'ghs_stale', OK_GH_TOKEN_HOST: 'github.com' },
+      { PATH: '/usr/bin', GITQUIRE_GH_TOKEN: 'ghs_stale', GITQUIRE_GH_TOKEN_HOST: 'github.com' },
     );
-    expect(env.OK_GH_TOKEN).toBe('ghs_fresh');
-    expect(env.OK_GH_TOKEN_HOST).toBe('ghes.acme.test');
+    expect(env.GITQUIRE_GH_TOKEN).toBe('ghs_fresh');
+    expect(env.GITQUIRE_GH_TOKEN_HOST).toBe('ghes.acme.test');
   });
 
-  test('relays OK_GH_TOKEN_LOGIN when the relay token names its account', () => {
+  test('relays GITQUIRE_GH_TOKEN_LOGIN when the relay token names its account', () => {
     const env = buildCloneAuthEnv(
       { relayToken: { token: 'ghs_relay', host: 'github.com', login: 'alice' } },
       { PATH: '/usr/bin' },
     );
-    expect(env.OK_GH_TOKEN_LOGIN).toBe('alice');
+    expect(env.GITQUIRE_GH_TOKEN_LOGIN).toBe('alice');
   });
 
   test('an anonymous relay token sets no login var and strips an inherited one', () => {
     const env = buildCloneAuthEnv(
       { relayToken: { token: 'ghs_relay', host: 'github.com' } },
-      { PATH: '/usr/bin', OK_GH_TOKEN_LOGIN: 'stale-name' },
+      { PATH: '/usr/bin', GITQUIRE_GH_TOKEN_LOGIN: 'stale-name' },
     );
-    expect(env.OK_GH_TOKEN).toBe('ghs_relay');
-    expect('OK_GH_TOKEN_LOGIN' in env).toBe(false);
+    expect(env.GITQUIRE_GH_TOKEN).toBe('ghs_relay');
+    expect('GITQUIRE_GH_TOKEN_LOGIN' in env).toBe(false);
   });
 
-  test('strips an inherited OK_GH_TOKEN_LOGIN when no relay token was resolved', () => {
-    const env = buildCloneAuthEnv({}, { PATH: '/usr/bin', OK_GH_TOKEN_LOGIN: 'stale-name' });
-    expect('OK_GH_TOKEN_LOGIN' in env).toBe(false);
+  test('strips an inherited GITQUIRE_GH_TOKEN_LOGIN when no relay token was resolved', () => {
+    const env = buildCloneAuthEnv({}, { PATH: '/usr/bin', GITQUIRE_GH_TOKEN_LOGIN: 'stale-name' });
+    expect('GITQUIRE_GH_TOKEN_LOGIN' in env).toBe(false);
   });
 });
 
@@ -1578,7 +1578,7 @@ describe('formatCloneAuthFailure names the running channel command', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s', (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const login = formatCloneAuthFailure({
       error: new Error('fatal: could not read Username for https://github.com'),
       url: 'https://github.com/inkeep/playbooks',

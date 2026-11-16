@@ -1063,21 +1063,21 @@ export interface HostFingerprint {
 export type HostFingerprintEnv = Readonly<Record<string, string | undefined>>;
 
 export function detectHostFingerprint(env: HostFingerprintEnv = process.env): HostFingerprint {
-  const cpu = env.OK_HOST_CPU ?? 'unknown';
-  const ramGbRaw = Number(env.OK_HOST_RAM_GB ?? 16);
+  const cpu = env.GITQUIRE_HOST_CPU ?? 'unknown';
+  const ramGbRaw = Number(env.GITQUIRE_HOST_RAM_GB ?? 16);
   const ramGb = Number.isFinite(ramGbRaw) ? ramGbRaw : 16;
   const concurrentDevServerLoad: HostFingerprint['concurrentDevServerLoad'] =
-    env.OK_HOST_DEV_SERVER_LOAD === 'idle'
+    env.GITQUIRE_HOST_DEV_SERVER_LOAD === 'idle'
       ? 'idle'
-      : env.OK_HOST_DEV_SERVER_LOAD === 'active'
+      : env.GITQUIRE_HOST_DEV_SERVER_LOAD === 'active'
         ? 'active'
         : 'unknown';
-  const uptimeRaw = env.OK_HOST_DEV_SERVER_UPTIME_MINUTES
-    ? Number(env.OK_HOST_DEV_SERVER_UPTIME_MINUTES)
+  const uptimeRaw = env.GITQUIRE_HOST_DEV_SERVER_UPTIME_MINUTES
+    ? Number(env.GITQUIRE_HOST_DEV_SERVER_UPTIME_MINUTES)
     : Number.NaN;
   const devServerUptimeMinutes = Number.isFinite(uptimeRaw) ? uptimeRaw : null;
-  const fixtureBytesRaw = env.OK_HOST_FIXTURE_DOC_SIZE_BYTES
-    ? Number(env.OK_HOST_FIXTURE_DOC_SIZE_BYTES)
+  const fixtureBytesRaw = env.GITQUIRE_HOST_FIXTURE_DOC_SIZE_BYTES
+    ? Number(env.GITQUIRE_HOST_FIXTURE_DOC_SIZE_BYTES)
     : Number.NaN;
   const fixtureDocSizeBytes = Number.isFinite(fixtureBytesRaw) ? fixtureBytesRaw : null;
   return {

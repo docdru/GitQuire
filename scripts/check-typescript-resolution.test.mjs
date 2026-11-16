@@ -835,9 +835,9 @@ describe('evaluate wires every probe into the verdict', () => {
   });
 
   it('names the redirect in the OK line when the root came from the environment', () => {
-    const result = evaluate({ ...healthy, rootSource: 'OK_RESOLUTION_ROOT' });
+    const result = evaluate({ ...healthy, rootSource: 'GITQUIRE_RESOLUTION_ROOT' });
 
-    expect(result.out.join(' ')).toContain('OK at /ok [from OK_RESOLUTION_ROOT]');
+    expect(result.out.join(' ')).toContain('OK at /ok [from GITQUIRE_RESOLUTION_ROOT]');
   });
 
   it('fails when a tsdown config emits declarations under the base tsconfig', () => {
@@ -1177,7 +1177,7 @@ describe('main() refuses rather than passing', () => {
     spawnSync('node', ['scripts/check-typescript-resolution.mjs'], {
       cwd: OK_ROOT,
       encoding: 'utf8',
-      env: { ...process.env, OK_RESOLUTION_ROOT: root },
+      env: { ...process.env, GITQUIRE_RESOLUTION_ROOT: root },
     });
 
   it('refuses when there is no workspace file to enumerate from', () => {

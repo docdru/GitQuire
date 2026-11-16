@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const serverPath = fileURLToPath(new URL('./lifetime-server.cjs', import.meta.url));
 
 export default async function lifetimeGlobalSetup(): Promise<() => Promise<void>> {
-  const runDir = process.env.OK_PORT_OWNERSHIP_RUN_DIR;
+  const runDir = process.env.GITQUIRE_PORT_OWNERSHIP_RUN_DIR;
   if (!runDir) throw new Error('lifetime setup needs a run directory');
   const nonce = randomUUID();
   const child = spawn(process.execPath, [serverPath, nonce], {
@@ -24,7 +24,7 @@ export default async function lifetimeGlobalSetup(): Promise<() => Promise<void>
   writeFileSync(temporaryReceiptPath, JSON.stringify(receipt));
   renameSync(temporaryReceiptPath, receiptPath);
 
-  if (process.env.OK_PORT_OWNERSHIP_CALLER !== 'lifetime-normal') {
+  if (process.env.GITQUIRE_PORT_OWNERSHIP_CALLER !== 'lifetime-normal') {
     await new Promise<never>(() => {});
   }
 

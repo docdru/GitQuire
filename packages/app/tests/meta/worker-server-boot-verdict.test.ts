@@ -80,8 +80,8 @@ async function runVerdictCases(cases: string[], retries: number): Promise<Verdic
   const childTmp = join(runDir, 'tmp');
   mkdirSync(childTmp);
   const env = createNestedPlaywrightEnv({
-    OK_BOOT_VERDICT_RUN_DIR: runDir,
-    OK_BOOT_VERDICT_LIVENESS_BOUND_MS: String(PLAYWRIGHT_RUN_LIVENESS_BOUND_MS),
+    GITQUIRE_BOOT_VERDICT_RUN_DIR: runDir,
+    GITQUIRE_BOOT_VERDICT_LIVENESS_BOUND_MS: String(PLAYWRIGHT_RUN_LIVENESS_BOUND_MS),
     NODE_OPTIONS: `--import=${REFUSE_PID_SIGNALS}`,
     TMPDIR: childTmp,
     PLAYWRIGHT_HTML_OUTPUT_DIR: join(runDir, 'html-report'),

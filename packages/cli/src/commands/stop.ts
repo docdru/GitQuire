@@ -249,7 +249,7 @@ export async function runStop(deps: RunStopDeps): Promise<StopOutcome> {
       error(
         `Not stopping: the server at ${deps.lockDir} belongs to ${desktopChannelLabel(holder)}. ` +
           (holder === DEV_CHANNEL
-            ? `Stop it from that dev build, or run \`${CHECKOUT_CLI_COMMAND} stop\` with OK_CHANNEL=dev set, or re-run with --force to terminate anyway.`
+            ? `Stop it from that dev build, or run \`${CHECKOUT_CLI_COMMAND} stop\` with GITQUIRE_CHANNEL=dev set, or re-run with --force to terminate anyway.`
             : 'Stop it from that app or its CLI, or re-run with --force to terminate anyway.'),
       );
       logger?.warn(

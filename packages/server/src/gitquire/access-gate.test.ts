@@ -197,7 +197,7 @@ describe('resolveGitHubAuthConfig', () => {
     expect(() =>
       resolveGitHubAuthConfig({ GITQUIRE_AUTH: 'github' }, { externalUrl: undefined }),
     ).toThrow(
-      'GITHUB_APP_CLIENT_ID, GITHUB_APP_CLIENT_SECRET, GITQUIRE_SESSION_SECRET, OK_EXTERNAL_URL',
+      'GITHUB_APP_CLIENT_ID, GITHUB_APP_CLIENT_SECRET, GITQUIRE_SESSION_SECRET, GITQUIRE_EXTERNAL_URL',
     );
   });
 
@@ -230,9 +230,9 @@ describe('resolveGitHubAuthConfig', () => {
     expect([...(config?.allowedUsers ?? [])]).toEqual(['bob', 'carol']);
   });
 
-  it('falls back to OK_EXTERNAL_URL from the environment', () => {
+  it('falls back to GITQUIRE_EXTERNAL_URL from the environment', () => {
     const config = resolveGitHubAuthConfig(
-      { ...BASE_ENV, OK_EXTERNAL_URL: 'https://wiki.example.org' },
+      { ...BASE_ENV, GITQUIRE_EXTERNAL_URL: 'https://wiki.example.org' },
       { externalUrl: undefined },
     );
     expect(config?.externalUrl.toString()).toBe('https://wiki.example.org/');

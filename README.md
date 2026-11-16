@@ -148,7 +148,7 @@ the content repository can use the wiki, and loses access when they lose reposit
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e OK_ALLOW_EXTERNAL=1 \
+  -e GITQUIRE_ALLOW_EXTERNAL=1 \
   -v gitquire-data:/data \
   ghcr.io/docdru/gitquire:latest
 # then open http://localhost:8080

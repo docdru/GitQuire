@@ -677,9 +677,11 @@ describe('the success line names the tree it checked', () => {
   });
 
   it('prints the root and the variable it came from when a source is declared', () => {
-    const result = evaluate({ ...cleanArgs(), rootSource: 'OK_PUBLISHED_DTS_ROOT' });
+    const result = evaluate({ ...cleanArgs(), rootSource: 'GITQUIRE_PUBLISHED_DTS_ROOT' });
     expect(result.code).toBe(0);
-    expect(result.out[0]).toMatch(/^check:dts: OK at \/tree \[from OK_PUBLISHED_DTS_ROOT\] — /);
+    expect(result.out[0]).toMatch(
+      /^check:dts: OK at \/tree \[from GITQUIRE_PUBLISHED_DTS_ROOT\] — /,
+    );
   });
 });
 
@@ -691,7 +693,7 @@ describe('the refusals main() reaches before it ever runs tsc', () => {
     spawnSync('node', [join(SCRIPT_DIR, 'check-published-dts.mjs')], {
       cwd: PACKAGE_ROOT,
       encoding: 'utf8',
-      env: { ...process.env, OK_PUBLISHED_DTS_ROOT: root },
+      env: { ...process.env, GITQUIRE_PUBLISHED_DTS_ROOT: root },
     });
 
   const fixtureRoot = (files: Record<string, string>) => {

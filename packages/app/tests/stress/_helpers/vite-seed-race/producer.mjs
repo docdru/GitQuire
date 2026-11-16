@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { dirname } from 'node:path';
 
-const seedDir = process.env.OK_TEST_VITE_SEED_DIR;
+const seedDir = process.env.GITQUIRE_TEST_VITE_SEED_DIR;
 const consumerReady = process.env.VITE_RACE_CONSUMER_READY;
 const producerIntent = process.env.VITE_RACE_PRODUCER_INTENT;
 const producerPublished = process.env.VITE_RACE_PRODUCER_PUBLISHED;

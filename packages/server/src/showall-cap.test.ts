@@ -36,7 +36,7 @@ async function walkFixture(dir: string, maxEntries: number) {
 }
 
 describe('getShowAllMaxEntries — env-parse fallback (QA-006)', () => {
-  const KEY = 'OK_SHOWALL_MAX_ENTRIES';
+  const KEY = 'GITQUIRE_SHOWALL_MAX_ENTRIES';
   const prev = process.env[KEY];
   afterEach(() => {
     if (prev === undefined) delete process.env[KEY];

@@ -10,7 +10,7 @@ export const LOOP_MARKER_SOURCES = {
 
 export type LoopMarkerClass = keyof typeof LOOP_MARKER_SOURCES;
 
-export const EXPECTED_LOOP_MARKERS_ENV = 'OK_TEST_LOOP_EXPECTED_MARKERS';
+export const EXPECTED_LOOP_MARKERS_ENV = 'GITQUIRE_TEST_LOOP_EXPECTED_MARKERS';
 
 const OK_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
 const MARKER_SOURCE = /^export const [A-Z_]+ = '([a-z0-9-]+)';\n$/;

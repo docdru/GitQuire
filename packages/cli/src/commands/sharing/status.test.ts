@@ -26,7 +26,7 @@ describe('config-sharing status toggle hint', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: names %s config-sharing', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     await sharingStatusCommand().parseAsync(['--project', projectDir], { from: 'user' });
     const stdout = vi
       .mocked(process.stdout.write)

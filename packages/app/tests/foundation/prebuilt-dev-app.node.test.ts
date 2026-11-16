@@ -247,7 +247,7 @@ describe('the serving mode a worker starts', () => {
 
     expect(prebuiltServerCommand('::1', serving, okRoot)).toEqual({
       args: ['exec', 'vite', 'preview', '--config', 'vite.prebuilt-dev.ts', '--host', '::1'],
-      env: { OK_TEST_PREBUILT_OUT_DIR: app.distDir },
+      env: { GITQUIRE_TEST_PREBUILT_OUT_DIR: app.distDir },
     });
   });
 

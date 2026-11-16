@@ -1,5 +1,5 @@
-export const REUSE_SOCKET_ENV = 'OK_TEST_E2E_REUSE_SOCKET';
-export const REUSE_RUN_ENV = 'OK_TEST_E2E_REUSE_RUN';
+export const REUSE_SOCKET_ENV = 'GITQUIRE_TEST_E2E_REUSE_SOCKET';
+export const REUSE_RUN_ENV = 'GITQUIRE_TEST_E2E_REUSE_RUN';
 
 export const SERVER_MODES = ['dev'] as const;
 export type ServerMode = (typeof SERVER_MODES)[number];

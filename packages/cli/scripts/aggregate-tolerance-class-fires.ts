@@ -1,7 +1,7 @@
 #!/usr/bin/env -S npx tsx
 /**
  * Aggregate tolerance-class fire-rate data from the JSONL telemetry log
- * produced by OK_BRIDGE_TOLERANCE_TELEMETRY=1.
+ * produced by GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY=1.
  *
  * Usage:
  *   bun run packages/cli/scripts/aggregate-tolerance-class-fires.ts <path-to-tolerance-telemetry.jsonl>

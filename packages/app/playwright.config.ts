@@ -33,7 +33,7 @@ import { SETUP_NON_RESULT_REPORTER } from './tests/stress/_helpers/setup-non-res
  */
 const isCI = !!process.env.CI;
 
-const traceSnapshotsOff = process.env.OK_E2E_TRACE_SNAPSHOTS === 'off';
+const traceSnapshotsOff = process.env.GITQUIRE_E2E_TRACE_SNAPSHOTS === 'off';
 
 /**
  * Logical CPUs one worker occupies. Since the per-worker-server migration a

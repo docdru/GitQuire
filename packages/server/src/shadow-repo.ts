@@ -61,21 +61,21 @@ export interface WriterIdentity {
 }
 
 const GIT_TIMEOUT_MS = (() => {
-  const raw = process.env.OK_GIT_TIMEOUT_MS;
+  const raw = process.env.GITQUIRE_GIT_TIMEOUT_MS;
   if (!raw) return 30_000;
   const parsed = Number.parseInt(raw, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 30_000;
 })();
 
 export const MAINTENANCE_GIT_TIMEOUT_MS = (() => {
-  const raw = process.env.OK_SHADOW_MAINTENANCE_GC_TIMEOUT_MS;
+  const raw = process.env.GITQUIRE_SHADOW_MAINTENANCE_GC_TIMEOUT_MS;
   if (!raw) return 600_000;
   const parsed = Number.parseInt(raw, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 600_000;
 })();
 
 const CORPUS_STAGE_GIT_TIMEOUT_MS = (() => {
-  const raw = process.env.OK_SHADOW_STAGE_TIMEOUT_MS;
+  const raw = process.env.GITQUIRE_SHADOW_STAGE_TIMEOUT_MS;
   if (!raw) return 300_000;
   const parsed = Number.parseInt(raw, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 300_000;

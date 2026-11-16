@@ -24,11 +24,11 @@ describe('worker lifetime observation owner safety', () => {
         ...run,
         cwd: HELPERS_DIR,
         args: [join(HELPERS_DIR, 'safety-subject.cjs')],
-        environment: { OK_LIFETIME_SAFETY_DIR: run.dir },
+        environment: { GITQUIRE_LIFETIME_SAFETY_DIR: run.dir },
         deadlineMs: 30_000,
       });
       const guardian =
-        process.env.OK_LIFETIME_SAFETY_GUARDIAN ?? join(HELPERS_DIR, 'resource-owner.cjs');
+        process.env.GITQUIRE_LIFETIME_SAFETY_GUARDIAN ?? join(HELPERS_DIR, 'resource-owner.cjs');
       const { child, exited } = launchRecorded(
         join(HELPERS_DIR, 'safety-outer-owner.cjs'),
         [path, guardian],

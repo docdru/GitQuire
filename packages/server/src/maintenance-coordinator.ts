@@ -19,21 +19,21 @@ import { countShadowObjects, countWipRefs, hasGcLogLatch } from './shadow-repo-s
 const log = getLogger('shadow-maintenance');
 
 const DEAD_CHAIN_THRESHOLD = (() => {
-  const raw = process.env.OK_SHADOW_MAINTENANCE_DEAD_CHAIN_THRESHOLD;
+  const raw = process.env.GITQUIRE_SHADOW_MAINTENANCE_DEAD_CHAIN_THRESHOLD;
   if (!raw) return 5;
   const parsed = Number.parseInt(raw, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 5;
 })();
 
 const CONSOLIDATION_MIN_SPACING_MS = (() => {
-  const raw = process.env.OK_SHADOW_MAINTENANCE_CONSOLIDATION_SPACING_MS;
+  const raw = process.env.GITQUIRE_SHADOW_MAINTENANCE_CONSOLIDATION_SPACING_MS;
   if (!raw) return 10 * 60 * 1000;
   const parsed = Number.parseInt(raw, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 10 * 60 * 1000;
 })();
 
 function isMaintenanceDisabled(): boolean {
-  return process.env.OK_SHADOW_MAINTENANCE_DISABLED === '1';
+  return process.env.GITQUIRE_SHADOW_MAINTENANCE_DISABLED === '1';
 }
 
 function consolidationTriggerLabel(trigger: string): ConsolidationTriggerLabel {

@@ -280,7 +280,7 @@ describe('runDeviceFlowSubprocess', () => {
   test('a dev build without its workspace CLI refuses to sign in instead of running the CLI on PATH', async () => {
     const events: AuthEvent[] = [];
     const ctrl = runDeviceFlowSubprocess({
-      cli: OkCliCommand.resolve({ env: { OK_CHANNEL: 'dev' } }),
+      cli: OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
       onEvent: (e) => events.push(e),
     });
     await ctrl.done;
@@ -292,9 +292,9 @@ describe('runDeviceFlowSubprocess', () => {
     const ctrl = runDeviceFlowSubprocess({
       cli: okCli(
         fixtureCli(`
-        console.log(JSON.stringify({type:'complete', host:'github.com', login: process.env.OK_AUTH_FLOW_ENV_MARKER || 'unset'}));
+        console.log(JSON.stringify({type:'complete', host:'github.com', login: process.env.GITQUIRE_AUTH_FLOW_ENV_MARKER || 'unset'}));
       `),
-        { OK_AUTH_FLOW_ENV_MARKER: 'marker-from-cli-env' },
+        { GITQUIRE_AUTH_FLOW_ENV_MARKER: 'marker-from-cli-env' },
       ),
       onEvent: (e) => events.push(e),
     });

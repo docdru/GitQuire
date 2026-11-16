@@ -121,7 +121,7 @@ describe('collectBundle — relocated project diagnostics', () => {
       const home = makeTmpDir();
       vi.stubEnv('HOME', home);
       vi.stubEnv('USERPROFILE', home);
-      vi.stubEnv('OK_CHANNEL', channel);
+      vi.stubEnv('GITQUIRE_CHANNEL', channel);
       const contentDir = makeTmpDir();
       const collected = await collectBundle({ contentDir, deps: makeDeterministicDeps() });
       onTestFinished(collected.cleanup);

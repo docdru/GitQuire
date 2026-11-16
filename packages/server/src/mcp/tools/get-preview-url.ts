@@ -28,7 +28,7 @@ import {
 } from './shared.ts';
 
 const DESCRIPTION = [
-  "Get the full browser URL for this project or a document/folder, or an absolute markdown file outside the project. Opening is demand: auto-starts OK under the normal OK_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the GitQuire CLI's ps/status.",
+  "Get the full browser URL for this project or a document/folder, or an absolute markdown file outside the project. Opening is demand: auto-starts OK under the normal GITQUIRE_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the GitQuire CLI's ps/status.",
   'Choose one: document (extension-less), folder (trailing-slash route), or file (absolute .md/.mdx in a loose-file/worktree session). file ignores cwd; other targets use current project. Omit targets for UI root.',
   "When YOUR host opens URLs, navigate its embedded browser to url; Claude Code Desktop uses preview_start({url}) then navigate({url}). Only a stdio host without a browser tool should open the URL in the system browser. A CLI without a browser can use the GitQuire CLI's open <doc> for OK Desktop. This tool forces browser access even when Desktop is installed.",
   "INSIDE OK's terminal/agent panel, use returned okOpenCommand instead; never paste url in the answer. If no UI is reachable, returns url:null, baseUrl:null, running:false, autoOpen plus state-specific recovery text (autostart disabled, no spawn authority or UI timeout). Follow it.",
@@ -107,7 +107,7 @@ function noUiNoneMountedMessage(): string {
 function noServerMessage(): string {
   return `No GitQuire server is running for this project. Start it with \`${currentCliCommandName()} start\` (also starts the preview UI), or open the project in OK Electron.`;
 }
-const AUTOSTART_DISABLED_NOTE = ' Auto-start is disabled (OK_MCP_AUTOSTART=0).';
+const AUTOSTART_DISABLED_NOTE = ' Auto-start is disabled (GITQUIRE_MCP_AUTOSTART=0).';
 function readUserAutoOpen(): boolean {
   try {
     const cfg = readConfigSafely({

@@ -108,14 +108,14 @@ export function buildCloneAuthEnv(
 ): Record<string, string> {
   const env = buildCloneEnv(sourceEnv, options);
   if (resolved.relayToken) {
-    env.OK_GH_TOKEN = resolved.relayToken.token;
-    env.OK_GH_TOKEN_HOST = resolved.relayToken.host;
-    if (resolved.relayToken.login) env.OK_GH_TOKEN_LOGIN = resolved.relayToken.login;
-    else delete env.OK_GH_TOKEN_LOGIN;
+    env.GITQUIRE_GH_TOKEN = resolved.relayToken.token;
+    env.GITQUIRE_GH_TOKEN_HOST = resolved.relayToken.host;
+    if (resolved.relayToken.login) env.GITQUIRE_GH_TOKEN_LOGIN = resolved.relayToken.login;
+    else delete env.GITQUIRE_GH_TOKEN_LOGIN;
   } else {
-    delete env.OK_GH_TOKEN;
-    delete env.OK_GH_TOKEN_HOST;
-    delete env.OK_GH_TOKEN_LOGIN;
+    delete env.GITQUIRE_GH_TOKEN;
+    delete env.GITQUIRE_GH_TOKEN_HOST;
+    delete env.GITQUIRE_GH_TOKEN_LOGIN;
   }
   return env;
 }

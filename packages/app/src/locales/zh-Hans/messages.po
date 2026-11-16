@@ -7917,8 +7917,8 @@ msgstr "用户名"
 msgid "Users"
 msgstr ""
 
-msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
-msgstr "正在使用 <0>OK_EMBEDDINGS_API_KEY</0> 环境变量（在 GitQuire 之外管理）。"
+msgid "Using the <0>GITQUIRE_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
+msgstr "正在使用 <0>GITQUIRE_EMBEDDINGS_API_KEY</0> 环境变量（在 GitQuire 之外管理）。"
 
 msgid "Validate document frontmatter against JSON Schema files, scoped to doc sets by glob."
 msgstr "按 JSON Schema 文件校验文档的 frontmatter，并用 glob 限定适用的文档集。"

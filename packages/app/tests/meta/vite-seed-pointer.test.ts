@@ -8,7 +8,7 @@ import { withTempDir } from '../temp-dir.test-helper.ts';
 const TEMP_DIR_PREFIX = 'ok-vite-seed-pointer-';
 
 async function serverProcessFor(seedDir: string) {
-  vi.stubEnv('OK_TEST_VITE_SEED_DIR', seedDir);
+  vi.stubEnv('GITQUIRE_TEST_VITE_SEED_DIR', seedDir);
   vi.resetModules();
   try {
     return await import('../stress/_helpers/server-process.ts');

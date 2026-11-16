@@ -13,12 +13,12 @@ const { join } = require('node:path');
 const { PassThrough, Writable } = require('node:stream');
 const threads = require('node:worker_threads');
 
-const transport = process.env.OK_SHADOW_OWNER_TRANSPORT;
-const runId = process.env.OK_SHADOW_OWNER_RUN_ID;
+const transport = process.env.GITQUIRE_SHADOW_OWNER_TRANSPORT;
+const runId = process.env.GITQUIRE_SHADOW_OWNER_RUN_ID;
 const clock = new Int32Array(new SharedArrayBuffer(4));
 const NativeChildProcess = cp.ChildProcess;
 const environmentKey = 'ok-shadow-fixture-environment';
-const readinessGate = process.env.OK_SHADOW_READINESS_GATE === '1';
+const readinessGate = process.env.GITQUIRE_SHADOW_READINESS_GATE === '1';
 const baseline = threads.isMainThread
   ? { ...process.env }
   : threads.getEnvironmentData(environmentKey);

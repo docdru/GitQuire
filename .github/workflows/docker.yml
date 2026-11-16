@@ -35,7 +35,7 @@ jobs:
       - name: Smoke test
         run: |
           set -eu
-          docker run -d --name gq -p 8080:8080 -e OK_ALLOW_EXTERNAL=1 gitquire:ci
+          docker run -d --name gq -p 8080:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 gitquire:ci
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8080/readyz >/dev/null 2>&1; then
               echo "ready after ${i} tries"
@@ -92,7 +92,7 @@ jobs:
       - name: Browser tests
         run: |
           set -eu
-          docker run -d --name gq-e2e -p 8082:8080 -e OK_ALLOW_EXTERNAL=1 gitquire:ci
+          docker run -d --name gq-e2e -p 8082:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 gitquire:ci
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8082/readyz >/dev/null 2>&1; then break; fi
             sleep 2
@@ -127,8 +127,8 @@ jobs:
         run: |
           set -eu
           docker run -d --name gq-auth -p 8081:8080 \
-            -e OK_ALLOW_EXTERNAL=1 \
-            -e OK_EXTERNAL_URL=http://127.0.0.1:8081 \
+            -e GITQUIRE_ALLOW_EXTERNAL=1 \
+            -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8081 \
             -e GITHUB_APP_CLIENT_ID=Iv1.smoke \
             -e GITHUB_APP_CLIENT_SECRET=smoke-secret \
             -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \

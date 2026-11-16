@@ -31,7 +31,7 @@ argument, not a scenario.
 
 Examples:
   packages/app/scripts/perf-prod.sh --scenario=cold-pool-warm \
-    --env="OK_PERF_BIG_DOC=perf-fixtures/medium-doc"
+    --env="GITQUIRE_PERF_BIG_DOC=perf-fixtures/medium-doc"
   packages/app/scripts/perf-prod.sh --scenario=mode-toggle --runs=10
 
 What it does:

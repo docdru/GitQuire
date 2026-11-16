@@ -116,7 +116,7 @@ export function buildPrebuiltDist(distDir: string): Promise<void> {
 
 export async function preparePrebuiltDevApp(): Promise<PrebuiltDevApp> {
   await runPnpm('predev for the prebuilt DEV app', ['run', 'predev'], {
-    OK_TEST_SKIP_I18N_COMPILE: '1',
+    GITQUIRE_TEST_SKIP_I18N_COMPILE: '1',
   });
   return resolvePrebuiltDevApp({
     okRoot: OK_ROOT,

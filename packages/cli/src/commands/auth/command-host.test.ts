@@ -55,7 +55,7 @@ test('explicit signout removes a legacy credential even without a provider decla
 });
 
 test('implicit signout names gq-beta auth signout on Beta', async () => {
-  vi.stubEnv('OK_CHANNEL', 'beta');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
   execFileSync('git', ['remote', 'add', 'origin', 'https://git.example.com/team/kb.git'], {
     cwd: projectDir,
   });

@@ -17,7 +17,7 @@ describe('resolveLocalSinkConfig', () => {
 
   afterEach(() => {
     rmSync(projectDir, { recursive: true, force: true });
-    delete process.env.OK_DISABLE_LOCAL_SINK;
+    delete process.env.GITQUIRE_DISABLE_LOCAL_SINK;
   });
 
   function seedProject(value: unknown): void {
@@ -39,13 +39,13 @@ describe('resolveLocalSinkConfig', () => {
     expect(resolved.telemetry.attributeDenylist).toContain('cookie');
   });
 
-  it('returns null when OK_DISABLE_LOCAL_SINK=1 — test-only opt-out', () => {
-    process.env.OK_DISABLE_LOCAL_SINK = '1';
+  it('returns null when GITQUIRE_DISABLE_LOCAL_SINK=1 — test-only opt-out', () => {
+    process.env.GITQUIRE_DISABLE_LOCAL_SINK = '1';
     expect(resolveLocalSinkConfig({ projectDir })).toBeNull();
   });
 
-  it('returns null when OK_DISABLE_LOCAL_SINK=true', () => {
-    process.env.OK_DISABLE_LOCAL_SINK = 'true';
+  it('returns null when GITQUIRE_DISABLE_LOCAL_SINK=true', () => {
+    process.env.GITQUIRE_DISABLE_LOCAL_SINK = 'true';
     expect(resolveLocalSinkConfig({ projectDir })).toBeNull();
   });
 

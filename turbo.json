@@ -95,8 +95,8 @@
         "VERCEL_GIT_COMMIT_SHA",
         "GITHUB_SHA",
         "VERCEL_ENV",
-        "OK_ALLOW_BLOGLESS_LLMS_TXT",
-        "OK_ALLOW_PARTIAL_CHANGELOG",
+        "GITQUIRE_ALLOW_BLOGLESS_LLMS_TXT",
+        "GITQUIRE_ALLOW_PARTIAL_CHANGELOG",
         "CI",
         "VERCEL",
         "VERCEL_DEPLOYMENT_ID"
@@ -558,12 +558,20 @@
     "test:e2e": {
       "dependsOn": ["^build", "build"],
       "cache": false,
-      "passThroughEnv": ["OK_TEST_E2E_SERVING", "OK_E2E_COVERAGE_DIR", "OK_E2E_TRACE_SNAPSHOTS"]
+      "passThroughEnv": [
+        "GITQUIRE_TEST_E2E_SERVING",
+        "GITQUIRE_E2E_COVERAGE_DIR",
+        "GITQUIRE_E2E_TRACE_SNAPSHOTS"
+      ]
     },
     "@gitquire/app#test:e2e": {
       "dependsOn": ["^build", "build", "@gitquire/cli#build"],
       "cache": false,
-      "passThroughEnv": ["OK_TEST_E2E_SERVING", "OK_E2E_COVERAGE_DIR", "OK_E2E_TRACE_SNAPSHOTS"]
+      "passThroughEnv": [
+        "GITQUIRE_TEST_E2E_SERVING",
+        "GITQUIRE_E2E_COVERAGE_DIR",
+        "GITQUIRE_E2E_TRACE_SNAPSHOTS"
+      ]
     },
     "test:perf": {
       "dependsOn": [],
@@ -583,12 +591,12 @@
     "test:a11y": {
       "dependsOn": ["^build"],
       "cache": false,
-      "passThroughEnv": ["OK_TEST_E2E_SERVING"]
+      "passThroughEnv": ["GITQUIRE_TEST_E2E_SERVING"]
     },
     "@gitquire/app#test:a11y": {
       "dependsOn": ["^build", "build"],
       "cache": false,
-      "passThroughEnv": ["OK_TEST_E2E_SERVING"]
+      "passThroughEnv": ["GITQUIRE_TEST_E2E_SERVING"]
     },
     "test:perf:bench": {
       "dependsOn": [],
@@ -649,7 +657,7 @@
       "dependsOn": [],
       "cache": false,
       "inputs": ["src/lib/perf/**/*.ts", "src/lib/perf/**/*.tsx", "tests/perf/**/*.ts"],
-      "passThroughEnv": ["DISPLAY", "OK_PERF_TARGET"]
+      "passThroughEnv": ["DISPLAY", "GITQUIRE_PERF_TARGET"]
     }
   }
 }

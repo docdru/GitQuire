@@ -4,7 +4,7 @@ const net = require('node:net');
 const role = process.argv[2];
 const socket = net.connect(
   {
-    port: Number(process.env.OK_PORT_OWNERSHIP_SCHEDULE_PORT),
+    port: Number(process.env.GITQUIRE_PORT_OWNERSHIP_SCHEDULE_PORT),
     host: '127.0.0.1',
   },
   () => socket.write(`${role}\t${process.pid}\n`),
