@@ -18,8 +18,8 @@ describe('hasOkPathSegment', () => {
   });
 
   test('matches case variants, mirroring the server reserved-path guard', () => {
-    expect(hasOkPathSegment('.OK')).toBe(true);
-    expect(hasOkPathSegment('notes/.Ok/templates')).toBe(true);
+    expect(hasOkPathSegment('.GITQUIRE')).toBe(true);
+    expect(hasOkPathSegment('notes/.GitQuire/templates')).toBe(true);
   });
 
   test('does not match lookalike segments or substrings', () => {
