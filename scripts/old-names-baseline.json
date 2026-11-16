@@ -988,7 +988,8 @@
     "open-knowledge": 17
   },
   "packages/server/src/content-filter.ts": {
-    "open-knowledge": 4
+    "open-knowledge": 4,
+    "ok-folder": 2
   },
   "packages/server/src/content/generate-index-literal-metadata.test.ts": {
     "open-knowledge": 1
@@ -1179,7 +1180,8 @@
     "open-knowledge": 1
   },
   "packages/server/src/sync-engine.test.ts": {
-    "open-knowledge": 15
+    "open-knowledge": 15,
+    "ok-folder": 11
   },
   "packages/server/src/telemetry.ts": {
     "open-knowledge": 2
