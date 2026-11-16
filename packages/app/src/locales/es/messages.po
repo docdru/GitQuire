@@ -2224,6 +2224,9 @@ msgstr "Fecha"
 msgid "Date from"
 msgstr ""
 
+msgid "Day"
+msgstr ""
+
 msgid "Default properties"
 msgstr "Propiedades por defecto"
 
@@ -3692,6 +3695,9 @@ msgstr "El destino de la imagen «{shown}» existe, pero .gitignore o .okignore 
 msgid "Import as template"
 msgstr "Importar como plantilla"
 
+msgid "In"
+msgstr ""
+
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "En un documento de registro, los encabezados de las entradas comienzan con una fecha ISO YYYY-MM-DD y se ordenan de más reciente a más antigua. Tú decides cuántos títulos usar y si las entradas llevan viñetas."
 
@@ -3926,7 +3932,7 @@ msgstr ""
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "Atajos de teclado disponibles en el editor y en el espacio de trabajo."
 
-msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Token counts per day and per chat are kept for the same time, also after you delete a chat. Use “Save as page” to keep a chat in the wiki."
 msgstr ""
 
 msgid "Label <0>(optional display text)</0>"
@@ -3937,6 +3943,9 @@ msgstr "Etiqueta <0>(texto visible del enlace)</0>"
 
 msgid "Language"
 msgstr "Idioma"
+
+msgid "Last {days} days: {input} tokens in, {output} out. Your provider's bill is based on these counts; GitQuire does not know the prices."
+msgstr ""
 
 msgid "Later"
 msgstr ""
@@ -4865,6 +4874,9 @@ msgstr "No se encontraron plantillas."
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "Todavía no hay plantillas. Añade una para dar a los documentos nuevos de esta carpeta un punto de partida ya hecho."
 
+msgid "No tokens used in the last {days} days."
+msgstr ""
+
 msgid "No value"
 msgstr ""
 
@@ -5218,6 +5230,9 @@ msgstr "Otro"
 
 msgid "Other Git hosts"
 msgstr "Otros hosts de Git"
+
+msgid "Out"
+msgstr ""
 
 msgid "Outdent"
 msgstr ""
@@ -8206,6 +8221,12 @@ msgid "Your share link is ready below."
 msgstr "Tu enlace para compartir está listo abajo."
 
 msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
+
+msgid "Your token usage"
+msgstr ""
+
+msgid "Your token usage could not be loaded."
 msgstr ""
 
 msgid "Your user settings could not be read"

@@ -2224,6 +2224,9 @@ msgstr "日期"
 msgid "Date from"
 msgstr ""
 
+msgid "Day"
+msgstr ""
+
 msgid "Default properties"
 msgstr "默认属性"
 
@@ -3692,6 +3695,9 @@ msgstr "图片目标“{shown}”存在，但被 .gitignore 或 .okignore 排除
 msgid "Import as template"
 msgstr "作为模板导入"
 
+msgid "In"
+msgstr ""
+
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "在日志文档中：条目标题以 ISO YYYY-MM-DD 日期开头，最新的在前。您使用多少个 title，以及条目是否为项目符号，都取决于您。"
 
@@ -3926,7 +3932,7 @@ msgstr ""
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "编辑器和工作区中可用的键盘快捷键。"
 
-msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Token counts per day and per chat are kept for the same time, also after you delete a chat. Use “Save as page” to keep a chat in the wiki."
 msgstr ""
 
 msgid "Label <0>(optional display text)</0>"
@@ -3937,6 +3943,9 @@ msgstr "标签 <0>（可见的链接文本）</0>"
 
 msgid "Language"
 msgstr "语言"
+
+msgid "Last {days} days: {input} tokens in, {output} out. Your provider's bill is based on these counts; GitQuire does not know the prices."
+msgstr ""
 
 msgid "Later"
 msgstr ""
@@ -4865,6 +4874,9 @@ msgstr "没有找到模板。"
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "还没有模板。添加一个，让这个文件夹中的新文档有个现成的起点。"
 
+msgid "No tokens used in the last {days} days."
+msgstr ""
+
 msgid "No value"
 msgstr ""
 
@@ -5218,6 +5230,9 @@ msgstr "其他"
 
 msgid "Other Git hosts"
 msgstr "其他 Git 主机"
+
+msgid "Out"
+msgstr ""
 
 msgid "Outdent"
 msgstr ""
@@ -8206,6 +8221,12 @@ msgid "Your share link is ready below."
 msgstr "你的共享链接已在下方生成。"
 
 msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
+
+msgid "Your token usage"
+msgstr ""
+
+msgid "Your token usage could not be loaded."
 msgstr ""
 
 msgid "Your user settings could not be read"

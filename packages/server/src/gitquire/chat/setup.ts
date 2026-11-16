@@ -6,6 +6,7 @@ import { createChatHistoryStore } from './history.ts';
 import { createChatKeyStore } from './key-store.ts';
 import { createChatProviders } from './providers.ts';
 import { type ChatRoutes, createChatRoutes } from './routes.ts';
+import { createChatUsageStore } from './usage.ts';
 import { createLoopbackWikiTools } from './wiki-tools.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -53,6 +54,7 @@ export function createChatFromEnv(
   return createChatRoutes({
     keys: createChatKeyStore(options.projectDir, secret),
     history: createChatHistoryStore(options.projectDir),
+    usage: createChatUsageStore(options.projectDir),
     providers: createChatProviders({ endpoints }),
     openTools: createLoopbackWikiTools({ clientName: 'GitQuire AI chat', version: '1' }),
     sessionUser: options.sessionUser,

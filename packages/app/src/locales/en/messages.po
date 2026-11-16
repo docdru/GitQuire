@@ -2224,6 +2224,9 @@ msgstr "Date"
 msgid "Date from"
 msgstr "Date from"
 
+msgid "Day"
+msgstr "Day"
+
 msgid "Default properties"
 msgstr "Default properties"
 
@@ -3692,6 +3695,9 @@ msgstr "Image target \"{shown}\" exists but is excluded by .gitignore or .okigno
 msgid "Import as template"
 msgstr "Import as template"
 
+msgid "In"
+msgstr "In"
+
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 
@@ -3926,8 +3932,8 @@ msgstr "Key saved for {0}."
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "Keyboard shortcuts available in the editor and workspace."
 
-msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
-msgstr "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Token counts per day and per chat are kept for the same time, also after you delete a chat. Use “Save as page” to keep a chat in the wiki."
+msgstr "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Token counts per day and per chat are kept for the same time, also after you delete a chat. Use “Save as page” to keep a chat in the wiki."
 
 msgid "Label <0>(optional display text)</0>"
 msgstr "Label <0>(optional display text)</0>"
@@ -3937,6 +3943,9 @@ msgstr "Label <0>(visible link text)</0>"
 
 msgid "Language"
 msgstr "Language"
+
+msgid "Last {days} days: {input} tokens in, {output} out. Your provider's bill is based on these counts; GitQuire does not know the prices."
+msgstr "Last {days} days: {input} tokens in, {output} out. Your provider's bill is based on these counts; GitQuire does not know the prices."
 
 msgid "Later"
 msgstr "Later"
@@ -4865,6 +4874,9 @@ msgstr "No templates found."
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 
+msgid "No tokens used in the last {days} days."
+msgstr "No tokens used in the last {days} days."
+
 msgid "No value"
 msgstr "No value"
 
@@ -5218,6 +5230,9 @@ msgstr "Other"
 
 msgid "Other Git hosts"
 msgstr "Other Git hosts"
+
+msgid "Out"
+msgstr "Out"
 
 msgid "Outdent"
 msgstr "Outdent"
@@ -8207,6 +8222,12 @@ msgstr "Your share link is ready below."
 
 msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
 msgstr "Your spending limit at the provider was reached. Raise it there or wait until next month."
+
+msgid "Your token usage"
+msgstr "Your token usage"
+
+msgid "Your token usage could not be loaded."
+msgstr "Your token usage could not be loaded."
 
 msgid "Your user settings could not be read"
 msgstr "Your user settings could not be read"

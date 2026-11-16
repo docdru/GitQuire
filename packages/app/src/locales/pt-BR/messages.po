@@ -2220,6 +2220,9 @@ msgstr "Data"
 msgid "Date from"
 msgstr ""
 
+msgid "Day"
+msgstr ""
+
 msgid "Default properties"
 msgstr "Propriedades padrão"
 
@@ -3688,6 +3691,9 @@ msgstr "O destino da imagem \"{shown}\" existe, mas é ignorado por .gitignore o
 msgid "Import as template"
 msgstr "Importar como modelo"
 
+msgid "In"
+msgstr ""
+
 msgid "In a log document: entry headings lead with an ISO YYYY-MM-DD date, newest first. How many titles you use, and whether entries are bullets, is up to you."
 msgstr "Em um documento de registro: os cabeçalhos de entrada levam a uma data ISO YYYY-MM-DD, o mais recente primeiro. Quantos titles você usa e se as entradas são marcadores depende de você."
 
@@ -3922,7 +3928,7 @@ msgstr ""
 msgid "Keyboard shortcuts available in the editor and workspace."
 msgstr "Atalhos de teclado disponíveis no editor e no espaço de trabalho."
 
-msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Use “Save as page” to keep a chat in the wiki."
+msgid "Keys are stored encrypted on the wiki server, used only for your own chats and never shown again. Your chats are kept on the server for {0} days after the last message and are only shown to you; whoever runs the server can technically read both. Token counts per day and per chat are kept for the same time, also after you delete a chat. Use “Save as page” to keep a chat in the wiki."
 msgstr ""
 
 msgid "Label <0>(optional display text)</0>"
@@ -3933,6 +3939,9 @@ msgstr "Rótulo <0>(texto visível do link)</0>"
 
 msgid "Language"
 msgstr "Idioma"
+
+msgid "Last {days} days: {input} tokens in, {output} out. Your provider's bill is based on these counts; GitQuire does not know the prices."
+msgstr ""
 
 msgid "Later"
 msgstr ""
@@ -4861,6 +4870,9 @@ msgstr "Nenhum modelo encontrado."
 msgid "No templates yet. Add one to give new docs in this folder a ready-made starting point."
 msgstr "Ainda não há modelos. Adicione um para dar aos novos documentos desta pasta um ponto de partida pronto."
 
+msgid "No tokens used in the last {days} days."
+msgstr ""
+
 msgid "No value"
 msgstr ""
 
@@ -5214,6 +5226,9 @@ msgstr "Outro"
 
 msgid "Other Git hosts"
 msgstr "Outros hosts Git"
+
+msgid "Out"
+msgstr ""
 
 msgid "Outdent"
 msgstr ""
@@ -8202,6 +8217,12 @@ msgid "Your share link is ready below."
 msgstr "Seu link de compartilhamento está pronto abaixo."
 
 msgid "Your spending limit at the provider was reached. Raise it there or wait until next month."
+msgstr ""
+
+msgid "Your token usage"
+msgstr ""
+
+msgid "Your token usage could not be loaded."
 msgstr ""
 
 msgid "Your user settings could not be read"
