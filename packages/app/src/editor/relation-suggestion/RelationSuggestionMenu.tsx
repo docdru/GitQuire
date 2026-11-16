@@ -63,8 +63,8 @@ export function RelationSuggestionMenu({
   }
 
   if (items.length === 0) {
+    if (known === 0) return null;
     const trimmed = query.trim();
-    if (known === 0 && trimmed === '') return null;
     return (
       <div
         role="status"
@@ -74,9 +74,7 @@ export function RelationSuggestionMenu({
         onMouseDown={preventFocusSteal}
         data-testid="relation-suggestion-empty"
       >
-        {trimmed
-          ? t`No relation is named like "${trimmed}" yet. Keep typing to use it as a new one.`
-          : t`No relations yet. Type a name before :: to start one.`}
+        {t`No relation is named like "${trimmed}" yet. Keep typing to use it as a new one.`}
       </div>
     );
   }

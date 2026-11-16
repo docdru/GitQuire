@@ -4838,9 +4838,6 @@ msgstr ""
 msgid "No relation is named like \"{trimmed}\" yet. Keep typing to use it as a new one."
 msgstr ""
 
-msgid "No relations yet. Type a name before :: to start one."
-msgstr ""
-
 msgid "No repositories found on your GitHub account."
 msgstr "GitHub 계정에서 저장소를 찾을 수 없습니다."
 
