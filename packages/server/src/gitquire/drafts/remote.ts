@@ -8,9 +8,7 @@ import type { DraftRecord } from './model.ts';
 
 type Env = Readonly<Record<string, string>>;
 
-export type PublishResult =
-  | { ok: true; sha: string }
-  | { ok: false; reason: 'conflict'; message: string };
+type PublishResult = { ok: true; sha: string } | { ok: false; reason: 'conflict'; message: string };
 
 export interface DraftRemote {
   readonly kind: 'github' | 'git';

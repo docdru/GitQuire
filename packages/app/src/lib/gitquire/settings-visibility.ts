@@ -4,7 +4,7 @@ import { PERSONAL_GIT_CREDENTIALS_ENABLED } from './personal-git-credentials';
 const ALWAYS_HIDDEN_ITEMS = new Set(['user-plugins-manage', 'search']);
 const ALWAYS_HIDDEN_SUBSECTIONS = new Set(['sharing']);
 
-export function hiddenSettingsItems(personalGitCredentials: boolean): ReadonlySet<string> {
+function hiddenSettingsItems(personalGitCredentials: boolean): ReadonlySet<string> {
   return personalGitCredentials
     ? ALWAYS_HIDDEN_ITEMS
     : new Set([...ALWAYS_HIDDEN_ITEMS, 'account']);

@@ -24,7 +24,7 @@ function day(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
-export function mcpUrl(externalUrl: URL): string {
+function mcpUrl(externalUrl: URL): string {
   return new URL('/mcp', externalUrl).toString();
 }
 
@@ -33,7 +33,7 @@ export function claudeCodeCommand(externalUrl: URL, token: string): string {
   return `claude mcp add --transport http gitquire ${mcpUrl(externalUrl)} ${header}`;
 }
 
-export function claudeDesktopConfig(externalUrl: URL, token: string): string {
+function claudeDesktopConfig(externalUrl: URL, token: string): string {
   return JSON.stringify(
     {
       mcpServers: {

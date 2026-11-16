@@ -1,7 +1,5 @@
 import type { LintDiagnostic } from '@inkeep/open-knowledge-core/markdown/lint';
 
-export const SKILL_RESERVED_KEYS = ['name'] as const;
-
 export const NO_RESERVED_KEYS: readonly string[] = [];
 
 export function withoutReservedProperties(

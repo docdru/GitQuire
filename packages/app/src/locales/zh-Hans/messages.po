@@ -583,9 +583,6 @@ msgstr "<0>此页面的实时引用过多。</0><1>{src}</1> 的此镜像未加�
 msgid "📝 or assets/icon.png"
 msgstr "📝 或 assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 小时"
 
@@ -684,12 +681,6 @@ msgstr "变量两侧各需要两个花括号，例如 {filenameVariable}。"
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "关于"
-
-msgid "About {appName}"
-msgstr "关于 {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "智能体活动"
 
 msgid "Agent configuration file"
 msgstr "智能体配置文件"
-
-msgid "Agent connections"
-msgstr "智能体连接"
 
 msgid "Agent panel"
 msgstr "智能体面板"
@@ -3186,9 +3174,6 @@ msgstr "查找并替换"
 msgid "Find field navigation"
 msgstr "查找字段导航"
 
-msgid "Find in file"
-msgstr "在文件中查找"
-
 msgid "Find next match"
 msgstr "查找下一处匹配"
 
@@ -5105,9 +5090,6 @@ msgstr "打开 CodeMirror 的跳转到行提示框。"
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "打开 CodeMirror 的检查诊断面板。"
 
-msgid "Open containing folder"
-msgstr "打开所在文件夹"
-
 msgid "Open date picker for {keyName}"
 msgstr "打开 {keyName} 的日期选择器"
 
@@ -5745,9 +5727,6 @@ msgstr "服务器重启后正在重新连接"
 msgid "Recovered content"
 msgstr "已恢复的内容"
 
-msgid "Recycle Bin"
-msgstr "回收站"
-
 msgid "Redo"
 msgstr "重做"
 
@@ -6045,9 +6024,6 @@ msgstr "在侧边栏中连续点击时复用同一个标签页。关闭后，每
 
 msgid "Reused if it already exists, created if not."
 msgstr "如果已存在就复用，否则就新建。"
-
-msgid "Reveal in File Explorer"
-msgstr "在文件资源管理器中显示"
 
 msgid "Reveal in Finder"
 msgstr "在访达中显示"
@@ -7610,9 +7586,6 @@ msgstr "太慢了"
 
 msgid "Top linked pages"
 msgstr "被链接最多的页面"
-
-msgid "Trash"
-msgstr "废纸篓"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "在 GitQuire 的导航历史中后退。"

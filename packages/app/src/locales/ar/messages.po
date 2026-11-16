@@ -583,9 +583,6 @@ msgstr "<0>مراجع مباشرة كثيرة جدًا في هذه الصفحة.
 msgid "📝 or assets/icon.png"
 msgstr "📝 أو assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "ساعة واحدة"
 
@@ -684,12 +681,6 @@ msgstr "يحتاج المتغير إلى قوسين معقوفين على كل �
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "حول"
-
-msgid "About {appName}"
-msgstr "حول {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "نشاط الوكيل"
 
 msgid "Agent configuration file"
 msgstr "ملف إعداد الوكيل"
-
-msgid "Agent connections"
-msgstr "اتصالات الوكلاء"
 
 msgid "Agent panel"
 msgstr "لوحة الوكيل"
@@ -3186,9 +3174,6 @@ msgstr "بحث واستبدال"
 msgid "Find field navigation"
 msgstr "التنقل في حقل البحث"
 
-msgid "Find in file"
-msgstr "بحث في الملف"
-
 msgid "Find next match"
 msgstr "البحث عن التطابق التالي"
 
@@ -5105,9 +5090,6 @@ msgstr "افتح موجّه الانتقال إلى سطر في CodeMirror."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "افتح لوحة تشخيصات الفحص في CodeMirror."
 
-msgid "Open containing folder"
-msgstr "فتح المجلد الحاوي"
-
 msgid "Open date picker for {keyName}"
 msgstr "فتح منتقي التاريخ لـ {keyName}"
 
@@ -5745,9 +5727,6 @@ msgstr "يجري إعادة الاتصال بعد إعادة تشغيل الخا
 msgid "Recovered content"
 msgstr "محتوى مستعاد"
 
-msgid "Recycle Bin"
-msgstr "سلة المحذوفات"
-
 msgid "Redo"
 msgstr "إعادة"
 
@@ -6045,9 +6024,6 @@ msgstr "أعد استخدام تبويب واحد عند التنقل بالنق
 
 msgid "Reused if it already exists, created if not."
 msgstr "يُعاد استخدامه إن كان موجودًا، ويُنشأ إن لم يكن."
-
-msgid "Reveal in File Explorer"
-msgstr "الكشف في مستعرض الملفات"
 
 msgid "Reveal in Finder"
 msgstr "الكشف في Finder"
@@ -7610,9 +7586,6 @@ msgstr "بطيء جدًا"
 
 msgid "Top linked pages"
 msgstr "أكثر الصفحات ارتباطًا"
-
-msgid "Trash"
-msgstr "المهملات"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "تنقّل في سجل تنقّل GitQuire إلى الخلف."

@@ -5,7 +5,7 @@ export interface DiffSegment {
   text: string;
 }
 
-export interface KeyedSegment extends DiffSegment {
+interface KeyedSegment extends DiffSegment {
   key: string;
 }
 

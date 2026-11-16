@@ -8,7 +8,7 @@ import { docNameForPath, type ScannedPage } from './page-scan.ts';
 
 const MAX_LINKS = 20_000;
 
-export interface TypedLink {
+interface TypedLink {
   source: string;
   target: string;
   anchor: string | null;
@@ -18,7 +18,7 @@ export interface TypedLink {
   resolved: boolean;
 }
 
-export interface RelationName {
+interface RelationName {
   name: string;
   count: number;
 }

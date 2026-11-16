@@ -583,9 +583,6 @@ msgstr "<0>اس صفحے پر بہت زیادہ لائیو حوالے ہیں۔</
 msgid "📝 or assets/icon.png"
 msgstr "📝 یا assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 گھنٹہ"
 
@@ -684,12 +681,6 @@ msgstr "متغیر کے ہر طرف دو قوسین درکار ہیں، جیسے
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "تعارف"
-
-msgid "About {appName}"
-msgstr "{appName} کے بارے میں"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "ایجنٹ کی سرگرمی"
 
 msgid "Agent configuration file"
 msgstr "ایجنٹ کی کنفیگریشن فائل"
-
-msgid "Agent connections"
-msgstr "ایجنٹ کنکشنز"
 
 msgid "Agent panel"
 msgstr "ایجنٹ پینل"
@@ -3186,9 +3174,6 @@ msgstr "تلاش اور تبدیلی"
 msgid "Find field navigation"
 msgstr "تلاش کے فیلڈ میں نیویگیشن"
 
-msgid "Find in file"
-msgstr "فائل میں تلاش کریں"
-
 msgid "Find next match"
 msgstr "اگلی مماثلت تلاش کریں"
 
@@ -5105,9 +5090,6 @@ msgstr "CodeMirror کا «سطر پر جائیں» پرامپٹ کھولیں۔"
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "CodeMirror کا لِنٹ تشخیصی پینل کھولیں۔"
 
-msgid "Open containing folder"
-msgstr "پر مشتمل فولڈر کھولیں"
-
 msgid "Open date picker for {keyName}"
 msgstr "{keyName} کے لیے تاریخ منتخب کنندہ کھولیں"
 
@@ -5745,9 +5727,6 @@ msgstr "سرور دوبارہ چلنے کے بعد دوبارہ منسلک ہو 
 msgid "Recovered content"
 msgstr "بحال شدہ مواد"
 
-msgid "Recycle Bin"
-msgstr "ری سائیکل بن"
-
 msgid "Redo"
 msgstr "دوبارہ کریں"
 
@@ -6045,9 +6024,6 @@ msgstr "سائیڈ بارز میں کلک کرتے وقت ایک ہی ٹیب د�
 
 msgid "Reused if it already exists, created if not."
 msgstr "اگر پہلے سے موجود ہو تو دوبارہ استعمال ہوتا ہے، ورنہ بن جاتا ہے۔"
-
-msgid "Reveal in File Explorer"
-msgstr "فائل ایکسپلورر میں دکھائیں"
 
 msgid "Reveal in Finder"
 msgstr "Finder میں دکھائیں"
@@ -7610,9 +7586,6 @@ msgstr "بہت سست"
 
 msgid "Top linked pages"
 msgstr "سب سے زیادہ لنک شدہ صفحات"
-
-msgid "Trash"
-msgstr "ردی"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "GitQuire کی نیویگیشن تاریخ میں پیچھے جائیں۔"

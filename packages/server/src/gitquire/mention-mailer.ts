@@ -13,7 +13,7 @@ const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 const MAX_NAME_CHARS = 80;
 
-export interface MailLimits {
+interface MailLimits {
   perPersonPerRound: number;
   perPersonPerDay: number;
   perHour: number;
@@ -22,7 +22,7 @@ export interface MailLimits {
   maxBackoffMs: number;
 }
 
-export const DEFAULT_MAIL_LIMITS: MailLimits = {
+const DEFAULT_MAIL_LIMITS: MailLimits = {
   perPersonPerRound: 5,
   perPersonPerDay: 20,
   perHour: 100,

@@ -31,14 +31,14 @@ export interface CreatePullRequestInput {
   draft?: boolean;
 }
 
-export interface PullRequestState {
+interface PullRequestState {
   number: number;
   state: 'open' | 'closed';
   merged: boolean;
   mergeable: boolean | null;
 }
 
-export type MergeOutcome =
+type MergeOutcome =
   | { merged: true; sha: string }
   | { merged: false; reason: 'conflict' | 'not-mergeable'; message: string };
 

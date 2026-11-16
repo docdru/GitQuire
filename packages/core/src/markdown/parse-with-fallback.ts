@@ -7,7 +7,7 @@ import {
 import { findFencedRegions, isInsideFence } from './fence-regions.ts';
 import { hoistRefDefs } from './ref-def-hoist.ts';
 
-export const MAX_SPLIT_DEPTH = 20;
+const MAX_SPLIT_DEPTH = 20;
 
 type ParseFn = (markdown: string) => JSONContent;
 
@@ -59,7 +59,7 @@ function errorPayload(err: unknown): { name: string; message: string; stack?: st
   };
 }
 
-export function parseRecursive(
+function parseRecursive(
   source: string,
   parse: ParseFn,
   depth: number,
@@ -209,7 +209,7 @@ function nearestBlankLineAfter(src: string, offset: number): number | null {
   return null;
 }
 
-export interface TagEvent {
+interface TagEvent {
   kind: 'open' | 'close' | 'self-close';
   name: string;
   start: number;
@@ -224,7 +224,7 @@ interface FallbackRegion {
 
 const MAX_TAG_SCAN_SPAN = 32 * 1024;
 
-export function scanTagEvents(src: string, fences: Array<[number, number]>): TagEvent[] {
+function scanTagEvents(src: string, fences: Array<[number, number]>): TagEvent[] {
   const events: TagEvent[] = [];
   const TAG_START_RE = /<(\/?)([A-Z][A-Za-z0-9.]*)/g;
 
@@ -284,7 +284,7 @@ export function scanTagEvents(src: string, fences: Array<[number, number]>): Tag
   return events;
 }
 
-export function enumerateFallbackRegions(src: string): FallbackRegion[] {
+function enumerateFallbackRegions(src: string): FallbackRegion[] {
   const fences = findFencedRegions(src);
   const events = scanTagEvents(src, fences);
   const stack: TagEvent[] = [];

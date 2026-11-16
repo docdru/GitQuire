@@ -974,7 +974,7 @@ function emitDestination(
   return out;
 }
 
-export function formatAngleDestination(url: string, escapePipes = false): string {
+function formatAngleDestination(url: string, escapePipes = false): string {
   let out = '<';
   for (let i = 0; i < url.length; i++) {
     const ch = url[i];
@@ -993,7 +993,7 @@ export function formatAngleDestination(url: string, escapePipes = false): string
   return `${out}>`;
 }
 
-export function formatLinkUrl(url: string): string {
+function formatLinkUrl(url: string): string {
   if (!url) return '';
 
   let depth = 0;

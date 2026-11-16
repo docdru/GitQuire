@@ -1,13 +1,11 @@
 import type { Blockquote, FootnoteDefinition, ListItem, Nodes, Root } from 'mdast';
 import type { MdxFlowExpression, MdxTextExpression } from 'mdast-util-mdx-expression';
 import type { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx';
-import { visit } from 'unist-util-visit';
-import type { VFile } from 'vfile';
 import { type EscapeProvenanceEntry, hasEscapeProvenance } from './mdast-augmentation.ts';
 
 const ESCAPABLE_CHARS = new Set('!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'.split(''));
 
-export function splitGfmCellSegments(rowSrc: string): string[] {
+function splitGfmCellSegments(rowSrc: string): string[] {
   const segments: string[] = [];
   let cur = '';
   for (let i = 0; i < rowSrc.length; i++) {
@@ -863,20 +861,4 @@ export function relativizeNestedMdxSourceRaw(tree: Root, source: string): void {
     }
   };
   for (const child of tree.children) walk(child, tree);
-}
-
-export function positionSlicePlugin() {
-  return (tree: Root, file: VFile) => {
-    const source = typeof file.value === 'string' ? file.value : '';
-    if (!source) return;
-
-    const debug = typeof process !== 'undefined' && process.env?.OK_DEBUG_POSITION_SLICE === '1';
-
-    let sawNestedRawSourceMdx = false;
-    visit(tree, (node: Nodes, _index, parent) => {
-      applyPositionSliceToNode(node, source, debug, parent ?? undefined);
-      if (needsNestedRawRelativization(node, parent ?? undefined)) sawNestedRawSourceMdx = true;
-    });
-    if (sawNestedRawSourceMdx) relativizeNestedMdxSourceRaw(tree, source);
-  };
 }

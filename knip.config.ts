@@ -1,9 +1,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import type { KnipConfig } from 'knip';
 
-const fidelityOnlyAppDeps = existsSync('packages/app/tests/fidelity')
-  ? []
-  : ['fast-check', 'commonmark.json', 'remark-mdx', 'remark-parse'];
+const fidelityOnlyAppDeps = existsSync('packages/app/tests/fidelity') ? [] : ['remark-parse'];
 
 const PREDICATE_DIR = 'lint-plugins/no-comments';
 
@@ -15,7 +13,7 @@ const differentialOnlyRootDeps =
 
 export default {
   tags: ['-lintignore'],
-  ignore: ['plugins/*/skills/*/scripts/**'],
+  ignore: ['.github/**'],
   ignoreDependencies: [
     ...differentialOnlyRootDeps,
     'lint-staged', // not sure if it's false positive
@@ -27,21 +25,16 @@ export default {
     'zod',
   ],
   ignoreBinaries: [
-    'uv',
-    'printf',
     'ps', // process listing — diagnose.ts, process-scan.ts
     'lsof', // open-file listing — diagnose.ts, process-scan.ts
     'pgrep', // process lookup — process-scan.ts
     'taskkill', // Windows process-tree termination — mcp/npm-child.test-helper.ts
     'sw_vers', // macOS version query — bug-report.ts
-    'mktemp', // where macOS puts -t files — b4-acceptance-gate.test.ts observes the gate's scratch
     'mkfifo', // named-pipe creation — keepalive-orphan-reaping.test.ts
-    'xdg-mime', // Linux default-app query — desktop ipc-handlers.ts
-    'ssh-keygen', // ephemeral VM keypair — lume-qa lume-orchestrator.ts
-    'zsh', // the executor's `.private.` test also runs the printed Biome fix under zsh -c
   ],
   ignoreIssues: {
-    'test-support/vitest.base.ts': ['exports'],
+    'test-support/**': ['exports', 'types'],
+    'lint-plugins/**': ['exports', 'types'],
     'packages/app/src/locales/**': ['files'],
     'packages/app/src/components/ui/*': ['exports'],
     'docs/src/components/ui/*': ['exports'],
@@ -97,6 +90,7 @@ export default {
         'test-support/fixtures/no-net-connect/no-net-connect.fixture.ts',
         'test-support/fixtures/read-declarations/vitest.read-declarations-fixture.config.ts',
         'test-support/fixtures/read-declarations/*.cjs',
+        'lint-plugins/no-comments/run-oxlint.test-helper.mjs',
       ],
       vitest: { entry: ['**/*.uncached.test.{ts,tsx,mjs}', '!.{agents,codex}/skills/**'] },
     },
@@ -113,7 +107,6 @@ export default {
       ignoreDependencies: [
         'fuzzysort', // installed for workspace omnibar search ahead of the consumer wire-up
         '@testing-library/jest-dom', // side-effect import (`import '@testing-library/jest-dom'`) registers matchers
-        'highlight.js', // lowlight's peer dependency — never imported here directly, but lowlight's grammar registrations resolve through it
         ...fidelityOnlyAppDeps,
       ],
       ignoreFiles: ['src/server/agent-sim.ts'],
@@ -127,34 +120,19 @@ export default {
         'src/**/*.typelock.ts',
       ],
       project: 'src/**',
-      ignoreDependencies: [
-        '@tiptap/y-tiptap',
-        'y-prosemirror',
-        'mdast-util-mdx-expression',
-        'mdast-util-mdx-jsx',
-      ],
+      ignoreDependencies: ['@tiptap/y-tiptap', 'y-prosemirror'],
     },
     docs: {
       entry: ['src/**/*.test.{ts,tsx}'],
     },
     'packages/server': {
-      entry: [
-        'src/**/*.test.ts',
-        'src/parse-worker.ts',
-        'src/shadow-fixture-launch.test-helper.mjs',
-      ],
+      entry: ['src/**/*.test.ts', 'src/shadow-fixture-launch.test-helper.mjs'],
       project: 'src/**',
       ignoreDependencies: ['@types/shell-quote'],
     },
     'packages/cli': {
-      entry: [
-        'src/**/*.test.ts',
-        'scripts/*.ts',
-        'tests/**/*.ts',
-        'src/parse-worker.ts',
-        'src/bin.ts',
-      ],
-      ignoreDependencies: ['yjs'],
+      entry: ['src/**/*.test.ts', 'scripts/*.ts', 'tests/**/*.ts'],
+      ignoreDependencies: ['yjs', '@inkeep/open-knowledge-app'],
     },
   },
 } satisfies KnipConfig;

@@ -1,4 +1,3 @@
-import type { AttachmentPart } from '@inkeep/open-knowledge-core/acp/thread-protocol';
 import { t } from '@lingui/core/macro';
 import { type Editor, Extension, mergeAttributes, Node } from '@tiptap/core';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -50,7 +49,7 @@ export interface MentionRecency {
   readonly recentPaths: readonly string[];
 }
 
-export const EMPTY_MENTION_RECENCY: MentionRecency = { currentDocName: null, recentPaths: [] };
+const EMPTY_MENTION_RECENCY: MentionRecency = { currentDocName: null, recentPaths: [] };
 
 interface MentionStorage {
   recency: MentionRecency;
@@ -62,11 +61,6 @@ function mentionStorage(editor: Editor): MentionStorage | undefined {
 
 function getMentionRecency(editor: Editor): MentionRecency {
   return mentionStorage(editor)?.recency ?? EMPTY_MENTION_RECENCY;
-}
-
-export function setMentionRecency(editor: Editor, recency: MentionRecency): void {
-  const storage = mentionStorage(editor);
-  if (storage !== undefined) storage.recency = recency;
 }
 
 function rankByRecency(pages: PageItem[], recency: MentionRecency): PageItem[] {
@@ -464,51 +458,4 @@ function configureComposerMentionSuggestion(editor: Editor) {
       };
     },
   });
-}
-
-export type ComposerAttachmentPart = Extract<AttachmentPart, { kind: 'file' | 'folder' }>;
-
-export function serializeComposerContent(editor: Editor): {
-  instruction: string;
-  mentions: string[];
-  attachments: ComposerAttachmentPart[];
-} {
-  const mentions: string[] = [];
-  const attachments: ComposerAttachmentPart[] = [];
-  const seen = new Set<string>();
-  const lines: string[] = [];
-
-  editor.state.doc.forEach((block) => {
-    let line = '';
-    block.forEach((inline) => {
-      if (inline.type.name === 'composerMention') {
-        const path = String(inline.attrs.path ?? '');
-        if (path !== '') {
-          line += `@${path}`;
-          if (!seen.has(path)) {
-            seen.add(path);
-            mentions.push(path);
-            const label = String(inline.attrs.label ?? '');
-            const kind =
-              inline.attrs.mentionKind === 'folder' ? ('folder' as const) : ('file' as const);
-            attachments.push({ kind, path, name: label !== '' ? label : path });
-          }
-        }
-      } else if (inline.type.name === 'composerCommand') {
-        line += `/${String(inline.attrs.name ?? '')}`;
-      } else if (inline.isText) {
-        line += inline.text ?? '';
-      } else if (inline.type.name === 'hardBreak') {
-        line += '\n';
-      }
-    });
-    lines.push(line);
-  });
-
-  return { instruction: lines.join('\n').trim(), mentions, attachments };
-}
-
-export function isComposerEmpty(editor: Editor): boolean {
-  const { instruction, mentions } = serializeComposerContent(editor);
-  return instruction === '' && mentions.length === 0;
 }

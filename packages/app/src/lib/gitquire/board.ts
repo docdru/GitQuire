@@ -125,7 +125,7 @@ function onBoard(page: PageObject, view: BoardView): boolean {
   return hasFields(page) && matchesFilter(page, view.filterKey, view.filterValue);
 }
 
-export function chooseGroupKey(pages: readonly PageObject[], wanted: string): string | undefined {
+function chooseGroupKey(pages: readonly PageObject[], wanted: string): string | undefined {
   if (wanted !== '' && canKeepGrouping(pages, wanted)) return wanted;
   return boardGroupKeys(pages)[0];
 }
@@ -173,11 +173,7 @@ export interface PendingMove {
   value: ColumnValue | null;
 }
 
-export function withFieldValue(
-  page: PageObject,
-  key: string,
-  value: ColumnValue | null,
-): PageObject {
+function withFieldValue(page: PageObject, key: string, value: ColumnValue | null): PageObject {
   const fields = { ...page.fields };
   if (value === null) {
     delete fields[key];
@@ -303,14 +299,7 @@ export type ActionGrouping = 'page' | 'due' | 'person';
 
 export type DueBucket = 'overdue' | 'today' | 'week' | 'later' | 'earlier' | 'none';
 
-export const DUE_BUCKETS: readonly DueBucket[] = [
-  'overdue',
-  'today',
-  'week',
-  'later',
-  'earlier',
-  'none',
-];
+const DUE_BUCKETS: readonly DueBucket[] = ['overdue', 'today', 'week', 'later', 'earlier', 'none'];
 
 export interface ActionGroup {
   key: string;

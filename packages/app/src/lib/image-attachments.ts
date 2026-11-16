@@ -1,6 +1,5 @@
 import {
   BUG_REPORT_ATTACHMENT_CONTENT_TYPES,
-  BUG_REPORT_ATTACHMENT_EXTENSIONS,
   MAX_BUG_REPORT_ATTACHMENTS,
   MAX_BUG_REPORT_ATTACHMENTS_TOTAL_BYTES,
   type OkImageAttachmentContentType,
@@ -13,8 +12,6 @@ export const MAX_IMAGE_ATTACHMENTS_TOTAL_BYTES = MAX_BUG_REPORT_ATTACHMENTS_TOTA
 export const ACCEPTED_IMAGE_TYPES = BUG_REPORT_ATTACHMENT_CONTENT_TYPES;
 
 export type ImageAttachmentType = OkImageAttachmentContentType;
-
-export const IMAGE_ATTACHMENT_EXTENSIONS = BUG_REPORT_ATTACHMENT_EXTENSIONS;
 
 export type ImageAttachmentProblem = 'count' | 'type' | 'total';
 

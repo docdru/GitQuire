@@ -62,19 +62,3 @@ export function openTarget(
     timeoutMs: options.timeoutMs,
   });
 }
-
-export function openTargetFailureMessage(
-  reason: Exclude<SpawnDetachedScrubbedOutcome, { ok: true }>['reason'],
-  target: string,
-  platform: NodeJS.Platform = process.platform,
-): string {
-  const launcher = resolveOpenInvocation(target, platform).command;
-  switch (reason) {
-    case 'not-installed':
-      return `${launcher} is not installed or cannot be executed`;
-    case 'timeout':
-      return `${launcher} did not start in time`;
-    case 'spawn-error':
-      return `${launcher} could not be started`;
-  }
-}

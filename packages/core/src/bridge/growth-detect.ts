@@ -2,7 +2,7 @@ const DEFAULT_MIN_SUBSTANTIVE_LINE_LENGTH = 16;
 
 export const DUPLICATION_GATE_MIN_LINE_LENGTH = 8;
 
-export function isSubstantiveBodyLine(
+function isSubstantiveBodyLine(
   line: string,
   minLength: number = DEFAULT_MIN_SUBSTANTIVE_LINE_LENGTH,
 ): boolean {
@@ -22,15 +22,6 @@ export function substantiveLineCounts(
     counts.set(line, (counts.get(line) ?? 0) + 1);
   }
   return counts;
-}
-
-export function maxBodyLineOccurrence(
-  doc: string,
-  minLength: number = DEFAULT_MIN_SUBSTANTIVE_LINE_LENGTH,
-): number {
-  let max = 0;
-  for (const c of substantiveLineCounts(doc, minLength).values()) if (c > max) max = c;
-  return max;
 }
 
 export function overMultipliedBodyLines(

@@ -75,7 +75,7 @@ export function isVisibleDockLeaf(node: VisibleDockNode): node is VisibleDockLea
   return 'pane' in node;
 }
 
-export function dockEdgeDirection(edge: DockEdge): DockDirection {
+function dockEdgeDirection(edge: DockEdge): DockDirection {
   return edge === 'start' || edge === 'end' ? 'row' : 'column';
 }
 
@@ -231,7 +231,7 @@ function heirIndex(index: number): number {
   return index > 0 ? index - 1 : index + 1;
 }
 
-export function withoutDockPane(node: DockNode, pane: PaneId): DockNode | null {
+function withoutDockPane(node: DockNode, pane: PaneId): DockNode | null {
   if (isDockLeaf(node)) return node.pane === pane ? null : node;
   const kept = node.items.map((item) => ({ item, node: withoutDockPane(item.node, pane) }));
   const removed = kept.findIndex((entry) => entry.node === null);
@@ -246,19 +246,6 @@ export function withoutDockPane(node: DockNode, pane: PaneId): DockNode | null {
   if (items.length === 1 && only !== undefined) return only.node;
   if (items.length === 0) return null;
   return { direction: node.direction, items: gone?.alongEdge ? normalizedItems(items) : items };
-}
-
-export function dockPaneExtent(
-  node: DockNode,
-  pane: PaneId,
-  direction: DockDirection,
-): number | null {
-  if (isDockLeaf(node)) return node.pane === pane ? 1 : null;
-  for (const item of node.items) {
-    const inner = dockPaneExtent(item.node, pane, direction);
-    if (inner !== null) return node.direction === direction ? item.size * inner : inner;
-  }
-  return null;
 }
 
 function withPaneBeside(

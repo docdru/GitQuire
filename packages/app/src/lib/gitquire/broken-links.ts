@@ -5,7 +5,7 @@ const AGENT_FOLDERS = new Set(['.agents', '.claude', '.cursor']);
 const NOT_CONFIGURED = 'backlink-index-not-configured';
 const MAX_BADGE = 99;
 
-export interface BrokenLinkSource {
+interface BrokenLinkSource {
   docName: string;
   title: string;
   snippet: string | null;

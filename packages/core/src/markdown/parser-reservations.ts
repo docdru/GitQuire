@@ -15,7 +15,7 @@ type ParserMutationSource =
       reservations: ReadonlyArray<{ to: string }>;
     };
 
-export const PARSER_MUTATION_SOURCES: readonly ParserMutationSource[] = [
+const PARSER_MUTATION_SOURCES: readonly ParserMutationSource[] = [
   {
     mode: 'protecting',
     protect: encodeBackslashEscapes,

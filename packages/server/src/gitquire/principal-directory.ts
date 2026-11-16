@@ -125,10 +125,6 @@ export function bindAgentConnection(connectionId: string, principal: GitQuirePri
   }
 }
 
-export function agentConnectionOwner(connectionId: string): GitQuirePrincipal | undefined {
-  return agentOwners.get(connectionId);
-}
-
 export function attributeAgentEdit(sessionId: string): WriterIdentityLike | undefined {
   const owner = agentOwners.get(sessionId) ?? agentOwners.get(`agent-${sessionId}`);
   if (owner === undefined) return undefined;

@@ -107,7 +107,7 @@ function gitHostFrom(webUrl: string | undefined): string {
   }
 }
 
-export const DEFAULT_RETRY_DELAYS_MS: readonly number[] = [
+const DEFAULT_RETRY_DELAYS_MS: readonly number[] = [
   2_000, 5_000, 10_000, 20_000, 30_000, 60_000, 60_000, 60_000, 60_000,
 ];
 
@@ -147,7 +147,7 @@ export function createAppJwt(appId: string, privateKeyPem: string, nowMs: number
   return `${header}.${payload}.${signer.sign(privateKeyPem).toString('base64url')}`;
 }
 
-export interface InstallationToken {
+interface InstallationToken {
   token: string;
   expiresAt: number;
   contents?: string;
@@ -155,7 +155,7 @@ export interface InstallationToken {
 
 export type CheckPushPermissionFn = (opts: CheckPushPermissionOptions) => Promise<PushPermission>;
 
-export interface RepoInfo {
+interface RepoInfo {
   defaultBranch: string;
   cloneUrl: string;
 }

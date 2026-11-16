@@ -534,9 +534,9 @@ export {
   MENU_LABELS,
   type MenuLabelKey,
   menuLabelForPlatform,
-  OPEN_KNOWLEDGE_DISCORD_URL,
   OPEN_KNOWLEDGE_DOCS_URL,
   OPEN_KNOWLEDGE_GITHUB_URL,
+  OPEN_KNOWLEDGE_ISSUES_URL,
   PLATFORM_MENU_LABELS,
 } from './constants/menu-labels.ts';
 export {

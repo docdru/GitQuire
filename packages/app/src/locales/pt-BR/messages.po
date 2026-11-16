@@ -579,9 +579,6 @@ msgstr "<0>Referências ao vivo demais nesta página.</0> Este espelho de <1>{sr
 msgid "📝 or assets/icon.png"
 msgstr "📝 ou assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 hora"
 
@@ -680,12 +677,6 @@ msgstr "Uma variável precisa de duas chaves de cada lado, como {filenameVariabl
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "Sobre"
-
-msgid "About {appName}"
-msgstr "Sobre o {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -878,9 +869,6 @@ msgstr "Atividade do agente"
 
 msgid "Agent configuration file"
 msgstr "Arquivo de configuração do agente"
-
-msgid "Agent connections"
-msgstr "Conexões de agentes"
 
 msgid "Agent panel"
 msgstr "Painel de agentes"
@@ -3182,9 +3170,6 @@ msgstr "Buscar e substituir"
 msgid "Find field navigation"
 msgstr "Navegação do campo de busca"
 
-msgid "Find in file"
-msgstr "Buscar no arquivo"
-
 msgid "Find next match"
 msgstr "Buscar a próxima ocorrência"
 
@@ -5101,9 +5086,6 @@ msgstr "Abre a caixa de ir para a linha do CodeMirror."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Abre o painel de diagnósticos de análise do CodeMirror."
 
-msgid "Open containing folder"
-msgstr "Abrir a pasta que o contém"
-
 msgid "Open date picker for {keyName}"
 msgstr "Abrir o seletor de data de {keyName}"
 
@@ -5741,9 +5723,6 @@ msgstr "Reconectando após o reinício do servidor"
 msgid "Recovered content"
 msgstr "Conteúdo recuperado"
 
-msgid "Recycle Bin"
-msgstr "Lixeira"
-
 msgid "Redo"
 msgstr "Refazer"
 
@@ -6041,9 +6020,6 @@ msgstr "Reaproveita uma aba quando você vai clicando pelas barras laterais. Des
 
 msgid "Reused if it already exists, created if not."
 msgstr "Reaproveitada se já existir; criada se não."
-
-msgid "Reveal in File Explorer"
-msgstr "Mostrar no Explorador de Arquivos"
 
 msgid "Reveal in Finder"
 msgstr "Mostrar no Finder"
@@ -7606,9 +7582,6 @@ msgstr "Lento demais"
 
 msgid "Top linked pages"
 msgstr "Páginas mais ligadas"
-
-msgid "Trash"
-msgstr "Lixo"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Volta pelo histórico de navegação do GitQuire."

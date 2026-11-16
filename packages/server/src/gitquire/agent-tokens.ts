@@ -4,14 +4,14 @@ import { dirname } from 'node:path';
 import type { GateLogger } from './access-gate.ts';
 import { safeEqual } from './signed-cookie.ts';
 
-export interface AgentTokenOwner {
+interface AgentTokenOwner {
   id: number;
   login: string;
   name: string;
   avatarUrl: string;
 }
 
-export type AgentTokenKind = 'personal' | 'connector';
+type AgentTokenKind = 'personal' | 'connector';
 
 export interface AgentTokenRecord {
   id: string;
@@ -65,8 +65,8 @@ export interface AgentTokenStoreDeps {
 }
 
 export const MAX_PERSONAL_TOKENS_PER_USER = 20;
-export const MAX_CONNECTORS_PER_USER = 20;
-export const MAX_LABEL_LENGTH = 80;
+const MAX_CONNECTORS_PER_USER = 20;
+const MAX_LABEL_LENGTH = 80;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TOKEN_RE = /^gq([ar])_([0-9a-f]{16})_([A-Za-z0-9_-]{32,})$/;
 
@@ -85,10 +85,6 @@ export function parseAgentToken(
   const match = TOKEN_RE.exec(token.trim());
   if (match === null) return undefined;
   return { type: match[1] === 'a' ? 'access' : 'refresh', id: match[2], secret: match[3] };
-}
-
-export function looksLikeAgentToken(token: string): boolean {
-  return parseAgentToken(token) !== undefined;
 }
 
 export function cleanLabel(raw: unknown, fallback: string): string {

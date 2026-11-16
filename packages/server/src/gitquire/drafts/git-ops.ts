@@ -97,7 +97,7 @@ export function fetchBranch(runGit: RunGit, dir: string, branch: string, env: En
   return headSha(runGit, dir, `refs/remotes/origin/${branch}`);
 }
 
-export interface ConflictChunk {
+interface ConflictChunk {
   kind: 'same' | 'conflict';
   text?: string;
   live?: string;
@@ -110,7 +110,7 @@ export interface FileConflict {
   chunks: ConflictChunk[];
 }
 
-export function parseDiff3(merged: string): ConflictChunk[] {
+function parseDiff3(merged: string): ConflictChunk[] {
   const chunks: ConflictChunk[] = [];
   const lines = merged.split(/(?<=\n)/);
   let same = '';

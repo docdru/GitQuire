@@ -583,9 +583,6 @@ msgstr "<0>Demasiadas referencias en vivo en esta página.</0> Este espejo de <1
 msgid "📝 or assets/icon.png"
 msgstr "📝 o assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 hora"
 
@@ -684,12 +681,6 @@ msgstr "Una variable necesita dos llaves a cada lado, como {filenameVariable}."
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "Acerca de"
-
-msgid "About {appName}"
-msgstr "Acerca de {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "Actividad del agente"
 
 msgid "Agent configuration file"
 msgstr "Archivo de configuración del agente"
-
-msgid "Agent connections"
-msgstr "Conexiones de agentes"
 
 msgid "Agent panel"
 msgstr "Panel de agentes"
@@ -3186,9 +3174,6 @@ msgstr "Buscar y reemplazar"
 msgid "Find field navigation"
 msgstr "Navegación del campo de búsqueda"
 
-msgid "Find in file"
-msgstr "Buscar en el archivo"
-
 msgid "Find next match"
 msgstr "Buscar la coincidencia siguiente"
 
@@ -5105,9 +5090,6 @@ msgstr "Abre el diálogo de ir a línea de CodeMirror."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Abre el panel de diagnóstico de análisis de CodeMirror."
 
-msgid "Open containing folder"
-msgstr "Abrir la carpeta contenedora"
-
 msgid "Open date picker for {keyName}"
 msgstr "Abrir el selector de fecha de {keyName}"
 
@@ -5745,9 +5727,6 @@ msgstr "Reconectando tras el reinicio del servidor"
 msgid "Recovered content"
 msgstr "Contenido recuperado"
 
-msgid "Recycle Bin"
-msgstr "Papelera de reciclaje"
-
 msgid "Redo"
 msgstr "Rehacer"
 
@@ -6045,9 +6024,6 @@ msgstr "Reutiliza una pestaña al ir haciendo clic en las barras laterales. Si e
 
 msgid "Reused if it already exists, created if not."
 msgstr "Se reutiliza si ya existe; si no, se crea."
-
-msgid "Reveal in File Explorer"
-msgstr "Mostrar en el Explorador de archivos"
 
 msgid "Reveal in Finder"
 msgstr "Mostrar en el Finder"
@@ -7610,9 +7586,6 @@ msgstr "Demasiado lento"
 
 msgid "Top linked pages"
 msgstr "Páginas más enlazadas"
-
-msgid "Trash"
-msgstr "Papelera"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Retrocede por el historial de navegación de GitQuire."

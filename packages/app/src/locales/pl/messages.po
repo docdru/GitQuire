@@ -583,9 +583,6 @@ msgstr "<0>Za dużo aktywnych odwołań na tej stronie.</0> To odbicie <1>{src}<
 msgid "📝 or assets/icon.png"
 msgstr "📝 lub assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 godzina"
 
@@ -684,12 +681,6 @@ msgstr "Zmienna potrzebuje dwóch nawiasów klamrowych z każdej strony, na przy
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "O programie"
-
-msgid "About {appName}"
-msgstr "O programie {appName}"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "Aktywność agenta"
 
 msgid "Agent configuration file"
 msgstr "Plik konfiguracji agenta"
-
-msgid "Agent connections"
-msgstr "Połączenia agentów"
 
 msgid "Agent panel"
 msgstr "Panel agentów"
@@ -3186,9 +3174,6 @@ msgstr "Znajdź i zamień"
 msgid "Find field navigation"
 msgstr "Nawigacja w polu wyszukiwania"
 
-msgid "Find in file"
-msgstr "Znajdź w pliku"
-
 msgid "Find next match"
 msgstr "Znajdź następne dopasowanie"
 
@@ -5105,9 +5090,6 @@ msgstr "Otwórz okienko przechodzenia do wiersza CodeMirror."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Otwórz panel diagnostyki lint CodeMirror."
 
-msgid "Open containing folder"
-msgstr "Otwórz folder zawierający"
-
 msgid "Open date picker for {keyName}"
 msgstr "Otwórz wybór daty dla {keyName}"
 
@@ -5745,9 +5727,6 @@ msgstr "Ponowne łączenie po restarcie serwera"
 msgid "Recovered content"
 msgstr "Odzyskana treść"
 
-msgid "Recycle Bin"
-msgstr "Kosz"
-
 msgid "Redo"
 msgstr "Ponów"
 
@@ -6045,9 +6024,6 @@ msgstr "Używa jednej karty podczas przechodzenia między panelami bocznymi. Wy�
 
 msgid "Reused if it already exists, created if not."
 msgstr "Wykorzystane, jeśli już istnieje; utworzone w przeciwnym razie."
-
-msgid "Reveal in File Explorer"
-msgstr "Pokaż w Eksploratorze plików"
 
 msgid "Reveal in Finder"
 msgstr "Pokaż w Finderze"
@@ -7610,9 +7586,6 @@ msgstr "Za wolno"
 
 msgid "Top linked pages"
 msgstr "Najczęściej linkowane strony"
-
-msgid "Trash"
-msgstr "Kosz"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Przechodź wstecz po historii nawigacji GitQuire."

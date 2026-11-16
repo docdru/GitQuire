@@ -4,7 +4,6 @@ import { PluginKey, Plugin as PmPlugin } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { ReactRenderer } from '@tiptap/react';
 import Suggestion, { type SuggestionKeyDownProps, type SuggestionProps } from '@tiptap/suggestion';
-import { getEditorView } from '@/editor/utils/get-editor-view';
 import {
   clearSuggestionSelectableCount,
   createSuggestionPopup,
@@ -76,52 +75,6 @@ interface SlashCommandStorage {
   commands: SlashCommandItem[] | null;
 }
 
-function slashStorage(editor: Editor): SlashCommandStorage | undefined {
-  return (editor.storage as unknown as Partial<Record<string, SlashCommandStorage>>)[
-    EXTENSION_NAME
-  ];
-}
-
-export function getSlashCommands(editor: Editor): SlashCommandItem[] | null {
-  return slashStorage(editor)?.commands ?? null;
-}
-
-export function setSlashCommands(editor: Editor, commands: SlashCommandItem[] | null): boolean {
-  const storage = slashStorage(editor);
-  if (storage === undefined || storage.commands === commands) return false;
-  storage.commands = commands;
-  return true;
-}
-
-export function reconcileCommandNodes(editor: Editor): boolean {
-  const commands = getSlashCommands(editor);
-  if (commands === null) return false;
-  const view = getEditorView(editor);
-  if (view === undefined) return false;
-  const { state } = view;
-  const found: { pos: number; node: PmNode }[] = [];
-  state.doc.descendants((node, pos) => {
-    if (node.type.name === 'composerCommand') found.push({ pos, node });
-  });
-  if (found.length === 0) return false;
-  const tr = state.tr;
-  for (const { pos, node } of found.reverse()) {
-    const name = String(node.attrs.name ?? '');
-    const command = commands.find((c) => c.name === name);
-    if (command === undefined) {
-      tr.replaceWith(pos, pos + node.nodeSize, state.schema.text(`/${name}`));
-      continue;
-    }
-    const hint = command.input?.hint ?? '';
-    if (node.attrs.description !== command.description || node.attrs.hint !== hint) {
-      tr.setNodeMarkup(pos, undefined, { name, description: command.description, hint });
-    }
-  }
-  if (!tr.docChanged) return false;
-  view.dispatch(tr.setMeta('addToHistory', false));
-  return true;
-}
-
 export function filterSlashCommands(
   commands: readonly SlashCommandItem[],
   query: string,
@@ -167,10 +120,6 @@ export function resolveSlashTokenHint(
     return { kind: 'known', name: command.name, description: command.description };
   }
   return { kind: 'unknown', name: token.name, agentHasCommands: commands.length > 0 };
-}
-
-export function composerFirstLineText(editor: Editor): string {
-  return leadingTextOfBlock(editor.state.doc.firstChild);
 }
 
 function leadingTextOfBlock(block: { firstChild: PmNode | null } | null): string {

@@ -8,7 +8,7 @@ const REMEMBER_GAP_MS = 24 * 60 * 60 * 1000;
 const MAX_PEOPLE = 500;
 const LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
 
-export interface Person {
+interface Person {
   login: string;
   name?: string;
   avatarUrl?: string;

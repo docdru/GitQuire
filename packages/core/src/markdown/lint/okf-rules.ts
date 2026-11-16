@@ -10,7 +10,7 @@ interface OkfRuleEntry {
   readonly rule: OkfRule;
 }
 
-export const OKF_RULE_REGISTRY: readonly OkfRuleEntry[] = [
+const OKF_RULE_REGISTRY: readonly OkfRuleEntry[] = [
   { id: 'no-wiki-links', rule: noWikiLinks },
   { id: 'log-shape', rule: logShape },
   { id: 'index-shape', rule: indexShape },

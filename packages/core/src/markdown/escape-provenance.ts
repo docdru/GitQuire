@@ -51,7 +51,7 @@ function inspectMarkerOccupancy(values: readonly string[]): {
   return { occupied, longestStartRun };
 }
 
-export function selectEscapeProvenanceMarker(source: string): string {
+function selectEscapeProvenanceMarker(source: string): string {
   const projection = decodedReferenceProjection(source);
   const { occupied, longestStartRun } = inspectMarkerOccupancy([source, projection]);
   for (let codePoint = MARKER_RANGE_START; codePoint <= MARKER_RANGE_END; codePoint += 1) {

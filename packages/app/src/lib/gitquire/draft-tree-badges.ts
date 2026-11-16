@@ -1,6 +1,6 @@
 import type { ChangedPage } from './drafts-api';
 
-export const DRAFT_BADGE_ATTR = 'data-gq-draft-change';
+const DRAFT_BADGE_ATTR = 'data-gq-draft-change';
 
 export const FILE_TREE_DRAFT_BADGE_CSS = `
   [${DRAFT_BADGE_ATTR}] {

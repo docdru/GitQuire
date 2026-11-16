@@ -401,7 +401,7 @@ function describeUnverifiedHolderForStop(holder: UnverifiedHolder, causeRecorded
   }
 }
 
-export function describeUnconfirmedHolderStart(
+function describeUnconfirmedHolderStart(
   holder: UnconfirmedStartHolder,
   notSignalled: string,
   afterManualStop: string,

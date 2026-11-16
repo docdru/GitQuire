@@ -259,7 +259,7 @@ interface CachedDocumentLookup {
   basenameBuckets: Map<string, Set<string>>;
 }
 
-export function parseSkillBundleDocAnyScope(
+function parseSkillBundleDocAnyScope(
   docName: string,
 ): { name: string; kind: 'skill' | 'reference'; skillDocName: string } | null {
   const project = parseProjectSkillBundleDoc(docName);

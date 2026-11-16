@@ -17,9 +17,9 @@ import {
 import type { TimelineView } from './timeline';
 
 export const VIEW_BLOCK_LANGUAGE = 'gitquire-view';
-export const SAVED_VIEW_FOLDER = 'views';
+const SAVED_VIEW_FOLDER = 'views';
 
-export type ViewKind = 'table' | 'board' | 'timeline' | 'actions';
+type ViewKind = 'table' | 'board' | 'timeline' | 'actions';
 
 const KINDS: readonly ViewKind[] = ['table', 'board', 'timeline', 'actions'];
 const GROUPINGS: readonly ActionGrouping[] = ['page', 'due', 'person'];

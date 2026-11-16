@@ -12,7 +12,7 @@ const BULLET_RE = /^\s*[-*+]\s+(.*)$/;
 const NUMBER_RE = /^\s*\d+[.)]\s+(.*)$/;
 const HEADING_RE = /^(#{1,4})\s+(.*)$/;
 
-export function parseBlocks(markdown: string): Block[] {
+function parseBlocks(markdown: string): Block[] {
   const lines = markdown.replace(/\r\n/g, '\n').split('\n');
   const blocks: Block[] = [];
   let index = 0;
@@ -90,7 +90,7 @@ export function parseBlocks(markdown: string): Block[] {
 const INLINE_RE =
   /(\[\[([^\]|]+)(?:\|([^\]]+))?\]\])|(`([^`]+)`)|(\*\*([^*]+)\*\*)|(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))|(\*([^*\s][^*]*)\*)|(_([^_\s][^_]*)_)/g;
 
-export function renderInline(text: string, keyPrefix = 'i'): ReactNode[] {
+function renderInline(text: string, keyPrefix = 'i'): ReactNode[] {
   const out: ReactNode[] = [];
   let last = 0;
   let count = 0;

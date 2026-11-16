@@ -19,22 +19,7 @@ export const MAX_IMAGE_BYTES = EMBEDDED_ATTACHMENT_BYTE_LIMIT;
 
 export const MAX_EMBEDDED_FILE_BYTES = EMBEDDED_ATTACHMENT_BYTE_LIMIT;
 
-export const MAX_TOTAL_ATTACHMENT_BYTES = EMBEDDED_ATTACHMENT_BYTE_LIMIT;
-
 const NAMED_REFUSED_FILES = 3;
-
-export function embeddedAttachmentBytes(part: AttachmentPart): number {
-  if (part.kind !== 'image' && part.kind !== 'blob') return 0;
-  return part.sizeBytes ?? part.data.length;
-}
-
-export function totalEmbeddedAttachmentBytes(parts: readonly AttachmentPart[]): number {
-  return parts.reduce((sum, part) => sum + embeddedAttachmentBytes(part), 0);
-}
-
-export function attachmentBudgetKb(): number {
-  return Math.round(MAX_TOTAL_ATTACHMENT_BYTES / 1024);
-}
 
 type RefusedFileLocation = 'outside-project' | 'unknown';
 
@@ -53,19 +38,6 @@ export type ImageAttachmentError =
   | AttachmentRefusal;
 
 export type FileAttachmentError = ImageAttachmentError;
-
-const IS_REFUSAL: {
-  readonly [K in ImageAttachmentError['kind']]: K extends AttachmentRefusal['kind'] ? true : false;
-} = {
-  'unsupported-type': false,
-  'too-large': false,
-  'file-too-large': true,
-  'not-text': true,
-};
-
-export function isAttachmentRefusal(error: ImageAttachmentError): error is AttachmentRefusal {
-  return IS_REFUSAL[error.kind];
-}
 
 function assertNeverAttachmentError(error: never): never {
   throw new Error(`Unhandled attachment error: ${JSON.stringify(error)}`);
@@ -311,13 +283,6 @@ export interface RejectedAttachment {
   readonly type: string;
 }
 
-export function rejectedPart(part: AttachmentPart): RejectedAttachment {
-  return {
-    size: embeddedAttachmentBytes(part),
-    type: part.kind === 'image' || part.kind === 'blob' ? part.mimeType : '',
-  };
-}
-
 export function logAttachmentRejection(
   surface: AttachmentSurface,
   rejected: RejectedAttachment,
@@ -334,10 +299,6 @@ export function logAttachmentRejection(
 
 export function collectImageFiles(dataTransfer: DataTransfer | null): File[] {
   return collectFiles(dataTransfer, (file) => file.type.startsWith('image/'));
-}
-
-export function collectAllFiles(dataTransfer: DataTransfer | null): File[] {
-  return collectFiles(dataTransfer, (file) => file.size > 0);
 }
 
 function collectFiles(dataTransfer: DataTransfer | null, accept: (file: File) => boolean): File[] {

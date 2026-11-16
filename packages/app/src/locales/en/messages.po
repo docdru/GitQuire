@@ -583,9 +583,6 @@ msgstr "<0>Too many live references on this page.</0> This mirror of <1>{src}</1
 msgid "📝 or assets/icon.png"
 msgstr "📝 or assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1 hour"
 
@@ -684,12 +681,6 @@ msgstr "A variable needs two braces on each side, such as {filenameVariable}."
 
 msgid "ABCD-2345"
 msgstr "ABCD-2345"
-
-msgid "About"
-msgstr "About"
-
-msgid "About {appName}"
-msgstr "About {appName}"
 
 msgid "About the folder"
 msgstr "About the folder"
@@ -882,9 +873,6 @@ msgstr "Agent activity"
 
 msgid "Agent configuration file"
 msgstr "Agent configuration file"
-
-msgid "Agent connections"
-msgstr "Agent connections"
 
 msgid "Agent panel"
 msgstr "Agent panel"
@@ -3186,9 +3174,6 @@ msgstr "Find and replace"
 msgid "Find field navigation"
 msgstr "Find field navigation"
 
-msgid "Find in file"
-msgstr "Find in file"
-
 msgid "Find next match"
 msgstr "Find next match"
 
@@ -5105,9 +5090,6 @@ msgstr "Open CodeMirror's go-to-line prompt."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "Open CodeMirror's lint diagnostics panel."
 
-msgid "Open containing folder"
-msgstr "Open containing folder"
-
 msgid "Open date picker for {keyName}"
 msgstr "Open date picker for {keyName}"
 
@@ -5745,9 +5727,6 @@ msgstr "Reconnecting after server restart"
 msgid "Recovered content"
 msgstr "Recovered content"
 
-msgid "Recycle Bin"
-msgstr "Recycle Bin"
-
 msgid "Redo"
 msgstr "Redo"
 
@@ -6045,9 +6024,6 @@ msgstr "Reuse one tab when clicking through the sidebars. Off opens every click 
 
 msgid "Reused if it already exists, created if not."
 msgstr "Reused if it already exists, created if not."
-
-msgid "Reveal in File Explorer"
-msgstr "Reveal in File Explorer"
 
 msgid "Reveal in Finder"
 msgstr "Reveal in Finder"
@@ -7610,9 +7586,6 @@ msgstr "Too slow"
 
 msgid "Top linked pages"
 msgstr "Top linked pages"
-
-msgid "Trash"
-msgstr "Trash"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "Traverse GitQuire navigation history backward."

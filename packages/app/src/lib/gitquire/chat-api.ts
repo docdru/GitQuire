@@ -1,8 +1,8 @@
 export type ChatProvider = 'claude' | 'mistral';
 
-export type ModelTier = 'balanced' | 'capable' | 'fast';
+type ModelTier = 'balanced' | 'capable' | 'fast';
 
-export interface ChatModel {
+interface ChatModel {
   id: string;
   label: string;
   tier: ModelTier;
@@ -40,7 +40,7 @@ export interface ChatSummary {
   updatedAt: string;
 }
 
-export interface ToolCall {
+interface ToolCall {
   id: string;
   name: string;
   input: Record<string, unknown>;
@@ -60,13 +60,7 @@ export interface ChatRecord extends ChatSummary {
   usage: { inputTokens: number; outputTokens: number };
 }
 
-export type ChatStopReason =
-  | 'end'
-  | 'step-limit'
-  | 'max-tokens'
-  | 'context-full'
-  | 'aborted'
-  | 'error';
+type ChatStopReason = 'end' | 'step-limit' | 'max-tokens' | 'context-full' | 'aborted' | 'error';
 
 export type ChatEvent =
   | { type: 'chat'; id: string; title: string; provider: ChatProvider; model: string }
@@ -215,7 +209,7 @@ export function formatTokens(count: number): string {
   return `${Math.round(count / 1000)}k`;
 }
 
-export type ToolActivityKind =
+type ToolActivityKind =
   | 'search'
   | 'read'
   | 'write'

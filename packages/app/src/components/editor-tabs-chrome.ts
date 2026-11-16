@@ -33,12 +33,9 @@ interface PaneStripDropData {
 
 export type EditorTabDropData = PaneEdgeDropData | PaneStripDropData;
 
-export const TAB_CLOSE_BUTTON_CLASS =
+const TAB_CLOSE_BUTTON_CLASS =
   'flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground outline-none hover:bg-muted-foreground/20 hover:text-foreground hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50';
 export const TAB_SELECTED_SURFACE_CLASS = 'bg-sidebar-selected text-sidebar-selected-foreground';
-export const TAB_SELECTED_SURFACE_IMPORTANT_CLASS =
-  'bg-sidebar-selected! text-sidebar-selected-foreground!';
-export const TAB_HOVER_SURFACE_IMPORTANT_CLASS = 'bg-sidebar-hover! text-sidebar-hover-foreground!';
 const DRAGGING_TAB_ACTIVE_CLASS = `${TAB_SELECTED_SURFACE_CLASS} hover:bg-sidebar-selected focus-visible:bg-sidebar-selected`;
 export const DRAGGING_TAB_Z_INDEX = 20;
 export const TAB_REORDER_AUTO_SCROLL = false;
@@ -62,7 +59,7 @@ export function getTabCloseButtonClass(isActive: boolean): string {
   );
 }
 
-export const TAB_TITLE_FADE_CLASS =
+const TAB_TITLE_FADE_CLASS =
   'overflow-hidden whitespace-nowrap mask-r-from-[calc(100%-1.5rem)] mask-r-to-[100%]';
 
 export function getTabTitleOverflowClassName(isActive: boolean): string {

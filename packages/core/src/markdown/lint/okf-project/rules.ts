@@ -36,7 +36,7 @@ function noMdx(paths: readonly string[]): OkfProjectFinding[] {
   return findings;
 }
 
-export interface OkfProjectRule {
+interface OkfProjectRule {
   readonly id: OkfRuleId;
   readonly run: (paths: readonly string[]) => OkfProjectFinding[];
 }

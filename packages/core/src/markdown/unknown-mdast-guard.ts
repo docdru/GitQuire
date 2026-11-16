@@ -1,6 +1,3 @@
-import type { Root as MdastRoot } from 'mdast';
-import type { VFile } from 'vfile';
-
 export const KNOWN_MDAST_TYPES: ReadonlySet<string> = new Set([
   'root',
   'paragraph',
@@ -46,13 +43,6 @@ export const KNOWN_MDAST_TYPES: ReadonlySet<string> = new Set([
   'rawMdxFallbackMdast',
 ]);
 
-export function unknownMdastGuardPlugin() {
-  return (tree: MdastRoot, file: VFile) => {
-    const source = String(file.value ?? '');
-    walk(tree as unknown as WalkableNode, source);
-  };
-}
-
 interface WalkablePoint {
   line?: number;
   column?: number;
@@ -63,20 +53,6 @@ interface WalkableNode {
   type?: string;
   children?: unknown[];
   position?: { start?: WalkablePoint; end?: WalkablePoint };
-}
-
-function walk(node: WalkableNode | null | undefined, source: string): void {
-  if (!node || typeof node !== 'object') return;
-  if (!Array.isArray(node.children)) return;
-  for (let i = 0; i < node.children.length; i++) {
-    const child = node.children[i] as WalkableNode;
-    if (!child || typeof child !== 'object' || typeof child.type !== 'string') continue;
-    if (!KNOWN_MDAST_TYPES.has(child.type)) {
-      node.children[i] = toRawMdxFallbackMdast(child, source);
-    } else {
-      walk(child, source);
-    }
-  }
 }
 
 interface RawMdxFallbackMdast {

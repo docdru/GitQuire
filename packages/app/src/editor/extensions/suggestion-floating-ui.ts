@@ -26,10 +26,6 @@ export function clearSuggestionSelectableCount(view: object): void {
   suggestionSelectableCounts.delete(view);
 }
 
-export function suggestionHasSelectableItem(view: object): boolean {
-  return (suggestionSelectableCounts.get(view) ?? 0) > 0;
-}
-
 const SUGGESTION_TWO_COLUMN_MIN_PX = 488;
 
 function buildMiddleware(popup: HTMLDivElement, editor: Editor | undefined) {

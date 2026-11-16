@@ -113,8 +113,6 @@ type VerdictResolution =
   | { readonly kind: 'never-on-branch' }
   | { readonly kind: 'diverged' };
 
-export type VerdictCellKind = VerdictResolution['kind'];
-
 export type BranchSwitchDialogState =
   | { readonly phase: 'loading' }
   | { readonly phase: 'ready'; readonly info: BranchInfoResponse }
@@ -205,7 +203,7 @@ export function applyVerdict(
   return { phase: 'verdict', info: state.info, resolution };
 }
 
-export type CheckoutSideEffectReason =
+type CheckoutSideEffectReason =
   | 'proxy-null'
   | 'fetch-failed'
   | 'checkout-failed'
@@ -281,14 +279,14 @@ export function applyCheckoutOutcome(
   };
 }
 
-export type WorktreeCheckoutSideEffectReason =
+type WorktreeCheckoutSideEffectReason =
   | 'proxy-null'
   | Extract<WorktreeCreateResult, { ok: false }>['reason'];
 type WorktreeProjectScopeIssue = Extract<
   WorktreeCreateResult,
   { reason: 'project-scope-unavailable' }
 >['issue'];
-export type WorktreeCheckoutSideEffect =
+type WorktreeCheckoutSideEffect =
   | {
       readonly kind: 'toast';
       readonly reason: 'project-scope-unavailable';

@@ -3,8 +3,8 @@ import type { ChatMessage, ChatRecord, ToolResult } from './history.ts';
 import { type ChatProviders, ProviderError, type ProviderErrorCode } from './providers.ts';
 import type { WikiTools } from './wiki-tools.ts';
 
-export const MAX_TOOL_STEPS = 12;
-export const MAX_REPLY_TOKENS = 16_000;
+const MAX_TOOL_STEPS = 12;
+const MAX_REPLY_TOKENS = 16_000;
 export const OLD_TOOL_OUTPUT_CHARS = 2_000;
 const RECENT_TOOL_MESSAGES = 2;
 const PREVIEW_CHARS = 400;

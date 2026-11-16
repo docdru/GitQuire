@@ -249,28 +249,6 @@ export async function resolveProjectConfigContext(
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
-
-export async function requireProjectServer(
-  resolveCwd: (explicit?: string) => Promise<string>,
-  config: ConfigOrResolver,
-  serverUrl: ServerUrlOrResolver,
-  explicitCwd?: string,
-): Promise<
-  | { ok: true; cwd: string; executionCwd: string; config: Config; url: string }
-  | { ok: false; result: ReturnType<typeof textResult> }
-> {
-  const context = await resolveProjectServerContext(resolveCwd, config, serverUrl, explicitCwd);
-  if (!context.ok) return { ok: false, result: textResult(`Error: ${context.error}`, true) };
-  if (!context.url) return { ok: false, result: textResult(hocuspocusNotRunningError(), true) };
-  return {
-    ok: true,
-    cwd: context.cwd,
-    executionCwd: context.executionCwd,
-    config: context.config,
-    url: context.url,
-  };
-}
-
 export async function resolveProjectServerContext(
   resolveCwd: (explicit?: string) => Promise<string>,
   config: ConfigOrResolver,
@@ -497,24 +475,6 @@ export async function httpGet(
   }
   return { ...normalizeResponse(res, body), httpStatus: res.status };
 }
-
-export async function httpGetRows(
-  base: ApiTarget,
-  path: string,
-  field: string,
-): Promise<
-  { error: string } | { rows: Array<Record<string, unknown>>; data: Record<string, unknown> }
-> {
-  const result = await httpGet(base, path);
-  if (!result.ok) {
-    return { error: typeof result.error === 'string' ? result.error : 'request failed' };
-  }
-  const { ok: _ok, ...data } = result;
-  const raw = (data as Record<string, unknown>)[field];
-  const rows = Array.isArray(raw) ? (raw as Array<Record<string, unknown>>) : [];
-  return { rows, data };
-}
-
 async function httpSend(
   method: 'POST' | 'PUT' | 'DELETE',
   base: ApiTarget,
@@ -630,18 +590,6 @@ export function alignWarningCodes(
     ? { warnings: text, warningCodes: rawCodes }
     : { warnings: text };
 }
-
-export function warningCodesContract(reporter: string): string {
-  return `Machine-readable codes aligned 1:1 with \`warnings\` (\`warnings[i]\` is the display text for \`warningCodes[i]\`) — switch on these, never on the English. Absent when ${reporter} sent warning text it did not pair with codes, or paired one with a code this build does not recognise; \`warnings\` still carries the full text either way, so treat a missing field as unknown rather than as an all-clear.`;
-}
-
-export const WARNING_CODES_CONTRACT = warningCodesContract('the server');
-
-export function warningsFieldContract(reporter: string): string {
-  return `Always emitted, \`[]\` when there were none. \`warningCodes\` accompanies this list 1:1 whenever ${reporter} paired every warning it sent with a code this build recognises; otherwise \`warningCodes\` is absent and this list still carries the full text. \`content[0].text\` lists every warning either way. A \`warnings\` payload in a shape this build cannot read at all becomes one entry saying so, with \`warningCodes\` absent — \`[]\` never means "unreadable".`;
-}
-
-export const WARNINGS_FIELD_CONTRACT = warningsFieldContract('the server');
 
 export const AUDIT_FILE_CAP = 10;
 export const AUDIT_FILE_DIAGNOSTIC_CAP = 10;

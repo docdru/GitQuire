@@ -8,7 +8,7 @@ export interface ToolSpec {
   inputSchema: Record<string, unknown>;
 }
 
-export interface ProviderTurnRequest {
+interface ProviderTurnRequest {
   model: string;
   system: string;
   messages: readonly ChatMessage[];
@@ -17,7 +17,7 @@ export interface ProviderTurnRequest {
   signal?: AbortSignal;
 }
 
-export type StopReason = 'end' | 'tool_use' | 'max_tokens' | 'context_full' | 'other';
+type StopReason = 'end' | 'tool_use' | 'max_tokens' | 'context_full' | 'other';
 
 export interface ProviderTurn {
   text: string;
@@ -57,7 +57,7 @@ export interface ProviderEndpoints {
   mistral: string;
 }
 
-export const DEFAULT_ENDPOINTS: ProviderEndpoints = {
+const DEFAULT_ENDPOINTS: ProviderEndpoints = {
   anthropic: 'https://api.anthropic.com',
   mistral: 'https://api.mistral.ai',
 };

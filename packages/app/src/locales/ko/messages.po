@@ -583,9 +583,6 @@ msgstr "<0>이 페이지에 라이브 참조가 너무 많습니다.</0> <1>{src
 msgid "📝 or assets/icon.png"
 msgstr "📝 또는 assets/icon.png"
 
-msgid "0/0"
-msgstr "0/0"
-
 msgid "1 hour"
 msgstr "1시간"
 
@@ -684,12 +681,6 @@ msgstr "변수는 양쪽에 중괄호가 두 개씩 필요합니다(예: {filena
 
 msgid "ABCD-2345"
 msgstr ""
-
-msgid "About"
-msgstr "정보"
-
-msgid "About {appName}"
-msgstr "{appName} 정보"
 
 msgid "About the folder"
 msgstr ""
@@ -882,9 +873,6 @@ msgstr "에이전트 활동"
 
 msgid "Agent configuration file"
 msgstr "에이전트 설정 파일"
-
-msgid "Agent connections"
-msgstr "에이전트 연결"
 
 msgid "Agent panel"
 msgstr "에이전트 패널"
@@ -3186,9 +3174,6 @@ msgstr "찾기 및 바꾸기"
 msgid "Find field navigation"
 msgstr "찾기 필드 탐색"
 
-msgid "Find in file"
-msgstr "파일에서 찾기"
-
 msgid "Find next match"
 msgstr "다음 일치 항목 찾기"
 
@@ -5105,9 +5090,6 @@ msgstr "CodeMirror의 줄 이동 프롬프트를 엽니다."
 msgid "Open CodeMirror's lint diagnostics panel."
 msgstr "CodeMirror lint 진단 패널을 엽니다."
 
-msgid "Open containing folder"
-msgstr "포함 폴더 열기"
-
 msgid "Open date picker for {keyName}"
 msgstr "{keyName} 날짜 선택기 열기"
 
@@ -5745,9 +5727,6 @@ msgstr "서버를 다시 시작한 후 다시 연결하는 중"
 msgid "Recovered content"
 msgstr "복구된 콘텐츠"
 
-msgid "Recycle Bin"
-msgstr "휴지통"
-
 msgid "Redo"
 msgstr "다시 실행"
 
@@ -6045,9 +6024,6 @@ msgstr "사이드바를 클릭할 때 탭 하나를 재사용합니다. 끄면 �
 
 msgid "Reused if it already exists, created if not."
 msgstr "이미 있으면 재사용하고, 없으면 생성합니다."
-
-msgid "Reveal in File Explorer"
-msgstr "파일 탐색기에서 보기"
 
 msgid "Reveal in Finder"
 msgstr "Finder에서 보기"
@@ -7610,9 +7586,6 @@ msgstr "너무 느림"
 
 msgid "Top linked pages"
 msgstr "링크가 가장 많은 페이지"
-
-msgid "Trash"
-msgstr "휴지통"
 
 msgid "Traverse GitQuire navigation history backward."
 msgstr "GitQuire 탐색 기록을 뒤로 이동합니다."
