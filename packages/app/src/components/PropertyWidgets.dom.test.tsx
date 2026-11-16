@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ListWidget, TextWidget } from './PropertyWidgets';
+import { resetPropertyLinkPages } from './property-link-picker';
 
 function renderWidget(opts: {
   keyName: string;
@@ -271,5 +272,80 @@ describe('TextWidget — link-mode predicate', () => {
     fireEvent.blur(textarea);
     expect(commits).toEqual(['https://updated.com']);
     expect(container.querySelector('[data-testid="link-widget"]')).not.toBeNull();
+  });
+});
+
+describe('property values — link picker after [[', () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+    resetPropertyLinkPages();
+  });
+
+  function stubPages() {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: unknown) => {
+        const url = String(input);
+        if (url.includes('/api/pages')) {
+          return new Response(
+            JSON.stringify({
+              pages: [
+                {
+                  docName: 'plans/roadmap',
+                  title: 'Roadmap',
+                  docExt: '.md',
+                  size: 1,
+                  modified: '2026-01-01T00:00:00.000Z',
+                },
+              ],
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          );
+        }
+        return new Response(JSON.stringify({ documents: [] }), { status: 200 });
+      }),
+    );
+  }
+
+  test('a text value: choosing a page writes the link', async () => {
+    stubPages();
+    const onCommit = vi.fn();
+    const { getByTestId, findByTestId } = render(
+      <TextWidget keyName="supersedes" value="" onCommit={onCommit} />,
+    );
+    const textarea = getByTestId('text-widget') as HTMLTextAreaElement;
+    textarea.focus();
+    fireEvent.change(textarea, { target: { value: '[[road', selectionStart: 6 } });
+    await findByTestId('property-link-option-plans/roadmap');
+    fireEvent.keyDown(textarea, { key: 'Enter' });
+    expect(textarea.value).toBe('[[plans/roadmap]]');
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.keyDown(textarea, { key: 'Enter' });
+    expect(onCommit).toHaveBeenCalledWith('[[plans/roadmap]]');
+  });
+
+  test('a list value: choosing a page adds it as an item', async () => {
+    stubPages();
+    const { getByTestId, findByTestId, onCommit } = renderWidget({ keyName: 'blocks', value: [] });
+    const input = getByTestId('list-chip-input') as HTMLInputElement;
+    input.focus();
+    fireEvent.change(input, { target: { value: '[[road', selectionStart: 6 } });
+    fireEvent.mouseDown(await findByTestId('property-link-option-plans/roadmap'));
+    expect(onCommit).toHaveBeenCalledWith(['[[plans/roadmap]]']);
+  });
+
+  test('Escape closes the picker without dropping what was typed', async () => {
+    stubPages();
+    const { getByTestId, findByTestId, queryByTestId } = render(
+      <TextWidget keyName="supersedes" value="" onCommit={vi.fn()} />,
+    );
+    const textarea = getByTestId('text-widget') as HTMLTextAreaElement;
+    textarea.focus();
+    fireEvent.change(textarea, { target: { value: '[[road', selectionStart: 6 } });
+    await findByTestId('property-link-picker');
+    fireEvent.keyDown(textarea, { key: 'Escape' });
+    expect(queryByTestId('property-link-picker')).toBeNull();
+    expect(textarea.value).toBe('[[road');
   });
 });

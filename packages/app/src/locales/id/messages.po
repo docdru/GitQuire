@@ -5308,6 +5308,9 @@ msgstr "Halaman di-embed pertama kali ketika sebuah pencarian membutuhkannya."
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "Halaman terindeks: {semanticIndexedCount} dari {semanticTotalCount}."
 
+msgid "Pages to link"
+msgstr ""
+
 msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
 msgstr ""
 

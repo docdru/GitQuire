@@ -40,9 +40,12 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { dispatchTagClickEvent } from '@/editor/extensions/tag-click-plugin';
+import type { PageItem } from '@/editor/extensions/wiki-link-suggestion';
 import { cn } from '@/lib/utils';
 import { PropertyInlineLinks } from './PropertyInlineLinks';
+import { PropertyLinkPickerList } from './PropertyLinkPickerList';
 import { hasInlineLinks } from './property-inline-link-tokens';
+import { insertLink, usePropertyLinkPicker } from './property-link-picker';
 
 export interface CommonWidgetProps<T extends FrontmatterValue> {
   keyName: string;
@@ -58,9 +61,27 @@ export function TextWidget({ keyName, value, onCommit, onSubmit }: CommonWidgetP
   const revertingRef = useRef(false);
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const linkPicker = usePropertyLinkPicker();
+  const pendingCaretRef = useRef<number | null>(null);
   useEffect(() => {
     if (!focusedRef.current) setDraft(value);
   }, [value]);
+  useEffect(() => {
+    const caret = pendingCaretRef.current;
+    const el = textareaRef.current;
+    if (caret === null || !el) return;
+    pendingCaretRef.current = null;
+    el.setSelectionRange(caret, caret);
+  });
+
+  function chooseLink(page: PageItem) {
+    const at = linkPicker.query;
+    if (at === null) return;
+    const next = insertLink(draft, at, page.docName);
+    pendingCaretRef.current = next.caret;
+    setDraft(next.text);
+    linkPicker.close();
+  }
   useEffect(() => {
     if (isEditing) {
       textareaRef.current?.focus();
@@ -130,42 +151,58 @@ export function TextWidget({ keyName, value, onCommit, onSubmit }: CommonWidgetP
   }
 
   return (
-    <textarea
-      ref={textareaRef}
-      data-testid="text-widget"
-      data-key={keyName}
-      rows={1}
-      value={draft}
-      placeholder={t`Empty`}
-      aria-label={t`${keyName} value`}
-      onChange={(e) => setDraft(e.target.value)}
-      onFocus={() => {
-        focusedRef.current = true;
-      }}
-      onBlur={() => {
-        focusedRef.current = false;
-        setIsEditing(false);
-        if (revertingRef.current) {
-          revertingRef.current = false;
-          return;
-        }
-        if (draft !== value) onCommit(draft);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-          e.preventDefault();
+    <div className="relative">
+      <textarea
+        ref={textareaRef}
+        data-testid="text-widget"
+        data-key={keyName}
+        rows={1}
+        value={draft}
+        placeholder={t`Empty`}
+        aria-label={t`${keyName} value`}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          linkPicker.update(e.target.value, e.target.selectionStart ?? e.target.value.length);
+        }}
+        onFocus={() => {
+          focusedRef.current = true;
+        }}
+        onBlur={() => {
+          focusedRef.current = false;
+          linkPicker.close();
+          setIsEditing(false);
+          if (revertingRef.current) {
+            revertingRef.current = false;
+            return;
+          }
           if (draft !== value) onCommit(draft);
-          if (onSubmit) onSubmit(draft);
-          else (e.currentTarget as HTMLTextAreaElement).blur();
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          revertingRef.current = true;
-          setDraft(value);
-          (e.currentTarget as HTMLTextAreaElement).blur();
-        }
-      }}
-      className="block w-full min-h-7 resize-none field-sizing-content border-transparent bg-transparent px-2 py-1 text-sm leading-tight shadow-none placeholder:text-muted-foreground/60 focus-visible:border-transparent focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-0 rounded-sm dark:bg-transparent dark:focus-visible:bg-muted"
-    />
+        }}
+        onKeyDown={(e) => {
+          const pick = linkPicker.handleKey(e.key);
+          if (pick !== null) {
+            e.preventDefault();
+            if (pick === 'choose') {
+              const page = linkPicker.items[linkPicker.selectedIndex];
+              if (page) chooseLink(page);
+            }
+            return;
+          }
+          if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            if (draft !== value) onCommit(draft);
+            if (onSubmit) onSubmit(draft);
+            else (e.currentTarget as HTMLTextAreaElement).blur();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            revertingRef.current = true;
+            setDraft(value);
+            (e.currentTarget as HTMLTextAreaElement).blur();
+          }
+        }}
+        className="block w-full min-h-7 resize-none field-sizing-content border-transparent bg-transparent px-2 py-1 text-sm leading-tight shadow-none placeholder:text-muted-foreground/60 focus-visible:border-transparent focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-0 rounded-sm dark:bg-transparent dark:focus-visible:bg-muted"
+      />
+      <PropertyLinkPickerList picker={linkPicker} onChoose={chooseLink} />
+    </div>
   );
 }
 
@@ -392,6 +429,7 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
   const [draft, setDraft] = useState('');
   const [draftRejected, setDraftRejected] = useState(false);
   const isTagsField = keyName === 'tags';
+  const linkPicker = usePropertyLinkPicker();
   function addChip(raw: string) {
     const trimmed = raw.trim();
     if (!trimmed) return;
@@ -404,6 +442,12 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
     onCommit([...value, normalized]);
     setDraft('');
   }
+  function chooseLink(page: PageItem) {
+    const at = linkPicker.query;
+    if (at === null) return;
+    linkPicker.close();
+    addChip(insertLink(draft, at, page.docName).text);
+  }
   function removeChip(index: number) {
     const next = value.slice();
     next.splice(index, 1);
@@ -413,7 +457,7 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
     <div
       data-testid="list-widget"
       data-key={keyName}
-      className="flex min-h-7 w-full min-w-0 flex-wrap items-center gap-1 rounded-md px-2 py-1 focus-within:bg-background"
+      className="relative flex min-h-7 w-full min-w-0 flex-wrap items-center gap-1 rounded-md px-2 py-1 focus-within:bg-background"
     >
       {value.map((chip, i) => {
         const renderAsTag = isTagsField && FRONTMATTER_TAG_VALUE_RE.test(chip);
@@ -489,8 +533,20 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
         onChange={(e) => {
           setDraft(e.target.value);
           if (draftRejected) setDraftRejected(false);
+          if (!isTagsField) {
+            linkPicker.update(e.target.value, e.target.selectionStart ?? e.target.value.length);
+          }
         }}
         onKeyDown={(e) => {
+          const pick = linkPicker.handleKey(e.key);
+          if (pick !== null) {
+            e.preventDefault();
+            if (pick === 'choose') {
+              const page = linkPicker.items[linkPicker.selectedIndex];
+              if (page) chooseLink(page);
+            }
+            return;
+          }
           if (e.key === 'Enter') {
             e.preventDefault();
             addChip(draft);
@@ -505,6 +561,7 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
           }
         }}
         onBlur={() => {
+          linkPicker.close();
           if (draft) addChip(draft);
         }}
         className={cn(
@@ -522,6 +579,7 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
           {FRONTMATTER_TAG_GRAMMAR_HINT}
         </span>
       )}
+      <PropertyLinkPickerList picker={linkPicker} onChoose={chooseLink} />
     </div>
   );
 }

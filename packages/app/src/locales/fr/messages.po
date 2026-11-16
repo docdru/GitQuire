@@ -5312,6 +5312,9 @@ msgstr "Les pages reçoivent leur embedding la première fois qu'une recherche e
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "Pages indexées : {semanticIndexedCount} sur {semanticTotalCount}."
 
+msgid "Pages to link"
+msgstr ""
+
 msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
 msgstr ""
 
