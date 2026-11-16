@@ -8,11 +8,7 @@ import {
 } from '../native-route-files.test-helper.ts';
 
 const SERVER_SRC = join(import.meta.dirname, '../../../server/src');
-const HANDLER_SOURCES = [
-  'api-extension.ts',
-  'skills-sh-handlers.ts',
-  ...listNativeRouteFiles(SERVER_SRC),
-].map((file) => ({
+const HANDLER_SOURCES = ['api-extension.ts', ...listNativeRouteFiles(SERVER_SRC)].map((file) => ({
   file,
   text: readFileSync(join(SERVER_SRC, file), 'utf8'),
 }));
@@ -80,9 +76,6 @@ function isNonJsonEmit(body: string): boolean {
   return false;
 }
 const DISPATCHER_RE = /(?:return|await)\s+handle\w+\(\s*req\s*,\s*res\b/;
-
-const SHARED_SUCCESS_SPINE_NAME = 'respondSkillImport';
-const SHARED_SUCCESS_SPINE_RE = new RegExp(`\\b${SHARED_SUCCESS_SPINE_NAME}\\(\\s*res\\b`);
 
 type EmitClass = 'json' | 'non-json' | 'dispatcher';
 
@@ -153,11 +146,7 @@ describe('error envelope coverage (FR17, D36 a) — fail-on-any-occurrence', () 
       if (!body) continue;
       const cls = classifyHandlerEmit(body);
       counts[cls]++;
-      if (
-        cls === 'json' &&
-        !body.includes('successResponse(') &&
-        !SHARED_SUCCESS_SPINE_RE.test(body)
-      ) {
+      if (cls === 'json' && !body.includes('successResponse(')) {
         failures.push(
           `${name}: JSON-emitting handler missing successResponse(...) — every 2xx success body must flow through the helper`,
         );
@@ -167,28 +156,6 @@ describe('error envelope coverage (FR17, D36 a) — fail-on-any-occurrence', () 
     expect(counts.json).toBeGreaterThanOrEqual(60);
     expect(counts['non-json']).toBeGreaterThanOrEqual(4);
     expect(counts.dispatcher).toBeGreaterThanOrEqual(3);
-  });
-
-  test('the shared success spine flows 2xx through successResponse (delegation is not a bypass)', () => {
-    const spineDecl = new RegExp(`\\n {2}(?:async )?function ${SHARED_SUCCESS_SPINE_NAME}\\(`);
-    const owners = HANDLER_SOURCES.filter(({ text }) => spineDecl.test(text));
-    expect(owners).toHaveLength(1);
-    const owner = owners[0]?.text ?? '';
-    const declMatch = spineDecl.exec(owner);
-    expect(declMatch).not.toBeNull();
-    const start = declMatch?.index ?? -1;
-    expect(start).toBeGreaterThan(-1);
-    const afterStart = start + 1;
-    const nextFn = owner.indexOf('\n  async function ', afterStart);
-    const nextSyncFn = owner.indexOf('\n  function ', afterStart);
-    const nextConst = owner.indexOf('\n  const handle', afterStart);
-    const bounds = [nextFn, nextSyncFn, nextConst].filter((i) => i !== -1);
-    const end = bounds.length === 0 ? owner.length : Math.min(...bounds);
-    const spineBody = owner.slice(start, end);
-    expect(spineBody.includes('successResponse(')).toBe(true);
-    expect(INLINE_ERROR_RE.test(spineBody)).toBe(false);
-    expect(INLINE_SUCCESS_WRAPPER_RE.test(spineBody)).toBe(false);
-    expect(INLINE_BARE_SUCCESS_RE.test(spineBody)).toBe(false);
   });
 
   test('zero inline { ok: false } envelopes in any handler source', () => {

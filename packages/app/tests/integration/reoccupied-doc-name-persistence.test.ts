@@ -11,7 +11,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ensureProjectGit } from '@inkeep/open-knowledge-server';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { post } from './rename-rebinding.test-helper.ts';
 import {
@@ -48,6 +48,11 @@ const RECREATED_BODY = [
 let server: TestServer | undefined;
 const clients: TestClient[] = [];
 const cleanups: Array<() => Promise<void> | void> = [];
+
+beforeEach(() => {
+  vi.stubEnv('GITQUIRE_NAMING', 'off');
+  return () => vi.unstubAllEnvs();
+});
 
 afterEach(async () => {
   while (clients.length > 0)

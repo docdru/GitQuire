@@ -1,16 +1,8 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { visit } from 'unist-util-visit';
 import { AGENTS } from '@/components/agent-icons';
 import { mcpInstallMarkdown } from '@/components/mcp-install';
 import { LAYERS, PATHS } from '@/components/overview-blocks';
 import { verifyExecMarkdown } from '@/components/verify-exec';
-import {
-  DOWNLOAD_PAGE_HREF,
-  DOWNLOAD_TARGETS,
-  WEB_APP_HREF,
-  WEB_APP_LABEL,
-} from '@/lib/download-targets';
 import { parseAttributeLiteral } from '@/lib/mdx-attribute-literal';
 import {
   type ComponentDisposition,
@@ -37,12 +29,6 @@ function codeCell(value: string): string {
 }
 
 const code = inlineCodeSpan;
-
-function snippet(node: MdxJsxNode, api: SerializerApi): string {
-  const file = requiredLiteral(node, api, 'file');
-  const resolved = path.resolve(process.cwd(), '_snippets', file);
-  return readFileSync(resolved, 'utf8').trim();
-}
 
 function titledBlockquote(lead: string | undefined, body: string): string {
   const lines = [...(lead ? [`**${escapeInlineProse(lead)}**`, ''] : []), ...body.split('\n')];
@@ -226,17 +212,6 @@ const typeTable: ComponentDisposition = (node, api) => {
   ].join('\n');
 };
 
-const downloadButton: ComponentDisposition = (_node, api) => {
-  const builds = DOWNLOAD_TARGETS.map(
-    (target) => `- ${markdownLink(target.label, target.assetUrl)}`,
-  );
-  return [
-    ...builds,
-    `- ${markdownLink(WEB_APP_LABEL, api.url(WEB_APP_HREF))}`,
-    `- ${markdownLink('All builds and checksums', DOWNLOAD_PAGE_HREF)}`,
-  ].join('\n');
-};
-
 const layerStack: ComponentDisposition = () =>
   LAYERS.map(
     (layer, index) => `${index + 1}. **${layer.title}** — ${layer.role}. ${layer.desc}`,
@@ -285,7 +260,6 @@ export const DOCS_SERIALIZER_REGISTRY: SerializerRegistry = {
     const label = escapeInlineProse(api.attribute(node, 'label') ?? href ?? '');
     return href ? markdownLink(label, api.url(href)) : label;
   },
-  DownloadButton: downloadButton,
   HtmlPreview: htmlPreview,
   Image: image,
   LayerStack: layerStack,
@@ -298,7 +272,6 @@ export const DOCS_SERIALIZER_REGISTRY: SerializerRegistry = {
     ].join('\n');
   },
   Mermaid: mermaid,
-  Snippet: snippet,
   Tab: tabPanel,
   TabPreview: tabPanel,
   Tabs: tabs('Tab'),

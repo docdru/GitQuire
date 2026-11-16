@@ -1670,7 +1670,7 @@ describe('known-reds on this tree', () => {
         'scripts/check-known-reds.uncached.test.mjs',
         'test-support/known-bug.test.ts',
         'packages/app/tests/stress/file-tree-create.e2e.ts',
-        'packages/desktop/tests/smoke/mcp-wiring.e2e.ts',
+        'packages/app/tests/stress/app-shell-csp.e2e.ts',
       ]),
     );
     expect(

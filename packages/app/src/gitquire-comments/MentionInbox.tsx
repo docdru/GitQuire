@@ -254,7 +254,7 @@ export function MentionInbox() {
         (next) => {
           if (!live) return;
           setInbox(next);
-          if (!next.enabled) stop();
+          if (!next?.enabled) stop();
         },
         (err: unknown) => {
           if (err instanceof GitQuireApiError && err.status === 404) stop();
@@ -275,7 +275,7 @@ export function MentionInbox() {
     return stop;
   }, []);
 
-  if (inbox === null || !inbox.enabled) return null;
+  if (!inbox?.enabled) return null;
   const current = inbox;
 
   function changeOpen(next: boolean) {

@@ -8,6 +8,7 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { isLintPluginOffered } from '@/lib/gitquire/settings-visibility';
 import { expectVisualClassTokens } from '@/test-utils/visual-contract';
 import { LINT_PLUGIN_META } from './lint-plugin-meta';
 import { describedTextOf } from './settings-a11y.test-helper';
@@ -229,8 +230,10 @@ describe('ProjectPluginsManageSection', () => {
     );
     const list = screen.getByTestId('settings-plugins-list');
     const labelled = (badge: HTMLElement) => badge.closest('label')?.textContent ?? '';
-    const tagged = within(list).getAllByText('Beta').map(labelled).sort();
-    const expected = LINT_PLUGIN_META.filter((plugin) => plugin.beta).map((plugin) => plugin.label);
+    const tagged = within(list).queryAllByText('Beta').map(labelled).sort();
+    const expected = LINT_PLUGIN_META.filter(isLintPluginOffered)
+      .filter((plugin) => plugin.beta)
+      .map((plugin) => plugin.label);
     expect(tagged).toHaveLength(expected.length);
     for (const label of expected) {
       expect(tagged.some((text) => text.includes(label))).toBe(true);
@@ -249,9 +252,6 @@ describe('ProjectPluginsManageSection', () => {
     expect(describedTextOf('settings-plugin-toggle-frontmatter')).toContain(
       'Validate document frontmatter',
     );
-    expect(describedTextOf('settings-plugin-toggle-okf')).toBe(
-      'Keeps your knowledge base aligned with the Open Knowledge Format.',
-    );
   });
 
   test('toggling a project plugin writes the per-plugin enabled patch', async () => {
@@ -264,26 +264,11 @@ describe('ProjectPluginsManageSection', () => {
     });
   });
 
-  test('renders the okf plugin row with an off toggle and a concise description', () => {
+  test('the OKF plugin is not offered in GitQuire', () => {
     const { binding } = makeBinding();
     mockProjectBinding = binding;
     render(<ProjectPluginsManageSection />);
-    const toggle = screen.getByTestId('settings-plugin-toggle-okf');
-    expect(toggle.getAttribute('aria-checked')).toBe('false');
-    const row = toggle.closest('div');
-    expect(row?.textContent).toContain(
-      'Keeps your knowledge base aligned with the Open Knowledge Format.',
-    );
-  });
-
-  test('toggling the okf plugin writes its enabled patch', async () => {
-    const { binding, calls } = makeBinding();
-    mockProjectBinding = binding;
-    render(<ProjectPluginsManageSection />);
-    await userEvent.click(screen.getByTestId('settings-plugin-toggle-okf'));
-    expect(calls).toContainEqual({
-      contentRules: { okf: { enabled: true } },
-    });
+    expect(screen.queryByTestId('settings-plugin-toggle-okf')).toBeNull();
   });
 
   test('enabling a plugin offers its settings panel, and the offer deep-links there', async () => {

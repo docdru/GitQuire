@@ -439,64 +439,38 @@ describe('QA canary — cold-reopen / concurrent-peer / idempotence (Observer-A 
 });
 
 const OK_ROOT = join(import.meta.dirname, '..', '..', '..', '..');
-const GITHUB_DOC = join(OK_ROOT, 'docs', 'content', 'features', 'git', 'github.mdx');
 const QUICKSTART = join(OK_ROOT, 'docs', 'content', 'get-started', 'quickstart.mdx');
 
 describe('QA canary — real repo docs with <Steps>', () => {
-  test('git/github.mdx loads byte-clean through the bridge (frontmatter + Steps intact)', async () => {
-    const md = readFileSync(GITHUB_DOC, 'utf-8');
-    expect(md).toMatch(/^title: GitHub$/m);
-    expect((md.match(/^<Step>$/gm) ?? []).length).toBe(4);
-    expect(md).toMatch(/^<Steps>$/m);
-    expect(md).toMatch(/\n {4}### /);
-    expect(md).not.toMatch(INDENTED_STEP);
-
-    const docName = `real-gh-load-${crypto.randomUUID()}`;
-    await agentWriteMd(server.port, md, { docName, position: 'replace' });
-    await wait(300);
-    const client = await createTestClient(server.port, docName);
-    try {
-      await awaitDocQuiescence(client.doc);
-      const ytext = client.doc.getText('source').toString();
-      expect(ytext).toMatch(/^title: GitHub$/m);
-      expect((ytext.match(/^<Step>$/gm) ?? []).length).toBe(4);
-      expect(ytext).not.toMatch(INDENTED_STEP);
-      expect(ytext).toMatch(/\n {4}### Open the clone dialog/);
-      expect(mdManager.serialize(mdManager.parse(ytext))).toBe(
-        mdManager.serialize(mdManager.parse(md)),
-      );
-    } finally {
-      await client.cleanup();
-    }
-  });
-
   test('live source edit inside a real Step fires no Observer-A re-indent; disk cold-reopen clean', async () => {
-    const md = readFileSync(GITHUB_DOC, 'utf-8');
-    const docName = `real-gh-edit-${crypto.randomUUID()}`;
+    const md = readFileSync(QUICKSTART, 'utf-8');
+    const stepCount = (md.match(/^<Step>$/gm) ?? []).length;
+    expect(stepCount).toBeGreaterThan(1);
+    const docName = `real-qs-edit-${crypto.randomUUID()}`;
     await agentWriteMd(server.port, md, { docName, position: 'replace' });
     await wait(300);
     const client = await createTestClient(server.port, docName);
     try {
       const ytext = client.doc.getText('source');
       await awaitDocQuiescence(client.doc);
-      const anchor = 'Paste a repository URL';
+      const anchor = 'GitQuire ships as one Docker image';
       const at = ytext.toString().indexOf(anchor) + anchor.length;
       expect(at).toBeGreaterThan(anchor.length);
       client.doc.transact(() => ytext.insert(at, ' (edited)'));
       await awaitDocQuiescence(client.doc);
 
       const memory = getServerState(server, docName)?.ytext.toString() ?? '';
-      expect(memory).toContain('Paste a repository URL (edited)');
+      expect(memory).toContain('GitQuire ships as one Docker image (edited)');
       expect(memory).not.toMatch(INDENTED_STEP);
-      expect((memory.match(/^<Step>$/gm) ?? []).length).toBe(4);
-      expect(memory).toMatch(/^title: GitHub$/m);
+      expect((memory.match(/^<Step>$/gm) ?? []).length).toBe(stepCount);
+      expect(memory).toMatch(/^title: Quickstart$/m);
       expect(memory.length).toBeLessThan(md.length + 32);
 
       const disk = await pollDiskContentStable(join(server.contentDir, `${docName}.md`), (c) =>
-        c.includes('Paste a repository URL (edited)'),
+        c.includes('GitQuire ships as one Docker image (edited)'),
       );
       expect(disk).not.toMatch(INDENTED_STEP);
-      expect((disk.match(/^<Step>$/gm) ?? []).length).toBe(4);
+      expect((disk.match(/^<Step>$/gm) ?? []).length).toBe(stepCount);
       expect(disk.trimEnd()).toBe(memory.trimEnd());
     } finally {
       await client.cleanup();

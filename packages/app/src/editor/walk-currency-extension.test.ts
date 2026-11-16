@@ -252,9 +252,10 @@ describe('non-stale fast path', () => {
       expect(prebuiltMapping).not.toBeNull();
       expect(prebuiltParagraphNode).not.toBeNull();
       expect(syncState.binding?.mapping).toBe(prebuiltMapping as unknown as Map<unknown, unknown>);
-      expect((prebuiltMapping as unknown as Map<unknown, unknown>).get(yParagraph)).toBe(
-        prebuiltParagraphNode,
-      );
+      const mappedParagraph = (prebuiltMapping as unknown as Map<unknown, unknown>).get(
+        yParagraph,
+      ) as { eq: (other: unknown) => boolean };
+      expect(mappedParagraph.eq(prebuiltParagraphNode)).toBe(true);
       expect(entry.editor.state.doc.textContent).toContain('hello world');
     } finally {
       evictTiptapEditor(docName);

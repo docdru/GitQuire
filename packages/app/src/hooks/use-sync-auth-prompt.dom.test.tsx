@@ -6,6 +6,10 @@ const toastInfoActions: Array<{ label: string; onClick: () => void } | undefined
 
 import * as actualLinguiMacro from '@lingui/react/macro';
 
+vi.mock('@/lib/gitquire/personal-git-credentials', () => ({
+  PERSONAL_GIT_CREDENTIALS_ENABLED: true,
+}));
+
 vi.doMock('sonner', () => ({
   toast: {
     info: (msg: string, opts?: { action?: { label: string; onClick: () => void } }) => {

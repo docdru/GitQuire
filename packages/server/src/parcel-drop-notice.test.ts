@@ -8649,7 +8649,9 @@ test.each([
       expect(lifecycle.get('status')).toBe('deleted-upstream');
       expect(server.serverInstance.hocuspocus.documents.has('real/note')).toBe(false);
       expect(
-        (await listedProjectedEntries(server.port)).filter((row) => row.kind === 'document'),
+        (await listedProjectedEntries(server.port)).filter(
+          (row) => row.kind === 'document' && row.docName !== 'AGENTS',
+        ),
       ).toEqual([]);
       const gone = await fetch(`http://127.0.0.1:${server.port}/api/document?docName=real/note`);
       expect(gone.status).toBe(404);

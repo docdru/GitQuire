@@ -3,8 +3,8 @@ export const MIGRATED_MODULES: ReadonlyArray<readonly [path: string, messages: n
   ['src/lib/share/publish-wizard.ts', 7],
   ['src/hooks/use-folder-config.ts', 2],
   ['src/editor/utils/editor-strings.ts', 2],
-  ['src/editor/components/IconPickerInput.tsx', 4],
-  ['src/editor/components/ColorPickerInput.tsx', 2],
+  ['src/editor/components/IconPickerInput.tsx', 6],
+  ['src/editor/components/ColorPickerInput.tsx', 3],
   ['src/editor/components/SrcAutocomplete.tsx', 1],
 ];
 

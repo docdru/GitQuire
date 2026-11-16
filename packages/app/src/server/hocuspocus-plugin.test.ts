@@ -82,14 +82,6 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       },
     };
     const createCollaborationHostSpy = vi.fn(() => fakeHost);
-    const acpInit = vi.fn(async () => {});
-    const acpDestroy = vi.fn(async () => {
-      teardownOrder.push('acp');
-    });
-    class FakeAcpThreadManager {
-      init = acpInit;
-      destroy = acpDestroy;
-    }
     const destroyServer = vi.fn(async () => {
       teardownOrder.push('server');
     });
@@ -115,7 +107,6 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
 
     vi.doMock('@inkeep/open-knowledge-server', () => ({
       ...actualServerPkg,
-      AcpThreadManager: FakeAcpThreadManager,
       createAssetServeMiddleware: createAssetServeMiddlewareSpy,
       createCollaborationHost: createCollaborationHostSpy,
       createServer: createServerSpy,
@@ -213,14 +204,13 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
     expect(buildEndSettled).toBe(false);
     httpServer.emit('close');
     expect(fakeHost.shutdown).toHaveBeenCalledOnce();
-    expect(teardownOrder).toEqual(['acp', 'host']);
+    expect(teardownOrder).toEqual(['host']);
     resolveHostShutdown();
     await buildEnd;
     expect(buildEndSettled).toBe(true);
     expect(fakeHost.shutdown).toHaveBeenCalledOnce();
-    expect(acpDestroy).toHaveBeenCalledOnce();
     expect(destroyServer).toHaveBeenCalledOnce();
-    expect(teardownOrder).toEqual(['acp', 'host', 'wss', 'server']);
+    expect(teardownOrder).toEqual(['host', 'wss', 'server']);
     expect(httpServer.listeners('upgrade')).toEqual([]);
   });
 
@@ -236,13 +226,8 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
     }));
     let serverIndex = 0;
     let hostIndex = 0;
-    class FakeAcpThreadManager {
-      async init(): Promise<void> {}
-      async destroy(): Promise<void> {}
-    }
     vi.doMock('@inkeep/open-knowledge-server', () => ({
       ...actualServerPkg,
-      AcpThreadManager: FakeAcpThreadManager,
       createAssetServeMiddleware: () => () => {},
       createCollaborationHost: () => {
         const host = hosts[hostIndex++];
@@ -311,12 +296,6 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       const terminateClient = vi.fn(() => {
         order.push('client');
       });
-      class FakeAcpThreadManager {
-        async init(): Promise<void> {}
-        async destroy(): Promise<void> {
-          order.push('acp');
-        }
-      }
       const host = {
         handleUpgrade: vi.fn(() => false),
         shutdown: vi.fn(async () => {
@@ -334,7 +313,6 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       });
       vi.doMock('@inkeep/open-knowledge-server', () => ({
         ...actualServerPkg,
-        AcpThreadManager: FakeAcpThreadManager,
         createAssetServeMiddleware: () => () => {},
         createCollaborationHost: () => host,
         createServer: () => ({
@@ -372,7 +350,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
         },
       );
       await vi.advanceTimersByTimeAsync(0);
-      expect(order).toEqual(['acp', 'host', 'wss']);
+      expect(order).toEqual(['host', 'wss']);
       expect(buildEndSettled).toBe(false);
 
       await vi.advanceTimersByTimeAsync(4_999);
@@ -385,7 +363,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       expect(terminateClient).toHaveBeenCalledOnce();
       expect(host.wss.close).toHaveBeenCalledOnce();
       expect(destroy).toHaveBeenCalledOnce();
-      expect(order).toEqual(['acp', 'host', 'wss', 'client', 'server']);
+      expect(order).toEqual(['host', 'wss', 'client', 'server']);
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({ err: expect.any(Error) }),
         'Vite collaboration teardown failed: WebSocket server',
@@ -400,13 +378,6 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
     process.env.OK_TEST_CONTENT_DIR = testContentDir;
     const order: string[] = [];
     const logger = { info: vi.fn(), error: vi.fn() };
-    class FakeAcpThreadManager {
-      async init(): Promise<void> {}
-      async destroy(): Promise<void> {
-        order.push('acp');
-        throw new Error('acp failed');
-      }
-    }
     const host = {
       handleUpgrade: vi.fn(() => false),
       shutdown: vi.fn(async () => {
@@ -426,7 +397,6 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
     });
     vi.doMock('@inkeep/open-knowledge-server', () => ({
       ...actualServerPkg,
-      AcpThreadManager: FakeAcpThreadManager,
       createAssetServeMiddleware: () => () => {},
       createCollaborationHost: () => host,
       createServer: () => ({
@@ -469,8 +439,8 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
       throw new Error('runtime teardown did not aggregate phase failures');
     }
     expect(runtimeError.message).toBe('Vite collaboration teardown failed');
-    expect(runtimeError.errors).toHaveLength(4);
-    expect(order).toEqual(['acp', 'host', 'wss', 'server']);
+    expect(runtimeError.errors).toHaveLength(3);
+    expect(order).toEqual(['host', 'wss', 'server']);
 
     httpServer.emit('close');
     await new Promise((resolve) => setTimeout(resolve, 0));
