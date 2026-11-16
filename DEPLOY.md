@@ -385,6 +385,21 @@ One case needs this rename before the old name takes effect: the image itself se
 The `ok` and `open-knowledge` commands are now `gq` and `gitquire`; the old commands still work and
 print a notice.
 
+The data folder `.ok/` is now `.gitquire/` (in the project, in every folder that has its own
+templates or settings, and `~/.ok` in the home folder). Nothing to do by hand: on the first start
+after the upgrade, GitQuire moves each `.ok/` to `.gitquire/`, updates `.ok/` lines in `.gitignore`
+and `.git/info/exclude`, and logs one line per move. With GitHub sync on, the move reaches the
+repository with the next sync as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates
+likewise). Two things to know:
+
+- **Back up the volume first** (`docker run --rm -v gitquire-data:/data -v "$PWD":/b alpine tar czf
+  /b/gitquire-data.tgz -C /data .`). The move is a plain rename and can be undone by renaming back,
+  but only before the next sync.
+- If a folder has both `.ok/` and `.gitquire/`, GitQuire uses `.gitquire/`, leaves `.ok/` in place
+  and says so in the log; merge what you need by hand.
+- Other copies of the wiki still running an older GitQuire stop finding their settings once the
+  rename arrives through Git. Upgrade them too.
+
 ## Environment variable reference
 
 | Variable | Section |
