@@ -430,12 +430,6 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
   const [draftRejected, setDraftRejected] = useState(false);
   const isTagsField = keyName === 'tags';
   const linkPicker = usePropertyLinkPicker();
-  function chooseLink(page: PageItem) {
-    const at = linkPicker.query;
-    if (at === null) return;
-    linkPicker.close();
-    addChip(insertLink(draft, at, page.docName).text);
-  }
   function addChip(raw: string) {
     const trimmed = raw.trim();
     if (!trimmed) return;
@@ -447,6 +441,12 @@ export function ListWidget({ keyName, value, onCommit }: CommonWidgetProps<strin
     setDraftRejected(false);
     onCommit([...value, normalized]);
     setDraft('');
+  }
+  function chooseLink(page: PageItem) {
+    const at = linkPicker.query;
+    if (at === null) return;
+    linkPicker.close();
+    addChip(insertLink(draft, at, page.docName).text);
   }
   function removeChip(index: number) {
     const next = value.slice();
