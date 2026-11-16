@@ -276,8 +276,9 @@ function scriptedProviders(turns: ProviderTurn[]) {
   return {
     requests,
     providers: {
-      async turn(_provider: string, _key: string, request: unknown) {
-        requests.push(structuredClone(request));
+      async turn(_provider: string, _key: string, request: { onText?: unknown }) {
+        const { onText: _onText, ...rest } = request;
+        requests.push(structuredClone(rest));
         const next = turns.shift();
         if (next === undefined) throw new Error('no more turns');
         return next;
@@ -301,6 +302,41 @@ function fakeTools(): WikiTools & { calls: string[] } {
 }
 
 describe('the chat loop', () => {
+  it('passes streamed text on before the step is saved', async () => {
+    const chat = chatRecord();
+    const providers = {
+      async turn(_p: string, _k: string, request: { onText?: (delta: string) => void }) {
+        request.onText?.('Fix');
+        request.onText?.('ed.');
+        return {
+          text: 'Fixed.',
+          toolCalls: [],
+          usage: { inputTokens: 1, outputTokens: 2 },
+          stopReason: 'end' as const,
+        };
+      },
+      async checkKey() {},
+    };
+    const events: ChatEvent[] = [];
+    await runChatTurn({
+      chat,
+      apiKey: 'k',
+      providers,
+      tools: fakeTools(),
+      system: 'sys',
+      emit: (event) => events.push(event),
+      persist: () => {},
+    });
+    expect(events.map((event) => event.type)).toEqual([
+      'text-delta',
+      'text-delta',
+      'usage',
+      'text',
+      'done',
+    ]);
+    expect(chat.messages.at(-1)).toMatchObject({ role: 'assistant', text: 'Fixed.' });
+  });
+
   it('runs tools until the model answers, saving each step', async () => {
     const chat = chatRecord();
     const { providers, requests } = scriptedProviders([

@@ -64,6 +64,7 @@ type ChatStopReason = 'end' | 'step-limit' | 'max-tokens' | 'context-full' | 'ab
 
 export type ChatEvent =
   | { type: 'chat'; id: string; title: string; provider: ChatProvider; model: string }
+  | { type: 'text-delta'; text: string }
   | { type: 'text'; text: string }
   | { type: 'tool'; id: string; name: string; input: Record<string, unknown> }
   | { type: 'tool-result'; id: string; name: string; isError: boolean; preview: string }

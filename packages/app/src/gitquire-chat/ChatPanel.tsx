@@ -350,6 +350,7 @@ export function ChatPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const counter = useRef(0);
+  const streamingKey = useRef<string | null>(null);
 
   const loadOverview = useEffectEvent(() => {
     fetchChatOverview().then(
@@ -421,17 +422,51 @@ export function ChatPanel() {
   }
 
   function handleEvent(event: ChatEvent) {
+    if (event.type !== 'text-delta' && event.type !== 'text' && event.type !== 'usage') {
+      streamingKey.current = null;
+    }
     switch (event.type) {
       case 'chat':
         setChatId(event.id);
         setTitle(event.title);
         return;
-      case 'text':
-        setItems((current) => [
-          ...current,
-          { kind: 'assistant', key: nextKey(), text: event.text },
-        ]);
+      case 'text-delta': {
+        const key = streamingKey.current;
+        if (key === null) {
+          const created = nextKey();
+          streamingKey.current = created;
+          setItems((current) => [
+            ...current,
+            { kind: 'assistant', key: created, text: event.text },
+          ]);
+          return;
+        }
+        setItems((current) =>
+          current.map((item) =>
+            item.kind === 'assistant' && item.key === key
+              ? { ...item, text: `${item.text}${event.text}` }
+              : item,
+          ),
+        );
         return;
+      }
+      case 'text': {
+        const key = streamingKey.current;
+        streamingKey.current = null;
+        if (key === null) {
+          setItems((current) => [
+            ...current,
+            { kind: 'assistant', key: nextKey(), text: event.text },
+          ]);
+          return;
+        }
+        setItems((current) =>
+          current.map((item) =>
+            item.kind === 'assistant' && item.key === key ? { ...item, text: event.text } : item,
+          ),
+        );
+        return;
+      }
       case 'tool':
         setItems((current) => [
           ...current,
@@ -513,6 +548,7 @@ export function ChatPanel() {
       (err: unknown) => err ?? new Error('failed'),
     );
     controllerRef.current = null;
+    streamingKey.current = null;
     setSending(false);
     refreshChats();
     setItems((current) =>

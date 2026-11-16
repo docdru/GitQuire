@@ -11,6 +11,7 @@ const PREVIEW_CHARS = 400;
 
 export type ChatEvent =
   | { type: 'chat'; id: string; title: string; provider: string; model: string }
+  | { type: 'text-delta'; text: string }
   | { type: 'text'; text: string }
   | { type: 'tool'; id: string; name: string; input: Record<string, unknown> }
   | { type: 'tool-result'; id: string; name: string; isError: boolean; preview: string }
@@ -116,6 +117,7 @@ export async function runChatTurn(options: {
         tools: options.tools.specs,
         maxTokens: MAX_REPLY_TOKENS,
         signal,
+        onText: (delta) => emit({ type: 'text-delta', text: delta }),
       });
     } catch (err) {
       if (signal?.aborted) return finish('aborted');
