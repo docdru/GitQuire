@@ -106,6 +106,9 @@ msgstr "{0, plural, one {# élément} many {# éléments} other {# éléments}}"
 msgid "{0, plural, one {# key} other {# keys}}"
 msgstr "{0, plural, one {# clé} many {# clés} other {# clés}}"
 
+msgid "{0, plural, one {# link} other {# links}}"
+msgstr ""
+
 msgid "{0, plural, one {# more} other {# more}}"
 msgstr ""
 
@@ -4130,6 +4133,9 @@ msgstr "Chargement du PDF"
 msgid "Loading preview"
 msgstr "Chargement de l'aperçu"
 
+msgid "Loading relation names"
+msgstr ""
+
 msgid "Loading repositories"
 msgstr "Chargement des dépôts"
 
@@ -4827,6 +4833,12 @@ msgid "No property with a few values to group by. Set \"group:\" in the view blo
 msgstr ""
 
 msgid "No relation"
+msgstr ""
+
+msgid "No relation is named like \"{trimmed}\" yet. Keep typing to use it as a new one."
+msgstr ""
+
+msgid "No relations yet. Type a name before :: to start one."
 msgstr ""
 
 msgid "No repositories found on your GitHub account."
@@ -5742,7 +5754,13 @@ msgstr "Contenu récupéré"
 msgid "Redo"
 msgstr "Rétablir"
 
+msgid "Relation {name}, {uses}"
+msgstr ""
+
 msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr ""
+
+msgid "Relation suggestions"
 msgstr ""
 
 msgid "Relations"

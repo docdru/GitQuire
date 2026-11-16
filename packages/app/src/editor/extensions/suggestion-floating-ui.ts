@@ -74,6 +74,7 @@ export type SuggestionPopupLabel =
   | 'slash-command'
   | 'tag-suggestion'
   | 'people-suggestion'
+  | 'relation-suggestion'
   | 'wiki-link-suggestion';
 
 export function createSuggestionPopup(
