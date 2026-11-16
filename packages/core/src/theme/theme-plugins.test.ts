@@ -66,30 +66,30 @@ function expectMutedTextReadable(label: string, tokens: Record<string, string>):
 
 function expectEditorMarksReadable(label: string, tokens: Record<string, string>): void {
   for (const name of [
-    'ok-codeblock-title-bg',
-    'ok-codeblock-title-foreground',
-    'ok-comment-hue',
-    'ok-diff-del',
-    'ok-diff-del-foreground',
-    'ok-unresolved-link',
+    'gq-codeblock-title-bg',
+    'gq-codeblock-title-foreground',
+    'gq-comment-hue',
+    'gq-diff-del',
+    'gq-diff-del-foreground',
+    'gq-unresolved-link',
     'broken-link-color',
   ]) {
     expect(tokens[name], `${label} ${name}`).toMatch(HEX_TOKEN);
   }
   const page = tokens.background ?? '';
   expect(
-    contrast(tokens['ok-codeblock-title-foreground'] ?? '', tokens['ok-codeblock-title-bg'] ?? ''),
+    contrast(tokens['gq-codeblock-title-foreground'] ?? '', tokens['gq-codeblock-title-bg'] ?? ''),
     `${label} code block title`,
   ).toBeGreaterThanOrEqual(4.5);
   expect(
-    contrast(mixHex(page, tokens['ok-comment-hue'] ?? '', COMMENT_RESTING_LINE_ALPHA), page),
+    contrast(mixHex(page, tokens['gq-comment-hue'] ?? '', COMMENT_RESTING_LINE_ALPHA), page),
     `${label} resting comment underline`,
   ).toBeGreaterThanOrEqual(3);
   const faded = (color: string) => mixHex(page, color, DIFF_DELETION_OPACITY);
   expect(
     contrast(
-      faded(tokens['ok-diff-del-foreground'] ?? ''),
-      faded(mixHex(page, tokens['ok-diff-del'] ?? '', DIFF_DELETION_TINT)),
+      faded(tokens['gq-diff-del-foreground'] ?? ''),
+      faded(mixHex(page, tokens['gq-diff-del'] ?? '', DIFF_DELETION_TINT)),
     ),
     `${label} deleted text in a rendered diff`,
   ).toBeGreaterThanOrEqual(4.5);
@@ -97,7 +97,7 @@ function expectEditorMarksReadable(label: string, tokens: Record<string, string>
     .filter(([token]) => token.startsWith('callout-'))
     .map(([token, accent]) => [`${token} wash`, mixHex(page, accent, CALLOUT_WASH_TINT)] as const);
   expect(calloutWashes.length, `${label} callout colors`).toBeGreaterThan(0);
-  for (const name of ['ok-unresolved-link', 'broken-link-color', 'link-color']) {
+  for (const name of ['gq-unresolved-link', 'broken-link-color', 'link-color']) {
     for (const [surface, color] of [
       ['background', page],
       ['muted', tokens.muted ?? ''],
@@ -116,13 +116,13 @@ function expectTextReadableUnderFindHighlights(
   tokens: Record<string, string>,
 ): void {
   const page = tokens.background ?? '';
-  const text = tokens['ok-editor-text'] ?? '';
+  const text = tokens['gq-editor-text'] ?? '';
   for (const [name, tint, highlight] of [
-    ['ok-find-match', EDITOR_FIND_TINT, 'editor find match'],
-    ['ok-find-match-active', EDITOR_FIND_ACTIVE_TINT, 'active editor find match'],
-    ['ok-viewer-find-match', VIEWER_FIND_TINT, 'viewer find match'],
+    ['gq-find-match', EDITOR_FIND_TINT, 'editor find match'],
+    ['gq-find-match-active', EDITOR_FIND_ACTIVE_TINT, 'active editor find match'],
+    ['gq-viewer-find-match', VIEWER_FIND_TINT, 'viewer find match'],
     [
-      'ok-viewer-find-match',
+      'gq-viewer-find-match',
       1 - (1 - VIEWER_FIND_TINT) * (1 - VIEWER_FIND_ACTIVE_TINT),
       'active viewer find match',
     ],
@@ -315,7 +315,7 @@ describe('token mapping + generateColorThemesCss', () => {
         ['sidebar-selected', 'sidebar-selected-foreground', 4.5],
         ['sidebar-selected', 'sidebar-selected-muted-foreground', 4.5],
         ['sidebar-selected', 'sidebar-selected-destructive-foreground', 3],
-        ['sidebar', 'ok-tree-muted', 3],
+        ['sidebar', 'gq-tree-muted', 3],
       ] as const) {
         const background = relativeLuminance(tokens[backgroundToken] ?? '');
         const foreground = relativeLuminance(tokens[foregroundToken] ?? '');
@@ -423,7 +423,7 @@ describe('token mapping + generateColorThemesCss', () => {
     for (const [backgroundToken, foregroundToken] of [
       ['sidebar-hover', 'sidebar-hover-destructive-foreground'],
       ['sidebar-selected', 'sidebar-selected-destructive-foreground'],
-      ['sidebar', 'ok-tree-muted'],
+      ['sidebar', 'gq-tree-muted'],
     ] as const) {
       const background = relativeLuminance(tokens[backgroundToken] ?? '');
       const foreground = relativeLuminance(tokens[foregroundToken] ?? '');
