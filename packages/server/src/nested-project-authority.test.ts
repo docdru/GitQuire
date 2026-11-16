@@ -115,58 +115,34 @@ test('failed startup logs why missing-document admission is refused', async () =
   }
 }, 30_000);
 
-test.each(['rebuild', 'skill-ingestion'] as const)(
-  'missing-document admission does not await startup %s',
-  async (phase) => {
-    const root = mkdtempSync(join(tmpdir(), 'ok-removal-ready-'));
-    seedProject(root);
-    if (phase === 'skill-ingestion') {
-      const index = new BacklinkIndex({ projectDir: root, contentDir: root });
-      index.updateDocumentFromMarkdown('deleted', '# Cached\n');
-      await index.saveToDisk();
-    }
-    const entered = Promise.withResolvers<void>();
-    const release = Promise.withResolvers<void>();
-    if (phase === 'rebuild') {
-      const original = BacklinkIndex.prototype.rebuildFromDisk;
-      vi.spyOn(BacklinkIndex.prototype, 'rebuildFromDisk').mockImplementation(
-        async function (branch) {
-          entered.resolve();
-          await release.promise;
-          return original.call(this, branch);
-        },
-      );
-    } else {
-      const original = BacklinkIndex.prototype.ingestGlobalSkillBundles;
-      vi.spyOn(BacklinkIndex.prototype, 'ingestGlobalSkillBundles').mockImplementation(
-        async function (...args) {
-          entered.resolve();
-          await release.promise;
-          return original.apply(this, args);
-        },
-      );
-    }
-    let owner: BootedServer | undefined;
-    try {
-      owner = await bootCompositionRig(root);
-      await Promise.race([
-        entered.promise,
-        owner.ready.then(() => {
-          throw new Error(`Startup completed without reaching paused ${phase}`);
-        }),
-      ]);
-      expect(await authenticate(owner.port, 'new-page')).toBe('authenticated');
-      if (phase === 'skill-ingestion')
-        expect(await authenticate(owner.port, 'deleted')).toContain('doc-deleted');
-    } finally {
-      release.resolve();
-      vi.restoreAllMocks();
-      await owner?.destroy();
-      rmSync(root, { recursive: true, force: true });
-    }
-  },
-  30_000,
-);
+test('missing-document admission does not await the startup rebuild', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'ok-removal-ready-'));
+  seedProject(root);
+  const entered = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  const original = BacklinkIndex.prototype.rebuildFromDisk;
+  vi.spyOn(BacklinkIndex.prototype, 'rebuildFromDisk').mockImplementation(async function (branch) {
+    entered.resolve();
+    await release.promise;
+    return original.call(this, branch);
+  });
+  let owner: BootedServer | undefined;
+  try {
+    owner = await bootCompositionRig(root);
+    await Promise.race([
+      entered.promise,
+      owner.ready.then(() => {
+        throw new Error('Startup completed without reaching the paused rebuild');
+      }),
+    ]);
+    expect(await authenticate(owner.port, 'new-page')).toBe('authenticated');
+  } finally {
+    release.resolve();
+    vi.restoreAllMocks();
+    await owner?.destroy();
+    rmSync(root, { recursive: true, force: true });
+  }
+}, 30_000);
 
 test('startup refreshes embeds loaded before asset indexes without blocking authentication', async () => {
   const root = mkdtempSync(join(tmpdir(), 'ok-auth-ready-'));

@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-import { skillFileLiveDocName } from '../constants/cc1.ts';
 import {
   decodeHrefPathSegment,
   encodeHrefPath,
@@ -237,25 +236,6 @@ describe('resolveInternalHref', () => {
         anchor: null,
       });
     });
-  });
-
-  describe('skill bundle relative references (§8.3)', () => {
-    for (const scope of ['global', 'project'] as const) {
-      test(`references/setup.md from a ${scope} SKILL.md → the reference doc`, () => {
-        const base = skillFileLiveDocName(scope, 'demo', 'SKILL');
-        expect(resolveInternalHref('references/setup.md', base)).toEqual({
-          docName: skillFileLiveDocName(scope, 'demo', 'references/setup'),
-          anchor: null,
-        });
-      });
-      test(`a sibling link from a ${scope} reference resolves within references/`, () => {
-        const base = skillFileLiveDocName(scope, 'demo', 'references/setup');
-        expect(resolveInternalHref('anti-patterns.md', base)).toEqual({
-          docName: skillFileLiveDocName(scope, 'demo', 'references/anti-patterns'),
-          anchor: null,
-        });
-      });
-    }
   });
 });
 

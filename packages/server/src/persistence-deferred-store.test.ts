@@ -986,13 +986,7 @@ describe('forceStore dispatch (staleness watchdog entry point)', () => {
     document.getText('source').insert(0, 'anything\n');
 
     setBatchInProgress(true);
-    for (const name of [
-      '__system__',
-      '__config__/project',
-      '__skill__/project/foo',
-      'diagram.mmd',
-      'assets/flow.mermaid',
-    ]) {
+    for (const name of ['__system__', '__config__/project', 'diagram.mmd', 'assets/flow.mermaid']) {
       await persistence.forceStore(document, name);
     }
 

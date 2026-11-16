@@ -1004,7 +1004,7 @@ describe('rewriteWikiLinksForDocumentRename — escaped alias separators inside 
     ],
   ])('synthesized alias keeps the table row intact', (before, after) => {
     const context = createWikiRenameContext(['beta'], new Map([['beta', 'gamma']]));
-    const result = rewriteWikiLinksForRenameMap(before, 'index', context);
+    const result = rewriteWikiLinksForRenameMap(before, context);
     expect(result).toEqual({ markdown: after, rewrites: 1 });
     expect(dataRowCellCount(result.markdown)).toBe(dataRowCellCount(before));
     expect(findWikiLinkAttrs(mdManager.parse(result.markdown) as unknown as PmJson)).toMatchObject({
@@ -1028,7 +1028,7 @@ describe('rewriteWikiLinksForDocumentRename — escaped alias separators inside 
     ['| A |\n| --- |\n| x |\n[[beta]]', '| A |\n| --- |\n| x |\n[[gamma\\|beta]]'],
   ])('synthesized alias keeps every GFM table form intact: %j', (before, after) => {
     const context = createWikiRenameContext(['beta'], new Map([['beta', 'gamma']]));
-    const result = rewriteWikiLinksForRenameMap(before, 'index', context);
+    const result = rewriteWikiLinksForRenameMap(before, context);
     expect(result).toEqual({ markdown: after, rewrites: 1 });
     expect(dataRowCellCount(result.markdown)).toBe(dataRowCellCount(before));
     expect(findWikiLinkAttrs(mdManager.parse(result.markdown) as unknown as PmJson)).toMatchObject({
@@ -1045,7 +1045,7 @@ describe('rewriteWikiLinksForDocumentRename — escaped alias separators inside 
     ['```\n| A |\n| --- |\n```\n[[beta]]', '```\n| A |\n| --- |\n```\n[[gamma|beta]]'],
   ])('synthesized alias outside a GFM table stays unescaped: %j', (before, after) => {
     const context = createWikiRenameContext(['beta'], new Map([['beta', 'gamma']]));
-    expect(rewriteWikiLinksForRenameMap(before, 'index', context)).toEqual({
+    expect(rewriteWikiLinksForRenameMap(before, context)).toEqual({
       markdown: after,
       rewrites: 1,
     });

@@ -1,12 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readdirSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
-import {
-  fnv1aDigest,
-  MANAGED_ARTIFACT_PREFIX_EXTSKILL,
-  MANAGED_ARTIFACT_PREFIX_SKILL,
-  MANAGED_ARTIFACT_PREFIX_TEMPLATE,
-} from '@inkeep/open-knowledge-core';
+import { fnv1aDigest, MANAGED_ARTIFACT_PREFIX_TEMPLATE } from '@inkeep/open-knowledge-core';
 import { atomicWriteFile, okUserHomeDir } from '@inkeep/open-knowledge-core/server';
 import { displayPathFor } from './display-path.ts';
 import { tracedAtomicFs, tracedMkdir, tracedUnlinkSync } from './fs-traced.ts';
@@ -30,12 +25,9 @@ export interface BackupCopy {
 
 function discardedEditStashKey(documentName: string): string {
   const legacy = documentName.replace(/[^A-Za-z0-9._-]+/g, '__');
-  const prefix = [
-    MANAGED_ARTIFACT_PREFIX_SKILL,
-    MANAGED_ARTIFACT_PREFIX_TEMPLATE,
-    MANAGED_ARTIFACT_PREFIX_EXTSKILL,
-  ].find((p) => documentName.startsWith(p));
-  const rest = prefix === undefined ? documentName : documentName.slice(prefix.length);
+  const rest = documentName.startsWith(MANAGED_ARTIFACT_PREFIX_TEMPLATE)
+    ? documentName.slice(MANAGED_ARTIFACT_PREFIX_TEMPLATE.length)
+    : documentName;
   if (rest.split('/').every((segment) => UNAMBIGUOUS_STASH_SEGMENT_RE.test(segment))) {
     return legacy;
   }

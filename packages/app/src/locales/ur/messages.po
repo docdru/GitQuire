@@ -175,9 +175,6 @@ msgstr ""
 msgid "{0} is over {destination}."
 msgstr "{0} {destination} کے اوپر ہے۔"
 
-msgid "{0} of {1} projects selected"
-msgstr "{1} میں سے {0} پروجیکٹ منتخب"
-
 msgid "{0} pages changed"
 msgstr ""
 
@@ -754,9 +751,6 @@ msgstr "ایڈیٹر کا اگلا ٹیب فعال کریں۔"
 msgid "Activate the previous editor tab."
 msgstr "ایڈیٹر کا پچھلا ٹیب فعال کریں۔"
 
-msgid "active"
-msgstr "فعال"
-
 msgid "Active"
 msgstr "فعال"
 
@@ -955,9 +949,6 @@ msgstr "اجازت شدہ اقدار (خالی = کوئی بھی)"
 msgid "Allowed values for {field}"
 msgstr "{field} کے لیے اجازت شدہ اقدار"
 
-msgid "Almost done. Here's what happened and what's left."
-msgstr "تقریباً مکمل ہو گیا۔ دیکھیں کیا ہوا اور کیا باقی ہے۔"
-
 msgid "Already at {assetContentPath} — reusing."
 msgstr "پہلے ہی {assetContentPath} پر — دوبارہ استعمال کیا جا رہا ہے۔"
 
@@ -1014,9 +1005,6 @@ msgstr ""
 
 msgid "Anyone can see"
 msgstr "کوئی بھی دیکھ سکتا ہے"
-
-msgid "Anything you'd like to add? (optional)"
-msgstr "کچھ اور شامل کرنا چاہیں گے؟ (اختیاری)"
 
 msgid "API key"
 msgstr ""
@@ -1250,9 +1238,6 @@ msgstr "باہر کی تبدیلی مرج ہونے سے پہلے"
 msgid "Before syncing, set your identity for git commits:"
 msgstr "مطابقت پذیری سے پہلے، git کمٹس کے لیے اپنی شناخت مقرر کریں:"
 
-msgid "Before you go, mind sharing why?"
-msgstr "جانے سے پہلے، وجہ بتانا پسند کریں گے؟"
-
 msgid "Being written"
 msgstr ""
 
@@ -1328,9 +1313,6 @@ msgstr "سینکڑوں تھیمز دیکھیں"
 
 msgid "Browse your repos:"
 msgstr "اپنی ریپوز براؤز کریں:"
-
-msgid "Bugs, crashes, or it felt unreliable"
-msgstr "بگز، کریشز، یا یہ ناقابلِ اعتماد لگا"
 
 msgid "Build a competitor research knowledge base. Start with an overview page, then add cross-linked pages for each competitor, their products and pricing, and the sources behind every claim."
 msgstr "حریفوں کی تحقیق کا نالج بیس بنائیں۔ ایک جائزہ صفحے سے شروع کریں، پھر ہر حریف، ان کی مصنوعات اور قیمتوں، اور ہر دعوے کے پیچھے موجود مآخذ کے لیے باہم مربوط صفحات شامل کریں۔"
@@ -1506,15 +1488,6 @@ msgstr ""
 
 msgid "Claude, for {0}"
 msgstr ""
-
-msgid "Cleanup didn’t finish"
-msgstr "صفائی مکمل نہیں ہوئی"
-
-msgid "Cleanup log"
-msgstr "صفائی کا لاگ"
-
-msgid "Cleanup may still be running."
-msgstr "ممکن ہے صفائی ابھی جاری ہو۔"
 
 msgid "Clear"
 msgstr "صاف کریں"
@@ -2359,9 +2332,6 @@ msgstr "منقطع HEAD — جاری رکھنے کے لیے کوئی برانچ 
 msgid "Details"
 msgstr "تفصیلات"
 
-msgid "Detected GitQuire projects"
-msgstr "پائے گئے GitQuire پروجیکٹس"
-
 msgid "Diagram"
 msgstr "خاکہ"
 
@@ -2484,9 +2454,6 @@ msgstr "مکمل"
 
 msgid "Done, due earlier"
 msgstr ""
-
-msgid "Done."
-msgstr "مکمل۔"
 
 msgid "Double-click to edit"
 msgstr "ترمیم کے لیے ڈبل کلک کریں"
@@ -3434,9 +3401,6 @@ msgstr "GitQuire انڈیکس کی دیکھ بھال کی جانچ کے لیے �
 msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
 msgstr "GitQuire ہر فولڈر میں index.md نامی نیویگیشن فائل بناتا اور برقرار رکھتا ہے جس میں Markdown ہوتا ہے۔"
 
-msgid "GitQuire files were removed"
-msgstr "GitQuire کی فائلیں ہٹا دی گئیں"
-
 msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
 msgstr "GitQuire نے اس ہوسٹ کے لیے کوئی کریڈینشل محفوظ نہیں کیا۔ ترتیبات میں ٹوکن شامل کریں، یا git کو وہ کریڈینشلز استعمال کرنے دیں جو اس کے پاس پہلے سے ہیں۔"
 
@@ -3698,9 +3662,6 @@ msgstr "https://github.com/owner/repo یا owner/repo"
 msgid "Hubs"
 msgstr "مراکز"
 
-msgid "I'm switching to another tool"
-msgstr "میں کسی دوسرے ٹول پر جا رہا ہوں"
-
 msgid "Icon picker"
 msgstr "آئیکن منتخب کنندہ"
 
@@ -3908,18 +3869,6 @@ msgstr "غلط پیچ پے لوڈ"
 msgid "Invalid YAML"
 msgstr "YAML درست نہیں"
 
-msgid "It didn't fit into my workflow"
-msgstr "یہ میرے ورک فلو میں فٹ نہیں بیٹھا"
-
-msgid "It was a trial or one-off project"
-msgstr "یہ ایک آزمائشی یا ایک بار کا پروجیکٹ تھا"
-
-msgid "It was missing a feature I needed"
-msgstr "اس میں وہ خصوصیت نہیں تھی جو مجھے درکار تھی"
-
-msgid "It was too hard to set up or get started"
-msgstr "اسے ترتیب دینا یا شروع کرنا بہت مشکل تھا"
-
 msgid "Italic"
 msgstr "ترچھا"
 
@@ -3979,9 +3928,6 @@ msgstr ""
 
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "آپ کے علمی ذخیرے کو Open Knowledge Format کے مطابق رکھتا ہے۔"
-
-msgid "Kept your content"
-msgstr "آپ کا مواد محفوظ رکھا گیا"
 
 msgid "Key ending in {keyHint}"
 msgstr "{keyHint} پر ختم ہونے والی کلید"
@@ -4045,9 +3991,6 @@ msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Tab کو سورس ایڈیٹر سے باہر نکلنے دیں، اندروں کھسکانے کے بجائے۔"
-
-msgid "Let us follow up by email"
-msgstr "ہمیں ای میل کے ذریعے رابطہ کرنے دیں"
 
 msgid "Light"
 msgstr "روشن"
@@ -4313,9 +4256,6 @@ msgstr "Markdown"
 msgid "Markdown checks do not apply to this file."
 msgstr "Markdown کی جانچیں اس فائل پر لاگو نہیں ہوتیں۔"
 
-msgid "Markdown files and authored skills were left untouched."
-msgstr "Markdown فائلوں اور آپ کی بنائی ہوئی اسکلز میں کوئی تبدیلی نہیں کی گئی۔"
-
 msgid "Markdown source"
 msgstr "Markdown سورس"
 
@@ -4501,9 +4441,6 @@ msgstr "ایڈیٹر کو ونڈو کے دائیں کنارے پر منتقل ک
 
 msgid "Move Editor to the top edge of the window"
 msgstr "ایڈیٹر کو ونڈو کے اوپری کنارے پر منتقل کریں"
-
-msgid "Move GitQuire.app to the Trash"
-msgstr "GitQuire.app کو کوڑے دان میں منتقل کریں"
 
 msgid "Move into draft"
 msgstr ""
@@ -4717,9 +4654,6 @@ msgstr "ابھی کوئی <0>.markdownlint.*</0> فائل نہیں — ہر قا
 
 msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
 msgstr ""
-
-msgid "No active or recent GitQuire projects were found."
-msgstr "کوئی فعال یا حالیہ GitQuire پروجیکٹ نہیں ملا۔"
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "اس اینڈ پوائنٹ کے لیے کوئی API کلید مقرر نہیں۔ اوپر ایک شامل کریں۔"
@@ -5571,9 +5505,6 @@ msgstr "تلاش تیار کی جا رہی ہے"
 msgid "Preparing share URL..."
 msgstr "شیئر URL تیار کیا جا رہا ہے..."
 
-msgid "Preparing to uninstall GitQuire"
-msgstr "GitQuire کی تنصیب ختم کرنے کی تیاری"
-
 msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
 msgstr "کسی دستاویز کو الگ ونڈو میں سلائیڈ ڈیک کے طور پر پیش کریں۔ یہ صرف GitQuire ڈیسک ٹاپ ایپ میں کام کرتا ہے اور اس کے لیے Slidev CLI درکار ہے، جسے آپ الگ سے انسٹال کرتے ہیں۔ فعال ہونے پر یہ سائیڈبار میں Plugins کے نیچے ظاہر ہوتا ہے۔"
 
@@ -5811,9 +5742,6 @@ msgstr ""
 msgid "Receiving objects"
 msgstr "اشیاء وصول کی جا رہی ہیں"
 
-msgid "recent"
-msgstr "حالیہ"
-
 msgid "Recently closed"
 msgstr ""
 
@@ -5904,9 +5832,6 @@ msgstr "فیلڈ {field} ہٹائیں"
 msgid "Remove from recent projects"
 msgstr "حالیہ پروجیکٹس سے ہٹائیں"
 
-msgid "Remove GitQuire from {0}"
-msgstr "GitQuire کو {0} سے ہٹائیں"
-
 msgid "Remove item {0}"
 msgstr "آئٹم {0} ہٹائیں"
 
@@ -5924,12 +5849,6 @@ msgstr "راستے کے شروع یا آخر کی خالی جگہیں ہٹا د�
 
 msgid "Removed"
 msgstr "ہٹا دیا گیا"
-
-msgid "Removed GitQuire files"
-msgstr "GitQuire کی فائلیں ہٹا دی گئیں"
-
-msgid "Removing GitQuire files…"
-msgstr "GitQuire کی فائلیں ہٹائی جا رہی ہیں…"
 
 msgid "Rename"
 msgstr "نام بدلیں"
@@ -6141,12 +6060,6 @@ msgstr "سائیڈ بارز میں کلک کرتے وقت ایک ہی ٹیب د�
 
 msgid "Reused if it already exists, created if not."
 msgstr "اگر پہلے سے موجود ہو تو دوبارہ استعمال ہوتا ہے، ورنہ بن جاتا ہے۔"
-
-msgid "Reveal in Finder"
-msgstr "Finder میں دکھائیں"
-
-msgid "Reveal in Finder shows the app so you can drag it to the Trash."
-msgstr "Finder میں دکھائیں سے ایپ دکھائی دیتی ہے تاکہ آپ اسے کوڑے دان میں کھینچ سکیں۔"
 
 msgid "Revenue"
 msgstr ""
@@ -6367,9 +6280,6 @@ msgstr "{slot} منتخب کریں — {0}"
 msgid "Select a value"
 msgstr "کوئی قدر منتخب کریں"
 
-msgid "Select all"
-msgstr "سب منتخب کریں"
-
 msgid "Select all files and folders"
 msgstr "تمام فائلیں اور فولڈرز منتخب کریں"
 
@@ -6432,9 +6342,6 @@ msgstr "معنوی تلاش فعال ہے، مگر کوئی API کلید مقر�
 
 msgid "Send"
 msgstr "بھیجیں"
-
-msgid "Send & continue"
-msgstr "بھیجیں اور جاری رکھیں"
 
 msgid "Send a new code"
 msgstr ""
@@ -6511,9 +6418,6 @@ msgstr "ترتیب دیا جا رہا ہے"
 msgid "Settings"
 msgstr "ترتیبات"
 
-msgid "Settings and integrations were cleaned up."
-msgstr "ترتیبات اور انضمام ہٹا دیے گئے۔"
-
 msgid "Settings are still loading. Try again in a moment."
 msgstr "ترتیبات ابھی لوڈ ہو رہی ہیں۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔"
 
@@ -6540,9 +6444,6 @@ msgstr "شیئر کریں"
 
 msgid "Share doc"
 msgstr "دستاویز شیئر کریں"
-
-msgid "Share feedback"
-msgstr "رائے شیئر کریں"
 
 msgid "Share folder"
 msgstr "فولڈر شیئر کریں"
@@ -6733,9 +6634,6 @@ msgstr "کچھ ترامیم ابھی سرور تک نہیں پہنچیں، اس 
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "کچھ فائلیں فہرست میں نہیں ہیں: ورکنگ ٹری میں بہت زیادہ تبدیلیاں ہیں۔"
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
-msgstr "ممکن ہے کچھ فائلیں نہ ہٹی ہوں۔ تفصیلات کے لیے صفائی کا لاگ کھولیں۔ دوبارہ کوشش کرنے کے لیے GitQuire پھر سے کھول سکتے ہیں۔"
-
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "تھیم فولڈر اسکین کی حد سے بڑا ہونے کی وجہ سے کچھ محفوظ شدہ تھیمز نہیں دکھائی جا رہیں۔"
 
@@ -6747,9 +6645,6 @@ msgstr "ہو سکتا ہے کسی نے {filePath} کا تنازع پہلے ہی 
 
 msgid "Something broke"
 msgstr "کچھ ٹوٹ گیا"
-
-msgid "Something else"
-msgstr "کچھ اور"
 
 msgid "Something went wrong"
 msgstr "کچھ غلط ہو گیا"
@@ -7048,9 +6943,6 @@ msgstr "کاموں کی فہرست"
 msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
 msgstr ""
 
-msgid "Tell us how it's going"
-msgstr "ہمیں بتائیں کہ کیسا چل رہا ہے"
-
 msgid "Tell us more (optional)"
 msgstr "ہمیں مزید بتائیں (اختیاری)"
 
@@ -7089,9 +6981,6 @@ msgstr "جانچا جا رہا ہے"
 
 msgid "Text"
 msgstr "متن"
-
-msgid "Thanks for giving GitQuire a try."
-msgstr "GitQuire آزمانے کا شکریہ۔"
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "رکنیت لینے کا شکریہ۔ مصنوعات کی اپ ڈیٹس کے لیے اپنا اِن باکس دیکھتے رہیں۔"
@@ -7498,9 +7387,6 @@ msgstr "یہ فہرست پرانی ہو سکتی ہے — آخری بار پڑھ
 msgid "This list may be out of date."
 msgstr "یہ فہرست پرانی ہو سکتی ہے۔"
 
-msgid "This may take a moment. Your markdown content is kept."
-msgstr "اس میں تھوڑا وقت لگ سکتا ہے۔ آپ کا Markdown مواد محفوظ رہتا ہے۔"
-
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
@@ -7545,9 +7431,6 @@ msgstr "یہ پروجیکٹ صرف اسی کمپیوٹر پر ہے۔ اس کا �
 
 msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
 msgstr "اس پروجیکٹ کا چلتا ہوا سرور براہِ راست ترمیم کی حمایت نہیں کرتا۔ ٹھیک کرنے کے لیے GitQuire دوبارہ چلائیں۔"
-
-msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "یہ GitQuire کی ترتیبات اور انضمامات کو آپ کے Mac اور نیچے منتخب کیے گئے پروجیکٹس سے ہٹا دیتا ہے، مگر آپ کا Markdown مواد اور لکھی گئی مہارتیں برقرار رکھتا ہے۔"
 
 msgid "This repository has no commits yet — reopen the project to create the first commit, then Push will work"
 msgstr "اس ریپازٹری میں ابھی کوئی کمٹ نہیں ہے — پہلا کمٹ بنانے کے لیے پروجیکٹ دوبارہ کھولیں، پھر پُش کام کرے گا"
@@ -7621,9 +7504,6 @@ msgstr "عنوان"
 
 msgid "To do"
 msgstr "کرنا ہے"
-
-msgid "To do."
-msgstr "کرنا ہے۔"
 
 msgid "Today"
 msgstr "آج"
@@ -7800,9 +7680,6 @@ msgstr "ترمیم کے لیے لکھیں؛ <0>Cmd/Ctrl+Enter</0> محفوظ ک�
 msgid "Type to find a doc"
 msgstr "دستاویز ڈھونڈنے کے لیے لکھیں"
 
-msgid "Unable to show the cleanup result"
-msgstr "صفائی کا نتیجہ نہیں دکھایا جا سکا"
-
 msgid "Uncommitted changes"
 msgstr "غیر کمٹ شدہ تبدیلیاں"
 
@@ -7841,12 +7718,6 @@ msgstr "اسے تبدیل کرنے کے لیے اپنی ریزولوشنز وا�
 
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "«سورس میں ترمیم» کے پین یا کوڈ نما خصوصیت کے فیلڈ میں انتخاب کی تبدیلیاں واپس لیں، دوبارہ کریں، یا ان میں گھومیں۔"
-
-msgid "Uninstall GitQuire"
-msgstr "GitQuire کی تنصیب ختم کریں"
-
-msgid "Uninstall GitQuire?"
-msgstr "GitQuire کی تنصیب ختم کریں؟"
 
 msgid "unknown"
 msgstr "نامعلوم"
@@ -8174,9 +8045,6 @@ msgstr "آپ کیا بنانا چاہیں گے؟"
 
 msgid "What you are looking at"
 msgstr ""
-
-msgid "What you share is sent to the GitQuire team."
-msgstr "آپ جو شیئر کرتے ہیں وہ GitQuire ٹیم کو بھیجا جاتا ہے۔"
 
 msgid "What's new"
 msgstr "نیا کیا ہے"

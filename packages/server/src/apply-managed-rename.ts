@@ -161,8 +161,8 @@ export function applyRenameMap(
   wikiContext: WikiRenameContext,
 ): ManagedRenameRewriteSummary {
   const { frontmatter, body } = stripFrontmatter(content);
-  const frontmatterRewrite = rewriteWikiLinksForRenameMap(frontmatter, currentDocName, wikiContext);
-  const wikiRewrite = rewriteWikiLinksForRenameMap(body, currentDocName, wikiContext);
+  const frontmatterRewrite = rewriteWikiLinksForRenameMap(frontmatter, wikiContext);
+  const wikiRewrite = rewriteWikiLinksForRenameMap(body, wikiContext);
   const canonical = canonicalDocNameBeforeRename(wikiContext);
   let markdown = prependFrontmatter(frontmatterRewrite.markdown, wikiRewrite.markdown);
   let rewrites = frontmatterRewrite.rewrites + wikiRewrite.rewrites;

@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { LOCAL_DIR, OK_DIR, skillLiveDocName } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR, OK_DIR } from '@inkeep/open-knowledge-core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { BacklinkIndex } from './backlink-index.ts';
 
@@ -310,35 +310,6 @@ describe('resolved document relationships', () => {
     index.deleteDocument('a/beta');
     expect(index.getForwardLinks('source')).toEqual(['z/beta']);
     expect(index.getForwardLinks('source', 'feature')).toEqual(['f/beta']);
-  });
-
-  test('global skills cannot steal fuzzy targets while explicit and structural skill links survive', () => {
-    const { index } = createIndex();
-    const global = skillLiveDocName('global', 'guide');
-    const globalReference = `${global}/references/beta`;
-    index.registerGlobalSkillBundleNode(global);
-    index.registerGlobalSkillBundleNode(globalReference);
-    index.updateDocumentFromMarkdown('z/beta', '# Beta');
-    index.updateDocumentFromMarkdown('source', `[[beta]] [[${global}]]`);
-    index.updateDocumentFromMarkdown('.agents/skills/project/SKILL', '# Project');
-    index.updateDocumentFromMarkdown('.agents/skills/project/references/gamma', '# Gamma');
-    index.updateDocumentFromMarkdown('project-ref', '[[gamma]]');
-    expect(index.getForwardLinks('source')).toEqual(
-      [global, 'z/beta'].sort((a, b) => a.localeCompare(b)),
-    );
-    expect(index.getBacklinkCount('z/beta')).toBe(1);
-    expect(index.getForwardLinks(global)).toContain(globalReference);
-    expect(index.getBacklinks(globalReference)).toContainEqual({
-      source: global,
-      anchor: null,
-      snippet: null,
-    });
-    expect(index.getForwardLinks('project-ref')).toEqual([
-      '.agents/skills/project/references/gamma',
-    ]);
-    expect(index.getForwardLinks('.agents/skills/project/SKILL')).toContain(
-      '.agents/skills/project/references/gamma',
-    );
   });
 
   test('versioned raw-key snapshots query and reconcile without changing their persisted keys', async () => {

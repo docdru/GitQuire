@@ -175,9 +175,6 @@ msgstr ""
 msgid "{0} is over {destination}."
 msgstr "{0} {destination} के ऊपर है।"
 
-msgid "{0} of {1} projects selected"
-msgstr "{1} में से {0} प्रोजेक्ट चुने गए"
-
 msgid "{0} pages changed"
 msgstr ""
 
@@ -750,9 +747,6 @@ msgstr "अगला संपादक टैब सक्रिय करे�
 msgid "Activate the previous editor tab."
 msgstr "पिछला संपादक टैब सक्रिय करें।"
 
-msgid "active"
-msgstr "सक्रिय"
-
 msgid "Active"
 msgstr "सक्रिय"
 
@@ -951,9 +945,6 @@ msgstr "अनुमत मान (खाली = कोई भी)"
 msgid "Allowed values for {field}"
 msgstr "{field} के लिए अनुमत मान"
 
-msgid "Almost done. Here's what happened and what's left."
-msgstr "लगभग पूरा हो गया। देखें कि क्या हुआ और क्या करना बाकी है।"
-
 msgid "Already at {assetContentPath} — reusing."
 msgstr "पहले से ही {assetContentPath} पर — पुन: उपयोग किया जा रहा है।"
 
@@ -1010,9 +1001,6 @@ msgstr ""
 
 msgid "Anyone can see"
 msgstr "कोई भी देख सकता है"
-
-msgid "Anything you'd like to add? (optional)"
-msgstr "कुछ और जोड़ना चाहेंगे? (वैकल्पिक)"
 
 msgid "API key"
 msgstr ""
@@ -1246,9 +1234,6 @@ msgstr "बाहरी बदलाव मर्ज होने से पह�
 msgid "Before syncing, set your identity for git commits:"
 msgstr "सिंक करने से पहले, git कमिट के लिए अपनी पहचान सेट करें:"
 
-msgid "Before you go, mind sharing why?"
-msgstr "जाने से पहले, क्या आप बताना चाहेंगे कि क्यों?"
-
 msgid "Being written"
 msgstr ""
 
@@ -1324,9 +1309,6 @@ msgstr "सैकड़ों थीम ब्राउज़ करें"
 
 msgid "Browse your repos:"
 msgstr "अपनी रिपॉज़िटरी ब्राउज़ करें:"
-
-msgid "Bugs, crashes, or it felt unreliable"
-msgstr "बग, क्रैश, या यह भरोसेमंद नहीं लगा"
 
 msgid "Build a competitor research knowledge base. Start with an overview page, then add cross-linked pages for each competitor, their products and pricing, and the sources behind every claim."
 msgstr "प्रतिस्पर्धी शोध का एक ज्ञान आधार बनाएँ। एक सिंहावलोकन पेज से शुरू करें, फिर हर प्रतिस्पर्धी, उनके उत्पादों और मूल्य-निर्धारण, और हर दावे के पीछे के स्रोतों के लिए आपस में जुड़े पेज जोड़ें।"
@@ -1502,15 +1484,6 @@ msgstr ""
 
 msgid "Claude, for {0}"
 msgstr ""
-
-msgid "Cleanup didn’t finish"
-msgstr "सफ़ाई पूरी नहीं हुई"
-
-msgid "Cleanup log"
-msgstr "सफ़ाई लॉग"
-
-msgid "Cleanup may still be running."
-msgstr "सफ़ाई अभी भी चल रही हो सकती है।"
 
 msgid "Clear"
 msgstr "साफ़ करें"
@@ -2355,9 +2328,6 @@ msgstr "अलग किया हुआ HEAD — फिर से शुरू 
 msgid "Details"
 msgstr "विवरण"
 
-msgid "Detected GitQuire projects"
-msgstr "पाए गए GitQuire प्रोजेक्ट"
-
 msgid "Diagram"
 msgstr "आरेख"
 
@@ -2480,9 +2450,6 @@ msgstr "पूर्ण"
 
 msgid "Done, due earlier"
 msgstr ""
-
-msgid "Done."
-msgstr "पूर्ण।"
 
 msgid "Double-click to edit"
 msgstr "संपादित करने के लिए डबल-क्लिक करें"
@@ -3430,9 +3397,6 @@ msgstr "GitQuire सूचकांक रखरखाव की जाँच �
 msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
 msgstr "GitQuire प्रत्येक फ़ोल्डर में index.md नामक एक नेविगेशन फ़ाइल बनाता है और उसका रखरखाव करता है जिसमें Markdown होता है।"
 
-msgid "GitQuire files were removed"
-msgstr "GitQuire की फ़ाइलें हटा दी गईं"
-
 msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
 msgstr "GitQuire ने इस होस्ट के लिए कोई क्रेडेंशियल नहीं सहेजा है। सेटिंग में एक टोकन जोड़ें, या git को उसके पहले से मौजूद क्रेडेंशियल इस्तेमाल करने दें।"
 
@@ -3694,9 +3658,6 @@ msgstr "https://github.com/owner/repo या owner/repo"
 msgid "Hubs"
 msgstr "हब"
 
-msgid "I'm switching to another tool"
-msgstr "मैं किसी दूसरे टूल पर जा रहा हूँ"
-
 msgid "Icon picker"
 msgstr "आइकन चयनकर्ता"
 
@@ -3904,18 +3865,6 @@ msgstr "अमान्य पैच पेलोड"
 msgid "Invalid YAML"
 msgstr "अमान्य YAML"
 
-msgid "It didn't fit into my workflow"
-msgstr "यह मेरे कार्यप्रवाह में फ़िट नहीं बैठा"
-
-msgid "It was a trial or one-off project"
-msgstr "यह एक परीक्षण या एक-बार का प्रोजेक्ट था"
-
-msgid "It was missing a feature I needed"
-msgstr "इसमें वह सुविधा नहीं थी जो मुझे चाहिए थी"
-
-msgid "It was too hard to set up or get started"
-msgstr "इसे सेट अप करना या शुरू करना बहुत कठिन था"
-
 msgid "Italic"
 msgstr "तिरछा"
 
@@ -3975,9 +3924,6 @@ msgstr ""
 
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "आपके ज्ञानकोष को Open Knowledge Format के अनुरूप रखता है।"
-
-msgid "Kept your content"
-msgstr "आपका कॉन्टेंट सुरक्षित रखा गया"
 
 msgid "Key ending in {keyHint}"
 msgstr "{keyHint} पर समाप्त होने वाली कुंजी"
@@ -4041,9 +3987,6 @@ msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Tab को अंदर करने के बजाय स्रोत संपादक से बाहर जाने दें।"
-
-msgid "Let us follow up by email"
-msgstr "हमें ईमेल से आगे संपर्क करने दें"
 
 msgid "Light"
 msgstr "हल्का"
@@ -4309,9 +4252,6 @@ msgstr "Markdown"
 msgid "Markdown checks do not apply to this file."
 msgstr "Markdown जाँच इस फ़ाइल पर लागू नहीं होती है।"
 
-msgid "Markdown files and authored skills were left untouched."
-msgstr "Markdown फ़ाइलों और आपके बनाए स्किल में कोई बदलाव नहीं किया गया।"
-
 msgid "Markdown source"
 msgstr "Markdown स्रोत"
 
@@ -4497,9 +4437,6 @@ msgstr "संपादक को विंडो के दाएँ किन�
 
 msgid "Move Editor to the top edge of the window"
 msgstr "संपादक को विंडो के ऊपरी किनारे पर ले जाएँ"
-
-msgid "Move GitQuire.app to the Trash"
-msgstr "GitQuire.app को ट्रैश में ले जाएँ"
 
 msgid "Move into draft"
 msgstr ""
@@ -4713,9 +4650,6 @@ msgstr "अभी कोई <0>.markdownlint.*</0> फ़ाइल नहीं 
 
 msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
 msgstr ""
-
-msgid "No active or recent GitQuire projects were found."
-msgstr "कोई सक्रिय या हाल का GitQuire प्रोजेक्ट नहीं मिला।"
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "इस एंडपॉइंट के लिए कोई API कुंजी सेट नहीं है। ऊपर एक जोड़ें।"
@@ -5567,9 +5501,6 @@ msgstr "खोज तैयार की जा रही है"
 msgid "Preparing share URL..."
 msgstr "साझा URL तैयार किया जा रहा है…"
 
-msgid "Preparing to uninstall GitQuire"
-msgstr "GitQuire हटाने की तैयारी"
-
 msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
 msgstr "किसी दस्तावेज़ को अलग विंडो में स्लाइड डेक के रूप में प्रस्तुत करें। यह केवल GitQuire डेस्कटॉप ऐप में काम करता है और इसके लिए Slidev CLI चाहिए, जिसे आप अलग से इंस्टॉल करते हैं। चालू होने पर यह साइडबार में Plugins के अंतर्गत दिखता है।"
 
@@ -5807,9 +5738,6 @@ msgstr ""
 msgid "Receiving objects"
 msgstr "ऑब्जेक्ट प्राप्त किए जा रहे हैं"
 
-msgid "recent"
-msgstr "हाल का"
-
 msgid "Recently closed"
 msgstr ""
 
@@ -5900,9 +5828,6 @@ msgstr "फ़ील्ड {field} हटाएँ"
 msgid "Remove from recent projects"
 msgstr "हाल के प्रोजेक्ट से हटाएँ"
 
-msgid "Remove GitQuire from {0}"
-msgstr "{0} से GitQuire हटाएँ"
-
 msgid "Remove item {0}"
 msgstr "आइटम {0} हटाएँ"
 
@@ -5920,12 +5845,6 @@ msgstr "पथ के शुरू या अंत की खाली जग�
 
 msgid "Removed"
 msgstr "हटाया गया"
-
-msgid "Removed GitQuire files"
-msgstr "GitQuire की फ़ाइलें हटाई गईं"
-
-msgid "Removing GitQuire files…"
-msgstr "GitQuire की फ़ाइलें हटाई जा रही हैं…"
 
 msgid "Rename"
 msgstr "नाम बदलें"
@@ -6137,12 +6056,6 @@ msgstr "साइडबार से क्लिक करते समय ए�
 
 msgid "Reused if it already exists, created if not."
 msgstr "यदि पहले से मौजूद है तो पुन: उपयोग किया जाता है, वरना बना दिया जाता है।"
-
-msgid "Reveal in Finder"
-msgstr "Finder में दिखाएँ"
-
-msgid "Reveal in Finder shows the app so you can drag it to the Trash."
-msgstr "Finder में दिखाएँ से ऐप दिखाई देता है, ताकि आप उसे ट्रैश में खींच सकें।"
 
 msgid "Revenue"
 msgstr ""
@@ -6363,9 +6276,6 @@ msgstr "{slot} चुनें — {0}"
 msgid "Select a value"
 msgstr "कोई मान चुनें"
 
-msgid "Select all"
-msgstr "सब चुनें"
-
 msgid "Select all files and folders"
 msgstr "सभी फ़ाइलें और फ़ोल्डर चुनें"
 
@@ -6428,9 +6338,6 @@ msgstr "अर्थ-आधारित खोज चालू है, पर �
 
 msgid "Send"
 msgstr "भेजें"
-
-msgid "Send & continue"
-msgstr "भेजें और जारी रखें"
 
 msgid "Send a new code"
 msgstr ""
@@ -6507,9 +6414,6 @@ msgstr "सेट अप किया जा रहा है"
 msgid "Settings"
 msgstr "सेटिंग"
 
-msgid "Settings and integrations were cleaned up."
-msgstr "सेटिंग और इंटीग्रेशन हटा दिए गए।"
-
 msgid "Settings are still loading. Try again in a moment."
 msgstr "सेटिंग अभी भी लोड हो रही हैं। कुछ देर बाद फिर कोशिश करें।"
 
@@ -6536,9 +6440,6 @@ msgstr "साझा करें"
 
 msgid "Share doc"
 msgstr "दस्तावेज़ साझा करें"
-
-msgid "Share feedback"
-msgstr "प्रतिक्रिया साझा करें"
 
 msgid "Share folder"
 msgstr "फ़ोल्डर साझा करें"
@@ -6729,9 +6630,6 @@ msgstr "कुछ संपादन अभी तक सर्वर तक न
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "कुछ फ़ाइलें सूचीबद्ध नहीं हैं: वर्किंग ट्री में बहुत अधिक बदलाव हैं।"
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
-msgstr "हो सकता है कि कुछ फ़ाइलें हटाई न गई हों। जानकारी के लिए सफ़ाई लॉग खोलें। दोबारा कोशिश करने के लिए GitQuire फिर से खोल सकते हैं।"
-
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "कुछ सहेजी गई थीम नहीं दिखाई जा रही हैं क्योंकि थीम फ़ोल्डर स्कैन सीमा से बड़ा है।"
 
@@ -6743,9 +6641,6 @@ msgstr "हो सकता है किसी ने {filePath} का टक�
 
 msgid "Something broke"
 msgstr "कुछ टूट गया"
-
-msgid "Something else"
-msgstr "कुछ और"
 
 msgid "Something went wrong"
 msgstr "कुछ ग़लत हो गया"
@@ -7044,9 +6939,6 @@ msgstr "कार्य सूची"
 msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
 msgstr ""
 
-msgid "Tell us how it's going"
-msgstr "हमें बताएँ कि कैसा चल रहा है"
-
 msgid "Tell us more (optional)"
 msgstr "हमें और बताएँ (वैकल्पिक)"
 
@@ -7085,9 +6977,6 @@ msgstr "जाँचा जा रहा है"
 
 msgid "Text"
 msgstr "पाठ"
-
-msgid "Thanks for giving GitQuire a try."
-msgstr "GitQuire आज़माने के लिए धन्यवाद।"
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "सदस्यता लेने के लिए धन्यवाद। उत्पाद अपडेट के लिए अपना इनबॉक्स देखते रहें।"
@@ -7494,9 +7383,6 @@ msgstr "यह सूची पुरानी हो सकती है — �
 msgid "This list may be out of date."
 msgstr "यह सूची पुरानी हो सकती है।"
 
-msgid "This may take a moment. Your markdown content is kept."
-msgstr "इसमें कुछ समय लग सकता है। आपकी markdown सामग्री सुरक्षित रहती है।"
-
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
@@ -7541,9 +7427,6 @@ msgstr "यह प्रोजेक्ट केवल इसी कंप्�
 
 msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
 msgstr "इस प्रोजेक्ट का चल रहा सर्वर जीवंत संपादन का समर्थन नहीं करता। ठीक करने के लिए GitQuire पुनः आरंभ करें।"
-
-msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "यह आपके Mac से और नीचे चुने गए किसी भी प्रोजेक्ट से GitQuire की सेटिंग और एकीकरण हटा देता है, पर आपकी markdown सामग्री और लिखी गई स्किल बनी रहती हैं।"
 
 msgid "This repository has no commits yet — reopen the project to create the first commit, then Push will work"
 msgstr "इस रिपॉज़िटरी में अभी कोई कमिट नहीं है — पहला कमिट बनाने के लिए प्रोजेक्ट दोबारा खोलें, फिर भेजें काम करेगा"
@@ -7617,9 +7500,6 @@ msgstr "शीर्षक"
 
 msgid "To do"
 msgstr "करना है"
-
-msgid "To do."
-msgstr "करना है।"
 
 msgid "Today"
 msgstr "आज"
@@ -7796,9 +7676,6 @@ msgstr "संपादित करने के लिए लिखें; <0>
 msgid "Type to find a doc"
 msgstr "कोई दस्तावेज़ खोजने के लिए लिखें"
 
-msgid "Unable to show the cleanup result"
-msgstr "सफ़ाई का परिणाम नहीं दिखाया जा सका"
-
 msgid "Uncommitted changes"
 msgstr "बिना कमिट किए बदलाव"
 
@@ -7837,12 +7714,6 @@ msgstr "इसे बदलने के लिए अपने समाधा�
 
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "Edit source पैनल या कोड जैसी किसी प्रॉपर्टी फ़ील्ड में चयन के बदलाव पूर्ववत करें, फिर से करें, या एक-एक करके देखें।"
-
-msgid "Uninstall GitQuire"
-msgstr "GitQuire हटाएँ"
-
-msgid "Uninstall GitQuire?"
-msgstr "GitQuire हटाएँ?"
 
 msgid "unknown"
 msgstr "अज्ञात"
@@ -8170,9 +8041,6 @@ msgstr "आप क्या बनाना चाहेंगे?"
 
 msgid "What you are looking at"
 msgstr ""
-
-msgid "What you share is sent to the GitQuire team."
-msgstr "आप जो साझा करते हैं वह GitQuire टीम को भेजा जाता है।"
 
 msgid "What's new"
 msgstr "नया क्या है"

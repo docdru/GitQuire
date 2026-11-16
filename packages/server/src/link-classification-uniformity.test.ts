@@ -105,7 +105,7 @@ function planeADocumentTargets(markdown: string): Set<string> {
   const targets = new Set<string>();
   for (const edge of [
     ...extractMarkdownLinksFromMarkdown(markdown, SOURCE_DOC, 0, fileOracle),
-    ...extractWikiLinksFromMarkdown(markdown, SOURCE_DOC),
+    ...extractWikiLinksFromMarkdown(markdown),
   ]) {
     if (typeof edge.target === 'string' && edge.target.length > 0) targets.add(edge.target);
   }
@@ -191,9 +191,7 @@ describe('link classification uniformity across the document-graph and local-tar
     const markdown = '[[targets/existing-page]]\n\n![[targets/missing-embed]]\n';
     const inventory = buildInventory();
 
-    const planeA = new Set(
-      extractWikiLinksFromMarkdown(markdown, nestedSource).map((edge) => edge.target),
-    );
+    const planeA = new Set(extractWikiLinksFromMarkdown(markdown).map((edge) => edge.target));
     const planeB = assessLocalTargets(markdown, nestedSource, inventory);
 
     expect(planeB.map((a) => a.resolvedTarget)).toEqual([

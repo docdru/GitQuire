@@ -1,6 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { Hocuspocus } from '@hocuspocus/server';
 import { filesystemIdentity } from '@inkeep/open-knowledge-core/server';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -78,40 +78,6 @@ describe('suggestLinks', () => {
       });
       expect(edited.mentions).toEqual([
         expect.objectContaining({ source: 'source', excerpt: 'Beta' }),
-      ]);
-    } finally {
-      rmSync(root, { recursive: true, force: true });
-    }
-  });
-
-  test('bundle-relative wiki links suppress only mentions of the target in their own bundle', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'ok-suggest-bundle-'));
-    const hocuspocus = new Hocuspocus({ quiet: true });
-    const bundle = '.agents/skills/demo';
-    const pages = {
-      [`${bundle}/references/beta`]: '# Beta\n',
-      [`${bundle}/SKILL`]: '[[references/beta.md#intro|Beta]]\nPlain Beta remains useful.\n',
-      [`${bundle}/references/nested/guide`]: '[[references/beta|Beta]]\n',
-      '.agents/skills/other/references/beta': '# Other target\n',
-      '.agents/skills/other/SKILL': '[[references/beta|Beta]]\n',
-    };
-    try {
-      for (const [name, body] of Object.entries(pages)) {
-        const path = join(root, `${name}.md`);
-        mkdirSync(dirname(path), { recursive: true });
-        writeFileSync(path, body);
-      }
-      const result = await suggestLinks({
-        hocuspocus,
-        fileIndex: buildFileIndex(root, Object.keys(pages)),
-        docName: `${bundle}/references/beta`,
-      });
-      expect(result.mentions).toEqual([
-        expect.objectContaining({
-          source: `${bundle}/SKILL`,
-          excerpt: 'Plain Beta remains useful.',
-        }),
-        expect.objectContaining({ source: '.agents/skills/other/SKILL', excerpt: 'Beta' }),
       ]);
     } finally {
       rmSync(root, { recursive: true, force: true });

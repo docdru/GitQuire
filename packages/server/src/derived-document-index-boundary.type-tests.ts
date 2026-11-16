@@ -21,7 +21,6 @@ type RawIndexMember =
   | 'loadFromDisk'
   | 'rebuildFromDisk'
   | 'reconcileWithDisk'
-  | 'ingestGlobalSkillBundles'
   | 'init'
   | 'close'
   | 'switchBranch';

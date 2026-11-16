@@ -29,11 +29,6 @@ test('every shell document sirv serves carries the policy of that document', asy
     expect(await policyOf(fallbackPath), fallbackPath).toBe(shellPolicy);
   }
 
-  const uninstallPolicy = await policyOf('/uninstall.html');
-  expect(uninstallPolicy).toContain("script-src 'self'");
-  expect(uninstallPolicy).not.toBe(shellPolicy);
-  expect(await policyOf('/uninstall')).toBe(uninstallPolicy);
-
   const framePolicy = "sandbox allow-scripts; frame-ancestors 'self'";
   expect(await policyOf('/assets/preview-frame.html')).toBe(framePolicy);
   expect(await policyOf('/assets/preview-frame')).toBe(framePolicy);

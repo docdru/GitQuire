@@ -2,7 +2,6 @@ import { readFile } from 'node:fs/promises';
 import type { Document, Hocuspocus } from '@hocuspocus/server';
 import {
   resolveInternalHref,
-  resolveSkillBundleWikiTarget,
   resolveWikiLinkTargetDocName,
   stripFrontmatter,
   toWikiLinkSlug,
@@ -457,12 +456,7 @@ function scanLineForMentions(
       const wikiLink = readWikiLink(line, index);
       if (wikiLink) {
         const label = wikiLink.label;
-        if (
-          resolveWikiLinkTargetDocName(
-            resolveSkillBundleWikiTarget(wikiLink.target, sourceDocName) ?? wikiLink.target,
-            lookup,
-          ) === targetDocName
-        ) {
+        if (resolveWikiLinkTargetDocName(wikiLink.target, lookup) === targetDocName) {
           appendNonMatchableText(label);
         } else {
           appendMatchableText(

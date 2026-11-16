@@ -3128,9 +3128,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
           const mtimeChecks: Array<{ docName: string; indexedMtimeMs: number | undefined }> = [];
           for (const { docName, wikiTargets, indexedMtimeMs } of sourceInventory) {
             if (
-              wikiTargets.some(
-                (target) => wikiLinkRenameDestination(target, docName, wikiContext) !== null,
-              )
+              wikiTargets.some((target) => wikiLinkRenameDestination(target, wikiContext) !== null)
             ) {
               discoveryCandidates.add(docName);
             }
@@ -3185,8 +3183,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
             const content = readCurrentDocumentContent(docName);
             if (typeof content !== 'string') continue;
             if (
-              rewriteWikiLinksForRenameMap(stripFrontmatter(content).body, docName, wikiContext)
-                .rewrites > 0
+              rewriteWikiLinksForRenameMap(stripFrontmatter(content).body, wikiContext).rewrites > 0
             ) {
               backlinkSourceSet.add(docName);
               snapshotContents.set(docName, content);

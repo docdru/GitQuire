@@ -404,7 +404,7 @@ describe('cross-consumer divergence ledger', () => {
 
   test('escape handling is a scanner concern, not a grammar concern', () => {
     const md = '\\[[not-wiki.png]]';
-    expect(extractWikiLinksFromMarkdown(md, 'src')).toEqual([]);
+    expect(extractWikiLinksFromMarkdown(md)).toEqual([]);
     expect(rewriteWikiLinksForDocumentRename(md, 'not-wiki.png', 'renamed')).toMatchObject({
       rewrites: 0,
     });

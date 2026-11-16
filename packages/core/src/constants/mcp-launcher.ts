@@ -2,16 +2,16 @@ import { currentDesktopProduct, type DesktopProduct } from './product.ts';
 
 type McpChainTag = DesktopProduct['mcpChainTag'];
 
-export type McpLauncherEnvelope = 'split-command-args' | 'opencode-argv';
+type McpLauncherEnvelope = 'split-command-args' | 'opencode-argv';
 export type McpLauncherFamily = 'unix-chain' | 'windows-chain';
 
-export type McpLauncherCapability =
+type McpLauncherCapability =
   | 'macos-bundle'
   | 'linux-deb-bundle'
   | 'windows-global-cli'
   | 'npx-fallback';
 
-export type KnownMcpLauncherDescriptor = {
+type KnownMcpLauncherDescriptor = {
   readonly envelope: McpLauncherEnvelope;
   readonly family: McpLauncherFamily;
   readonly revision: number;
@@ -19,7 +19,7 @@ export type KnownMcpLauncherDescriptor = {
   readonly capabilities: readonly McpLauncherCapability[];
 };
 
-export type FutureMcpLauncherDescriptor = {
+type FutureMcpLauncherDescriptor = {
   readonly envelope: McpLauncherEnvelope;
   readonly family: McpLauncherFamily;
   readonly revision: number;
@@ -29,7 +29,7 @@ export type FutureMcpLauncherDescriptor = {
 
 export type McpLauncherDescriptor = KnownMcpLauncherDescriptor | FutureMcpLauncherDescriptor;
 
-export type McpLauncherDeclineReason =
+type McpLauncherDeclineReason =
   | 'not-an-object'
   | 'unknown-envelope'
   | 'foreign-command'
@@ -129,7 +129,7 @@ function extractLauncher(
   return decline('foreign-command');
 }
 
-export function mcpChainMarkerPrefix(family: McpLauncherFamily, chainTag: McpChainTag): string {
+function mcpChainMarkerPrefix(family: McpLauncherFamily, chainTag: McpChainTag): string {
   return family === 'unix-chain' ? `# ok-mcp${chainTag}-v` : `# ok-mcp${chainTag}-win-v`;
 }
 

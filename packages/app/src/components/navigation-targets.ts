@@ -1,9 +1,7 @@
 import {
   isManagedArtifactDocName,
   parseLegacyTemplateDocName,
-  parseManagedArtifactName,
   parseTemplateContentDocName,
-  projectSkillContentDocName,
   templateContentDocName,
 } from '@inkeep/open-knowledge-core/constants/cc1';
 import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
@@ -20,7 +18,6 @@ import {
 import { resolveName } from '@inkeep/open-knowledge-core/utils/target-namespace';
 import { resolveWikiLinkTargetDocName } from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
 import { normalizeDocNameInput } from '@/lib/doc-paths';
-import { parseProjectSkillContentDocName } from '@/lib/managed-artifact-doc-name';
 import { computeAncestors, hasOkPathSegment } from './file-tree-utils';
 
 export type ResolvedNavigationTarget =
@@ -140,19 +137,11 @@ export function resolveNavigationTarget(
   const target = requestedTarget;
   const artifactTarget = managedArtifactNavigationTarget(target, options.pages);
   if (isManagedArtifactDocName(artifactTarget)) {
-    const parsed = parseManagedArtifactName(artifactTarget);
-    if (parsed?.kind === 'skill' && parsed.scope === 'project') {
-      const docName = projectSkillContentDocName(parsed.name);
-      return { kind: 'doc', target: docName, docName };
-    }
     const legacyTemplate = parseLegacyTemplateDocName(artifactTarget);
     if (legacyTemplate) {
       const docName = templateContentDocName(legacyTemplate.folder, legacyTemplate.name);
       return { kind: 'doc', target: docName, docName };
     }
-    return { kind: 'doc', target: artifactTarget, docName: artifactTarget };
-  }
-  if (parseProjectSkillContentDocName(artifactTarget)) {
     return { kind: 'doc', target: artifactTarget, docName: artifactTarget };
   }
   const templateContent = parseTemplateContentDocName(artifactTarget);

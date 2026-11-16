@@ -3,10 +3,10 @@ import { SpanStatusCode, trace } from '@opentelemetry/api';
 
 const TRACER_NAME = 'open-knowledge-config';
 
-export type ConfigScopeAttr = 'project' | 'user' | 'project-local';
-export type ConfigValidationLayer = 'L1' | 'L2' | 'L3';
-export type ConfigOutcome = 'success' | 'rejected' | 'reverted';
-export type ConfigTransport = 'ytext' | 'fs';
+type ConfigScopeAttr = 'project' | 'user' | 'project-local';
+type ConfigValidationLayer = 'L1' | 'L2' | 'L3';
+type ConfigOutcome = 'success' | 'rejected' | 'reverted';
+type ConfigTransport = 'ytext' | 'fs';
 
 export interface ConfigSpanAttributes extends Attributes {
   'config.scope'?: ConfigScopeAttr;
@@ -66,9 +66,4 @@ export function withConfigSpanSync<T>(
 export function addConfigSpanEvent(name: string, attributes?: Attributes): void {
   const span = trace.getActiveSpan();
   if (span) span.addEvent(name, attributes);
-}
-
-export function setConfigOutcome(outcome: ConfigOutcome): void {
-  const span = trace.getActiveSpan();
-  if (span) span.setAttribute('config.outcome', outcome);
 }

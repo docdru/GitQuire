@@ -31,7 +31,6 @@ describe('local-target watcher integration', () => {
       projectDir,
       contentDir,
       contentFilter,
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
       getLocalTargetInventory: () => localTargetInventoryFromWatcher(watcher, contentDir),
     });

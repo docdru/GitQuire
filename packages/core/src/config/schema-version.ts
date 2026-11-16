@@ -1,3 +1,3 @@
-export const CONFIG_SCHEMA_MAJOR = 0;
+const CONFIG_SCHEMA_MAJOR = 0;
 
 export const CONFIG_SCHEMA_MAJOR_PATH = `v${CONFIG_SCHEMA_MAJOR}`;

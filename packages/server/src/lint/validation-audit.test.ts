@@ -959,15 +959,6 @@ describe('toValidationCountsPlane', () => {
 });
 
 describe('skill-bundle doc scoping', () => {
-  const LIVE_SKILL_MD =
-    '# Live skill\n\nSee [[live-skill-ghost]] and [artifact](artifacts/output.md).\n';
-
-  function seedLiveSkillDoc(docName: string): void {
-    index.updateDocumentFromMarkdown(docName, LIVE_SKILL_MD);
-    localTargets.setSource(docName, LIVE_SKILL_MD);
-    admitted.add(docName);
-  }
-
   test('project skill bundle docs project no findings into the plane', async () => {
     seedDoc('control', '# Control\n\nSee [[ghost]].\n');
     seedDoc(
@@ -987,52 +978,12 @@ describe('skill-bundle doc scoping', () => {
     expect(result.files.map((f) => f.file)).toEqual(['control.md']);
   });
 
-  test('global skill bundle docs project no findings into the plane', async () => {
-    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
-    seedLiveSkillDoc('__skill__/global/record-a-decision');
-    seedLiveSkillDoc('__skill__/global/record-a-decision/references/patterns');
-
-    const assessed = await localTargets.getAssessmentsForSources([
-      '__skill__/global/record-a-decision',
-    ]);
-    expect(
-      assessed.some(({ assessments }) => assessments.some((a) => a.status === 'missing')),
-    ).toBe(true);
-
-    const result = await runValidationAudit(createProjectValidators(deps()));
-
-    const control = result.files.find((f) => f.file === 'control.md');
-    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
-
-    expect(result.files.map((f) => f.file)).toEqual(['control.md']);
-  });
-
   test('project skill bundle scripts docs project no findings into the plane', async () => {
     seedDoc('control', '# Control\n\nSee [[ghost]].\n');
     seedDoc(
       '.claude/skills/record-a-decision/scripts/notes',
       '# Notes\n\nSee [[skill-script-ghost]] and [artifact](fixtures/sample-output.md).\n',
     );
-
-    const result = await runValidationAudit(createProjectValidators(deps()));
-
-    const control = result.files.find((f) => f.file === 'control.md');
-    expect(control?.diagnostics.some((d) => d.code === 'dead-link')).toBe(true);
-
-    expect(result.files.map((f) => f.file)).toEqual(['control.md']);
-  });
-
-  test('external skill live docs project no findings into the plane', async () => {
-    seedDoc('control', '# Control\n\nSee [[ghost]].\n');
-    seedLiveSkillDoc('__extskill__/record-a-decision');
-    seedLiveSkillDoc('__extskill__/record-a-decision/references/patterns');
-
-    const assessed = await localTargets.getAssessmentsForSources([
-      '__extskill__/record-a-decision',
-    ]);
-    expect(
-      assessed.some(({ assessments }) => assessments.some((a) => a.status === 'missing')),
-    ).toBe(true);
 
     const result = await runValidationAudit(createProjectValidators(deps()));
 

@@ -40,7 +40,6 @@ import { TiptapEditor } from '@/editor/TiptapEditor';
 import type { EditorModeValue } from '@/editor/use-editor-mode';
 import { useDocConflict } from '@/hooks/use-conflicts';
 import { ParkingActivity } from '@/lib/activity-park';
-import { parseProjectSkillContentDocName } from '@/lib/managed-artifact-doc-name';
 import { isNoteWindow } from '@/lib/note-window-mode';
 import { mark, ProfilerBoundary } from '@/lib/perf';
 import { readNumericOverride } from '@/lib/perf/env-override';
@@ -898,7 +897,6 @@ function ActivityEntry({
                     <div className="flex h-full flex-col">
                       {!effectiveIsSourceMode &&
                         (isManagedArtifactDocName(entry.docName) ||
-                        parseProjectSkillContentDocName(entry.docName) ||
                         parseTemplateContentDocName(entry.docName) ? (
                           <Suspense fallback={null}>
                             <ManagedArtifactProperties

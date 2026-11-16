@@ -2,13 +2,13 @@ import type { z } from 'zod';
 import { ConfigSchema } from './schema.ts';
 import { resolveLeafSchema } from './schema-leaf.ts';
 
-export interface EnvOverride {
+interface EnvOverride {
   path: readonly string[];
   envVar: string;
   value: unknown;
 }
 
-export interface EnvDiagnostic {
+interface EnvDiagnostic {
   envVar: string;
   message: string;
 }

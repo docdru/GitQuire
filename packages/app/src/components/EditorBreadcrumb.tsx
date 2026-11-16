@@ -1,7 +1,4 @@
-import {
-  parseManagedArtifactName,
-  parseTemplateContentDocName,
-} from '@inkeep/open-knowledge-core/constants/cc1';
+import { parseTemplateContentDocName } from '@inkeep/open-knowledge-core/constants/cc1';
 import { MoreHorizontalIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import { UserText } from '@/components/UserText';
@@ -36,12 +33,9 @@ export function EditorBreadcrumb({
 }: EditorBreadcrumbProps) {
   if (!docName) return null;
   const template = parseTemplateContentDocName(docName);
-  const managed = template ? null : parseManagedArtifactName(docName);
   const folderSegments = template
     ? template.folder.split('/').filter(Boolean)
-    : managed
-      ? []
-      : tabParts(docName, '').prefix.replace(/\/$/, '').split('/').filter(Boolean);
+    : tabParts(docName, '').prefix.replace(/\/$/, '').split('/').filter(Boolean);
   const segments = includeCurrentPage
     ? [...folderSegments, tabParts(docName, '').label]
     : folderSegments;

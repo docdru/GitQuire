@@ -175,9 +175,6 @@ msgstr ""
 msgid "{0} is over {destination}."
 msgstr "{0} berada di atas {destination}."
 
-msgid "{0} of {1} projects selected"
-msgstr "{0} dari {1} proyek dipilih"
-
 msgid "{0} pages changed"
 msgstr ""
 
@@ -750,9 +747,6 @@ msgstr "Mengaktifkan tab penyunting berikutnya."
 msgid "Activate the previous editor tab."
 msgstr "Mengaktifkan tab penyunting sebelumnya."
 
-msgid "active"
-msgstr "aktif"
-
 msgid "Active"
 msgstr "Aktif"
 
@@ -951,9 +945,6 @@ msgstr "Nilai yang diizinkan (kosong = apa saja)"
 msgid "Allowed values for {field}"
 msgstr "Nilai yang diizinkan untuk {field}"
 
-msgid "Almost done. Here's what happened and what's left."
-msgstr "Hampir selesai. Berikut yang sudah dilakukan dan yang masih perlu dilakukan."
-
 msgid "Already at {assetContentPath} — reusing."
 msgstr "Sudah ada di {assetContentPath} — memakai ulang."
 
@@ -1010,9 +1001,6 @@ msgstr ""
 
 msgid "Anyone can see"
 msgstr "Siapa pun bisa melihat"
-
-msgid "Anything you'd like to add? (optional)"
-msgstr "Ada yang ingin Anda tambahkan? (opsional)"
 
 msgid "API key"
 msgstr ""
@@ -1246,9 +1234,6 @@ msgstr "Sebelum perubahan dari luar digabungkan"
 msgid "Before syncing, set your identity for git commits:"
 msgstr "Sebelum menyinkronkan, setel identitas Anda untuk commit git:"
 
-msgid "Before you go, mind sharing why?"
-msgstr "Sebelum pergi, boleh cerita kenapa?"
-
 msgid "Being written"
 msgstr ""
 
@@ -1324,9 +1309,6 @@ msgstr "Jelajahi ratusan tema"
 
 msgid "Browse your repos:"
 msgstr "Jelajahi repo Anda:"
-
-msgid "Bugs, crashes, or it felt unreliable"
-msgstr "Bug, kegagalan, atau terasa tidak andal"
 
 msgid "Build a competitor research knowledge base. Start with an overview page, then add cross-linked pages for each competitor, their products and pricing, and the sources behind every claim."
 msgstr "Bangun basis pengetahuan riset pesaing. Mulai dengan halaman ikhtisar, lalu tambahkan halaman yang saling tertaut untuk tiap pesaing, produk dan harganya, serta sumber di balik setiap klaim."
@@ -1502,15 +1484,6 @@ msgstr ""
 
 msgid "Claude, for {0}"
 msgstr ""
-
-msgid "Cleanup didn’t finish"
-msgstr "Pembersihan belum selesai"
-
-msgid "Cleanup log"
-msgstr "Log pembersihan"
-
-msgid "Cleanup may still be running."
-msgstr "Pembersihan mungkin masih berlangsung."
 
 msgid "Clear"
 msgstr "Bersihkan"
@@ -2355,9 +2328,6 @@ msgstr "HEAD terlepas — ambil sebuah cabang untuk melanjutkan"
 msgid "Details"
 msgstr "Detail"
 
-msgid "Detected GitQuire projects"
-msgstr "Proyek GitQuire yang terdeteksi"
-
 msgid "Diagram"
 msgstr "Diagram"
 
@@ -2480,9 +2450,6 @@ msgstr "Selesai"
 
 msgid "Done, due earlier"
 msgstr ""
-
-msgid "Done."
-msgstr "Selesai."
 
 msgid "Double-click to edit"
 msgstr "Klik dua kali untuk menyunting"
@@ -3430,9 +3397,6 @@ msgstr "GitQuire tidak dapat menjangkau server proyek untuk memeriksa pemelihara
 msgid "GitQuire creates and maintains a navigation file named index.md in every folder that contains Markdown."
 msgstr "GitQuire membuat dan memelihara file navigasi bernama index.md di setiap folder yang berisi Markdown."
 
-msgid "GitQuire files were removed"
-msgstr "File GitQuire telah dihapus"
-
 msgid "GitQuire has no credential stored for this host. Add a token in Settings, or let git use the credentials it already has."
 msgstr "GitQuire tidak menyimpan kredensial apa pun untuk host ini. Tambahkan token di Pengaturan, atau biarkan git memakai kredensial yang sudah dimilikinya."
 
@@ -3694,9 +3658,6 @@ msgstr "https://github.com/pemilik/repo atau pemilik/repo"
 msgid "Hubs"
 msgstr "Pusat"
 
-msgid "I'm switching to another tool"
-msgstr "Saya beralih ke alat lain"
-
 msgid "Icon picker"
 msgstr "Pemilih ikon"
 
@@ -3904,18 +3865,6 @@ msgstr "Muatan patch tidak valid"
 msgid "Invalid YAML"
 msgstr "YAML tidak valid"
 
-msgid "It didn't fit into my workflow"
-msgstr "Tidak cocok dengan alur kerja saya"
-
-msgid "It was a trial or one-off project"
-msgstr "Itu hanya percobaan atau proyek sekali pakai"
-
-msgid "It was missing a feature I needed"
-msgstr "Ada fitur yang saya butuhkan tetapi tidak ada"
-
-msgid "It was too hard to set up or get started"
-msgstr "Terlalu sulit disiapkan atau dimulai"
-
 msgid "Italic"
 msgstr "Miring"
 
@@ -3975,9 +3924,6 @@ msgstr ""
 
 msgid "Keeps your knowledge base aligned with the Open Knowledge Format."
 msgstr "Menjaga basis pengetahuan Anda tetap selaras dengan Open Knowledge Format."
-
-msgid "Kept your content"
-msgstr "Konten Anda dipertahankan"
 
 msgid "Key ending in {keyHint}"
 msgstr "Kunci yang berakhiran {keyHint}"
@@ -4041,9 +3987,6 @@ msgstr ""
 
 msgid "Let Tab leave the source editor instead of indenting."
 msgstr "Biarkan Tab keluar dari penyunting sumber alih-alih menambah indentasi."
-
-msgid "Let us follow up by email"
-msgstr "Izinkan kami menindaklanjuti lewat surel"
 
 msgid "Light"
 msgstr "Terang"
@@ -4309,9 +4252,6 @@ msgstr "Markdown"
 msgid "Markdown checks do not apply to this file."
 msgstr "Pemeriksaan Markdown tidak berlaku untuk file ini."
 
-msgid "Markdown files and authored skills were left untouched."
-msgstr "File Markdown dan skill yang Anda buat tidak diubah."
-
 msgid "Markdown source"
 msgstr "Sumber markdown"
 
@@ -4497,9 +4437,6 @@ msgstr "Pindahkan Penyunting ke tepi kanan jendela"
 
 msgid "Move Editor to the top edge of the window"
 msgstr "Pindahkan Penyunting ke tepi atas jendela"
-
-msgid "Move GitQuire.app to the Trash"
-msgstr "Pindahkan GitQuire.app ke Tong Sampah"
 
 msgid "Move into draft"
 msgstr ""
@@ -4713,9 +4650,6 @@ msgstr "Belum ada berkas <0>.markdownlint.*</0> — setiap aturan berjalan denga
 
 msgid "No action items yet. Add a task list to any page (\"- [ ] Call the printer due: 2026-12-01\") and it shows up here."
 msgstr ""
-
-msgid "No active or recent GitQuire projects were found."
-msgstr "Tidak ditemukan proyek GitQuire yang aktif maupun yang terbaru."
 
 msgid "No API key is set for this endpoint. Add one above."
 msgstr "Tidak ada kunci API yang disetel untuk endpoint ini. Tambahkan satu di atas."
@@ -5567,9 +5501,6 @@ msgstr "Menyiapkan pencarian"
 msgid "Preparing share URL..."
 msgstr "Menyiapkan URL berbagi..."
 
-msgid "Preparing to uninstall GitQuire"
-msgstr "Bersiap mencopot GitQuire"
-
 msgid "Present a document as a slide deck in its own window. Works in the GitQuire desktop app only, and needs the Slidev CLI, which you install separately. When on, it appears under Plugins in the sidebar."
 msgstr "Tampilkan dokumen sebagai dek slide di jendela tersendiri. Hanya berfungsi di aplikasi desktop GitQuire dan memerlukan CLI Slidev yang dipasang terpisah. Saat aktif, muncul di Plugins pada bilah sisi."
 
@@ -5807,9 +5738,6 @@ msgstr ""
 msgid "Receiving objects"
 msgstr "Menerima objek"
 
-msgid "recent"
-msgstr "terbaru"
-
 msgid "Recently closed"
 msgstr ""
 
@@ -5900,9 +5828,6 @@ msgstr "Hapus bidang {field}"
 msgid "Remove from recent projects"
 msgstr "Hapus dari proyek terbaru"
 
-msgid "Remove GitQuire from {0}"
-msgstr "Hapus GitQuire dari {0}"
-
 msgid "Remove item {0}"
 msgstr "Hapus item {0}"
 
@@ -5920,12 +5845,6 @@ msgstr "Hapus spasi di awal atau akhir jalur."
 
 msgid "Removed"
 msgstr "Dihapus"
-
-msgid "Removed GitQuire files"
-msgstr "File GitQuire dihapus"
-
-msgid "Removing GitQuire files…"
-msgstr "Menghapus berkas GitQuire…"
 
 msgid "Rename"
 msgstr "Ganti nama"
@@ -6137,12 +6056,6 @@ msgstr "Pakai ulang satu tab saat Anda mengeklik lewat bilah sisi. Bila mati, se
 
 msgid "Reused if it already exists, created if not."
 msgstr "Dipakai ulang jika sudah ada, dibuat jika belum."
-
-msgid "Reveal in Finder"
-msgstr "Tampilkan di Finder"
-
-msgid "Reveal in Finder shows the app so you can drag it to the Trash."
-msgstr "Tampilkan di Finder menampilkan aplikasi agar Anda dapat menyeretnya ke Tong Sampah."
 
 msgid "Revenue"
 msgstr ""
@@ -6363,9 +6276,6 @@ msgstr "Pilih {slot} — {0}"
 msgid "Select a value"
 msgstr "Pilih sebuah nilai"
 
-msgid "Select all"
-msgstr "Pilih semua"
-
 msgid "Select all files and folders"
 msgstr "Pilih semua berkas dan folder"
 
@@ -6428,9 +6338,6 @@ msgstr "Pencarian semantik aktif, tetapi tidak ada kunci API yang disetel — pe
 
 msgid "Send"
 msgstr "Kirim"
-
-msgid "Send & continue"
-msgstr "Kirim & lanjutkan"
 
 msgid "Send a new code"
 msgstr ""
@@ -6507,9 +6414,6 @@ msgstr "Menyiapkan"
 msgid "Settings"
 msgstr "Pengaturan"
 
-msgid "Settings and integrations were cleaned up."
-msgstr "Pengaturan dan integrasi telah dihapus."
-
 msgid "Settings are still loading. Try again in a moment."
 msgstr "Pengaturan masih dimuat. Coba lagi sebentar."
 
@@ -6536,9 +6440,6 @@ msgstr "Bagikan"
 
 msgid "Share doc"
 msgstr "Bagikan dokumen"
-
-msgid "Share feedback"
-msgstr "Bagikan masukan"
 
 msgid "Share folder"
 msgstr "Bagikan folder"
@@ -6729,9 +6630,6 @@ msgstr "Beberapa suntingan belum sampai ke server, jadi tab tidak dimuat ulang. 
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "Sebagian file tidak ditampilkan: working tree memiliki terlalu banyak perubahan."
 
-msgid "Some files may not have been removed. Open the cleanup log for details. You can reopen GitQuire to try again."
-msgstr "Beberapa file mungkin belum dihapus. Buka log pembersihan untuk melihat detailnya. Anda dapat membuka kembali GitQuire untuk mencoba lagi."
-
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Beberapa tema tersimpan tidak ditampilkan karena folder tema melewati batas pemindaian."
 
@@ -6743,9 +6641,6 @@ msgstr "Mungkin seseorang sudah menyelesaikan {filePath} — periksa isi dokumen
 
 msgid "Something broke"
 msgstr "Ada yang rusak"
-
-msgid "Something else"
-msgstr "Hal lain"
 
 msgid "Something went wrong"
 msgstr "Ada yang tidak beres"
@@ -7044,9 +6939,6 @@ msgstr "Daftar Tugas"
 msgid "Tell the team \"{0}\" can be checked. Mention people to notify them in their inbox (and by email if they turned it on)."
 msgstr ""
 
-msgid "Tell us how it's going"
-msgstr "Ceritakan bagaimana perkembangannya"
-
 msgid "Tell us more (optional)"
 msgstr "Ceritakan lebih banyak (opsional)"
 
@@ -7085,9 +6977,6 @@ msgstr "Menguji"
 
 msgid "Text"
 msgstr "Teks"
-
-msgid "Thanks for giving GitQuire a try."
-msgstr "Terima kasih sudah mencoba GitQuire."
 
 msgid "Thanks for subscribing. Watch your inbox for product updates."
 msgstr "Terima kasih sudah berlangganan. Pantau kotak masuk Anda untuk kabar terbaru produk."
@@ -7494,9 +7383,6 @@ msgstr "Daftar ini mungkin tidak mutakhir — terakhir dibaca {staleRelative}."
 msgid "This list may be out of date."
 msgstr "Daftar ini mungkin tidak mutakhir."
 
-msgid "This may take a moment. Your markdown content is kept."
-msgstr "Ini mungkin makan waktu sebentar. Konten markdown Anda dipertahankan."
-
 msgid "This mode comes from the project's Shared default below. Pick a mode to set one for this server."
 msgstr ""
 
@@ -7541,9 +7427,6 @@ msgstr "Proyek ini hanya ada di komputer ini. Hubungkan ke GitHub untuk mencadan
 
 msgid "This project's running server doesn't support live editing. Restart GitQuire to fix."
 msgstr "Server proyek ini yang sedang berjalan tidak mendukung penyuntingan langsung. Mulai ulang GitQuire untuk memperbaikinya."
-
-msgid "This removes GitQuire’s settings and integrations from your Mac and any projects you select below, but keeps your markdown content and authored skills."
-msgstr "Ini menghapus pengaturan dan integrasi GitQuire dari Mac Anda serta dari proyek mana pun yang Anda pilih di bawah, tetapi mempertahankan konten markdown dan keterampilan yang Anda tulis."
 
 msgid "This repository has no commits yet — reopen the project to create the first commit, then Push will work"
 msgstr "Repositori ini belum punya commit — buka lagi proyeknya untuk membuat commit pertama, lalu Push akan berfungsi"
@@ -7617,9 +7500,6 @@ msgstr "Judul"
 
 msgid "To do"
 msgstr "Akan dikerjakan"
-
-msgid "To do."
-msgstr "Akan dikerjakan."
 
 msgid "Today"
 msgstr "Hari ini"
@@ -7796,9 +7676,6 @@ msgstr "Ketik untuk menyunting; <0>Cmd/Ctrl+Enter</0> menyimpan, <1>Esc</1> memb
 msgid "Type to find a doc"
 msgstr "Ketik untuk menemukan sebuah dokumen"
 
-msgid "Unable to show the cleanup result"
-msgstr "Tidak dapat menampilkan hasil pembersihan"
-
 msgid "Uncommitted changes"
 msgstr "Perubahan yang belum di-commit"
 
@@ -7837,12 +7714,6 @@ msgstr "Batalkan resolusi Anda untuk mengubah ini."
 
 msgid "Undo, redo, or step through selection changes in the Edit source pane or a code-shaped property field."
 msgstr "Membatalkan, mengulangi, atau menelusuri perubahan pilihan di panel Sunting sumber atau bidang properti berbentuk kode."
-
-msgid "Uninstall GitQuire"
-msgstr "Copot GitQuire"
-
-msgid "Uninstall GitQuire?"
-msgstr "Copot GitQuire?"
 
 msgid "unknown"
 msgstr "tidak diketahui"
@@ -8170,9 +8041,6 @@ msgstr "Apa yang ingin Anda buat?"
 
 msgid "What you are looking at"
 msgstr ""
-
-msgid "What you share is sent to the GitQuire team."
-msgstr "Apa yang Anda bagikan dikirim ke tim GitQuire."
 
 msgid "What's new"
 msgstr "Yang baru"

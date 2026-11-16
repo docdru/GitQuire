@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-import { skillFileLiveDocName } from '../constants/cc1.ts';
 import {
   buildAbsoluteMarkdownHref,
   buildRelativeMarkdownHref,
@@ -381,56 +380,7 @@ describe('buildAbsoluteMarkdownHref', () => {
   });
 });
 
-describe('/<skill-name> targets', () => {
-  test('resolves to a sibling skill from a project skill body', () => {
-    expect(classifyMarkdownHref('/graphics', '.agents/skills/brand/SKILL')).toEqual({
-      kind: 'doc',
-      docName: '.agents/skills/graphics/SKILL',
-      anchor: null,
-    });
-  });
-
-  test('resolves from a bundle reference too, against the skill root', () => {
-    expect(classifyMarkdownHref('/gslides', '.claude/skills/brand/references/tone')).toEqual({
-      kind: 'doc',
-      docName: '.claude/skills/gslides/SKILL',
-      anchor: null,
-    });
-  });
-
-  test('a nested path is a path, not a skill name', () => {
-    const target = classifyMarkdownHref('/a/b', '.agents/skills/brand/SKILL');
-    expect(target?.kind === 'doc' ? target.docName : null).not.toBe('.agents/skills/a/SKILL');
-  });
-
-  test('a percent-encoded skill name still names the sibling skill', () => {
-    expect(classifyMarkdownHref('/my%20skill', '.agents/skills/brand/SKILL')).toEqual({
-      kind: 'doc',
-      docName: '.agents/skills/my skill/SKILL',
-      anchor: null,
-    });
-  });
-
-  test('outside a skill it stays an ordinary path', () => {
-    const target = classifyMarkdownHref('/graphics', 'notes/index');
-    expect(target?.kind === 'doc' ? target.docName : null).not.toBe(
-      '.agents/skills/graphics/SKILL',
-    );
-  });
-});
-
 describe('percent-encoded hrefs decode on every classify branch', () => {
-  for (const scope of ['global', 'project'] as const) {
-    test(`an encoded skill-bundle ref from a ${scope} SKILL.md decodes`, () => {
-      const base = skillFileLiveDocName(scope, 'demo', 'SKILL');
-      expect(classifyMarkdownHref('references/my%20ref.md', base)).toEqual({
-        kind: 'doc',
-        docName: skillFileLiveDocName(scope, 'demo', 'references/my ref'),
-        anchor: null,
-      });
-    });
-  }
-
   test('the anchor is returned verbatim, not decoded', () => {
     expect(classifyMarkdownHref('./Agent%20Memory.md#section%20two', 'blogs/drafts/index')).toEqual(
       { kind: 'doc', docName: 'blogs/drafts/Agent Memory', anchor: 'section%20two' },

@@ -54,7 +54,6 @@ describe('derived-index API readiness gate', () => {
       projectDir,
       contentDir,
       contentFilter: createContentFilter({ projectDir, contentDir }),
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
     });
 
@@ -102,7 +101,6 @@ describe('derived-index API readiness gate', () => {
       projectDir,
       contentDir,
       contentFilter: createContentFilter({ projectDir, contentDir }),
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
     });
 
@@ -110,7 +108,7 @@ describe('derived-index API readiness gate', () => {
       const startup = index.beginStartup('main');
       await startup.backlinksReady;
       await index.settleStartupAfterWatcherSeed();
-      vi.spyOn(BacklinkIndex.prototype, 'ingestGlobalSkillBundles').mockRejectedValueOnce(
+      vi.spyOn(BacklinkIndex.prototype, 'rebuildFromDisk').mockRejectedValueOnce(
         new Error('global rescan failure'),
       );
       const extension = createApiExtension({

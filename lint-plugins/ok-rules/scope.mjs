@@ -120,14 +120,6 @@ export const RULE_SCOPES = {
     'packages/app/tests/a11y/**/*.e2e.ts',
     'lint-plugins/ok-rules/__fixtures__/playwright-prefer-to-have-count.fixture.tsx',
   ],
-  'no-uninstall-forbidden-import': [
-    'packages/app/src/uninstall/**/*.ts',
-    'packages/app/src/uninstall/**/*.tsx',
-    '!packages/app/src/uninstall/**/*.test.ts',
-    '!packages/app/src/uninstall/**/*.test.tsx',
-    '!packages/app/src/uninstall/**/*.dom.test.tsx',
-    'lint-plugins/ok-rules/__fixtures__/no-uninstall-forbidden-import.fixture.tsx',
-  ],
   'no-unconverted-git-pathspec': [
     'packages/core/src/**/*.ts',
     'packages/server/src/**/*.ts',

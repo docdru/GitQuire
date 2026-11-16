@@ -597,11 +597,6 @@ describe('AppHeader', () => {
 
     test.each([
       {
-        target: 'a skill or template',
-        activeDocName: '__skill__/project/my-skill',
-        activeTarget: { kind: 'doc' },
-      },
-      {
         target: 'an asset',
         activeDocName: null,
         activeTarget: { kind: 'asset', assetPath: 'img/logo.png' },

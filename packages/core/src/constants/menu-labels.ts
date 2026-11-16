@@ -6,7 +6,6 @@ export const MENU_LABELS = {
   openFile: 'Open file',
   duplicate: 'Duplicate',
   rename: 'Rename',
-  revealInFinder: 'Reveal in Finder',
   copyPath: 'Copy path',
   fullPath: 'Full path',
   relativePath: 'Relative path',
@@ -54,7 +53,6 @@ export type MenuLabelKey = keyof typeof MENU_LABELS;
 export const PLATFORM_MENU_LABELS: Partial<
   Record<MenuLabelKey, Partial<Record<'win32' | 'linux', string>>>
 > = {
-  revealInFinder: { win32: 'Reveal in File Explorer', linux: 'Open containing folder' },
   moveToTrash: { win32: 'Move to Recycle Bin' },
 };
 

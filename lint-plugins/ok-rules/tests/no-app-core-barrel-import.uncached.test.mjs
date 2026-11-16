@@ -161,7 +161,6 @@ describe(`${RULE} oxlint rule`, () => {
       'packages/server/src/lint/audit.ts',
       'packages/desktop/src/main/index.ts',
       'docs/src/components/docs-sidebar-item.ts',
-      'lint-plugins/ok-rules/__fixtures__/no-uninstall-forbidden-import.fixture.tsx',
     ]) {
       expect(isInScope(RULE, path), path).toBe(false);
     }

@@ -13,7 +13,7 @@ const MICROMARK_MDX_EXT = mdx();
 const FROM_MARKDOWN_MDX_EXT = mdxFromMarkdown();
 const TO_MARKDOWN_MDX_EXT = mdxToMarkdown();
 
-export type ComponentKind = 'jsx-block' | 'jsx-void' | 'fence' | 'html';
+type ComponentKind = 'jsx-block' | 'jsx-void' | 'fence' | 'html';
 
 export interface ComponentEntryLite {
   id: string;
@@ -22,7 +22,7 @@ export interface ComponentEntryLite {
   kind: ComponentKind;
 }
 
-export interface ComponentParam {
+interface ComponentParam {
   name: string;
   type: 'string' | 'boolean' | 'number' | 'enum' | 'reactnode';
   values?: readonly string[];

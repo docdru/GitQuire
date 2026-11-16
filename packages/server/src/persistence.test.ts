@@ -568,7 +568,6 @@ describe('durable derived-index projection', () => {
       projectDir: contentDir,
       contentDir,
       contentFilter: createContentFilter({ projectDir: contentDir, contentDir }),
-      getGlobalSkillRoots: () => [],
       signalChannel: () => {},
     });
     await derivedDocumentIndex.close();

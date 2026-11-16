@@ -4,7 +4,6 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 import {
-  CANVAS_BG_DARK,
   CHROME_BG_DARK,
   CHROME_BG_LIGHT,
   SIDEBAR_BG_LIGHT,
@@ -46,17 +45,6 @@ describe('chromeTokensVitePlugin', () => {
     expect(transform.handler(html)).toBe(html);
   });
 
-  test('uninstall page pre-paints its dark canvas rather than the main window frame', () => {
-    const html = readFileSync(resolve(HERE, '../../uninstall.html'), 'utf8');
-    const transform = plugin.transformIndexHtml as {
-      handler: (html: string) => string;
-    };
-    const out = transform.handler(html);
-    expect(out).toContain(`html.dark { background-color: ${CANVAS_BG_DARK} }`);
-    expect(out).not.toContain('__OK_CANVAS_BG_DARK__');
-    expect(CANVAS_BG_DARK).not.toBe(CHROME_BG_DARK);
-  });
-
   test('the web pre-paint uses the light sidebar while the light frame uses the desk', () => {
     const html = readFileSync(resolve(HERE, '../../index.html'), 'utf8');
     const transform = plugin.transformIndexHtml as {
@@ -68,14 +56,6 @@ describe('chromeTokensVitePlugin', () => {
     expect(out).not.toMatch(/__OK_[A-Z_]+_BG_[A-Z]+__/);
     expect(SIDEBAR_BG_LIGHT).toBe('#fafafa');
     expect(CHROME_BG_LIGHT).toBe('#f5f5f5');
-  });
-
-  test('uninstall page pre-paints the light sidebar', () => {
-    const html = readFileSync(resolve(HERE, '../../uninstall.html'), 'utf8');
-    const transform = plugin.transformIndexHtml as {
-      handler: (html: string) => string;
-    };
-    expect(transform.handler(html)).toContain(`html { background-color: ${SIDEBAR_BG_LIGHT} }`);
   });
 
   test('multiple occurrences of the same placeholder are all replaced', () => {

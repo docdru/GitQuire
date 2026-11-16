@@ -132,8 +132,6 @@ const NON_CONTENT_ORIGINS: Record<string, string> = {
     'Client observer-direction baseline marker; the client cross-CRDT write path is deleted (precedent #14), so it drives no content write.',
   SELECTION_ORIGIN_META_KEY:
     'A ProseMirror selection transaction-meta key, not a Y.Doc transaction origin.',
-  DEFAULT_INTAKE_ORIGIN:
-    'The uninstall-feedback submission source label, not a CRDT transaction origin.',
   LAUNCHER_FREE_ORIGIN:
     'The default provenance stamp on a menu-action dispatch, describing whether the surface that dispatched dismisses itself. It rides the menu-action bus, never a Y.Doc transaction.',
   OPAQUE_ORIGIN_REFUSAL_DETAIL:

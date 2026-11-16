@@ -102,22 +102,4 @@ describe('resolveLinkTargetIntent', () => {
       hash: null,
     });
   });
-
-  test('navigates a skill-bundle reference to its editable doc, not create-page', () => {
-    expect(
-      resolveLinkTargetIntent('__skill__/global/test/references/notes', {
-        pages: new Set<string>(),
-      }),
-    ).toEqual({
-      kind: 'navigate',
-      displayState: 'resolved',
-      resolvedTarget: {
-        kind: 'doc',
-        docName: '__skill__/global/test/references/notes',
-        target: '__skill__/global/test/references/notes',
-      },
-      hashDocName: '__skill__/global/test/references/notes',
-      hash: null,
-    });
-  });
 });
