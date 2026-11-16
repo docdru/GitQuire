@@ -64,6 +64,7 @@ import { classifyFsPath, normalizeFsPath } from '../fs-traced.ts';
 import { nameRequestedPath, titleSeedFor } from '../gitquire/naming.ts';
 import type { PinoLogger } from '../logger.ts';
 import { createMultipartParser, type MultipartParser } from '../multipart.ts';
+import { isValidRelativeContentPath as isCanonicalRelativePath } from '../relative-content-path.ts';
 import { type AssetService, AttachmentFolderPathConfigError } from '../services/assets.ts';
 import { DuplicateNameExhaustedError, type FileOpsService } from '../services/file-ops.ts';
 import { type getMeter, withSpan } from '../telemetry.ts';
@@ -452,7 +453,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
         }
         if (
           [body.path, filePath].some(
-            (candidate) => candidate.includes('..') || !isValidRelativeContentPath(candidate),
+            (candidate) => candidate.includes('..') || !isCanonicalRelativePath(candidate),
           )
         ) {
           errorResponse(res, 400, 'urn:ok:error:path-escape', 'Invalid path.', {
