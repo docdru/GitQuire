@@ -1077,8 +1077,8 @@ describe('ContentFilter', () => {
         'dist/.gitquire/frontmatter.yml',
         '.gitquire/worktrees/wt1/docs/.gitquire/frontmatter.yml',
         '.gitquire/worktrees/wt1/.gitquire/config.yml',
-        '.OK/local/cache/.gitquire/frontmatter.yml',
-        '.OK/worktrees/wt1/docs/.gitquire/frontmatter.yml',
+        '.GITQUIRE/local/cache/.gitquire/frontmatter.yml',
+        '.GITQUIRE/worktrees/wt1/docs/.gitquire/frontmatter.yml',
         'node_modules/pkg/.gitquire/templates/x.md',
       ]) {
         expect(filter.isExcluded(vendored, SYNC), vendored).toBe(true);
@@ -1360,12 +1360,14 @@ describe('ContentFilter', () => {
 
       expect(filter.isDirExcluded('.gitquire/Worktrees', REVEAL)).toBe(true);
       expect(filter.isDirExcluded('.gitquire/Local', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.OK/worktrees', REVEAL)).toBe(true);
-      expect(filter.isDirExcluded('.OK/local', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.GITQUIRE/worktrees', REVEAL)).toBe(true);
+      expect(filter.isDirExcluded('.GITQUIRE/local', REVEAL)).toBe(true);
       expect(filter.isDirExcluded('.gitquire/LOCAL/cache', REVEAL)).toBe(true);
       expect(filter.isExcluded('.gitquire/Local/server.lock', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.OK/local/server.lock', REVEAL)).toBe(true);
-      expect(filter.isExcluded('.OK/worktrees/wt/.gitquire/frontmatter.yml', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.GITQUIRE/local/server.lock', REVEAL)).toBe(true);
+      expect(filter.isExcluded('.GITQUIRE/worktrees/wt/.gitquire/frontmatter.yml', REVEAL)).toBe(
+        true,
+      );
       expect(filter.isExcluded('meetings/.gitquire/WORKTREES/checkout/README.md', REVEAL)).toBe(
         true,
       );

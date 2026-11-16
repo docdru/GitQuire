@@ -165,10 +165,10 @@ describe('assertRealpathWithinDir — case-folded state-dir refusal', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  it('refuses an uppercase .OK leaf with no existing ancestor', () => {
-    expect(() => assertRealpathWithinDir(join(root, '.OK', 'local', 'evil.yml'), root)).toThrow(
-      SymlinkEscapeError,
-    );
+  it('refuses an uppercase .GITQUIRE leaf with no existing ancestor', () => {
+    expect(() =>
+      assertRealpathWithinDir(join(root, '.GITQUIRE', 'local', 'evil.yml'), root),
+    ).toThrow(SymlinkEscapeError);
   });
 
   it('refuses an uppercase .GIT leaf regardless of filesystem case behavior', () => {
@@ -179,7 +179,7 @@ describe('assertRealpathWithinDir — case-folded state-dir refusal', () => {
 
   it('never case-folds into the shareable EXEMPTION', () => {
     expect(() =>
-      assertRealpathWithinDir(join(root, '.OK', 'config.yml'), root, {
+      assertRealpathWithinDir(join(root, '.GITQUIRE', 'config.yml'), root, {
         allowShareableOkArtifact: isShareableOkArtifact,
       }),
     ).toThrow(SymlinkEscapeError);

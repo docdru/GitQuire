@@ -134,12 +134,12 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
   test('renders one toggleable row per discovered file', () => {
     renderSection();
-    const mapped = screen.getByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json');
+    const mapped = screen.getByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json');
     expect(mapped).toBeTruthy();
     expect(screen.getByTestId('frontmatter-schema-row-schemas/local.schema.json')).toBeTruthy();
 
     const onToggle = screen.getByTestId(
-      'frontmatter-schema-toggle-.ok/schemas/doc.schema.json',
+      'frontmatter-schema-toggle-.gitquire/schemas/doc.schema.json',
     ) as HTMLButtonElement;
     expect(onToggle.getAttribute('aria-checked')).toBe('true');
     expect(within(mapped).getByText('docs/**')).toBeTruthy();
@@ -157,7 +157,9 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
   test('toggling a mapped file off keeps the mapping with enabled: false', () => {
     renderSection();
-    fireEvent.click(screen.getByTestId('frontmatter-schema-toggle-.ok/schemas/doc.schema.json'));
+    fireEvent.click(
+      screen.getByTestId('frontmatter-schema-toggle-.gitquire/schemas/doc.schema.json'),
+    );
     expect(lastSchemas()).toEqual([
       { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: false },
     ]);
@@ -174,7 +176,9 @@ describe('FrontmatterPluginSection — schema browser', () => {
       { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: false },
     ]);
     renderSection();
-    fireEvent.click(screen.getByTestId('frontmatter-schema-toggle-.ok/schemas/doc.schema.json'));
+    fireEvent.click(
+      screen.getByTestId('frontmatter-schema-toggle-.gitquire/schemas/doc.schema.json'),
+    );
     expect(lastSchemas()).toEqual([
       { appliesTo: ['docs/**'], file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
@@ -186,7 +190,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     ]);
     renderSection();
     const toggle = screen.getByTestId(
-      'frontmatter-schema-toggle-.ok/schemas/doc.schema.json',
+      'frontmatter-schema-toggle-.gitquire/schemas/doc.schema.json',
     ) as HTMLButtonElement;
     expect(toggle.getAttribute('aria-checked')).toBe('true');
     fireEvent.click(toggle);
@@ -198,9 +202,11 @@ describe('FrontmatterPluginSection — schema browser', () => {
   test('the toggle is the only control — no Modified badge, no reset', () => {
     renderSection();
     expect(
-      screen.queryByTestId('frontmatter-schema-modified-.ok/schemas/doc.schema.json'),
+      screen.queryByTestId('frontmatter-schema-modified-.gitquire/schemas/doc.schema.json'),
     ).toBeNull();
-    expect(screen.queryByTestId('frontmatter-schema-reset-.ok/schemas/doc.schema.json')).toBeNull();
+    expect(
+      screen.queryByTestId('frontmatter-schema-reset-.gitquire/schemas/doc.schema.json'),
+    ).toBeNull();
     expect(screen.queryByTestId('frontmatter-only-modified')).toBeNull();
     expect(screen.queryByTestId('frontmatter-schema-legend')).toBeNull();
   });
@@ -208,7 +214,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
   test('editing appliesTo writes the globs on the file mapping', () => {
     renderSection();
     const input = document.getElementById(
-      'frontmatter-schema-applies-.ok/schemas/doc.schema.json',
+      'frontmatter-schema-applies-.gitquire/schemas/doc.schema.json',
     ) as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'notes/**' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -220,7 +226,9 @@ describe('FrontmatterPluginSection — schema browser', () => {
     fireEvent.change(screen.getByTestId('frontmatter-schema-search'), {
       target: { value: 'local' },
     });
-    expect(screen.queryByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json')).toBeNull();
+    expect(
+      screen.queryByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json'),
+    ).toBeNull();
     expect(screen.getByTestId('frontmatter-schema-row-schemas/local.schema.json')).toBeTruthy();
 
     fireEvent.change(screen.getByTestId('frontmatter-schema-search'), {
@@ -233,7 +241,9 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
   test('the Edit button opens the file via hash and banks the Fields-view intent', () => {
     renderSection();
-    fireEvent.click(screen.getByTestId('frontmatter-schema-edit-.ok/schemas/doc.schema.json'));
+    fireEvent.click(
+      screen.getByTestId('frontmatter-schema-edit-.gitquire/schemas/doc.schema.json'),
+    );
     expect(window.location.hash).toBe('#/__asset__/.gitquire/schemas/doc.schema.json');
     expect(consumeSchemaFieldsView('.gitquire/schemas/doc.schema.json')).toBe(true);
   });
@@ -257,7 +267,9 @@ describe('FrontmatterPluginSection — schema browser', () => {
       { file: '.gitquire/schemas/doc.schema.json', enabled: true },
     ]);
     renderSection();
-    const input = document.getElementById('frontmatter-schema-applies-.ok/schemas/doc.schema.json');
+    const input = document.getElementById(
+      'frontmatter-schema-applies-.gitquire/schemas/doc.schema.json',
+    );
     expect(input?.getAttribute('placeholder')).toContain('guides/**/*');
     expect(input?.getAttribute('placeholder')).toContain('pattern');
   });
@@ -297,7 +309,9 @@ describe('FrontmatterPluginSection — schema browser', () => {
 
   test('the trash affordance confirms, deletes the file, and wipes its mapping', async () => {
     renderSection();
-    fireEvent.click(screen.getByTestId('frontmatter-schema-delete-.ok/schemas/doc.schema.json'));
+    fireEvent.click(
+      screen.getByTestId('frontmatter-schema-delete-.gitquire/schemas/doc.schema.json'),
+    );
     expect(deleted).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await Promise.resolve();
@@ -316,7 +330,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     ]);
     renderSection();
     const summary = screen.getByTestId(
-      'frontmatter-schema-applies-summary-.ok/schemas/doc.schema.json',
+      'frontmatter-schema-applies-summary-.gitquire/schemas/doc.schema.json',
     );
     expect(summary.textContent).toContain('Applies to');
     expect(summary.textContent).toContain('everything under blogs/');
@@ -330,7 +344,7 @@ describe('FrontmatterPluginSection — schema browser', () => {
     ]);
     renderSection();
     expect(
-      screen.getByTestId('frontmatter-schema-applies-summary-.ok/schemas/doc.schema.json')
+      screen.getByTestId('frontmatter-schema-applies-summary-.gitquire/schemas/doc.schema.json')
         .textContent,
     ).toContain('every doc');
   });
@@ -353,7 +367,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
     mockLintData = { effective: null, configProblems: [UNMATCHED_DOCS] };
     renderSection();
 
-    const row = screen.getByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json');
+    const row = screen.getByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json');
     const flagged = row.querySelectorAll('[data-tag-problem="true"]');
     expect(flagged).toHaveLength(1);
     expect(flagged[0]?.textContent).toContain('docs/**');
@@ -382,7 +396,9 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
       target: { value: 'local' },
     });
 
-    expect(screen.queryByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json')).toBeNull();
+    expect(
+      screen.queryByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json'),
+    ).toBeNull();
     expect(screen.queryByTestId('frontmatter-config-problems')).toBeNull();
   });
 
@@ -394,7 +410,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
     renderSection();
 
     expect(screen.queryByTestId('frontmatter-config-problems')).toBeNull();
-    const row = screen.getByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json');
+    const row = screen.getByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json');
     expect(row.querySelectorAll('[data-tag-problem="true"]')).toHaveLength(0);
   });
 
@@ -405,7 +421,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
     mockLintData = { effective: null, configProblems: [UNMATCHED_DOCS] };
     renderSection();
 
-    const row = screen.getByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json');
+    const row = screen.getByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json');
     const pills = [...row.querySelectorAll('[data-slot="tag-pill-input"] button')].filter(
       (el) => el.textContent !== '',
     );
@@ -429,7 +445,7 @@ describe('FrontmatterPluginSection — glob problems ride on the glob', () => {
     };
     renderSection();
 
-    const row = screen.getByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json');
+    const row = screen.getByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json');
     const pill = [...row.querySelectorAll('[data-slot="tag-pill-input"] button')].find(
       (el) => el.textContent === 'blog',
     ) as HTMLElement;
@@ -461,7 +477,7 @@ describe('FrontmatterPluginSection — findings with no pill to land on', () => 
     mockLintData = { effective: null, configProblems: [UNMATCHED_B] };
     renderSection();
 
-    const row = screen.getByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json');
+    const row = screen.getByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json');
     expect(row.textContent).toContain('a/**');
     expect(row.textContent).not.toContain('b/**');
     expect(screen.getByTestId('frontmatter-config-problems').textContent).toContain(
@@ -477,7 +493,7 @@ describe('FrontmatterPluginSection — findings with no pill to land on', () => 
     mockLintData = { effective: null, configProblems: [UNMATCHED_B] };
     renderSection();
 
-    const row = screen.getByTestId('frontmatter-schema-row-.ok/schemas/doc.schema.json');
+    const row = screen.getByTestId('frontmatter-schema-row-.gitquire/schemas/doc.schema.json');
     expect(row.querySelector('[data-slot="tag-pill-input"]')).toBeNull();
     expect(screen.getByTestId('frontmatter-config-problems').textContent).toContain(
       'matches no docs',

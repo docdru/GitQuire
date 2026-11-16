@@ -111,13 +111,13 @@ describe('reserved-path guard — create-page', () => {
     expect(existsSync(join(dir, 'notes/.gitquire'))).toBe(false);
   });
 
-  test('rejects a case-variant .OK target and writes nothing', async () => {
+  test('rejects a case-variant .GITQUIRE target and writes nothing', async () => {
     const dir = setupTmpDir();
 
-    const result = await callApi(dir, '/api/create-page', { path: '.OK/probe.md' });
+    const result = await callApi(dir, '/api/create-page', { path: '.GITQUIRE/probe.md' });
 
     expectReservedRejection(result);
-    expect(existsSync(join(dir, '.OK/probe.md'))).toBe(false);
+    expect(existsSync(join(dir, '.GITQUIRE/probe.md'))).toBe(false);
   });
 });
 
@@ -141,13 +141,13 @@ describe('reserved-path guard — create-folder', () => {
     expect(existsSync(join(dir, 'notes/.gitquire'))).toBe(false);
   });
 
-  test('rejects a case-variant .OK destination and creates nothing', async () => {
+  test('rejects a case-variant .GITQUIRE destination and creates nothing', async () => {
     const dir = setupTmpDir();
 
-    const result = await callApi(dir, '/api/create-folder', { path: '.OK/cache' });
+    const result = await callApi(dir, '/api/create-folder', { path: '.GITQUIRE/cache' });
 
     expectReservedRejection(result);
-    expect(existsSync(join(dir, '.OK/cache'))).toBe(false);
+    expect(existsSync(join(dir, '.GITQUIRE/cache'))).toBe(false);
   });
 });
 
@@ -179,10 +179,10 @@ describe('reserved-path guard — duplicate-path', () => {
     expect(existsSync(join(dir, 'notes/.gitquire/templates/starter copy.md'))).toBe(false);
   });
 
-  test('rejects a case-variant .OK folder source', async () => {
+  test('rejects a case-variant .GITQUIRE folder source', async () => {
     const dir = setupTmpDir();
 
-    const result = await callApi(dir, '/api/duplicate-path', { kind: 'folder', path: '.OK' });
+    const result = await callApi(dir, '/api/duplicate-path', { kind: 'folder', path: '.GITQUIRE' });
 
     expectReservedRejection(result);
   });
@@ -236,14 +236,14 @@ describe('reserved-path guard — rename-path', () => {
     expect(existsSync(join(dir, 'notes/.gitquire'))).toBe(false);
   });
 
-  test('rejects a case-variant .OK destination path and moves nothing', async () => {
+  test('rejects a case-variant .GITQUIRE destination path and moves nothing', async () => {
     const dir = setupTmpDir();
     writeFileSync(join(dir, 'real.md'), '# Real\n', 'utf-8');
 
     const result = await callApi(dir, '/api/rename-path', {
       kind: 'file',
       fromPath: 'real',
-      toPath: '.OK/sneak',
+      toPath: '.GITQUIRE/sneak',
     });
 
     expectReservedRejection(result);
@@ -305,12 +305,12 @@ describe('reserved-path guard — delete-path', () => {
     expect(existsSync(join(dir, 'notes/.gitquire/templates/starter.md'))).toBe(true);
   });
 
-  test('rejects a case-variant .OK file delete', async () => {
+  test('rejects a case-variant .GITQUIRE file delete', async () => {
     const dir = setupTmpDir();
 
     const result = await callApi(dir, '/api/delete-path', {
       kind: 'file',
-      path: '.OK/anything',
+      path: '.GITQUIRE/anything',
     });
 
     expectReservedRejection(result);
