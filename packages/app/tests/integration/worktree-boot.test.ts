@@ -230,7 +230,7 @@ describe('bootServer pre-listen check on main worktree (FR3)', () => {
     expect(e.kind).toBe('okdir');
     expect(e.projectDir).toBe(contentDir);
     expect(e.message).toContain('GitQuire config not found at .ok/config.yml');
-    expect(e.message).toContain('Run ok init');
+    expect(e.message).toContain('Run gq init');
     expect(existsSync(resolve(contentDir, '.git/ok'))).toBe(false);
   });
 

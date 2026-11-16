@@ -53,7 +53,7 @@ describe('getOkArtifactPaths', () => {
     expect(getOkArtifactPaths(dir)).toEqual([`${OK_DIR}/`, '.okignore']);
   });
 
-  it('preserves a stable order so `ok config-sharing status` and unit-test snapshots are deterministic', () => {
+  it('preserves a stable order so `gq config-sharing status` and unit-test snapshots are deterministic', () => {
     const a = getOkArtifactPaths(dir);
     const b = getOkArtifactPaths(dir);
     expect([...a]).toEqual([...b]);

@@ -64,7 +64,7 @@ function readLocalConfig(dir: string): string {
   }
 }
 
-describe('ok embeddings set-url / clear-url', () => {
+describe('gq embeddings set-url / clear-url', () => {
   let dir: string;
   let stderr: string;
   let restoreWrite: () => void;
@@ -160,7 +160,7 @@ describe('ok embeddings set-url / clear-url', () => {
   });
 });
 
-describe('ok embeddings status transport settings', () => {
+describe('gq embeddings status transport settings', () => {
   let dir: string;
   let stdout: string;
 
@@ -275,8 +275,8 @@ describe('embeddings hints name the running channel CLI', () => {
   });
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: status, enable and set-key name %s embeddings', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     await embeddingsCommand().parseAsync(['status', '--cwd', dir], { from: 'user' });

@@ -956,7 +956,7 @@ export function startCommand(getConfig: () => Config): Command {
 
       if (opts.mode === 'app') {
         process.stderr.write(
-          "error: '--mode app' opened the desktop app, which GitQuire does not ship; run 'ok start' to serve the web editor\n",
+          "error: '--mode app' opened the desktop app, which GitQuire does not ship; run 'gq start' to serve the web editor\n",
         );
         process.exit(2);
       }

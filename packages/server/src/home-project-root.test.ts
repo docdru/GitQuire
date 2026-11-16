@@ -133,28 +133,28 @@ describe('scaffold writers refuse $HOME', () => {
 });
 
 describe('the remediation names the running channel CLI', () => {
-  test('Stable keeps its exact ok init lines', () => {
+  test('Stable keeps its exact gq init lines', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     expect(new HomeProjectRootError('/Users/x').message).toBe(
       `Refusing to set up a GitQuire project in your home directory (/Users/x).\n` +
         `  A project here would run 'git init' in your home directory and write project config\n` +
         `  and skills into your editors' user-global directories (~/.cursor, ~/.codex, ~/.claude).\n` +
-        `  Make a folder for this project, then run 'ok init' inside it.`,
+        `  Make a folder for this project, then run 'gq init' inside it.`,
     );
     expect(new FilesystemRootProjectError('/').message).toBe(
       `Refusing to set up a GitQuire project at the top of a drive (/).\n` +
         `  A project here would scan every file on the drive and run 'git init' at its root.\n` +
-        `  Make a folder for this project, then run 'ok init' inside it.`,
+        `  Make a folder for this project, then run 'gq init' inside it.`,
     );
   });
 
-  test('Beta names ok-beta init', () => {
+  test('Beta names gq-beta init', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     expect(new HomeProjectRootError('/Users/x').message).toContain(
-      "then run 'ok-beta init' inside it.",
+      "then run 'gq-beta init' inside it.",
     );
     expect(new FilesystemRootProjectError('/').message).toContain(
-      "then run 'ok-beta init' inside it.",
+      "then run 'gq-beta init' inside it.",
     );
   });
 });

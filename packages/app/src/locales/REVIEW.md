@@ -123,7 +123,7 @@ everything is worth less than a real review of the part that matters. The script
 the rule; so does the packet, so the reviewer knows what they are being handed.
 
 A contributor who *can* run the app should also run it in their language — the picker offers
-eleven of them directly, and `OK_LANG=ar ok start` activates the other two. That is a better
+eleven of them directly, and `OK_LANG=ar gq start` activates the other two. That is a better
 review than the packet. The packet exists so that not being able to do it is not a blocker.
 
 ### 2. Send it out

@@ -101,8 +101,8 @@ describe('content-dir remediation names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: an uninitialized project names %s init', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const result = await makeContentDirCheck().run({ cwd: makeProject(false) });

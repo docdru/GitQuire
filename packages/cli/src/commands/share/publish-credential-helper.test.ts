@@ -241,7 +241,7 @@ describe("share publish authenticates its github.com push only through the CLI's
     expectTokenConfinedToCliHelper(PUBLISH_TOKEN);
   });
 
-  test("a publish's push authenticates through the real `ok auth git-credential get` command of the CLI entry", async () => {
+  test("a publish's push authenticates through the real `gq auth git-credential get` command of the CLI entry", async () => {
     const realEntry = writeCliEntryLauncher({ dir: workspace, callLog: cliHelperLog });
 
     const result = await publishWith(PUBLISH_TOKEN, CLONE_URL, realEntry);

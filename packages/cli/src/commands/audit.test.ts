@@ -298,20 +298,20 @@ describe('runAudit', () => {
     expect(out.join('\n')).toContain('source family "links" validation failed');
   });
 
-  test('errors with `ok start` guidance when no server lock is live', async () => {
+  test('errors with `gq start` guidance when no server lock is live', async () => {
     rmSync(join(dir, '.ok', 'local', 'server.lock'));
     const { io, err } = collectIo();
 
     const code = await runAudit(undefined, {}, minimalConfig, dir, dir, io);
 
     expect(code).toBe(1);
-    expect(err.join('\n')).toContain('ok start');
-    expect(err.join('\n')).toContain('ok lint');
+    expect(err.join('\n')).toContain('gq start');
+    expect(err.join('\n')).toContain('gq lint');
   });
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('no-server guidance names the %s command', async (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     rmSync(join(dir, '.ok', 'local', 'server.lock'));

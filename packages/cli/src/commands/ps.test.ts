@@ -655,8 +655,8 @@ describe('renderTable stop hint names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: the footer names %s stop', (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const output = renderTable([

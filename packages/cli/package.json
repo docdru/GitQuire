@@ -26,6 +26,8 @@
     }
   },
   "bin": {
+    "gitquire": "dist/cli.mjs",
+    "gq": "dist/cli.mjs",
     "open-knowledge": "dist/cli.mjs",
     "ok": "dist/cli.mjs"
   },

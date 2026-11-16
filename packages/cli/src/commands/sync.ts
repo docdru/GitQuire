@@ -375,7 +375,7 @@ export async function runSync(
     const remote = await gitForRemoteUrl(cwd, url, sources);
     const warning = formatDeclaredAccountMiss(remote.declaredMiss, {
       url: 'The remote URL',
-      operation: `ok ${op}`,
+      operation: `${currentCliCommandName()} ${op}`,
     });
     if (warning === null) return remote;
     if (opts.json) emit(true, { type: 'warning', message: warning.trimEnd() });

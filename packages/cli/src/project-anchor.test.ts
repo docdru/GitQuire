@@ -151,7 +151,7 @@ function spawnCli(
 }
 
 describe('CLI preAction project anchoring (cold spawn)', () => {
-  test('`ok status` from a subdirectory anchors to the root and prints the disclosure line', () => {
+  test('`gq status` from a subdirectory anchors to the root and prints the disclosure line', () => {
     const root = makeFixture();
     makeProjectRoot(root);
     const sub = join(root, 'notes', 'daily');
@@ -165,7 +165,7 @@ describe('CLI preAction project anchoring (cold spawn)', () => {
     expect(report).toHaveProperty('server');
   }, 30_000);
 
-  test('`ok preview` from a subdirectory loads the ROOT config, not defaults', () => {
+  test('`gq preview` from a subdirectory loads the ROOT config, not defaults', () => {
     const root = makeFixture();
     makeProjectRoot(root, 'content:\n  dir: docs\n');
     mkdirSync(join(root, 'docs'), { recursive: true });
@@ -190,7 +190,7 @@ describe('CLI preAction project anchoring (cold spawn)', () => {
     expect(stderr).not.toContain('Using OpenKnowledge project at');
   }, 30_000);
 
-  test('`ok stop <relative-dir>` resolves the target against the invocation cwd, not the anchored root', () => {
+  test('`gq stop <relative-dir>` resolves the target against the invocation cwd, not the anchored root', () => {
     const root = makeFixture();
     makeProjectRoot(root);
     const sub = join(root, 'sub');

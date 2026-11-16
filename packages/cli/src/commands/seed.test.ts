@@ -94,7 +94,7 @@ describe('runSeed — --dry-run', () => {
     }
   });
 
-  test('previews in an uninitialized dir without requiring `ok init`', async () => {
+  test('previews in an uninitialized dir without requiring `gq init`', async () => {
     const result = await runSeed({ cwd: testDir, pack: 'knowledge-base', dryRun: true });
     expect(result.status).toBe('dry-run');
     expect(result.exitCode).toBe(0);
@@ -130,7 +130,7 @@ describe('runSeed — prerequisite', () => {
     const result = await runSeed({ cwd: testDir });
     expect(result.status).toBe('prerequisite-missing');
     expect(result.exitCode).toBe(1);
-    expect(result.message).toContain('ok init');
+    expect(result.message).toContain('gq init');
   });
 });
 

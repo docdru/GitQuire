@@ -17,7 +17,7 @@ vi.mock('@gitquire/server', async (importOriginal) => {
 
 const { FilesystemRootProjectError, initCommand, runInit } = await import('./init.ts');
 
-describe('ok init refuses the top of a drive', () => {
+describe('gq init refuses the top of a drive', () => {
   let testDir: string;
   let fakeHome: string;
   let driveRoot: string;

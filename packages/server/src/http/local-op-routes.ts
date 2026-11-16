@@ -302,7 +302,7 @@ export function createLocalOpRoutes(
   }
 
   const SERVER_WITHOUT_UI_ERROR =
-    'A server is already running for this directory without a web UI (started with `--only server`, or from a build without the bundled editor). Restart it with plain `ok start` from an install that includes the web UI.';
+    'A server is already running for this directory without a web UI (started with `--only server`, or from a build without the bundled editor). Restart it with plain `gq start` from an install that includes the web UI.';
 
   async function startServerAtDirAndGetPort(
     dir: string,
@@ -370,7 +370,7 @@ export function createLocalOpRoutes(
           if (winner === 'no-ui') return { error: SERVER_WITHOUT_UI_ERROR };
           if (winner !== null) return { port: winner };
           return {
-            error: `\`ok start\` exited (${cause})${stderr ? ` — ${stderr}` : ''}`,
+            error: `\`gq start\` exited (${cause})${stderr ? ` — ${stderr}` : ''}`,
           };
         }
       }

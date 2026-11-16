@@ -305,9 +305,9 @@ describe('acquireServerAuthority', () => {
     registryPath = join(directory, 'corrupt.sqlite');
     try {
       vi.stubEnv('OK_CHANNEL', 'stable');
-      expect(() => claim(tree())).toThrow(/Run ok stop all and confirm/);
+      expect(() => claim(tree())).toThrow(/Run gq stop all and confirm/);
       vi.stubEnv('OK_CHANNEL', 'beta');
-      expect(() => claim(tree())).toThrow(/Run ok-beta stop all and confirm/);
+      expect(() => claim(tree())).toThrow(/Run gq-beta stop all and confirm/);
     } finally {
       vi.unstubAllEnvs();
     }
@@ -396,7 +396,7 @@ describe('acquireServerAuthority', () => {
           );
           expect((error as Error).message).toContain(`Registry: ${registryPath}.`);
           expect((error as Error).message).not.toContain('Version 1.');
-          expect((error as Error).message).toContain('ok stop all');
+          expect((error as Error).message).toContain('gq stop all');
           expect((error as Error).message).toContain('-journal');
         }
         expect(database.prepare('PRAGMA user_version').get()?.user_version).toBe(1);
@@ -546,7 +546,7 @@ describe('acquireServerAuthority', () => {
         } else expect((error as Error).message).not.toContain('retry');
         expect((error as Error).message).toContain('could not be verified');
         expect((error as Error).message).toContain(registryPath);
-        expect((error as Error).message).toContain('ok stop all');
+        expect((error as Error).message).toContain('gq stop all');
       }
     },
   );

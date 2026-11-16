@@ -201,18 +201,18 @@ describe('buildPreviewAttachWarning — names the running channel command', () =
   test('Stable text is byte-identical', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     expect(buildPreviewAttachWarning(null, true).message).toBe(
-      'No UI is running for this project. Start one to see the preview: `ok start` (terminal), or open the project in OK Electron.',
+      'No UI is running for this project. Start one to see the preview: `gq start` (terminal), or open the project in OK Electron.',
     );
     expect(buildPreviewAttachWarning({ url: '/#/a' }, true).message).toMatch(
-      /on a stdio CLI with no browser, `ok open <doc>`\.$/,
+      /on a stdio CLI with no browser, `gq open <doc>`\.$/,
     );
   });
 
-  test('Beta names ok-beta', () => {
+  test('Beta names gq-beta', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
-    expect(buildPreviewAttachWarning(null, true).message).toContain('`ok-beta start` (terminal)');
+    expect(buildPreviewAttachWarning(null, true).message).toContain('`gq-beta start` (terminal)');
     expect(buildPreviewAttachWarning({ url: '/#/a' }, true).message).toMatch(
-      /on a stdio CLI with no browser, `ok-beta open <doc>`\.$/,
+      /on a stdio CLI with no browser, `gq-beta open <doc>`\.$/,
     );
   });
 });

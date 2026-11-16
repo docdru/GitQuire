@@ -178,27 +178,27 @@ describe('channel CLI command name', () => {
     vi.unstubAllEnvs();
   });
 
-  it('names ok on Stable', () => {
+  it('names gq on Stable', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
-    expect(currentCliCommandName()).toBe('ok');
+    expect(currentCliCommandName()).toBe('gq');
   });
 
-  it('names ok-beta on Beta', () => {
+  it('names gq-beta on Beta', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
-    expect(currentCliCommandName()).toBe('ok-beta');
+    expect(currentCliCommandName()).toBe('gq-beta');
   });
 
-  it('names ok-dev on the dev channel, a bare command name like every other channel', () => {
+  it('names gq-dev on the dev channel, a bare command name like every other channel', () => {
     vi.stubEnv('OK_CHANNEL', 'dev');
-    expect(currentCliCommandName()).toBe('ok-dev');
-    expect(desktopProductForCliCommand('ok-dev')).toBe(DESKTOP_PRODUCTS.dev);
+    expect(currentCliCommandName()).toBe('gq-dev');
+    expect(desktopProductForCliCommand('gq-dev')).toBe(DESKTOP_PRODUCTS.dev);
   });
 
   it('maps a command name back to its product, and anything else to Stable', () => {
-    expect(desktopProductForCliCommand('ok-beta')).toBe(DESKTOP_PRODUCTS.beta);
-    expect(desktopProductForCliCommand('ok')).toBe(DESKTOP_PRODUCTS.stable);
+    expect(desktopProductForCliCommand('gq-beta')).toBe(DESKTOP_PRODUCTS.beta);
+    expect(desktopProductForCliCommand('gq')).toBe(DESKTOP_PRODUCTS.stable);
     expect(desktopProductForCliCommand(null)).toBe(DESKTOP_PRODUCTS.stable);
-    expect(desktopProductForCliCommand('open-knowledge-beta')).toBe(DESKTOP_PRODUCTS.stable);
+    expect(desktopProductForCliCommand('gitquire-beta')).toBe(DESKTOP_PRODUCTS.stable);
   });
 
   it('names each product home folder for display', () => {
@@ -247,11 +247,11 @@ describe('OkCliCommand', () => {
   it('never hands dev to the CLI on PATH, which a released build may be', () => {
     const cli = OkCliCommand.resolve({ env: { OK_CHANNEL: 'dev' } });
     expect(cli.runnerInvocation(['auth', 'status'])).toEqual({
-      cliArgs: ['open-knowledge', 'auth', 'status'],
+      cliArgs: ['gitquire', 'auth', 'status'],
       cliEnv: {},
     });
     expect(cli.spawn(['status'], { PATH: '/usr/bin', OK_CHANNEL: 'dev' })).toEqual({
-      command: 'open-knowledge',
+      command: 'gitquire',
       args: ['status'],
       env: { PATH: '/usr/bin' },
     });
@@ -292,7 +292,7 @@ describe('OkCliCommand', () => {
         [],
       ),
     ).toEqual({
-      cliArgs: ['open-knowledge'],
+      cliArgs: ['gitquire'],
       cliEnv: { OK_CHANNEL: 'beta' },
     });
   });

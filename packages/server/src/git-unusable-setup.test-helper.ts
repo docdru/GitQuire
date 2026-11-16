@@ -78,6 +78,6 @@ export function isRecoverableGitSignal(value: unknown): boolean {
     msg.includes('GIT_TOO_OLD') ||
     msg.includes('GitQuire needs Git') ||
     msg.includes('GitQuire requires Git') ||
-    msg.includes('ok diagnose health')
+    msg.includes('gq diagnose health')
   );
 }

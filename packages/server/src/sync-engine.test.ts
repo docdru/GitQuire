@@ -4694,8 +4694,8 @@ describe('SyncEngine auth-error recovery', () => {
 
   test('notifyCredentialsChanged rebuilds the credential chain, even when sync is off', async () => {
     const resolved = [
-      ['credential.helper=!ok auth git-credential'],
-      ['credential.helper=', 'credential.helper=!ok auth git-credential'],
+      ['credential.helper=!gq auth git-credential'],
+      ['credential.helper=', 'credential.helper=!gq auth git-credential'],
     ];
     let calls = 0;
     const engine = new SyncEngine({
@@ -4769,7 +4769,7 @@ describe('SyncEngine auth-error recovery', () => {
       contentDir,
       contentFilter: stubContentFilter,
       syncEnabled: false,
-      credentialConfig: ['credential.helper=!ok auth git-credential'],
+      credentialConfig: ['credential.helper=!gq auth git-credential'],
       resolveCredentialConfig: async () => {
         throw new Error('keychain locked');
       },
@@ -4777,7 +4777,7 @@ describe('SyncEngine auth-error recovery', () => {
 
     await engine.notifyCredentialsChanged();
 
-    expect(engine.getCredentialConfig()).toEqual(['credential.helper=!ok auth git-credential']);
+    expect(engine.getCredentialConfig()).toEqual(['credential.helper=!gq auth git-credential']);
   });
 
   test('a push-permission pause left over from a GitHub origin clears once the origin is not GitHub', async () => {

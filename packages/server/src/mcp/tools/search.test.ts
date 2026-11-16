@@ -729,7 +729,7 @@ describe('search MCP tool — error paths', () => {
     expect(result.isError).toBe(true);
     const text = result.content?.find((c) => c.type === 'text')?.text ?? '';
     expect(text).toContain('Hocuspocus server is not running');
-    expect(text).toContain('ok start');
+    expect(text).toContain('gq start');
     expect(text).toContain('grep');
   });
 

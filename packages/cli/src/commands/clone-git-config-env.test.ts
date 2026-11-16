@@ -264,7 +264,7 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
       },
     },
     {
-      pair: 'ok clone pair',
+      pair: 'gq clone pair',
       open: async (dir: string, sourceEnv: NodeJS.ProcessEnv) => {
         const { auth } = await resolveCloneAuth(
           'https://github.com/o/r',
@@ -329,7 +329,7 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
     ).rejects.toThrow('allowUnsafeHooksPath');
   });
 
-  test("ok clone's failure message names the GIT_CONFIG_* variables that passed a refused setting", async () => {
+  test("gq clone's failure message names the GIT_CONFIG_* variables that passed a refused setting", async () => {
     vi.stubEnv('GIT_CONFIG_COUNT', '1');
     vi.stubEnv('GIT_CONFIG_KEY_0', 'core.hooksPath');
     vi.stubEnv('GIT_CONFIG_VALUE_0', join(workspace, 'hooks'));
@@ -363,7 +363,7 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
     expect(out).toContain(refusal);
   });
 
-  test("ok clone's failure message does not blame GIT_CONFIG_KEY_<n> for a variable refused by name", async () => {
+  test("gq clone's failure message does not blame GIT_CONFIG_KEY_<n> for a variable refused by name", async () => {
     vi.stubEnv('GIT_CONFIG_GLOBAL', join(workspace, 'global.gitconfig'));
     const url = 'https://127.0.0.1:1/o/r.git';
     const error = await runClone(
@@ -390,7 +390,7 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
   });
 });
 
-describe('ok clone checks symlinks before checking anything out', () => {
+describe('gq clone checks symlinks before checking anything out', () => {
   let workspace: string;
 
   function seedBareRepoWithLinks(bareDir: string, links: Record<string, string>): void {

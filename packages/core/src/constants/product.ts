@@ -13,7 +13,7 @@ export const DESKTOP_PRODUCTS = {
       deb: [],
       rpm: ['OpenKnowledge'],
     },
-    cliCommandNames: ['ok', 'open-knowledge'],
+    cliCommandNames: ['gq', 'gitquire'],
     mcpServerName: 'open-knowledge',
     mcpChainTag: '',
     npmDistTag: 'latest',
@@ -34,7 +34,7 @@ export const DESKTOP_PRODUCTS = {
       deb: ['openknowledge-beta-desktop'],
       rpm: ['openknowledge-beta-desktop'],
     },
-    cliCommandNames: ['ok-beta', 'open-knowledge-beta'],
+    cliCommandNames: ['gq-beta', 'gitquire-beta'],
     mcpServerName: 'open-knowledge-beta',
     mcpChainTag: '-beta',
     npmDistTag: 'beta',
@@ -55,7 +55,7 @@ export const DESKTOP_PRODUCTS = {
       deb: [],
       rpm: [],
     },
-    cliCommandNames: ['ok-dev', 'open-knowledge-dev'],
+    cliCommandNames: ['gq-dev', 'gitquire-dev'],
     mcpServerName: 'open-knowledge-dev',
     mcpChainTag: '-dev',
     npmDistTag: 'latest',
@@ -249,7 +249,7 @@ export class OkCliCommand {
     const hostCli = first !== undefined;
     const pinned = channel !== 'stable' && (hostCli || released);
     return new OkCliCommand(
-      hostCli ? [first, ...rest] : ['open-knowledge'],
+      hostCli ? [first, ...rest] : ['gitquire'],
       { ...input.host?.cliEnv, ...(pinned ? { [OK_CHANNEL_ENV]: channel } : {}) },
       channel === DEV_CHANNEL && !hostCli,
     );

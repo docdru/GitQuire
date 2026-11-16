@@ -48,7 +48,7 @@ export async function resolveAuth(
     options?: { login?: string },
   ) => ReturnType<typeof detectGh> = detectGh,
 ): Promise<ResolvedAuth> {
-  const selfHelper = buildCliCredentialHelper(options.selfCliArgs ?? ['open-knowledge']);
+  const selfHelper = buildCliCredentialHelper(options.selfCliArgs ?? ['gitquire']);
   const authenticatedConfig = ['credential.helper=', selfHelper];
 
   if (!options.skipGhDetect) {

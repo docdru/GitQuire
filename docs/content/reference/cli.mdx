@@ -1,10 +1,10 @@
 ---
 title: CLI & web app
 icon: LuTerminal
-description: Install the ok CLI and run the GitQuire web app in your browser.
+description: Install the gq CLI and run the GitQuire web app in your browser.
 ---
 
-GitQuire normally runs as a server in Docker (see [Run with Docker](/docs/gitquire/run-with-docker)). For local work, install the `ok` CLI and run the editor as a web app in your browser.
+GitQuire normally runs as a server in Docker (see [Run with Docker](/docs/gitquire/run-with-docker)). For local work, install the `gq` CLI (also installed as `gitquire`) and run the editor as a web app in your browser.
 
 <Callout type="info" title="Prerequisites — Verify Node and Git are installed">
 Open a terminal and run:
@@ -19,38 +19,44 @@ git --version
 
 ## Install
 
-Install the GitQuire CLI globally so you can run `ok` from anywhere:
+The GitQuire CLI is not published to npm. It ships inside the Docker image (run it there with `docker compose exec gitquire gq <command>`). To install it on your own computer, build it from a checkout (needs `pnpm`) and install the packed tarball globally, so you can run `gq` from anywhere:
 
 ```bash
-npm install -g @inkeep/open-knowledge
+git clone https://github.com/docdru/GitQuire.git
+cd GitQuire
+pnpm install
+pnpm exec turbo run build --filter=@gitquire/cli
+cd packages/cli && pnpm pack && npm install -g ./gitquire-cli-*.tgz
 ```
+
+The old command names `ok` and `open-knowledge` still work for now and print a notice with the new name.
 
 ## Set up a project
 
-Run `ok init` in any folder to turn it into a GitQuire project. It scaffolds a `.ok/` directory and leaves your editors and their settings alone: AI assistants reach the wiki through the server's `/mcp` endpoint (see [Connect AI](/docs/gitquire/connect-ai)).
+Run `gq init` in any folder to turn it into a GitQuire project. It scaffolds a `.ok/` directory and leaves your editors and their settings alone: AI assistants reach the wiki through the server's `/mcp` endpoint (see [Connect AI](/docs/gitquire/connect-ai)).
 
 ```bash
 cd my-project
-ok init
+gq init
 ```
 
-`ok init` asks whether to share the GitQuire config files with your team (committed alongside your content) or keep them local to this machine. `--shared` and `--local-only` answer that question up front.
+`gq init` asks whether to share the GitQuire config files with your team (committed alongside your content) or keep them local to this machine. `--shared` and `--local-only` answer that question up front.
 
-In a sub-folder of a git repo, `ok init` sets the project up at the git root — one `.ok/` per repo — and the whole repo becomes the content scope. Pass `--content-dir <dir>` to limit content to one folder (`ok init --content-dir .` scopes it to the folder you run in); the choice is saved as `content.dir` in `.ok/config.yml`. For scripts, `--json` prints a structured JSON summary.
+In a sub-folder of a git repo, `gq init` sets the project up at the git root — one `.ok/` per repo — and the whole repo becomes the content scope. Pass `--content-dir <dir>` to limit content to one folder (`gq init --content-dir .` scopes it to the folder you run in); the choice is saved as `content.dir` in `.ok/config.yml`. For scripts, `--json` prints a structured JSON summary.
 
-`ok init` refuses to set up a project in your home directory or at the top of a drive (`/`, `C:\`, a network share root) and exits with status 64. Make a folder for the project and run it there.
+`gq init` refuses to set up a project in your home directory or at the top of a drive (`/`, `C:\`, a network share root) and exits with status 64. Make a folder for the project and run it there.
 
 Once you have initialized your project, launch the app in your browser:
 
 ```bash
-ok start
+gq start
 ```
 
-One server on one port serves everything — the editor, the API, the MCP endpoint, and real-time collaboration — and the editor opens in your browser automatically (pass `--no-open-browser` to skip that). Running `ok start` again for the same project while its server is already up prints the running server's URL and exits.
+One server on one port serves everything — the editor, the API, the MCP endpoint, and real-time collaboration — and the editor opens in your browser automatically (pass `--no-open-browser` to skip that). Running `gq start` again for the same project while its server is already up prints the running server's URL and exits.
 
-`ok start` also takes `-p/--port` and `--bind` to pick the address, `--idle-shutdown` (`off` or a duration like `30m`) to control when an unused server exits, and `--only server` to run without the editor UI.
+`gq start` also takes `-p/--port` and `--bind` to pick the address, `--idle-shutdown` (`off` or a duration like `30m`) to control when an unused server exits, and `--only server` to run without the editor UI.
 
-Bare `ok`, with no subcommand, runs `ok start`.
+Bare `ok`, with no subcommand, runs `gq start`.
 
 Idle shutdown is on by default at 30 minutes — a server with no connected clients exits so it doesn't linger. If you keep a session open for a long time without interacting, pass `--idle-shutdown off` (or a longer duration) to keep it running.
 
@@ -68,37 +74,37 @@ Restart all existing GitQuire servers after updating so every runtime uses the s
 
 If startup reports a registry version mismatch, update all GitQuire runtimes to compatible versions. For a permissions error, make the OS account's home writable; protection is never silently disabled. The shared registry must be on a local filesystem that honors SQLite file locks. Network-mounted homes and filesystems with broken locks do not provide this protection.
 
-After a server crashes, is forcibly terminated or the computer restarts, its released filesystem lease lets the next server recover ownership automatically on macOS, Windows and Linux. Recovery never depends on a PID, hostname or timeout. A missing or damaged lease leaves only its recorded content protected; disjoint projects can still open. A corrupt registry or a retired, nonempty pre-release format affects the whole registry and needs manual recovery. Run `ok stop all`, or on a machine shared with accounts you do not trust, list servers with `ok ps` and run `ok stop` in each listed project of yours. Either way, confirm **every GitQuire server under that OS account** has exited, including desktop, terminal, MCP-spawned and preview sessions. Then back up and remove the registry file named in the error (`~/.ok/local/server-authority.sqlite`) together with its `-journal` sidecar if present, keeping them together as one backup, and restart the desired projects. Never remove or replace the registry while a server is running: doing so would discard its ownership claim.
+After a server crashes, is forcibly terminated or the computer restarts, its released filesystem lease lets the next server recover ownership automatically on macOS, Windows and Linux. Recovery never depends on a PID, hostname or timeout. A missing or damaged lease leaves only its recorded content protected; disjoint projects can still open. A corrupt registry or a retired, nonempty pre-release format affects the whole registry and needs manual recovery. Run `gq stop all`, or on a machine shared with accounts you do not trust, list servers with `gq ps` and run `gq stop` in each listed project of yours. Either way, confirm **every GitQuire server under that OS account** has exited, including desktop, terminal, MCP-spawned and preview sessions. Then back up and remove the registry file named in the error (`~/.ok/local/server-authority.sqlite`) together with its `-journal` sidecar if present, keeping them together as one backup, and restart the desired projects. Never remove or replace the registry while a server is running: doing so would discard its ownership claim.
 
 ## Clone from GitHub
 
 You can pull repositories directly from GitHub and open them with GitQuire:
 
 ```bash
-ok clone <owner/repo>
+gq clone <owner/repo>
 ```
 
-`ok clone` accepts a full `https://github.com/...` URL or the `owner/repo` shorthand. It clones the repository, initializes GitQuire if it isn't already, and starts the local server — open the printed Editor URL in your browser.
+`gq clone` accepts a full `https://github.com/...` URL or the `owner/repo` shorthand. It clones the repository, initializes GitQuire if it isn't already, and starts the local server — open the printed Editor URL in your browser.
 
 Pin a branch with `-b <branch>`:
 
 ```bash
-ok clone <owner/repo> -b <branch>
+gq clone <owner/repo> -b <branch>
 ```
 
-If the branch no longer exists, `ok clone` falls back to the repository's default branch.
+If the branch no longer exists, `gq clone` falls back to the repository's default branch.
 
-Before checking out any files, `ok clone` checks the repository's symlinks. If a link points outside the repository, at its root, or into a `.git` folder or GitQuire's private state, it removes the clone and names up to five refused links, each with its reason.
+Before checking out any files, `gq clone` checks the repository's symlinks. If a link points outside the repository, at its root, or into a `.git` folder or GitQuire's private state, it removes the clone and names up to five refused links, each with its reason.
 
 A **public** repo clones without authentication. For a **private** repo, sign in first:
 
 ```bash
-ok auth login
+gq auth login
 ```
 
 If you're already logged in with the `gh` CLI, you can skip this step.
 
-`ok auth` also provides `status` (show who's logged in), `repos` (list repositories you can access), `signout` (remove stored credentials), `pat` (store a GitHub Personal Access Token), and `token` (store an access token for any other git host). Every subcommand takes `--host <hostname>`. For a host that is not GitHub, `status` reports the stored token without verifying it: it exits `0` when a token is stored and `1` when none is, and its `--json` output carries `"unverified": true` with the stored username. GitHub Enterprise hosts must be declared as `git.hosts.<host>.provider: github` in `~/.ok/global.yml` (`~/.ok-beta/global.yml` for `ok-beta`) before commands contact them. See [configuration](/docs/reference/configuration).
+`gq auth` also provides `status` (show who's logged in), `repos` (list repositories you can access), `signout` (remove stored credentials), `pat` (store a GitHub Personal Access Token), and `token` (store an access token for any other git host). Every subcommand takes `--host <hostname>`. For a host that is not GitHub, `status` reports the stored token without verifying it: it exits `0` when a token is stored and `1` when none is, and its `--json` output carries `"unverified": true` with the stored username. GitHub Enterprise hosts must be declared as `git.hosts.<host>.provider: github` in `~/.ok/global.yml` (`~/.ok-beta/global.yml` for `ok-beta`) before commands contact them. See [configuration](/docs/reference/configuration).
 
 Without `--host`, commands select the recognized GitHub origin, or `github.com` when no origin exists. An unrecognized origin requires explicit host selection for `login`, `pat`, `repos` and `signout`, so they cannot contact or clear credentials for a different host by accident. `status` on a non-GitHub host reports the stored token without contacting any API; on a GitHub host, `status` and `repos` contact GitHub APIs. `signout --host <hostname>` only removes local credentials and works for any host, including one whose declaration has been removed.
 
@@ -108,15 +114,15 @@ Sync a project with its remote from the terminal:
 
 | Command | What it does |
 | --- | --- |
-| `ok sync` | Commit, pull, and push to the remote |
-| `ok pull` | Pull changes from the remote |
-| `ok push` | Push commits to the remote |
+| `gq sync` | Commit, pull, and push to the remote |
+| `gq pull` | Pull changes from the remote |
+| `gq push` | Push commits to the remote |
 
 Each command goes through the running GitQuire server when one is up. Otherwise it runs git directly. When the remote's URL is `https://` and names `github.com` or a declared GitHub Enterprise host exactly, in lowercase and with no port, and GitQuire has a GitHub sign-in for it ([which account is used](/docs/features/git/sync#authentication)), that sign-in replaces your git credential helpers for HTTPS requests to that host during the command, though a `~/.netrc` entry for the host or a password in the remote URL is still used first. A submodule or extra push URL that writes the same host with an explicit `:443` or in different letter case gets the same sign-in, and is never sent to your own credential helpers.
 
-Requests to another host, a non-default port or a plain `http://` URL use your own git credentials. A token stored with `ok auth token --host <host> --username <username>` overrides them for an HTTPS host only when the request goes through the running server; run directly, these commands keep your own git credentials. The username is what git sends with the token: `oauth2` for GitLab, your Gitea username, `x-bitbucket-api-token-auth` for a Bitbucket API token or `x-token-auth` for a Bitbucket repository or workspace access token, and any value for Azure DevOps. Pass `--json` for JSONL progress events when scripting. See [Git sync](/docs/features/git/sync) for how syncing works.
+Requests to another host, a non-default port or a plain `http://` URL use your own git credentials. A token stored with `gq auth token --host <host> --username <username>` overrides them for an HTTPS host only when the request goes through the running server; run directly, these commands keep your own git credentials. The username is what git sends with the token: `oauth2` for GitLab, your Gitea username, `x-bitbucket-api-token-auth` for a Bitbucket API token or `x-token-auth` for a Bitbucket repository or workspace access token, and any value for Azure DevOps. Pass `--json` for JSONL progress events when scripting. See [Git sync](/docs/features/git/sync) for how syncing works.
 
-Without a running server, `ok pull` and `ok sync` check every symlink the pull would add, retarget or remove before writing anything, and refuse the whole update if one would be unsafe: it points outside the repository, into private `.git` or GitQuire state, at a file that may hold secrets, or somewhere that cannot be checked. The command exits with an error naming up to five refused links, each with its reason, followed by a count of any others and what to do next. With a server running, the command only triggers the pull, and the refusal appears in the app's sync indicator instead. The full rules, including links both sides changed, links that pass through them, names spelled more than one way, and the Git 2.38 requirement for three-way pulls, are in [Incoming changes with unsafe symlinks](/docs/features/git/sync#incoming-changes-with-unsafe-symlinks).
+Without a running server, `gq pull` and `gq sync` check every symlink the pull would add, retarget or remove before writing anything, and refuse the whole update if one would be unsafe: it points outside the repository, into private `.git` or GitQuire state, at a file that may hold secrets, or somewhere that cannot be checked. The command exits with an error naming up to five refused links, each with its reason, followed by a count of any others and what to do next. With a server running, the command only triggers the pull, and the refusal appears in the app's sync indicator instead. The full rules, including links both sides changed, links that pass through them, names spelled more than one way, and the Git 2.38 requirement for three-way pulls, are in [Incoming changes with unsafe symlinks](/docs/features/git/sync#incoming-changes-with-unsafe-symlinks).
 
 ## Manage local servers
 
@@ -124,31 +130,31 @@ Each project runs its own local server. These commands let you see and stop them
 
 | Command | What it does |
 | --- | --- |
-| `ok status` | Show whether a server and UI are running for the current project |
-| `ok ps` | List every running GitQuire server on your machine |
-| `ok stop` | Stop the server for the current directory — or pass a port, path, or PID to stop a specific server, or `all` to stop every server. Declines when something is still connected to the target, naming how many clients are attached, and exits `1`; pass `--force` to stop it anyway. `--force` does not override the process identity check described below. A server it cannot reach is stopped without the connected-clients check |
-| `ok clean` | Remove a stale lock file left behind by a crash (never touches live servers) |
+| `gq status` | Show whether a server and UI are running for the current project |
+| `gq ps` | List every running GitQuire server on your machine |
+| `gq stop` | Stop the server for the current directory — or pass a port, path, or PID to stop a specific server, or `all` to stop every server. Declines when something is still connected to the target, naming how many clients are attached, and exits `1`; pass `--force` to stop it anyway. `--force` does not override the process identity check described below. A server it cannot reach is stopped without the connected-clients check |
+| `gq clean` | Remove a stale lock file left behind by a crash (never touches live servers) |
 
-`ok clean` retains a lock and exits `1` if it cannot read it, it records a machine ID or host name that is not this machine's, it has no recorded owner and its PID is still running locally, or it changed or was removed between `ok clean` checking it and removing it. A PID that has exited is not running even while it lingers as a defunct entry in the process table, so `ok clean` prunes the lock naming it. The error names the lock and explains what to check. For a lock that records another machine ID or host name, run `ok stop` from the account, home folder, or machine that started the server while it is running, or `ok clean` there once it has exited. For an unverified owner, inspect the named local PID and stop it if it is a GitQuire server; do not delete the lock while that process is running.
+`gq clean` retains a lock and exits `1` if it cannot read it, it records a machine ID or host name that is not this machine's, it has no recorded owner and its PID is still running locally, or it changed or was removed between `gq clean` checking it and removing it. A PID that has exited is not running even while it lingers as a defunct entry in the process table, so `gq clean` prunes the lock naming it. The error names the lock and explains what to check. For a lock that records another machine ID or host name, run `gq stop` from the account, home folder, or machine that started the server while it is running, or `gq clean` there once it has exited. For an unverified owner, inspect the named local PID and stop it if it is a GitQuire server; do not delete the lock while that process is running.
 
-A lock from this machine whose PID now belongs to a process that started after the lock was written, as after a restart, is stale too: `ok clean` prunes it, `ok start` replaces it, and `ok stop` leaves that process unsignalled and exits `0`, as it does for a lock whose process has exited. `ok status --json` reports such a lock as `state: "reused-pid"` with `alive: false`. `ok ps --json` reports it as `server.status: "reused-pid"` and `displayStatus: "stale"`, with no command or usage; a lock whose process has exited shows the same `displayStatus` with `server.status: "dead-pid"`.
+A lock from this machine whose PID now belongs to a process that started after the lock was written, as after a restart, is stale too: `gq clean` prunes it, `gq start` replaces it, and `gq stop` leaves that process unsignalled and exits `0`, as it does for a lock whose process has exited. `gq status --json` reports such a lock as `state: "reused-pid"` with `alive: false`. `gq ps --json` reports it as `server.status: "reused-pid"` and `displayStatus: "stale"`, with no command or usage; a lock whose process has exited shows the same `displayStatus` with `server.status: "dead-pid"`.
 
-`ok stop` signals a server only after confirming that its PID still belongs to the process that wrote the lock, by comparing when that process started with the start the lock records. This check detects a reused PID; it does not establish who wrote the lock. `ok stop` with no argument or with a directory reads that project's lock, so keep the project's `.ok/local` folder writable only by accounts you trust. `ok stop all`, `ok stop` with a port or PID, and `ok uninstall` act on locks found through running processes on this machine, including other accounts' processes, or under the directory you run them from; `ok ps` lists the same set. On a machine shared with accounts you do not trust, list servers with `ok ps` and run `ok stop` in each listed project of yours instead. `ok uninstall` has no per-project form, so on such a machine run it without `--yes` and check the servers its plan lists before you confirm it, or preview them first with `--dry-run`. `ok uninstall --yes`, and the macOS app's **Uninstall GitQuire** command, stop every server they find without listing them. When that process is still running and cannot be confirmed, `ok stop` exits `1` without signalling, even with `--force`, and the error gives one of these reasons:
+`gq stop` signals a server only after confirming that its PID still belongs to the process that wrote the lock, by comparing when that process started with the start the lock records. This check detects a reused PID; it does not establish who wrote the lock. `gq stop` with no argument or with a directory reads that project's lock, so keep the project's `.ok/local` folder writable only by accounts you trust. `gq stop all`, `gq stop` with a port or PID, and `gq uninstall` act on locks found through running processes on this machine, including other accounts' processes, or under the directory you run them from; `gq ps` lists the same set. On a machine shared with accounts you do not trust, list servers with `gq ps` and run `gq stop` in each listed project of yours instead. `gq uninstall` has no per-project form, so on such a machine run it without `--yes` and check the servers its plan lists before you confirm it, or preview them first with `--dry-run`. `gq uninstall --yes`, and the macOS app's **Uninstall GitQuire** command, stop every server they find without listing them. When that process is still running and cannot be confirmed, `gq stop` exits `1` without signalling, even with `--force`, and the error gives one of these reasons:
 
 - It could not read when the process started. On macOS this happens when `ps` cannot run, as inside some sandboxes. On Linux it happens when `/proc/<pid>/stat` or `/proc/stat` cannot be read; restore read access and retry. On Windows it happens when GitQuire's bundled native component cannot be loaded, which reinstalling fixes, or when the component loaded but Windows refused the query, which reinstalling does not fix: rerun from an account that can inspect the server process. The Windows failure detail is recorded in `~/.ok/logs` (`~/.ok-beta/logs` for `ok-beta`), not printed.
 - The process started before the start the lock records.
 - The process start cannot be compared with the start the lock records, as when the lock records neither a process start nor a valid `startedAt`.
 - The lock records a `startedAt` well after the current time on this machine, as after the clock was set back, so it is not compared at all.
-- The lock records this machine's host name but neither a machine ID nor a process start, as locks written by version 0.25.0 and earlier do, so nothing in it confirms the running process as its server. Restarting the server on version 0.26.0 or later records its machine ID, so `ok stop` can confirm it.
-- The lock records a machine ID different from the one in `~/.ok/machine-id`, and no process start that matches the running process. Each home folder holds its own machine ID, so this also happens when the server was started on this machine from another account or with a different home folder. If it was started from another account, run `ok stop` as that account. If it was started from your account with a different home folder, run `ok stop` with `HOME` (`USERPROFILE` on Windows) set to that folder. Otherwise stop the server from the machine that owns the lock.
+- The lock records this machine's host name but neither a machine ID nor a process start, as locks written by version 0.25.0 and earlier do, so nothing in it confirms the running process as its server. Restarting the server on version 0.26.0 or later records its machine ID, so `gq stop` can confirm it.
+- The lock records a machine ID different from the one in `~/.ok/machine-id`, and no process start that matches the running process. Each home folder holds its own machine ID, so this also happens when the server was started on this machine from another account or with a different home folder. If it was started from another account, run `gq stop` as that account. If it was started from your account with a different home folder, run `gq stop` with `HOME` (`USERPROFILE` on Windows) set to that folder. Otherwise stop the server from the machine that owns the lock.
 - The lock records only another host name and no process start. If that host is another machine, stop the server there. If it is an earlier name of this machine, confirm that the process is a GitQuire server before ending it yourself, and remove the lock file once no GitQuire server is running for the project.
-- The lock does not record its owning machine and its process is still running. Check whether that process is a GitQuire server; if it is, stop it yourself, and do not remove the lock while it is running. `ok stop all` and `ok stop` with a port or PID skip such a lock instead.
+- The lock does not record its owning machine and its process is still running. Check whether that process is a GitQuire server; if it is, stop it yourself, and do not remove the lock while it is running. `gq stop all` and `gq stop` with a port or PID skip such a lock instead.
 
-For the first five, confirm that the process the error names is a GitQuire server before ending it yourself, then remove the lock file the error names once no GitQuire server is running for the project. In those five cases `ok status`, `ok ps` and the server-lock health check still report the server as running (`state: "alive"` in `ok status --json`) and `ok clean` keeps its lock; only `ok stop` says why the process cannot be confirmed. On Windows the first reason has one exception, because a restart can give the server's PID to a protected process your account cannot inspect: a lock from this machine written more than 5 minutes before Windows last started is stale. `ok status`, `ok ps` and the server-lock health check report it the way they report a reused PID (`state: "reused-pid"` in `ok status --json`), `ok clean` removes it, `ok start` replaces it, and `ok stop` leaves that process unsignalled and exits `0`. A shutdown with Fast Startup enabled does not count as a restart here, so such a lock still reads as running until Windows is restarted.
+For the first five, confirm that the process the error names is a GitQuire server before ending it yourself, then remove the lock file the error names once no GitQuire server is running for the project. In those five cases `gq status`, `gq ps` and the server-lock health check still report the server as running (`state: "alive"` in `gq status --json`) and `gq clean` keeps its lock; only `gq stop` says why the process cannot be confirmed. On Windows the first reason has one exception, because a restart can give the server's PID to a protected process your account cannot inspect: a lock from this machine written more than 5 minutes before Windows last started is stale. `gq status`, `gq ps` and the server-lock health check report it the way they report a reused PID (`state: "reused-pid"` in `gq status --json`), `gq clean` removes it, `gq start` replaces it, and `gq stop` leaves that process unsignalled and exits `0`. A shutdown with Fast Startup enabled does not count as a restart here, so such a lock still reads as running until Windows is restarted.
 
-A lock records a process start, as its `processStart` field, only when the server that wrote it could read its own start. Locks written before that field existed have none, and on Linux a server records one only while `/proc/sys/kernel/random/boot_id` is readable. For a lock without a recorded start, `ok stop` treats the running process as the lock's server only when the lock carries this machine's ID and the process did not start well after the lock's `startedAt`; a lock from this machine whose process started well after it is stale, as described above. It refuses a lock whose `startedAt` is well after the current time, a lock that records no machine ID, and a lock that carries another machine's ID. That ID is read from `~/.ok/machine-id` in the home folder of whoever runs the command, so running `ok stop` with a different home folder from the server's (`HOME`, or `USERPROFILE` on Windows) reads its lock as another machine's. Restarting the server on a release that writes `processStart` records its start, after which `ok stop` can confirm it from either home folder. "Well after" means more than 10 seconds on macOS and Windows and more than 5 minutes on Linux, where a process's start time is derived from the boot time and shifts whenever the clock is set forward. So on Linux, a still-running server whose lock has no `processStart` reads as stale once the clock has moved forward by more than 5 minutes since it wrote its lock, as after a long VM or WSL2 pause or a clock set by hand. `ok clean` then removes its lock, and if that server predates the filesystem lease described above, `ok start` can start a second server for the same project. Restart such servers so that their lock records `processStart` to rule this out.
+A lock records a process start, as its `processStart` field, only when the server that wrote it could read its own start. Locks written before that field existed have none, and on Linux a server records one only while `/proc/sys/kernel/random/boot_id` is readable. For a lock without a recorded start, `gq stop` treats the running process as the lock's server only when the lock carries this machine's ID and the process did not start well after the lock's `startedAt`; a lock from this machine whose process started well after it is stale, as described above. It refuses a lock whose `startedAt` is well after the current time, a lock that records no machine ID, and a lock that carries another machine's ID. That ID is read from `~/.ok/machine-id` in the home folder of whoever runs the command, so running `gq stop` with a different home folder from the server's (`HOME`, or `USERPROFILE` on Windows) reads its lock as another machine's. Restarting the server on a release that writes `processStart` records its start, after which `gq stop` can confirm it from either home folder. "Well after" means more than 10 seconds on macOS and Windows and more than 5 minutes on Linux, where a process's start time is derived from the boot time and shifts whenever the clock is set forward. So on Linux, a still-running server whose lock has no `processStart` reads as stale once the clock has moved forward by more than 5 minutes since it wrote its lock, as after a long VM or WSL2 pause or a clock set by hand. `gq clean` then removes its lock, and if that server predates the filesystem lease described above, `gq start` can start a second server for the same project. Restart such servers so that their lock records `processStart` to rule this out.
 
-`ok status`, `ok ps`, and the server-lock health check distinguish an unverified owner from a foreign host. `ok status --json` uses `state: "unverified-owner"` and includes the PID, with server liveness reported as unknown. `ok ps --json` uses the same status, `displayStatus: "unverified"`, and `null` for unrecorded host, port, and start time. The directory is the project root for current `.ok/local` and legacy `.ok` locks; it is `null` when a custom lock location does not establish a project root. Such records are not signal authority for `ok stop`, including with `--force`.
+`gq status`, `gq ps`, and the server-lock health check distinguish an unverified owner from a foreign host. `gq status --json` uses `state: "unverified-owner"` and includes the PID, with server liveness reported as unknown. `gq ps --json` uses the same status, `displayStatus: "unverified"`, and `null` for unrecorded host, port, and start time. The directory is the project root for current `.ok/local` and legacy `.ok` locks; it is `null` when a custom lock location does not establish a project root. Such records are not signal authority for `gq stop`, including with `--force`.
 
 ## Remote Control
 
@@ -156,27 +162,27 @@ Serve this project's web UI and `/mcp` endpoint to your other devices through an
 
 | Command | What it does |
 | --- | --- |
-| `ok start --external-url <url>` | Declare the canonical external origin clients dial (sets `server.externalUrl` for this run) — its host joins the Host/Origin allowlists and issued URLs. External exposure additionally requires consent (`OK_ALLOW_EXTERNAL=1` or `server.allowExternal`). For remote MCP use also set `OK_IDLE_SHUTDOWN=off` — the idle timer only counts editor (WS) connections and would stop the server under a live remote agent. Add `--bind <address>` to serve a non-loopback listen address. |
+| `gq start --external-url <url>` | Declare the canonical external origin clients dial (sets `server.externalUrl` for this run) — its host joins the Host/Origin allowlists and issued URLs. External exposure additionally requires consent (`OK_ALLOW_EXTERNAL=1` or `server.allowExternal`). For remote MCP use also set `OK_IDLE_SHUTDOWN=off` — the idle timer only counts editor (WS) connections and would stop the server under a live remote agent. Add `--bind <address>` to serve a non-loopback listen address. |
 
 ## More commands
 
 | Command | What it does |
 | --- | --- |
-| `ok seed` | Scaffold a starter pack into the project (`--list-packs` to browse, `--pack <id>` to choose, `--root <dir>` to nest in a subfolder, `--dry-run` to preview) |
-| `ok preview` | Show what content the watcher will track (read-only) — the quick check after a `content.dir` or `.okignore` change |
-| `ok migrate notion <dir>` | Clean up a Notion export in place, dry-run unless `--apply` (see [migrating from Notion](/docs/migrate/notion)) |
-| `ok comments convert` | Rewrite every page that still keeps comments in the old hidden block as [footnote threads](/docs/gitquire/comment-format), in one commit (`--dry-run` to list the pages, `--no-commit` to leave committing to you or the server). Best run while the server is stopped; GitQuire also converts a page by itself the next time it is saved |
-| `ok config validate` | Validate the merged config (defaults → user → project) |
-| `ok config migrate` | Remove keys the schema no longer reads from your config files (`--dry-run` to preview; `--scope` to narrow — defaults to every layer) |
-| `ok bug-report` | Package a support bundle — recent app logs, the project's server logs and lock diagnostics, and system info — as an auto-redacted zip under `~/.ok/bug-reports/`, revealed in your file manager when it's done (`--no-reveal` to skip); `ok diagnose bundle` produces the `full` superset (telemetry spans, live server state) into the project's `.ok/local/diagnostics/` |
+| `gq seed` | Scaffold a starter pack into the project (`--list-packs` to browse, `--pack <id>` to choose, `--root <dir>` to nest in a subfolder, `--dry-run` to preview) |
+| `gq preview` | Show what content the watcher will track (read-only) — the quick check after a `content.dir` or `.okignore` change |
+| `gq migrate notion <dir>` | Clean up a Notion export in place, dry-run unless `--apply` (see [migrating from Notion](/docs/migrate/notion)) |
+| `gq comments convert` | Rewrite every page that still keeps comments in the old hidden block as [footnote threads](/docs/gitquire/comment-format), in one commit (`--dry-run` to list the pages, `--no-commit` to leave committing to you or the server). Best run while the server is stopped; GitQuire also converts a page by itself the next time it is saved |
+| `gq config validate` | Validate the merged config (defaults → user → project) |
+| `gq config migrate` | Remove keys the schema no longer reads from your config files (`--dry-run` to preview; `--scope` to narrow — defaults to every layer) |
+| `gq bug-report` | Package a support bundle — recent app logs, the project's server logs and lock diagnostics, and system info — as an auto-redacted zip under `~/.ok/bug-reports/`, revealed in your file manager when it's done (`--no-reveal` to skip); `gq diagnose bundle` produces the `full` superset (telemetry spans, live server state) into the project's `.ok/local/diagnostics/` |
 
 ## Global flags
 
-Every command takes `--cwd <path>` to run from another directory, `--log-level <level>` (`silent`, `error`, `warn`, `info`, `debug`, or `trace`), and `--no-color` to disable color output. `ok start` runs quiet by default; `--log-level debug` turns everything on.
+Every command takes `--cwd <path>` to run from another directory, `--log-level <level>` (`silent`, `error`, `warn`, `info`, `debug`, or `trace`), and `--no-color` to disable color output. `gq start` runs quiet by default; `--log-level debug` turns everything on.
 
 ## Commands that run for you
 
-The rest of the CLI exists mostly for tooling and automation. `ok diagnose` and `ok bug-report` produce support bundles when something goes wrong. Run `ok --help` for an overview of all commands.
+The rest of the CLI exists mostly for tooling and automation. `gq diagnose` and `gq bug-report` produce support bundles when something goes wrong. Run `gq --help` for an overview of all commands.
 
 ## Remove GitQuire from a project
 

@@ -29,7 +29,7 @@ describe('the serving a worker starts', () => {
     );
   });
 
-  test('the production shell launches ok start on the endpoint the worker requested', () => {
+  test('the production shell launches gq start on the endpoint the worker requested', () => {
     const serving = workerServingFor({ [PRODUCTION_SHELL_ENV]: '1' }, {}, ENDPOINT);
     if (serving.kind !== 'production-shell') throw new Error(`served ${serving.kind}`);
     const { args } = serving.launch;

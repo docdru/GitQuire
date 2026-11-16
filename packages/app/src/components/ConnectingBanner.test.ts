@@ -53,9 +53,9 @@ describe('describeError', () => {
     );
   });
 
-  test('network error points at missing ok start', () => {
+  test('network error points at missing gq start', () => {
     expect(describeError({ kind: 'error', code: 'network' })).toBe(
-      'network error (is `ok start` running?)',
+      'network error (is `gq start` running?)',
     );
   });
 

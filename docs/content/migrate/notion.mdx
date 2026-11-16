@@ -9,12 +9,8 @@ This guide will cover exporting your Notion workspace to markdown files so that 
 ## Before you start
 
 Have GitQuire running with a synced repository; see the [Quickstart](/docs/get-started/quickstart).
-The cleanup step below uses the [ok CLI](/docs/reference/cli) on your own computer, installed with
-npm:
-
-```bash
-npm install -g @inkeep/open-knowledge
-```
+The cleanup step below uses the [gq CLI](/docs/reference/cli#install) on your own computer; the CLI
+page shows how to install it from a checkout.
 
 After the cleanup, commit the folder to the repository GitQuire syncs, or copy it into the
 content folder.
@@ -26,16 +22,16 @@ content folder.
 3. Set **Export format** to **Markdown & CSV** and leave all the default settings.
 4. Download and **unzip** the export folder and move it to your desired location.
 
-## Clean up the export with `ok migrate notion`
+## Clean up the export with `gq migrate notion`
 
-The [ok CLI](/docs/reference/cli) ships a cleanup command that resolves format issues with the exported content. By default, the command prints what it would change and writes nothing until you pass `--apply`.
+The [gq CLI](/docs/reference/cli) ships a cleanup command that resolves format issues with the exported content. By default, the command prints what it would change and writes nothing until you pass `--apply`.
 
 ```bash
 # Preview what would change (writes nothing)
-ok migrate notion /path/to/unzipped-export
+gq migrate notion /path/to/unzipped-export
 
 # Apply the changes
-ok migrate notion /path/to/unzipped-export --apply
+gq migrate notion /path/to/unzipped-export --apply
 ```
 
 Every transform is **idempotent**, so re-running is safe. See the tables below for a full list of differences between the Notion export and what GitQuire supports.
@@ -71,7 +67,7 @@ Commit the cleaned-up folder to a GitHub repository, then point a GitQuire serve
 
 ## Where the two differ
 
-A number of Notion features don't survive the Markdown & CSV export, or land as plain text. Many can be fixed by the [`ok migrate notion <folder-path>`](#clean-up-the-export-with-ok-migrate-notion) command.
+A number of Notion features don't survive the Markdown & CSV export, or land as plain text. Many can be fixed by the [`gq migrate notion <folder-path>`](#clean-up-the-export-with-ok-migrate-notion) command.
 
 | Notion feature | Exported result | Fixed by CLI migration command |
 | --- | --- | --- |
