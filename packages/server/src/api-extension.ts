@@ -1388,8 +1388,7 @@ function pathFaultProblem(failure: StoreFailure) {
 }
 
 const DROPPED_WRITE_ADVICE: Readonly<Record<WriteDropCause, string>> = {
-  'legacy-name':
-    'Write the template by its file path instead; that write is saved to the file.',
+  'legacy-name': 'Write the template by its file path instead; that write is saved to the file.',
   unresolvable:
     'Retrying will not help until the path resolves again. Tell the user which document it is.',
   'container-gone':
