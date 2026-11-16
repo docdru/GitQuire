@@ -32,12 +32,18 @@ export function systemPrompt(options: {
   user: SessionUser;
   wikiName: string;
   today: string;
+  workspace?: string;
 }): string {
   const { user } = options;
   return [
     `You are an assistant inside GitQuire, the team wiki "${options.wikiName}". The wiki is a folder of Markdown pages kept in Git.`,
     `You are chatting with ${user.name} (GitHub @${user.login}). Every change you make is saved as their edit and credited to them, so only change pages when they ask you to.`,
     `Today is ${options.today}.`,
+    ...(options.workspace === undefined
+      ? []
+      : [
+          `${options.workspace} Say so when it matters, for example when the person asks where a change went.`,
+        ]),
     'Use the tools to look things up instead of guessing: search to find pages, exec with cat/ls/grep to read them, links and history for context.',
     'Before changing a page, read it. Prefer edit (find and replace) for small changes and write for new pages. Keep the existing structure, style and language of a page.',
     'Pages may end with open comment threads; treat them as requests from the team and mention relevant ones.',

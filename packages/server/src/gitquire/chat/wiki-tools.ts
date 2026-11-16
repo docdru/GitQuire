@@ -15,6 +15,8 @@ const WIKI_TOOL_NAMES = [
   'move',
 ] as const;
 
+const WORKSPACE_TOOL = 'workspace';
+
 const ALLOWED_ARGUMENTS: Readonly<Record<string, ReadonlySet<string>>> = {
   write: new Set(['document', 'documents', 'folder', 'summary']),
   edit: new Set(['document', 'folder', 'summary']),
@@ -31,6 +33,7 @@ interface WikiToolResult {
 
 export interface WikiTools {
   specs: readonly ToolSpec[];
+  workspace?: string;
   call(name: string, input: Record<string, unknown>): Promise<WikiToolResult>;
   close(): Promise<void>;
 }
@@ -115,8 +118,17 @@ export function createLoopbackWikiTools(options: {
           description: tool.description ?? tool.name,
           inputSchema: restrictedSchema(tool.name, tool.inputSchema as Record<string, unknown>),
         }));
+      const workspace = listed.tools.some((tool) => tool.name === WORKSPACE_TOOL)
+        ? await client
+            .callTool({ name: WORKSPACE_TOOL, arguments: {} }, undefined, { signal })
+            .then((result) =>
+              (result as { isError?: unknown }).isError === true ? undefined : resultText(result),
+            )
+            .catch(() => undefined)
+        : undefined;
       return {
         specs,
+        ...(workspace ? { workspace } : {}),
         async call(name, input) {
           if (!allowed.has(name) || !specs.some((spec) => spec.name === name)) {
             return { output: `There is no tool called ${name}.`, isError: true };

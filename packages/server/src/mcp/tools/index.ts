@@ -19,6 +19,7 @@ import { register as registerRestoreVersion } from './restore-version.ts';
 import { register as registerSearch } from './search.ts';
 import { register as registerShareLink } from './share-link.ts';
 import type { ConfigOrResolver, ServerInstance, ServerUrlOrResolver } from './shared.ts';
+import { register as registerWorkspace } from './workspace.ts';
 import { register as registerWrite } from './write.ts';
 
 type ResolveCwd = (explicit?: string) => Promise<string>;
@@ -138,6 +139,7 @@ export function registerAllTools(server: ServerInstance, opts: RegisterAllToolsO
     resolveCwd: named('palette'),
     config: opts.config,
   });
+  registerWorkspace(registrationServer, { resolveCwd: named('workspace') });
 
   registerConfig(registrationServer, {
     config: opts.config,

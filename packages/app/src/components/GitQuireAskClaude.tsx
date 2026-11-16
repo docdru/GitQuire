@@ -15,6 +15,7 @@ import { publishAskComposerHeight } from '@/editor/ask-composer-inset';
 import {
   type AskDestination,
   askDestinations,
+  askWorkspace,
   buildClaudePrompt,
   claudeLink,
   defaultAskDestination,
@@ -25,6 +26,7 @@ import {
   storeDestination,
 } from '@/lib/gitquire/ask-claude';
 import { queueChatRequest } from '@/lib/gitquire/chat-requests';
+import { useDraftState } from '@/lib/gitquire/drafts-store';
 import { useGitQuireFeatures } from '@/lib/gitquire/features';
 import { paneVisibilityStore } from '@/lib/pane-visibility-store';
 import { cn } from '@/lib/utils';
@@ -52,6 +54,7 @@ export function GitQuireAskClaude({
 }) {
   const { t } = useLingui();
   const features = useGitQuireFeatures();
+  const drafts = useDraftState();
   const folderMode = folderPath !== undefined;
   const [text, setText] = useState('');
   const [chosen, setChosen] = useState<string | null>(() => loadStoredDestination());
@@ -113,7 +116,12 @@ export function GitQuireAskClaude({
       paneVisibilityStore.request('agents', true, 'user');
       return;
     }
-    const prompt = buildClaudePrompt({ wikiUrl: window.location.origin, target, request: text });
+    const prompt = buildClaudePrompt({
+      wikiUrl: window.location.origin,
+      workspace: askWorkspace(drafts),
+      target,
+      request: text,
+    });
     openClaudeLink(claudeLink(destination, prompt));
     toast.success(t`Claude opened with your request. Check it there and press send.`);
   };

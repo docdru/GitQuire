@@ -333,18 +333,25 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     sendJson(res, 503, { error: 'draft-unavailable', message });
   }
 
+  function agentTarget(
+    owner: SessionUser,
+    session: string | undefined,
+  ): Promise<DraftRecord> | undefined {
+    if (session !== undefined) {
+      const stuck = openDraft(sticky.get(session));
+      return stuck === undefined ? undefined : Promise.resolve(stuck);
+    }
+    const viewed = openDraft(lastView.get(owner.id) ?? undefined);
+    if (viewed !== undefined) return Promise.resolve(viewed);
+    return service.agentMode(owner.id) === 'draft' ? service.agentDraft(owner) : undefined;
+  }
+
   function routeAgent(req: IncomingMessage, res: ServerResponse): boolean {
     const owner = deps.agentOwner(req);
-    if (owner === undefined || service.agentMode(owner.id) !== 'draft') return false;
+    if (owner === undefined) return false;
     const session = req.headers[MCP_SESSION_HEADER];
-    const stuck = typeof session === 'string' ? openDraft(sticky.get(session)) : undefined;
-    const viewed = openDraft(lastView.get(owner.id) ?? undefined);
-    const target: Promise<DraftRecord> =
-      stuck !== undefined
-        ? Promise.resolve(stuck)
-        : viewed !== undefined
-          ? Promise.resolve(viewed)
-          : service.agentDraft(owner);
+    const target = agentTarget(owner, typeof session === 'string' ? session : undefined);
+    if (target === undefined) return false;
     target
       .then(async (draft) => {
         const port = await instances.ensure(draft);

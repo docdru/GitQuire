@@ -31,6 +31,7 @@ export interface ChangedPage {
 
 export interface DraftSummary {
   slug: string;
+  branch: string;
   title: string;
   status: DraftStatus;
   author: DraftPerson;

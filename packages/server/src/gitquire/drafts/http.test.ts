@@ -1,4 +1,5 @@
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -31,14 +32,27 @@ function fakeResponse(): FakeResponse {
     setHeader(name: string, value: unknown) {
       extra[name] = value;
     },
+    on() {
+      return res;
+    },
     writeHead(status: number, headers: Record<string, unknown> = {}) {
       state.status = status;
       state.headers = { ...extra, ...headers };
       res.headersSent = true;
       return res;
     },
-    end(chunk?: string) {
-      if (chunk !== undefined) state.body += chunk;
+    write(chunk: string | Buffer) {
+      state.body += chunk.toString();
+      return true;
+    },
+    once() {
+      return res;
+    },
+    emit() {
+      return false;
+    },
+    end(chunk?: string | Buffer) {
+      if (chunk !== undefined) state.body += chunk.toString();
       res.writableEnded = true;
       resolve();
       return res;
@@ -64,10 +78,27 @@ let repos: TestRepos;
 let service: DraftService;
 let http: DraftsHttp;
 let signedIn: SessionUser | undefined;
+let agent: SessionUser | undefined;
+let draftInstance: Server;
+let draftPort: number;
 
-beforeEach(() => {
+beforeEach(async () => {
+  agent = undefined;
+  draftInstance = createServer((req, res) => {
+    res.writeHead(200, { 'content-type': 'text/plain', 'mcp-session-id': 'session-in-draft' });
+    res.end(`draft instance saw ${req.url}`);
+  });
+  await new Promise<void>((resolve) => draftInstance.listen(0, '127.0.0.1', resolve));
+  draftPort = (draftInstance.address() as AddressInfo).port;
   repos = createTestRepos({ 'hello.md': '# Hello\n' });
-  const instances = fakeInstances(repos);
+  const prepared = fakeInstances(repos);
+  const instances = {
+    ...prepared,
+    ensure: async (draft: Parameters<typeof prepared.ensure>[0]) => {
+      await prepared.ensure(draft);
+      return draftPort;
+    },
+  };
   service = createDraftService({
     projectDir: repos.live,
     store: createDraftStore(join(repos.root, 'drafts.json')),
@@ -83,13 +114,16 @@ beforeEach(() => {
     service,
     instances,
     sessionUser: () => signedIn,
-    agentOwner: () => undefined,
+    agentOwner: () => agent,
     secure: false,
     log: silentLog,
   });
 });
 
-afterEach(() => repos.cleanup());
+afterEach(async () => {
+  repos.cleanup();
+  await new Promise<void>((resolve) => draftInstance.close(() => resolve()));
+});
 
 async function call(url: string, init: Parameters<typeof fakeRequest>[1] = {}) {
   const out = fakeResponse();
@@ -181,5 +215,49 @@ describe('drafts HTTP', () => {
       body: { logins: ['no spaces'] },
     });
     expect(bad.status).toBe(400);
+  });
+
+  it('sends an assistant to the live wiki while its person is there', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    await call('/api/gitquire/drafts');
+    expect((await call('/mcp', { method: 'POST' })).handled).toBe(false);
+  });
+
+  it('sends a new assistant session into the draft its person has open', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    await call('/api/gitquire/drafts', { headers: { cookie: 'gq_view=plan' } });
+    const out = await call('/mcp', { method: 'POST' });
+    expect(out.handled).toBe(true);
+    expect(out.body).toBe('draft instance saw /mcp');
+  });
+
+  it('keeps a session where it started when its person looks elsewhere', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    await call('/api/gitquire/drafts', { headers: { cookie: 'gq_view=plan' } });
+    await call('/mcp', { method: 'POST' });
+    await call('/api/gitquire/drafts');
+    const inDraft = await call('/mcp', {
+      method: 'POST',
+      headers: { 'mcp-session-id': 'session-in-draft' },
+    });
+    expect(inDraft.body).toBe('draft instance saw /mcp');
+
+    await call('/api/gitquire/drafts', { headers: { cookie: 'gq_view=plan' } });
+    const startedLive = await call('/mcp', {
+      method: 'POST',
+      headers: { 'mcp-session-id': 'session-in-live' },
+    });
+    expect(startedLive.handled).toBe(false);
+  });
+
+  it('puts a new session into the assistant draft when asked from the live wiki', async () => {
+    agent = ALICE;
+    await call('/api/gitquire/drafts/agent-mode', { method: 'PUT', body: { mode: 'draft' } });
+    const out = await call('/mcp', { method: 'POST' });
+    expect(out.handled).toBe(true);
+    expect(service.list().some((draft) => draft.agent)).toBe(true);
   });
 });

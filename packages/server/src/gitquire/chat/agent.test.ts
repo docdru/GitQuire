@@ -550,6 +550,17 @@ describe('the chat loop', () => {
     expect(text).toContain('acme/wiki');
     expect(text).toContain('@alice');
     expect(text).toContain('2026-11-14');
+    expect(text).not.toContain('You are working in');
+  });
+
+  it('tells the assistant which draft it works in', () => {
+    const text = systemPrompt({
+      user: USER,
+      wikiName: 'acme/wiki',
+      today: '2026-11-14',
+      workspace: 'You are working in the draft "Plan" (branch draft/plan), not in the live wiki.',
+    });
+    expect(text).toContain('You are working in the draft "Plan" (branch draft/plan)');
   });
 });
 
