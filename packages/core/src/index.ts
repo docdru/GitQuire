@@ -109,7 +109,7 @@ export {
   isKnownConfigError,
   type WriteScope,
 } from './config/errors.ts';
-export { fieldRegistry } from './config/field-registry.ts';
+export { fieldRegistry, getFieldMeta } from './config/field-registry.ts';
 export { mergeLayered } from './config/merge-layered.ts';
 export {
   detectRemovedKeys,
