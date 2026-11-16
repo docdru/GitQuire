@@ -1,4 +1,4 @@
-import type { LanguagePreference } from '@inkeep/open-knowledge-core/i18n/locales';
+import type { LanguagePreference } from '@gitquire/core/i18n/locales';
 import { trace } from '@opentelemetry/api';
 
 const TRACER_NAME = 'open-knowledge-app';

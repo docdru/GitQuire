@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 
-import { setToleranceTelemetryHook, type ToleranceFireRecord } from '@inkeep/open-knowledge-core';
+import { setToleranceTelemetryHook, type ToleranceFireRecord } from '@gitquire/core';
 
 import { getLocalDir } from './config/paths.ts';
 import { getLogger } from './logger.ts';

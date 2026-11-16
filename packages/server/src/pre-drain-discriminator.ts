@@ -1,4 +1,4 @@
-import type { LineEnding, MarkdownManager } from '@inkeep/open-knowledge-core';
+import type { LineEnding, MarkdownManager } from '@gitquire/core';
 import type { JSONContent } from '@tiptap/core';
 import type * as Y from 'yjs';
 import { ContentString } from 'yjs';

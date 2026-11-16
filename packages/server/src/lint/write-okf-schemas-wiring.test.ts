@@ -2,11 +2,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import {
-  type Config,
-  ConfigSchema,
-  okfAdvertisedSchemaMappings,
-} from '@inkeep/open-knowledge-core';
+import { type Config, ConfigSchema, okfAdvertisedSchemaMappings } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { type BootedServer, bootServer } from '../../../../test-support/boot-server.test-helper.ts';
 import { resetOkfSchemaWriteState } from './write-okf-schemas.ts';

@@ -1,4 +1,4 @@
-import { templateContentDocName } from '@inkeep/open-knowledge-core';
+import { templateContentDocName } from '@gitquire/core';
 import { describe, expect, test, vi } from 'vitest';
 import {
   anchorFromHash,

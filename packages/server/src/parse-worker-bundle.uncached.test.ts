@@ -30,7 +30,7 @@ describe('worker entry ships in every bundle shape', () => {
       exports: Record<string, Record<string, string>>;
     };
     expect(pkg.exports['./parse-worker']).toEqual({
-      '@inkeep/source': './src/parse-worker.ts',
+      '@gitquire/source': './src/parse-worker.ts',
       development: './src/parse-worker.ts',
       types: './dist/parse-worker.d.mts',
       default: './dist/parse-worker.mjs',
@@ -38,8 +38,8 @@ describe('worker entry ships in every bundle shape', () => {
   });
 
   test.each([
-    ['@inkeep/open-knowledge-server', '../package.json'],
-    ['@inkeep/open-knowledge-core', '../../core/package.json'],
+    ['@gitquire/server', '../package.json'],
+    ['@gitquire/core', '../../core/package.json'],
   ])(
     '%s keeps every export subpath on the same four conditions in the same order',
     (_name, rel) => {
@@ -50,12 +50,12 @@ describe('worker entry ships in every bundle shape', () => {
       expect(subpaths.length).toBeGreaterThan(0);
       for (const [subpath, entry] of subpaths) {
         expect(Object.keys(entry), `${rel} ${subpath} condition order`).toEqual([
-          '@inkeep/source',
+          '@gitquire/source',
           'development',
           'types',
           'default',
         ]);
-        expect(entry['@inkeep/source'], `${rel} ${subpath} source vs development`).toBe(
+        expect(entry['@gitquire/source'], `${rel} ${subpath} source vs development`).toBe(
           entry.development,
         );
         expect(entry.types, `${rel} ${subpath} types must resolve to a declaration`).toMatch(

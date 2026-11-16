@@ -9,13 +9,13 @@ import {
   deriveSavedThemeName,
   parseSavedThemeId,
   type SavedThemeIdError,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   atomicWriteFile,
   FileLockTimeoutError,
   okUserHomeDir,
   withFileLock,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';
 import { tracedAtomicFs, tracedMkdir, tracedUnlinkSync } from './fs-traced.ts';
 import {
   readSavedThemeFile,

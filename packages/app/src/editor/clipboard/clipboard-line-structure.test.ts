@@ -1,4 +1,4 @@
-import { MarkdownManager } from '@inkeep/open-knowledge-core';
+import { MarkdownManager } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import { AllSelection, EditorState, type TextSelection } from '@tiptap/pm/state';

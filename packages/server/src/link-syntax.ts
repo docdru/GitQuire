@@ -4,7 +4,7 @@
  * (precedent #56) exists to prevent.
  */
 
-import { normalizeWikiSeparatorEscapes } from '@inkeep/open-knowledge-core';
+import { normalizeWikiSeparatorEscapes } from '@gitquire/core';
 
 const WIKI_BODY_SOURCE = String.raw`\[\[([^\n#[\]|]+)(?:#([^\n[\]|]+))?(?:\|([^\n[\]]+))?\]\]`;
 

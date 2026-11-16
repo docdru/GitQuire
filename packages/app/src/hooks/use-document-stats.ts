@@ -1,5 +1,5 @@
+import { isEditableTextDocFile } from '@gitquire/core/constants/code-languages';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
 import { useEffect, useState } from 'react';
 import type { Text as YText } from 'yjs';
 import {

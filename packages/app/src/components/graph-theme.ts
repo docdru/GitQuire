@@ -1,8 +1,4 @@
-import {
-  contrastRatio,
-  MINIMUM_CONTRAST_RATIO,
-  nearestReading,
-} from '@inkeep/open-knowledge-core/theme/base16';
+import { contrastRatio, MINIMUM_CONTRAST_RATIO, nearestReading } from '@gitquire/core/theme/base16';
 import { useEffect, useState } from 'react';
 import { readDocumentColorMode } from '@/editor/components/use-app-color-mode';
 import { subscribeColorThemeEpoch } from '@/lib/color-theme-epoch';

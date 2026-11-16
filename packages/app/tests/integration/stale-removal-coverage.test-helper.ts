@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { PagesSuccessSchema } from '@inkeep/open-knowledge-core';
+import { PagesSuccessSchema } from '@gitquire/core';
 import { expect, vi } from 'vitest';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';
 import * as parcelSubscription from '../../../server/src/parcel-subscription.ts';

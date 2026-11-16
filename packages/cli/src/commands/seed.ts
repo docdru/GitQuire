@@ -1,6 +1,6 @@
 import { relative, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import { planHasOutstandingWork } from '@inkeep/open-knowledge-core';
+import { planHasOutstandingWork } from '@gitquire/core';
 import {
   applySeed,
   DEFAULT_PACK_ID,
@@ -11,7 +11,7 @@ import {
   SeedPrerequisiteError,
   STARTER_PACK_IDS,
   STARTER_PACKS,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command } from 'commander';
 import { accent, dim, error as errorColor, info, success, warning } from '../ui/colors.ts';
 

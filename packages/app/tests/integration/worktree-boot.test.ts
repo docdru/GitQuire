@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSy
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { bootServer, ConfigSchema, getLogger } from '@inkeep/open-knowledge-server';
+import { bootServer, ConfigSchema, getLogger } from '@gitquire/server';
 import { context, metrics, trace } from '@opentelemetry/api';
 import {
   BasicTracerProvider,

@@ -3,14 +3,14 @@ import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { okUserHomeDisplayPath } from '@inkeep/open-knowledge-core';
+import { okUserHomeDisplayPath } from '@gitquire/core';
 import {
   type Config,
   getMachineId,
   isProcessAlive,
   lockFilePath,
   machineIdFilePath,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { LockState } from './lock-state.ts';
 import {

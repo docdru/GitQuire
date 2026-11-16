@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { LOCAL_DIR, OK_DIR } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR, OK_DIR } from '@gitquire/core';
 import { acquireServerLock, updateServerLockPort } from '../../server-lock.ts';
 
 const TEST_UI_PORT = 5173;

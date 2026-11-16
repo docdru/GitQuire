@@ -1,4 +1,4 @@
-import { type LinterConfig, lintDocument } from '@inkeep/open-knowledge-core';
+import { type LinterConfig, lintDocument } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { partitionFrontmatterProblems } from './useFrontmatterDiagnostics.ts';
 

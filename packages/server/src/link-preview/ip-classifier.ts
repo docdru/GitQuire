@@ -1,4 +1,4 @@
 export {
   classifyHost,
   isPublicUnicastIp,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';

@@ -1,4 +1,4 @@
-import { JsxInline as BaseJsxInline } from '@inkeep/open-knowledge-core/extensions/jsx-inline';
+import { JsxInline as BaseJsxInline } from '@gitquire/core/extensions/jsx-inline';
 import { NodeSelection, Plugin } from '@tiptap/pm/state';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import { JsxInlineView } from './JsxInlineView';

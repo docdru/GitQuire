@@ -12,7 +12,7 @@ import {
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+import { okUserHomeDir } from '@gitquire/core/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
   type BundleLogger,

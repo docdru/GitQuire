@@ -4,8 +4,8 @@ import { dirname, join, resolve } from 'node:path';
 import type {
   ReportBundleLevel as CoreReportBundleLevel,
   ReportBundleSummary as CoreReportBundleSummary,
-} from '@inkeep/open-knowledge-core';
-import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { okUserHomeDir } from '@gitquire/core/server';
 import { parse as parseYaml } from 'yaml';
 import {
   type BundleExtraFile,

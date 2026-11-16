@@ -1,4 +1,4 @@
-import { createTargetNamespace, DOCUMENT_OPEN_BYTE_LIMIT } from '@inkeep/open-knowledge-core';
+import { createTargetNamespace, DOCUMENT_OPEN_BYTE_LIMIT } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   deriveKnownFolderPaths,

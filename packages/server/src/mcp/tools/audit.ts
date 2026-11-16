@@ -1,4 +1,4 @@
-import { BrokenLinkSuppressionSchema, validationCoverageLines } from '@inkeep/open-knowledge-core';
+import { BrokenLinkSuppressionSchema, validationCoverageLines } from '@gitquire/core';
 import { z } from 'zod';
 import {
   formatAuditBrokenLinkSuppressionLine,

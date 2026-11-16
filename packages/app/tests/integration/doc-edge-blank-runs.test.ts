@@ -1,5 +1,5 @@
 import { setTimeout as wait } from 'node:timers/promises';
-import { CONCURRENT_REPLACE_WINDOW_MS } from '@inkeep/open-knowledge-server';
+import { CONCURRENT_REPLACE_WINDOW_MS } from '@gitquire/server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';

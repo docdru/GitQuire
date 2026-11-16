@@ -4,7 +4,7 @@
  * Reversed, a throw after the fragment write silently reverts the rollback with no error.
  */
 
-import { sharedExtensions, stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { sharedExtensions, stripFrontmatter } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { beforeEach, describe, expect, test } from 'vitest';

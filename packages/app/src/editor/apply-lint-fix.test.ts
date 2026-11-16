@@ -1,4 +1,4 @@
-import type { LintDiagnostic, LintTextEdit } from '@inkeep/open-knowledge-core';
+import type { LintDiagnostic, LintTextEdit } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { applyLintFixes, collectFixes, LINT_SOURCE_FIXED_EVENT } from './apply-lint-fix.ts';

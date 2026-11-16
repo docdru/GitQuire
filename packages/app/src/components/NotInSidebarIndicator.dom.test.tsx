@@ -1,6 +1,6 @@
 /** Runs under the jsdom substrate (precedent #43). */
 
-import type { Config } from '@inkeep/open-knowledge-core';
+import type { Config } from '@gitquire/core';
 import * as actualLinguiMacro from '@lingui/react/macro';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

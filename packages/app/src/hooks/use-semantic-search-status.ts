@@ -1,7 +1,4 @@
-import {
-  type SemanticIndexStatus,
-  SemanticIndexStatusSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import { type SemanticIndexStatus, SemanticIndexStatusSchema } from '@gitquire/core/schemas/api';
 import { useEffect, useReducer, useRef } from 'react';
 import { COMMAND_PALETTE_SEARCH_TIMEOUT_MS } from '@/components/command-palette-semantic';
 import { subscribeToDocumentsChanged } from '@/lib/documents-events';

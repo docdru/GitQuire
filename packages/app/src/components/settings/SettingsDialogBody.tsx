@@ -1,5 +1,5 @@
-import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
-import type { OkignoreBinding } from '@inkeep/open-knowledge-core/config/bind-okignore-doc';
+import type { ConfigBinding } from '@gitquire/core/config/bind-config-doc';
+import type { OkignoreBinding } from '@gitquire/core/config/bind-okignore-doc';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { TriangleAlert } from 'lucide-react';
 import { type ComponentType, lazy } from 'react';

@@ -1,6 +1,6 @@
 import type { Stats } from 'node:fs';
 import type { ServerResponse } from 'node:http';
-import { createAppShellPolicies } from '@inkeep/open-knowledge-core/server';
+import { createAppShellPolicies } from '@gitquire/core/server';
 import { getLogger } from '../logger.ts';
 
 export function createShellHeaderSetter(distDir: string) {

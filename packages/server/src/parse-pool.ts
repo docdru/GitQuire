@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Worker } from 'node:worker_threads';
-import { stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { stripFrontmatter } from '@gitquire/core';
 import type { JSONContent } from '@tiptap/core';
 import type { PrecomputedParse } from './bridge-intake.ts';
 import { getLogger } from './logger.ts';
@@ -127,10 +127,7 @@ function resolveWorkerUrl(): URL | null {
     const requireFromHere = createRequire(import.meta.url);
     candidates.push(
       pathToFileURL(
-        join(
-          dirname(requireFromHere.resolve('@inkeep/open-knowledge-server/parse-worker')),
-          'parse-worker.mjs',
-        ),
+        join(dirname(requireFromHere.resolve('@gitquire/server/parse-worker')), 'parse-worker.mjs'),
       ),
     );
   } catch {}

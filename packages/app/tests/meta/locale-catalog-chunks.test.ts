@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { FALLBACK_LOCALE, SUPPORTED_LOCALES } from '@inkeep/open-knowledge-core';
+import { FALLBACK_LOCALE, SUPPORTED_LOCALES } from '@gitquire/core';
 import { build, type Plugin, type RollupOutput } from 'vite';
 import { beforeAll, describe, expect, test } from 'vitest';
 

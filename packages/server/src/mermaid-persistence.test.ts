@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { fnv1aDigest, LINEAGE_EPOCH_KEY } from '@inkeep/open-knowledge-core';
+import { fnv1aDigest, LINEAGE_EPOCH_KEY } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { DiskReceiptLog } from './disk-receipts.ts';

@@ -1,4 +1,4 @@
-import { AdvisoryWarningSchema } from '@inkeep/open-knowledge-core';
+import { AdvisoryWarningSchema } from '@gitquire/core';
 import { z } from 'zod';
 import type { AgentIdentity } from '../agent-identity.ts';
 import { formatAdvisoryLines, parseAdvisoryWarnings } from './advisory-warnings.ts';

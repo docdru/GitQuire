@@ -6,12 +6,12 @@ import type {
   SharePublishRequest,
   SharePublishResponse,
   SharePublishVisibility,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import {
   SharePublishNameCheckResponseSchema,
   SharePublishOwnersResponseSchema,
   SharePublishResponseSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 
 const SHARE_PUBLISH_OWNERS_PATH = '/api/share/publish/owners';

@@ -1,5 +1,5 @@
 import type { IncomingMessage } from 'node:http';
-import type { ClientSurfaceReading, ServerRuntimeConfig } from '@inkeep/open-knowledge-core';
+import type { ClientSurfaceReading, ServerRuntimeConfig } from '@gitquire/core';
 import { isAllowedApiOrigin, isOpaqueOrigin, isSafeMethod } from './api-origin.ts';
 import type { PinoLogger } from './logger.ts';
 import { isAllowedWorkspaceHostHeader, isLoopbackAddress } from './loopback.ts';

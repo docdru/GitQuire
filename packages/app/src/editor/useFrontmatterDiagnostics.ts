@@ -1,11 +1,11 @@
-import type { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   isFrontmatterScoped,
   LINT_PLUGINS,
   type LintDiagnostic,
   type LinterConfig,
   selectFrontmatterOnlyConfig,
-} from '@inkeep/open-knowledge-core/markdown/lint';
+} from '@gitquire/core/markdown/lint';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
 import { useDocDiagnostics } from './useDocDiagnostics.ts';
 
 export function partitionFrontmatterProblems(diagnostics: readonly LintDiagnostic[]): {

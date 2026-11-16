@@ -1,7 +1,7 @@
 import { existsSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter, resolve } from 'node:path';
-import { augmentGitSpawnPath, OkCliCommand } from '@inkeep/open-knowledge-core';
+import { augmentGitSpawnPath, OkCliCommand } from '@gitquire/core';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import { shellEscape } from './bash/shell-escape.ts';
 import { simpleGit } from './simple-git-client.ts';

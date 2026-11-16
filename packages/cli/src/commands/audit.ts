@@ -5,7 +5,7 @@ import {
   ProblemDetailsSchema,
   type ValidationAuditResponse,
   ValidationAuditResponseSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   type Config,
   formatAuditBrokenLinkSuppressionLine,
@@ -14,7 +14,7 @@ import {
   resolveAuditScope,
   resolveContentDir,
   resolveLockDir,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command } from 'commander';
 import { z } from 'zod';
 import { getInvocationCwd } from '../project-anchor.ts';

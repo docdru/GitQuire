@@ -1,5 +1,5 @@
-import { normalizeDocRelativeAssetUrl } from '@inkeep/open-knowledge-core/markdown/resolve-image-url';
-import { resolveAssetProjectPath } from '@inkeep/open-knowledge-core/utils/link-targets';
+import { normalizeDocRelativeAssetUrl } from '@gitquire/core/markdown/resolve-image-url';
+import { resolveAssetProjectPath } from '@gitquire/core/utils/link-targets';
 import { type Editor, Extension } from '@tiptap/core';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { Plugin, PluginKey } from '@tiptap/pm/state';

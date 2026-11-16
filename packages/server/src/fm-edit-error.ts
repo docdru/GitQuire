@@ -1,4 +1,4 @@
-import type { FmEditError } from '@inkeep/open-knowledge-core';
+import type { FmEditError } from '@gitquire/core';
 
 export function describeFmEditError(error: FmEditError): string {
   switch (error.kind) {

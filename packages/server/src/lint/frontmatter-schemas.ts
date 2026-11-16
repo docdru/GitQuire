@@ -10,7 +10,7 @@ import {
   isSupportedSchemaDialect,
   type ResolvedFrontmatterSchemaEntry,
   SUPPORTED_SCHEMA_DIALECTS,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getLogger } from '../logger.ts';
 import { isInside } from './fs-safety.ts';
 

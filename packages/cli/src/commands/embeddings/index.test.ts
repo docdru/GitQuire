@@ -17,7 +17,7 @@ import {
   DEFAULT_EMBEDDINGS_BASE_URL,
   DEFAULT_EMBEDDINGS_MODEL,
   type SemanticIndexStatus,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { stringify } from 'yaml';
 import * as embeddingsKeyStore from '../../auth/embeddings-key-store.ts';

@@ -2,7 +2,7 @@ import { docsUrl } from '../docs.mjs';
 
 const URL = docsUrl('no-hand-rolled-branch-validation');
 
-const MESSAGE = `Hand-rolled branch-name validation — call \`isValidBranchName\` (from @inkeep/open-knowledge-core, re-exported at packages/server/src/git-branch-info.ts) instead of testing a regex against a branch value. It is the declared single source of truth for the seven-rule contract; a local regex drifts from it silently, which is how /api/history came to answer 400 on git-legal branch names containing \`+\`. Validating something other than a branch name, or enforcing a rule the contract deliberately omits? suppress with \`// oxlint-disable-next-line ok/no-hand-rolled-branch-validation -- <reason>\`. See ${URL}`;
+const MESSAGE = `Hand-rolled branch-name validation — call \`isValidBranchName\` (from @gitquire/core, re-exported at packages/server/src/git-branch-info.ts) instead of testing a regex against a branch value. It is the declared single source of truth for the seven-rule contract; a local regex drifts from it silently, which is how /api/history came to answer 400 on git-legal branch names containing \`+\`. Validating something other than a branch name, or enforcing a rule the contract deliberately omits? suppress with \`// oxlint-disable-next-line ok/no-hand-rolled-branch-validation -- <reason>\`. See ${URL}`;
 
 export const BRANCH_IDENTIFIER_RE =
   /^(?:branch|refName)(?:Name|Ref)?$|^[a-z][a-zA-Z0-9]*Branch(?:Name|Ref)?$/;

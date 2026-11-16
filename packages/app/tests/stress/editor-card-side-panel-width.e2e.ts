@@ -8,8 +8,8 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import { saveInMemoryCheckpoint } from '@inkeep/open-knowledge-server';
+import { resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
+import { saveInMemoryCheckpoint } from '@gitquire/server';
 import { chromium, type Locator, type Page } from '@playwright/test';
 import {
   DOCK_WORKSPACE,

@@ -1,12 +1,12 @@
-import { readBrowserLanguages } from '@inkeep/open-knowledge-core/i18n/browser-locale-provider';
-import { localeDirection } from '@inkeep/open-knowledge-core/i18n/direction';
+import { readBrowserLanguages } from '@gitquire/core/i18n/browser-locale-provider';
+import { localeDirection } from '@gitquire/core/i18n/direction';
 import {
   AUTO_DETECTABLE_LOCALES,
   type LanguagePreference,
   SUPPORTED_LOCALES,
   type SupportedLocale,
-} from '@inkeep/open-knowledge-core/i18n/locales';
-import { resolveLocale } from '@inkeep/open-knowledge-core/i18n/resolve-locale';
+} from '@gitquire/core/i18n/locales';
+import { resolveLocale } from '@gitquire/core/i18n/resolve-locale';
 import { useEffect } from 'react';
 import { dynamicActivate } from './activate-locale';
 import { activatePseudoLocale, isPseudoLocaleRequested } from './dev-pseudo-locale';

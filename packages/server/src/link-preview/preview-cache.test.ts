@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { LinkPreviewMetadata } from '@inkeep/open-knowledge-core';
+import type { LinkPreviewMetadata } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   LinkPreviewCache,

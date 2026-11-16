@@ -1,4 +1,4 @@
-import { PREVIEW_THEME_TOKENS } from '@inkeep/open-knowledge-core';
+import { PREVIEW_THEME_TOKENS } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   buildPreviewIframeHeader,

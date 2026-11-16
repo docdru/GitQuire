@@ -1,4 +1,4 @@
-import { isEditableTextDocFile } from '@inkeep/open-knowledge-core';
+import { isEditableTextDocFile } from '@gitquire/core';
 import { describe, expect, test, vi } from 'vitest';
 import {
   addPinnedTab,

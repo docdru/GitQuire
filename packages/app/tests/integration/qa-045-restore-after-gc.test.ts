@@ -6,7 +6,7 @@ import {
   gcCheckpointRefs,
   initShadowRepo,
   saveInMemoryCheckpoint,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   agentWriteMd,

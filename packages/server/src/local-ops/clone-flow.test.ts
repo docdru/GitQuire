@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@inkeep/open-knowledge-core';
+import { DEV_FALLBACK_CLI_REFUSAL, OkCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { classifyCloneError } from './clone-error-classify.ts';
 import {

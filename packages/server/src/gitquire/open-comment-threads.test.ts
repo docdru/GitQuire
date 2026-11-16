@@ -1,10 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import {
-  type CommentThread,
-  writeCommentThreads,
-} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { type CommentThread, writeCommentThreads } from '@gitquire/core/gitquire/comment-threads';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   countOpenCommentThreads,

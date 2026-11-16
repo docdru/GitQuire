@@ -6,7 +6,7 @@ import {
   OKF_SCHEMA_DIR,
   type OkfRuleToggles,
   renderOkfSchemaFiles,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   tracedMkdirSync,
   tracedRmdirSync,

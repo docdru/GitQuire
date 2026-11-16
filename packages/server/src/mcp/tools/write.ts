@@ -16,7 +16,7 @@ import {
   type UploadRequest,
   unwrapFrontmatterFences,
   withFences,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import {
   formatBrokenLinkSuppressionBrief,

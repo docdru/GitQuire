@@ -1,4 +1,4 @@
-import type { LintDiagnostic } from '@inkeep/open-knowledge-core/markdown/lint';
+import type { LintDiagnostic } from '@gitquire/core/markdown/lint';
 
 export const NO_RESERVED_KEYS: readonly string[] = [];
 

@@ -1,4 +1,4 @@
-import { MarkdownManager } from '@inkeep/open-knowledge-core';
+import { MarkdownManager } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { sharedExtensions } from '../extensions/shared';
 import { buildMediaJsxNodeData } from './index.ts';

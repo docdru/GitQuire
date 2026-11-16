@@ -3,7 +3,7 @@ import {
   type GitAuthFailureSubclass,
   type SyncErrorCode,
   stripPathspecMagic,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 
 type NetworkSubclass = 'dns' | 'timeout' | '5xx' | '429' | 'connection-refused' | 'unknown-network';
 type AuthSubclass = GitAuthFailureSubclass;

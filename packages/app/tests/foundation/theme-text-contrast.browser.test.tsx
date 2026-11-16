@@ -6,8 +6,8 @@ import {
   setSearchQuery,
 } from '@codemirror/search';
 import { EditorView } from '@codemirror/view';
+import { sharedExtensions } from '@gitquire/core/extensions/shared';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { sharedExtensions } from '@inkeep/open-knowledge-core/extensions/shared';
 import { tags } from '@lezer/highlight';
 import { FileTree } from '@pierre/trees';
 import { act, cleanup, waitFor } from '@testing-library/react';

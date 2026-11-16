@@ -1,4 +1,4 @@
-import { CONFIG_DOC_NAMES } from '@inkeep/open-knowledge-core/constants/cc1';
+import { CONFIG_DOC_NAMES } from '@gitquire/core/constants/cc1';
 import { DocChangeNotice } from '@/components/DocChangeNotice';
 
 export function SettingsConfigNotices({ onDismissFocus }: { onDismissFocus: () => void }) {

@@ -1,7 +1,7 @@
 import { createReadStream } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
-import { EmptyRequestSchema } from '@inkeep/open-knowledge-core';
+import { EmptyRequestSchema } from '@gitquire/core';
 import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { ATTR_ERROR_TYPE } from '@opentelemetry/semantic-conventions';
 import type { PinoLogger } from '../logger.ts';

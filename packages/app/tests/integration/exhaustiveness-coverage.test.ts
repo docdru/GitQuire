@@ -1,5 +1,5 @@
 import { join, relative, resolve } from 'node:path';
-import { ProblemTypeSchema } from '@inkeep/open-knowledge-core';
+import { ProblemTypeSchema } from '@gitquire/core';
 import {
   type Expression,
   type Node,

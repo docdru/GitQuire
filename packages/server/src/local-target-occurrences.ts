@@ -4,7 +4,7 @@ import {
   normalizeReferenceLabel,
   skipInlineCode,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   type HtmlImgMatch,
   type MarkdownReferenceMatch,

@@ -1,5 +1,5 @@
+import { clientVersionHeaders } from '@gitquire/core';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { clientVersionHeaders } from '@inkeep/open-knowledge-core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { buildAuthToken } from '../../src/lib/auth-token';

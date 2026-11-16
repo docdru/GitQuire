@@ -4,13 +4,12 @@
  * not per-transaction, and not a wall-clock `setTimeout` debounce.
  */
 
-import type { LocalTransactionOrigin } from '@hocuspocus/server';
 import type {
   BridgeComposition,
   MarkdownManager,
   PmStructuralNode,
   StructuralDivergenceReason,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   addsBlankLines,
   applyFastDiff,
@@ -35,7 +34,8 @@ import {
   spellLineEndings,
   splitFmBoundarySlot,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { LocalTransactionOrigin } from '@hocuspocus/server';
 import type { JSONContent } from '@tiptap/core';
 import type { Schema } from '@tiptap/pm/model';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';

@@ -3,7 +3,7 @@ import {
   asTargetNamespace,
   createTargetNamespace,
   type LocalTargetDiagnosticEvidence,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { type BrokenOutboundLink, computeBrokenOutboundLinks } from './backlink-index.ts';
 import {
   assessLocalTargets,

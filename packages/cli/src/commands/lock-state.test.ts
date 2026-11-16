@@ -1,7 +1,7 @@
 import { chmodSync, writeFileSync } from 'node:fs';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
-import { machineIdFilePath, type ProcessStart } from '@inkeep/open-knowledge-server';
+import { machineIdFilePath, type ProcessStart } from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createTempDirFactory } from '../../../../test-support/temp-dir.test-helper.ts';
 import { describeLockOwnershipRefusal, inspectLock } from './lock-state.ts';

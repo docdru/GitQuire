@@ -2,7 +2,7 @@ import {
   DEFAULT_EMBEDDINGS_MAX_BATCH_SIZE,
   type SemanticProviderErrorReason,
   type WorkspaceSearchDocument,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { getLogger } from '../logger.ts';
 import { CHUNK_CONFIG_ID, chunkDocument } from './chunking.ts';
 import {

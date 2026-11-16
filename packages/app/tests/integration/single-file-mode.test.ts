@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { fetchWithHostHeader } from './host-header-request.test-helper';

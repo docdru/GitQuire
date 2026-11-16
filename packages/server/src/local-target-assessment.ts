@@ -9,7 +9,7 @@ import {
   type LocalTargetSourceForm,
   resolveAssetProjectPath,
   toWikiLinkSlug,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { linkNamesDocumentFile } from './doc-extensions.ts';
 import {
   extractLocalTargetOccurrences,

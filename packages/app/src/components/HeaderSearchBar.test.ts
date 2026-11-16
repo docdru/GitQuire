@@ -1,4 +1,4 @@
-import { getParseHealth, resetParseHealth } from '@inkeep/open-knowledge-core';
+import { getParseHealth, resetParseHealth } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { onPillRenderError } from './HeaderSearchBar';
 

@@ -1,4 +1,4 @@
-import type { FrontmatterType } from '@inkeep/open-knowledge-core';
+import type { FrontmatterType } from '@gitquire/core';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRef, useState } from 'react';

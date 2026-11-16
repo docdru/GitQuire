@@ -17,7 +17,7 @@ import {
   initShadowRepo,
   simpleGit,
   type WriterIdentity,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 
 const root = resolve(tmpdir(), `ok-probe-${Date.now()}`);
 mkdirSync(root, { recursive: true });

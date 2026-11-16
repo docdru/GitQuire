@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { bootServer, ConfigSchema } from '@inkeep/open-knowledge-server';
+import { bootServer, ConfigSchema } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import { removeAllDuringTeardown } from '../stress/_helpers/teardown-fs.ts';
 import { createLinkedWorktree, type LinkedWorktreeHandle } from './worktree-test-harness.ts';

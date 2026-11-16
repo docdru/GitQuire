@@ -5,7 +5,7 @@ import {
   PREVIEW_THEME_TOKENS,
   previewEmbedFence,
   projectFull,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import type { ConfigOrResolver, ServerInstance } from './shared.ts';
 import { outputSchemaWithText, ROUTED_CWD_DESCRIPTION, textPlusStructured } from './shared.ts';

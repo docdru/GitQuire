@@ -1,6 +1,6 @@
-import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
-import { humanFormat } from '@inkeep/open-knowledge-core/config/errors';
-import type { ConfigPatch } from '@inkeep/open-knowledge-core/config/schema';
+import type { ConfigBinding } from '@gitquire/core/config/bind-config-doc';
+import { humanFormat } from '@gitquire/core/config/errors';
+import type { ConfigPatch } from '@gitquire/core/config/schema';
 import {
   type AppliesToPatternSummary,
   assertNeverOkfRuleGroupId,
@@ -15,7 +15,7 @@ import {
   type OkfRuleGroupId,
   type OkfRuleId,
   summarizeAppliesTo,
-} from '@inkeep/open-knowledge-core/markdown/lint';
+} from '@gitquire/core/markdown/lint';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import {
   ArrowUpRight,

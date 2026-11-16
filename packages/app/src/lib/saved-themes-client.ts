@@ -11,9 +11,9 @@ import {
   SavedThemesListSuccessSchema,
   SavedThemeUpdateRequestSchema,
   SavedThemeUpdateSuccessSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
-import type { Base16Scheme } from '@inkeep/open-knowledge-core/theme/base16';
-import { parseSavedThemeId } from '@inkeep/open-knowledge-core/theme/theme-plugins';
+} from '@gitquire/core/schemas/api';
+import type { Base16Scheme } from '@gitquire/core/theme/base16';
+import { parseSavedThemeId } from '@gitquire/core/theme/theme-plugins';
 import {
   createContext,
   createElement,

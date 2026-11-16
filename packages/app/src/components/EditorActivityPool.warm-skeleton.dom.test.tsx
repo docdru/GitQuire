@@ -1,4 +1,4 @@
-import { isMarkdownDocFile } from '@inkeep/open-knowledge-core';
+import { isMarkdownDocFile } from '@gitquire/core';
 import { cleanup, render, screen } from '@testing-library/react';
 import { Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

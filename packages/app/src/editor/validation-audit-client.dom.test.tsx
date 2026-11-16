@@ -1,4 +1,4 @@
-import type { ValidationAuditResponse } from '@inkeep/open-knowledge-core';
+import type { ValidationAuditResponse } from '@gitquire/core';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { emitDocumentsChanged } from '@/lib/documents-events';

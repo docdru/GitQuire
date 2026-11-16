@@ -1,4 +1,4 @@
-import type { ForwardLinkLocalTarget, ForwardLinksSuccess } from '@inkeep/open-knowledge-core';
+import type { ForwardLinkLocalTarget, ForwardLinksSuccess } from '@gitquire/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';

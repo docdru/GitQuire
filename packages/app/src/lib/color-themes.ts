@@ -1,5 +1,5 @@
-import { SIDEBAR_BG_DARK, SIDEBAR_BG_LIGHT } from '@inkeep/open-knowledge-core/constants/chrome';
-import { PREVIEW_THEME_TOKENS } from '@inkeep/open-knowledge-core/constants/preview-theme-tokens';
+import { SIDEBAR_BG_DARK, SIDEBAR_BG_LIGHT } from '@gitquire/core/constants/chrome';
+import { PREVIEW_THEME_TOKENS } from '@gitquire/core/constants/preview-theme-tokens';
 import {
   BASE16_SLOTS,
   type Base16Palette,
@@ -8,7 +8,7 @@ import {
   isBase16Hex,
   mixHex,
   relativeLuminance,
-} from '@inkeep/open-knowledge-core/theme/base16';
+} from '@gitquire/core/theme/base16';
 import {
   type ColorThemeSelection,
   type ColorThemeSelectionInput,
@@ -20,7 +20,7 @@ import {
   resolveThemePlugin,
   THEME_PLUGINS,
   type ThemePlugin,
-} from '@inkeep/open-knowledge-core/theme/theme-plugins';
+} from '@gitquire/core/theme/theme-plugins';
 
 export type { Base16Scheme, ColorThemeSelection, ColorThemeSelectionInput };
 export {

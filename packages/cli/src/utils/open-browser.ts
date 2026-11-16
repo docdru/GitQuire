@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { withHiddenWindowsConsole } from '@inkeep/open-knowledge-server';
+import { withHiddenWindowsConsole } from '@gitquire/server';
 
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 

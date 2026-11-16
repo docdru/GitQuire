@@ -1,4 +1,4 @@
-import { RENDERER_LOG_MAX_MESSAGE_BYTES } from '@inkeep/open-knowledge-core';
+import { RENDERER_LOG_MAX_MESSAGE_BYTES } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { emitDiagnosticBreadcrumb, MAX_BREADCRUMB_CHARS } from './diagnostic-breadcrumb';
 

@@ -647,7 +647,7 @@ describe('extractOkBinaryPath', () => {
   });
 
   test('ignores package specifier in npm exec parent command', () => {
-    expect(extractOkBinaryPath('npm exec @inkeep/open-knowledge mcp HOME=/Users/mike')).toBeNull();
+    expect(extractOkBinaryPath('npm exec @gitquire/cli mcp HOME=/Users/mike')).toBeNull();
   });
 });
 

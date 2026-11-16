@@ -10,13 +10,13 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Document } from '@hocuspocus/server';
 import {
   DocumentReadSuccessSchema,
   ForwardLinksSuccessSchema,
   MetricsReconciliationSuccessSchema,
   PagesSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Document } from '@hocuspocus/server';
 import { expect, vi } from 'vitest';
 import { DerivedDocumentIndex } from '../../../server/src/derived-document-index.ts';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';

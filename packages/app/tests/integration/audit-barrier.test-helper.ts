@@ -1,4 +1,4 @@
-import * as core from '@inkeep/open-knowledge-core';
+import * as core from '@gitquire/core';
 import { vi } from 'vitest';
 import { pollUntil } from './test-harness.ts';
 

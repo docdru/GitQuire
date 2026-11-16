@@ -6,7 +6,7 @@ import {
   SemanticProviderErrorReasonSchema,
   SemanticQueryOutcomeSchema,
   semanticProviderErrorBlocks,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
 import { getLogger } from '../../logger.ts';

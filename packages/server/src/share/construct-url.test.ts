@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import type { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { decodeShareUrl, ShareFreshnessSchema } from '@inkeep/open-knowledge-core';
+import { decodeShareUrl, ShareFreshnessSchema } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { loggerFactory, PinoLogger } from '../logger.ts';
 import {

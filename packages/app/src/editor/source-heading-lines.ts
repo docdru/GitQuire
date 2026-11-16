@@ -1,7 +1,7 @@
 import type { Text } from '@codemirror/state';
-import { FM_FENCE_LINE_RE } from '@inkeep/open-knowledge-core/extensions/frontmatter';
-import { createCodeFenceTracker } from '@inkeep/open-knowledge-core/utils/code-fence-tracker';
-import { scanHeadingLine } from '@inkeep/open-knowledge-core/utils/heading-scan';
+import { FM_FENCE_LINE_RE } from '@gitquire/core/extensions/frontmatter';
+import { createCodeFenceTracker } from '@gitquire/core/utils/code-fence-tracker';
+import { scanHeadingLine } from '@gitquire/core/utils/heading-scan';
 
 export interface SourceHeadingLine {
   slug: string;

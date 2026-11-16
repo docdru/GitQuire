@@ -1,4 +1,4 @@
-import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions, stripFrontmatter } from '@gitquire/core';
 import { cleanup } from '@testing-library/react';
 import { Editor, getSchema, type JSONContent } from '@tiptap/core';
 import { afterEach, describe, expect, test } from 'vitest';

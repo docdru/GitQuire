@@ -7,7 +7,7 @@ import {
   LOCAL_DIR,
   OK_DIR,
   SERVER_AUTHORITY_REGISTRY_FILENAME,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import {
   normalizeFsPath,

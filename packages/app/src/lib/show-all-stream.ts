@@ -1,7 +1,4 @@
-import {
-  type DocumentListEntry,
-  DocumentListEntrySchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import { type DocumentListEntry, DocumentListEntrySchema } from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 
 export const SHOW_ALL_NDJSON_ACCEPT = { Accept: 'application/x-ndjson, application/json' } as const;

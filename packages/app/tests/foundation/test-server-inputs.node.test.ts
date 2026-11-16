@@ -12,7 +12,7 @@ import {
 const OK_TREE: Readonly<Record<string, string>> = {
   'package.json': '{"name":"open-knowledge"}\n',
   'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
-  'packages/app/package.json': '{"name":"@inkeep/open-knowledge-app"}\n',
+  'packages/app/package.json': '{"name":"@gitquire/app"}\n',
   'packages/app/vite.config.ts': 'export default {};\n',
   'packages/app/src/App.tsx': 'export const App = () => null;\n',
   'packages/app/src/server/hocuspocus-plugin.ts': 'export const hocuspocusPlugin = () => ({});\n',

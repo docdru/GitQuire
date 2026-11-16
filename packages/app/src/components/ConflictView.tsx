@@ -1,8 +1,8 @@
 import {
   type SynthesisedConflictRegion,
   synthesiseConflictMarkersWithRegions,
-} from '@inkeep/open-knowledge-core/bridge';
-import type { SyncConflictContentSuccess } from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/bridge';
+import type { SyncConflictContentSuccess } from '@gitquire/core/schemas/api';
 import { useLingui } from '@lingui/react/macro';
 import type {
   FileDiffMetadata,

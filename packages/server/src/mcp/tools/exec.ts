@@ -4,7 +4,7 @@ import {
   type PersistedLinterConfig,
   selectAdvertisedFrontmatterMappings,
   toEffectiveBase,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import { expandGlobStages } from '../../bash/expand-globs.ts';
 import { extractReferencedPaths, isWikiPath, pathArgs } from '../../bash/extract-paths.ts';

@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { LOCAL_DIR } from '@inkeep/open-knowledge-core';
+import { LOCAL_DIR } from '@gitquire/core';
 import { afterEach, describe, expect, type MockInstance, test, vi } from 'vitest';
 import { createTempDirFactory } from '../../../test-support/temp-dir.test-helper.ts';
 import { getLogger } from './logger.ts';

@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getMetrics, resetMetrics } from '@inkeep/open-knowledge-server';
+import { getMetrics, resetMetrics } from '@gitquire/server';
 import { trace } from '@opentelemetry/api';
 import {
   BasicTracerProvider,

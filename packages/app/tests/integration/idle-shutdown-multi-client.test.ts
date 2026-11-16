@@ -10,14 +10,9 @@ import {
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
+import { defaultScheduler, LOCAL_DIR, OK_DIR } from '@gitquire/core';
+import { type BootedServer, bootServer, ConfigSchema, ensureProjectGit } from '@gitquire/server';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { defaultScheduler, LOCAL_DIR, OK_DIR } from '@inkeep/open-knowledge-core';
-import {
-  type BootedServer,
-  bootServer,
-  ConfigSchema,
-  ensureProjectGit,
-} from '@inkeep/open-knowledge-server';
 import { afterAll, beforeAll, expect, onTestFinished, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';

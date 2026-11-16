@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { bootServer, ConfigSchema, initContent } from '@inkeep/open-knowledge-server';
+import { bootServer, ConfigSchema, initContent } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import { createLinkedWorktree, type LinkedWorktreeHandle } from './worktree-test-harness.ts';
 

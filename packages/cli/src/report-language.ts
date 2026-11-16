@@ -6,13 +6,13 @@ import {
   resolveLocale,
   SUPPORTED_LOCALES,
   type SupportedLocale,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   type LocaleEnvironment,
   readConfigSafely,
   readNodeLocaleSignal,
   resolveConfigPath,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core/server';
 
 export interface LanguageMetadata {
   preference: LanguagePreference;

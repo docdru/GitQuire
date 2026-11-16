@@ -1,9 +1,5 @@
 import { dirname, relative, resolve } from 'node:path';
-import {
-  deriveValidationRunSources,
-  type LinterConfig,
-  runOkfProjectRules,
-} from '@inkeep/open-knowledge-core';
+import { deriveValidationRunSources, type LinterConfig, runOkfProjectRules } from '@gitquire/core';
 import { auditScopeWarning, collectDocFiles, resolveScope } from './audit.ts';
 import type {
   ProjectValidator,

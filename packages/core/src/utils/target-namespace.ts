@@ -23,7 +23,7 @@ export interface MutableTargetNamespace<K extends TargetKind> extends TargetName
   clear(): void;
 }
 
-const TARGET_NAMESPACE_BRAND = Symbol.for('@inkeep/open-knowledge-core/target-namespace');
+const TARGET_NAMESPACE_BRAND = Symbol.for('@gitquire/core/target-namespace');
 
 class SpellingIndexedNamespace<K extends TargetKind>
   extends Set<string>

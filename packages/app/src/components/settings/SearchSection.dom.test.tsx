@@ -6,7 +6,7 @@ import {
   DEFAULT_EMBEDDINGS_MAX_BATCH_CHARS,
   DEFAULT_EMBEDDINGS_MAX_BATCH_SIZE,
   type SemanticIndexStatus,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { i18n } from '@lingui/core';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

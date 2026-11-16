@@ -1,5 +1,5 @@
 import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
-import { isExternalHref } from '@inkeep/open-knowledge-core/utils/link-targets';
+import { isExternalHref } from '@gitquire/core/utils/link-targets';
 import { useLingui } from '@lingui/react/macro';
 import {
   type ComponentProps,

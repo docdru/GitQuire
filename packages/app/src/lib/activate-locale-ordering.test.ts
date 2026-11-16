@@ -1,4 +1,4 @@
-import { FALLBACK_LOCALE } from '@inkeep/open-knowledge-core';
+import { FALLBACK_LOCALE } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { dynamicActivate } from './activate-locale';
 import { i18n } from './i18n';

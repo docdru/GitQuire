@@ -1,4 +1,4 @@
-import { COMPONENT_PROPS_BUDGET_ERROR } from '@inkeep/open-knowledge-core/registry';
+import { COMPONENT_PROPS_BUDGET_ERROR } from '@gitquire/core/registry';
 import type { MessageDescriptor } from '@lingui/core';
 import { msg } from '@lingui/core/macro';
 

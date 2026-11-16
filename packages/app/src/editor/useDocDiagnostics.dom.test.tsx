@@ -1,9 +1,5 @@
+import { DEFAULT_LINTER_CONFIG, isEditableTextDocFile, type LinterConfig } from '@gitquire/core';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import {
-  DEFAULT_LINTER_CONFIG,
-  isEditableTextDocFile,
-  type LinterConfig,
-} from '@inkeep/open-knowledge-core';
 import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';

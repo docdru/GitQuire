@@ -5,7 +5,7 @@ import {
   setToleranceTelemetryHook,
   sharedExtensions,
   type ToleranceFireRecord,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   __getSplitBrainRateTupleCountForTests,

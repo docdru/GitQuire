@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { history, undo } from '@tiptap/pm/history';
 import type { Node as PmNode } from '@tiptap/pm/model';

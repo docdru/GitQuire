@@ -214,7 +214,7 @@ describe('typed autolink — exclusions', () => {
   });
 
   test('a wikilink atom next to a typed URL never converts and stays intact', async () => {
-    const { WikiLink } = await import('@inkeep/open-knowledge-core');
+    const { WikiLink } = await import('@gitquire/core');
     const editor = mountLightEditor({
       extensions: [WikiLink, GfmAutolink.configure({ isActiveEditor: () => true })],
     });

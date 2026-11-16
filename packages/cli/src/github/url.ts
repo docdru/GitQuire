@@ -1,4 +1,4 @@
-import { classifyGitHubShareHost } from '@inkeep/open-knowledge-core';
+import { classifyGitHubShareHost } from '@gitquire/core';
 
 interface ParsedGitUrl {
   protocol: 'https' | 'ssh' | 'git';

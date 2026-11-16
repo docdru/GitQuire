@@ -1,9 +1,9 @@
-import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
+import { isEditableTextDocFile } from '@gitquire/core/constants/code-languages';
 import {
   isDocumentOverOpenByteLimit,
   TEXT_DOC_OPEN_BYTE_LIMIT,
-} from '@inkeep/open-knowledge-core/constants/document-open';
-import type { InlineAssetMediaKind } from '@inkeep/open-knowledge-core/constants/upload';
+} from '@gitquire/core/constants/document-open';
+import type { InlineAssetMediaKind } from '@gitquire/core/constants/upload';
 import { assetTabId, docTabId } from '@/editor/editor-tabs';
 import { hashFromAssetPath } from '@/lib/doc-hash';
 import {

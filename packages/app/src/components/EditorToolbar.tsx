@@ -1,9 +1,9 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
+import { isEditableTextDocFile } from '@gitquire/core/constants/code-languages';
+import { isExcalidrawDocFile } from '@gitquire/core/constants/upload';
+import type { LintDiagnostic } from '@gitquire/core/markdown/lint';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { isEditableTextDocFile } from '@inkeep/open-knowledge-core/constants/code-languages';
-import { isExcalidrawDocFile } from '@inkeep/open-knowledge-core/constants/upload';
-import type { LintDiagnostic } from '@inkeep/open-knowledge-core/markdown/lint';
 import { AddPropertiesButton } from '@/components/AddPropertiesButton';
 import type { EditorModeValue } from '@/editor/use-editor-mode.ts';
 import { NO_RESERVED_KEYS, withoutReservedProperties } from '@/lib/reserved-property-keys';

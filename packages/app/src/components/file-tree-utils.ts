@@ -1,10 +1,7 @@
-import { isManagedArtifactDocName } from '@inkeep/open-knowledge-core/constants/cc1';
-import type { InlineAssetMediaKind } from '@inkeep/open-knowledge-core/constants/upload';
-import type { DocumentListEntry } from '@inkeep/open-knowledge-core/schemas/api';
-import {
-  isHiddenDocName,
-  isProjectSkillBundlePath,
-} from '@inkeep/open-knowledge-core/util/doc-name';
+import { isManagedArtifactDocName } from '@gitquire/core/constants/cc1';
+import type { InlineAssetMediaKind } from '@gitquire/core/constants/upload';
+import type { DocumentListEntry } from '@gitquire/core/schemas/api';
+import { isHiddenDocName, isProjectSkillBundlePath } from '@gitquire/core/util/doc-name';
 
 export interface DocumentEntry {
   kind: 'document';

@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   BacklinkCountsSuccessSchema,
   BacklinksSuccessSchema,
@@ -12,7 +11,8 @@ import {
   SuggestLinksSuccessSchema,
   TagsForNameSuccessSchema,
   TagsListSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import { isConfigDoc, isSystemDoc } from '../cc1-broadcast.ts';
 import {
   type DerivedDocumentIndexApiPort,

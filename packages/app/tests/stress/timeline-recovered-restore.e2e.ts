@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
-import { saveInMemoryCheckpoint } from '@inkeep/open-knowledge-server';
+import { resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
+import { saveInMemoryCheckpoint } from '@gitquire/server';
 import { expect, test } from './_helpers';
 
 test.describe('timeline recovered-content restore', () => {

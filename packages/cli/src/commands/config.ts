@@ -5,12 +5,8 @@ import {
   humanFormat,
   REMOVED_KEYS,
   type WriteScope,
-} from '@inkeep/open-knowledge-core';
-import {
-  readConfigSafely,
-  resolveConfigPath,
-  writeConfigPatch,
-} from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { readConfigSafely, resolveConfigPath, writeConfigPatch } from '@gitquire/core/server';
 import { Command } from 'commander';
 import { parseDocument } from 'yaml';
 import { loadConfig } from '../config/loader.ts';

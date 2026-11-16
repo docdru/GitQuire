@@ -1,4 +1,4 @@
-import type { CopyImageResult } from '@inkeep/open-knowledge-core/desktop-bridge';
+import type { CopyImageResult } from '@gitquire/core/desktop-bridge';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { type CopyImageEnv, copyImage } from './copy-image.ts';
 

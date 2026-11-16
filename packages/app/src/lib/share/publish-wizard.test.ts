@@ -1,4 +1,4 @@
-import type { SharePublishOwner } from '@inkeep/open-knowledge-core';
+import type { SharePublishOwner } from '@gitquire/core';
 import { describe, expect, test, vi } from 'vitest';
 import {
   buildSamlSsoAuthorizeUrl,

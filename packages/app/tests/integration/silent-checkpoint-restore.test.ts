@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { initShadowRepo, saveInMemoryCheckpoint } from '@inkeep/open-knowledge-server';
+import { initShadowRepo, saveInMemoryCheckpoint } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   agentWriteMd,

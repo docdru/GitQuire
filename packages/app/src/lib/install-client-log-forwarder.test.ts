@@ -2,7 +2,7 @@ import {
   RENDERER_LOG_MAX_BATCH_BYTES,
   RENDERER_LOG_MAX_ENTRIES,
   RENDERER_LOG_MAX_MESSAGE_BYTES,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
   type ClientLogForwarderHandle,

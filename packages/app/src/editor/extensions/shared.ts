@@ -1,4 +1,4 @@
-import { sharedExtensions as coreExtensions } from '@inkeep/open-knowledge-core/extensions/shared';
+import { sharedExtensions as coreExtensions } from '@gitquire/core/extensions/shared';
 import { type AnyExtension, Extension } from '@tiptap/core';
 import FileHandler from '@tiptap/extension-file-handler';
 import { KeyboardNav } from '../block-ux/keyboard-nav';

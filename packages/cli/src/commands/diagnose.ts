@@ -3,8 +3,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
-import { withHiddenWindowsConsole } from '@inkeep/open-knowledge-server';
+import { currentCliCommandName } from '@gitquire/core';
+import { withHiddenWindowsConsole } from '@gitquire/server';
 import { Command } from 'commander';
 import pc from 'picocolors';
 import {
@@ -685,7 +685,7 @@ export function diagnoseCommand(): Command {
       }
       try {
         const { loadConfig } = await import('../config/loader.ts');
-        const { resolveContentDir } = await import('@inkeep/open-knowledge-server');
+        const { resolveContentDir } = await import('@gitquire/server');
         const cwd = process.cwd();
         const { config } = loadConfig(cwd);
         const contentDir = resolveContentDir(config, cwd);

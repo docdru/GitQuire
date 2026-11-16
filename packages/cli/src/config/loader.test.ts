@@ -9,7 +9,7 @@ import {
   requiresExternalConsent,
   resolveEnvConfigLayer,
   resolveServerRuntimeConfig,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { stringify } from 'yaml';
 

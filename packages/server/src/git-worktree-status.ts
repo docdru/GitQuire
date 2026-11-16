@@ -1,9 +1,5 @@
-import type {
-  GitStatusCode,
-  GitWorktreeEntry,
-  GitWorktreeOpenTarget,
-} from '@inkeep/open-knowledge-core';
-import { GIT_STATUS_CODES } from '@inkeep/open-knowledge-core';
+import type { GitStatusCode, GitWorktreeEntry, GitWorktreeOpenTarget } from '@gitquire/core';
+import { GIT_STATUS_CODES } from '@gitquire/core';
 import type { SimpleGit } from 'simple-git';
 import { createGitInstance } from './git-handle.ts';
 import {

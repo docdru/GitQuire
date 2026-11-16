@@ -3,7 +3,7 @@ import {
   MAX_BUG_REPORT_ATTACHMENTS,
   MAX_BUG_REPORT_ATTACHMENTS_TOTAL_BYTES,
   type OkImageAttachmentContentType,
-} from '@inkeep/open-knowledge-core/logger-types';
+} from '@gitquire/core/logger-types';
 
 export const MAX_IMAGE_ATTACHMENTS = MAX_BUG_REPORT_ATTACHMENTS;
 

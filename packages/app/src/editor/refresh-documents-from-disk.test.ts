@@ -1,4 +1,4 @@
-import { DOCUMENT_REFRESH_MAX_DOCS } from '@inkeep/open-knowledge-core/schemas/api';
+import { DOCUMENT_REFRESH_MAX_DOCS } from '@gitquire/core/schemas/api';
 import { describe, expect, it, vi } from 'vitest';
 import { refreshDocumentsFromDisk } from './refresh-documents-from-disk';
 

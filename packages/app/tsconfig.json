@@ -56,7 +56,7 @@
   // the returned report are unchecked — which is why the color-theme switch
   // helper rejects an inapplicable theme id by throwing rather than by typing
   // its parameter. It imports `@playwright/test` and
-  // `@inkeep/open-knowledge-core`, whose declarations `src` already pulls into
+  // `@gitquire/core`, whose declarations `src` already pulls into
   // the program, so its closure adds no other file to it.
   //
   // `tests/stress/_helpers/editor-state.ts` is named for the same reason. It
@@ -78,7 +78,7 @@
   // barrier's `string[]` observation list fails as TS2345 rather than
   // surfacing as an `undefined` at an assertion. The pin stops at the helper:
   // all three files that import it are `*.test.ts` and stay excluded. It
-  // imports `@inkeep/open-knowledge-core`, `vitest` and
+  // imports `@gitquire/core`, `vitest` and
   // `tests/integration/test-harness.ts`, all of which the entries above
   // already pull in, so its closure adds no other file to the program.
   "include": [

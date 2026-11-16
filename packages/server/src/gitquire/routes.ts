@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { type RelationLink, relationLinks } from '@inkeep/open-knowledge-core/gitquire/typed-links';
+import { type RelationLink, relationLinks } from '@gitquire/core/gitquire/typed-links';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import {
   actionItemStatePath,

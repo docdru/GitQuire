@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getMetrics } from '@inkeep/open-knowledge-server';
+import { getMetrics } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import { createTestServer, type TestServer, wait } from './test-harness.ts';
 

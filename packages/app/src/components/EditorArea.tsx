@@ -1,9 +1,6 @@
+import { detectEmbeddedHostFromBrowser } from '@gitquire/core/constants/embedded-host';
+import { isFrontmatterSchemaAsset, isMarkdownlintJsonConfig } from '@gitquire/core/markdown/lint';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { detectEmbeddedHostFromBrowser } from '@inkeep/open-knowledge-core/constants/embedded-host';
-import {
-  isFrontmatterSchemaAsset,
-  isMarkdownlintJsonConfig,
-} from '@inkeep/open-knowledge-core/markdown/lint';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ChevronLeft, PanelRightClose } from 'lucide-react';
 import {

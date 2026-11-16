@@ -11,7 +11,7 @@ import {
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { statMtime } from '@inkeep/open-knowledge-core/server';
+import { statMtime } from '@gitquire/core/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { createContentFilter } from './content-filter.ts';
 import type { DiskEvent } from './file-watcher';

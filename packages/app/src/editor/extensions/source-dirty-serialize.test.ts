@@ -1,4 +1,4 @@
-import { MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { MarkdownManager, sharedExtensions } from '@gitquire/core';
 import type { JSONContent } from '@tiptap/core';
 import { describe, expect, test } from 'vitest';
 

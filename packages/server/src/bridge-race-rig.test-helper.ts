@@ -3,7 +3,7 @@
  * precedent #13(b)) untouched.
  */
 
-import { type MarkdownManager, sharedExtensions } from '@inkeep/open-knowledge-core';
+import { type MarkdownManager, sharedExtensions } from '@gitquire/core';
 import { getSchema, type JSONContent } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { vi } from 'vitest';

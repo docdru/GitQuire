@@ -1,5 +1,5 @@
 import { dirname, isAbsolute } from 'node:path';
-import { REFUSED_SYMLINK_PATHS_CAP } from '@inkeep/open-knowledge-core';
+import { REFUSED_SYMLINK_PATHS_CAP } from '@gitquire/core';
 import {
   assertGitAvailable,
   type GitDetected,

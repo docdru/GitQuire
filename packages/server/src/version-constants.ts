@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export { PROTOCOL_VERSION } from '@inkeep/open-knowledge-core';
+export { PROTOCOL_VERSION } from '@gitquire/core';
 
 export function readRuntimeVersion(
   pkgPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'),

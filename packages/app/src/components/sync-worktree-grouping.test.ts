@@ -1,4 +1,4 @@
-import type { GitWorktreeEntry } from '@inkeep/open-knowledge-core';
+import type { GitWorktreeEntry } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   commonDirPrefix,

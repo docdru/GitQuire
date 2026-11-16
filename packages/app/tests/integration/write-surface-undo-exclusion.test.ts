@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view';
-import { FORM_WRITE_ORIGIN } from '@inkeep/open-knowledge-core';
+import { FORM_WRITE_ORIGIN } from '@gitquire/core';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';

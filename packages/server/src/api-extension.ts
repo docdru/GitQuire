@@ -1,4 +1,4 @@
-import { filesystemIdentity, statMtimeMs } from '@inkeep/open-knowledge-core/server';
+import { filesystemIdentity, statMtimeMs } from '@gitquire/core/server';
 import { createAgentWriteRoutes } from './http/agent-write-routes.ts';
 import { createTestRoutes } from './http/test-routes.ts';
 
@@ -9,7 +9,6 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSyn
 import { readdir, realpath, stat } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { dirname, extname, join, relative, resolve, sep } from 'node:path';
-import type { Document, Extension, Hocuspocus } from '@hocuspocus/server';
 import {
   type AdvisoryWarning,
   AGENT_ICON_COLORS,
@@ -40,7 +39,8 @@ import {
   scanHeadingLine,
   stripFrontmatter,
   type ValidationDiagnostic,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Document, Extension, Hocuspocus } from '@hocuspocus/server';
 import { captureEffect } from './activity-log.ts';
 import type { AgentFocusBroadcaster } from './agent-focus.ts';
 import type { AgentPresenceBroadcaster } from './agent-presence.ts';

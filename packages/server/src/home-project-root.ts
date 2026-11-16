@@ -1,7 +1,7 @@
 import { realpathSync } from 'node:fs';
 import { homedir as nodeHomedir } from 'node:os';
 import { posix, resolve, win32 } from 'node:path';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 
 export class HomeProjectRootError extends Error {
   readonly projectRoot: string;

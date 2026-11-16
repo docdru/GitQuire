@@ -1,6 +1,6 @@
-import type { AwarenessState, AwarenessUser } from '@inkeep/open-knowledge-core/types/awareness';
-import type { Identity } from '@inkeep/open-knowledge-core/types/identity';
-import { getIdentity } from '@inkeep/open-knowledge-core/utils/identity';
+import type { AwarenessState, AwarenessUser } from '@gitquire/core/types/awareness';
+import type { Identity } from '@gitquire/core/types/identity';
+import { getIdentity } from '@gitquire/core/utils/identity';
 import { useState } from 'react';
 
 export type { AwarenessState, AwarenessUser };

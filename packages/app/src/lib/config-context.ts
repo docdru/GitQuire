@@ -1,6 +1,6 @@
-import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
-import type { OkignoreBinding } from '@inkeep/open-knowledge-core/config/bind-okignore-doc';
-import type { Config } from '@inkeep/open-knowledge-core/config/schema';
+import type { ConfigBinding } from '@gitquire/core/config/bind-config-doc';
+import type { OkignoreBinding } from '@gitquire/core/config/bind-okignore-doc';
+import type { Config } from '@gitquire/core/config/schema';
 import { useLingui } from '@lingui/react/macro';
 import { createContext, use } from 'react';
 

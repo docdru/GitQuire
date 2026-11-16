@@ -1,4 +1,4 @@
-import { detectEmbeddedHostFromBrowser } from '@inkeep/open-knowledge-core/constants/embedded-host';
+import { detectEmbeddedHostFromBrowser } from '@gitquire/core/constants/embedded-host';
 import { useState } from 'react';
 
 export function useIsEmbedded(): boolean {

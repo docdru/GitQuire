@@ -13,7 +13,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve, sep } from 'node:path';
-import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+import { okUserHomeDir } from '@gitquire/core/server';
 import { afterEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { ZipFile } from 'yazl';
 import type { LanguageMetadata } from '../report-language.ts';

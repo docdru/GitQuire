@@ -1,4 +1,4 @@
-import { ProblemDetailsSchema } from '@inkeep/open-knowledge-core/schemas/api';
+import { ProblemDetailsSchema } from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 import type {
   OkPackId,

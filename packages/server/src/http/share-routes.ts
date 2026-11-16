@@ -14,7 +14,7 @@ import {
   SharePublishResponseSchema,
   ShareTargetStatusRequestSchema,
   ShareTargetStatusResponseSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   LOCAL_OP_PIPE_STDIO_OPTIONS,
   withHiddenWindowsConsole,

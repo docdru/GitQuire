@@ -13,7 +13,7 @@ import { connect } from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getMachineId } from '@inkeep/open-knowledge-server';
+import { getMachineId } from '@gitquire/server';
 import { afterAll, beforeAll, describe, expect, onTestFinished, test } from 'vitest';
 import {
   legacyServerLock,
@@ -238,7 +238,7 @@ function isolatedCliRunner(prefix: string) {
 beforeAll(async () => {
   if (!existsSync(WORKSPACE_DIST_CLI)) {
     throw new Error(
-      `Missing ${WORKSPACE_DIST_CLI}. Run \`pnpm exec turbo run build --filter=@inkeep/open-knowledge\` before this smoke.`,
+      `Missing ${WORKSPACE_DIST_CLI}. Run \`pnpm exec turbo run build --filter=@gitquire/cli\` before this smoke.`,
     );
   }
 

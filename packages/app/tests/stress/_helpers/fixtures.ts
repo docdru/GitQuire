@@ -1,7 +1,7 @@
 import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ProblemType } from '@inkeep/open-knowledge-core';
+import type { ProblemType } from '@gitquire/core';
 import { test as base } from '@playwright/test';
 import { resetContentToFixtureBaseline, resetTemplateInventory } from './content-reset.ts';
 import { coverageFixture, type E2eCoverage } from './e2e-coverage/e2e-coverage.ts';

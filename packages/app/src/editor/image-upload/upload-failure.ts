@@ -1,7 +1,4 @@
-import {
-  AttachmentFolderUploadIssueSchema,
-  type ProblemDetails,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import { AttachmentFolderUploadIssueSchema, type ProblemDetails } from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 import { singleFileUploadMessage } from './upload-admission.ts';
 

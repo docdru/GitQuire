@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { AgentWriteBatchSuccessSchema, ProblemDetailsSchema } from '@inkeep/open-knowledge-core';
+import { AgentWriteBatchSuccessSchema, ProblemDetailsSchema } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { writeTracker } from '../../../server/src/file-watcher';
 import { contentHash } from '../../../server/src/version-hash';

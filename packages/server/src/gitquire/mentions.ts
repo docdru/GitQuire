@@ -1,10 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import {
-  type CommentAuthor,
-  readCommentThreads,
-} from '@inkeep/open-knowledge-core/gitquire/comment-threads';
+import { type CommentAuthor, readCommentThreads } from '@gitquire/core/gitquire/comment-threads';
 import { CONFIRMATION_VALID_MS, MAX_CONFIRMATION_ATTEMPTS } from './email-confirmation.ts';
 import { createPageScan, docNameForPath, type PageScan } from './page-scan.ts';
 

@@ -2,7 +2,7 @@ import {
   modeFromCommittedDefault,
   resolveLocalAutoSyncMode,
   type StoredSyncMode,
-} from '@inkeep/open-knowledge-core/config/auto-sync-mode';
+} from '@gitquire/core/config/auto-sync-mode';
 
 export type AutoSyncOnboardingVariant = 'full' | 'follow';
 

@@ -1,4 +1,4 @@
-import { builtInComponents, type PropDef } from '@inkeep/open-knowledge-core';
+import { builtInComponents, type PropDef } from '@gitquire/core';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
 import type { JsxComponentDescriptor } from '../registry/types.ts';

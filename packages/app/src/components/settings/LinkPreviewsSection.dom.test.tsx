@@ -1,4 +1,4 @@
-import type { Config, ConfigBinding } from '@inkeep/open-knowledge-core';
+import type { Config, ConfigBinding } from '@gitquire/core';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

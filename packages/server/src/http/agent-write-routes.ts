@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   AGENT_ICON_COLORS,
   AgentActivitySuccessSchema,
@@ -28,8 +27,9 @@ import {
   SaveVersionRequestSchema,
   SaveVersionSuccessSchema,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
-import { formatRollbackSubject } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core';
+import { formatRollbackSubject } from '@gitquire/core/shadow-repo-layout';
+import type { Hocuspocus } from '@hocuspocus/server';
 import { captureEffect } from '../activity-log.ts';
 import { listAgentActivity, synthesizeVersionDiff } from '../agent-activity.ts';
 import type { AgentFocusBroadcaster } from '../agent-focus.ts';
@@ -645,7 +645,7 @@ export function createAgentWriteRoutes(deps: AgentWriteRouteDeps): ApiRouteGroup
           );
           const fmPatchPrecomputed = await prepareFrontmatterPatchParse(session.dc.document, patch);
           const timestamp = new Date().toISOString();
-          let editError: import('@inkeep/open-knowledge-core').FmEditError | undefined;
+          let editError: import('@gitquire/core').FmEditError | undefined;
           let applied = false;
           let bodyMutated = false;
           let fmFlushOutcome: AgentWriteFlushOutcome = null;

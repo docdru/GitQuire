@@ -10,47 +10,47 @@
 
 // === Positive cases — must fire ===
 
-import { sharedExtensions } from '@inkeep/open-knowledge-core'; // p value
-import type { LinterConfig } from '@inkeep/open-knowledge-core'; // p whole-declaration type
-import { THEME_PLUGINS, type ThemePlugin } from '@inkeep/open-knowledge-core'; // p mixed
-import * as coreNamespace from '@inkeep/open-knowledge-core'; // p namespace
-import '@inkeep/open-knowledge-core'; // p side-effect
-import coreDefault from '@inkeep/open-knowledge-core'; // p default
-import coreRequired = require('@inkeep/open-knowledge-core'); // p TS import-equals
-export { FORM_WRITE_ORIGIN } from '@inkeep/open-knowledge-core'; // p named re-export
-export type { ConfigSchema } from '@inkeep/open-knowledge-core'; // p type re-export
-export * from '@inkeep/open-knowledge-core'; // p star re-export
-export * as coreStar from '@inkeep/open-knowledge-core'; // p star-as re-export
-export type CoreModule = typeof import('@inkeep/open-knowledge-core'); // p typeof import type
-export type CoreLinter = import('@inkeep/open-knowledge-core').LinterConfig; // p import type
-export const pDynamic = () => import('@inkeep/open-knowledge-core'); // p literal dynamic import
-export const pTemplate = () => import(`@inkeep/open-knowledge-core`); // p template, no expressions
-export const pRequire = () => require('@inkeep/open-knowledge-core'); // p literal require
-import coreRaw from '@inkeep/open-knowledge-core?raw'; // p query suffix
-import '@inkeep/open-knowledge-core?v=1'; // p cache-busting query on a side-effect import
-export const pHash = () => import('@inkeep/open-knowledge-core#entry'); // p hash suffix
+import { sharedExtensions } from '@gitquire/core'; // p value
+import type { LinterConfig } from '@gitquire/core'; // p whole-declaration type
+import { THEME_PLUGINS, type ThemePlugin } from '@gitquire/core'; // p mixed
+import * as coreNamespace from '@gitquire/core'; // p namespace
+import '@gitquire/core'; // p side-effect
+import coreDefault from '@gitquire/core'; // p default
+import coreRequired = require('@gitquire/core'); // p TS import-equals
+export { FORM_WRITE_ORIGIN } from '@gitquire/core'; // p named re-export
+export type { ConfigSchema } from '@gitquire/core'; // p type re-export
+export * from '@gitquire/core'; // p star re-export
+export * as coreStar from '@gitquire/core'; // p star-as re-export
+export type CoreModule = typeof import('@gitquire/core'); // p typeof import type
+export type CoreLinter = import('@gitquire/core').LinterConfig; // p import type
+export const pDynamic = () => import('@gitquire/core'); // p literal dynamic import
+export const pTemplate = () => import(`@gitquire/core`); // p template, no expressions
+export const pRequire = () => require('@gitquire/core'); // p literal require
+import coreRaw from '@gitquire/core?raw'; // p query suffix
+import '@gitquire/core?v=1'; // p cache-busting query on a side-effect import
+export const pHash = () => import('@gitquire/core#entry'); // p hash suffix
 
 // === Negative cases — must NOT fire ===
 
-import { getGitHubStars } from '@inkeep/open-knowledge-core/utils/github-stars'; // n subpath
-import type { CheckpointKind } from '@inkeep/open-knowledge-core/constants/checkpoint-kinds'; // n type subpath
-import { startServer } from '@inkeep/open-knowledge-core/server'; // n pre-existing subpath
-import { bootServer } from '@inkeep/open-knowledge-server'; // n sibling package
-import { cliMain } from '@inkeep/open-knowledge'; // n prefix of the barrel name
-import { extra } from '@inkeep/open-knowledge-core-extra'; // n longer package sharing the prefix
-export { CC1_CONTRACT_VERSION } from '@inkeep/open-knowledge-core/constants/cc1'; // n subpath re-export
-export * from '@inkeep/open-knowledge-core/bridge'; // n subpath star re-export
-export type BridgeModule = typeof import('@inkeep/open-knowledge-core/bridge'); // n subpath import type
-export const nDynamic = () => import('@inkeep/open-knowledge-core/markdown/lint'); // n subpath dynamic import
-export const nRequire = () => require('@inkeep/open-knowledge-core/bridge'); // n subpath require
-import bridgeRaw from '@inkeep/open-knowledge-core/bridge?raw'; // n subpath with a query suffix
-import extraVersioned from '@inkeep/open-knowledge-core-extra?v=1'; // n longer package with a query suffix
-export const nString = '@inkeep/open-knowledge-core'; // n ordinary string literal
-export const nMessage = `install @inkeep/open-knowledge-core`; // n template containing the name
-// n the comment names '@inkeep/open-knowledge-core' and must not fire
-export const nComputed = (suffix: string) => import(`@inkeep/open-knowledge-core${suffix}`); // n computed
+import { getGitHubStars } from '@gitquire/core/utils/github-stars'; // n subpath
+import type { CheckpointKind } from '@gitquire/core/constants/checkpoint-kinds'; // n type subpath
+import { startServer } from '@gitquire/core/server'; // n pre-existing subpath
+import { bootServer } from '@gitquire/server'; // n sibling package
+import { cliMain } from '@gitquire/cli'; // n prefix of the barrel name
+import { extra } from '@gitquire/core-extra'; // n longer package sharing the prefix
+export { CC1_CONTRACT_VERSION } from '@gitquire/core/constants/cc1'; // n subpath re-export
+export * from '@gitquire/core/bridge'; // n subpath star re-export
+export type BridgeModule = typeof import('@gitquire/core/bridge'); // n subpath import type
+export const nDynamic = () => import('@gitquire/core/markdown/lint'); // n subpath dynamic import
+export const nRequire = () => require('@gitquire/core/bridge'); // n subpath require
+import bridgeRaw from '@gitquire/core/bridge?raw'; // n subpath with a query suffix
+import extraVersioned from '@gitquire/core-extra?v=1'; // n longer package with a query suffix
+export const nString = '@gitquire/core'; // n ordinary string literal
+export const nMessage = `install @gitquire/core`; // n template containing the name
+// n the comment names '@gitquire/core' and must not fire
+export const nComputed = (suffix: string) => import(`@gitquire/core${suffix}`); // n computed
 export const nMember = (loader: { require(id: string): unknown }) =>
-  loader.require('@inkeep/open-knowledge-core'); // n member call, not the require builtin
+  loader.require('@gitquire/core'); // n member call, not the require builtin
 
 export const used = [
   sharedExtensions,

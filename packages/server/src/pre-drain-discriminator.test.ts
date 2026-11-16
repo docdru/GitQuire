@@ -1,4 +1,4 @@
-import { diffLinesFast, type MarkdownManager } from '@inkeep/open-knowledge-core';
+import { diffLinesFast, type MarkdownManager } from '@gitquire/core';
 import { describe, expect, it } from 'vitest';
 import { computeMapDrivenBodySplice } from './map-driven-splice.ts';
 import { mdManager } from './md-manager.ts';

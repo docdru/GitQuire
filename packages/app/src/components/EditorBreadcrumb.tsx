@@ -1,4 +1,4 @@
-import { parseTemplateContentDocName } from '@inkeep/open-knowledge-core/constants/cc1';
+import { parseTemplateContentDocName } from '@gitquire/core/constants/cc1';
 import { MoreHorizontalIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import { UserText } from '@/components/UserText';

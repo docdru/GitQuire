@@ -1,6 +1,6 @@
-import type { PaneId } from '@inkeep/open-knowledge-core/commands/command-identity';
+import type { PaneId } from '@gitquire/core/commands/command-identity';
 
-export type { PaneId } from '@inkeep/open-knowledge-core/commands/command-identity';
+export type { PaneId } from '@gitquire/core/commands/command-identity';
 
 export function assertNeverPaneId(pane: never): never {
   throw new Error(`unhandled pane: ${String(pane)}`);

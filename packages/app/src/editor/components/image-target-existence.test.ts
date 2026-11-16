@@ -1,4 +1,4 @@
-import { createTargetNamespace } from '@inkeep/open-knowledge-core';
+import { createTargetNamespace } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { classifyImageTargetExistence } from './image-target-existence';
 

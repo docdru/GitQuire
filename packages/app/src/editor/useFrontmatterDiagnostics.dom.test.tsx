@@ -1,5 +1,5 @@
+import { DEFAULT_LINTER_CONFIG, type LinterConfig } from '@gitquire/core';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { DEFAULT_LINTER_CONFIG, type LinterConfig } from '@inkeep/open-knowledge-core';
 import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';

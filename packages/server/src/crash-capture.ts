@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { SERVER_CRASH_LOG } from '@inkeep/open-knowledge-core';
+import { SERVER_CRASH_LOG } from '@gitquire/core';
 import { getLocalDir } from './config/paths.ts';
 import { logsCurrentPath } from './telemetry-file-sink.ts';
 

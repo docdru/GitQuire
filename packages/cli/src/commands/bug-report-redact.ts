@@ -1,1 +1,1 @@
-export { redactSecrets as redactContent, SECRET_PATTERN_NAMES } from '@inkeep/open-knowledge-core';
+export { redactSecrets as redactContent, SECRET_PATTERN_NAMES } from '@gitquire/core';

@@ -1,7 +1,7 @@
 // oxlint-disable ok/no-physical-direction-utility -- pre-rule backlog — physical margin/padding/inset utilities predate the rule; drain by swapping ml/mr → ms/me, pl/pr → ps/pe, left/right → start/end, then deleting this line. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-physical-direction-utility
 
-import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
-import { humanFormat } from '@inkeep/open-knowledge-core/config/errors';
+import type { ConfigBinding } from '@gitquire/core/config/bind-config-doc';
+import { humanFormat } from '@gitquire/core/config/errors';
 import {
   checkEmbeddingsBaseUrl,
   DEFAULT_EMBEDDINGS_BASE_URL,
@@ -15,13 +15,13 @@ import {
   MIN_EMBEDDINGS_DOC_TIMEOUT_MS,
   MIN_EMBEDDINGS_MAX_BATCH_CHARS,
   MIN_EMBEDDINGS_MAX_BATCH_SIZE,
-} from '@inkeep/open-knowledge-core/config/schema';
+} from '@gitquire/core/config/schema';
 import {
   classifySemanticProviderError,
   isSemanticSearchOffered,
   type LocalOpEmbeddingsTestResponse,
   type SemanticIndexStatus,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { ChevronRight } from 'lucide-react';
 import { type ReactNode, useEffect, useRef, useState } from 'react';

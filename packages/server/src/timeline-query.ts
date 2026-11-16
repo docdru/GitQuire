@@ -1,11 +1,11 @@
 import { existsSync } from 'node:fs';
-import { type EntryType, pathspecArgs, type TimelineEntry } from '@inkeep/open-knowledge-core';
+import { type EntryType, pathspecArgs, type TimelineEntry } from '@gitquire/core';
 import {
   isSurfacedCheckpointKind,
   parseCheckpoint,
   parseOkActors,
   readContributors,
-} from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core/shadow-repo-layout';
 import { extensionlessDocTreePath, getDocExtension } from './doc-extensions.ts';
 import { getLogger } from './logger.ts';
 import {

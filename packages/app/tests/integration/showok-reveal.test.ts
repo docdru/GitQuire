@@ -1,11 +1,7 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  DocumentListSuccessSchema,
-  PagesSuccessSchema,
-  SearchSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+import { DocumentListSuccessSchema, PagesSuccessSchema, SearchSuccessSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { createTestServer, type TestServer } from './test-harness';
 

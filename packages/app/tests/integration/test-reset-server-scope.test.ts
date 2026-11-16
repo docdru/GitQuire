@@ -9,7 +9,6 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/provider';
 import {
   bindConfigDoc,
   CONFIG_DOC_NAME_PROJECT,
@@ -17,7 +16,8 @@ import {
   CONFIG_DOC_NAME_USER,
   type ConfigBinding,
   ConfigSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/provider';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { removeAllDuringTeardown } from '../stress/_helpers/teardown-fs.ts';

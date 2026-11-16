@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { okProjectLogsDir } from '@inkeep/open-knowledge-core/server';
+import { okProjectLogsDir } from '@gitquire/core/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { collectBundle, SECRET_SCRUB_EXTENSIONS } from './bundle.ts';
 import { CONTENT_SUBDIRS_MASKED } from './bundle-redact.ts';

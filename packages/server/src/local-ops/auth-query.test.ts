@@ -1,6 +1,6 @@
 import { realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { OkCliCommand } from '@inkeep/open-knowledge-core';
+import { OkCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runAuthReposSubprocess, runAuthStatusSubprocess } from './auth-query.ts';
 

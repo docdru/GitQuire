@@ -1,4 +1,4 @@
-import type { SemanticIndexStatus } from '@inkeep/open-knowledge-core';
+import type { SemanticIndexStatus } from '@gitquire/core';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { useSemanticSearchStatus } from './use-semantic-search-status';

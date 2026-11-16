@@ -1,4 +1,4 @@
-import * as wikiLinkResolve from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
+import * as wikiLinkResolve from '@gitquire/core/utils/wiki-link-resolve';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as linkTargetIntent from '../../components/link-target-intent';
 import {

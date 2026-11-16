@@ -3,7 +3,7 @@
  * substrate of the Y.Text-is-truth contract (precedent #38).
  */
 
-import { normalizeBridge, stripFrontmatter } from '@inkeep/open-knowledge-core';
+import { normalizeBridge, stripFrontmatter } from '@gitquire/core';
 import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { beforeEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';

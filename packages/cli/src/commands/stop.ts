@@ -5,7 +5,7 @@ import {
   DEV_CHANNEL,
   desktopChannelLabel,
   resolveDesktopProductName,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   assessLockHolder,
   type Config,
@@ -16,7 +16,7 @@ import {
   type ProcessStartCause,
   resolveLockDir,
   type UnverifiedLockHolderCause,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command } from 'commander';
 import type { Logger as PinoLoggerInstance } from 'pino';
 import { getCliLogger } from '../cli-logger.ts';

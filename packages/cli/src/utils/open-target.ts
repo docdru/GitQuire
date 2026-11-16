@@ -1,5 +1,5 @@
 import type { spawn as NativeSpawn } from 'node:child_process';
-import { DESKTOP_PRODUCTS } from '@inkeep/open-knowledge-core';
+import { DESKTOP_PRODUCTS } from '@gitquire/core';
 import {
   type SpawnDetachedScrubbedOutcome,
   spawnDetachedScrubbedAndWait,

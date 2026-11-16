@@ -1,4 +1,4 @@
-import type { LanguagePreference } from '@inkeep/open-knowledge-core';
+import type { LanguagePreference } from '@gitquire/core';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';

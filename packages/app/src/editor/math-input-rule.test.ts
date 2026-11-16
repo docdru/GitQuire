@@ -1,4 +1,4 @@
-import { MathInline } from '@inkeep/open-knowledge-core';
+import { MathInline } from '@gitquire/core';
 import type { Editor } from '@tiptap/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';

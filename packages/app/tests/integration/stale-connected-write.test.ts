@@ -11,11 +11,8 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { MetricsReconciliationSuccessSchema, PagesSuccessSchema } from '@gitquire/core';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import {
-  MetricsReconciliationSuccessSchema,
-  PagesSuccessSchema,
-} from '@inkeep/open-knowledge-core';
 import { afterEach, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';

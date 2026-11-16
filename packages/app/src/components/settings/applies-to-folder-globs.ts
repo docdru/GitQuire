@@ -1,4 +1,4 @@
-import { compileAppliesTo, summarizeAppliesTo } from '@inkeep/open-knowledge-core/markdown/lint';
+import { compileAppliesTo, summarizeAppliesTo } from '@gitquire/core/markdown/lint';
 
 export function folderRecursiveGlob(folder: string): string {
   return `${folder}/**`;

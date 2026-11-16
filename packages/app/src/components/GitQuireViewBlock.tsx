@@ -1,4 +1,4 @@
-import { formatRelativeAge } from '@inkeep/open-knowledge-core/utils/relative-time';
+import { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { LayoutList, Pencil } from 'lucide-react';

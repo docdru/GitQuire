@@ -1,4 +1,4 @@
-import { flushFileLogger } from '@inkeep/open-knowledge-server/file-logger';
+import { flushFileLogger } from '@gitquire/server/file-logger';
 import { createTokenStore } from '../../auth/token-store.ts';
 import { initCliLogger } from '../../cli-logger.ts';
 import { getGitCredential } from './git-credential-get.ts';

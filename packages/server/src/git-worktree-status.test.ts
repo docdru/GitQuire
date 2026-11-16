@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
-import type { GitWorktreeOpenTarget } from '@inkeep/open-knowledge-core';
+import type { GitWorktreeOpenTarget } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import type { PorcelainEntry } from './git-paths.ts';

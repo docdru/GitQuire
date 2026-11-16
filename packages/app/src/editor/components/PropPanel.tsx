@@ -1,5 +1,5 @@
 // oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
-import type { PropDef } from '@inkeep/open-knowledge-core/registry/types';
+import type { PropDef } from '@gitquire/core/registry/types';
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { ChevronDown, Upload } from 'lucide-react';

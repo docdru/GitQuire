@@ -4,8 +4,8 @@ import {
   DEFAULT_EMBEDDINGS_MAX_BATCH_CHARS,
   DEFAULT_EMBEDDINGS_MAX_BATCH_SIZE,
   DEFAULT_EMBEDDINGS_MODEL,
-} from '@inkeep/open-knowledge-core';
-import { readConfigSafely, resolveConfigPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { withDeploymentSemanticSearch } from '../gitquire/semantic-search.ts';
 
 export interface ResolvedSemanticConfig {

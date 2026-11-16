@@ -6,8 +6,8 @@ import { OK_DIR } from '../constants.ts';
 
 const rootLike = vi.hoisted(() => ({ dir: '' }));
 
-vi.mock('@inkeep/open-knowledge-server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@inkeep/open-knowledge-server')>();
+vi.mock('@gitquire/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@gitquire/server')>();
   return {
     ...actual,
     isFilesystemRoot: (dir: string, platform?: NodeJS.Platform) =>

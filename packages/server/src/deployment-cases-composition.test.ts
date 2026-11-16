@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { resolveEnvConfigLayer, resolveServerRuntimeConfig } from '@inkeep/open-knowledge-core';
+import { resolveEnvConfigLayer, resolveServerRuntimeConfig } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { BootedServer } from './boot.ts';
 import { bootCompositionRig, parseProblem, rawRequest } from './composition-rig.test-helper.ts';

@@ -1,4 +1,4 @@
-import { parseContributors } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { parseContributors } from '@gitquire/core/shadow-repo-layout';
 import { beforeEach, describe, expect, test } from 'vitest';
 import {
   contributorCount,

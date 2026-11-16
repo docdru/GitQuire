@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
-import { okProjectLogsDir } from '@inkeep/open-knowledge-core/server';
+import { okProjectLogsDir } from '@gitquire/core/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { z } from 'zod';
 import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';

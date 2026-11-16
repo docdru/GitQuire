@@ -1,9 +1,9 @@
-import { incrementJsxRenderFailure } from '@inkeep/open-knowledge-core/metrics/parse-health';
+import { incrementJsxRenderFailure } from '@gitquire/core/metrics/parse-health';
 import {
   COMPONENT_PROPS_BUDGET_ERROR,
   componentPropsBudgetError,
   resolveLegacyProps,
-} from '@inkeep/open-knowledge-core/registry';
+} from '@gitquire/core/registry';
 import type { Editor } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import type { ErrorInfo } from 'react';

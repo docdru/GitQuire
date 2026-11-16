@@ -1,7 +1,4 @@
-import type {
-  RenamedAssetMapping,
-  RenamedDocMapping,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import type { RenamedAssetMapping, RenamedDocMapping } from '@gitquire/core/schemas/api';
 import type { RenamedFolderMapping } from './editor-tabs';
 
 export interface LocalRenameReconciliation {

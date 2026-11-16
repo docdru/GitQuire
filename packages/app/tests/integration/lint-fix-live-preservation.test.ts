@@ -14,7 +14,7 @@ import {
   LINT_PLUGINS,
   LintFixResultSchema,
   PrincipalSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
   __formatContributorsForTests,

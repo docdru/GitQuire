@@ -1,4 +1,4 @@
-import { generateColorThemesCss } from '@inkeep/open-knowledge-core';
+import { generateColorThemesCss } from '@gitquire/core';
 import { expect, type Page } from '@playwright/test';
 
 const FADE_REPORT_TIMEOUT_MS = process.env.CI ? 15_000 : 5_000;

@@ -6,8 +6,8 @@ import {
   DESKTOP_PRODUCTS,
   desktopWindowsExecutableName,
   PACKAGED_DESKTOP_PRODUCT_NAMES,
-} from '@inkeep/open-knowledge-core';
-import { okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { okUserHomeDir } from '@gitquire/core/server';
 import {
   DIAGNOSTIC_REPORT_WINDOW_DAYS,
   isOwnedProcessName,

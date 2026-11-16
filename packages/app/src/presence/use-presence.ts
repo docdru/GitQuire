@@ -1,5 +1,5 @@
+import type { AgentPresenceEntry } from '@gitquire/core/types/awareness';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import type { AgentPresenceEntry } from '@inkeep/open-knowledge-core/types/awareness';
 import { useEffect, useState } from 'react';
 import {
   type AgentPresenceAwareness,

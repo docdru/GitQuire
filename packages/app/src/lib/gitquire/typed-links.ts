@@ -1,4 +1,4 @@
-import { normalizeRelation } from '@inkeep/open-knowledge-core/gitquire/typed-links';
+import { normalizeRelation } from '@gitquire/core/gitquire/typed-links';
 import { useEffect, useSyncExternalStore } from 'react';
 import {
   subscribeToBranchChanged,

@@ -1,10 +1,10 @@
 import {
   isManagedArtifactDocName,
   parseTemplateContentDocName,
-} from '@inkeep/open-knowledge-core/constants/cc1';
-import { isExcalidrawDocFile } from '@inkeep/open-knowledge-core/constants/upload';
-import type { RenamedAssetMapping } from '@inkeep/open-knowledge-core/schemas/api';
-import { resolveName } from '@inkeep/open-knowledge-core/utils/target-namespace';
+} from '@gitquire/core/constants/cc1';
+import { isExcalidrawDocFile } from '@gitquire/core/constants/upload';
+import type { RenamedAssetMapping } from '@gitquire/core/schemas/api';
+import { resolveName } from '@gitquire/core/utils/target-namespace';
 import {
   type EditorWorkspaceState,
   type PersistedEditorPane,

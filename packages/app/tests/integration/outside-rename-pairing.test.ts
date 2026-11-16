@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import { resolveShadowDir } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { resolveShadowDir } from '@gitquire/core/shadow-repo-layout';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { contentHash } from '../../../server/src/file-watcher';
 import { getLogger } from '../../../server/src/logger';

@@ -4,7 +4,7 @@ import {
   buildPagesBySlugIndex,
   toWikiLinkSlug,
   type WikiLinkLookupIndex,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 
 export function buildProjectWikiLinkLookup(docNames: Iterable<string>): WikiLinkLookupIndex {
   const pages = asTargetNamespace('document', docNames);

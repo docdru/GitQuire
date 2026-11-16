@@ -1,5 +1,5 @@
 import { languages } from '@excalidraw/excalidraw';
-import { SUPPORTED_LOCALES } from '@inkeep/open-knowledge-core';
+import { SUPPORTED_LOCALES } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   BOARD_FALLBACK_LOCALES,

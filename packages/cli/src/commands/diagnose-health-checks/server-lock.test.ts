@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ProcessLockMetadata } from '@inkeep/open-knowledge-server';
+import type { ProcessLockMetadata } from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { LockState } from '../lock-state.ts';
 import { makeServerLockCheck } from './server-lock.ts';

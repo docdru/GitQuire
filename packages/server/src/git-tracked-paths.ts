@@ -1,6 +1,6 @@
 import { statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { pathspecArgs } from '@inkeep/open-knowledge-core';
+import { pathspecArgs } from '@gitquire/core';
 import type { SimpleGit } from 'simple-git';
 import { listNames } from './git-paths.ts';
 import { isRacyStat, sampleWallClockNs, statSignature } from './stat-signature.ts';

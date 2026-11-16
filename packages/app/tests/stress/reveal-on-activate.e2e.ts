@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DocumentListSuccessSchema } from '@inkeep/open-knowledge-core/schemas/api';
+import { DocumentListSuccessSchema } from '@gitquire/core/schemas/api';
 import type { Page } from '@playwright/test';
 import { type ApiHelpers, expect, test } from './_helpers';
 

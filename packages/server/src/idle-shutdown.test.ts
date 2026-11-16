@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import type { Server as HttpServer, IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';
-import type { Scheduler } from '@inkeep/open-knowledge-core';
+import type { Scheduler } from '@gitquire/core';
 import { describe, expect, test, vi } from 'vitest';
 import { attachCollabClientCounter, attachIdleShutdown } from './idle-shutdown';
 

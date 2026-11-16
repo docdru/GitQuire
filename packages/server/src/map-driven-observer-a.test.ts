@@ -1,8 +1,4 @@
-import {
-  MarkdownManager,
-  type SerializeCallOptions,
-  sharedExtensions,
-} from '@inkeep/open-knowledge-core';
+import { MarkdownManager, type SerializeCallOptions, sharedExtensions } from '@gitquire/core';
 import { getSchema, type JSONContent } from '@tiptap/core';
 import { updateYFragment } from '@tiptap/y-tiptap';
 import { describe, expect, test, vi } from 'vitest';

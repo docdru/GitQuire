@@ -1,5 +1,5 @@
+import { isPairedWriteOrigin } from '@gitquire/server';
 import type { LocalTransactionOrigin } from '@hocuspocus/server';
-import { isPairedWriteOrigin } from '@inkeep/open-knowledge-server';
 import { describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 

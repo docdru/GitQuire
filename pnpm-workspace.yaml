@@ -20,7 +20,7 @@ publicHoistPattern:
 
 # Supply-chain cooldown (admission-time): refuse npm versions published less
 # than 3 days ago, to dodge freshly-published malware. Unit = MINUTES
-# (4320 = 3 days). Own-org packages (@inkeep/*) are exempt. This replaces the
+# (4320 = 3 days). Own-org packages (@gitquire/*) are exempt. This replaces the
 # retired bunfig.toml posture (which expressed the same window in seconds:
 # minimumReleaseAge = 259200). Emergency reproduction escape hatch (bypass the
 # cooldown for a single install): `pnpm install --config.minimum-release-age=0`.
@@ -29,7 +29,7 @@ publicHoistPattern:
 minimumReleaseAge: 4320
 minimumReleaseAgeStrict: true
 minimumReleaseAgeExclude:
-  - '@inkeep/*'
+  - '@gitquire/*'
   - '@visimer/*'
 
 # Bootstrap is explicit; running a script must not trigger an implicit install.

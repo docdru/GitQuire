@@ -3,7 +3,7 @@
  * precedent #59: every client storage surface adopts it here instead of rediscovering the
  * collision `provider-pool.ts` used to own privately.
  */
-import { fnv1aDigest } from '@inkeep/open-knowledge-core/bridge';
+import { fnv1aDigest } from '@gitquire/core/bridge';
 
 export function scopedStorageKey(baseKey: string, namespace: string | null): string {
   if (namespace === null) return baseKey;

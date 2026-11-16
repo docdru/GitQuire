@@ -2,7 +2,7 @@ import { existsSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { inspect } from 'node:util';
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName } from '@gitquire/core';
 import {
   ensureProjectGit,
   FilesystemRootProjectError,
@@ -14,7 +14,7 @@ import {
   isFilesystemRoot,
   ProjectGitInitError,
   writeRootGitignoreForNewRepo,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import select from '@inquirer/select';
 import { Command, Option } from 'commander';
 import { CONFIG_FILENAME, OK_DIR } from '../constants.ts';
@@ -616,7 +616,7 @@ export function initCommand(): Command {
           let effectiveContentDir = result.contentDir ?? '.';
           let contentFileCount: number | null = null;
           const { loadConfig } = await import('../config/loader.ts');
-          const { resolveContentDir } = await import('@inkeep/open-knowledge-server');
+          const { resolveContentDir } = await import('@gitquire/server');
           let config: Awaited<ReturnType<typeof loadConfig>>['config'] | undefined;
           try {
             config = loadConfig(result.projectRoot).config;

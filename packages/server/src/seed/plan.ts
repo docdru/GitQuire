@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { currentCliCommandName, OK_PROJECT_MARKER } from '@inkeep/open-knowledge-core';
+import { currentCliCommandName, OK_PROJECT_MARKER } from '@gitquire/core';
 import { isProjectRoot } from '../fs/find-project-root.ts';
 import { assertEntryPathInProject } from './path-safety.ts';
 import { isPluginEnabled } from './required-plugins.ts';

@@ -1,6 +1,6 @@
 import { renameSync } from 'node:fs';
 import { join } from 'node:path';
-import { getMetrics } from '@inkeep/open-knowledge-server';
+import { getMetrics } from '@gitquire/server';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
   BODY,

@@ -1,4 +1,4 @@
-import type { TextDirection } from '@inkeep/open-knowledge-core/i18n/direction';
+import type { TextDirection } from '@gitquire/core/i18n/direction';
 import { useSyncExternalStore } from 'react';
 
 function subscribeDocumentDirection(listener: () => void): () => void {

@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as wait } from 'node:timers/promises';
 import { Compartment } from '@codemirror/state';
-import { PROTOCOL_VERSION } from '@inkeep/open-knowledge-core';
-import { parseHocuspocusAuthToken } from '@inkeep/open-knowledge-server';
+import { PROTOCOL_VERSION } from '@gitquire/core';
+import { parseHocuspocusAuthToken } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { buildAuthToken } from '../lib/auth-token';

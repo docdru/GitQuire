@@ -1,5 +1,5 @@
+import { type AgentFocusEntry, SYSTEM_DOC_NAME } from '@gitquire/core';
 import type { Hocuspocus } from '@hocuspocus/server';
-import { type AgentFocusEntry, SYSTEM_DOC_NAME } from '@inkeep/open-knowledge-core';
 import { isPresenceEligibleAgentId } from './agent-id.ts';
 import { getLogger } from './logger.ts';
 

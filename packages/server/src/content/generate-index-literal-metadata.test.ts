@@ -1,9 +1,5 @@
 import assert from 'node:assert/strict';
-import {
-  MarkdownManager,
-  resolveInternalHref,
-  sharedExtensions,
-} from '@inkeep/open-knowledge-core';
+import { MarkdownManager, resolveInternalHref, sharedExtensions } from '@gitquire/core';
 import type { JSONContent } from '@tiptap/core';
 import { describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';

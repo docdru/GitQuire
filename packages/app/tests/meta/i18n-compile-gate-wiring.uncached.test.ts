@@ -6,13 +6,13 @@ import { describe, expect, test } from 'vitest';
 
 const APP_PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const WORKSPACE_ROOT = join(APP_PACKAGE_ROOT, '..', '..');
-const APP_PACKAGE_NAME = '@inkeep/open-knowledge-app';
+const APP_PACKAGE_NAME = '@gitquire/app';
 const COMPILE_GLOBAL_SETUP = './tests/stress/_helpers/i18n-catalog-compile.ts';
 const TURBO_DRY_RUN_TIMEOUT_MS = 120_000;
 const TURBO_DRY_RUN_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 const TURBO_OUTPUT_HEAD_CHARS = 400;
 const BUILD_EDGE_REASON =
-  'The edge keeps the ordering associated with a recorded CI failure: the app build, scheduled beside the e2e tier, could not resolve @inkeep/open-knowledge-core while Vite loaded its config. Concurrency is the most-supported explanation for that failure rather than a reproduced one.';
+  'The edge keeps the ordering associated with a recorded CI failure: the app build, scheduled beside the e2e tier, could not resolve @gitquire/core while Vite loaded its config. Concurrency is the most-supported explanation for that failure rather than a reproduced one.';
 
 const PLAYWRIGHT_TIERS = {
   e2e: {

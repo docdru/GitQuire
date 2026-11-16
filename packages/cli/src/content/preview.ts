@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { currentDesktopProduct } from '@inkeep/open-knowledge-core';
-import { createContentFilter } from '@inkeep/open-knowledge-server';
+import { currentDesktopProduct } from '@gitquire/core';
+import { createContentFilter } from '@gitquire/server';
 import { OK_DIR } from '../constants.ts';
 
 interface PreviewOptions {

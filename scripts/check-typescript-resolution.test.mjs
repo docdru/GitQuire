@@ -70,7 +70,7 @@ const withTree = (files, assertions) => {
 const healthyRoot = { binVersion: '7.0.2', shimVersion: '6.0.3', tsserverBytes: 272 };
 
 const gatedMember = (over = {}) => ({
-  name: '@inkeep/open-knowledge-core',
+  name: '@gitquire/core',
   dir: '/ok/packages/core',
   declaredRange: '^7.0.2',
   resolvedVersion: '7.0.2',
@@ -126,7 +126,7 @@ describe('checkRoot', () => {
 });
 
 const tsrsMember = (over = {}) => ({
-  name: '@inkeep/open-knowledge-core',
+  name: '@gitquire/core',
   dir: '/ok/packages/core',
   scripts: { typecheck: 'tsrs --noEmit' },
   tsrsDeclared: '0.18.0-ts7.1.0-dev.20260929',
@@ -203,7 +203,7 @@ describe('checkTsrs', () => {
 describe('checkTsrsPinsAgree', () => {
   it('accepts packages that all pin the same exact build', () => {
     expect(
-      checkTsrsPinsAgree([tsrsMember(), tsrsMember({ name: '@inkeep/open-knowledge-server' })]),
+      checkTsrsPinsAgree([tsrsMember(), tsrsMember({ name: '@gitquire/server' })]),
     ).toEqual([]);
   });
 
@@ -211,14 +211,14 @@ describe('checkTsrsPinsAgree', () => {
     const [violation, ...rest] = checkTsrsPinsAgree([
       tsrsMember(),
       tsrsMember({
-        name: '@inkeep/open-knowledge-server',
+        name: '@gitquire/server',
         tsrsDeclared: '0.19.0-ts7.1.0-dev.20261020',
       }),
     ]);
     expect(rest).toEqual([]);
     expect(violation).toContain('2 different exact versions');
-    expect(violation).toContain('@inkeep/open-knowledge-core@0.18.0-ts7.1.0-dev.20260929');
-    expect(violation).toContain('@inkeep/open-knowledge-server@0.19.0-ts7.1.0-dev.20261020');
+    expect(violation).toContain('@gitquire/core@0.18.0-ts7.1.0-dev.20260929');
+    expect(violation).toContain('@gitquire/server@0.19.0-ts7.1.0-dev.20261020');
   });
 
   it('leaves a range pin to checkTsrs, and ignores a package that does not run tsrs', () => {
@@ -269,7 +269,7 @@ describe('checkMember', () => {
 
   it('names the package whose resolution silently sits on the shim line', () => {
     const [violation] = checkMember(gatedMember({ resolvedVersion: '6.0.3' }));
-    expect(violation).toContain('@inkeep/open-knowledge-core');
+    expect(violation).toContain('@gitquire/core');
     expect(violation).toContain('resolves 6.0.3');
   });
 
@@ -285,7 +285,7 @@ describe('checkMember', () => {
   it('accepts a package that neither declares typescript nor runs tsc', () => {
     expect(
       checkMember({
-        name: '@inkeep/open-knowledge-native-config',
+        name: '@gitquire/native-config',
         dir: '/ok/packages/native-config',
         declaredRange: null,
         resolvedVersion: null,
@@ -297,20 +297,20 @@ describe('checkMember', () => {
 
   it('catches a package that runs tsc without declaring the compiler it runs', () => {
     const [violation] = checkMember({
-      name: '@inkeep/open-knowledge-plugin',
+      name: '@gitquire/plugin',
       dir: '/ok/packages/plugin',
       declaredRange: null,
       resolvedVersion: null,
       binVersion: null,
       scripts: { typecheck: 'tsc --noEmit' },
     });
-    expect(violation).toContain('@inkeep/open-knowledge-plugin');
+    expect(violation).toContain('@gitquire/plugin');
     expect(violation).toContain('without declaring typescript');
   });
 
   it('reads a path-qualified tsc, which resolves the same undeclared binary', () => {
     const violations = checkMember({
-      name: '@inkeep/example',
+      name: '@gitquire/example',
       dir: '/ok/packages/example',
       declaredRange: null,
       resolvedVersion: null,
@@ -323,7 +323,7 @@ describe('checkMember', () => {
 
   it('reads tsgo, the other name the Go compiler ships its binary under', () => {
     const violations = checkMember({
-      name: '@inkeep/example',
+      name: '@gitquire/example',
       dir: '/ok/packages/example',
       declaredRange: null,
       resolvedVersion: null,
@@ -337,7 +337,7 @@ describe('checkMember', () => {
   it('does not match a lookalike that merely starts with the compiler name', () => {
     expect(
       checkMember({
-        name: '@inkeep/example',
+        name: '@gitquire/example',
         dir: '/ok/packages/example',
         declaredRange: null,
         resolvedVersion: null,
@@ -354,7 +354,7 @@ describe('checkMember', () => {
       lint: 'tsc-files --noEmit',
     };
     const violations = checkMember({
-      name: '@inkeep/example',
+      name: '@gitquire/example',
       dir: '/ok/packages/example',
       declaredRange: null,
       resolvedVersion: null,
@@ -427,7 +427,7 @@ describe('collectViolations', () => {
     ],
   ];
   const sourceSites = [
-    { name: '@inkeep/open-knowledge-core', private: true, total: 1, missing: [], present: ['.'] },
+    { name: '@gitquire/core', private: true, total: 1, missing: [], present: ['.'] },
   ];
 
   it('reports nothing for a healthy workspace', () => {
@@ -441,7 +441,7 @@ describe('collectViolations', () => {
       { ...healthyRoot, binVersion: '6.0.3' },
       [
         gatedMember(),
-        gatedMember({ name: '@inkeep/open-knowledge-server', resolvedVersion: '6.0.3' }),
+        gatedMember({ name: '@gitquire/server', resolvedVersion: '6.0.3' }),
       ],
       null,
       boundEmit,
@@ -449,7 +449,7 @@ describe('collectViolations', () => {
     );
     expect(violations).toHaveLength(2);
     expect(violations[0]).toContain('root `tsc` bin');
-    expect(violations[1]).toContain('@inkeep/open-knowledge-server');
+    expect(violations[1]).toContain('@gitquire/server');
   });
 
   it('refuses when the source-condition corpus it was handed is empty', () => {
@@ -510,7 +510,7 @@ describe('memberDirs', () => {
 
   it('stops at the next top-level key instead of swallowing a later list', () => {
     const { dirs } = collect(
-      "packages:\n  - 'docs'\n\nminimumReleaseAgeExclude:\n  - '@inkeep/*'\n  - '@visimer/*'\n",
+      "packages:\n  - 'docs'\n\nminimumReleaseAgeExclude:\n  - '@gitquire/*'\n  - '@visimer/*'\n",
     );
     expect(dirs.map((dir) => path.relative(root, dir))).toEqual(['docs']);
   });
@@ -539,7 +539,7 @@ describe('declarationBuildConfigs', () => {
     '/ok/packages/core/package.json': publisher,
     '/ok/packages/server/package.json': publisher,
     '/ok/packages/cli/package.json': publisher,
-    '/ok/packages/app/package.json': { name: '@inkeep/open-knowledge-app', private: true },
+    '/ok/packages/app/package.json': { name: '@gitquire/app', private: true },
     '/ok/packages/core/tsconfig.build.json': reset,
     '/ok/packages/server/tsconfig.build.json': reset,
     '/ok/packages/app/tsconfig.build.json': reset,
@@ -670,7 +670,7 @@ describe('publishesDeclarations', () => {
 
   it('exempts only the packages named in the non-tsc list', () => {
     expect(
-      publishesDeclarations({ name: '@inkeep/open-knowledge-native-config', types: 'index.d.ts' }),
+      publishesDeclarations({ name: '@gitquire/native-config', types: 'index.d.ts' }),
     ).toBe(false);
   });
 });
@@ -684,7 +684,7 @@ describe('staleNonTscListing', () => {
   it('stays quiet while the listed package really does emit its declaration outside tsc', () => {
     expect(
       staleNonTscListing({
-        name: '@inkeep/open-knowledge-native-config',
+        name: '@gitquire/native-config',
         types: 'index.d.ts',
       }),
     ).toBe(null);
@@ -692,7 +692,7 @@ describe('staleNonTscListing', () => {
 
   it('refuses the exemption once the listed package publishes from an output directory', () => {
     const stale = staleNonTscListing({
-      name: '@inkeep/open-knowledge-native-config',
+      name: '@gitquire/native-config',
       types: 'dist/index.d.mts',
     });
 
@@ -734,14 +734,14 @@ describe('evaluate wires every probe into the verdict', () => {
     rootProbe: { binVersion: '7.0.2', shimVersion: '6.0.3', tsserverBytes: 272 },
     members: [
       {
-        name: '@inkeep/open-knowledge-core',
+        name: '@gitquire/core',
         declaredRange: '^7.0.2',
         resolvedVersion: '7.0.2',
         binVersion: '7.0.2',
         scripts: { typecheck: 'tsc --noEmit' },
       },
     ],
-    gated: [{ name: '@inkeep/open-knowledge-core' }],
+    gated: [{ name: '@gitquire/core' }],
     baseConditions: [SOURCE_CONDITION],
     declarationBuild: { configs: [['packages/core/tsconfig.build.json', []]], missing: [] },
     emitConfigs: [
@@ -751,7 +751,7 @@ describe('evaluate wires every probe into the verdict', () => {
       ],
     ],
     sourceSites: [
-      { name: '@inkeep/open-knowledge-core', private: true, total: 1, missing: [], present: ['.'] },
+      { name: '@gitquire/core', private: true, total: 1, missing: [], present: ['.'] },
     ],
     tsconfigs: {
       files: ['packages/core/tsconfig.build.json', 'packages/core/tsconfig.json', 'tsconfig.json'],
@@ -788,7 +788,7 @@ describe('evaluate wires every probe into the verdict', () => {
     const member = {
       ...healthy.members[0],
       ...rangePinned,
-      name: '@inkeep/open-knowledge-core',
+      name: '@gitquire/core',
       tsrsDeclared: '0.19.0-ts7.1.0-dev.20261020',
       tsrsResolved: '0.19.0-ts7.1.0-dev.20261020',
     };
@@ -800,12 +800,12 @@ describe('evaluate wires every probe into the verdict', () => {
   });
 
   it('fails a range-pinned tsrs on a workspace package', () => {
-    const member = { ...healthy.members[0], ...rangePinned, name: '@inkeep/open-knowledge-core' };
+    const member = { ...healthy.members[0], ...rangePinned, name: '@gitquire/core' };
     const result = evaluate({ ...healthy, members: [member] });
 
     expect(result.code).toBe(1);
     expect(result.violations).toEqual([
-      expect.stringContaining('@inkeep/open-knowledge-core (/ok) declares tsrs'),
+      expect.stringContaining('@gitquire/core (/ok) declares tsrs'),
     ]);
   });
 
@@ -857,7 +857,7 @@ describe('evaluate wires every probe into the verdict', () => {
       ...healthy,
       sourceSites: [
         {
-          name: '@inkeep/open-knowledge-core',
+          name: '@gitquire/core',
           private: true,
           total: 1,
           missing: ['.'],
@@ -1130,7 +1130,7 @@ describe('declarationEmitConfigs', () => {
     '/ok/packages/plugin/package.json': {
       exports: { '.': { types: './dist/index.d.mts' } },
     },
-    '/ok/packages/app/package.json': { name: '@inkeep/open-knowledge-app', private: true },
+    '/ok/packages/app/package.json': { name: '@gitquire/app', private: true },
     '/ok/packages/core/tsdown.config.ts': 'dts: false,',
   };
   const dirs = ['/ok/packages/app', '/ok/packages/cli', '/ok/packages/core', '/ok/packages/plugin'];
@@ -1255,7 +1255,7 @@ describe('main() refuses rather than passing', () => {
           name: 'a',
           private: true,
           devDependencies: GATED,
-          exports: { '.': { '@inkeep/source': './src/index.ts', types: './dist/index.d.mts' } },
+          exports: { '.': { '@gitquire/source': './src/index.ts', types: './dist/index.d.mts' } },
         },
         'packages/a/tsconfig.build.json': { compilerOptions: { customConditions: [] } },
         'tsconfig.json': BASE_TSCONFIG,
@@ -1272,11 +1272,11 @@ describe('main() refuses rather than passing', () => {
           name: 'a',
           private: true,
           devDependencies: GATED,
-          exports: { '.': { '@inkeep/source': './src/index.ts', types: './dist/index.d.mts' } },
+          exports: { '.': { '@gitquire/source': './src/index.ts', types: './dist/index.d.mts' } },
         },
         'packages/a/tsconfig.build.json': { compilerOptions: { customConditions: [] } },
         'tsconfig.json':
-          '{\n  // the source condition every leaf typecheck resolves through\n  "compilerOptions": { "customConditions": ["@inkeep/source"] },\n}\n',
+          '{\n  // the source condition every leaf typecheck resolves through\n  "compilerOptions": { "customConditions": ["@gitquire/source"] },\n}\n',
       },
       ['none of the packages that publish an emitted declaration has a tsdown.config.ts'],
     );
@@ -1302,7 +1302,7 @@ describe('main() refuses rather than passing', () => {
     name: 'a',
     private: true,
     devDependencies: { ...GATED, tsdown: '^0.15.6' },
-    exports: { '.': { '@inkeep/source': './src/index.ts', types: './dist/index.d.mts' } },
+    exports: { '.': { '@gitquire/source': './src/index.ts', types: './dist/index.d.mts' } },
   };
   const evaluatedTree = (extra) => ({
     'pnpm-workspace.yaml': WORKSPACE,
@@ -1332,7 +1332,7 @@ describe('main() refuses rather than passing', () => {
           exports: {
             '.': {
               import: { types: './dist/index.d.mts', default: './dist/index.mjs' },
-              require: { '@inkeep/source': './src/index.ts', default: './dist/index.cjs' },
+              require: { '@gitquire/source': './src/index.ts', default: './dist/index.cjs' },
             },
           },
         },
@@ -1367,7 +1367,7 @@ describe('sourceConditionSites', () => {
       name: 'x',
       private: true,
       exports: {
-        '.': { '@inkeep/source': './src/index.ts', default: './dist/index.mjs' },
+        '.': { '@gitquire/source': './src/index.ts', default: './dist/index.mjs' },
         './b': { default: './dist/b.mjs' },
       },
     });
@@ -1379,7 +1379,7 @@ describe('sourceConditionSites', () => {
     const site = sourceConditionSites({
       name: 'x',
       private: false,
-      exports: { '@inkeep/source': './src/index.ts', default: './dist/index.mjs' },
+      exports: { '@gitquire/source': './src/index.ts', default: './dist/index.mjs' },
     });
 
     expect(site).toMatchObject({ private: false, total: 1, present: ['.'], missing: [] });
@@ -1389,7 +1389,7 @@ describe('sourceConditionSites', () => {
     const array = sourceConditionSites({
       name: 'x',
       private: true,
-      exports: [{ '@inkeep/source': './src/index.ts' }, './dist/index.mjs'],
+      exports: [{ '@gitquire/source': './src/index.ts' }, './dist/index.mjs'],
     });
     expect(array).toMatchObject({ total: 1, present: ['.'], missing: ['.'] });
 
@@ -1406,9 +1406,9 @@ describe('sourceConditionSites', () => {
       exports: {
         './nested': {
           import: { default: './dist/n.mjs' },
-          require: { '@inkeep/source': './src/n.ts', default: './dist/n.cjs' },
+          require: { '@gitquire/source': './src/n.ts', default: './dist/n.cjs' },
         },
-        './array': [{ '@inkeep/source': './src/a.ts' }, './dist/a.mjs'],
+        './array': [{ '@gitquire/source': './src/a.ts' }, './dist/a.mjs'],
         './flat': { types: './dist/f.d.mts', default: './dist/f.mjs' },
       },
     });
@@ -1424,7 +1424,7 @@ describe('sourceConditionSites', () => {
       exports: {
         '.': {
           types: './dist/index.d.mts',
-          '@inkeep/source': './src/index.ts',
+          '@gitquire/source': './src/index.ts',
           default: './dist/index.mjs',
         },
       },
@@ -1439,7 +1439,7 @@ describe('sourceConditionSites', () => {
       name: 'x',
       private: true,
       exports: {
-        '.': { '@inkeep/source': './src/index.ts', default: './dist/index.mjs' },
+        '.': { '@gitquire/source': './src/index.ts', default: './dist/index.mjs' },
         './b': './dist/b.mjs',
       },
     });
@@ -1452,7 +1452,7 @@ describe('sourceConditionSites', () => {
   it('refuses to classify a package that declares an exports map and no private field', () => {
     const site = sourceConditionSites({
       name: 'x',
-      exports: { '.': { '@inkeep/source': './src/index.ts' } },
+      exports: { '.': { '@gitquire/source': './src/index.ts' } },
     });
 
     expect(site).toMatchObject({ unclassified: true, total: 1 });

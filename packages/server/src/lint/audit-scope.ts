@@ -1,6 +1,6 @@
 import { lstatSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { SUPPORTED_DOC_EXTENSIONS } from '@inkeep/open-knowledge-core';
+import { SUPPORTED_DOC_EXTENSIONS } from '@gitquire/core';
 import { isWithinContentDir } from '../content-path.ts';
 
 export interface AuditScope {
@@ -12,7 +12,7 @@ export function auditScopeNotFoundTitle(path: string): string {
   return `Scope ${JSON.stringify(path)} was not found. Use an existing file or directory; a document stem without .md or .mdx resolves .mdx before .md. Explicit document extensions must exist as written.`;
 }
 
-export { AUDIT_EMPTY_SCOPE_WARNING } from '@inkeep/open-knowledge-core';
+export { AUDIT_EMPTY_SCOPE_WARNING } from '@gitquire/core';
 
 export type AuditScopeResolution =
   | { ok: true; scope: AuditScope }

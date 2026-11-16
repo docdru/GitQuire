@@ -2,10 +2,10 @@ import {
   AUDIO_EXTENSIONS,
   IMAGE_EXTENSIONS,
   VIDEO_EXTENSIONS,
-} from '@inkeep/open-knowledge-core/constants/upload';
-import { isLoomUrl } from '@inkeep/open-knowledge-core/utils/loom-embed';
-import { isVimeoUrl } from '@inkeep/open-knowledge-core/utils/vimeo-embed';
-import { parseYouTubeUrl } from '@inkeep/open-knowledge-core/utils/youtube-embed';
+} from '@gitquire/core/constants/upload';
+import { isLoomUrl } from '@gitquire/core/utils/loom-embed';
+import { isVimeoUrl } from '@gitquire/core/utils/vimeo-embed';
+import { parseYouTubeUrl } from '@gitquire/core/utils/youtube-embed';
 import { t } from '@lingui/core/macro';
 
 type MediaKind = 'video' | 'audio' | 'image';

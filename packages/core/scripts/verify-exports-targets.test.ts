@@ -192,10 +192,10 @@ describe('jsBelowDistTopLevel', () => {
 
 describe('verifyExportsTargets', () => {
   const packageJson = {
-    name: '@inkeep/open-knowledge-core-fixture',
+    name: '@gitquire/core-fixture',
     exports: {
       '.': {
-        '@inkeep/source': './src/index.ts',
+        '@gitquire/source': './src/index.ts',
         types: './dist/index.d.mts',
         default: './dist/index.mjs',
       },

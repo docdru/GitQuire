@@ -1,4 +1,4 @@
-import { sharedExtensions as coreExtensions, MarkdownManager } from '@inkeep/open-knowledge-core';
+import { sharedExtensions as coreExtensions, MarkdownManager } from '@gitquire/core';
 import { Editor, type JSONContent } from '@tiptap/core';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';

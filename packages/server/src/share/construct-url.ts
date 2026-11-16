@@ -1,4 +1,4 @@
-import type { ShareConstructUrlErrorCode, ShareFreshness } from '@inkeep/open-knowledge-core';
+import type { ShareConstructUrlErrorCode, ShareFreshness } from '@gitquire/core';
 import { getLogger } from '../logger.ts';
 
 export const SHARE_BASE_URL = 'https://openknowledge.ai/d/';

@@ -13,8 +13,8 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { shellSingleQuote } from '@inkeep/open-knowledge-core';
-import { type Config, readServerLock, resolveLockDir } from '@inkeep/open-knowledge-server';
+import { shellSingleQuote } from '@gitquire/core';
+import { type Config, readServerLock, resolveLockDir } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import {

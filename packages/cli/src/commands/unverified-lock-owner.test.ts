@@ -1,7 +1,7 @@
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { isLockProcessRunning, readProcessState } from '@inkeep/open-knowledge-server';
+import { isLockProcessRunning, readProcessState } from '@gitquire/server';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { runClean } from './clean.ts';
 import { makeServerLockCheck } from './diagnose-health-checks/server-lock.ts';

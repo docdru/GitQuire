@@ -3,7 +3,7 @@ import {
   MarkdownManager,
   parseWikiLink,
   sharedExtensions,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { readWikiLinkAt } from './link-syntax.ts';
 import {

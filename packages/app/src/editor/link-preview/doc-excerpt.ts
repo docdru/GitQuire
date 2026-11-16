@@ -1,7 +1,7 @@
-import { stripFrontmatter } from '@inkeep/open-knowledge-core/extensions/frontmatter';
-import { createCodeFenceTracker } from '@inkeep/open-knowledge-core/utils/code-fence-tracker';
-import { graphemePrefix } from '@inkeep/open-knowledge-core/utils/grapheme-clip';
-import { getHeadingSlug, toWikiLinkSlug } from '@inkeep/open-knowledge-core/utils/slug';
+import { stripFrontmatter } from '@gitquire/core/extensions/frontmatter';
+import { createCodeFenceTracker } from '@gitquire/core/utils/code-fence-tracker';
+import { graphemePrefix } from '@gitquire/core/utils/grapheme-clip';
+import { getHeadingSlug, toWikiLinkSlug } from '@gitquire/core/utils/slug';
 
 export interface DocExcerptOptions {
   anchor?: string | null;

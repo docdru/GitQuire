@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const okRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const CORE = '@inkeep/open-knowledge-core';
-const SOURCE_CONDITION = "condition '@inkeep/source'";
+const CORE = '@gitquire/core';
+const SOURCE_CONDITION = "condition '@gitquire/source'";
 
 function trace(cwd: string, args: string[]): string {
   const run = spawnSync('pnpm', ['exec', 'tsc', '--noEmit', '--traceResolution', ...args], {
@@ -57,7 +57,7 @@ function coreResolutions(output: string): string[] {
 }
 
 describe('D13 resolution truth: a leaf typecheck reads source, the published build reads declarations', () => {
-  it('resolves every core import in a leaf typecheck through @inkeep/source, onto core/src', () => {
+  it('resolves every core import in a leaf typecheck through @gitquire/source, onto core/src', () => {
     const blocks = coreResolutions(trace('packages/server', []));
     expect(blocks.length).toBeGreaterThan(0);
 
@@ -67,7 +67,7 @@ describe('D13 resolution truth: a leaf typecheck reads source, the published bui
     }
   }, 90_000);
 
-  it('clears @inkeep/source for the CLI declaration build, landing on core/dist declarations', () => {
+  it('clears @gitquire/source for the CLI declaration build, landing on core/dist declarations', () => {
     const blocks = coreResolutions(trace('packages/cli', ['-p', 'tsconfig.build.json']));
     expect(blocks.length).toBeGreaterThan(0);
 

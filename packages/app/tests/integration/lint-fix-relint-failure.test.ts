@@ -1,10 +1,6 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  isReLintFailedWarning,
-  type LintFixResult,
-  LintFixResultSchema,
-} from '@inkeep/open-knowledge-core';
+import { isReLintFailedWarning, type LintFixResult, LintFixResultSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
 import { createTestServer, type TestServer } from './test-harness.ts';
@@ -14,8 +10,8 @@ const postFixSourceFault = vi.hoisted(() => ({ active: false, calls: 0 }));
 const postFixEmptyMessageFault = vi.hoisted(() => ({ active: false, calls: 0 }));
 const preFixSourceFault = vi.hoisted(() => ({ active: false, calls: 0 }));
 
-vi.mock('@inkeep/open-knowledge-core', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@inkeep/open-knowledge-core')>();
+vi.mock('@gitquire/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@gitquire/core')>();
   return {
     ...actual,
     lintDocument: (...args: Parameters<typeof actual.lintDocument>) => {

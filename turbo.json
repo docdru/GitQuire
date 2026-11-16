@@ -22,12 +22,12 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
-    "@inkeep/open-knowledge-core#build:output": {
+    "@gitquire/core#build:output": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
       "command": ["node", "scripts/build-output.mjs", "produce"]
     },
-    "@inkeep/open-knowledge-core#build": {
+    "@gitquire/core#build": {
       "dependsOn": ["build:output"],
       "cache": false,
       "command": ["node", "scripts/build-output.mjs", "complete"]
@@ -36,7 +36,7 @@
     "types": {
       "dependsOn": ["^types"]
     },
-    "@inkeep/open-knowledge#types": {
+    "@gitquire/cli#types": {
       "dependsOn": ["^types", "build"]
     },
     "typecheck": {
@@ -63,11 +63,11 @@
       ]
     },
     "//#test:uncached": {
-      "dependsOn": ["@inkeep/open-knowledge-core#build"],
+      "dependsOn": ["@gitquire/core#build"],
       "cache": false,
       "inputs": []
     },
-    "@inkeep/open-knowledge#check:dts": {
+    "@gitquire/cli#check:dts": {
       "dependsOn": ["build"],
       "inputs": [
         "tsconfig.check.json",
@@ -75,12 +75,12 @@
         "$TURBO_ROOT$/scripts/read-jsonc.mjs"
       ]
     },
-    "@inkeep/open-knowledge-core#check:dts": {
+    "@gitquire/core#check:dts": {
       "env": ["TSRS_BINARY"],
       "dependsOn": ["build"],
       "inputs": ["tsconfig.json", "tsconfig.check.json", "tests/contract/subpath-types/consumer.ts"]
     },
-    "@inkeep/open-knowledge-docs#build": {
+    "@gitquire/docs#build": {
       "dependsOn": ["^build", "typecheck"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"],
       "inputs": [
@@ -108,7 +108,7 @@
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/test-support/**"],
       "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
     },
-    "@inkeep/open-knowledge-docs#test": {
+    "@gitquire/docs#test": {
       "dependsOn": ["^build", "build"],
       "cache": true,
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/test-support/**"],
@@ -119,7 +119,7 @@
         "test-results/vitest-test-real-source.provenance.json"
       ]
     },
-    "@inkeep/open-knowledge-server#test": {
+    "@gitquire/server#test": {
       "dependsOn": ["^build"],
       "cache": true,
       "inputs": [
@@ -132,7 +132,7 @@
       ],
       "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
     },
-    "@inkeep/open-knowledge-server#test:shard1": {
+    "@gitquire/server#test:shard1": {
       "dependsOn": ["^build"],
       "cache": true,
       "inputs": [
@@ -148,7 +148,7 @@
         "test-results/vitest-test-shard1.provenance.json"
       ]
     },
-    "@inkeep/open-knowledge-server#test:shard2": {
+    "@gitquire/server#test:shard2": {
       "dependsOn": ["^build"],
       "cache": true,
       "inputs": [
@@ -164,7 +164,7 @@
         "test-results/vitest-test-shard2.provenance.json"
       ]
     },
-    "@inkeep/open-knowledge-server#test:shard3": {
+    "@gitquire/server#test:shard3": {
       "dependsOn": ["^build"],
       "cache": true,
       "inputs": [
@@ -180,7 +180,7 @@
         "test-results/vitest-test-shard3.provenance.json"
       ]
     },
-    "@inkeep/open-knowledge-server#test:shard4": {
+    "@gitquire/server#test:shard4": {
       "dependsOn": ["^build"],
       "cache": true,
       "inputs": [
@@ -196,7 +196,7 @@
         "test-results/vitest-test-shard4.provenance.json"
       ]
     },
-    "@inkeep/open-knowledge#test": {
+    "@gitquire/cli#test": {
       "dependsOn": ["^build", "build"],
       "cache": true,
       "inputs": [
@@ -206,13 +206,13 @@
       ],
       "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
     },
-    "@inkeep/md-conformance#test": {
+    "@gitquire/md-conformance#test": {
       "dependsOn": ["^build"],
       "cache": true,
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/test-support/**", "../server/src/**/*.ts"],
       "outputs": ["test-results/vitest-test.json", "test-results/vitest-test.provenance.json"]
     },
-    "@inkeep/open-knowledge-core#test": {
+    "@gitquire/core#test": {
       "dependsOn": ["^build"],
       "cache": true,
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/test-support/**"],
@@ -560,8 +560,8 @@
       "cache": false,
       "passThroughEnv": ["OK_TEST_E2E_SERVING", "OK_E2E_COVERAGE_DIR", "OK_E2E_TRACE_SNAPSHOTS"]
     },
-    "@inkeep/open-knowledge-app#test:e2e": {
-      "dependsOn": ["^build", "build", "@inkeep/open-knowledge#build"],
+    "@gitquire/app#test:e2e": {
+      "dependsOn": ["^build", "build", "@gitquire/cli#build"],
       "cache": false,
       "passThroughEnv": ["OK_TEST_E2E_SERVING", "OK_E2E_COVERAGE_DIR", "OK_E2E_TRACE_SNAPSHOTS"]
     },
@@ -585,7 +585,7 @@
       "cache": false,
       "passThroughEnv": ["OK_TEST_E2E_SERVING"]
     },
-    "@inkeep/open-knowledge-app#test:a11y": {
+    "@gitquire/app#test:a11y": {
       "dependsOn": ["^build", "build"],
       "cache": false,
       "passThroughEnv": ["OK_TEST_E2E_SERVING"]

@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { readdirSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
-import { fnv1aDigest, MANAGED_ARTIFACT_PREFIX_TEMPLATE } from '@inkeep/open-knowledge-core';
-import { atomicWriteFile, okUserHomeDir } from '@inkeep/open-knowledge-core/server';
+import { fnv1aDigest, MANAGED_ARTIFACT_PREFIX_TEMPLATE } from '@gitquire/core';
+import { atomicWriteFile, okUserHomeDir } from '@gitquire/core/server';
 import { displayPathFor } from './display-path.ts';
 import { tracedAtomicFs, tracedMkdir, tracedUnlinkSync } from './fs-traced.ts';
 import { getLogger } from './logger.ts';

@@ -4,7 +4,6 @@
  * state directly with no scheduler flushing.
  */
 
-import type { LocalTransactionOrigin } from '@hocuspocus/server';
 import {
   MarkdownManager,
   normalizeBridge,
@@ -12,7 +11,8 @@ import {
   readFmMap,
   sharedExtensions,
   stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { LocalTransactionOrigin } from '@hocuspocus/server';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { describe, expect, test, vi } from 'vitest';

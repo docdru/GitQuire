@@ -307,7 +307,7 @@ describe('published surface fences', () => {
 
   it('fails a published file that still references a sibling workspace package', () => {
     const surface = readPublishedSurface(
-      `import type { Doc } from '@inkeep/open-knowledge-core';\n${exportStatement(BASELINE.exportedSymbols)}\n`,
+      `import type { Doc } from '@gitquire/core';\n${exportStatement(BASELINE.exportedSymbols)}\n`,
     );
 
     expect(surface.inkeepLines).toHaveLength(1);
@@ -354,7 +354,9 @@ describe('the published-declaration pass condition', () => {
 
 describe('triple-slash directives are dependencies, not prose', () => {
   it('keeps a reference directive in the self-containment fence but out of the counts', () => {
-    const surface = readPublishedSurface('/// <reference types="@inkeep/any" />\nexport { A };\n');
+    const surface = readPublishedSurface(
+      '/// <reference types="@gitquire/any" />\nexport { A };\n',
+    );
 
     expect(surface.inkeepLines).toHaveLength(1);
     expect(surface.anyCount).toBe(0);
@@ -362,7 +364,7 @@ describe('triple-slash directives are dependencies, not prose', () => {
 
   it('still drops an ordinary line comment from both views', () => {
     const surface = readPublishedSurface(
-      '// see @inkeep/open-knowledge-core for any of this\ndeclare const a: string;\nexport { A };\n',
+      '// see @gitquire/core for any of this\ndeclare const a: string;\nexport { A };\n',
     );
 
     expect(surface.inkeepLines).toEqual([]);

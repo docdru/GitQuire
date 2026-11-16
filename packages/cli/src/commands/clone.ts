@@ -8,7 +8,7 @@ import {
   isBranchNotFoundGitError,
   isLoginFixableGitAuthError,
   shellSingleQuote,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import {
   assertCheckoutSymlinksSafe,
   assertGitAvailable,
@@ -24,7 +24,7 @@ import {
   sameGitHubLogin,
   simpleGit,
   UnsafeIncomingSymlinkError,
-} from '@inkeep/open-knowledge-server';
+} from '@gitquire/server';
 import { Command } from 'commander';
 import { GitPluginError, type SimpleGitOptions } from 'simple-git';
 import type { GhDetectResult } from '../auth/gh-detect.ts';

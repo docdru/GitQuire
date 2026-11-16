@@ -1,7 +1,4 @@
-import type {
-  ShareConstructUrlErrorCode,
-  ShareConstructUrlResponse,
-} from '@inkeep/open-knowledge-core';
+import type { ShareConstructUrlErrorCode, ShareConstructUrlResponse } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   mapShareErrorToToast,

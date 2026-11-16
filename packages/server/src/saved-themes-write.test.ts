@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { BASE16_SLOTS, type Base16Scheme, base16ToYaml } from '@inkeep/open-knowledge-core';
+import { BASE16_SLOTS, type Base16Scheme, base16ToYaml } from '@gitquire/core';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { savedThemesDir, scanSavedThemes } from './saved-themes-store.ts';
 import { deleteSavedTheme, saveSavedTheme, updateSavedTheme } from './saved-themes-write.ts';

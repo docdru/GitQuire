@@ -7,8 +7,8 @@ import {
 import { connect as createNetConnection } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { resolveServerRuntimeConfig } from '@gitquire/core';
 import type { Hocuspocus } from '@hocuspocus/server';
-import { resolveServerRuntimeConfig } from '@inkeep/open-knowledge-core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { ConfigSchema } from './config/schema.ts';
 import { buildIngressPolicy } from './ingress-policy.ts';

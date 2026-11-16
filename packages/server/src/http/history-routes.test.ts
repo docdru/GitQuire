@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { isValidBranchName } from '@inkeep/open-knowledge-core';
+import { isValidBranchName } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { makeCaptureRes, makeSyntheticReq } from '../composition-rig.test-helper.ts';
 import { loggerFactory } from '../logger.ts';

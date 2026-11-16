@@ -1,4 +1,4 @@
-import { MARKDOWNLINT_RULE_CATALOG } from '@inkeep/open-knowledge-core';
+import { MARKDOWNLINT_RULE_CATALOG } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   governingRuleValue,

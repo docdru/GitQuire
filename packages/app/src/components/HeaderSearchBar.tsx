@@ -1,4 +1,4 @@
-import { incrementJsxRenderFailure } from '@inkeep/open-knowledge-core/metrics/parse-health';
+import { incrementJsxRenderFailure } from '@gitquire/core/metrics/parse-health';
 import { useLingui } from '@lingui/react/macro';
 import { Search } from 'lucide-react';
 import type { ErrorInfo } from 'react';

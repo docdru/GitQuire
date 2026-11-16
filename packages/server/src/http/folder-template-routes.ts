@@ -2,7 +2,6 @@ import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import type { ServerResponse } from 'node:http';
 import { relative, resolve, sep } from 'node:path';
-import type { Hocuspocus } from '@hocuspocus/server';
 import {
   canonicalTemplateName,
   EmptyRequestSchema,
@@ -28,7 +27,8 @@ import {
   TemplatesListSuccessSchema,
   templateContentDocName,
   unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import type { Hocuspocus } from '@hocuspocus/server';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import type { AgentSessionManager } from '../agent-sessions.ts';
 import {

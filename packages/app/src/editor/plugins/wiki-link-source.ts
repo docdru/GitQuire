@@ -8,7 +8,7 @@ import {
   ViewPlugin,
   type ViewUpdate,
 } from '@codemirror/view';
-import type { HeadingEntry } from '@inkeep/open-knowledge-core/utils/slug';
+import type { HeadingEntry } from '@gitquire/core/utils/slug';
 import {
   buildPagesByBasenameIndex,
   buildPagesBySlugIndex,
@@ -17,7 +17,7 @@ import {
   resolveWikiLinkTarget,
   resolveWikiLinkTargetDocName,
   type WikiLinkLookupIndex,
-} from '@inkeep/open-knowledge-core/utils/wiki-link-resolve';
+} from '@gitquire/core/utils/wiki-link-resolve';
 import { openExternalUrl } from '@/lib/external-link';
 import { hashFromAssetPath, hashFromDocName } from '../../lib/doc-hash';
 import { resolveWikiLinkAssetTarget, toWikiLinkSlug } from '../extensions/wiki-link-helpers';

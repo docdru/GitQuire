@@ -4,8 +4,8 @@
  * `ORIGIN_TREE_TO_TEXT` / `ORIGIN_TEXT_TO_TREE` identities the bridge watcher matches (#1).
  */
 
+import type { MarkdownManager } from '@gitquire/core/markdown';
 import type { LocalTransactionOrigin } from '@hocuspocus/server';
-import type { MarkdownManager } from '@inkeep/open-knowledge-core/markdown';
 import type { Schema } from '@tiptap/pm/model';
 import type * as Y from 'yjs';
 

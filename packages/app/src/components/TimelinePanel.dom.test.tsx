@@ -10,7 +10,7 @@ import {
   isSurfacedCheckpointKind,
   type ParsedCheckpoint,
   type TimelineEntry,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const { TimelineContent } = await import('./TimelinePanel');

@@ -1,13 +1,13 @@
 import { existsSync, renameSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   type CC1DerivedViewPayload,
   CC1DerivedViewPayloadSchema,
   SYSTEM_DOC_NAME,
-} from '@inkeep/open-knowledge-core';
-import { applyExternalChange, BacklinkIndex, reconcile } from '@inkeep/open-knowledge-server';
+} from '@gitquire/core';
+import { applyExternalChange, BacklinkIndex, reconcile } from '@gitquire/server';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as encoding from 'lib0/encoding';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';

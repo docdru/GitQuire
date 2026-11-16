@@ -1,4 +1,4 @@
-import { DOCUMENT_REFRESH_MAX_DOCS } from '@inkeep/open-knowledge-core/schemas/api';
+import { DOCUMENT_REFRESH_MAX_DOCS } from '@gitquire/core/schemas/api';
 
 function warnRefreshFailed(details: Record<string, unknown>): void {
   console.warn(JSON.stringify({ event: 'ok-document-refresh-request-failed', ...details }));

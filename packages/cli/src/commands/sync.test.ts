@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Config } from '@inkeep/open-knowledge-server';
-import { RUNTIME_VERSION } from '@inkeep/open-knowledge-server';
+import type { Config } from '@gitquire/server';
+import { RUNTIME_VERSION } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { runSync } from './sync.ts';
 

@@ -1,7 +1,7 @@
 // oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
 
-import type { OkignoreBinding } from '@inkeep/open-knowledge-core/config/bind-okignore-doc';
-import { isDocumentOverOpenByteLimit } from '@inkeep/open-knowledge-core/constants/document-open';
+import type { OkignoreBinding } from '@gitquire/core/config/bind-okignore-doc';
+import { isDocumentOverOpenByteLimit } from '@gitquire/core/constants/document-open';
 import {
   CreateFolderSuccessSchema,
   CreatePageSuccessSchema,
@@ -10,7 +10,7 @@ import {
   RenamePathSuccessSchema,
   UploadAssetSuccessSchema,
   WorkspaceSuccessSchema,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { plural, t } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import {

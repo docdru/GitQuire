@@ -1,5 +1,5 @@
-import { toDesktopAssetHref } from '@inkeep/open-knowledge-core/utils/asset-href';
-import { parsePdfAnchor } from '@inkeep/open-knowledge-core/utils/pdf-anchor';
+import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
+import { parsePdfAnchor } from '@gitquire/core/utils/pdf-anchor';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { Check, ChevronDown, PanelLeft, ZoomIn, ZoomOut } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

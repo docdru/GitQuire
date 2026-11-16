@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { CONCURRENT_REPLACE_WINDOW_MS } from '@inkeep/open-knowledge-server';
+import { CONCURRENT_REPLACE_WINDOW_MS } from '@gitquire/server';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   createSyncWiredTestServer,

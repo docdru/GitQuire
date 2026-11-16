@@ -3,7 +3,7 @@
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import type { ValidationDocResult } from '@inkeep/open-knowledge-core';
+import type { ValidationDocResult } from '@gitquire/core';
 import { GFM } from '@lezer/markdown';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {

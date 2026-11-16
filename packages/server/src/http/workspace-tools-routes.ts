@@ -18,7 +18,7 @@ import {
   type WorkspaceSearchIntent,
   type WorkspaceSearchRanking,
   type WorkspaceSearchScope,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { z } from 'zod';
 import { fetchGitHubReference, GitHubRateLimitHolds } from '../github-reference/fetch-reference.ts';
 import { GitHubReferenceCache } from '../github-reference/reference-cache.ts';

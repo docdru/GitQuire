@@ -1,4 +1,4 @@
-import { parseTemplateFile } from '@inkeep/open-knowledge-core';
+import { parseTemplateFile } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import {
   extractMarkdownLinksFromMarkdown,

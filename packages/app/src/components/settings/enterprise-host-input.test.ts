@@ -1,4 +1,4 @@
-import type { Config } from '@inkeep/open-knowledge-core';
+import type { Config } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { declaredEnterpriseHosts, parseEnterpriseHostInput } from './enterprise-host-input';
 

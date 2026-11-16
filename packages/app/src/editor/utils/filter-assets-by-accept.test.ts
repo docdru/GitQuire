@@ -3,7 +3,7 @@ import {
   ALLOWED_IMAGE_MIME_TYPES,
   ALLOWED_PDF_MIME_TYPES,
   ALLOWED_VIDEO_MIME_TYPES,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { filterAssetsByAccept } from './filter-assets-by-accept.ts';
 

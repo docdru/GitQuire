@@ -1,5 +1,5 @@
-import { currentCliCommandName } from '@inkeep/open-knowledge-core';
-import { type Config, lockAdvertisesUi, resolveLockDir } from '@inkeep/open-knowledge-server';
+import { currentCliCommandName } from '@gitquire/core';
+import { type Config, lockAdvertisesUi, resolveLockDir } from '@gitquire/server';
 import { Command } from 'commander';
 import { inspectLock, type LockState } from './lock-state.ts';
 

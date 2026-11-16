@@ -7,7 +7,7 @@ import {
   OK_MACHINE_LOCAL_ROOT_FILES,
   OK_USER_HOME_CREDENTIAL_FILES,
   REFUSED_SYMLINK_PATHS_CAP,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import type { SimpleGit } from 'simple-git';
 import { isSecretBearingFile, pathHasSecretBearingDirSegment } from './content-filter.ts';
 import { createGitInstance } from './git-handle.ts';

@@ -13,9 +13,9 @@
 
 import type { Compartment } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
+import { isMarkdownDocFile } from '@gitquire/core/constants/upload';
+import type { RenamedDocMapping } from '@gitquire/core/schemas/api';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import { isMarkdownDocFile } from '@inkeep/open-knowledge-core/constants/upload';
-import type { RenamedDocMapping } from '@inkeep/open-knowledge-core/schemas/api';
 import type { Editor } from '@tiptap/core';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import { yUndoPluginKey } from '@tiptap/y-tiptap';

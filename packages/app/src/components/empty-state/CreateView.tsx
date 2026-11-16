@@ -1,7 +1,4 @@
-import type {
-  TemplatesListEntry,
-  TemplatesListSuccess,
-} from '@inkeep/open-knowledge-core/schemas/api';
+import type { TemplatesListEntry, TemplatesListSuccess } from '@gitquire/core/schemas/api';
 import { plural } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowRightIcon, Info, Plus } from 'lucide-react';

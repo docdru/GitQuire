@@ -7,7 +7,7 @@ import { isUncachedTestFile } from '../test-support/uncached-tier.ts';
 
 const OK_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PKG_REL = 'packages/server';
-const TASK = '@inkeep/open-knowledge-server#test';
+const TASK = '@gitquire/server#test';
 
 const RELATIVE_PATH_LITERAL = /'([^'\n]*\.\.\/[^'\n]*)'|"([^"\n]*\.\.\/[^"\n]*)"/g;
 

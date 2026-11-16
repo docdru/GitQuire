@@ -1,4 +1,4 @@
-import { toWikiLinkSlug } from '@inkeep/open-knowledge-core/utils/slug';
+import { toWikiLinkSlug } from '@gitquire/core/utils/slug';
 import { mirrorSourceNameFromAnchor } from '@/lib/doc-hash';
 
 function findById(root: ParentNode, id: string): HTMLElement | null {

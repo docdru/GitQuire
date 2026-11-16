@@ -5,7 +5,7 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { DESKTOP_PRODUCTS, resolveDesktopProductName } from '@inkeep/open-knowledge-core';
+import { DESKTOP_PRODUCTS, resolveDesktopProductName } from '@gitquire/core';
 import shellQuote from 'shell-quote';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';

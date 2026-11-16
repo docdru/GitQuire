@@ -2,7 +2,7 @@ import {
   HELPER_BUNDLE_NAME,
   HELPER_EXECUTABLE_NAME,
   resolveHelperBundleBinary,
-} from '@inkeep/open-knowledge-core/helper-bundle';
+} from '@gitquire/core/helper-bundle';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { maybeRedirectToHelperBundle, resolveSelfSpawn } from './self-spawn.ts';
 
@@ -51,7 +51,7 @@ describe('maybeRedirectToHelperBundle', () => {
   test.each([
     '/usr/local/bin/node',
     '/opt/homebrew/bin/bun',
-    '/usr/local/lib/node_modules/@inkeep/open-knowledge/dist/cli.mjs',
+    '/usr/local/lib/node_modules/@gitquire/cli/dist/cli.mjs',
     '/Applications/OpenKnowledge.app/Contents/Resources/app/cli.mjs',
     '/tmp/scratch.app.backup/cli',
   ])('darwin + non-bundle execPath (%s) → null', (execPath) => {
@@ -87,10 +87,10 @@ describe('resolveSelfSpawn', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('falls back to npx -y @inkeep/open-knowledge@latest when argv[1] is empty', () => {
+  it('falls back to npx -y @gitquire/cli@latest when argv[1] is empty', () => {
     const result = resolveSelfSpawn({ argv: ['runtime', ''] });
     expect(result.command).toBe('npx');
-    expect(result.prefixArgs).toEqual(['-y', '@inkeep/open-knowledge@latest']);
+    expect(result.prefixArgs).toEqual(['-y', '@gitquire/cli@latest']);
     expect(warnSpy).toHaveBeenCalled();
   });
 
@@ -149,7 +149,7 @@ describe('resolveSelfSpawn', () => {
   it.each([
     '/usr/local/bin/node',
     '/opt/homebrew/bin/bun',
-    '/usr/local/lib/node_modules/@inkeep/open-knowledge/dist/cli.mjs',
+    '/usr/local/lib/node_modules/@gitquire/cli/dist/cli.mjs',
   ])('darwin + non-bundle execPath (%s) → command stays execPath', (execPath) => {
     const result = resolveSelfSpawn({
       execPath,

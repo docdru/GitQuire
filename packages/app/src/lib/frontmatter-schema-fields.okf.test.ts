@@ -1,4 +1,4 @@
-import type { LinterConfig, OkfRuleId } from '@inkeep/open-knowledge-core';
+import type { LinterConfig, OkfRuleId } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { schemaFieldsForDoc } from './frontmatter-schema-fields.ts';
 

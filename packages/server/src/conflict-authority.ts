@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
+import { resolveGitDirDetailed } from '@gitquire/core/shadow-repo-layout';
 import type { Document } from '@hocuspocus/server';
-import { resolveGitDirDetailed } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import type * as Y from 'yjs';
 import { type CC1Broadcaster, isConfigDoc, isSystemDoc } from './cc1-broadcast.ts';
 import { getLocalDir } from './config/paths.ts';

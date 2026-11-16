@@ -1,5 +1,5 @@
-import type { ConfigBinding } from '@inkeep/open-knowledge-core/config/bind-config-doc';
-import { isGitCredentialHost } from '@inkeep/open-knowledge-core/constants/github';
+import type { ConfigBinding } from '@gitquire/core/config/bind-config-doc';
+import { isGitCredentialHost } from '@gitquire/core/constants/github';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useEffect, useId, useRef, useState } from 'react';
 import { AuthModal } from '@/components/AuthModal';

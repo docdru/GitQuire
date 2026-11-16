@@ -5,7 +5,7 @@ import {
   DocumentReadSuccessSchema,
   MetricsWatcherRecentSuccessSchema,
   PageHeadingsSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import {
   createTestClient,

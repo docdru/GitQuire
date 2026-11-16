@@ -2,7 +2,7 @@ import {
   getAgentCanonicalDescriptors,
   PREVIEW_EMBED_STARTERS,
   PREVIEW_THEME_TOKENS,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { type Config, ConfigSchema } from '../../config/schema.ts';
 import { register } from './palette.ts';

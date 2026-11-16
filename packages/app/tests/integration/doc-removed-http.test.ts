@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { AgentWriteBatchSuccessSchema, ProblemDetailsSchema } from '@inkeep/open-knowledge-core';
+import { AgentWriteBatchSuccessSchema, ProblemDetailsSchema } from '@gitquire/core';
 import { afterEach, describe, expect, test } from 'vitest';
 import { agentWriteMd, createTestServer, type TestServer } from './test-harness';
 

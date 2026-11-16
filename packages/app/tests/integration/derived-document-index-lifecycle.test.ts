@@ -1,12 +1,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
-import { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   type CC1DerivedViewPayload,
   CC1DerivedViewPayloadSchema,
   SYSTEM_DOC_NAME,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import { expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { createTestServer, pollUntil, waitForSync } from './test-harness.ts';

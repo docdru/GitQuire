@@ -1,4 +1,4 @@
-import { parseWriterId } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+import { parseWriterId } from '@gitquire/core/shadow-repo-layout';
 import { getLogger } from './logger.ts';
 import { gcRenameLog, getOrLoadRenameLogIndex } from './rename-log.ts';
 import type { CheckpointRetentionPolicy, ShadowHandle, WriterIdentity } from './shadow-repo.ts';

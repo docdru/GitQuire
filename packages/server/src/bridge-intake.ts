@@ -3,11 +3,7 @@
  * `composeAndWriteRawBody`, `replaceRawBody` and `deriveFragmentFromYtext`, each owning one
  * paired-write semantics. No primitive calls `doc.transact()`; the caller wraps.
  */
-import {
-  applyFastDiff,
-  composeWithDerivedBody,
-  stripFrontmatter,
-} from '@inkeep/open-knowledge-core';
+import { applyFastDiff, composeWithDerivedBody, stripFrontmatter } from '@gitquire/core';
 import type { JSONContent } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import type * as Y from 'yjs';

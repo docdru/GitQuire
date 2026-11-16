@@ -1,4 +1,4 @@
-import { isSemanticSearchOffered, type SemanticIndexStatus } from '@inkeep/open-knowledge-core';
+import { isSemanticSearchOffered, type SemanticIndexStatus } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { computeSemanticModeView, type SemanticModeState } from './command-palette-semantic';
 

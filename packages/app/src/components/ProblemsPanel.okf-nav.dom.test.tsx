@@ -1,4 +1,4 @@
-import { type LinterConfig, lintDocument } from '@inkeep/open-knowledge-core';
+import { type LinterConfig, lintDocument } from '@gitquire/core';
 import { cleanup, fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, test, vi } from 'vitest';

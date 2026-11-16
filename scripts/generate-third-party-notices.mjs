@@ -10,7 +10,7 @@ const REPO_ROOT = dirname(SCRIPT_DIR);
 
 const SHIPPING_WORKSPACES = ['packages/cli', 'packages/server', 'packages/core', 'packages/app'];
 
-const WORKSPACE_NAME_PREFIX = '@inkeep/open-knowledge';
+const WORKSPACE_NAME_PREFIX = '@gitquire/cli';
 
 const LICENSE_FILENAMES = [
   'LICENSE',
@@ -444,7 +444,7 @@ function build() {
 
   push('# Third-Party Notices', '');
   push(
-    'GitQuire (the `@inkeep/open-knowledge` CLI, server and web app in its Docker image) bundles source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.',
+    'GitQuire (the `@gitquire/cli` CLI, server and web app in its Docker image) bundles source code from the third-party packages listed below. Each package is redistributed under its own license; the relevant copyright notice and license text are reproduced here as required.',
     '',
   );
   push(
@@ -470,7 +470,7 @@ function build() {
   push(
     `\`node-liblzma\`${
       lgplResolved ? `@${lgplResolved.pkg.version}` : ''
-    } is an **optional** transitive dependency of \`just-bash\`, used by \`@inkeep/open-knowledge\` for sandboxed shell execution. The package is licensed under LGPL-3.0. For the npm CLI tarball, \`node-liblzma\` is not bundled — it is resolved from the public npm registry at install time on platforms where the native build succeeds. For the Electron desktop \`.app\`, whether the binary lands in \`Resources/app.asar.unpacked/\` depends on the build host's toolchain at packaging time; if present, the binary ships subject to LGPL-3.0 obligations. Upstream source: https://github.com/Manawyrm/node-liblzma. Corresponding source can be obtained from upstream per LGPL §6.`,
+    } is an **optional** transitive dependency of \`just-bash\`, used by \`@gitquire/cli\` for sandboxed shell execution. The package is licensed under LGPL-3.0. For the npm CLI tarball, \`node-liblzma\` is not bundled — it is resolved from the public npm registry at install time on platforms where the native build succeeds. For the Electron desktop \`.app\`, whether the binary lands in \`Resources/app.asar.unpacked/\` depends on the build host's toolchain at packaging time; if present, the binary ships subject to LGPL-3.0 obligations. Upstream source: https://github.com/Manawyrm/node-liblzma. Corresponding source can be obtained from upstream per LGPL §6.`,
     '',
   );
   push('The full text of the GNU Lesser General Public License v3.0 follows.', '');

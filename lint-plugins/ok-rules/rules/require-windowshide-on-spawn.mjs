@@ -2,7 +2,7 @@ import { docsUrl } from '../docs.mjs';
 
 const URL = docsUrl('require-windowshide-on-spawn');
 
-const MESSAGE = `child_process spawn without a hidden Windows console — wrap the options in \`withHiddenWindowsConsole(...)\` (from @inkeep/open-knowledge-server) or add \`windowsHide: true\`. On Windows a console-less parent (MCP-spawned/detached OK server) flashes a terminal window on every spawn; the flag is a no-op on macOS/Linux, so add it unconditionally. macOS/Linux-only spawn, or a same-named wrapper (not node:child_process)? suppress with \`// oxlint-disable-next-line ok/require-windowshide-on-spawn -- <reason>\`. See ${URL}`;
+const MESSAGE = `child_process spawn without a hidden Windows console — wrap the options in \`withHiddenWindowsConsole(...)\` (from @gitquire/server) or add \`windowsHide: true\`. On Windows a console-less parent (MCP-spawned/detached OK server) flashes a terminal window on every spawn; the flag is a no-op on macOS/Linux, so add it unconditionally. macOS/Linux-only spawn, or a same-named wrapper (not node:child_process)? suppress with \`// oxlint-disable-next-line ok/require-windowshide-on-spawn -- <reason>\`. See ${URL}`;
 
 const SPAWNERS = new Set([
   'spawn',

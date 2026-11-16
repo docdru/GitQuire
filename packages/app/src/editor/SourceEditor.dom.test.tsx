@@ -1,7 +1,7 @@
 import { EditorSelection } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import type { Config } from '@gitquire/core';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
-import type { Config } from '@inkeep/open-knowledge-core';
 import { act, cleanup, fireEvent, render, waitFor, within } from '@testing-library/react';
 import { Activity } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

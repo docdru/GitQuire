@@ -17,9 +17,9 @@ vi.doMock('@lingui/react/macro', () => ({
 
 const servedCore = createServedBindingLog();
 
-vi.doMock('@inkeep/open-knowledge-core/utils/github-stars', async (importActual) =>
-  servedCore.serve('@inkeep/open-knowledge-core/utils/github-stars', {
-    ...(await importActual<typeof import('@inkeep/open-knowledge-core/utils/github-stars')>()),
+vi.doMock('@gitquire/core/utils/github-stars', async (importActual) =>
+  servedCore.serve('@gitquire/core/utils/github-stars', {
+    ...(await importActual<typeof import('@gitquire/core/utils/github-stars')>()),
     getGitHubStars: async () => 1234,
   }),
 );
@@ -154,11 +154,7 @@ describe('HelpPopover core replacement liveness', () => {
     const githubLink = within(nav).getByRole('link', { name: /GitHub/ });
     await waitFor(() => expect(within(githubLink).getByText('1.2k')).not.toBeNull());
     expect(
-      servedCore.readersOf(
-        '@inkeep/open-knowledge-core/utils/github-stars',
-        'getGitHubStars',
-        since,
-      ),
+      servedCore.readersOf('@gitquire/core/utils/github-stars', 'getGitHubStars', since),
     ).toEqual(['components/HelpPopover.tsx']);
   });
 });

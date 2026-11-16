@@ -1,4 +1,4 @@
-import { addsBlankLines, normalizeBridge } from '@inkeep/open-knowledge-core';
+import { addsBlankLines, normalizeBridge } from '@gitquire/core';
 import type * as Y from 'yjs';
 import { getMsSinceLastUserTx } from './bridge-quiescence.ts';
 import { isPersistenceExcludedDoc } from './cc1-broadcast.ts';

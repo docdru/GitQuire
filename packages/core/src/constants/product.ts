@@ -2,7 +2,7 @@ export const DESKTOP_PRODUCTS = {
   stable: {
     appId: 'com.inkeep.open-knowledge',
     productName: 'OpenKnowledge',
-    packageName: '@inkeep/open-knowledge-desktop',
+    packageName: '@gitquire/desktop',
     linuxExecutableName: 'openknowledge',
     protocolScheme: 'openknowledge',
     linuxPackageNames: {

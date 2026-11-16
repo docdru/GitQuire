@@ -1,4 +1,4 @@
-import { ORPHAN_MODES, type OrphanMode } from '@inkeep/open-knowledge-core';
+import { ORPHAN_MODES, type OrphanMode } from '@gitquire/core';
 import { z } from 'zod';
 import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
 import { buildListResolver, type PreviewUrlDeps, resolvePreviewUrlForTool } from './preview-url.ts';

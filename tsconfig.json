@@ -14,7 +14,7 @@
     "sourceMap": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "customConditions": ["@inkeep/source"],
+    "customConditions": ["@gitquire/source"],
     "types": [],
     "erasableSyntaxOnly": true
   },

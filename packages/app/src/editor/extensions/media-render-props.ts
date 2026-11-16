@@ -1,4 +1,4 @@
-import { normalizeDocRelativeAssetUrl } from '@inkeep/open-knowledge-core/markdown/resolve-image-url';
+import { normalizeDocRelativeAssetUrl } from '@gitquire/core/markdown/resolve-image-url';
 
 export const DOC_RELATIVE_SRC_COMPONENTS = new Set([
   'img',

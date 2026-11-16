@@ -1,4 +1,4 @@
-import { resolveDesktopProductName } from '@inkeep/open-knowledge-core/constants/product';
+import { resolveDesktopProductName } from '@gitquire/core/constants/product';
 import { describe, expect, test } from 'vitest';
 import {
   applyDevServerChannel,

@@ -1,4 +1,4 @@
-import type { SyncMode } from '@inkeep/open-knowledge-core';
+import type { SyncMode } from '@gitquire/core';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';

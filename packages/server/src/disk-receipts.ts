@@ -8,8 +8,8 @@ import {
   isMermaidDocFile,
   SUPPORTED_DOC_EXTENSIONS,
   SYSTEM_DOC_NAME,
-} from '@inkeep/open-knowledge-core';
-import { atomicTempPath } from '@inkeep/open-knowledge-core/server';
+} from '@gitquire/core';
+import { atomicTempPath } from '@gitquire/core/server';
 import {
   tracedAppendNoFollowSync,
   tracedMkdirSync,

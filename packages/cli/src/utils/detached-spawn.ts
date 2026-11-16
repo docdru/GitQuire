@@ -3,7 +3,7 @@ import {
   type spawn as NativeSpawn,
   spawn as nativeSpawn,
 } from 'node:child_process';
-import { withHiddenWindowsConsole } from '@inkeep/open-knowledge-server';
+import { withHiddenWindowsConsole } from '@gitquire/server';
 
 function scrubElectronRunAsNode(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const next = { ...env };

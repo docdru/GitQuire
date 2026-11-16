@@ -8,8 +8,8 @@ import { createApiExtension } from './api-extension.test-helper.ts';
 import type { FileIndexEntry } from './file-watcher.ts';
 
 const corpusCalls = vi.hoisted(() => ({ create: 0, update: 0 }));
-vi.mock('@inkeep/open-knowledge-core', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@inkeep/open-knowledge-core')>();
+vi.mock('@gitquire/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@gitquire/core')>();
   return {
     ...actual,
     createWorkspaceSearchCorpus: (

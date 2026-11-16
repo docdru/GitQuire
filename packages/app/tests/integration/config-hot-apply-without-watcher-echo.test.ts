@@ -40,13 +40,13 @@ vi.mock('../../../server/src/polled-path-watcher.ts', async (importOriginal) => 
   };
 });
 
-import { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   bindConfigDoc,
   CONFIG_DOC_NAME_PROJECT,
   CONFIG_DOC_NAME_PROJECT_LOCAL,
   type ConfigBinding,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import {
   createSyncWiredTestServer,

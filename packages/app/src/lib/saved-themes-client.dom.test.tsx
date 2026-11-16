@@ -6,7 +6,7 @@ import {
   SavedThemeSaveSuccessSchema,
   SavedThemesListSuccessSchema,
   SavedThemeUpdateSuccessSchema,
-} from '@inkeep/open-knowledge-core';
+} from '@gitquire/core';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';

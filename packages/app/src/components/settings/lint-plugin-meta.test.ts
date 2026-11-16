@@ -1,4 +1,4 @@
-import { LINT_PLUGINS } from '@inkeep/open-knowledge-core';
+import { LINT_PLUGINS } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { LINT_PLUGIN_META } from './lint-plugin-meta.ts';
 

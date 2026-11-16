@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { relationLinks } from '@inkeep/open-knowledge-core/gitquire/typed-links';
+import { relationLinks } from '@gitquire/core/gitquire/typed-links';
 import { describe, expect, it } from 'vitest';
 import { applyRenameMap } from '../apply-managed-rename.ts';
 import { BacklinkIndex } from '../backlink-index.ts';

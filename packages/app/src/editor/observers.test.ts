@@ -1,7 +1,7 @@
 // Server-authoritative client-observer shell (precedent #14 + #13(b))
 
 import { setTimeout } from 'node:timers/promises';
-import { MarkdownManager } from '@inkeep/open-knowledge-core';
+import { MarkdownManager } from '@gitquire/core';
 import { getSchema } from '@tiptap/core';
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { describe, expect, test } from 'vitest';

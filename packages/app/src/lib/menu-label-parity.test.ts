@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { COMMAND_IDENTITIES, MENU_LABELS } from '@inkeep/open-knowledge-core';
+import { COMMAND_IDENTITIES, MENU_LABELS } from '@gitquire/core';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
   PALETTE_COMMAND_LABELS,

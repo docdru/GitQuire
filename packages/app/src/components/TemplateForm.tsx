@@ -1,13 +1,10 @@
 // oxlint-disable ok/no-raw-error-toast -- pre-rule backlog: toasts here show raw error text; delete this line once the file maps each failure to written copy. See https://github.com/inkeep/open-knowledge/blob/main/lint-plugins/ok-rules/README.md#no-raw-error-toast
-import {
-  stripFrontmatter,
-  unwrapFrontmatterFences,
-} from '@inkeep/open-knowledge-core/extensions/frontmatter';
+import { stripFrontmatter, unwrapFrontmatterFences } from '@gitquire/core/extensions/frontmatter';
 import {
   canonicalTemplateName,
   TEMPLATE_NAME_REGEX,
   templateRenameTarget,
-} from '@inkeep/open-knowledge-core/schemas/api';
+} from '@gitquire/core/schemas/api';
 import { t } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { X } from 'lucide-react';

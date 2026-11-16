@@ -28,8 +28,8 @@ import {
   OkCliCommand,
   okUserHomeDisplayPath,
   type ProblemType,
-} from '@inkeep/open-knowledge-core';
-import { resolveGitDirDetailed } from '@inkeep/open-knowledge-core/shadow-repo-layout';
+} from '@gitquire/core';
+import { resolveGitDirDetailed } from '@gitquire/core/shadow-repo-layout';
 import {
   LOCAL_OP_PIPE_STDIO_OPTIONS,
   withHiddenWindowsConsole,
