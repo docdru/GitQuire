@@ -11,6 +11,7 @@ import {
   stripFrontmatter,
   toBridgeInvariantLog,
 } from '@inkeep/open-knowledge-core';
+import { checkCommentsAfterOutsideChange } from '@inkeep/open-knowledge-core/gitquire/comment-threads';
 import { formatReconcileSubject } from '@inkeep/open-knowledge-core/shadow-repo-layout';
 import type * as Y from 'yjs';
 import type { PrecomputedParse } from './bridge-intake.ts';
@@ -92,6 +93,14 @@ export function applyExternalChange(
 
   const currentSource = document.getText('source').toString();
   const bytesUnchanged = currentSource === content;
+  const commentCheck = checkCommentsAfterOutsideChange(currentSource, content);
+  const incoming = commentCheck.markdown;
+  if (commentCheck.restored.length > 0 || commentCheck.relinked.length > 0) {
+    getLogger('reconcile').info(
+      { docName, restored: commentCheck.restored, relinked: commentCheck.relinked },
+      'kept comment threads an outside change had dropped or unlinked',
+    );
+  }
 
   const priorFm = stripFrontmatter(currentSource).frontmatter;
   const { frontmatter: nextFm } = stripFrontmatter(content);
@@ -114,12 +123,12 @@ export function applyExternalChange(
     document.transact(() => {
       applyDiskContentToDoc(
         document,
-        content,
+        incoming,
         resolveEmbed,
         docName,
         resolveSize,
         detect,
-        precomputed,
+        incoming === content ? precomputed : undefined,
       );
     }, FILE_WATCHER_ORIGIN);
   } catch (err) {

@@ -85,6 +85,32 @@ describe('applyExternalChange — throwing helper', () => {
     await conn.disconnect();
   });
 
+  test('(b1) keeps a comment thread an outside change dropped while its mark stays', async () => {
+    const docName = 'test-comment-check';
+    const conn = await hp.openDirectConnection(docName);
+    const doc = getDoc(conn);
+    const thread = [
+      '[^c-7f3a]: 💬 on "numbers"',
+      '',
+      '    - **@alice** · 2026-11-14 10:32 — Source?',
+    ].join('\n');
+    applyExternalChange(
+      durabilityState,
+      hp,
+      docName,
+      `The numbers[^c-7f3a] look good.\n\n${thread}\n`,
+    );
+
+    const outside = 'The numbers[^c-7f3a] look great.\n';
+    applyExternalChange(durabilityState, hp, docName, outside);
+
+    expect(doc.getText('source').toString()).toBe(
+      `The numbers[^c-7f3a] look great.\n\n${thread}\n`,
+    );
+    expect(durabilityState.getReconciledBase(docName)).toBe(outside);
+    await conn.disconnect();
+  });
+
   test('(b2) repeated apply with identical content does not mutate Y.Text', async () => {
     const docName = 'test-ytext-stable';
     const conn = await hp.openDirectConnection(docName);
