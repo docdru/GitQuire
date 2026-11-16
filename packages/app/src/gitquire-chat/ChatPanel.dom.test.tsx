@@ -162,6 +162,49 @@ describe('ChatPanel', () => {
     });
   });
 
+  test('shows the answer growing piece by piece, one bubble per step', async () => {
+    const stream = [
+      {
+        type: 'chat',
+        id: 'abcdefghijklmnop',
+        title: 'Hi',
+        provider: 'claude',
+        model: 'claude-sonnet-5-5',
+      },
+      { type: 'text-delta', text: 'Let me ' },
+      { type: 'text-delta', text: 'look.' },
+      { type: 'usage', inputTokens: 1, outputTokens: 1, chatInputTokens: 1, chatOutputTokens: 1 },
+      { type: 'text', text: 'Let me look.' },
+      { type: 'tool', id: 't1', name: 'search', input: { query: 'plan' } },
+      { type: 'tool-result', id: 't1', name: 'search', isError: false, preview: 'ok' },
+      { type: 'text-delta', text: 'Found ' },
+      { type: 'text-delta', text: 'it.' },
+      { type: 'text', text: 'Found it.' },
+      { type: 'done', stopped: 'end' },
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n');
+    stubFetch((url) => {
+      if (url === '/api/gitquire/chat') return json(overview({ claude: true }));
+      if (url === '/api/gitquire/chat/chats') return json({ chats: [] });
+      if (url === '/api/gitquire/chat/chats/new/messages') {
+        return new Response(`${stream}\n`, {
+          headers: { 'content-type': 'application/x-ndjson' },
+        });
+      }
+      return undefined;
+    });
+    render(<ChatPanel />);
+    const input = await screen.findByRole('textbox', { name: 'Message' });
+    fireEvent.change(input, { target: { value: 'Hi' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(await screen.findByText('Found it.')).toBeTruthy();
+    expect(screen.getByText('Let me look.')).toBeTruthy();
+    expect(screen.queryByText('Let me look.Found it.')).toBeNull();
+    expect(screen.getAllByText(/Let me look\./)).toHaveLength(1);
+  });
+
   test('sends a request queued from the Ask box once the chat is ready', async () => {
     stubFetch((url) => {
       if (url === '/api/gitquire/chat') return json(overview({ claude: true }));

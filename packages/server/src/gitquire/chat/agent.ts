@@ -11,6 +11,7 @@ const PREVIEW_CHARS = 400;
 
 export type ChatEvent =
   | { type: 'chat'; id: string; title: string; provider: string; model: string }
+  | { type: 'text-delta'; text: string }
   | { type: 'text'; text: string }
   | { type: 'tool'; id: string; name: string; input: Record<string, unknown> }
   | { type: 'tool-result'; id: string; name: string; isError: boolean; preview: string }
@@ -105,6 +106,18 @@ export async function runChatTurn(options: {
     return done;
   };
 
+  const countUsage = (usage: { inputTokens: number; outputTokens: number }) => {
+    chat.usage.inputTokens += usage.inputTokens;
+    chat.usage.outputTokens += usage.outputTokens;
+    emit({
+      type: 'usage',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      chatInputTokens: chat.usage.inputTokens,
+      chatOutputTokens: chat.usage.outputTokens,
+    });
+  };
+
   for (let step = 0; step < maxSteps; step += 1) {
     if (signal?.aborted) return finish('aborted');
     let turn: Awaited<ReturnType<ChatProviders['turn']>>;
@@ -116,6 +129,12 @@ export async function runChatTurn(options: {
         tools: options.tools.specs,
         maxTokens: MAX_REPLY_TOKENS,
         signal,
+        onText: (delta) => emit({ type: 'text-delta', text: delta }),
+        onUnfinishedUsage: (usage) => {
+          if (usage.inputTokens === 0 && usage.outputTokens === 0) return;
+          countUsage(usage);
+          options.persist(chat);
+        },
       });
     } catch (err) {
       if (signal?.aborted) return finish('aborted');
@@ -126,15 +145,7 @@ export async function runChatTurn(options: {
       emit({ type: 'error', code: failure.code, message: failure.message });
       return finish('error');
     }
-    chat.usage.inputTokens += turn.usage.inputTokens;
-    chat.usage.outputTokens += turn.usage.outputTokens;
-    emit({
-      type: 'usage',
-      inputTokens: turn.usage.inputTokens,
-      outputTokens: turn.usage.outputTokens,
-      chatInputTokens: chat.usage.inputTokens,
-      chatOutputTokens: chat.usage.outputTokens,
-    });
+    countUsage(turn.usage);
     if (turn.text !== '') emit({ type: 'text', text: turn.text });
     append({
       role: 'assistant',

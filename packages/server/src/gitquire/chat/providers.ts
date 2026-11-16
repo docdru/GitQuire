@@ -15,6 +15,8 @@ interface ProviderTurnRequest {
   tools: readonly ToolSpec[];
   maxTokens: number;
   signal?: AbortSignal;
+  onText?: (delta: string) => void;
+  onUnfinishedUsage?: (usage: ChatUsage) => void;
 }
 
 type StopReason = 'end' | 'tool_use' | 'max_tokens' | 'context_full' | 'other';
@@ -117,13 +119,13 @@ export function classifyProviderFailure(status: number, detail: string): Provide
   return 'unexpected';
 }
 
-async function postJson(
+async function post(
   doFetch: Fetch,
   url: string,
   headers: Record<string, string>,
   body: unknown,
   signal: AbortSignal | undefined,
-): Promise<unknown> {
+): Promise<Response> {
   let response: Response;
   try {
     response = await doFetch(url, {
@@ -136,8 +138,8 @@ async function postJson(
     if (signal?.aborted) throw err;
     throw new ProviderError('network', 'The AI provider could not be reached.');
   }
-  const parsed: unknown = await response.json().catch(() => undefined);
   if (!response.ok) {
+    const parsed: unknown = await response.json().catch(() => undefined);
     const detail = errorDetail(parsed);
     throw new ProviderError(
       classifyProviderFailure(response.status, detail),
@@ -145,7 +147,109 @@ async function postJson(
       response.status,
     );
   }
-  return parsed;
+  return response;
+}
+
+function isEventStream(response: Response): boolean {
+  return (response.headers.get('content-type') ?? '').includes('text/event-stream');
+}
+
+interface StreamEvent {
+  event: string | undefined;
+  data: string;
+}
+
+async function* readEventStream(
+  response: Response,
+  signal: AbortSignal | undefined,
+): AsyncGenerator<StreamEvent> {
+  const body = response.body;
+  if (body === null) return;
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let carry = '';
+  let finished = false;
+  const parse = (chunk: string): StreamEvent | undefined => {
+    let event: string | undefined;
+    const data: string[] = [];
+    for (const line of chunk.split('\n')) {
+      if (line.startsWith('event:')) event = line.slice(6).trim();
+      else if (line.startsWith('data:')) data.push(line.slice(5).replace(/^ /, ''));
+    }
+    return data.length === 0 ? undefined : { event, data: data.join('\n') };
+  };
+  try {
+    while (true) {
+      if (signal?.aborted) throw signal.reason ?? new Error('aborted');
+      let read: ReadableStreamReadResult<Uint8Array>;
+      try {
+        read = await reader.read();
+      } catch (err) {
+        if (signal?.aborted) throw err;
+        throw new ProviderError('network', 'The connection to the AI provider was lost.');
+      }
+      if (read.done) {
+        finished = true;
+        break;
+      }
+      let text = carry + decoder.decode(read.value, { stream: true });
+      carry = text.endsWith('\r') ? '\r' : '';
+      if (carry !== '') text = text.slice(0, -1);
+      buffer += text.replace(/\r\n?/g, '\n');
+      let split = buffer.indexOf('\n\n');
+      while (split !== -1) {
+        const parsed = parse(buffer.slice(0, split));
+        buffer = buffer.slice(split + 2);
+        if (parsed !== undefined) yield parsed;
+        split = buffer.indexOf('\n\n');
+      }
+    }
+    const rest = parse(
+      `${buffer}${carry === '' ? '' : '\n'}${decoder.decode().replace(/\r\n?/g, '\n')}`,
+    );
+    if (rest !== undefined) yield rest;
+  } finally {
+    if (!finished) await reader.cancel().catch(() => undefined);
+    reader.releaseLock();
+  }
+}
+
+function endedEarly(): ProviderError {
+  return new ProviderError(
+    'network',
+    'The connection to the AI provider ended before the answer was complete.',
+  );
+}
+
+function parseData(data: string): Record<string, unknown> | undefined {
+  try {
+    const parsed: unknown = JSON.parse(data);
+    return typeof parsed === 'object' && parsed !== null
+      ? (parsed as Record<string, unknown>)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function streamError(record: Record<string, unknown>): ProviderError {
+  const detail = errorDetail(record);
+  const nested = (record.error ?? {}) as Record<string, unknown>;
+  const type = typeof nested.type === 'string' ? nested.type : '';
+  const status =
+    type === 'overloaded_error'
+      ? 529
+      : type === 'rate_limit_error'
+        ? 429
+        : type === 'api_error'
+          ? 500
+          : 400;
+  return new ProviderError(
+    classifyProviderFailure(status, detail),
+    detail || 'The AI provider stopped the answer with an error.',
+    status,
+  );
 }
 
 function mergeAdjacent<T extends { role: string; content: unknown[] }>(messages: T[]): T[] {
@@ -279,6 +383,131 @@ function parseInput(raw: unknown): Record<string, unknown> {
   return {};
 }
 
+const number = (value: unknown) => (typeof value === 'number' ? value : 0);
+
+function anthropicStop(stop: unknown): StopReason {
+  return stop === 'tool_use'
+    ? 'tool_use'
+    : stop === 'max_tokens'
+      ? 'max_tokens'
+      : stop === 'model_context_window_exceeded'
+        ? 'context_full'
+        : stop === 'end_turn' || stop === 'stop_sequence'
+          ? 'end'
+          : 'other';
+}
+
+function anthropicFromContent(
+  content: readonly Record<string, unknown>[],
+  usage: Record<string, unknown>,
+  stop: unknown,
+): ProviderTurn {
+  let text = '';
+  const toolCalls: ToolCall[] = [];
+  for (const block of content) {
+    if (block.type === 'text' && typeof block.text === 'string') text += block.text;
+    if (
+      block.type === 'tool_use' &&
+      typeof block.id === 'string' &&
+      typeof block.name === 'string'
+    ) {
+      toolCalls.push({ id: block.id, name: block.name, input: parseInput(block.input) });
+    }
+  }
+  return {
+    text,
+    toolCalls,
+    claudeContent: [...content],
+    usage: {
+      inputTokens:
+        number(usage.input_tokens) +
+        number(usage.cache_creation_input_tokens) +
+        number(usage.cache_read_input_tokens),
+      outputTokens: number(usage.output_tokens),
+    },
+    stopReason: anthropicStop(stop),
+  };
+}
+
+async function anthropicFromStream(
+  response: Response,
+  request: ProviderTurnRequest,
+): Promise<ProviderTurn> {
+  const blocks: Record<string, unknown>[] = [];
+  const partialJson = new Map<number, string>();
+  const usage: Record<string, unknown> = {};
+  let stop: unknown;
+  let complete = false;
+  try {
+    for await (const { data } of readEventStream(response, request.signal)) {
+      const record = parseData(data);
+      if (record === undefined) continue;
+      switch (record.type) {
+        case 'message_start': {
+          const message = (record.message ?? {}) as Record<string, unknown>;
+          Object.assign(usage, (message.usage ?? {}) as Record<string, unknown>);
+          break;
+        }
+        case 'content_block_start': {
+          const index = number(record.index);
+          const block = { ...((record.content_block ?? {}) as Record<string, unknown>) };
+          if (block.type === 'tool_use') block.input = {};
+          blocks[index] = block;
+          break;
+        }
+        case 'content_block_delta': {
+          const index = number(record.index);
+          const block = blocks[index];
+          const delta = (record.delta ?? {}) as Record<string, unknown>;
+          if (block === undefined) break;
+          if (delta.type === 'text_delta' && typeof delta.text === 'string') {
+            block.text = `${typeof block.text === 'string' ? block.text : ''}${delta.text}`;
+            if (delta.text !== '') request.onText?.(delta.text);
+          } else if (delta.type === 'input_json_delta' && typeof delta.partial_json === 'string') {
+            partialJson.set(index, `${partialJson.get(index) ?? ''}${delta.partial_json}`);
+          } else if (delta.type === 'thinking_delta' && typeof delta.thinking === 'string') {
+            block.thinking = `${typeof block.thinking === 'string' ? block.thinking : ''}${delta.thinking}`;
+          } else if (delta.type === 'signature_delta' && typeof delta.signature === 'string') {
+            block.signature = delta.signature;
+          }
+          break;
+        }
+        case 'content_block_stop': {
+          const index = number(record.index);
+          const block = blocks[index];
+          const json = partialJson.get(index);
+          if (block !== undefined && json !== undefined)
+            block.input = parseInput(json === '' ? '{}' : json);
+          break;
+        }
+        case 'message_delta': {
+          const delta = (record.delta ?? {}) as Record<string, unknown>;
+          if (delta.stop_reason !== undefined) stop = delta.stop_reason;
+          const more = (record.usage ?? {}) as Record<string, unknown>;
+          for (const [key, value] of Object.entries(more)) {
+            if (typeof value === 'number') usage[key] = value;
+          }
+          break;
+        }
+        case 'message_stop':
+          complete = true;
+          break;
+        case 'error':
+          throw streamError(record);
+      }
+    }
+    if (!complete) throw endedEarly();
+  } catch (err) {
+    request.onUnfinishedUsage?.(anthropicFromContent([], usage, stop).usage);
+    throw err;
+  }
+  return anthropicFromContent(
+    blocks.filter((block) => block !== undefined),
+    usage,
+    stop,
+  );
+}
+
 async function anthropicTurn(
   doFetch: Fetch,
   base: string,
@@ -291,57 +520,146 @@ async function anthropicTurn(
     input_schema: tool.inputSchema,
     ...(index === request.tools.length - 1 ? { cache_control: { type: 'ephemeral' } } : {}),
   }));
-  const body = await postJson(
+  const response = await post(
     doFetch,
     `${base}/v1/messages`,
     { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
     {
       model: request.model,
       max_tokens: request.maxTokens,
+      stream: true,
       system: [{ type: 'text', text: request.system, cache_control: { type: 'ephemeral' } }],
       messages: withCacheBreakpoint(toAnthropicMessages(request.messages)),
       ...(tools.length > 0 ? { tools } : {}),
     },
     request.signal,
   );
-  const record = (body ?? {}) as Record<string, unknown>;
-  const content = Array.isArray(record.content) ? record.content : [];
+  if (isEventStream(response)) return anthropicFromStream(response, request);
+  const record = ((await response.json().catch(() => undefined)) ?? {}) as Record<string, unknown>;
+  const content = (Array.isArray(record.content) ? record.content : []) as Record<
+    string,
+    unknown
+  >[];
+  const turn = anthropicFromContent(
+    content,
+    (record.usage ?? {}) as Record<string, unknown>,
+    record.stop_reason,
+  );
+  if (turn.text !== '') request.onText?.(turn.text);
+  return turn;
+}
+
+function mistralText(content: unknown): string {
+  if (typeof content === 'string') return content;
   let text = '';
-  const toolCalls: ToolCall[] = [];
-  for (const block of content as Record<string, unknown>[]) {
-    if (block.type === 'text' && typeof block.text === 'string') text += block.text;
-    if (
-      block.type === 'tool_use' &&
-      typeof block.id === 'string' &&
-      typeof block.name === 'string'
-    ) {
-      toolCalls.push({ id: block.id, name: block.name, input: parseInput(block.input) });
+  if (Array.isArray(content)) {
+    for (const part of content as Record<string, unknown>[]) {
+      if (part.type === 'text' && typeof part.text === 'string') text += part.text;
     }
   }
-  const usage = (record.usage ?? {}) as Record<string, unknown>;
-  const number = (value: unknown) => (typeof value === 'number' ? value : 0);
-  const stop = record.stop_reason;
+  return text;
+}
+
+function mistralStop(finish: unknown, toolCalls: readonly ToolCall[]): StopReason {
+  return toolCalls.length > 0 || finish === 'tool_calls'
+    ? 'tool_use'
+    : finish === 'length'
+      ? 'max_tokens'
+      : finish === 'stop'
+        ? 'end'
+        : 'other';
+}
+
+function mistralUsage(usage: Record<string, unknown>): ProviderTurn['usage'] {
+  return {
+    inputTokens: number(usage.prompt_tokens),
+    outputTokens: number(usage.completion_tokens),
+  };
+}
+
+function mistralCallIndex(
+  calls: ReadonlyMap<number, { id: string }>,
+  raw: Record<string, unknown>,
+  position: number,
+): number {
+  if (typeof raw.index === 'number') return raw.index;
+  const id = typeof raw.id === 'string' ? raw.id : '';
+  if (id === '') return calls.size === 0 ? position : Math.max(...calls.keys());
+  for (const [index, call] of calls) {
+    if (call.id === id) return index;
+  }
+  return calls.size === 0 ? position : Math.max(...calls.keys()) + 1;
+}
+
+async function mistralFromStream(
+  response: Response,
+  request: ProviderTurnRequest,
+): Promise<ProviderTurn> {
+  let text = '';
+  const calls = new Map<number, { id: string; name: string; args: string }>();
+  let usage: Record<string, unknown> = {};
+  let finish: unknown;
+  let sawDone = false;
+  try {
+    for await (const { data } of readEventStream(response, request.signal)) {
+      if (data.trim() === '[DONE]') {
+        sawDone = true;
+        break;
+      }
+      const record = parseData(data);
+      if (record === undefined) continue;
+      if (
+        record.object === 'error' ||
+        (record.error !== undefined && record.choices === undefined)
+      ) {
+        throw streamError(record);
+      }
+      if (typeof record.usage === 'object' && record.usage !== null) {
+        usage = record.usage as Record<string, unknown>;
+      }
+      const choice = (Array.isArray(record.choices) ? record.choices[0] : undefined) as
+        | Record<string, unknown>
+        | undefined;
+      if (choice === undefined) continue;
+      if (choice.finish_reason !== undefined && choice.finish_reason !== null) {
+        finish = choice.finish_reason;
+      }
+      const delta = (choice.delta ?? {}) as Record<string, unknown>;
+      const piece = mistralText(delta.content);
+      if (piece !== '') {
+        text += piece;
+        request.onText?.(piece);
+      }
+      if (Array.isArray(delta.tool_calls)) {
+        for (const [position, raw] of (delta.tool_calls as Record<string, unknown>[]).entries()) {
+          const index = mistralCallIndex(calls, raw, position);
+          const fn = (raw.function ?? {}) as Record<string, unknown>;
+          const current = calls.get(index) ?? { id: '', name: '', args: '' };
+          if (typeof raw.id === 'string' && raw.id !== '') current.id = raw.id;
+          if (typeof fn.name === 'string' && fn.name !== '') current.name = fn.name;
+          if (typeof fn.arguments === 'string') current.args += fn.arguments;
+          else if (typeof fn.arguments === 'object' && fn.arguments !== null) {
+            current.args = JSON.stringify(fn.arguments);
+          }
+          calls.set(index, current);
+        }
+      }
+    }
+    if (!sawDone && (finish === undefined || finish === null)) throw endedEarly();
+  } catch (err) {
+    request.onUnfinishedUsage?.(mistralUsage(usage));
+    throw err;
+  }
+  const toolCalls: ToolCall[] = [...calls.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([, call]) => call)
+    .filter((call) => call.id !== '' && call.name !== '')
+    .map((call) => ({ id: call.id, name: call.name, input: parseInput(call.args) }));
   return {
     text,
     toolCalls,
-    claudeContent: content,
-    usage: {
-      inputTokens:
-        number(usage.input_tokens) +
-        number(usage.cache_creation_input_tokens) +
-        number(usage.cache_read_input_tokens),
-      outputTokens: number(usage.output_tokens),
-    },
-    stopReason:
-      stop === 'tool_use'
-        ? 'tool_use'
-        : stop === 'max_tokens'
-          ? 'max_tokens'
-          : stop === 'model_context_window_exceeded'
-            ? 'context_full'
-            : stop === 'end_turn' || stop === 'stop_sequence'
-              ? 'end'
-              : 'other',
+    usage: mistralUsage(usage),
+    stopReason: mistralStop(finish, toolCalls),
   };
 }
 
@@ -351,13 +669,14 @@ async function mistralTurn(
   apiKey: string,
   request: ProviderTurnRequest,
 ): Promise<ProviderTurn> {
-  const body = await postJson(
+  const response = await post(
     doFetch,
     `${base}/v1/chat/completions`,
     { authorization: `Bearer ${apiKey}` },
     {
       model: request.model,
       max_tokens: request.maxTokens,
+      stream: true,
       messages: toMistralMessages(request.system, request.messages),
       ...(request.tools.length > 0
         ? {
@@ -375,19 +694,13 @@ async function mistralTurn(
     },
     request.signal,
   );
-  const record = (body ?? {}) as Record<string, unknown>;
+  if (isEventStream(response)) return mistralFromStream(response, request);
+  const record = ((await response.json().catch(() => undefined)) ?? {}) as Record<string, unknown>;
   const choice = (Array.isArray(record.choices) ? record.choices[0] : undefined) as
     | Record<string, unknown>
     | undefined;
   const message = (choice?.message ?? {}) as Record<string, unknown>;
-  const content = message.content;
-  let text = '';
-  if (typeof content === 'string') text = content;
-  else if (Array.isArray(content)) {
-    for (const part of content as Record<string, unknown>[]) {
-      if (part.type === 'text' && typeof part.text === 'string') text += part.text;
-    }
-  }
+  const text = mistralText(message.content);
   const toolCalls: ToolCall[] = [];
   if (Array.isArray(message.tool_calls)) {
     for (const call of message.tool_calls as Record<string, unknown>[]) {
@@ -396,24 +709,12 @@ async function mistralTurn(
       toolCalls.push({ id: call.id, name: fn.name, input: parseInput(fn.arguments) });
     }
   }
-  const usage = (record.usage ?? {}) as Record<string, unknown>;
-  const number = (value: unknown) => (typeof value === 'number' ? value : 0);
-  const finish = choice?.finish_reason;
+  if (text !== '') request.onText?.(text);
   return {
     text,
     toolCalls,
-    usage: {
-      inputTokens: number(usage.prompt_tokens),
-      outputTokens: number(usage.completion_tokens),
-    },
-    stopReason:
-      toolCalls.length > 0 || finish === 'tool_calls'
-        ? 'tool_use'
-        : finish === 'length'
-          ? 'max_tokens'
-          : finish === 'stop'
-            ? 'end'
-            : 'other',
+    usage: mistralUsage((record.usage ?? {}) as Record<string, unknown>),
+    stopReason: mistralStop(choice?.finish_reason, toolCalls),
   };
 }
 
