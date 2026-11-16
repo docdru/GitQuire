@@ -197,14 +197,14 @@ describe('in-sync residual merge (sibling router branch) — byte-preservation g
 });
 
 describe('Path B doc-boundary alignment: content-loss recovery arm re-projects the boundary', () => {
-  const ENV_KEYS = ['NODE_ENV', 'OK_RETHROW_BRIDGE_LOSS'] as const;
+  const ENV_KEYS = ['NODE_ENV', 'GITQUIRE_RETHROW_BRIDGE_LOSS'] as const;
   let savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>>;
 
   beforeEach(() => {
     savedEnv = {};
     for (const key of ENV_KEYS) savedEnv[key] = process.env[key];
     process.env.NODE_ENV = 'production';
-    delete process.env.OK_RETHROW_BRIDGE_LOSS;
+    delete process.env.GITQUIRE_RETHROW_BRIDGE_LOSS;
   });
 
   afterEach(() => {

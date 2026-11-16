@@ -374,9 +374,9 @@ describe('known-reds scanner: CI-keyed skips', () => {
     "test.skipIf(process.env.CIRCLE)('x', () => {});",
     "test.skipIf({ CI: true }.CI_FLAG)('x', () => {});",
     "test.skipIf(process.platform === 'win32')('x', () => {});",
-    "const e = process.env;\ntest.skipIf(e.OK_LIVE_API)('x', () => {});",
+    "const e = process.env;\ntest.skipIf(e.GITQUIRE_LIVE_API)('x', () => {});",
     "const { HOME } = process.env;\ntest.skipIf(HOME)('x', () => {});",
-    "const key = 'OK_LIVE_API';\ntest.skipIf(process.env[key])('x', () => {});",
+    "const key = 'GITQUIRE_LIVE_API';\ntest.skipIf(process.env[key])('x', () => {});",
     "const hasDocker = () => process.env.DOCKER_HOST !== undefined;\ntest.skipIf(hasDocker())('x', () => {});",
     "import ci from 'ci-info';\ntest.skipIf(ci.isPR)('x', () => {});",
     "import { isCI } from './ci';\ntest.skipIf(isCI)('x', () => {});",
@@ -388,7 +388,7 @@ describe('known-reds scanner: CI-keyed skips', () => {
     "import * as ci from './ci';\ntest.skipIf(ci.isCI)('x', () => {});",
     "const onCi = (flag) => Boolean(process.env.CI);\ntest.skipIf(onCi())('x', () => {});",
     "function onCi() { return Boolean(process.env.CI); console.log('after'); }\ntest.skipIf(onCi())('x', () => {});",
-    "test.skipIf('OK_LIVE_API' in process.env)('x', () => {});",
+    "test.skipIf('GITQUIRE_LIVE_API' in process.env)('x', () => {});",
     "test.skipIf('CI' in flags)('x', () => {});",
   ])('lists %s as an environment gate', (source) => {
     const gates = scanSource('packages/server/src/a.test.ts', source).gates;
@@ -492,12 +492,12 @@ describe('known-reds feed: gate atoms and title chains', () => {
       [{ kind: 'arch', name: 'process.arch', text: "process.arch !== 'arm64'" }],
     ],
     [
-      "test.runIf(process.env.OK_LIVE_API === '1')('x', () => {});",
-      [{ kind: 'env', name: 'OK_LIVE_API', text: "process.env.OK_LIVE_API === '1'" }],
+      "test.runIf(process.env.GITQUIRE_LIVE_API === '1')('x', () => {});",
+      [{ kind: 'env', name: 'GITQUIRE_LIVE_API', text: "process.env.GITQUIRE_LIVE_API === '1'" }],
     ],
     [
-      "test.runIf('OK_LIVE_API' in process.env)('x', () => {});",
-      [{ kind: 'env', name: 'OK_LIVE_API', text: "'OK_LIVE_API' in process.env" }],
+      "test.runIf('GITQUIRE_LIVE_API' in process.env)('x', () => {});",
+      [{ kind: 'env', name: 'GITQUIRE_LIVE_API', text: "'GITQUIRE_LIVE_API' in process.env" }],
     ],
     [
       "test.skipIf(process.env.GITHUB_ACTIONS)('x', () => {});",
@@ -582,23 +582,23 @@ describe('known-reds feed: gate atoms and title chains', () => {
       [{ kind: 'import', name: 'legacy-dep', text: 'hasLegacy' }],
     ],
     [
-      "test.skipIf(process.env.OK_MODE ?? process.env.CI)('x', () => {});",
+      "test.skipIf(process.env.GITQUIRE_MODE ?? process.env.CI)('x', () => {});",
       [
-        { kind: 'env', name: 'OK_MODE', text: 'process.env.OK_MODE' },
+        { kind: 'env', name: 'GITQUIRE_MODE', text: 'process.env.GITQUIRE_MODE' },
         { kind: 'ci', name: 'CI', text: 'process.env.CI' },
       ],
     ],
     [
-      "test.skipIf(process.platform === 'win32' ? process.env.OK_WIN : process.env.OK_POSIX)('x', () => {});",
+      "test.skipIf(process.platform === 'win32' ? process.env.GITQUIRE_WIN : process.env.GITQUIRE_POSIX)('x', () => {});",
       [
         { kind: 'platform', name: 'process.platform', text: "process.platform === 'win32'" },
-        { kind: 'env', name: 'OK_WIN', text: 'process.env.OK_WIN' },
-        { kind: 'env', name: 'OK_POSIX', text: 'process.env.OK_POSIX' },
+        { kind: 'env', name: 'GITQUIRE_WIN', text: 'process.env.GITQUIRE_WIN' },
+        { kind: 'env', name: 'GITQUIRE_POSIX', text: 'process.env.GITQUIRE_POSIX' },
       ],
     ],
     [
-      "import { env } from 'node:process';\ntest.skipIf(env.OK_FLAG === '1')('x', () => {});",
-      [{ kind: 'env', name: 'OK_FLAG', text: "env.OK_FLAG === '1'" }],
+      "import { env } from 'node:process';\ntest.skipIf(env.GITQUIRE_FLAG === '1')('x', () => {});",
+      [{ kind: 'env', name: 'GITQUIRE_FLAG', text: "env.GITQUIRE_FLAG === '1'" }],
     ],
     ["test.skipIf(IS_CI)('x', () => {});", [{ kind: 'ci', name: 'IS_CI', text: 'IS_CI' }]],
     [
@@ -621,8 +621,8 @@ describe('known-reds feed: gate atoms and title chains', () => {
       [{ kind: 'ci', name: 'CI', text: 'CI' }],
     ],
     [
-      "const e = process.env;\ntest.skipIf(e.OK_LIVE_API)('x', () => {});",
-      [{ kind: 'env', name: 'OK_LIVE_API', text: 'e.OK_LIVE_API' }],
+      "const e = process.env;\ntest.skipIf(e.GITQUIRE_LIVE_API)('x', () => {});",
+      [{ kind: 'env', name: 'GITQUIRE_LIVE_API', text: 'e.GITQUIRE_LIVE_API' }],
     ],
     [
       "const { platform } = process;\ntest.skipIf(platform === 'win32')('x', () => {});",
@@ -645,14 +645,14 @@ describe('known-reds feed: gate atoms and title chains', () => {
       [{ kind: 'unknown', name: "onCi('CI')", text: "onCi('CI')" }],
     ],
     [
-      "test.skipIf(!process.env.OK_PACKAGE_DIR?.trim())('x', () => {});",
+      "test.skipIf(!process.env.GITQUIRE_PACKAGE_DIR?.trim())('x', () => {});",
       [
         {
           kind: 'unknown',
-          name: 'process.env.OK_PACKAGE_DIR?.trim()',
-          text: 'process.env.OK_PACKAGE_DIR?.trim()',
+          name: 'process.env.GITQUIRE_PACKAGE_DIR?.trim()',
+          text: 'process.env.GITQUIRE_PACKAGE_DIR?.trim()',
         },
-        { kind: 'env', name: 'OK_PACKAGE_DIR', text: 'process.env.OK_PACKAGE_DIR' },
+        { kind: 'env', name: 'GITQUIRE_PACKAGE_DIR', text: 'process.env.GITQUIRE_PACKAGE_DIR' },
       ],
     ],
     [
@@ -660,8 +660,8 @@ describe('known-reds feed: gate atoms and title chains', () => {
       [{ kind: 'uid', name: 'process.getegid', text: 'process.getegid?.() === 0' }],
     ],
     [
-      "const key = 'OK_LIVE_API';\ntest.skipIf(process.env[key] === '1')('x', () => {});",
-      [{ kind: 'env', name: 'OK_LIVE_API', text: "process.env[key] === '1'" }],
+      "const key = 'GITQUIRE_LIVE_API';\ntest.skipIf(process.env[key] === '1')('x', () => {});",
+      [{ kind: 'env', name: 'GITQUIRE_LIVE_API', text: "process.env[key] === '1'" }],
     ],
     [
       "import { isCI } from 'ci-info';\ntest.skipIf(isCI)('x', () => {});",
@@ -722,13 +722,13 @@ describe('known-reds feed: gate atoms and title chains', () => {
   test('follows aliases to the facts they read', () => {
     const source = [
       "const ON_WINDOWS = process.platform === 'win32';",
-      'const SLOW_HOST = ON_WINDOWS || process.env.OK_SLOW === "1";',
+      'const SLOW_HOST = ON_WINDOWS || process.env.GITQUIRE_SLOW === "1";',
       "test.skipIf(SLOW_HOST && !process.env.CI)('x', () => {});",
     ].join('\n');
     expect(atomsOf(source)).toEqual([
       [
         { kind: 'platform', name: 'process.platform', text: "process.platform === 'win32'" },
-        { kind: 'env', name: 'OK_SLOW', text: 'process.env.OK_SLOW === "1"' },
+        { kind: 'env', name: 'GITQUIRE_SLOW', text: 'process.env.GITQUIRE_SLOW === "1"' },
         { kind: 'ci', name: 'CI', text: 'process.env.CI' },
       ],
     ]);
@@ -737,7 +737,7 @@ describe('known-reds feed: gate atoms and title chains', () => {
   test('resolves an alias to the declaration visible where the gate sits', () => {
     const source = [
       "test('an earlier test', () => {",
-      "  const FLAG = process.env.OK_OTHER === '1';",
+      "  const FLAG = process.env.GITQUIRE_OTHER === '1';",
       '  expect(FLAG).toBe(FLAG);',
       '});',
       "const FLAG = process.platform === 'win32';",
@@ -988,9 +988,9 @@ describe('known-reds scanner: early returns and not-run tests', () => {
     "const IS_WIN = process.platform === 'win32';\ntest('x', () => { if (IS_WIN) { console.log('skip'); return; } expect(1).toBe(1); });",
     "import { existsSync } from 'node:fs';\ntest('x', () => { if (!existsSync(built)) return; expect(1).toBe(1); });",
     "import os from 'node:os';\ntest('x', () => { if (os.platform() !== 'darwin') return; expect(1).toBe(1); });",
-    "test('x', () => { if (process.env.OK_AUDIT === '1') { report(); return; } expect(1).toBe(1); });",
+    "test('x', () => { if (process.env.GITQUIRE_AUDIT === '1') { report(); return; } expect(1).toBe(1); });",
     "describe('x', () => { const isWin = process.platform === 'win32'; test('y', () => { if (isWin) return; expect(1).toBe(1); }); });",
-    "const { OK_LIVE_API } = process.env;\ntest('x', () => { if (!OK_LIVE_API) return; expect(1).toBe(1); });",
+    "const { GITQUIRE_LIVE_API } = process.env;\ntest('x', () => { if (!GITQUIRE_LIVE_API) return; expect(1).toBe(1); });",
     "const { platform } = process;\ntest('x', () => { if (platform === 'win32') return; expect(1).toBe(1); });",
   ])('flags the environment early return in %s', (source) => {
     expect(scanSource('packages/server/src/a.test.ts', source).earlyReturns).toHaveLength(1);

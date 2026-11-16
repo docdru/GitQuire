@@ -38,7 +38,7 @@ async function factoryProbe(root: string, expireInit: boolean, target: WatcherTa
   const environmentKeys = new Set([
     'HOME',
     'USERPROFILE',
-    'OK_FILE_WATCHER_BACKEND',
+    'GITQUIRE_FILE_WATCHER_BACKEND',
     'GIT_CONFIG_GLOBAL',
     'GIT_CONFIG_NOSYSTEM',
     ...Object.keys(process.env).filter((key) => key.startsWith('GIT_')),

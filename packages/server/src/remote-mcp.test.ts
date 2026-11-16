@@ -422,7 +422,7 @@ describe('remote disabled — the forwarding-header tripwire', () => {
       headers: { host: `127.0.0.1:${rig.port}`, 'x-forwarded-for': '203.0.113.7' },
     });
     expect(res.status).toBe(403);
-    expect(res.body).toContain('OK_ALLOW_EXTERNAL');
+    expect(res.body).toContain('GITQUIRE_ALLOW_EXTERNAL');
   });
 
   test('proxied requests are refused with the exposure-consent hint', async () => {
@@ -432,7 +432,7 @@ describe('remote disabled — the forwarding-header tripwire', () => {
       headers: { host: `127.0.0.1:${rig.port}`, 'x-forwarded-for': '203.0.113.7' },
     });
     expect(res.status).toBe(403);
-    expect(res.body).toContain('OK_ALLOW_EXTERNAL');
+    expect(res.body).toContain('GITQUIRE_ALLOW_EXTERNAL');
   });
 
   test('vendor proxy headers (X-Real-IP, CF-Connecting-IP, True-Client-IP) also trip the wire', async () => {
@@ -443,7 +443,7 @@ describe('remote disabled — the forwarding-header tripwire', () => {
         headers: { host: `127.0.0.1:${rig.port}`, [header]: '203.0.113.7' },
       });
       expect(res.status, `${header} should trip the wire`).toBe(403);
-      expect(res.body).toContain('OK_ALLOW_EXTERNAL');
+      expect(res.body).toContain('GITQUIRE_ALLOW_EXTERNAL');
     }
   });
 

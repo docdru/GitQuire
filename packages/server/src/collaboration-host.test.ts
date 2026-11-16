@@ -153,7 +153,7 @@ describe('createCollaborationHost', () => {
     expect(hocuspocus.handleConnection).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledWith(
       { url: '/collab', host: 'localhost' },
-      '[remote] refused proxied WS upgrade; consent with OK_ALLOW_EXTERNAL=1 + OK_EXTERNAL_URL (or server.allowExternal + server.externalUrl in config)',
+      '[remote] refused proxied WS upgrade; consent with GITQUIRE_ALLOW_EXTERNAL=1 + GITQUIRE_EXTERNAL_URL (or server.allowExternal + server.externalUrl in config)',
     );
     expect(log.warn).toHaveBeenCalledWith(
       { handler: 'collab-upgrade' },

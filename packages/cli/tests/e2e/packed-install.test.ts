@@ -94,7 +94,7 @@ test('keeps fresh npm resolution selectable', async () => {
   try {
     const installed = await installPackedCli({
       ...fixture,
-      env: { ...fixture.env, OK_CLI_E2E_INSTALL_MODE: 'fresh' },
+      env: { ...fixture.env, GITQUIRE_CLI_E2E_INSTALL_MODE: 'fresh' },
     });
     const result = await promisify(execFile)(process.execPath, [installed.cliPath]);
     expect(JSON.parse(result.stdout)).toEqual({ leaf: '1.1.0', peer: '1.1.0' });

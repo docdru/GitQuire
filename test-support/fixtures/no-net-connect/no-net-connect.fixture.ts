@@ -22,7 +22,7 @@ async function captureBlockedRequest(hostname: string): Promise<unknown> {
 
 afterAll(() => dispatcher.close());
 
-if (process.env.OK_FIXTURE_COLLECTION_BLOCK === '1') {
+if (process.env.GITQUIRE_FIXTURE_COLLECTION_BLOCK === '1') {
   try {
     await fetch('https://collection-time.invalid/resource');
   } catch {}

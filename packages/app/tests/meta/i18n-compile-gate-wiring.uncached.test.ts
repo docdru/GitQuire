@@ -163,7 +163,7 @@ describe('i18n catalog compile wiring', () => {
     const declared = declaredGlobalSetups((await load()).default.globalSetup);
     expect(
       declared,
-      `the ${tier} tier (packages/app/${configFile}) does not declare ${COMPILE_GLOBAL_SETUP} in globalSetup, so its dev servers would serve missing or stale src/locales/*/messages.json: every dev server it boots sets OK_TEST_SKIP_I18N_COMPILE, so nothing else in the run compiles them and every assertion reads whatever an earlier compile left instead of the edit under test. Re-add that path to globalSetup in packages/app/${configFile}.`,
+      `the ${tier} tier (packages/app/${configFile}) does not declare ${COMPILE_GLOBAL_SETUP} in globalSetup, so its dev servers would serve missing or stale src/locales/*/messages.json: every dev server it boots sets GITQUIRE_TEST_SKIP_I18N_COMPILE, so nothing else in the run compiles them and every assertion reads whatever an earlier compile left instead of the edit under test. Re-add that path to globalSetup in packages/app/${configFile}.`,
     ).toContain(COMPILE_GLOBAL_SETUP);
     expect(
       declared[0],
@@ -171,7 +171,7 @@ describe('i18n catalog compile wiring', () => {
     ).toBe(COMPILE_GLOBAL_SETUP);
     expect(
       existsSync(join(APP_PACKAGE_ROOT, COMPILE_GLOBAL_SETUP)),
-      `the ${tier} tier (packages/app/${configFile}) names ${COMPILE_GLOBAL_SETUP} in globalSetup but no such file exists under packages/app, so the tier declares a catalog compile Playwright cannot load and its dev servers would serve missing or stale src/locales/*/messages.json under OK_TEST_SKIP_I18N_COMPILE. Point packages/app/${configFile} at the helper's real path.`,
+      `the ${tier} tier (packages/app/${configFile}) names ${COMPILE_GLOBAL_SETUP} in globalSetup but no such file exists under packages/app, so the tier declares a catalog compile Playwright cannot load and its dev servers would serve missing or stale src/locales/*/messages.json under GITQUIRE_TEST_SKIP_I18N_COMPILE. Point packages/app/${configFile} at the helper's real path.`,
     ).toBe(true);
   });
 });

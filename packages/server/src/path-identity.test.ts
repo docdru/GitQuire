@@ -440,7 +440,7 @@ describe('one directory identity for watcher keys and linked documents', () => {
       const filePath = join(contentDir, `${docName}.md`);
       const seed = '# Echo\n\nSeed paragraph.\n';
       writeFileSync(filePath, seed);
-      if (watcher === 'chokidar') vi.stubEnv('OK_FILE_WATCHER_BACKEND', 'chokidar');
+      if (watcher === 'chokidar') vi.stubEnv('GITQUIRE_FILE_WATCHER_BACKEND', 'chokidar');
       resetWatcherDecisionDiagnostics();
       echoGate.docName = docName;
       const server = createServer({

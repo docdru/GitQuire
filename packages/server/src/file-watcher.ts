@@ -4677,7 +4677,7 @@ async function startWatcherWithClock(
   let runOrderedRescan: ((work: () => Promise<void>) => Promise<void>) | undefined;
   let settleSubscription: (() => Promise<void>) | undefined;
   let backend: WatcherBackend;
-  const forceChokidar = process.env.OK_FILE_WATCHER_BACKEND === 'chokidar';
+  const forceChokidar = process.env.GITQUIRE_FILE_WATCHER_BACKEND === 'chokidar';
   const platform = opts.platform ?? process.platform;
   try {
     const parcelSub =

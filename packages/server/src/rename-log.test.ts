@@ -842,9 +842,9 @@ describe('batchCheckExistence timeout fallback (FR16 / D-T7)', () => {
 
   test('git binary hang → timeout fires, returns all-false, warns', async () => {
     const origPath = process.env.PATH ?? '';
-    const origTimeout = process.env.OK_GIT_TIMEOUT_MS;
+    const origTimeout = process.env.GITQUIRE_GIT_TIMEOUT_MS;
     process.env.PATH = `${fakeBinDir}:${origPath}`;
-    process.env.OK_GIT_TIMEOUT_MS = '200';
+    process.env.GITQUIRE_GIT_TIMEOUT_MS = '200';
 
     let warnedTimeout = false;
     let warnMsg: string | null = null;
@@ -874,8 +874,8 @@ describe('batchCheckExistence timeout fallback (FR16 / D-T7)', () => {
     } finally {
       warnSpy.mockRestore();
       process.env.PATH = origPath;
-      if (origTimeout !== undefined) process.env.OK_GIT_TIMEOUT_MS = origTimeout;
-      else process.env.OK_GIT_TIMEOUT_MS = undefined;
+      if (origTimeout !== undefined) process.env.GITQUIRE_GIT_TIMEOUT_MS = origTimeout;
+      else process.env.GITQUIRE_GIT_TIMEOUT_MS = undefined;
     }
   }, 5000);
 });

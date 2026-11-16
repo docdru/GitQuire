@@ -174,8 +174,8 @@ describe('declared-account agreement across probe, push, and clone', () => {
       deniedReason: 'private-no-access',
       resolvedLogin: 'alice',
     });
-    expect(run.handleEnv.OK_GH_TOKEN).toBe('gho_alice');
-    expect(run.handleEnv.OK_GH_TOKEN_LOGIN).toBe('alice');
+    expect(run.handleEnv.GITQUIRE_GH_TOKEN).toBe('gho_alice');
+    expect(run.handleEnv.GITQUIRE_GH_TOKEN_LOGIN).toBe('alice');
   });
 
   test('a credential-config-declared account resolves to one identity in all three consumers', async () => {
@@ -205,8 +205,8 @@ describe('declared-account agreement across probe, push, and clone', () => {
       deniedReason: 'private-no-access',
       resolvedLogin: 'workbot',
     });
-    expect(run.handleEnv.OK_GH_TOKEN).toBe('gho_workbot');
-    expect(run.handleEnv.OK_GH_TOKEN_LOGIN).toBe('workbot');
+    expect(run.handleEnv.GITQUIRE_GH_TOKEN).toBe('gho_workbot');
+    expect(run.handleEnv.GITQUIRE_GH_TOKEN_LOGIN).toBe('workbot');
   });
 
   test('with no declared account, all three consumers agree on the active gh account', async () => {
@@ -230,7 +230,7 @@ describe('declared-account agreement across probe, push, and clone', () => {
       checkStatus: 'denied',
       deniedReason: 'private-no-access',
     });
-    expect(run.handleEnv.OK_GH_TOKEN).toBe('gho_active');
-    expect('OK_GH_TOKEN_LOGIN' in run.handleEnv).toBe(false);
+    expect(run.handleEnv.GITQUIRE_GH_TOKEN).toBe('gho_active');
+    expect('GITQUIRE_GH_TOKEN_LOGIN' in run.handleEnv).toBe(false);
   });
 });

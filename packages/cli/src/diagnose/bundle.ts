@@ -279,9 +279,9 @@ function defaultReadCheckpointRefs(contentDir: string): string | null {
 }
 
 export function defaultReadDesktopEnv(): DesktopMetadata | null {
-  const electronVersion = process.env.OK_DESKTOP_VERSION;
-  const packagedRaw = process.env.OK_DESKTOP_PACKAGED;
-  const channel = process.env.OK_DESKTOP_CHANNEL;
+  const electronVersion = process.env.GITQUIRE_DESKTOP_VERSION;
+  const packagedRaw = process.env.GITQUIRE_DESKTOP_PACKAGED;
+  const channel = process.env.GITQUIRE_DESKTOP_CHANNEL;
   if (electronVersion === undefined || packagedRaw === undefined || channel === undefined) {
     return null;
   }

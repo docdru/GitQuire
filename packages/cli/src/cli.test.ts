@@ -41,8 +41,8 @@ test('embeddings status JSON stays parseable when the credential store rejects a
         NO_COLOR: '1',
         NODE_ENV: 'production',
         LOG_LEVEL: 'warn',
-        OK_CONSOLE_LEVEL: 'warn',
-        OK_EMBEDDINGS_API_KEY: '',
+        GITQUIRE_CONSOLE_LEVEL: 'warn',
+        GITQUIRE_EMBEDDINGS_API_KEY: '',
         OPENKNOWLEDGE_EMBEDDINGS_API_KEY: '',
       },
     });
@@ -108,7 +108,7 @@ describe('gq ui tombstone', () => {
         `,
       ],
       cwd: CLI_PACKAGE_ROOT,
-      env: { ...process.env, NO_COLOR: '1', OK_CHANNEL: 'stable' },
+      env: { ...process.env, NO_COLOR: '1', GITQUIRE_CHANNEL: 'stable' },
     });
 
     const stderr = result.stderr.toString();
@@ -133,7 +133,7 @@ function runCliSource(args: readonly string[], channel: 'stable' | 'beta') {
       `,
     ],
     cwd: CLI_PACKAGE_ROOT,
-    env: { ...process.env, NO_COLOR: '1', OK_CHANNEL: channel },
+    env: { ...process.env, NO_COLOR: '1', GITQUIRE_CHANNEL: channel },
   });
 }
 
@@ -203,7 +203,7 @@ describe('committed project-local key startup warning', () => {
     rmSync(projectDir, { recursive: true, force: true });
   });
 
-  test('the preAction hook names a committed server.bind as ignored and points at the OK_BIND fix', () => {
+  test('the preAction hook names a committed server.bind as ignored and points at the GITQUIRE_BIND fix', () => {
     const result = Bun.spawnSync({
       cmd: [
         'node',
@@ -230,7 +230,7 @@ describe('committed project-local key startup warning', () => {
     const stderr = result.stderr.toString();
     expect(stderr).toContain('server.bind is a per-machine (project-local) setting');
     expect(stderr).toContain('.ok/local/config.yml');
-    expect(stderr).toContain('OK_BIND');
+    expect(stderr).toContain('GITQUIRE_BIND');
     expect(stderr).not.toContain('ExposureConsentError');
   }, 30_000);
 });

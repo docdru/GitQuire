@@ -28,8 +28,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.OK_BRIDGE_THROW_ON_VIOLATION;
-  delete process.env.OK_BRIDGE_VIOLATION_DEBOUNCE_S;
+  delete process.env.GITQUIRE_BRIDGE_THROW_ON_VIOLATION;
+  delete process.env.GITQUIRE_BRIDGE_VIOLATION_DEBOUNCE_S;
 });
 
 describe('shouldThrowOnBridgeInvariantViolation (affirmative gate polarity)', () => {
@@ -55,19 +55,19 @@ describe('shouldThrowOnBridgeInvariantViolation (affirmative gate polarity)', ()
     );
   });
 
-  test('OK_BRIDGE_THROW_ON_VIOLATION=1 throws regardless of NODE_ENV', () => {
+  test('GITQUIRE_BRIDGE_THROW_ON_VIOLATION=1 throws regardless of NODE_ENV', () => {
     expect(
       shouldThrowOnBridgeInvariantViolation({
         NODE_ENV: 'production',
-        OK_BRIDGE_THROW_ON_VIOLATION: '1',
+        GITQUIRE_BRIDGE_THROW_ON_VIOLATION: '1',
       } as NodeJS.ProcessEnv),
     ).toBe(true);
   });
 
-  test('OK_BRIDGE_THROW_ON_VIOLATION=0 does not throw', () => {
+  test('GITQUIRE_BRIDGE_THROW_ON_VIOLATION=0 does not throw', () => {
     expect(
       shouldThrowOnBridgeInvariantViolation({
-        OK_BRIDGE_THROW_ON_VIOLATION: '0',
+        GITQUIRE_BRIDGE_THROW_ON_VIOLATION: '0',
       } as NodeJS.ProcessEnv),
     ).toBe(false);
   });
@@ -318,10 +318,10 @@ describe('assertBridgeInvariant — production emit path (rate-limited)', () => 
     expect(getMetrics().bridgeInvariantViolationsSuppressed).toBe(0);
   });
 
-  test('OK_BRIDGE_VIOLATION_DEBOUNCE_S env var configures the debounce', () => {
+  test('GITQUIRE_BRIDGE_VIOLATION_DEBOUNCE_S env var configures the debounce', () => {
     const originalWarn = console.warn;
     console.warn = () => {};
-    process.env.OK_BRIDGE_VIOLATION_DEBOUNCE_S = '5';
+    process.env.GITQUIRE_BRIDGE_VIOLATION_DEBOUNCE_S = '5';
 
     try {
       assertBridgeInvariant('# A\n', '# B\n', {
@@ -466,21 +466,21 @@ describe('shouldEmitBridgeSplitBrainRederive — per-(site, doc) rate-limiter', 
   });
 });
 
-describe('bridge-invariant-violation payload redaction (OK_TELEMETRY_VERBOSE opt-in)', () => {
+describe('bridge-invariant-violation payload redaction (GITQUIRE_TELEMETRY_VERBOSE opt-in)', () => {
   let originalNodeEnv: string | undefined;
   let originalVerbose: string | undefined;
 
   beforeEach(() => {
     originalNodeEnv = process.env.NODE_ENV;
-    originalVerbose = process.env.OK_TELEMETRY_VERBOSE;
+    originalVerbose = process.env.GITQUIRE_TELEMETRY_VERBOSE;
     process.env.NODE_ENV = 'production';
   });
 
   afterEach(() => {
     if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
     else process.env.NODE_ENV = originalNodeEnv;
-    if (originalVerbose === undefined) delete process.env.OK_TELEMETRY_VERBOSE;
-    else process.env.OK_TELEMETRY_VERBOSE = originalVerbose;
+    if (originalVerbose === undefined) delete process.env.GITQUIRE_TELEMETRY_VERBOSE;
+    else process.env.GITQUIRE_TELEMETRY_VERBOSE = originalVerbose;
   });
 
   function emitOnce(ytextSnapshot: string, fragmentSnapshot: string): Record<string, unknown> {
@@ -516,8 +516,8 @@ describe('bridge-invariant-violation payload redaction (OK_TELEMETRY_VERBOSE opt
     expect(serialized).not.toContain('canonical fragment body');
   });
 
-  test('OK_TELEMETRY_VERBOSE=1 includes the truncated diff (opt-in posture)', () => {
-    process.env.OK_TELEMETRY_VERBOSE = '1';
+  test('GITQUIRE_TELEMETRY_VERBOSE=1 includes the truncated diff (opt-in posture)', () => {
+    process.env.GITQUIRE_TELEMETRY_VERBOSE = '1';
     const event = emitOnce('# user-typed body\n', '# canonical fragment body\n');
     expect(event.redacted).toBe(false);
     expect(typeof event.diff).toBe('string');
@@ -526,8 +526,8 @@ describe('bridge-invariant-violation payload redaction (OK_TELEMETRY_VERBOSE opt
     expect(typeof event.ytextHash).toBe('string');
   });
 
-  test('OK_TELEMETRY_VERBOSE=0 stays redacted (only "1" enables verbose)', () => {
-    process.env.OK_TELEMETRY_VERBOSE = '0';
+  test('GITQUIRE_TELEMETRY_VERBOSE=0 stays redacted (only "1" enables verbose)', () => {
+    process.env.GITQUIRE_TELEMETRY_VERBOSE = '0';
     const event = emitOnce('# user-typed body\n', '# canonical fragment body\n');
     expect(event.redacted).toBe(true);
     expect('diff' in event).toBe(false);

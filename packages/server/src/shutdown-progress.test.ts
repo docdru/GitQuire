@@ -17,7 +17,7 @@ vi.mock('node:os', async (importOriginal) => {
 });
 
 const names = ['first', 'second', 'third'];
-const outerBudget = Number(process.env.OK_DESTROY_STEP_TIMEOUT_MS) || 5000;
+const outerBudget = Number(process.env.GITQUIRE_DESTROY_STEP_TIMEOUT_MS) || 5000;
 const innerBudget = 10_000;
 
 function captureShutdownReports() {

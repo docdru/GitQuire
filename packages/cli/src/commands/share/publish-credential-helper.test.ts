@@ -96,9 +96,9 @@ describe("share publish authenticates its github.com push only through the CLI's
       'no_proxy',
       'GIT_SSL_CAINFO',
       'GIT_SSL_NO_VERIFY',
-      'OK_GH_TOKEN',
-      'OK_GH_TOKEN_HOST',
-      'OK_GH_TOKEN_LOGIN',
+      'GITQUIRE_GH_TOKEN',
+      'GITQUIRE_GH_TOKEN_HOST',
+      'GITQUIRE_GH_TOKEN_LOGIN',
     ]) {
       vi.stubEnv(variable, undefined);
     }
@@ -333,9 +333,9 @@ describe("share publish authenticates its github.com push only through the CLI's
     expectTokenConfinedToCliHelper(STALE_TOKEN);
   });
 
-  test('a publish presents its own token when its environment already carries an OK_GH_TOKEN relay for github.com', async () => {
-    vi.stubEnv('OK_GH_TOKEN', INHERITED_RELAY_TOKEN);
-    vi.stubEnv('OK_GH_TOKEN_HOST', GITHUB_HOST);
+  test('a publish presents its own token when its environment already carries an GITQUIRE_GH_TOKEN relay for github.com', async () => {
+    vi.stubEnv('GITQUIRE_GH_TOKEN', INHERITED_RELAY_TOKEN);
+    vi.stubEnv('GITQUIRE_GH_TOKEN_HOST', GITHUB_HOST);
 
     const result = await publishWith(PUBLISH_TOKEN);
 
@@ -432,7 +432,7 @@ describe("share publish authenticates its github.com push only through the CLI's
     expect
       .soft(
         ambientCalls.filter((call) => call.relayToken !== null),
-        'ambient helper calls that inherited an OK_GH_TOKEN relay',
+        'ambient helper calls that inherited an GITQUIRE_GH_TOKEN relay',
       )
       .toEqual([]);
     expect

@@ -30,7 +30,8 @@ import { removeAllDuringTeardown, removeAllStrictDuringTeardown } from './teardo
 export { APP_PACKAGE_ROOT };
 
 export const VITE_E2E_SEED_DIR =
-  process.env.OK_TEST_VITE_SEED_DIR ?? join(APP_PACKAGE_ROOT, 'node_modules', '.vite-e2e-seed');
+  process.env.GITQUIRE_TEST_VITE_SEED_DIR ??
+  join(APP_PACKAGE_ROOT, 'node_modules', '.vite-e2e-seed');
 
 export const VITE_E2E_SEED_POINTER = `${VITE_E2E_SEED_DIR}.current`;
 

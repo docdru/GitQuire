@@ -99,7 +99,7 @@ beforeEach(async () => {
 });
 
 afterEach(() => {
-  delete process.env.OK_TEST_RENAME_FAULT;
+  delete process.env.GITQUIRE_TEST_RENAME_FAULT;
   swapContributors();
   resetRenameLogIndexCache();
   rmSync(tmpDir, { recursive: true, force: true });
@@ -139,7 +139,7 @@ async function callRename(body: unknown): Promise<CapturedResponse> {
 
 describe('FR12 ordering invariant — pre-append crash window', () => {
   test('crash AFTER tracedRenameSync, BEFORE log append → recovery rolls back disk; jsonl untouched', async () => {
-    process.env.OK_TEST_RENAME_FAULT = 'pre-append';
+    process.env.GITQUIRE_TEST_RENAME_FAULT = 'pre-append';
 
     const response = await callRename({
       kind: 'file',
@@ -156,7 +156,7 @@ describe('FR12 ordering invariant — pre-append crash window', () => {
       }
     }
 
-    delete process.env.OK_TEST_RENAME_FAULT;
+    delete process.env.GITQUIRE_TEST_RENAME_FAULT;
     const recoveryResult = recoverPendingManagedRename(contentDir);
     expect(recoveryResult.recovered).toBe(true);
     expect(existsSync(resolve(contentDir, 'a.md'))).toBe(true);
@@ -178,7 +178,7 @@ describe('Goal G5 — appendRenameLogEntry filesystem failure aborts the rename'
     });
     expect(response.status).not.toBe(200);
 
-    delete process.env.OK_TEST_RENAME_FAULT;
+    delete process.env.GITQUIRE_TEST_RENAME_FAULT;
     rmSync(jsonlPath, { recursive: true, force: true });
     const recoveryResult = recoverPendingManagedRename(contentDir);
     expect(recoveryResult.recovered).toBe(true);
@@ -195,7 +195,7 @@ describe('Goal G5 — appendRenameLogEntry filesystem failure aborts the rename'
 
 describe('FR12 ordering invariant — pre-journal-clear crash window', () => {
   test('crash AFTER log append → orphan entry; boot recovery + sweepLazyPopOrphans converge to consistent state', async () => {
-    process.env.OK_TEST_RENAME_FAULT = 'pre-journal-clear';
+    process.env.GITQUIRE_TEST_RENAME_FAULT = 'pre-journal-clear';
 
     const response = await callRename({
       kind: 'file',
@@ -217,7 +217,7 @@ describe('FR12 ordering invariant — pre-journal-clear crash window', () => {
     expect(parsed.to).toBe('b');
     expect(parsed.commitSha).toBe('');
 
-    delete process.env.OK_TEST_RENAME_FAULT;
+    delete process.env.GITQUIRE_TEST_RENAME_FAULT;
     const recoveryResult = recoverPendingManagedRename(contentDir);
     expect(recoveryResult.recovered).toBe(true);
 

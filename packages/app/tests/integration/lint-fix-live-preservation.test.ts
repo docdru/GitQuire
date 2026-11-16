@@ -48,8 +48,8 @@ let clients: TestClient[] = [];
 
 afterEach(async () => {
   vi.restoreAllMocks();
-  delete process.env.OK_TEST_STORE_DIVERGENCE;
-  delete process.env.OK_TEST_STORE_FAULT;
+  delete process.env.GITQUIRE_TEST_STORE_DIVERGENCE;
+  delete process.env.GITQUIRE_TEST_STORE_FAULT;
   await Promise.all(clients.map((client) => client.cleanup()));
   clients = [];
   await server?.cleanup();
@@ -274,7 +274,7 @@ describe('lint fix live-write preservation', () => {
     };
     session.dc.document.getText('source').observe(observeOrigin);
     const lint = vi.spyOn(markdownlintPlugin(), 'lint');
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     __resetContributorsForTests();
 
     try {
@@ -316,7 +316,7 @@ describe('lint fix live-write preservation', () => {
     };
     session.dc.document.getText('source').observe(observeOrigin);
     const lint = vi.spyOn(markdownlintPlugin(), 'lint');
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     __resetContributorsForTests();
 
     try {
@@ -439,7 +439,7 @@ describe('lint fix live-write preservation', () => {
     const docName = `lint-divergence-${randomUUID()}`;
     const file = join(server.contentDir, `${docName}.md`);
     writeFileSync(file, TABBED_BODY, 'utf-8');
-    process.env.OK_TEST_STORE_DIVERGENCE = docName;
+    process.env.GITQUIRE_TEST_STORE_DIVERGENCE = docName;
     __resetContributorsForTests();
 
     const response = await postFix({
@@ -449,7 +449,7 @@ describe('lint fix live-write preservation', () => {
       summary: 'Divergent durability',
     });
     expect(response.status).toBe(200);
-    delete process.env.OK_TEST_STORE_DIVERGENCE;
+    delete process.env.GITQUIRE_TEST_STORE_DIVERGENCE;
 
     await pollUntil(() => readFileSync(file, 'utf-8').includes('native-divergence-injected'));
     await pollUntil(

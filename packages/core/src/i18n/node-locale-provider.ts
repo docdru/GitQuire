@@ -7,7 +7,7 @@ export interface NodeLocaleSignal {
   readonly preferenceList: readonly Bcp47Tag[];
 }
 
-export const LOCALE_OVERRIDE_ENV_VAR = 'OK_LANG';
+export const LOCALE_OVERRIDE_ENV_VAR = 'GITQUIRE_LANG';
 
 const BASE_VARIABLES = ['LC_ALL', 'LC_MESSAGES', 'LANG'] as const;
 

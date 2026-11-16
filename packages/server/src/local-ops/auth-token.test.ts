@@ -170,7 +170,7 @@ describe('runAuthTokenSubprocess', () => {
 
   test('a dev build without its workspace CLI refuses to store a token instead of running the CLI on PATH', async () => {
     const result = await runAuthTokenSubprocess({
-      cli: OkCliCommand.resolve({ env: { OK_CHANNEL: 'dev' } }),
+      cli: OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
       host: 'github.com',
       username: 'octocat',
       token: 'test-token',
@@ -189,11 +189,11 @@ describe('runAuthTokenSubprocess', () => {
         let d='';
         process.stdin.on('data', c => { d += c; });
         process.stdin.on('end', () => {
-          process.stdout.write(JSON.stringify({ type: 'complete', host: 'ghes.test', login: process.env.OK_AUTH_TOKEN_ENV_MARKER || 'unset' }) + '\\n');
+          process.stdout.write(JSON.stringify({ type: 'complete', host: 'ghes.test', login: process.env.GITQUIRE_AUTH_TOKEN_ENV_MARKER || 'unset' }) + '\\n');
           process.exit(0);
         });
       `),
-        { OK_AUTH_TOKEN_ENV_MARKER: 'marker-from-cli-env' },
+        { GITQUIRE_AUTH_TOKEN_ENV_MARKER: 'marker-from-cli-env' },
       ),
       host: 'ghes.test',
       username: 'alice',

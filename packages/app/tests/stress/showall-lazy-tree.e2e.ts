@@ -6,7 +6,7 @@ import { escapeRegExp, expect, test } from './_helpers';
 const SHOW_ALL_CAP = 25;
 const OVERFLOW_CHILD_COUNT = SHOW_ALL_CAP + 5;
 
-test.use({ workerServerEnv: { OK_SHOWALL_MAX_ENTRIES: String(SHOW_ALL_CAP) } });
+test.use({ workerServerEnv: { GITQUIRE_SHOWALL_MAX_ENTRIES: String(SHOW_ALL_CAP) } });
 
 function uniqueStamp(): string {
   return `${Date.now().toString(36)}${Math.floor(Math.random() * 1e8).toString(36)}`;

@@ -181,7 +181,7 @@ describe('server-lock remediation names the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: live and dead locks name %s stop and clean', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const remediationFor = async (state: LockState) =>
       (await makeServerLockCheck({ inspect: () => state }).run({ cwd: makeProjectWithLockDir() }))
         .remediation;

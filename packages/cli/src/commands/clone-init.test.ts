@@ -42,7 +42,7 @@ describe('clone initialization', () => {
     vi.stubEnv('HOME', home);
     vi.stubEnv('USERPROFILE', home);
     vi.stubEnv('XDG_CONFIG_HOME', join(home, '.config'));
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     vi.stubEnv('DO_NOT_TRACK', '1');
     vi.stubEnv('GIT_CONFIG_NOSYSTEM', '1');
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true);

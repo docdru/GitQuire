@@ -58,10 +58,13 @@ describe('defaultReadLanguage', () => {
     expect(language.systemLanguages).toEqual(['pt-BR', 'es-ES', 'en-US']);
   });
 
-  test('an OK_LANG override is reported as the tier that decided', () => {
+  test('an GITQUIRE_LANG override is reported as the tier that decided', () => {
     const home = makeHome('appearance:\n  language: es\n');
 
-    const language = defaultReadLanguage({ home, env: { OK_LANG: 'fr', LANG: 'en_US.UTF-8' } });
+    const language = defaultReadLanguage({
+      home,
+      env: { GITQUIRE_LANG: 'fr', LANG: 'en_US.UTF-8' },
+    });
 
     expect(language.locale).toBe('fr');
     expect(language.source).toBe('override');

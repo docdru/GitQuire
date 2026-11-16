@@ -62,7 +62,7 @@ import { FILE_SYSTEM_WRITER } from './shadow-repo.ts';
 export { FILE_WATCHER_ORIGIN } from './disk-content-intake.ts';
 
 export function redactedErrorSummary(err: unknown): unknown {
-  const verbose = process.env.OK_TELEMETRY_VERBOSE === '1';
+  const verbose = process.env.GITQUIRE_TELEMETRY_VERBOSE === '1';
   if (err instanceof BridgeMergeContentLossError) return err.toLog({ verbose });
   if (err instanceof BridgeInvariantViolationError) {
     return toBridgeInvariantLog(err.violation, { verbose });

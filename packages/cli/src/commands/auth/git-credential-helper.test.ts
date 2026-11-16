@@ -41,7 +41,7 @@ registerHooks({
     return nextLoad(url, context);
   },
 });
-process.on('exit', () => writeFileSync(process.env.OK_TEST_LOAD_RECORD, JSON.stringify(loaded)));
+process.on('exit', () => writeFileSync(process.env.GITQUIRE_TEST_LOAD_RECORD, JSON.stringify(loaded)));
 `;
 
 let workspace: string;
@@ -90,8 +90,8 @@ function fetchThroughOkHelper(
       stdio: ['ignore', 'ignore', 'pipe'],
       env: hermeticEnv({
         GIT_TRACE: traceFile,
-        OK_GH_TOKEN: relayToken,
-        OK_GH_TOKEN_HOST: GITHUB_HOST,
+        GITQUIRE_GH_TOKEN: relayToken,
+        GITQUIRE_GH_TOKEN_HOST: GITHUB_HOST,
       }),
     },
   );
@@ -131,9 +131,9 @@ function bundleLoadedBy(args: readonly string[]): LoadedBundle {
       timeout: CHILD_TIMEOUT_MS,
       killSignal: 'SIGKILL',
       env: hermeticEnv({
-        OK_TEST_LOAD_RECORD: record,
-        OK_GH_TOKEN: RELAY_TOKEN,
-        OK_GH_TOKEN_HOST: GITHUB_HOST,
+        GITQUIRE_TEST_LOAD_RECORD: record,
+        GITQUIRE_GH_TOKEN: RELAY_TOKEN,
+        GITQUIRE_GH_TOKEN_HOST: GITHUB_HOST,
       }),
     },
   );

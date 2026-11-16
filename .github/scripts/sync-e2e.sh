@@ -86,7 +86,7 @@ remote_has() { contains "$(remote_file "$1" || true)" "$2"; }
 start_container() {
   docker run -d --name "$CONTAINER" -p "127.0.0.1:${PORT}:8080" \
     -v "${VOLUME}:/data" \
-    -e OK_ALLOW_EXTERNAL=1 \
+    -e GITQUIRE_ALLOW_EXTERNAL=1 \
     -e GITHUB_APP_ID="$APP_ID" \
     -e GITHUB_APP_PRIVATE_KEY \
     -e GITQUIRE_REPO="$TEST_REPO" \

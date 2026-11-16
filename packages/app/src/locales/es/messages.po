@@ -7917,8 +7917,8 @@ msgstr "Nombre de usuario"
 msgid "Users"
 msgstr ""
 
-msgid "Using the <0>OK_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
-msgstr "Se está usando la variable de entorno <0>OK_EMBEDDINGS_API_KEY</0> (gestionada fuera de GitQuire)."
+msgid "Using the <0>GITQUIRE_EMBEDDINGS_API_KEY</0> environment variable (managed outside GitQuire)."
+msgstr "Se está usando la variable de entorno <0>GITQUIRE_EMBEDDINGS_API_KEY</0> (gestionada fuera de GitQuire)."
 
 msgid "Validate document frontmatter against JSON Schema files, scoped to doc sets by glob."
 msgstr "Valida el frontmatter de los documentos contra archivos JSON Schema, acotado a conjuntos de documentos por glob."

@@ -1,6 +1,6 @@
 import type { Rolldown } from 'vite';
 
-export const PREBUILT_OUT_DIR_ENV = 'OK_TEST_PREBUILT_OUT_DIR';
+export const PREBUILT_OUT_DIR_ENV = 'GITQUIRE_TEST_PREBUILT_OUT_DIR';
 
 export const PREBUILT_MODULE_MANIFEST = '.vite/manifest.json';
 

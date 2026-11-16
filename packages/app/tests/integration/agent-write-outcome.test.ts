@@ -18,7 +18,7 @@ const SEED = '# Doc\n\nfirst paragraph\n\nsecond paragraph\n';
 const cleanups: Array<() => Promise<void> | void> = [];
 
 afterEach(async () => {
-  delete process.env.OK_TEST_COMPARE_READ_FAULT;
+  delete process.env.GITQUIRE_TEST_COMPARE_READ_FAULT;
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
 });
 
@@ -178,7 +178,7 @@ describe('every agent write answers its outcome, whether it is saved, and the ne
     const server = await boot();
     const docName = `outcome-held-${randomUUID()}`;
     const { file } = await seedAndOpen(server, docName);
-    process.env.OK_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:1000`;
+    process.env.GITQUIRE_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:1000`;
 
     const answer = await append(server, docName, '\nagent line\n');
     expect(answer.status).toBe(503);
@@ -450,7 +450,7 @@ describe('a held save on a document with no agreed version', () => {
     const withFile = `outcome-nobase-file-${randomUUID()}`;
     await open(server, withFile);
     writeFileSync(join(server.contentDir, `${withFile}.md`), '# From another tool\n');
-    process.env.OK_TEST_COMPARE_READ_FAULT = `${withFile}:EBUSY:1000`;
+    process.env.GITQUIRE_TEST_COMPARE_READ_FAULT = `${withFile}:EBUSY:1000`;
     const refused = await append(server, withFile, '\nagent line\n');
     expect(refused.status).toBe(503);
     expect(refused.body).toMatchObject({ outcome: 'refused', saved: false, nextStep: 'none' });
@@ -458,7 +458,7 @@ describe('a held save on a document with no agreed version', () => {
 
     const noFile = `outcome-nobase-new-${randomUUID()}`;
     await open(server, noFile);
-    process.env.OK_TEST_COMPARE_READ_FAULT = `${noFile}:EBUSY:1000`;
+    process.env.GITQUIRE_TEST_COMPARE_READ_FAULT = `${noFile}:EBUSY:1000`;
     const held = await append(server, noFile, '\nagent line\n');
     expect(held.status).toBe(503);
     expect(held.body).toMatchObject({ outcome: 'projection-held', saved: false });

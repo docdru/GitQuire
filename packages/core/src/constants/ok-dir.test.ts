@@ -8,14 +8,14 @@ describe('okUserHomeDisplayPath', () => {
   });
 
   test('names the Stable home folder by default', () => {
-    vi.stubEnv('OK_CHANNEL', '');
+    vi.stubEnv('GITQUIRE_CHANNEL', '');
     expect(okUserHomeDisplayPath()).toBe('~/.ok');
     expect(okUserHomeDisplayPath('global.yml')).toBe('~/.ok/global.yml');
     expect(okUserHomeDisplayPath('logs')).toBe('~/.ok/logs');
   });
 
   test('names the Beta home folder when the running channel is Beta', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     expect(okUserHomeDisplayPath('global.yml')).toBe('~/.ok-beta/global.yml');
     expect(okUserHomeDisplayPath('secrets.yml')).toBe('~/.ok-beta/secrets.yml');
   });
@@ -23,7 +23,7 @@ describe('okUserHomeDisplayPath', () => {
 
 describe('posixOkManagedBinDir', () => {
   beforeEach(() => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
   });
 
   afterEach(() => {

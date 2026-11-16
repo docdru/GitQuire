@@ -24,10 +24,10 @@ describe('McpLogger', () => {
 
     originalMcpDebug = process.env.MCP_DEBUG;
     originalDebug = process.env.DEBUG;
-    originalLogFile = process.env.OK_LOG_FILE;
+    originalLogFile = process.env.GITQUIRE_LOG_FILE;
     delete process.env.MCP_DEBUG;
     delete process.env.DEBUG;
-    delete process.env.OK_LOG_FILE;
+    delete process.env.GITQUIRE_LOG_FILE;
   });
 
   afterEach(() => {
@@ -41,8 +41,8 @@ describe('McpLogger', () => {
     if (originalDebug === undefined) delete process.env.DEBUG;
     else process.env.DEBUG = originalDebug;
 
-    if (originalLogFile === undefined) delete process.env.OK_LOG_FILE;
-    else process.env.OK_LOG_FILE = originalLogFile;
+    if (originalLogFile === undefined) delete process.env.GITQUIRE_LOG_FILE;
+    else process.env.GITQUIRE_LOG_FILE = originalLogFile;
 
     if (tmpLogDir) {
       rmSync(tmpLogDir, { recursive: true, force: true });
@@ -80,9 +80,9 @@ describe('McpLogger', () => {
     expect(childEntry.component).toBe('mcp-tool');
   });
 
-  test('warns when OK_LOG_FILE cannot be written', () => {
+  test('warns when GITQUIRE_LOG_FILE cannot be written', () => {
     tmpLogDir = mkdtempSync(resolve(tmpdir(), 'ok-mcp-logger-'));
-    process.env.OK_LOG_FILE = tmpLogDir;
+    process.env.GITQUIRE_LOG_FILE = tmpLogDir;
     warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const logger = new McpLogger();
@@ -90,13 +90,13 @@ describe('McpLogger', () => {
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     const [message] = warnSpy.mock.calls[0] as [string];
-    expect(message).toContain('[mcp-logger] Failed to write to OK_LOG_FILE');
+    expect(message).toContain('[mcp-logger] Failed to write to GITQUIRE_LOG_FILE');
   });
 
-  test('writes OK_LOG_FILE as single-line JSON while keeping stderr as JSON lines', () => {
+  test('writes GITQUIRE_LOG_FILE as single-line JSON while keeping stderr as JSON lines', () => {
     tmpLogDir = mkdtempSync(resolve(tmpdir(), 'ok-mcp-logger-'));
     const logFile = join(tmpLogDir, 'mcp.log');
-    process.env.OK_LOG_FILE = logFile;
+    process.env.GITQUIRE_LOG_FILE = logFile;
 
     const logger = new McpLogger('mcp');
     logger.info('tool finish', {
@@ -125,10 +125,10 @@ describe('McpLogger', () => {
     });
   });
 
-  test('keeps every OK_LOG_FILE entry on a single JSON line regardless of context size', () => {
+  test('keeps every GITQUIRE_LOG_FILE entry on a single JSON line regardless of context size', () => {
     tmpLogDir = mkdtempSync(resolve(tmpdir(), 'ok-mcp-logger-'));
     const logFile = join(tmpLogDir, 'mcp.log');
-    process.env.OK_LOG_FILE = logFile;
+    process.env.GITQUIRE_LOG_FILE = logFile;
 
     const logger = new McpLogger('mcp');
 

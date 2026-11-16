@@ -22,7 +22,7 @@ const FILE_ALLOWLIST: ReadonlyMap<string, string> = new Map([
   ],
   [
     'mcp/logger.ts',
-    'MCP stdio logger self-failure path — stdout is the JSON-RPC channel, so this surface writes to stderr/OK_LOG_FILE by design',
+    'MCP stdio logger self-failure path — stdout is the JSON-RPC channel, so this surface writes to stderr/GITQUIRE_LOG_FILE by design',
   ],
   [
     'mcp/json-schema-dialect.ts',

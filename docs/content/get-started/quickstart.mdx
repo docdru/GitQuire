@@ -14,7 +14,7 @@ GitQuire ships as one Docker image. On a machine with Docker:
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e OK_ALLOW_EXTERNAL=1 \
+  -e GITQUIRE_ALLOW_EXTERNAL=1 \
   -v gitquire-data:/data \
   ghcr.io/docdru/gitquire:latest
 ```

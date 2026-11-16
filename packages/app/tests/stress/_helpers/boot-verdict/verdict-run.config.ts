@@ -2,11 +2,11 @@ import { join } from 'node:path';
 import { defineConfig, type ReporterDescription } from '@playwright/test';
 import stock from '../../../../playwright.config.ts';
 
-const runDir = process.env.OK_BOOT_VERDICT_RUN_DIR;
-const livenessBoundMs = Number(process.env.OK_BOOT_VERDICT_LIVENESS_BOUND_MS);
+const runDir = process.env.GITQUIRE_BOOT_VERDICT_RUN_DIR;
+const livenessBoundMs = Number(process.env.GITQUIRE_BOOT_VERDICT_LIVENESS_BOUND_MS);
 if (runDir === undefined || !Number.isFinite(livenessBoundMs) || livenessBoundMs <= 0) {
   throw new Error(
-    'verdict-run.config.ts needs OK_BOOT_VERDICT_RUN_DIR and a positive OK_BOOT_VERDICT_LIVENESS_BOUND_MS',
+    'verdict-run.config.ts needs GITQUIRE_BOOT_VERDICT_RUN_DIR and a positive GITQUIRE_BOOT_VERDICT_LIVENESS_BOUND_MS',
   );
 }
 

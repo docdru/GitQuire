@@ -1519,7 +1519,7 @@ describe('store publish generation primitives', () => {
 
 describe('DocumentDurabilityStateError names the running channel CLI', () => {
   test('Stable keeps its exact message', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     try {
       expect(new DocumentDurabilityStateError('/p/state.json', 'corrupt').message).toBe(
         'Cannot safely open this project: its stale-write recovery snapshot is corrupt (/p/state.json). The snapshot has been preserved because it may contain the only copy of protected edits. Restore this snapshot from a known-good backup, or contact support to recover its protected edits. Run gq bug-report from the project directory to collect diagnostics without starting the server. Do not delete it to bypass recovery.',
@@ -1530,7 +1530,7 @@ describe('DocumentDurabilityStateError names the running channel CLI', () => {
   });
 
   test('Beta names gq-beta bug-report', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     try {
       expect(new DocumentDurabilityStateError('/p/state.json', 'corrupt').message).toContain(
         'Run gq-beta bug-report from the project directory',

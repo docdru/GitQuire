@@ -32,11 +32,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const CLI_PKG_DIR = resolve(HERE, '..', '..');
 const WORKSPACE_DIST_CLI = join(CLI_PKG_DIR, 'dist', 'cli.mjs');
 const NODE = process.execPath.includes('bun') ? 'node' : process.execPath;
-const SUT_MODE = process.env.OK_E2E_SUT === 'workspace' ? 'workspace' : 'packed';
+const SUT_MODE = process.env.GITQUIRE_E2E_SUT === 'workspace' ? 'workspace' : 'packed';
 const LOCKED_PACKED_INSTALL =
-  SUT_MODE === 'packed' && (process.env.OK_CLI_E2E_INSTALL_MODE ?? 'locked') === 'locked';
+  SUT_MODE === 'packed' && (process.env.GITQUIRE_CLI_E2E_INSTALL_MODE ?? 'locked') === 'locked';
 const HERMETIC_ENV = {} as const;
-const START_PORT = Number(process.env.OK_E2E_PORT ?? 13581);
+const START_PORT = Number(process.env.GITQUIRE_E2E_PORT ?? 13581);
 
 type Acquisition = Awaited<ReturnType<typeof installPackedCli>>['acquisition'];
 
@@ -201,7 +201,7 @@ function isolatedCliRunner(prefix: string) {
         XDG_RUNTIME_DIR: '',
         DO_NOT_TRACK: '1',
         LOG_LEVEL: 'info',
-        OK_CONSOLE_LEVEL: 'info',
+        GITQUIRE_CONSOLE_LEVEL: 'info',
         GIT_CONFIG_NOSYSTEM: '1',
         ...scenarioEnv,
       },

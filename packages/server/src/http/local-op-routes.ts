@@ -314,7 +314,10 @@ export function createLocalOpRoutes(
     if (existing === 'no-ui') return { error: SERVER_WITHOUT_UI_ERROR };
     if (existing !== null) return { port: existing };
 
-    const startInvocation = okCli.spawn(['start'], { ...process.env, OK_LOCK_KIND: 'interactive' });
+    const startInvocation = okCli.spawn(['start'], {
+      ...process.env,
+      GITQUIRE_LOCK_KIND: 'interactive',
+    });
     if ('refused' in startInvocation) return { error: startInvocation.refused };
 
     const spawnAndAwaitServer = async (): Promise<{ port: number } | { error: string }> => {

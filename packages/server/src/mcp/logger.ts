@@ -80,13 +80,13 @@ export class McpLogger {
     };
     const line = `${JSON.stringify(entry)}\n`;
     process.stderr.write(line);
-    const logFile = process.env.OK_LOG_FILE;
+    const logFile = process.env.GITQUIRE_LOG_FILE;
     if (logFile) {
       try {
         appendFileSync(logFile, line);
       } catch (err) {
         console.warn(
-          `[mcp-logger] Failed to write to OK_LOG_FILE: ${err instanceof Error ? err.message : err}`,
+          `[mcp-logger] Failed to write to GITQUIRE_LOG_FILE: ${err instanceof Error ? err.message : err}`,
         );
       }
     }

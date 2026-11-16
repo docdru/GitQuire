@@ -242,7 +242,7 @@ function parseCliArgs(argv: ReadonlyArray<string>): CliArgs {
       fixtureFilter = parseFixtureFilter(argv[++i]);
     }
   }
-  const envDir = process.env.OK_DOGFOOD_TRACE_DIR;
+  const envDir = process.env.GITQUIRE_DOGFOOD_TRACE_DIR;
   const resolvedTraceDir = resolve(traceDir ?? envDir ?? join(homedir(), DEFAULT_TRACE_SUBPATH));
   return { traceDir: resolvedTraceDir, fixtureFilter };
 }

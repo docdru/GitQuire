@@ -14,7 +14,7 @@ if (require.main === module) {
   const pid = process.argv[3] ?? String(process.pid);
   let acknowledged = false;
   const socket = net.connect(
-    { port: Number(process.env.OK_PORT_OWNERSHIP_SCHEDULE_PORT), host: '127.0.0.1' },
+    { port: Number(process.env.GITQUIRE_PORT_OWNERSHIP_SCHEDULE_PORT), host: '127.0.0.1' },
     () => socket.write(`${phase}\t${pid}\n`),
   );
   socket.once('data', (data) => {

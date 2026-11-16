@@ -440,7 +440,7 @@ describe('createExternalChangeHandler — error-swallowing factory', () => {
     }
   });
 
-  test('factory wrapper re-throws BridgeMergeContentLossError to preserve OK_RETHROW_BRIDGE_LOSS gate', async () => {
+  test('factory wrapper re-throws BridgeMergeContentLossError to preserve GITQUIRE_RETHROW_BRIDGE_LOSS gate', async () => {
     const errorSpy = vi.fn(() => {});
     const originalError = console.error;
     console.error = errorSpy;

@@ -477,7 +477,7 @@ describe('git remediation names the running channel CLI', () => {
     `Run \`${command} diagnose health --check git\` to verify your installation.`;
 
   test('Stable keeps the gq diagnose line on both errors', () => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     const guidance = buildGuidance('darwin');
     expect(new GitNotAvailableError('darwin', guidance).message.split('\n')).toContain(
       verify('gq'),
@@ -490,7 +490,7 @@ describe('git remediation names the running channel CLI', () => {
   });
 
   test('Beta names gq-beta diagnose on both errors', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     const guidance = buildGuidance('darwin');
     expect(new GitNotAvailableError('darwin', guidance).message.split('\n')).toContain(
       verify('gq-beta'),

@@ -140,7 +140,7 @@ const isConnectionOrigin = (origin: unknown): boolean =>
   (origin as { source?: unknown }).source === 'connection';
 
 export function shouldRethrowBridgeMergeLoss(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.NODE_ENV === 'test' || env.OK_RETHROW_BRIDGE_LOSS === '1';
+  return env.NODE_ENV === 'test' || env.GITQUIRE_RETHROW_BRIDGE_LOSS === '1';
 }
 
 export interface ProducerGuardViolationInfo {
@@ -439,7 +439,7 @@ export function setupServerObservers(opts: SetupServerObserversOpts): () => void
     err: BridgeMergeContentLossError,
     preMergeBaseline: string,
   ): void => {
-    const verbose = process.env.OK_TELEMETRY_VERBOSE === '1';
+    const verbose = process.env.GITQUIRE_TELEMETRY_VERBOSE === '1';
     console.warn(
       JSON.stringify({
         ...err.toLog({ verbose }),

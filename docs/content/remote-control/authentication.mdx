@@ -112,9 +112,9 @@ OAUTH2_PROXY_FLUSH_INTERVAL=100ms
 **The knowledge-base service** takes the usual two declarations plus the IPv6 bind, and no public domain of its own (Caddy is the only way in):
 
 ```bash title="knowledge-base service environment"
-OK_ALLOW_EXTERNAL=1
-OK_EXTERNAL_URL=https://<your-domain>
-OK_BIND=::
+GITQUIRE_ALLOW_EXTERNAL=1
+GITQUIRE_EXTERNAL_URL=https://<your-domain>
+GITQUIRE_BIND=::
 ```
 
 An agent then connects with the token and no browser step:
@@ -128,7 +128,7 @@ Four settings decide whether this boots the first time:
 - **`OAUTH2_PROXY_WHITELIST_DOMAINS` must list your public domain.** Behind Caddy, oauth2-proxy builds its post-login redirect from the forwarded host and refuses any host not on this list, so without it the login silently loops back to itself.
 - **`OAUTH2_PROXY_COOKIE_SECRET` must decode to 16, 24, or 32 bytes.** Use `openssl rand -hex 16` to create a valid 32-character value. Do not use `openssl rand -base64 32` because it creates 44 characters and oauth2-proxy will not start.
 - **Caddy must send `X-Forwarded-Proto: https`** using the two `header_up` lines above. TLS ends at the platform edge, so Caddy uses plain HTTP between the edge and the server. Without this header, the server gives the editor a `ws://` connection. The browser blocks it as mixed content on an `https` page and the editor does not load. oauth2-proxy forwards the header automatically. Set `OAUTH2_PROXY_REVERSE_PROXY=true` so oauth2-proxy trusts forwarded headers for client IP addresses and post-login redirects. Set `FLUSH_INTERVAL=100ms` to follow the [never-buffer rule](/docs/remote-control/methods/docker#rules-for-anything-in-front-of-the-server).
-- **Bind to IPv6 where the platform's private network requires it.** Railway's is IPv6-only, so `OK_BIND=::` and `HTTP_ADDRESS=[::]:4180`, and Caddy dials the `*.railway.internal` names.
+- **Bind to IPv6 where the platform's private network requires it.** Railway's is IPv6-only, so `GITQUIRE_BIND=::` and `HTTP_ADDRESS=[::]:4180`, and Caddy dials the `*.railway.internal` names.
 
 ### Example: Pomerium
 
@@ -149,7 +149,7 @@ Internet  (Claude / Cursor cloud dial in from here)
 **GitQuire** runs on loopback, told its public origin. Pomerium is the only way in, so the server keeps no exposure of its own:
 
 ```bash
-OK_ALLOW_EXTERNAL=1 gq start -p 24550 --no-open-browser --idle-shutdown off \
+GITQUIRE_ALLOW_EXTERNAL=1 gq start -p 24550 --no-open-browser --idle-shutdown off \
   --external-url https://<host>
 ```
 
@@ -262,8 +262,8 @@ Alternatives to the Pomerium recipe above, as pointers rather than full recipes:
 Common symptoms and their fixes:
 
 - **The editor loads but never syncs, and the browser console shows a `ws://` "Mixed Content" error.** The proxy terminates TLS but reports the request to the server as plain HTTP, so the server hands the editor an insecure `ws://` socket. Make the proxy forward `X-Forwarded-Proto: https` (Caddy: `header_up X-Forwarded-Proto https`).
-- **Every request returns `403` with a problem-JSON `"title"` of `Host header not allowed.`.** The request `Host` does not match `OK_EXTERNAL_URL`. Configure the proxy to preserve the client's `Host`. For Caddy, use `header_up Host {host}`. Set `OK_EXTERNAL_URL` to the public origin. See the full [proxy rules](/docs/remote-control/methods/docker#rules-for-anything-in-front-of-the-server).
-- **A request returns `403` with a problem-JSON `"title"` of `Proxied request refused: ...`.** The request reached the server through a proxy that stamps forwarding headers (`X-Forwarded-For`, `Forwarded`, `X-Forwarded-Proto`, ...), but the server has not consented to external exposure. Set BOTH `OK_EXTERNAL_URL` to the public origin and `OK_ALLOW_EXTERNAL=1`; tolerance for forwarding headers requires the pair, and `OK_EXTERNAL_URL` alone is not enough. `OK_ALLOW_EXTERNAL` consents to exposing a server with no authentication of its own, so only set it behind an authenticating edge.
+- **Every request returns `403` with a problem-JSON `"title"` of `Host header not allowed.`.** The request `Host` does not match `GITQUIRE_EXTERNAL_URL`. Configure the proxy to preserve the client's `Host`. For Caddy, use `header_up Host {host}`. Set `GITQUIRE_EXTERNAL_URL` to the public origin. See the full [proxy rules](/docs/remote-control/methods/docker#rules-for-anything-in-front-of-the-server).
+- **A request returns `403` with a problem-JSON `"title"` of `Proxied request refused: ...`.** The request reached the server through a proxy that stamps forwarding headers (`X-Forwarded-For`, `Forwarded`, `X-Forwarded-Proto`, ...), but the server has not consented to external exposure. Set BOTH `GITQUIRE_EXTERNAL_URL` to the public origin and `GITQUIRE_ALLOW_EXTERNAL=1`; tolerance for forwarding headers requires the pair, and `GITQUIRE_EXTERNAL_URL` alone is not enough. `GITQUIRE_ALLOW_EXTERNAL` consents to exposing a server with no authentication of its own, so only set it behind an authenticating edge.
 - **The browser login returns to the login page.** oauth2-proxy is rejecting the post-login redirect because the domain is not allowed. Add the public domain to `OAUTH2_PROXY_WHITELIST_DOMAINS`.
 - **An agent gets an HTML login page back from `/mcp`.** The `/mcp` path is behind the browser login instead of a token. Route `/mcp` around the login proxy and gate it with a token, or if you use an MCP-OAuth edge, confirm the client supports it (see [Connect remote agents](/docs/remote-control/connecting-agents)).
 - **`/mcp` hangs or times out.** A proxy is buffering the streamed response. Turn off buffering for `/mcp`. In nginx, set `proxy_buffering` to `off`. For oauth2-proxy, set `FLUSH_INTERVAL=100ms`. Caddy streams by default.

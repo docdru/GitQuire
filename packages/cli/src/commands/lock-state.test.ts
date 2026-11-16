@@ -403,7 +403,7 @@ describe('describeLockOwnershipRefusal', () => {
   });
 
   test('a Beta CLI names its own stop command in the account and home folder remedies', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     try {
       const text = describeLockOwnershipRefusal(
         {

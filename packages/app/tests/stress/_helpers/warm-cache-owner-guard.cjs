@@ -1,6 +1,6 @@
 'use strict';
 
-const OWNER_PID_ENV = 'OK_WARM_CACHE_OWNER_PID';
+const OWNER_PID_ENV = 'GITQUIRE_WARM_CACHE_OWNER_PID';
 const POLL_INTERVAL_MS = 25;
 
 function parseOwnerPid(value) {

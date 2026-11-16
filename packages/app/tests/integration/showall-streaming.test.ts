@@ -71,16 +71,16 @@ describe('showAll NDJSON streaming (PRD-6856)', () => {
   }, 30_000);
 
   test('the entry cap propagates as truncated on the terminal line', async () => {
-    const prev = process.env.OK_SHOWALL_MAX_ENTRIES;
-    process.env.OK_SHOWALL_MAX_ENTRIES = '5';
+    const prev = process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+    process.env.GITQUIRE_SHOWALL_MAX_ENTRIES = '5';
     try {
       const streamRes = await fetch(showAllUrl(), { headers: { Accept: 'application/x-ndjson' } });
       const { entries, truncated } = await consumeShowAllStream(streamRes);
       expect(truncated).toBe(true);
       expect(entries.length).toBeLessThanOrEqual(5);
     } finally {
-      if (prev === undefined) delete process.env.OK_SHOWALL_MAX_ENTRIES;
-      else process.env.OK_SHOWALL_MAX_ENTRIES = prev;
+      if (prev === undefined) delete process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
+      else process.env.GITQUIRE_SHOWALL_MAX_ENTRIES = prev;
     }
   }, 30_000);
 });

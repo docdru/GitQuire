@@ -31,7 +31,7 @@ import {
 } from './shared.ts';
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
 });
 
 afterEach(() => {
@@ -288,11 +288,11 @@ describe('hocuspocusNotRunningError', () => {
 
   test('keeps the Stable text byte-identical and names gq-beta on Beta', () => {
     try {
-      vi.stubEnv('OK_CHANNEL', 'stable');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
       expect(hocuspocusNotRunningError()).toBe(
         'Error: Hocuspocus server is not running. Start it with `gq start`, then retry.\nDo not fall back to native file edits for in-scope markdown; route writes through GitQuire so attribution and live sync stay intact.',
       );
-      vi.stubEnv('OK_CHANNEL', 'beta');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
       expect(hocuspocusNotRunningError()).toContain('Start it with `gq-beta start`, then retry.');
     } finally {
       vi.unstubAllEnvs();

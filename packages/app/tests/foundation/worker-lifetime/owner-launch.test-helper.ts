@@ -74,7 +74,7 @@ export async function waitUntil(condition: () => boolean, timeoutMs: number): Pr
 }
 
 export function makeRunDir(label: string): { dir: string; workDir: string; runId: string } {
-  const root = process.env.OK_WORKER_LIFETIME_ARTIFACT_ROOT ?? tmpdir();
+  const root = process.env.GITQUIRE_WORKER_LIFETIME_ARTIFACT_ROOT ?? tmpdir();
   mkdirSync(root, { recursive: true });
   const dir = mkdtempSync(join(root, `ok-worker-lifetime-${label}-`));
   const workDir = join(dir, 'scratch');

@@ -58,7 +58,7 @@ describe('chat settings', () => {
     const forced = resolveChatConfig({
       GITQUIRE_CHAT_WEBHOOK_URL: 'https://chat.acme.com/hooks/abc',
       GITQUIRE_CHAT_FORMAT: 'Generic',
-      OK_EXTERNAL_URL: `${external}/`,
+      GITQUIRE_EXTERNAL_URL: `${external}/`,
     });
     expect(forced).toEqual({
       kind: 'on',

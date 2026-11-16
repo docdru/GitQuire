@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { runAudit, toContentRelativeTarget } from './audit.ts';
 
 beforeEach(() => {
-  vi.stubEnv('OK_CHANNEL', 'stable');
+  vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
 });
 
 afterEach(() => {
@@ -313,7 +313,7 @@ describe('runAudit', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('no-server guidance names the %s command', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     rmSync(join(dir, '.ok', 'local', 'server.lock'));
     const { io, err } = collectIo();
 

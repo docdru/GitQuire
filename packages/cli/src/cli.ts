@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import './adopt-legacy-env.ts';
+
 if (process.argv.includes('--no-color')) {
   process.env.NO_COLOR = '1';
   delete process.env.FORCE_COLOR;
@@ -79,7 +81,7 @@ program
     if (program.getOptionValueSource('logLevel') === 'cli') {
       const level = String(program.opts().logLevel);
       process.env.LOG_LEVEL = level;
-      process.env.OK_CONSOLE_LEVEL = level;
+      process.env.GITQUIRE_CONSOLE_LEVEL = level;
     }
 
     const actionOpts = actionCommand.opts<{ json?: boolean }>();

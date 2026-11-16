@@ -3,8 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 import stock from '../../../../playwright.config.ts';
 
-const runDir = process.env.OK_REUSE_CASE_RUN_DIR;
-if (!runDir) throw new Error('OK_REUSE_CASE_RUN_DIR is required');
+const runDir = process.env.GITQUIRE_REUSE_CASE_RUN_DIR;
+if (!runDir) throw new Error('GITQUIRE_REUSE_CASE_RUN_DIR is required');
 
 export default defineConfig({
   ...stock,

@@ -45,7 +45,7 @@ describe('runCloneSubprocess', () => {
   test('a dev build without its workspace CLI reports the refusal and clones nothing', async () => {
     const events: RawCloneEvent[] = [];
     const ctrl = runCloneSubprocess({
-      cli: OkCliCommand.resolve({ env: { OK_CHANNEL: 'dev' } }),
+      cli: OkCliCommand.resolve({ env: { GITQUIRE_CHANNEL: 'dev' } }),
       url: 'https://github.com/octocat/hello.git',
       dir: '/tmp/cloned-repo',
       onEvent: (e) => events.push(e),
@@ -349,9 +349,9 @@ describe('runCloneSubprocess', () => {
     const ctrl = runCloneSubprocess({
       cli: okCli(
         fixtureCli(`
-        console.log(JSON.stringify({type:'complete', dir: process.env.OK_CLONE_ENV_MARKER || 'unset'}));
+        console.log(JSON.stringify({type:'complete', dir: process.env.GITQUIRE_CLONE_ENV_MARKER || 'unset'}));
       `),
-        { OK_CLONE_ENV_MARKER: '/tmp/marker-from-cli-env' },
+        { GITQUIRE_CLONE_ENV_MARKER: '/tmp/marker-from-cli-env' },
       ),
       url: 'https://github.com/octocat/hello.git',
       dir: '/tmp/cloned-repo',

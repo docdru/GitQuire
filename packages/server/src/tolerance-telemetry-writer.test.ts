@@ -16,7 +16,7 @@ let tmpProjectDir: string;
 beforeEach(() => {
   tmpProjectDir = resolve(tmpdir(), `ok-telemetry-test-${randomUUID()}`);
   mkdirSync(tmpProjectDir, { recursive: true });
-  delete process.env.OK_BRIDGE_TOLERANCE_TELEMETRY;
+  delete process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY;
 });
 
 afterEach(async () => {
@@ -31,19 +31,21 @@ describe('isToleranceTelemetryEnabled', () => {
     expect(isToleranceTelemetryEnabled({})).toBe(false);
   });
 
-  test('returns true when OK_BRIDGE_TOLERANCE_TELEMETRY=1', () => {
-    expect(isToleranceTelemetryEnabled({ OK_BRIDGE_TOLERANCE_TELEMETRY: '1' })).toBe(true);
+  test('returns true when GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY=1', () => {
+    expect(isToleranceTelemetryEnabled({ GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY: '1' })).toBe(true);
   });
 
   test('returns false for other values', () => {
-    expect(isToleranceTelemetryEnabled({ OK_BRIDGE_TOLERANCE_TELEMETRY: '0' })).toBe(false);
-    expect(isToleranceTelemetryEnabled({ OK_BRIDGE_TOLERANCE_TELEMETRY: 'true' })).toBe(false);
+    expect(isToleranceTelemetryEnabled({ GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY: '0' })).toBe(false);
+    expect(isToleranceTelemetryEnabled({ GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY: 'true' })).toBe(
+      false,
+    );
   });
 });
 
 describe('initToleranceTelemetryWriter', () => {
   test('does nothing when flag is OFF', () => {
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '0';
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '0';
     initToleranceTelemetryWriter(tmpProjectDir);
 
     emitToleranceFire(['crlf'], 'a\r\n', 'a\n', 'test-doc');
@@ -53,7 +55,7 @@ describe('initToleranceTelemetryWriter', () => {
   });
 
   test('writes JSONL when flag is ON', async () => {
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '1';
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
     initToleranceTelemetryWriter(tmpProjectDir);
 
     emitToleranceFire(['crlf'], 'a\r\n', 'a\n', 'notes/meeting');
@@ -76,7 +78,7 @@ describe('initToleranceTelemetryWriter', () => {
   });
 
   test('appends multiple fires to same file', async () => {
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '1';
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
     initToleranceTelemetryWriter(tmpProjectDir);
 
     emitToleranceFire(['crlf'], 'a\r\n', 'a\n', 'doc-1');
@@ -91,7 +93,7 @@ describe('initToleranceTelemetryWriter', () => {
   });
 
   test('multi-class fire produces one line per class', async () => {
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '1';
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
     initToleranceTelemetryWriter(tmpProjectDir);
 
     emitToleranceFire(['bom', 'crlf', 'trailing-whitespace'], '﻿a   \r\n', 'a\n', 'doc');
@@ -106,7 +108,7 @@ describe('initToleranceTelemetryWriter', () => {
   });
 
   test('null document name serializes as null', async () => {
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '1';
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
     initToleranceTelemetryWriter(tmpProjectDir);
 
     emitToleranceFire(['trailing-newline'], 'hello\n', 'hello', undefined);
@@ -118,7 +120,7 @@ describe('initToleranceTelemetryWriter', () => {
   });
 
   test('append-failure warning re-arms after teardown (per-boot warn budget)', async () => {
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '1';
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
     const logPath = resolve(tmpProjectDir, '.ok', 'local', 'tolerance-telemetry.jsonl');
     mkdirSync(logPath, { recursive: true });
 
@@ -139,7 +141,7 @@ describe('initToleranceTelemetryWriter', () => {
   });
 
   test('teardown stops further writes', async () => {
-    process.env.OK_BRIDGE_TOLERANCE_TELEMETRY = '1';
+    process.env.GITQUIRE_BRIDGE_TOLERANCE_TELEMETRY = '1';
     initToleranceTelemetryWriter(tmpProjectDir);
 
     emitToleranceFire(['crlf'], 'a\r', 'a', 'doc');

@@ -185,14 +185,14 @@ function main(argv) {
 
   const baseRef = resolveBaseRef([
     explicitBase,
-    process.env.OK_I18N_BASE_REF,
+    process.env.GITQUIRE_I18N_BASE_REF,
     'origin/main',
     'main',
   ]);
   if (!baseRef) {
     console.error('ERROR: could not resolve a base ref to compare against.');
     console.error('');
-    console.error('  Tried --base, OK_I18N_BASE_REF, origin/main, main.');
+    console.error('  Tried --base, GITQUIRE_I18N_BASE_REF, origin/main, main.');
     console.error('  On a shallow clone, fetch the base branch first:');
     console.error('    git fetch --no-tags --depth=1 origin main');
     console.error('    node scripts/check-i18n-new-string-translations.mjs --base FETCH_HEAD');

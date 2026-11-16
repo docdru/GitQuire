@@ -20,7 +20,7 @@ const OK_TREE: Readonly<Record<string, string>> = {
   'packages/server/src/index.ts': 'export const server = 1;\n',
 };
 
-const WORKER_ENV = { OK_TEST_GIT_ENABLED: '1' };
+const WORKER_ENV = { GITQUIRE_TEST_GIT_ENABLED: '1' };
 
 const roots: string[] = [];
 
@@ -121,16 +121,19 @@ describe('server reuse eligibility', () => {
 
   test('a changed worker environment makes the admitted server ineligible without recording the values', () => {
     const root = okTree();
-    const admitted = serverFingerprint(root, { ...WORKER_ENV, OK_TEST_TOKEN: 'secret-before' });
+    const admitted = serverFingerprint(root, {
+      ...WORKER_ENV,
+      GITQUIRE_TEST_TOKEN: 'secret-before',
+    });
     const current = serverFingerprint(root, {
-      OK_TEST_TOKEN: 'secret-after',
-      OK_TEST_EXTRA: 'on',
+      GITQUIRE_TEST_TOKEN: 'secret-after',
+      GITQUIRE_TEST_EXTRA: 'on',
     });
 
     expect(reuseDecision(admitted, current)).toEqual({
       reuse: false,
       changedInputs: [],
-      changedEnv: ['OK_TEST_EXTRA', 'OK_TEST_GIT_ENABLED', 'OK_TEST_TOKEN'],
+      changedEnv: ['GITQUIRE_TEST_EXTRA', 'GITQUIRE_TEST_GIT_ENABLED', 'GITQUIRE_TEST_TOKEN'],
     });
     expect(JSON.stringify([admitted, current])).not.toMatch(/secret-(?:before|after)/);
   });

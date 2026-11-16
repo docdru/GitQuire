@@ -26,7 +26,7 @@ describe('the environment of the prebuilt DEV app build', () => {
     writeFileSync(script, RECORD_ENV);
     vi.stubEnv('VITE_OTEL_ENABLED', 'true');
     vi.stubEnv('VITE_OK_PERF_INSTRUMENT', '1');
-    vi.stubEnv('OK_PREBUILT_ENV_PROBE', 'kept');
+    vi.stubEnv('GITQUIRE_PREBUILT_ENV_PROBE', 'kept');
     const distDir = join(root, 'dist');
 
     await runBuildStep({
@@ -38,7 +38,7 @@ describe('the environment of the prebuilt DEV app build', () => {
     const env = JSON.parse(readFileSync(recorded, 'utf8')) as Record<string, string>;
     expect(Object.keys(env).filter((name) => name.startsWith('VITE_'))).toEqual([]);
     expect(env).toMatchObject({
-      OK_PREBUILT_ENV_PROBE: 'kept',
+      GITQUIRE_PREBUILT_ENV_PROBE: 'kept',
       NODE_ENV: 'development',
       [PREBUILT_OUT_DIR_ENV]: distDir,
     });

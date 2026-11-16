@@ -8,10 +8,10 @@ import { declareSetupNonResult } from '../setup-non-result.ts';
 const INJECT_BOOT_FAILURE = pathToFileURL(join(import.meta.dirname, 'inject-boot-failure.ts')).href;
 
 function requireRunDir(): string {
-  const runDir = process.env.OK_BOOT_VERDICT_RUN_DIR;
+  const runDir = process.env.GITQUIRE_BOOT_VERDICT_RUN_DIR;
   if (runDir === undefined) {
     throw new Error(
-      'OK_BOOT_VERDICT_RUN_DIR is unset; run these cases through verdict-run.config.ts',
+      'GITQUIRE_BOOT_VERDICT_RUN_DIR is unset; run these cases through verdict-run.config.ts',
     );
   }
   return runDir;

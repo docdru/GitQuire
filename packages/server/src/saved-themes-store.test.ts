@@ -56,7 +56,7 @@ describe('savedThemesDir', () => {
   });
 
   test('resolves Beta themes under <home>/.ok-beta/themes', () => {
-    vi.stubEnv('OK_CHANNEL', 'beta');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     try {
       expect(savedThemesDir(home)).toBe(join(home, '.ok-beta', 'themes'));
     } finally {

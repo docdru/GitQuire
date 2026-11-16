@@ -95,7 +95,7 @@ const SHAPES = [
 
 describe('classifyMcpLauncherEntry', () => {
   beforeEach(() => {
-    vi.stubEnv('OK_CHANNEL', 'stable');
+    vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
   });
 
   afterEach(() => {

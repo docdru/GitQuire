@@ -70,7 +70,7 @@ service, or a relay on your network.
 | `GITQUIRE_SMTP_URL` | `smtps://user:password@host:465` or `smtp://user:password@host:587`. Without it, email is off and the address field is hidden. |
 | `GITQUIRE_MAIL_FROM` | Sender address, for example `wiki@acme.com`. Required. |
 | `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. |
-| `OK_EXTERNAL_URL` | The link in the mails is built from it. Without it, mails have no link. |
+| `GITQUIRE_EXTERNAL_URL` | The link in the mails is built from it. Without it, mails have no link. |
 
 With `smtp://`, STARTTLS is required. Add `?starttls=off` only for a relay without encryption; a
 password is then only sent to `localhost`.

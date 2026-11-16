@@ -172,9 +172,9 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     for (const variable of [
       'NO_PROXY',
       'no_proxy',
-      'OK_GH_TOKEN',
-      'OK_GH_TOKEN_HOST',
-      'OK_GH_TOKEN_LOGIN',
+      'GITQUIRE_GH_TOKEN',
+      'GITQUIRE_GH_TOKEN_HOST',
+      'GITQUIRE_GH_TOKEN_LOGIN',
     ]) {
       vi.stubEnv(variable, undefined);
     }
@@ -551,7 +551,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(
         ambientCalls.filter((call) => call.relayToken !== null),
-        'ambient helper calls that inherited an OK_GH_TOKEN relay',
+        'ambient helper calls that inherited an GITQUIRE_GH_TOKEN relay',
       )
       .toEqual([]);
     expect
@@ -620,11 +620,11 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     },
   );
 
-  test("with an OK_GH_TOKEN relay for github.com already in its environment, gq sync signed in to OpenKnowledge pulls and pushes with OpenKnowledge's token and never presents the relay's", async () => {
+  test("with an GITQUIRE_GH_TOKEN relay for github.com already in its environment, gq sync signed in to OpenKnowledge pulls and pushes with OpenKnowledge's token and never presents the relay's", async () => {
     const server = await arrange({ gitHubAccepts: OK_TOKEN, okStoreToken: OK_TOKEN });
-    vi.stubEnv('OK_GH_TOKEN', INHERITED_RELAY_TOKEN);
-    vi.stubEnv('OK_GH_TOKEN_HOST', GITHUB_HOST);
-    vi.stubEnv('OK_GH_TOKEN_LOGIN', 'inherited-relay-login');
+    vi.stubEnv('GITQUIRE_GH_TOKEN', INHERITED_RELAY_TOKEN);
+    vi.stubEnv('GITQUIRE_GH_TOKEN_HOST', GITHUB_HOST);
+    vi.stubEnv('GITQUIRE_GH_TOKEN_LOGIN', 'inherited-relay-login');
 
     const outcome = await syncWith({
       tokenStore: new FileBackend(authFile),
@@ -992,7 +992,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(
         ambientCalls.filter((call) => call.relayToken !== null),
-        'ambient helper calls that inherited an OK_GH_TOKEN relay',
+        'ambient helper calls that inherited an GITQUIRE_GH_TOKEN relay',
       )
       .toEqual([]);
   });
@@ -1074,7 +1074,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
     expect
       .soft(
         ambientCalls.filter((call) => call.relayToken !== null),
-        'ambient helper calls that inherited an OK_GH_TOKEN relay',
+        'ambient helper calls that inherited an GITQUIRE_GH_TOKEN relay',
       )
       .toEqual([]);
   });
@@ -1122,7 +1122,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       expect
         .soft(
           ambientCalls.filter((call) => call.relayToken !== null),
-          'ambient helper calls that inherited an OK_GH_TOKEN relay',
+          'ambient helper calls that inherited an GITQUIRE_GH_TOKEN relay',
         )
         .toEqual([]);
     },
@@ -1201,7 +1201,7 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
   ])(
     "when GitHub rejects $source while the user's own helper holds a working credential, gq sync's error names the credential it used and how to renew it",
     async (row) => {
-      vi.stubEnv('OK_CHANNEL', 'channel' in row ? row.channel : 'stable');
+      vi.stubEnv('GITQUIRE_CHANNEL', 'channel' in row ? row.channel : 'stable');
       const server = await arrange({
         gitHubAccepts: USER_PASSWORD,
         okStoreToken: row.okStoreToken,

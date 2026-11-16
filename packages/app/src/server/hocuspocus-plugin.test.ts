@@ -48,17 +48,17 @@ describe('resolveContentConfig', () => {
 describe('hocuspocusPlugin.configureServer middleware ordering', () => {
   let origEnv: string | undefined;
   beforeEach(() => {
-    origEnv = process.env.OK_TEST_CONTENT_DIR;
+    origEnv = process.env.GITQUIRE_TEST_CONTENT_DIR;
   });
   afterEach(() => {
-    if (origEnv !== undefined) process.env.OK_TEST_CONTENT_DIR = origEnv;
-    else delete process.env.OK_TEST_CONTENT_DIR;
+    if (origEnv !== undefined) process.env.GITQUIRE_TEST_CONTENT_DIR = origEnv;
+    else delete process.env.GITQUIRE_TEST_CONTENT_DIR;
     vi.restoreAllMocks();
   });
 
   test('registers asset + api middlewares synchronously, no post-hook returned', async () => {
     const testContentDir = mkTmp();
-    process.env.OK_TEST_CONTENT_DIR = testContentDir;
+    process.env.GITQUIRE_TEST_CONTENT_DIR = testContentDir;
 
     let innerAssetCalls = 0;
     const innerAssetFn = (..._args: unknown[]) => {
@@ -216,7 +216,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
 
   test('buildEnd awaits every overlapping configureServer runtime', async () => {
     const testContentDir = mkTmp();
-    process.env.OK_TEST_CONTENT_DIR = testContentDir;
+    process.env.GITQUIRE_TEST_CONTENT_DIR = testContentDir;
     const shutdowns = [Promise.withResolvers<void>(), Promise.withResolvers<void>()];
     const destroyServers = [vi.fn(async () => {}), vi.fn(async () => {})];
     const hosts = shutdowns.map((shutdown) => ({
@@ -290,7 +290,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
     vi.useFakeTimers();
     try {
       const testContentDir = mkTmp();
-      process.env.OK_TEST_CONTENT_DIR = testContentDir;
+      process.env.GITQUIRE_TEST_CONTENT_DIR = testContentDir;
       const order: string[] = [];
       const logger = { info: vi.fn(), error: vi.fn() };
       const terminateClient = vi.fn(() => {
@@ -375,7 +375,7 @@ describe('hocuspocusPlugin.configureServer middleware ordering', () => {
 
   test('propagates buildEnd AggregateError and contains HTTP-close fallback failures', async () => {
     const testContentDir = mkTmp();
-    process.env.OK_TEST_CONTENT_DIR = testContentDir;
+    process.env.GITQUIRE_TEST_CONTENT_DIR = testContentDir;
     const order: string[] = [];
     const logger = { info: vi.fn(), error: vi.fn() };
     const host = {

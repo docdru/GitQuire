@@ -11,7 +11,7 @@ import {
 let server: TestServer | undefined;
 
 afterEach(async () => {
-  delete process.env.OK_TEST_STORE_FAULT;
+  delete process.env.GITQUIRE_TEST_STORE_FAULT;
   if (server) {
     await server.cleanup();
     server = undefined;
@@ -24,7 +24,7 @@ describe('disk-persistence failure surfacing — edit_document (/api/agent-patch
     const docName = `patch-fault-${randomUUID()}`;
     await agentWriteMd(server.port, '# Doc\n\nFINDME here\n', { docName, position: 'replace' });
 
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     const res = await fetch(`http://127.0.0.1:${server.port}/api/agent-patch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -61,7 +61,7 @@ describe('disk-persistence failure surfacing — edit_frontmatter (/api/frontmat
     const docName = `fm-fault-${randomUUID()}`;
     await agentWriteMd(server.port, '# Doc\n\nbody\n', { docName, position: 'replace' });
 
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     const res = await frontmatterPatch(server.port, docName, { title: 'New Title' });
 
     expect(res.status).toBe(507);
@@ -93,7 +93,7 @@ describe('disk-persistence failure surfacing — version rollback (/api/rollback
     const priorSha = shas[shas.length - 1];
     expect(priorSha).toMatch(/^[0-9a-f]{40}$/i);
 
-    process.env.OK_TEST_STORE_FAULT = docName;
+    process.env.GITQUIRE_TEST_STORE_FAULT = docName;
     const res = await fetch(`http://127.0.0.1:${server.port}/api/rollback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

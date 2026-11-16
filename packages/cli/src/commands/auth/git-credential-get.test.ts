@@ -360,28 +360,28 @@ describe('handleCredentialGet gh-token relay', () => {
 
   beforeEach(() => {
     tmpDir = mkdtempSync(join(tmpdir(), 'ok-git-cred-relay-'));
-    savedToken = process.env.OK_GH_TOKEN;
-    savedHost = process.env.OK_GH_TOKEN_HOST;
-    savedLogin = process.env.OK_GH_TOKEN_LOGIN;
-    delete process.env.OK_GH_TOKEN;
-    delete process.env.OK_GH_TOKEN_HOST;
-    delete process.env.OK_GH_TOKEN_LOGIN;
+    savedToken = process.env.GITQUIRE_GH_TOKEN;
+    savedHost = process.env.GITQUIRE_GH_TOKEN_HOST;
+    savedLogin = process.env.GITQUIRE_GH_TOKEN_LOGIN;
+    delete process.env.GITQUIRE_GH_TOKEN;
+    delete process.env.GITQUIRE_GH_TOKEN_HOST;
+    delete process.env.GITQUIRE_GH_TOKEN_LOGIN;
   });
   afterEach(() => {
     rmSync(tmpDir, { recursive: true, force: true });
-    if (savedToken === undefined) delete process.env.OK_GH_TOKEN;
-    else process.env.OK_GH_TOKEN = savedToken;
-    if (savedHost === undefined) delete process.env.OK_GH_TOKEN_HOST;
-    else process.env.OK_GH_TOKEN_HOST = savedHost;
-    if (savedLogin === undefined) delete process.env.OK_GH_TOKEN_LOGIN;
-    else process.env.OK_GH_TOKEN_LOGIN = savedLogin;
+    if (savedToken === undefined) delete process.env.GITQUIRE_GH_TOKEN;
+    else process.env.GITQUIRE_GH_TOKEN = savedToken;
+    if (savedHost === undefined) delete process.env.GITQUIRE_GH_TOKEN_HOST;
+    else process.env.GITQUIRE_GH_TOKEN_HOST = savedHost;
+    if (savedLogin === undefined) delete process.env.GITQUIRE_GH_TOKEN_LOGIN;
+    else process.env.GITQUIRE_GH_TOKEN_LOGIN = savedLogin;
   });
 
   test('relayed token for a matching host wins over the stored entry', async () => {
     const store = makeStore(tmpDir);
     await store.set('github.com', 'alice', 'gho_stored');
-    process.env.OK_GH_TOKEN = 'gho_relayed';
-    process.env.OK_GH_TOKEN_HOST = 'github.com';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
     const input = makeStream('protocol=https\nhost=github.com\n\n');
     const { writable, result } = makeOutput();
 
@@ -395,8 +395,8 @@ describe('handleCredentialGet gh-token relay', () => {
     'the relayed token answers %j, the same host spelled differently',
     async (request) => {
       const store = makeStore(tmpDir);
-      process.env.OK_GH_TOKEN = 'gho_relayed';
-      process.env.OK_GH_TOKEN_HOST = 'github.com';
+      process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
+      process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
       const { writable, result } = makeOutput();
 
       const code = await handleCredentialGet(makeStream(request), writable, store);
@@ -408,8 +408,8 @@ describe('handleCredentialGet gh-token relay', () => {
 
   test('the relayed token does not answer a different port on the same host', async () => {
     const store = makeStore(tmpDir);
-    process.env.OK_GH_TOKEN = 'gho_relayed';
-    process.env.OK_GH_TOKEN_HOST = 'github.com';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
     const { writable, result } = makeOutput();
 
     const code = await handleCredentialGet(
@@ -424,8 +424,8 @@ describe('handleCredentialGet gh-token relay', () => {
 
   test('a relayed token is never handed to a plain-http request', async () => {
     const store = makeStore(tmpDir);
-    process.env.OK_GH_TOKEN = 'gho_relayed';
-    process.env.OK_GH_TOKEN_HOST = 'github.com';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
     const { writable, result } = makeOutput();
 
     const code = await handleCredentialGet(
@@ -440,8 +440,8 @@ describe('handleCredentialGet gh-token relay', () => {
 
   test('relayed token serves even when the store is empty (the reported bug)', async () => {
     const store = makeStore(tmpDir);
-    process.env.OK_GH_TOKEN = 'gho_relayed';
-    process.env.OK_GH_TOKEN_HOST = 'github.com';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
     const input = makeStream('protocol=https\nhost=github.com\n\n');
     const { writable, result } = makeOutput();
 
@@ -453,9 +453,9 @@ describe('handleCredentialGet gh-token relay', () => {
 
   test('the host is the only relay gate — a username mismatch does not block it', async () => {
     const store = makeStore(tmpDir);
-    process.env.OK_GH_TOKEN = 'gho_relayed';
-    process.env.OK_GH_TOKEN_HOST = 'github.com';
-    process.env.OK_GH_TOKEN_LOGIN = 'alice';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
+    process.env.GITQUIRE_GH_TOKEN_LOGIN = 'alice';
     const input = makeStream('protocol=https\nhost=github.com\nusername=bob\n\n');
     const { writable, result } = makeOutput();
 
@@ -468,8 +468,8 @@ describe('handleCredentialGet gh-token relay', () => {
   test('host mismatch falls through to the stored entry', async () => {
     const store = makeStore(tmpDir);
     await store.set('github.com', 'alice', 'gho_stored');
-    process.env.OK_GH_TOKEN = 'gho_relayed';
-    process.env.OK_GH_TOKEN_HOST = 'ghe.internal.example';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'ghe.internal.example';
     const input = makeStream('protocol=https\nhost=github.com\n\n');
     const { writable, result } = makeOutput();
 
@@ -482,7 +482,7 @@ describe('handleCredentialGet gh-token relay', () => {
   test('token present but host var unset falls through to the store', async () => {
     const store = makeStore(tmpDir);
     await store.set('github.com', 'alice', 'gho_stored');
-    process.env.OK_GH_TOKEN = 'gho_relayed';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed';
     const input = makeStream('protocol=https\nhost=github.com\n\n');
     const { writable, result } = makeOutput();
 
@@ -494,8 +494,8 @@ describe('handleCredentialGet gh-token relay', () => {
 
   test('CR and LF in the relayed token are stripped before write', async () => {
     const store = makeStore(tmpDir);
-    process.env.OK_GH_TOKEN = 'gho_relayed\r\nurl=http://evil';
-    process.env.OK_GH_TOKEN_HOST = 'github.com';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed\r\nurl=http://evil';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
     const input = makeStream('protocol=https\nhost=github.com\n\n');
     const { writable, result } = makeOutput();
 
@@ -507,8 +507,8 @@ describe('handleCredentialGet gh-token relay', () => {
 
   test('logs gh-env-token at debug and never the token', async () => {
     const store = makeStore(tmpDir);
-    process.env.OK_GH_TOKEN = 'gho_relayed_secret';
-    process.env.OK_GH_TOKEN_HOST = 'github.com';
+    process.env.GITQUIRE_GH_TOKEN = 'gho_relayed_secret';
+    process.env.GITQUIRE_GH_TOKEN_HOST = 'github.com';
     const input = makeStream('protocol=https\nhost=github.com\n\n');
     const { writable } = makeOutput();
     const { logger, calls } = makeFakeLogger();

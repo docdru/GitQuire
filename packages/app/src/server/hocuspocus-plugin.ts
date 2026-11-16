@@ -56,20 +56,20 @@ export function resolveContentConfig(projectRoot: string): ContentConfig {
 }
 
 const contentConfig = resolveContentConfig(PROJECT_ROOT);
-const CONTENT_DIR = process.env.OK_TEST_CONTENT_DIR
-  ? realpathSync(process.env.OK_TEST_CONTENT_DIR)
+const CONTENT_DIR = process.env.GITQUIRE_TEST_CONTENT_DIR
+  ? realpathSync(process.env.GITQUIRE_TEST_CONTENT_DIR)
   : contentConfig.dir;
 const CONTENT_ROOT = relative(PROJECT_ROOT, CONTENT_DIR);
 
 mkdirSync(CONTENT_DIR, { recursive: true });
 
-const isTestIsolated = Boolean(process.env.OK_TEST_CONTENT_DIR);
-const gitEnabledForTest = isTestIsolated && process.env.OK_TEST_GIT_ENABLED === '1';
+const isTestIsolated = Boolean(process.env.GITQUIRE_TEST_CONTENT_DIR);
+const gitEnabledForTest = isTestIsolated && process.env.GITQUIRE_TEST_GIT_ENABLED === '1';
 
-const SINGLE_DOC_REL_PATH = process.env.OK_TEST_SINGLE_DOC_REL_PATH || undefined;
+const SINGLE_DOC_REL_PATH = process.env.GITQUIRE_TEST_SINGLE_DOC_REL_PATH || undefined;
 const isEphemeralTest = isTestIsolated && SINGLE_DOC_REL_PATH !== undefined;
-const TEST_PROJECT_DIR = process.env.OK_TEST_PROJECT_DIR
-  ? realpathSync(process.env.OK_TEST_PROJECT_DIR)
+const TEST_PROJECT_DIR = process.env.GITQUIRE_TEST_PROJECT_DIR
+  ? realpathSync(process.env.GITQUIRE_TEST_PROJECT_DIR)
   : undefined;
 
 let exitHandlerRegistered = false;

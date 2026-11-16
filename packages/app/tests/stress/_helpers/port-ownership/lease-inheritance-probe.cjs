@@ -2,7 +2,7 @@ const childProcess = require('node:child_process');
 const { once } = require('node:events');
 const { writeSync } = require('node:fs');
 
-const key = 'OK_PORT_OWNERSHIP_LEASE_FD';
+const key = 'GITQUIRE_PORT_OWNERSHIP_LEASE_FD';
 const [role, label] = process.argv.slice(2);
 const writeLabel = (name) => writeSync(Number(process.env[key]), `${name}\n`);
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;

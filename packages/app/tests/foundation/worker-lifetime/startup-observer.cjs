@@ -14,7 +14,7 @@ function install({ eventsPath, runId }) {
   const selectedEnvironment = (pairs) =>
     Object.fromEntries(
       pairs
-        .filter((pair) => pair.startsWith('OK_TEST_') || pair.startsWith('VITE_PORT='))
+        .filter((pair) => pair.startsWith('GITQUIRE_TEST_') || pair.startsWith('VITE_PORT='))
         .map((pair) => {
           const separator = pair.indexOf('=');
           return [pair.slice(0, separator), pair.slice(separator + 1)];

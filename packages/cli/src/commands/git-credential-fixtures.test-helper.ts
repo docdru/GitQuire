@@ -76,7 +76,7 @@ export function writeRecordingCredentialHelper(
       "  const at = line.indexOf('=');",
       '  if (at > 0) fields[line.slice(0, at)] = line.slice(at + 1);',
       '}',
-      'const relayToken = process.env.OK_GH_TOKEN ?? null;',
+      'const relayToken = process.env.GITQUIRE_GH_TOKEN ?? null;',
       "appendFileSync(log, JSON.stringify({ label, operation, fields, relayToken }) + '\\n');",
       '',
     ].join('\n'),

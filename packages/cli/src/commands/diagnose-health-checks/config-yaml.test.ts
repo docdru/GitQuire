@@ -71,7 +71,7 @@ describe('config-yaml remediation names the running channel CLI', () => {
     ['stable', 'gq'],
     ['beta', 'gq-beta'],
   ])('%s: an uninitialized project names %s init', async (channel, command) => {
-    vi.stubEnv('OK_CHANNEL', channel);
+    vi.stubEnv('GITQUIRE_CHANNEL', channel);
     const result = await makeConfigYamlCheck().run({ cwd: makeProject() });
     expect(result.remediation).toBe(`Run \`${command} init\` to scaffold the project.`);
   });

@@ -437,7 +437,7 @@ describe('GET /api/search — folder synthesis from all paths', () => {
 });
 
 describe('GET /api/search — name-only file tier admission cap (D6)', () => {
-  const KEY = 'OK_SEARCH_MAX_ENTRIES';
+  const KEY = 'GITQUIRE_SEARCH_MAX_ENTRIES';
 
   test('caps the file tier deepest-first, keeps markdown, and signals truncated (AC6)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'ok-search-cap-'));
@@ -575,7 +575,7 @@ describe('GET /api/search — name-only file tier admission cap (D6)', () => {
 });
 
 describe('getSearchMaxEntries — env parse', () => {
-  const KEY = 'OK_SEARCH_MAX_ENTRIES';
+  const KEY = 'GITQUIRE_SEARCH_MAX_ENTRIES';
   const cases: Array<[string, number]> = [
     ['0', DEFAULT_SEARCH_MAX_ENTRIES],
     ['-1', DEFAULT_SEARCH_MAX_ENTRIES],

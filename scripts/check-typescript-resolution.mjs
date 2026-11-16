@@ -836,9 +836,9 @@ export function evaluate({
 }
 
 function main() {
-  const rootSource = process.env.OK_RESOLUTION_ROOT ? 'OK_RESOLUTION_ROOT' : null;
-  const root = process.env.OK_RESOLUTION_ROOT
-    ? path.resolve(process.env.OK_RESOLUTION_ROOT)
+  const rootSource = process.env.GITQUIRE_RESOLUTION_ROOT ? 'GITQUIRE_RESOLUTION_ROOT' : null;
+  const root = process.env.GITQUIRE_RESOLUTION_ROOT
+    ? path.resolve(process.env.GITQUIRE_RESOLUTION_ROOT)
     : path.resolve(import.meta.dirname, '..');
   const workspaceFile = path.join(root, 'pnpm-workspace.yaml');
   if (!fs.existsSync(workspaceFile)) {

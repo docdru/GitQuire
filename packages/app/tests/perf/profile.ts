@@ -36,7 +36,7 @@ export function parseArgs(argv: readonly string[]): CliArgs {
   let scenario = '';
   let target = DEFAULT_TARGET;
   let outDir = DEFAULT_OUT_DIR;
-  let headed = process.env.OK_PERF_HEADED === '1';
+  let headed = process.env.GITQUIRE_PERF_HEADED === '1';
   let viewport = DEFAULT_VIEWPORT;
 
   for (const raw of argv) {
@@ -72,7 +72,7 @@ function usageAndExit(err: string | null): never {
     '  --out=<dir>              Output dir. Default: ./results',
     '  --headed                 Launch with a visible browser window.',
     '                           Default: headless. Equivalent to',
-    '                           OK_PERF_HEADED=1 in the environment.',
+    '                           GITQUIRE_PERF_HEADED=1 in the environment.',
     '  --headless               Launch headless (the default).',
     '  --viewport=<WxH>         Viewport, e.g. 1920x1080. Default 1440x900',
     '',

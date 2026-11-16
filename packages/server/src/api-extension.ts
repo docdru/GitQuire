@@ -456,7 +456,7 @@ function synthesizeShowAllAssetExt(name: string): string {
 
 export const DEFAULT_SHOWALL_MAX_ENTRIES = 50_000;
 export function getShowAllMaxEntries(): number {
-  const raw = process.env.OK_SHOWALL_MAX_ENTRIES;
+  const raw = process.env.GITQUIRE_SHOWALL_MAX_ENTRIES;
   if (raw === undefined) return DEFAULT_SHOWALL_MAX_ENTRIES;
   const parsed = Number(raw);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_SHOWALL_MAX_ENTRIES;
@@ -464,7 +464,7 @@ export function getShowAllMaxEntries(): number {
 
 export const DEFAULT_SEARCH_MAX_ENTRIES = 50_000;
 export function getSearchMaxEntries(): number {
-  const raw = process.env.OK_SEARCH_MAX_ENTRIES;
+  const raw = process.env.GITQUIRE_SEARCH_MAX_ENTRIES;
   if (raw === undefined) return DEFAULT_SEARCH_MAX_ENTRIES;
   const parsed = Number(raw);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_SEARCH_MAX_ENTRIES;
@@ -3331,9 +3331,9 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
             const liveContents = await captureAndCloseDocuments([...renameMap.keys()], 'renamed');
             if (
               process.env.NODE_ENV === 'test' &&
-              process.env.OK_TEST_RENAME_FAULT === 'pre-append'
+              process.env.GITQUIRE_TEST_RENAME_FAULT === 'pre-append'
             ) {
-              throw new Error('OK_TEST_RENAME_FAULT=pre-append');
+              throw new Error('GITQUIRE_TEST_RENAME_FAULT=pre-append');
             }
 
             withSpanSync('rename.appendLog', { attributes: { 'rename.kind': kind } }, (span) => {
@@ -3414,9 +3414,9 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
 
             if (
               process.env.NODE_ENV === 'test' &&
-              process.env.OK_TEST_RENAME_FAULT === 'pre-journal-clear'
+              process.env.GITQUIRE_TEST_RENAME_FAULT === 'pre-journal-clear'
             ) {
-              throw new Error('OK_TEST_RENAME_FAULT=pre-journal-clear');
+              throw new Error('GITQUIRE_TEST_RENAME_FAULT=pre-journal-clear');
             }
           });
 

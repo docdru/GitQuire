@@ -13,7 +13,7 @@ The recipes on this page are examples, not requirements. The server runs anywher
 - **A persistent volume with a real filesystem**, mounted at `/data`. The project is a live git repository the server watches and writes. Container-layer storage is lost on recreate, and network filesystems built for object storage fit it poorly.
 - **Use HTTP ingress that supports WebSockets and unbuffered streaming responses.** Live editing uses a WebSocket. `/mcp` uses server-sent events. See the [proxy rules](#rules-for-anything-in-front-of-the-server).
 - **Use TLS at the edge and preserve `X-Forwarded-Proto: https`.** Hosting platforms usually handle this automatically. If you add your own plain HTTP proxy, set the header yourself.
-- **The two remote-access declarations from the [configuration reference](/docs/reference/configuration)**: `OK_EXTERNAL_URL` names the public origin, and `OK_ALLOW_EXTERNAL=1` consents to exposure.
+- **The two remote-access declarations from the [configuration reference](/docs/reference/configuration)**: `GITQUIRE_EXTERNAL_URL` names the public origin, and `GITQUIRE_ALLOW_EXTERNAL=1` consents to exposure.
 
 Anything that checks those boxes, whether a hosting platform, an orchestrator, or a box under your desk, will run the image.
 
@@ -32,7 +32,7 @@ The image's entrypoint runs every time the container starts. `gitquire start` ne
 Test it locally:
 
 ```bash
-docker run --rm -p 8080:8080 -e OK_ALLOW_EXTERNAL=1 -v gitquire-data:/data ghcr.io/docdru/gitquire:latest
+docker run --rm -p 8080:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 -v gitquire-data:/data ghcr.io/docdru/gitquire:latest
 # → http://localhost:8080
 ```
 
@@ -41,11 +41,11 @@ docker run --rm -p 8080:8080 -e OK_ALLOW_EXTERNAL=1 -v gitquire-data:/data ghcr.
 | Variable | Container default | Meaning |
 | --- | --- | --- |
 | `PORT` | `8080` | Listen port. Railway, Fly, and Cloud Run set `PORT` automatically. Do not set it yourself on those platforms. |
-| `OK_BIND` | `0.0.0.0` | Bind address list. On an IPv6-only network, use `::` instead. It also serves IPv4. Do not combine `0.0.0.0 ::` on one port because the listeners conflict. |
-| `OK_ALLOW_EXTERNAL` | unset | Run-time exposure consent. Without it the interlock refuses to boot. |
-| `OK_EXTERNAL_URL` | unset | The public origin the deployment is reached at. Required behind any real domain, or hostname requests are rejected with `403`. |
+| `GITQUIRE_BIND` | `0.0.0.0` | Bind address list. On an IPv6-only network, use `::` instead. It also serves IPv4. Do not combine `0.0.0.0 ::` on one port because the listeners conflict. |
+| `GITQUIRE_ALLOW_EXTERNAL` | unset | Run-time exposure consent. Without it the interlock refuses to boot. |
+| `GITQUIRE_EXTERNAL_URL` | unset | The public origin the deployment is reached at. Required behind any real domain, or hostname requests are rejected with `403`. |
 | `TZ` | unset (UTC) | Time zone for the date `{{date}}` fills in when a document is created from a template, as an IANA name such as `America/Los_Angeles`. |
-| `OK_IDLE_SHUTDOWN` | unset | Idle shutdown defaults to `off` on a non-loopback bind. Set a duration such as `30m` to turn it back on. |
+| `GITQUIRE_IDLE_SHUTDOWN` | unset | Idle shutdown defaults to `off` on a non-loopback bind. Set a duration such as `30m` to turn it back on. |
 
 Health endpoints for platform checks: `GET /healthz` (liveness) and `GET /readyz` (readiness).
 
@@ -60,15 +60,15 @@ Railway builds the Dockerfile, sets `PORT`, enables TLS, and provides a domain. 
 ```bash
 railway login
 railway init --name my-kb                                        # create the project
-railway add --service my-kb --variables "OK_ALLOW_EXTERNAL=1"    # create the service + consent
+railway add --service my-kb --variables "GITQUIRE_ALLOW_EXTERNAL=1"    # create the service + consent
 railway volume --service <service-id> add --mount-path /data     # persistent volume (see note below)
 railway domain --service my-kb --port 8080                       # generate the domain (works pre-deploy)
-railway variables --service my-kb --set 'OK_EXTERNAL_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}'
+railway variables --service my-kb --set 'GITQUIRE_EXTERNAL_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}'
 railway up --service my-kb --detach                              # one deploy with externalUrl set on first boot
 railway logs --service my-kb                                     # watch the first boot
 ```
 
-`${{RAILWAY_PUBLIC_DOMAIN}}` is a Railway reference variable. It resolves to the generated domain during deployment, so `OK_EXTERNAL_URL` is correct on the first boot. The entrypoint initializes the empty volume and starts the server. The log shows an exposure banner with your domain. Set the platform health check to `/readyz`.
+`${{RAILWAY_PUBLIC_DOMAIN}}` is a Railway reference variable. It resolves to the generated domain during deployment, so `GITQUIRE_EXTERNAL_URL` is correct on the first boot. The entrypoint initializes the empty volume and starts the server. The log shows an exposure banner with your domain. Set the platform health check to `/readyz`.
 
 A few Railway-specific caveats:
 
@@ -82,7 +82,7 @@ A few Railway-specific caveats:
 
 The same image runs anywhere Docker is available. On Fly.io, mount a volume at `/data`, set the same two `OK_*` variables with the `.fly.dev` domain, and point a health check at `/readyz`.
 
-With Docker Compose, you can add a `cloudflared` sidecar as the only ingress. This works on a hosting platform or your own VPS. You do not need a separate public domain. Set `OK_EXTERNAL_URL` to the tunnel hostname.
+With Docker Compose, you can add a `cloudflared` sidecar as the only ingress. This works on a hosting platform or your own VPS. You do not need a separate public domain. Set `GITQUIRE_EXTERNAL_URL` to the tunnel hostname.
 
 AWS, Google Cloud, and Azure can run the image on a virtual machine with Docker. You can also use the [CLI method](/docs/remote-control/methods/cli#a-server-you-manage) on a virtual machine. Serverless container services must provide persistent storage and support one always-on replica. Vercel and Netlify cannot host GitQuire because they run request-based functions instead of one long-lived stateful process.
 
@@ -99,9 +99,9 @@ Two practices make this predictable:
 
 Four rules apply to any proxy you place between clients and the container (an auth proxy, nginx, a CDN layer):
 
-- **The server must consent before any proxy fronts it.** A request carrying a forwarding header (`X-Forwarded-For`, `Forwarded`, `X-Forwarded-Proto`, ...) is refused with `403 Proxied request refused` unless BOTH `OK_EXTERNAL_URL` and `OK_ALLOW_EXTERNAL=1` are set. Every proxy stamps at least one of these headers, so this pair is a prerequisite for the rules below.
+- **The server must consent before any proxy fronts it.** A request carrying a forwarding header (`X-Forwarded-For`, `Forwarded`, `X-Forwarded-Proto`, ...) is refused with `403 Proxied request refused` unless BOTH `GITQUIRE_EXTERNAL_URL` and `GITQUIRE_ALLOW_EXTERNAL=1` are set. Every proxy stamps at least one of these headers, so this pair is a prerequisite for the rules below.
 
-- **Preserve the original `Host` header.** The server compares each request's `Host` with `OK_EXTERNAL_URL`. Many reverse proxies replace `Host` with the upstream address, such as `ok:8080`. The server rejects these requests with `403`. Forward the client's host instead. In Caddy, use `header_up Host {host}`. In nginx, set the `Host` header to `$host` with `proxy_set_header`. Hosting platform edges usually preserve it automatically. A proxy you add may not.
+- **Preserve the original `Host` header.** The server compares each request's `Host` with `GITQUIRE_EXTERNAL_URL`. Many reverse proxies replace `Host` with the upstream address, such as `ok:8080`. The server rejects these requests with `403`. Forward the client's host instead. In Caddy, use `header_up Host {host}`. In nginx, set the `Host` header to `$host` with `proxy_set_header`. Hosting platform edges usually preserve it automatically. A proxy you add may not.
 - **Never buffer `/mcp`.** It is a streaming endpoint that uses server-sent events. A proxy that buffers or compresses the response causes agent connections to time out. In nginx, set `proxy_buffering` to `off` for this path. Caddy streams by default. Hosting platform edges pass server-sent events through. Apply this rule to any proxy you add.
 - **A TLS proxy that uses plain HTTP to reach the server must set `X-Forwarded-Proto: https`.** The server uses this header to create secure WebSocket URLs with `wss://`. If the proxy reports `http`, the editor tries to open an insecure `ws://` connection from an `https://` page. Browsers block the connection and the editor does not load. Hosting platform edges usually set the header correctly. An authentication proxy between the edge and the server may not.
 

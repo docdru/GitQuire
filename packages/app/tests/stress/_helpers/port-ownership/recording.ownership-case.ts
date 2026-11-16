@@ -116,7 +116,7 @@ for (const host of Object.keys(TEST_SERVER_HOST_FAMILY).filter(isTestServerHost)
           };
         }
         await vite.listen();
-        const recordsPath = process.env.OK_PORT_OWNERSHIP_RECORDS;
+        const recordsPath = process.env.GITQUIRE_PORT_OWNERSHIP_RECORDS;
         if (!recordsPath) throw new Error('expected an ownership records path');
         const records = readOwnershipRecords(recordsPath).filter(
           (record): record is Record<string, unknown> =>

@@ -18,7 +18,7 @@ const SEED = '# Doc\n\nfirst paragraph\n\nsecond paragraph\n';
 const cleanups: Array<() => Promise<void> | void> = [];
 
 afterEach(async () => {
-  delete process.env.OK_TEST_COMPARE_READ_FAULT;
+  delete process.env.GITQUIRE_TEST_COMPARE_READ_FAULT;
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
 });
 
@@ -126,7 +126,7 @@ describe('an MCP client that has listed the tools reads the outcome on every wri
     const { server, mcp } = await rig();
     const docName = `mcp-held-${randomUUID()}`;
     await seedAndOpen(server, docName);
-    process.env.OK_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:1000`;
+    process.env.GITQUIRE_TEST_COMPARE_READ_FAULT = `${docName}:EBUSY:1000`;
 
     const result = await appendWith(mcp, docName, '\nagent line\n');
     expect(result.isError).toBe(true);

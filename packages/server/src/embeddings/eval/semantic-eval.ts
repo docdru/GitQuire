@@ -184,10 +184,10 @@ export async function loadEvalEmbedder(): Promise<Embedder | null> {
     keyStore: null,
     projectDir: process.cwd(),
     config: {
-      baseUrl: process.env.OK_EMBEDDINGS_BASE_URL ?? 'https://api.openai.com/v1',
-      model: process.env.OK_EMBEDDINGS_MODEL ?? 'text-embedding-3-small',
-      dimensions: process.env.OK_EMBEDDINGS_DIMENSIONS
-        ? Number(process.env.OK_EMBEDDINGS_DIMENSIONS)
+      baseUrl: process.env.GITQUIRE_EMBEDDINGS_BASE_URL ?? 'https://api.openai.com/v1',
+      model: process.env.GITQUIRE_EMBEDDINGS_MODEL ?? 'text-embedding-3-small',
+      dimensions: process.env.GITQUIRE_EMBEDDINGS_DIMENSIONS
+        ? Number(process.env.GITQUIRE_EMBEDDINGS_DIMENSIONS)
         : undefined,
     },
   });
@@ -196,7 +196,7 @@ export async function loadEvalEmbedder(): Promise<Embedder | null> {
 async function main(): Promise<void> {
   const embedder = await loadEvalEmbedder();
   if (!embedder) {
-    console.error('No embeddings key — set OK_EMBEDDINGS_API_KEY to run the eval.');
+    console.error('No embeddings key — set GITQUIRE_EMBEDDINGS_API_KEY to run the eval.');
     process.exit(1);
   }
   const prep = await prepareEval(embedder, loadEvalSet());
