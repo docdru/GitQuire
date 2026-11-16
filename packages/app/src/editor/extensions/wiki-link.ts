@@ -21,6 +21,7 @@ import {
   subscribePageListCache,
 } from '../page-list-cache';
 import { isSafeNavigationUrl } from '../safe-navigation-url';
+import { configureRelationSuggestion } from './relation-suggestion';
 import { WikiLinkPropPanel } from './WikiLinkPropPanel';
 import {
   getWikiLinkResolutionCandidates,
@@ -384,6 +385,6 @@ export const WikiLink = BaseWikiLink.extend<{ docName: string }>({
   },
 
   addProseMirrorPlugins() {
-    return [configureWikiLinkSuggestion(this.editor)];
+    return [configureWikiLinkSuggestion(this.editor), configureRelationSuggestion(this.editor)];
   },
 });

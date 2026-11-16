@@ -106,6 +106,9 @@ msgstr "{0, plural, one {# آئٹم} other {# آئٹمز}}"
 msgid "{0, plural, one {# key} other {# keys}}"
 msgstr "{0, plural, one {# کلید} other {# کلیدیں}}"
 
+msgid "{0, plural, one {# link} other {# links}}"
+msgstr ""
+
 msgid "{0, plural, one {# more} other {# more}}"
 msgstr ""
 
@@ -4130,6 +4133,9 @@ msgstr "PDF لوڈ ہو رہی ہے"
 msgid "Loading preview"
 msgstr "پیش منظر لوڈ ہو رہا ہے"
 
+msgid "Loading relation names"
+msgstr ""
+
 msgid "Loading repositories"
 msgstr "ریپازٹریز لوڈ ہو رہی ہیں"
 
@@ -4827,6 +4833,9 @@ msgid "No property with a few values to group by. Set \"group:\" in the view blo
 msgstr ""
 
 msgid "No relation"
+msgstr ""
+
+msgid "No relation is named like \"{trimmed}\" yet. Keep typing to use it as a new one."
 msgstr ""
 
 msgid "No repositories found on your GitHub account."
@@ -5742,7 +5751,13 @@ msgstr "بحال شدہ مواد"
 msgid "Redo"
 msgstr "دوبارہ کریں"
 
+msgid "Relation {name}, {uses}"
+msgstr ""
+
 msgid "Relation <0>(optional, such as supersedes or blocks)</0>"
+msgstr ""
+
+msgid "Relation suggestions"
 msgstr ""
 
 msgid "Relations"
