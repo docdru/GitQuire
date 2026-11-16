@@ -44,6 +44,7 @@ export interface GitRouteDeps {
   getSyncEngine: (() => SyncEngine | null) | undefined;
   getPrincipal: (() => Principal | null) | undefined;
   resolveCredentialConfig: () => Promise<string[]>;
+  setBatchInProgress?: (value: boolean) => void | Promise<void>;
 }
 
 export function createGitRoutes(deps: GitRouteDeps): ApiRouteGroup {
@@ -193,12 +194,18 @@ export function createGitRoutes(deps: GitRouteDeps): ApiRouteGroup {
 
       try {
         const credentialConfig = await resolveCredentialConfig();
-        const outcome = await withParentLock(() =>
-          runCheckoutFlow(projectDir, body.branch, {
-            fastForward: body.fastForward === true,
-            credentialConfig,
-          }),
-        );
+        await deps.setBatchInProgress?.(true);
+        let outcome: Awaited<ReturnType<typeof runCheckoutFlow>>;
+        try {
+          outcome = await withParentLock(() =>
+            runCheckoutFlow(projectDir, body.branch, {
+              fastForward: body.fastForward === true,
+              credentialConfig,
+            }),
+          );
+        } finally {
+          await deps.setBatchInProgress?.(false);
+        }
         successResponse(res, 200, CheckoutResponseSchema, outcome, {
           handler: CHECKOUT_HANDLER_TAG,
         });

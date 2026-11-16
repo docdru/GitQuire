@@ -111,6 +111,7 @@ export interface CreateTestServerOptions {
   watcherBackend?: ServerOptions['watcherBackend'];
   watcherClock?: ServerOptions['watcherClock'];
   freshnessIntervalMs?: ServerOptions['freshnessIntervalMs'];
+  fileWatching?: ServerOptions['fileWatching'];
   mergeHistoryWriter?: ServerOptions['mergeHistoryWriter'];
 }
 
@@ -191,6 +192,7 @@ export async function createTestServer(options: CreateTestServerOptions = {}): P
       watcherBackend: options.watcherBackend,
       watcherClock: options.watcherClock,
       freshnessIntervalMs: options.freshnessIntervalMs ?? null,
+      ...(options.fileWatching ? { fileWatching: options.fileWatching } : {}),
       mergeHistoryWriter: options.mergeHistoryWriter,
       ...(ephemeral ? { ephemeral: true, singleDocRelPath: options.singleDocRelPath } : {}),
       skipStateManifestCheck: true,
@@ -1423,6 +1425,7 @@ function writeFilesUnder(root: string, files: Record<string, string>): void {
 export interface SyncWiredHandle {
   originDir: string;
   pushToOrigin: (files: Record<string, string>, message?: string) => Promise<void>;
+  removeFromOrigin: (paths: readonly string[], message?: string) => Promise<void>;
   engine: NonNullable<ServerInstance['syncEngine']>;
 }
 
@@ -1511,9 +1514,18 @@ export async function createSyncWiredTestServer(
     await runGit(authorDir, ['push', 'origin', 'main']);
   };
 
+  const removeFromOrigin = async (
+    paths: readonly string[],
+    message = 'upstream removal',
+  ): Promise<void> => {
+    await runGit(authorDir, ['rm', '-q', '--', ...paths]);
+    await runGit(authorDir, ['commit', '-m', message]);
+    await runGit(authorDir, ['push', 'origin', 'main']);
+  };
+
   return {
     ...testServer,
-    sync: { originDir, pushToOrigin, engine },
+    sync: { originDir, pushToOrigin, removeFromOrigin, engine },
     cleanup: async () => {
       await runTeardownPhases(() => testServer.cleanup(), removeScratch);
     },

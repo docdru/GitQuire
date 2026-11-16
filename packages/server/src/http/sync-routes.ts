@@ -58,7 +58,7 @@ export interface SyncRouteDeps {
   getSyncEngine: (() => SyncEngine | null) | undefined;
   conflicts: ConflictAuthority;
   serializeDoc: ((docName: string) => string | null) | undefined;
-  setBatchInProgress: ((value: boolean) => void) | undefined;
+  setBatchInProgress: ((value: boolean) => void | Promise<void>) | undefined;
 }
 
 export function createSyncRoutes(deps: SyncRouteDeps): ApiRouteGroup {
@@ -283,7 +283,7 @@ export function createSyncRoutes(deps: SyncRouteDeps): ApiRouteGroup {
           RESOLVE_ATTRIBUTION_WINDOW_MS,
         );
       }
-      setBatchInProgress?.(true);
+      await setBatchInProgress?.(true);
       try {
         await conflicts.resolve(file, strategy as ResolveStrategy, content);
         successResponse(
@@ -359,7 +359,7 @@ export function createSyncRoutes(deps: SyncRouteDeps): ApiRouteGroup {
           },
         );
       } finally {
-        setBatchInProgress?.(false);
+        await setBatchInProgress?.(false);
       }
     },
     {
