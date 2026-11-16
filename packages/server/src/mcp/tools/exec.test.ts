@@ -1409,3 +1409,68 @@ describe('exec — mutation-sweep scoping and honesty', () => {
     expect(partialSweepWarnings(result).length).toBe(0);
   });
 });
+
+describe('exec — the local data folder is not readable', () => {
+  async function withSecrets(): Promise<string> {
+    const project = await bootstrap();
+    for (const dir of ['.ok/local', '.gitquire/local']) {
+      mkdirSync(resolve(project, dir, 'chat'), { recursive: true });
+      writeFileSync(resolve(project, dir, 'chat', 'keys.json'), '{"key":"secret-token-123"}');
+    }
+    writeFileSync(resolve(project, '.ok', 'config.yml'), 'content:\n  dir: .\n');
+    writeFileSync(resolve(project, 'notes.md'), 'mentions secret-token-123 in prose\n');
+    return project;
+  }
+
+  function run(project: string, command: string, cwd?: string) {
+    return buildExecResult(
+      { command, cwd },
+      { resolveCwd: async () => project, serverUrl: undefined, config: DEFAULT_CONFIG },
+    ) as Promise<ExecResult>;
+  }
+
+  test.each([
+    'cat .ok/local/chat/keys.json',
+    'cat .gitquire/local/chat/keys.json',
+    'cat ./.ok/../.ok/local/chat/keys.json',
+    'head .OK/LOCAL/chat/keys.json',
+    'ls .ok/local',
+  ])('%s is refused as if the folder did not exist', async (command) => {
+    const project = await withSecrets();
+    const result = await run(project, command);
+    const text = result.content.map((part) => part.text).join('\n');
+    expect(text).not.toContain('secret-token-123');
+    expect(text).not.toMatch(/^chat$/m);
+    expect(text).toMatch(/No such file|not found|ENOENT|cannot access/i);
+  });
+
+  test.each([
+    'grep -r secret-token-123 .ok',
+    'grep -rn secret-token-123 .',
+    'find . -name keys.json',
+    'ls -R .ok',
+    'find .gitquire',
+  ])('%s does not list the folder or its files', async (command) => {
+    const project = await withSecrets();
+    const result = await run(project, command);
+    const text = result.content.map((part) => part.text).join('\n');
+    expect(text).not.toContain('"key":"secret-token-123"');
+    expect(text).not.toContain('keys.json');
+    expect(text).not.toMatch(/\blocal\b/);
+  });
+
+  test('the rest of the project stays readable', async () => {
+    const project = await withSecrets();
+    const grep = await run(project, 'grep -rn secret-token-123 .');
+    expect(grep.content[0].text).toContain('notes.md');
+    const ls = await run(project, 'ls .ok');
+    expect(ls.content[0].text).toContain('config.yml');
+  });
+
+  test('exec cannot run from inside the folder', async () => {
+    const project = await withSecrets();
+    const result = await run(project, 'ls', resolve(project, '.ok/local'));
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).not.toContain('chat');
+  });
+});

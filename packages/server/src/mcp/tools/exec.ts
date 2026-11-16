@@ -12,6 +12,8 @@ import {
   createBashInstance,
   erofsTarget,
   execBash,
+  hiddenFromExec,
+  isHiddenFromExec,
   StdoutOverflowError,
 } from '../../bash/index.ts';
 import {
@@ -465,7 +467,14 @@ export async function buildExecResult(
   ];
   const pre = await snapshotMtimesForRoots(executionCwd, scanRoots);
 
-  const bash = createBashInstance(executionCwd);
+  const hidden = hiddenFromExec(cwd, executionCwd);
+  if (hidden === 'inside') {
+    return errorCategoryResult(
+      'path_traversal',
+      "exec failed: the server's local data folder is not readable through exec",
+    );
+  }
+  const bash = createBashInstance(executionCwd, hidden);
   let stdout = '';
   let stderr = '';
   try {
@@ -506,7 +515,10 @@ export async function buildExecResult(
   const capped = applySoftCap(stdout);
 
   const rawPaths = extractReferencedPaths(stdout, stages);
-  const paths = rawPaths.filter((p) => resolveWithinRoot(executionCwd, p).ok).map(rebaseToProject);
+  const paths = rawPaths
+    .filter((p) => resolveWithinRoot(executionCwd, p).ok)
+    .map(rebaseToProject)
+    .filter((p) => !isHiddenFromExec(cwd, p));
   const { files, dirs } = await classifyPaths(cwd, paths);
   const isSinglePathCat = stages.length === 1 && stages[0].command === 'cat' && files.length === 1;
   const fileEnriched: EnrichedMeta[] = await Promise.all(
