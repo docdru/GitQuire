@@ -24,6 +24,7 @@ import { authCommand } from './commands/auth/index.ts';
 import { bugReportCommand } from './commands/bug-report.ts';
 import { cleanCommand } from './commands/clean.ts';
 import { cloneCommand } from './commands/clone.ts';
+import { commentsCommand } from './commands/comments.ts';
 import { configCommand, shouldAnnounceRemovedKeys } from './commands/config.ts';
 import { diagnoseCommand } from './commands/diagnose.ts';
 import { embeddingsCommand } from './commands/embeddings/index.ts';
@@ -134,6 +135,8 @@ const preview = previewCommand(() => resolvedConfig);
 program.addCommand(preview);
 
 program.addCommand(lintCommand(() => resolvedConfig));
+
+program.addCommand(commentsCommand(() => resolvedConfig));
 
 program.addCommand(auditCommand(() => resolvedConfig));
 

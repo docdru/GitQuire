@@ -12,12 +12,33 @@ const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_SCANNED_FILES = 5000;
 const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', 'out', 'vendor']);
 
+export interface OpenCommentEntry {
+  author: string;
+  at: string;
+  body: string;
+}
+
 export interface OpenCommentSummary {
   threadId: string;
   author: string;
   body: string;
   quote: string;
   replies: number;
+  comments?: OpenCommentEntry[];
+}
+
+const MAX_THREAD_CHARS = 8000;
+
+function entries(thread: CommentThread): OpenCommentEntry[] {
+  const out: OpenCommentEntry[] = [];
+  let budget = MAX_THREAD_CHARS;
+  for (const comment of thread.comments) {
+    if (budget <= 0) break;
+    const body = comment.body.length > budget ? `${comment.body.slice(0, budget)}…` : comment.body;
+    budget -= body.length;
+    out.push({ author: authorLabel(comment.author), at: comment.createdAt, body });
+  }
+  return out;
 }
 
 function authorLabel(author: CommentAuthor): string {
@@ -35,6 +56,7 @@ function summarize(thread: CommentThread): OpenCommentSummary | undefined {
     body: first.body,
     quote: thread.anchor.exact,
     replies: thread.comments.length - 1,
+    comments: entries(thread),
   };
 }
 
