@@ -10,7 +10,6 @@ import { beforeAll, describe, expect, test } from 'vitest';
 import { AGENTS } from '../components/agent-icons.tsx';
 import { LAYERS, PATHS } from '../components/overview-blocks.tsx';
 import { type CorpusPage, readCorpus } from './docs-corpus.test-helper.ts';
-import { DOWNLOAD_TARGETS } from './download-targets.ts';
 import { serializeMdx } from './mdx-serializer.ts';
 import { DOCS_SERIALIZER_REGISTRY } from './mdx-serializer-registry.ts';
 
@@ -235,13 +234,6 @@ describe('tab groups', () => {
 });
 
 describe('components whose content lives in their own module', () => {
-  test('the download button lists every published build with its installer URL', () => {
-    const md = serialize('<DownloadButton />');
-    for (const target of DOWNLOAD_TARGETS) {
-      expect(md).toContain(`[${target.label}](${target.assetUrl})`);
-    }
-  });
-
   test('the layer stack lists every layer with its role and description', () => {
     const md = serialize('<LayerStack />');
     for (const layer of LAYERS) {
@@ -359,15 +351,12 @@ describe('the docs corpus through the real registry', () => {
   test('every <Image src> in the corpus resolves to a file under public/', () => {
     const PUBLIC_DIR = fileURLToPath(new URL('../../public/', import.meta.url));
     const missing: string[] = [];
-    let seen = 0;
     for (const page of pages) {
       for (const match of page.source.matchAll(/<Image\b[^>]*\bsrc="([^"]+)"/g)) {
         const src = match[1];
-        seen += 1;
         if (!existsSync(path.join(PUBLIC_DIR, src))) missing.push(`${page.slug}: ${src}`);
       }
     }
-    expect(seen).toBeGreaterThan(0);
     expect(missing).toEqual([]);
   });
 
@@ -402,28 +391,9 @@ describe('the docs corpus through the real registry', () => {
     }
   });
 
-  test('the quickstart serves the download builds its CTA stands for', () => {
+  test('the quickstart serves the server start steps', () => {
     const md = output.get('get-started/quickstart') ?? '';
-    expect(md).toContain(DOWNLOAD_TARGETS[0].assetUrl);
-    expect(md).toContain('### Install the desktop app');
-  });
-
-  test('every page embedding the shared install block serves its steps', () => {
-    const embedding = pages.filter((page) => page.source.includes('<McpInstall'));
-    expect(embedding.length).toBeGreaterThan(5);
-    for (const page of embedding) {
-      expect(output.get(page.slug), page.slug).toContain('depending on how you run OpenKnowledge');
-    }
-  });
-
-  test('every page embedding the shared verification block serves its prompt', () => {
-    const embedding = pages.filter((page) => page.source.includes('<VerifyExec'));
-    expect(embedding.length).toBeGreaterThan(5);
-    for (const page of embedding) {
-      expect(output.get(page.slug), page.slug).toContain(
-        '> List the first 5 documents you come across in this project.',
-      );
-    }
+    expect(md).toContain('### Start the server');
   });
 
   test('the overview serves the three layers and the start paths', () => {

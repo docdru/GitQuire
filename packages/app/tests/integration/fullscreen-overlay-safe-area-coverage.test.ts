@@ -50,6 +50,11 @@ interface AllowlistEntry {
 
 const ALLOWLIST: readonly AllowlistEntry[] = [
   {
+    file: 'components/gitquire-drafts/DraftBar.tsx',
+    pattern: 'P1-fixed-inset-0',
+    rationale: 'Draft-mode frame: a pointer-events-none border, no interactive content',
+  },
+  {
     file: 'components/ui/alert-dialog.tsx',
     pattern: 'P1-fixed-inset-0',
     rationale: 'Radix AlertDialog.Overlay backdrop — no interactive content',

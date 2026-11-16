@@ -12,6 +12,10 @@ import {
 } from '@/lib/pane-visibility-store';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 
+vi.mock('@/lib/gitquire/personal-git-credentials', () => ({
+  PERSONAL_GIT_CREDENTIALS_ENABLED: true,
+}));
+
 vi.doMock('@lingui/core/macro', () => ({
   ...actualLinguiMacro,
   t: renderLinguiTemplate,

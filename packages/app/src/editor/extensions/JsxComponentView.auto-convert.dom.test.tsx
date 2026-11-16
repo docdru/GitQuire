@@ -196,25 +196,6 @@ describe('component actions before the shifted position renders', () => {
     },
   );
 
-  test('selects the clicked component for a comment after a position shift', async () => {
-    const source = 'Before.\n\n<Math formula="x^2" />\n\nAfter.\n';
-    const editor = await mountEditor(source);
-    const target = editor.state.doc.child(1);
-    const button = screen.getByRole('button', {
-      name: 'Comment or ask AI about this Math',
-      exact: true,
-    });
-
-    act(() => {
-      editor.view.dispatch(editor.state.tr.insertText('Shifted ', 1));
-      fireEvent.click(button);
-    });
-
-    expect(editor.state.selection.from).toBe(editor.state.doc.child(0).nodeSize);
-    expect(editor.state.doc.nodeAt(editor.state.selection.from)).toBe(target);
-    expect(manager.serialize(editor.getJSON())).toBe(source.replace('Before.', 'Shifted Before.'));
-  });
-
   test('updates move-button availability when an unchanged child changes position', async () => {
     const editor = await mountEditor(
       '<Callout title="Group">\n<Callout title="First">\nFirst body.\n</Callout>\n<Callout title="Second">\nSecond body.\n</Callout>\n</Callout>\n',

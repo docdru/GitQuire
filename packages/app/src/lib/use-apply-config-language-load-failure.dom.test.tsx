@@ -128,7 +128,7 @@ describe('a catalog that never arrives', () => {
       rerender(tree('bn'));
     });
     await act(async () => {
-      await import('@/locales/bn/messages.json');
+      await vi.dynamicImportSettled();
     });
 
     await waitFor(() => {

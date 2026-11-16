@@ -96,8 +96,8 @@ describe('HelpPopover runtime behavior', () => {
         hasIcon: true,
       },
       {
-        label: 'Download app',
-        href: 'https://openknowledge.ai/download',
+        label: 'Report an issue',
+        href: 'https://github.com/docdru/GitQuire/issues/new/choose',
         target: '_blank',
         rel: 'noopener noreferrer',
         hasIcon: true,
@@ -113,21 +113,7 @@ describe('HelpPopover runtime behavior', () => {
     expect(links.map(linkShape)).toEqual([
       {
         label: 'GitHub',
-        href: 'https://github.com/inkeep/open-knowledge',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-        hasIcon: true,
-      },
-      {
-        label: 'X (Twitter)',
-        href: 'https://x.com/GitQuire',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-        hasIcon: true,
-      },
-      {
-        label: 'Discord',
-        href: 'https://discord.gg/VRKk2EaGHN',
+        href: 'https://github.com/docdru/GitQuire',
         target: '_blank',
         rel: 'noopener noreferrer',
         hasIcon: true,
@@ -150,18 +136,12 @@ describe('HelpPopover runtime behavior', () => {
     await waitFor(() => expect(within(githubLink).getByText('1.2k')).not.toBeNull());
   });
 
-  test('Product updates exposes a What’s new link and a Subscribe action', async () => {
+  test('Product updates links to the GitQuire releases', async () => {
     await renderOpenHelpPopover();
 
     const nav = screen.getByRole('navigation', { name: 'Product updates' });
     const whatsNew = within(nav).getByRole('link', { name: "What's new" });
-    expect(whatsNew.getAttribute('href')).toBe('https://github.com/inkeep/open-knowledge/releases');
-
-    const subscribe = within(nav).getByRole('button', { name: 'Subscribe' });
-    expect(subscribe).not.toBeNull();
-
-    await userEvent.click(subscribe);
-    expect(screen.getByTestId('subscribe-email')).not.toBeNull();
+    expect(whatsNew.getAttribute('href')).toBe('https://github.com/docdru/GitQuire/releases');
   });
 });
 

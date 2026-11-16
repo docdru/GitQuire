@@ -240,9 +240,9 @@ describe('SettingsDialogShell userBinding gating (Tier-3 mount)', () => {
     expect(screen.getByText('Slidev')).toBeTruthy();
   });
 
-  test('has a per-scope Plugins manage item under both User and This project', () => {
+  test('has a Plugins manage item for the project only, with personal plugins listed directly', () => {
     render(<SettingsDialogShell open={true} onOpenChange={() => {}} />);
-    expect(screen.getByTestId('settings-sidebar-item-user-plugins-manage')).toBeTruthy();
+    expect(screen.queryByTestId('settings-sidebar-item-user-plugins-manage')).toBeNull();
     expect(screen.getByTestId('settings-sidebar-item-plugins-manage')).toBeTruthy();
     expect(screen.getByTestId('settings-sidebar-item-plugin:markdownlint')).toBeTruthy();
     expect(screen.getByTestId('settings-sidebar-item-plugin:theme')).toBeTruthy();

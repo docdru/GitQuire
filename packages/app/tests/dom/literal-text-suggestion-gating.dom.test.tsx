@@ -32,6 +32,7 @@ const TRIGGERS: Trigger[] = [
   { keyPrefix: 'wikiLinkSuggestion', typed: 'x [[note', literal: '[[note' },
   { keyPrefix: 'tagSuggestion', typed: 'x #roadmap', literal: '#roadmap' },
   { keyPrefix: 'slashCommand', typed: 'x /head', literal: '/head' },
+  { keyPrefix: 'relationSuggestion', typed: 'x supports::', literal: 'supports::' },
 ];
 
 const ENTER: KeyboardEventInit & { key: string } = { key: 'Enter', code: 'Enter' };
@@ -98,7 +99,7 @@ describe('Suggestion plugins refuse inside literal text (byte-preservation contr
     cleanup();
   });
 
-  test('the three covered pickers are the only suggestion plugins in the editor', () => {
+  test('the four covered pickers are the only suggestion plugins in the editor', () => {
     const { editor, container } = mountEditor('paragraph');
     try {
       expect(suggestionPluginKeys(editor)).toEqual(TRIGGERS.map((t) => `${t.keyPrefix}$`).sort());

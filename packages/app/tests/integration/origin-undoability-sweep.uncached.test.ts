@@ -122,8 +122,8 @@ const NON_CONTENT_ORIGINS: Record<string, string> = {
     'Config-doc plane revert to last-known-good; markdown bridge bypassed, not content.',
   CONFIG_FILE_WATCHER_ORIGIN:
     'Config-doc plane file-watcher intake; markdown bridge bypassed, not content.',
-  IPC_USER_CONFIG_FILE_ORIGIN:
-    'Navigator user-config plane adopting file text returned by desktop main; config doc only, markdown bridge bypassed, not content.',
+  LOAD_ORIGIN:
+    'Personal-settings doc adopting the stored settings on load; settings doc only, markdown bridge bypassed, not content.',
   PARK_SNAPSHOT_ORIGIN:
     'Read-only serializeDoc wrapper; paired only so observers self-short-circuit, performs no content mutation.',
   ORIGIN_TREE_TO_TEXT:

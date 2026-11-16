@@ -50,6 +50,10 @@ const projectLocalBinding: {
 
 import * as actualLinguiMacro from '@lingui/react/macro';
 
+vi.mock('@/lib/gitquire/personal-git-credentials', () => ({
+  PERSONAL_GIT_CREDENTIALS_ENABLED: true,
+}));
+
 vi.doMock('@lingui/react/macro', () => ({
   ...actualLinguiMacro,
   Plural: ({ value, one, other }: { value: number; one: string; other: string }) => (

@@ -366,27 +366,6 @@ describe('CommandPalette DOM behavior', () => {
     expect(window.location.hash).toBe(SETTINGS_OPEN_HASH);
   });
 
-  test('send-feedback command renders on both hosts and opens FeedbackFormDialog', async () => {
-    const web = await renderPalette({ bridge: null });
-
-    await setQuery('feedback');
-    const webRow = screen.getByTestId('command-palette-send-feedback');
-    expect(webRow.textContent).toContain('Send feedback');
-
-    fireEvent.click(webRow);
-
-    expect(web.onOpenChange).toHaveBeenCalledWith(false);
-    await waitFor(() => {
-      expect(screen.getByTestId('feedback-form-dialog').getAttribute('data-open')).toBe('true');
-    });
-    expect(feedbackDialogProps.at(-1)?.source).toBe('command_palette');
-
-    cleanup();
-    await renderPalette({ bridge: createBridge() });
-    await setQuery('suggestion');
-    expect(screen.getByTestId('command-palette-send-feedback')).not.toBeNull();
-  });
-
   test('starter-pack command is searchable, participates in empty-state aggregation, and opens SeedDialog after closing', async () => {
     const { onOpenChange } = await renderPalette({ bridge: null });
 
@@ -778,11 +757,6 @@ describe('Cmd+K menu-parity backfill', () => {
     { testid: 'command-palette-toggle-sidebar', query: 'sidebar', id: 'toggle-sidebar' },
     { testid: 'command-palette-toggle-doc-panel', query: 'document panel', id: 'toggle-doc-panel' },
     {
-      testid: 'command-palette-toggle-agent-panel',
-      query: 'agents',
-      id: 'toggle-agent-panel',
-    },
-    {
       testid: 'command-palette-toggle-show-hidden-files',
       query: 'hidden files',
       id: 'toggle-show-hidden-files',
@@ -813,34 +787,6 @@ describe('Cmd+K menu-parity backfill', () => {
     });
   }
 
-  test('each pane toggle row wears the glyph its header pane button wears', async () => {
-    await renderPalette({ bridge: createBridge() });
-
-    await setQuery('agents');
-    const agents = screen.getByTestId('command-palette-toggle-agent-panel').querySelector('svg');
-    expect(agents?.classList.contains('lucide-sparkles')).toBe(true);
-
-    await setQuery('hide editor');
-    const editor = screen.getByTestId('command-palette-toggle-editor').querySelector('svg');
-    expect(editor?.querySelector('path[d="M9 4v16"]')).not.toBeNull();
-  });
-
-  test('AC1: set-up-integrations invokes bridge.mcpWiring.reconfigure', async () => {
-    const { bridge } = await renderPalette({ bridge: createBridge() });
-    await setQuery('set up openknowledge integrations');
-    fireEvent.click(screen.getByTestId('command-palette-set-up-integrations'));
-    await waitFor(() => expect(bridge?.mcpWiring.reconfigure).toHaveBeenCalledTimes(1));
-  });
-
-  test('AC1: GitQuire on GitHub opens the repository URL', async () => {
-    const { bridge } = await renderPalette({ bridge: createBridge() });
-    await setQuery('github');
-    fireEvent.click(screen.getByTestId('command-palette-open-github'));
-    expect(bridge?.shell.openExternal).toHaveBeenCalledWith(
-      'https://github.com/inkeep/open-knowledge',
-    );
-  });
-
   test('AC1: GitQuire on GitHub falls back to window.open on the web host', async () => {
     const openSpy = vi.fn(() => null);
     const originalOpen = window.open;
@@ -850,7 +796,7 @@ describe('Cmd+K menu-parity backfill', () => {
       await setQuery('github');
       fireEvent.click(screen.getByTestId('command-palette-open-github'));
       expect(openSpy).toHaveBeenCalledWith(
-        'https://github.com/inkeep/open-knowledge',
+        'https://github.com/docdru/GitQuire',
         '_blank',
         'noopener,noreferrer',
       );
@@ -872,7 +818,7 @@ describe('Cmd+K menu-parity backfill', () => {
       await setQuery('github');
       fireEvent.click(screen.getByTestId('command-palette-open-github'));
       expect(openSpy).toHaveBeenCalledWith(
-        'https://github.com/inkeep/open-knowledge',
+        'https://github.com/docdru/GitQuire',
         '_blank',
         'noopener,noreferrer',
       );

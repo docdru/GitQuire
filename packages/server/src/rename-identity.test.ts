@@ -1,8 +1,13 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { aborted } from 'node:util';
-import { expect, type TestContext, test, vi } from 'vitest';
+import { beforeEach, expect, type TestContext, test, vi } from 'vitest';
 import { bootCompositionRig } from './composition-rig.test-helper.ts';
+
+beforeEach(() => {
+  vi.stubEnv('GITQUIRE_NAMING', 'off');
+  return () => vi.unstubAllEnvs();
+});
 
 const identities = vi.hoisted(() => ({
   values: new Map<string, { exact: bigint; numeric: number }>(),

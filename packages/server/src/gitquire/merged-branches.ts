@@ -1,4 +1,4 @@
-const ORIGIN_PREFIX = 'refs/remotes/origin/';
+const REMOTE_BRANCH_PREFIX = 'refs/remotes/origin/';
 
 export interface GoneBranch {
   name: string;
@@ -15,7 +15,7 @@ export function goneBranches(git: (args: readonly string[]) => string): GoneBran
   for (const line of out.split('\n')) {
     const [name, tip, upstream, track] = line.split('\t');
     if (name === undefined || name === '' || tip === undefined) continue;
-    if (!upstream?.startsWith(ORIGIN_PREFIX) || track?.trim() !== '[gone]') continue;
+    if (!upstream?.startsWith(REMOTE_BRANCH_PREFIX) || track?.trim() !== '[gone]') continue;
     gone.push({ name, tip });
   }
   return gone;
@@ -23,7 +23,7 @@ export function goneBranches(git: (args: readonly string[]) => string): GoneBran
 
 function isAncestor(git: (args: readonly string[]) => string, tip: string, base: string): boolean {
   try {
-    git(['merge-base', '--is-ancestor', tip, `${ORIGIN_PREFIX}${base}`]);
+    git(['merge-base', '--is-ancestor', tip, `${REMOTE_BRANCH_PREFIX}${base}`]);
     return true;
   } catch {
     return false;

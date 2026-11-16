@@ -4,6 +4,10 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SyncSection } from './SyncSection';
 
+vi.mock('@/lib/gitquire/personal-git-credentials', () => ({
+  PERSONAL_GIT_CREDENTIALS_ENABLED: true,
+}));
+
 const syncStatus = vi.hoisted(() => ({ hasRemote: false }));
 
 vi.mock('@/hooks/use-git-sync-status', () => ({
