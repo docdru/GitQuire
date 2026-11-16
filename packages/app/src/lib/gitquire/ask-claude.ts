@@ -33,8 +33,27 @@ export function defaultAskDestination(
 export const MAX_REQUEST_CHARS = 4000;
 const DESTINATION_STORAGE_KEY = 'gitquire.askClaude.destination';
 
+export type AskWorkspace = { kind: 'live' } | { kind: 'draft'; title: string; branch: string };
+
+export function askWorkspace(drafts: {
+  list: { enabled: boolean } | null;
+  current: { viewing: { title: string; branch: string } | null } | null;
+}): AskWorkspace | undefined {
+  if (drafts.list?.enabled !== true || drafts.current === null) return undefined;
+  const viewing = drafts.current.viewing;
+  return viewing === null
+    ? { kind: 'live' }
+    : { kind: 'draft', title: viewing.title, branch: viewing.branch };
+}
+
+function workspaceLine(workspace: AskWorkspace): string {
+  if (workspace.kind === 'live') return 'Workspace: the live wiki';
+  return `Workspace: the draft "${workspace.title}" (branch ${workspace.branch}), not the live wiki. Check with the workspace tool before changing anything; if it reports a different place, stop and tell me.`;
+}
+
 export interface ClaudePromptInput {
   wikiUrl: string;
+  workspace?: AskWorkspace;
   target: { kind: 'page' | 'folder'; path: string };
   request: string;
 }
@@ -48,6 +67,7 @@ export function buildClaudePrompt(input: ClaudePromptInput): string {
   return [
     `Use the GitQuire wiki tools (the MCP server for ${input.wikiUrl}) for this.`,
     '',
+    ...(input.workspace === undefined ? [] : [workspaceLine(input.workspace)]),
     where,
     '',
     request,

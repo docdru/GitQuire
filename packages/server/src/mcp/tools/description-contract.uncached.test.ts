@@ -85,7 +85,7 @@ const retiredToolAdvice =
   /\bresolve_conflict\b|(?<![\w.])conflicts\s*\(|mcp__[\w-]+__(?:conflicts|resolve_conflict)\b|\b(?:call|use|invoke|run)\s+(?:the\s+)?`conflicts`|`conflicts`(?!\s+(?:outcomes?|arms?)\b)/i;
 
 test('the production registration after dialect conversion meets both budgets', () => {
-  expect(tools).toHaveLength(16);
+  expect(tools).toHaveLength(17);
   expect(new Set(tools.map((tool) => tool.name))).toEqual(new Set(OPEN_KNOWLEDGE_MCP_TOOLS));
   for (const tool of tools) expect(tool.inputSchema.$schema).toBe(JSON_SCHEMA_DIALECT_2020_12);
   assertBudget(tools);

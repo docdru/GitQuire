@@ -151,6 +151,7 @@ describe('MCP outputSchema strictness — auto-discovered registerTool sweep (no
 
   const KNOWN_REGISTER_TOOL_NAMES = new Set([
     'palette',
+    'workspace',
     'config',
     'preview_url',
     'search',
