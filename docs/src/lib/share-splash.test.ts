@@ -385,7 +385,7 @@ describe('buildSplashViewModel — shell-injection guard', () => {
     expect(buildSplashViewModel(encodeV1(url)).kind).toBe('invalid');
   });
 
-  test('rejects a leading-dash branch (option injection into ok clone)', () => {
+  test('rejects a leading-dash branch (option injection into gq clone)', () => {
     const url = 'https://github.com/inkeep/playbooks/blob/-rf/readme.md';
     expect(buildSplashViewModel(encodeV1(url)).kind).toBe('invalid');
   });
@@ -401,7 +401,7 @@ describe('buildSplashViewModel — shell-injection guard', () => {
     expect(view.kind).toBe('ok');
     if (view.kind === 'ok') {
       expect(view.branch).toBe('release/1.2.3');
-      expect(buildCloneCommand(view)).toBe('ok clone inkeep/playbooks -b release/1.2.3');
+      expect(buildCloneCommand(view)).toBe('gq clone inkeep/playbooks -b release/1.2.3');
     }
   });
 
@@ -411,7 +411,7 @@ describe('buildSplashViewModel — shell-injection guard', () => {
     expect(view.kind).toBe('ok');
     if (view.kind === 'ok') {
       expect(view.branch).toBe('release+candidate');
-      expect(buildCloneCommand(view)).toBe('ok clone inkeep/playbooks -b release+candidate');
+      expect(buildCloneCommand(view)).toBe('gq clone inkeep/playbooks -b release+candidate');
     }
   });
 
@@ -421,7 +421,7 @@ describe('buildSplashViewModel — shell-injection guard', () => {
     expect(view.kind).toBe('ok');
     if (view.kind === 'ok') {
       expect(view.branch).toBe('feat;x');
-      expect(buildCloneCommand(view)).toBe("ok clone inkeep/playbooks -b 'feat;x'");
+      expect(buildCloneCommand(view)).toBe("gq clone inkeep/playbooks -b 'feat;x'");
     }
   });
 
@@ -430,7 +430,7 @@ describe('buildSplashViewModel — shell-injection guard', () => {
     expect(buildSplashViewModel(encodeV1(url)).kind).toBe('invalid');
   });
 
-  test('rejects `..` owner/repo segments (encoded) — no `ok clone ../..` rendering', () => {
+  test('rejects `..` owner/repo segments (encoded) — no `gq clone ../..` rendering', () => {
     const url = 'https://github.com/%2E%2E/%2E%2E/blob/main/readme.md';
     expect(buildSplashViewModel(encodeV1(url)).kind).toBe('invalid');
   });
@@ -458,56 +458,56 @@ describe('SPLASH_INSTALL_COMMAND', () => {
 });
 
 describe('buildCloneCommand', () => {
-  test('emits `ok clone <owner>/<repo> -b <branch>` using owner/repo shorthand', () => {
+  test('emits `gq clone <owner>/<repo> -b <branch>` using owner/repo shorthand', () => {
     expect(buildCloneCommand({ owner: 'inkeep', repo: 'playbooks', branch: 'main' })).toBe(
-      'ok clone inkeep/playbooks -b main',
+      'gq clone inkeep/playbooks -b main',
     );
   });
 
   test('always emits -b on a default branch (main) — CLI default-fallback covers a deleted ref', () => {
     expect(buildCloneCommand({ owner: 'o', repo: 'r', branch: 'main' })).toBe(
-      'ok clone o/r -b main',
+      'gq clone o/r -b main',
     );
   });
 
   test('always emits -b on master', () => {
     expect(buildCloneCommand({ owner: 'o', repo: 'r', branch: 'master' })).toBe(
-      'ok clone o/r -b master',
+      'gq clone o/r -b master',
     );
   });
 
   test('always emits -b on a feature branch', () => {
     expect(buildCloneCommand({ owner: 'inkeep', repo: 'playbooks', branch: 'feat-x' })).toBe(
-      'ok clone inkeep/playbooks -b feat-x',
+      'gq clone inkeep/playbooks -b feat-x',
     );
   });
 
   test('preserves a slash-bearing branch name verbatim (off-argv, not a URL)', () => {
     expect(buildCloneCommand({ owner: 'o', repo: 'r', branch: 'feat/share' })).toBe(
-      'ok clone o/r -b feat/share',
+      'gq clone o/r -b feat/share',
     );
   });
 
-  test('contains no `ok auth login` line — auth surfaces at clone-failure time', () => {
+  test('contains no `gq auth login` line — auth surfaces at clone-failure time', () => {
     const cmd = buildCloneCommand({ owner: 'o', repo: 'r', branch: 'main' });
-    expect(cmd).not.toContain('ok auth login');
+    expect(cmd).not.toContain('gq auth login');
   });
 
   test('POSIX-single-quotes a shell-unsafe but valid ref so the pasted command is inert', () => {
     expect(buildCloneCommand({ owner: 'o', repo: 'r', branch: 'feat;x' })).toBe(
-      "ok clone o/r -b 'feat;x'",
+      "gq clone o/r -b 'feat;x'",
     );
   });
 
   test('renders a `+`-bearing ref unquoted (release+candidate)', () => {
     expect(buildCloneCommand({ owner: 'o', repo: 'r', branch: 'release+candidate' })).toBe(
-      'ok clone o/r -b release+candidate',
+      'gq clone o/r -b release+candidate',
     );
   });
 
   test('POSIX-single-quotes a branch containing a literal single quote', () => {
     expect(buildCloneCommand({ owner: 'o', repo: 'r', branch: "feat'x" })).toBe(
-      "ok clone o/r -b 'feat'\\''x'",
+      "gq clone o/r -b 'feat'\\''x'",
     );
   });
 });

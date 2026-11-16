@@ -325,13 +325,13 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
     240_000,
   );
 
-  test('2. ok init scaffolds .ok/ in the content dir', () => {
+  test('2. gq init scaffolds .ok/ in the content dir', () => {
     const r = runOk(['init', '--no-mcp'], { timeoutMs: 60_000 });
     expect(r.status).toBe(0);
     expect(existsSync(join(H.contentDir, '.ok'))).toBe(true);
   });
 
-  test('2c. ok clone --json keeps fresh clone stdout parseable as JSONL', async () => {
+  test('2c. gq clone --json keeps fresh clone stdout parseable as JSONL', async () => {
     const isolated = isolatedCliRunner('ok-clone-jsonl-fresh-');
     const run = join(isolated.root, 'run');
     mkdirSync(run, { recursive: true });
@@ -373,7 +373,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
     }
   });
 
-  test('2d. ok init --no-mcp --json keeps stdout parseable as JSON', async () => {
+  test('2d. gq init --no-mcp --json keeps stdout parseable as JSON', async () => {
     const isolated = isolatedCliRunner('ok-init-json-');
 
     const result = await isolated.runCli(['init', '--no-mcp', '--json'], isolated.root);
@@ -386,7 +386,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
     expect(report?.projectRoot).toBe(isolated.root);
   });
 
-  test('3. ok start boots, writes server.lock with a port, and serves HTTP', async () => {
+  test('3. gq start boots, writes server.lock with a port, and serves HTTP', async () => {
     H.server = spawn(NODE, [H.cliPath, 'start', '--port', String(START_PORT)], {
       cwd: H.contentDir,
       env: { ...process.env, ...HERMETIC_ENV },
@@ -414,11 +414,11 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
     expect(reachable, 'server port never accepted a TCP connection').toBe(true);
   }, 70_000);
 
-  test('6. keyring resolves without hanging and `ok auth status` names the backend', () => {
+  test('6. keyring resolves without hanging and `gq auth status` names the backend', () => {
     const headlessEnv = { DBUS_SESSION_BUS_ADDRESS: '', XDG_RUNTIME_DIR: '' };
     const r = runOk(['auth', 'status', '--json'], { timeoutMs: 15_000, env: headlessEnv });
 
-    expect(r.signal, `ok auth status hung (keyring D-Bus trap?). stderr:\n${r.stderr}`).toBeNull();
+    expect(r.signal, `gq auth status hung (keyring D-Bus trap?). stderr:\n${r.stderr}`).toBeNull();
 
     const line = r.stdout.trim().split('\n').filter(Boolean).pop() ?? '{}';
     let payload: { backend?: string };
@@ -426,7 +426,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
       payload = JSON.parse(line) as { backend?: string };
     } catch {
       throw new Error(
-        `Failed to parse JSON from \`ok auth status --json\`.\nLast stdout line: ${line}\nFull stdout:\n${r.stdout}\nstderr:\n${r.stderr}`,
+        `Failed to parse JSON from \`gq auth status --json\`.\nLast stdout line: ${line}\nFull stdout:\n${r.stdout}\nstderr:\n${r.stderr}`,
       );
     }
     expect(['keyring', 'file']).toContain(payload.backend);
@@ -479,7 +479,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
       expect(stop.status, stop.stderr).toBe(0);
       expect(
         await waitFor(() => ownedProcessHasExited(standIn), { timeoutMs: 2_000 }),
-        'ok stop signalled the stand-in',
+        'gq stop signalled the stand-in',
       ).toBe(false);
 
       const clean = runOk(['clean'], { cwd: projectDir });
@@ -511,7 +511,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
       );
       expect(
         booted,
-        `ok start never finished booting under its own lock\nServer log:\n${serverLog}`,
+        `gq start never finished booting under its own lock\nServer log:\n${serverLog}`,
       ).toBe(true);
       expect(readLock()?.processStart).toEqual(expect.any(Object));
 
@@ -522,7 +522,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
       expect(existsSync(lockPath)).toBe(false);
       expect(
         await waitFor(() => ownedProcessHasExited(standIn), { timeoutMs: 2_000 }),
-        'ok stop signalled the stand-in',
+        'gq stop signalled the stand-in',
       ).toBe(false);
     } finally {
       if (server && server.exitCode === null && server.signalCode === null) server.kill('SIGKILL');

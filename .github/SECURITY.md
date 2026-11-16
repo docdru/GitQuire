@@ -32,7 +32,7 @@ OpenKnowledge, we tell Inkeep privately through their
 coordinate before publishing the fix.
 
 **Out of scope:** the desktop app, which GitQuire does not ship, and `ok` CLI commands the image
-does not run (the image runs `ok start`, `ok init` and `ok gitquire-bootstrap`); behaviour
+does not run (the image runs `gitquire start`, `gitquire init` and `gitquire gitquire-bootstrap`); behaviour
 documented as a known limitation in [DEPLOY.md](../DEPLOY.md) (for example what the opt-in AI chat
 can reach); vulnerabilities in third-party dependencies (please report those to the
 dependency's maintainers; tell us if GitQuire needs an upgrade); deployments

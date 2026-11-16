@@ -1,7 +1,7 @@
 ---
 title: Overview
 icon: LuBookOpen
-description: A non-blocking linting layer over your project's markdown — problems as you write, a Problems panel, `ok lint` for CI, and advisories for AI agents. Enable it per project.
+description: A non-blocking linting layer over your project's markdown — problems as you write, a Problems panel, `gq lint` for CI, and advisories for AI agents. Enable it per project.
 ---
 
 Content rules are a lightweight linting layer over your project's markdown. **Enable a linter for a project** and it checks your markdown as you write. Findings are **non-blocking**: they surface as warnings, never stop a save, and never gate an agent's edit.
@@ -23,7 +23,7 @@ Skill documents are excluded from link checking: files in a skills folder (`.cla
 
 The exclusion is scoped to the skills folder itself, not to the dot-directory containing it, so ordinary documents that happen to live under a dot directory (`.github/CI_RUNBOOK.md`, a `.changeset` entry) keep their link findings. So do folder templates under `.ok/templates`, which you author like any document. A skills folder you added yourself at a visible path, such as `team/skills`, is ordinary content and is still checked. Links from your other documents to a skill still validate normally.
 
-A reserved `log.md` or `log.mdx` is left out the same way, at any depth, with one difference: this one is a switch you own. It is **Ignore broken links in log.md** under **Settings ▸ This project ▸ Preferences ▸ Content rules**, on by default, and shared with the project as `validation.suppressLogLinkAdvisories`. What goes quiet is the Problems panel in both scopes, the sidebar tint and badge, the editor's lint diagnostics, `ok audit`, and the advisory an agent gets back from a write or edit. What stays is the raw link state: the Links panel, the editor's unresolved-link styling, `links({ kind: "dead" })`, and `GET /api/dead-links` all still list those links. In both scopes the Problems panel carries a policy note with the number of findings left out, so an empty queue is not read as a clean log. The stem has to be lowercase, so `LOG.md` and `catalog.md` keep their findings, but the extension's case is not what decides, so `log.MD` is a reserved log too, and it is the file the link is written in that counts, not the file it points at. The [`ok audit` section](#what-it-returns) covers what the CLI and MCP audits disclose.
+A reserved `log.md` or `log.mdx` is left out the same way, at any depth, with one difference: this one is a switch you own. It is **Ignore broken links in log.md** under **Settings ▸ This project ▸ Preferences ▸ Content rules**, on by default, and shared with the project as `validation.suppressLogLinkAdvisories`. What goes quiet is the Problems panel in both scopes, the sidebar tint and badge, the editor's lint diagnostics, `gq audit`, and the advisory an agent gets back from a write or edit. What stays is the raw link state: the Links panel, the editor's unresolved-link styling, `links({ kind: "dead" })`, and `GET /api/dead-links` all still list those links. In both scopes the Problems panel carries a policy note with the number of findings left out, so an empty queue is not read as a clean log. The stem has to be lowercase, so `LOG.md` and `catalog.md` keep their findings, but the extension's case is not what decides, so `log.MD` is a reserved log too, and it is the file the link is written in that counts, not the file it points at. The [`gq audit` section](#what-it-returns) covers what the CLI and MCP audits disclose.
 
 In both scopes, each row tags the validator that produced it in uppercase — for example `MARKDOWNLINT`, `FRONTMATTER`, or `LINKS` — next to the rule code, and a finding that repeats collapses into one row with an instance count you can expand to reach the individual lines.
 
@@ -35,18 +35,18 @@ Open **Settings ▸ This project ▸ Plugins** and turn on a linter; open editor
 
 ## From the command line
 
-`ok lint` runs content rules headlessly, with the same config resolution as the editor:
+`gq lint` runs content rules headlessly, with the same config resolution as the editor:
 
 ```bash
-ok lint                 # audit the whole project
-ok lint guides/         # scope to a folder
-ok lint guides/intro.md # or a single file
-ok lint --fix           # apply auto-fixes in place
-ok lint --json          # structured JSON output
-ok lint --errors-only   # exit non-zero only on error-severity problems
+gq lint                 # audit the whole project
+gq lint guides/         # scope to a folder
+gq lint guides/intro.md # or a single file
+gq lint --fix           # apply auto-fixes in place
+gq lint --json          # structured JSON output
+gq lint --errors-only   # exit non-zero only on error-severity problems
 ```
 
-Both `ok lint` and `ok audit` accept an existing file or directory as their scope. For a missing document stem without `.md` or `.mdx`, they try the same path with `.mdx`, then `.md`; an explicit `.md` or `.mdx` path must exist as written. A typo returns a not-found error naming the supplied path and exits with code 1, before `--fix` can change files. With `--json`, this error is an RFC 9457 problem response object. An existing empty or ignored directory succeeds with zero findings, an informational warning, and exit code 0. An explicitly named file is still checked even if an ignore rule excludes it from directory scans. Server-backed `ok audit` refuses hidden-segment scopes: it checks zero documents, reports the refusal as an ordinary warning, and exits with code 0; headless `ok lint` checks an explicitly named hidden path. A missing configured content directory also returns a not-found error and exits with code 1.
+Both `gq lint` and `gq audit` accept an existing file or directory as their scope. For a missing document stem without `.md` or `.mdx`, they try the same path with `.mdx`, then `.md`; an explicit `.md` or `.mdx` path must exist as written. A typo returns a not-found error naming the supplied path and exits with code 1, before `--fix` can change files. With `--json`, this error is an RFC 9457 problem response object. An existing empty or ignored directory succeeds with zero findings, an informational warning, and exit code 0. An explicitly named file is still checked even if an ignore rule excludes it from directory scans. Server-backed `gq audit` refuses hidden-segment scopes: it checks zero documents, reports the refusal as an ordinary warning, and exits with code 0; headless `gq lint` checks an explicitly named hidden path. A missing configured content directory also returns a not-found error and exits with code 1.
 
 The exit code is non-zero when any problem is found. Findings are warnings unless your `.markdownlint.*` promotes a rule to `"error"`, so `--errors-only` gates CI on just the rules you chose to enforce. Only markdownlint rules can be promoted — [frontmatter](/docs/advanced/content-rules/frontmatter) findings are always warnings, so `--errors-only` never gates on them.
 
@@ -132,18 +132,18 @@ Checks run: markdownlint, frontmatter.
 
 Every linter ships off, so a project that has not enabled one closes its report with `No checks ran.` in place of the `Checks run:` line. The `✓ No problems` above it then means only that nothing was checked. Turn a linter on under **Settings ▸ This project ▸ Plugins**.
 
-`ok audit` widens the same report to the full validation plane — content-rule problems **and** broken internal links, each finding tagged with its source:
+`gq audit` widens the same report to the full validation plane — content-rule problems **and** broken internal links, each finding tagged with its source:
 
 ```bash
-ok audit                 # audit the whole project (lint + links)
-ok audit guides/         # scope to a folder or a single file
-ok audit --json          # the full structured diagnostic plane
-ok audit --errors-only   # exit non-zero only on error-severity problems
+gq audit                 # audit the whole project (lint + links)
+gq audit guides/         # scope to a folder or a single file
+gq audit --json          # the full structured diagnostic plane
+gq audit --errors-only   # exit non-zero only on error-severity problems
 ```
 
-Unlike `ok lint`, `ok audit` needs the project's server running (`ok start` or OK Desktop) — the links validator reads the live backlink index. There's no `--fix` because the audit is read-only (lint fixes go through `ok lint --fix`, link repairs are content edits).
+Unlike `gq lint`, `gq audit` needs the project's server running (`gq start` or OK Desktop) — the links validator reads the live backlink index. There's no `--fix` because the audit is read-only (lint fixes go through `gq lint --fix`, link repairs are content edits).
 
-`--json` returns the same per-file grouping as `ok lint --json`, with two differences: the audit never writes, so there's no `contentDir`, `fixed`, or `fixedCount`; and a `links` finding carries `linkTarget` — the unresolved target verbatim, so tooling never parses it back out of the message:
+`--json` returns the same per-file grouping as `gq lint --json`, with two differences: the audit never writes, so there's no `contentDir`, `fixed`, or `fixedCount`; and a `links` finding carries `linkTarget` — the unresolved target verbatim, so tooling never parses it back out of the message:
 
 ```json
 {
@@ -174,7 +174,7 @@ The audit's top-level `ran` array reports the selected source families: enabled 
 
 Broken links are warnings by default. The project's `validation.links` setting — **Settings ▸ This project ▸ Preferences ▸ Content rules** — decides both whether they appear and at what severity: `warning` (the default), `error` to gate CI on them with `--errors-only`, or `off` to drop them from the plane entirely. Content-rule findings keep their own severities, so `--errors-only` covers both planes at once. Skill documents are the one exception: their link findings are always excluded, whatever this setting says, because a skill's links name files it creates only at runtime.
 
-A reserved log is the other exclusion, and unlike skills it is a switch you own. **Ignore broken links in log.md** (`validation.suppressLogLinkAdvisories` in the project's `.ok/config.yml` — see the [configuration reference](/docs/reference/configuration)), next to the severity control and on by default, is described under [Where problems show up](#where-problems-show-up), along with the matching rules. `ok audit` and MCP `audit` both disclose the withheld count and warn that the result is filtered, each in the wording its audience needs. The terminal names both remedies, `validation.suppressLogLinkAdvisories: false` in `.ok/config.yml` and the **Settings ▸ This project ▸ Preferences ▸ Content rules** toggle. An agent is told the setting is not its to change, and to point you at that same Settings path if you ask to see the withheld findings. A log is an append-only history: its entries reference the past and pages nobody has written yet, so those links are expected rather than repair work, and an agent told to fix broken links would otherwise rewrite the history to clear them. Turn the switch off and every finding comes straight back, with no restart.
+A reserved log is the other exclusion, and unlike skills it is a switch you own. **Ignore broken links in log.md** (`validation.suppressLogLinkAdvisories` in the project's `.ok/config.yml` — see the [configuration reference](/docs/reference/configuration)), next to the severity control and on by default, is described under [Where problems show up](#where-problems-show-up), along with the matching rules. `gq audit` and MCP `audit` both disclose the withheld count and warn that the result is filtered, each in the wording its audience needs. The terminal names both remedies, `validation.suppressLogLinkAdvisories: false` in `.ok/config.yml` and the **Settings ▸ This project ▸ Preferences ▸ Content rules** toggle. An agent is told the setting is not its to change, and to point you at that same Settings path if you ask to see the withheld findings. A log is an append-only history: its entries reference the past and pages nobody has written yet, so those links are expected rather than repair work, and an agent told to fix broken links would otherwise rewrite the history to clear them. Turn the switch off and every finding comes straight back, with no restart.
 
 ## AI agents
 
@@ -196,11 +196,11 @@ None are auto-fixable — these need content edits via `edit`/`write`.
 Checks run: frontmatter.
 ```
 
-With no linter enabled the report closes with `No checks ran.` instead, the same string `ok lint` prints.
+With no linter enabled the report closes with `No checks ran.` instead, the same string `gq lint` prints.
 
-The structured content is close to `ok lint --json`, with four differences:
+The structured content is close to `gq lint --json`, with four differences:
 
-| | `ok lint --json` | MCP `lint` |
+| | `gq lint --json` | MCP `lint` |
 | --- | --- | --- |
 | Project path | `contentDir` | `cwd` |
 | `fixedCount` counts | files rewritten | **problems** resolved |
@@ -213,7 +213,7 @@ When the fix landed but the post-write re-lint could not report, the response ca
 
 ### The `audit` tool
 
-The agent-side `ok audit` — content-rule problems and broken links in one read-only call, grouped by file, same 10 × 10 + 10-warning cap with `omittedWarningCount` when warnings are dropped, no fix shape. Its text and structured results both report `ran`. If the reserved-log policy withholds one or more link findings, `brokenLinkSuppression: { reason: "reserved-log-policy", count: N }` makes that filtered result explicit without exposing paths or hrefs; the text result says the same. If a selected validator degrades, its family remains in `ran` and the `warnings` channel explains why; a partial degradation may still have contributed findings.
+The agent-side `gq audit` — content-rule problems and broken links in one read-only call, grouped by file, same 10 × 10 + 10-warning cap with `omittedWarningCount` when warnings are dropped, no fix shape. Its text and structured results both report `ran`. If the reserved-log policy withholds one or more link findings, `brokenLinkSuppression: { reason: "reserved-log-policy", count: N }` makes that filtered result explicit without exposing paths or hrefs; the text result says the same. If a selected validator degrades, its family remains in `ran` and the `warnings` channel explains why; a partial degradation may still have contributed findings.
 
 The `path` scope follows the same file, directory, extension fallback, and valid-empty rules as the CLI. To inspect omitted findings for one file, use `lint({ document: "file" })` for document lint and `links({ kind: "dead", sourceDocuments: ["file"] })` for raw dead links. The raw link query also includes links excluded by audit policy. Narrowing the audit does not remove its per-file caps, and project-tree OKF findings remain capped.
 

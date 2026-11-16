@@ -6,7 +6,7 @@ description: Validate document frontmatter against standard JSON Schema files �
 
 Frontmatter schemas is a content-rules linter that validates each document's YAML frontmatter against [JSON Schema](https://json-schema.org/) files. The schema files are plain, portable JSON Schema — nothing OK-specific in them — so the same files work with any external tool that understands the standard.
 
-This page covers the schema mappings, the schema files, the no-code editors, and what agents see. For the linter-agnostic parts — where problems appear, the Problems panel, `ok lint`, and agent advisories — see the [content rules overview](/docs/advanced/content-rules/overview).
+This page covers the schema mappings, the schema files, the no-code editors, and what agents see. For the linter-agnostic parts — where problems appear, the Problems panel, `gq lint`, and agent advisories — see the [content rules overview](/docs/advanced/content-rules/overview).
 
 ## Schema mappings
 
@@ -33,7 +33,7 @@ contentRules:
 
 ## Schema files
 
-A schema file that is missing, malformed, or refused by the validator is a **configuration problem** — it shows at the top of the Problems panel's project scope, in `ok lint` warnings, and on the MCP `lint` tool, never as a per-doc diagnostic.
+A schema file that is missing, malformed, or refused by the validator is a **configuration problem** — it shows at the top of the Problems panel's project scope, in `gq lint` warnings, and on the MCP `lint` tool, never as a per-doc diagnostic.
 
 A doc with no frontmatter block (or unparsable YAML) validates as an empty object — so `required` fields still report on brand-new docs. The reverse also works: a schema with `"maxProperties": 0` enforces that docs carry no frontmatter at all.
 
@@ -68,7 +68,7 @@ status: shipped
 # Guide
 ```
 
-`ok lint` (and the Problems panel) reports both violations, each carrying source `frontmatter` and the violated JSON Schema keyword as its code:
+`gq lint` (and the Problems panel) reports both violations, each carrying source `frontmatter` and the violated JSON Schema keyword as its code:
 
 ```text
 docs/guide.md
@@ -79,7 +79,7 @@ docs/guide.md
 Checks run: frontmatter.
 ```
 
-As a diagnostic in `ok lint --json` or the MCP `lint` tool's structured content (0-based, end-exclusive ranges — the text report is 1-based):
+As a diagnostic in `gq lint --json` or the MCP `lint` tool's structured content (0-based, end-exclusive ranges — the text report is 1-based):
 
 ```json
 {
@@ -91,13 +91,13 @@ As a diagnostic in `ok lint --json` or the MCP `lint` tool's structured content 
 }
 ```
 
-**Anchoring.** A violation on a key underlines that key's line (the `enum` finding above sits on line 2, where `status:` is written); a missing `required` field anchors to the opening `---` fence; a doc with no fence anchors to the top. And a broken schema file is never a per-doc finding — it rides the configuration channel instead, as a `!` line in `ok lint`:
+**Anchoring.** A violation on a key underlines that key's line (the `enum` finding above sits on line 2, where `status:` is written); a missing `required` field anchors to the opening `---` fence; a doc with no fence anchors to the top. And a broken schema file is never a per-doc finding — it rides the configuration channel instead, as a `!` line in `gq lint`:
 
 ```text
 ! frontmatter schema .ok/schemas/missing.schema.json: cannot read (ENOENT: no such file or directory, …)
 ```
 
-Frontmatter findings are always **warnings** — there's no severity promotion yet, so `ok lint --errors-only` won't gate on them — and none carry `fixes` (choosing the right value is a human decision), so `ok lint --fix` and the MCP `fix: true` leave them in place, still reported.
+Frontmatter findings are always **warnings** — there's no severity promotion yet, so `gq lint --errors-only` won't gate on them — and none carry `fixes` (choosing the right value is a human decision), so `gq lint --fix` and the MCP `fix: true` leave them in place, still reported.
 
 ## The settings editor
 
@@ -144,7 +144,7 @@ The server resolves the globs; agents never evaluate `appliesTo` themselves. And
 
 ## See also
 
-- [Content rules overview](/docs/advanced/content-rules/overview): where problems show up, the Problems panel, `ok lint`, and agents
+- [Content rules overview](/docs/advanced/content-rules/overview): where problems show up, the Problems panel, `gq lint`, and agents
 - [markdownlint](/docs/advanced/content-rules/markdownlint): the sibling linter for markdown style
 - [Configuration reference](/docs/reference/configuration): `config.yml` and what's shared via git
 - [JSON Schema specification links](https://json-schema.org/specification-links): the supported dialects

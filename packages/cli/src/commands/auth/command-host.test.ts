@@ -54,7 +54,7 @@ test('explicit signout removes a legacy credential even without a provider decla
   expect(clearTokenFromAllBackends).toHaveBeenCalledWith('legacy.example.com');
 });
 
-test('implicit signout names ok-beta auth signout on Beta', async () => {
+test('implicit signout names gq-beta auth signout on Beta', async () => {
   vi.stubEnv('OK_CHANNEL', 'beta');
   execFileSync('git', ['remote', 'add', 'origin', 'https://git.example.com/team/kb.git'], {
     cwd: projectDir,
@@ -68,7 +68,7 @@ test('implicit signout names ok-beta auth signout on Beta', async () => {
     .mock.calls.map(([text]) => text)
     .join('');
   expect(message).toContain(
-    'Run ok-beta auth signout --host git.example.com to remove stored local credentials.',
+    'Run gq-beta auth signout --host git.example.com to remove stored local credentials.',
   );
 });
 
@@ -85,7 +85,7 @@ test('implicit signout refuses a generic origin without clearing another credent
     .mocked(process.stderr.write)
     .mock.calls.map(([text]) => text)
     .join('');
-  expect(message).toContain('ok auth signout --host git.example.com');
+  expect(message).toContain('gq auth signout --host git.example.com');
   expect(message).toContain('remove stored local credentials');
   expect(message).toContain('No provider declaration is required');
   expect(message).not.toContain('sign-in');
@@ -106,7 +106,7 @@ test.each(['/tmp/local-repository.git', 'file:///tmp/local-repository.git'])(
       .mock.calls.map(([text]) => text)
       .join('');
     expect(message).toContain('Cannot determine');
-    expect(message).toContain('ok auth signout --host <hostname>');
+    expect(message).toContain('gq auth signout --host <hostname>');
     expect(message).toContain('remove stored local credentials');
     expect(message).not.toContain('sign-in');
     expect(message).not.toContain('global.yml');
@@ -184,7 +184,7 @@ test('status with no --host on a non-GitHub origin reports the stored token for 
   });
 });
 
-test('status with no --host on a non-GitHub origin with nothing stored names ok auth token', async () => {
+test('status with no --host on a non-GitHub origin with nothing stored names gq auth token', async () => {
   execFileSync('git', ['remote', 'add', 'origin', 'git@gitea.internal:team/kb.git'], {
     cwd: projectDir,
   });
@@ -199,7 +199,7 @@ test('status with no --host on a non-GitHub origin with nothing stored names ok 
     .mocked(process.stderr.write)
     .mock.calls.map((c) => String(c[0]))
     .join('');
-  expect(written).toContain('ok auth token --host gitea.internal --username <username>');
+  expect(written).toContain('gq auth token --host gitea.internal --username <username>');
   expect(written).not.toContain('declare it in');
   expect(exit).toHaveBeenCalledWith(1);
 });
@@ -239,7 +239,7 @@ test('status with no --host on a ported origin with nothing stored names the hos
     .mocked(process.stderr.write)
     .mock.calls.map((c) => String(c[0]))
     .join('');
-  expect(written).toContain('ok auth token --host git.corp.example:8443 --username <username>');
+  expect(written).toContain('gq auth token --host git.corp.example:8443 --username <username>');
 });
 
 test('status with no --host on an origin URL deeper than owner/repo still finds the host', async () => {
@@ -281,7 +281,7 @@ test('status --host on a non-GitHub host matches the stored key regardless of ca
   });
 });
 
-test('PAT on a ported non-GitHub origin names ok auth token with the port kept', async () => {
+test('PAT on a ported non-GitHub origin names gq auth token with the port kept', async () => {
   execFileSync('git', ['remote', 'add', 'origin', 'https://git.corp.example:8443/team/kb.git'], {
     cwd: projectDir,
   });
@@ -298,11 +298,11 @@ test('PAT on a ported non-GitHub origin names ok auth token with the port kept',
     .mock.calls.map((c) => String(c[0]))
     .join('');
   expect(written).toContain("this project's git remote is git.corp.example,");
-  expect(written).toContain('ok auth token --host git.corp.example:8443 --username <username>');
+  expect(written).toContain('gq auth token --host git.corp.example:8443 --username <username>');
   expect(password).not.toHaveBeenCalled();
 });
 
-test('PAT on an origin deeper than owner/repo names the host and ok auth token', async () => {
+test('PAT on an origin deeper than owner/repo names the host and gq auth token', async () => {
   execFileSync('git', ['remote', 'add', 'origin', 'https://gitlab.corp.example/group/sub/kb.git'], {
     cwd: projectDir,
   });
@@ -321,7 +321,7 @@ test('PAT on an origin deeper than owner/repo names the host and ok auth token',
   expect(written).toContain(
     "this project's git remote is gitlab.corp.example, which is not a GitHub host",
   );
-  expect(written).toContain('ok auth token --host gitlab.corp.example --username <username>');
+  expect(written).toContain('gq auth token --host gitlab.corp.example --username <username>');
   expect(written).not.toContain('Cannot determine');
   expect(written).not.toContain('declare it in');
   expect(password).not.toHaveBeenCalled();
@@ -340,7 +340,7 @@ test('implicit signout on an origin deeper than owner/repo names the host in the
     .mock.calls.map((c) => String(c[0]))
     .join('');
   expect(written).toContain("This project's git remote is gitlab.corp.example");
-  expect(written).toContain('ok auth signout --host gitlab.corp.example');
+  expect(written).toContain('gq auth signout --host gitlab.corp.example');
   expect(written).not.toContain('Cannot determine');
 });
 
@@ -361,7 +361,7 @@ test('implicit signout on a ported origin names the host with its port', async (
     .mocked(process.stderr.write)
     .mock.calls.map((c) => String(c[0]))
     .join('');
-  expect(written).toContain('ok auth signout --host git.corp.example:8443');
+  expect(written).toContain('gq auth signout --host git.corp.example:8443');
   expect(clearTokenFromAllBackends).not.toHaveBeenCalled();
 });
 

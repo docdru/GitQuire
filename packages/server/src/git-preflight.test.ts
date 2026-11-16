@@ -476,29 +476,29 @@ describe('git remediation names the running channel CLI', () => {
   const verify = (command: string) =>
     `Run \`${command} diagnose health --check git\` to verify your installation.`;
 
-  test('Stable keeps the ok diagnose line on both errors', () => {
+  test('Stable keeps the gq diagnose line on both errors', () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     const guidance = buildGuidance('darwin');
     expect(new GitNotAvailableError('darwin', guidance).message.split('\n')).toContain(
-      verify('ok'),
+      verify('gq'),
     );
     expect(
       new GitTooOldError('darwin', '2.10.0', '2.31.0', '/usr/bin/git', guidance).message.split(
         '\n',
       ),
-    ).toContain(verify('ok'));
+    ).toContain(verify('gq'));
   });
 
-  test('Beta names ok-beta diagnose on both errors', () => {
+  test('Beta names gq-beta diagnose on both errors', () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     const guidance = buildGuidance('darwin');
     expect(new GitNotAvailableError('darwin', guidance).message.split('\n')).toContain(
-      verify('ok-beta'),
+      verify('gq-beta'),
     );
     expect(
       new GitTooOldError('darwin', '2.10.0', '2.31.0', '/usr/bin/git', guidance).message.split(
         '\n',
       ),
-    ).toContain(verify('ok-beta'));
+    ).toContain(verify('gq-beta'));
   });
 });

@@ -12,7 +12,7 @@ export function mcpInstallMarkdown(editor: string, api: McpInstallMarkdownApi): 
   return [
     `GitQuire runs on a server, so ${editor} connects to it as a remote MCP server: your wiki's address with \`/mcp\` at the end, such as \`https://wiki.example.com/mcp\`. See ${api.link('Connecting agents', api.url(CONNECTING_AGENTS_HREF))} for the setup.`,
     '',
-    `If you also run the \`ok\` CLI on your own computer, \`ok init\` registers a local MCP server with ${editor} and the other editors it detects.`,
+    `If you also run the \`ok\` CLI on your own computer, \`gq init\` registers a local MCP server with ${editor} and the other editors it detects.`,
   ].join('\n');
 }
 
@@ -25,7 +25,7 @@ export function McpInstall({ editor, children }: { editor: string; children?: Re
         . See <Link href={CONNECTING_AGENTS_HREF}>Connecting agents</Link> for the setup.
       </p>
       <p>
-        If you also run the <code>ok</code> CLI on your own computer, <code>ok init</code> registers
+        If you also run the <code>ok</code> CLI on your own computer, <code>gq init</code> registers
         a local MCP server with {editor} and the other editors it detects.
       </p>
       {children}

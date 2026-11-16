@@ -170,8 +170,8 @@ describe('formatPreviewBlock names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   it.each([
-    ['stable', 'open-knowledge'],
-    ['beta', 'open-knowledge-beta'],
+    ['stable', 'gitquire'],
+    ['beta', 'gitquire-beta'],
   ])('%s: the init and re-check hints name %s', (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const cwd = resolve(

@@ -169,8 +169,8 @@ describe('removed-key redirects name the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: the migrate and start hints name %s', (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     const [diagnostic] = detectRemovedKeys({ value: { preview: { baseUrl: 'x' } } });

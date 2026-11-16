@@ -35,7 +35,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /out/gitquire.tgz /tmp/gitquire.tgz
-RUN npm install -g /tmp/gitquire.tgz && rm /tmp/gitquire.tgz && ok --version
+RUN npm install -g /tmp/gitquire.tgz && rm /tmp/gitquire.tgz && gitquire --version
 
 # PORT is the platform-injection contract (Railway, Fly, Cloud Run override it).
 # OK_BIND=0.0.0.0 makes the listener reachable from the container network.

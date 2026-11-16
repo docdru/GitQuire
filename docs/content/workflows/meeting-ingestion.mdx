@@ -37,7 +37,7 @@ Keep the transcript verbatim. Notes and summaries are yours to edit; the transcr
 
 ## On demand
 
-1. Add your recorder's MCP server to your **editor's** config, next to `open-knowledge`. OK has no MCP client of its own, so this is editor config, not OK config.
+1. Add your recorder's MCP server to your **editor's** config, next to GitQuire's. GitQuire has no MCP client of its own, so this is editor config, not GitQuire config.
 2. Ask your agent to write recent meetings into `meetings/`.
 
 The agent pulls the transcript, notes, attendees, and date from the recorder and writes one doc per meeting through OK's `write` tool. Indexing, backlinks, and the live preview all happen on write. Nothing new to install in OK.
@@ -67,7 +67,7 @@ Pull meetings from the recorder MCP since the last run. Write each new one into 
 
 - **Claude Code.** Three tiers, from a local desktop task to a cloud routine that runs with your machine off. Each reaches a different set of files and MCP servers: [Scheduled runs](../gitquire/connect-ai.mdx).
 - **Codex.** The ChatGPT desktop app schedules it; Codex CLI runs it from OS cron: [Scheduled runs](../gitquire/connect-ai.mdx).
-- **[OpenClaw](../gitquire/connect-ai.mdx).** The gateway has a built-in scheduler. Register both MCP servers with it, `open-knowledge` via `ok init` and your recorder's MCP per the vendor's install guide, then create one cron job that wakes an agent with the prompt above:
+- **[OpenClaw](../gitquire/connect-ai.mdx).** The gateway has a built-in scheduler. Register both MCP servers with it, `open-knowledge` via `gq init` and your recorder's MCP per the vendor's install guide, then create one cron job that wakes an agent with the prompt above:
 
 ```bash
 openclaw cron create "*/30 * * * *" \

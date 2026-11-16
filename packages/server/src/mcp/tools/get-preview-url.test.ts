@@ -113,16 +113,16 @@ describe('preview_url tool — UI running', () => {
   });
 
   describe('isHostedAgent steer (desktop terminal or in-app agent panel)', () => {
-    test('document: response leads with `ok open <doc>` and tells the agent not to navigate the URL', async () => {
+    test('document: response leads with `gq open <doc>` and tells the agent not to navigate the URL', async () => {
       const cwd = temporaryProject();
       bindTestUiServerLock(cwd);
       const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
       const result = await handler({ document: 'specs/foo/SPEC' });
       const text = result.content[0]?.text ?? '';
-      expect(text).toContain('ok open specs/foo/SPEC');
+      expect(text).toContain('gq open specs/foo/SPEC');
       expect(text).toMatch(/Don't navigate the URL|reference only/);
       expect(result.structuredContent?.running).toBe(true);
-      expect(result.structuredContent?.okOpenCommand).toBe('ok open specs/foo/SPEC');
+      expect(result.structuredContent?.okOpenCommand).toBe('gq open specs/foo/SPEC');
     });
 
     test('document: steer tells the agent not to paste the URL into its reply', async () => {
@@ -133,21 +133,21 @@ describe('preview_url tool — UI running', () => {
       expect(result.content[0]?.text ?? '').toContain('paste the URL into your reply');
     });
 
-    test('folder: steers to `ok open <folder>`', async () => {
+    test('folder: steers to `gq open <folder>`', async () => {
       const cwd = temporaryProject();
       bindTestUiServerLock(cwd);
       const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
       const result = await handler({ folder: 'specs/foo' });
-      expect(result.content[0]?.text ?? '').toContain('ok open specs/foo');
-      expect(result.structuredContent?.okOpenCommand).toBe('ok open specs/foo');
+      expect(result.content[0]?.text ?? '').toContain('gq open specs/foo');
+      expect(result.structuredContent?.okOpenCommand).toBe('gq open specs/foo');
     });
 
-    test('no target (root): no steer — nothing to `ok open`', async () => {
+    test('no target (root): no steer — nothing to `gq open`', async () => {
       const cwd = temporaryProject();
       bindTestUiServerLock(cwd);
       const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
       const result = await handler({});
-      expect(result.content[0]?.text ?? '').not.toContain('ok open');
+      expect(result.content[0]?.text ?? '').not.toContain('gq open');
     });
 
     test('NOT a hosted agent (default): no steer — plain Preview URL', async () => {
@@ -155,17 +155,17 @@ describe('preview_url tool — UI running', () => {
       bindTestUiServerLock(cwd);
       const handler = captureRegistration(cwd);
       const result = await handler({ document: 'specs/foo/SPEC' });
-      expect(result.content[0]?.text ?? '').not.toContain('ok open');
+      expect(result.content[0]?.text ?? '').not.toContain('gq open');
       expect(result.structuredContent?.okOpenCommand ?? null).toBeNull();
     });
 
-    test('hosted agent + no UI running: steer + okOpenCommand still fire (ok open does not need the UI)', async () => {
+    test('hosted agent + no UI running: steer + okOpenCommand still fire (gq open does not need the UI)', async () => {
       const cwd = temporaryProject();
       const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
       const result = await handler({ document: 'specs/foo/SPEC' });
       expect(result.structuredContent?.running).toBe(false);
-      expect(result.structuredContent?.okOpenCommand).toBe('ok open specs/foo/SPEC');
-      expect(result.content[0]?.text ?? '').toContain('ok open specs/foo/SPEC');
+      expect(result.structuredContent?.okOpenCommand).toBe('gq open specs/foo/SPEC');
+      expect(result.content[0]?.text ?? '').toContain('gq open specs/foo/SPEC');
       expect(result.content[0]?.text ?? '').toContain('paste the URL into your reply');
     });
 
@@ -174,7 +174,7 @@ describe('preview_url tool — UI running', () => {
       bindTestUiServerLock(cwd);
       const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
       const result = await handler({ document: 'notes/My Doc' });
-      expect(result.structuredContent?.okOpenCommand).toBe("ok open 'notes/My Doc'");
+      expect(result.structuredContent?.okOpenCommand).toBe("gq open 'notes/My Doc'");
     });
 
     test('document with an embedded single quote: okOpenCommand POSIX-escapes it', async () => {
@@ -182,7 +182,7 @@ describe('preview_url tool — UI running', () => {
       bindTestUiServerLock(cwd);
       const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
       const result = await handler({ document: "Q&A/what's new" });
-      expect(result.structuredContent?.okOpenCommand).toBe("ok open 'Q&A/what'\\''s new'");
+      expect(result.structuredContent?.okOpenCommand).toBe("gq open 'Q&A/what'\\''s new'");
     });
 
     test('hosted agent + no UI + folder: okOpenCommand still fires', async () => {
@@ -190,7 +190,7 @@ describe('preview_url tool — UI running', () => {
       const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
       const result = await handler({ folder: 'specs/foo' });
       expect(result.structuredContent?.running).toBe(false);
-      expect(result.structuredContent?.okOpenCommand).toBe('ok open specs/foo');
+      expect(result.structuredContent?.okOpenCommand).toBe('gq open specs/foo');
     });
   });
 
@@ -235,8 +235,8 @@ describe('preview_url tool — no UI running', () => {
     expect(result.structuredContent?.baseUrl).toBeNull();
     expect(result.structuredContent?.autoOpen).toBe(true);
     expect(result.content[0]?.text).toContain('No GitQuire server is running');
-    expect(result.content[0]?.text).toContain('`ok start`');
-    expect(result.content[0]?.text).not.toContain('`ok ui`');
+    expect(result.content[0]?.text).toContain('`gq start`');
+    expect(result.content[0]?.text).not.toContain('`gq ui`');
   });
 
   test('no-UI branch is the same regardless of docName', async () => {
@@ -257,7 +257,7 @@ describe('preview_url tool — no UI running', () => {
     expect(result.structuredContent?.running).toBe(false);
     expect(result.content[0]?.text).toContain('OK server is running');
     expect(result.content[0]?.text).toContain('Retry in a few seconds');
-    expect(result.content[0]?.text).not.toContain('`ok start`');
+    expect(result.content[0]?.text).not.toContain('`gq start`');
   });
 
   test('--only server (capabilities omit ui): permanent hint, no "Retry" (UI never binds on its own)', async () => {
@@ -268,8 +268,8 @@ describe('preview_url tool — no UI running', () => {
     expect(result.structuredContent?.running).toBe(false);
     expect(result.content[0]?.text).toContain('no preview UI is mounted');
     expect(result.content[0]?.text).toContain('--only server');
-    expect(result.content[0]?.text).toContain('Restart it with plain `ok start`');
-    expect(result.content[0]?.text).not.toContain('`ok ui`');
+    expect(result.content[0]?.text).toContain('Restart it with plain `gq start`');
+    expect(result.content[0]?.text).not.toContain('`gq ui`');
     expect(result.content[0]?.text).not.toContain('Retry');
   });
 
@@ -333,9 +333,9 @@ describe('preview_url tool — backend demand-ensure', () => {
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent?.running).toBe(false);
     expect(result.structuredContent?.url).toBeNull();
-    expect(result.content[0]?.text).toContain('`ok start`');
+    expect(result.content[0]?.text).toContain('`gq start`');
     expect(result.content[0]?.text).toContain('OK_MCP_AUTOSTART=0');
-    expect(result.content[0]?.text).not.toContain('`ok ui`');
+    expect(result.content[0]?.text).not.toContain('`gq ui`');
   });
 
   test('spawn failure surfaces as a tool error carrying the resolver message', async () => {
@@ -365,7 +365,7 @@ describe('preview_url tool — backend demand-ensure', () => {
     expect(result.structuredContent?.running).toBe(false);
     expect(result.content[0]?.text).toContain('OK server is running');
     expect(result.content[0]?.text).toContain('Retry in a few seconds');
-    expect(result.content[0]?.text).not.toContain('`ok start`');
+    expect(result.content[0]?.text).not.toContain('`gq start`');
   });
 
   test('spawn failure during demand-ensure surfaces isError', async () => {
@@ -494,7 +494,7 @@ describe('preview_url tool — file branch (out-of-project)', () => {
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent?.running).toBe(false);
     expect(result.structuredContent?.url).toBeNull();
-    expect(result.content[0]?.text).toContain('ok open /loose/notes.md');
+    expect(result.content[0]?.text).toContain('gq open /loose/notes.md');
   });
 
   test('file is mutually exclusive with document', async () => {
@@ -552,7 +552,7 @@ describe('preview_url tool — file branch boot-on-demand', () => {
     const result = await handler({ file: '/loose/x.md' });
     expect(called).toBe(true);
     expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('ok open');
+    expect(result.content[0]?.text).toContain('gq open');
   });
 
   test('no ensureSingleFileSession dep (no spawn authority) → hint, no boot', async () => {
@@ -566,7 +566,7 @@ describe('preview_url tool — file branch boot-on-demand', () => {
     });
     const result = await handler({ file: '/loose/y.md' });
     expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('ok open');
+    expect(result.content[0]?.text).toContain('gq open');
   });
   test('ensureSingleFileSession rejection → running:false + hint (not a tool error)', async () => {
     const empty: OffCwdResolverDeps = {
@@ -583,7 +583,7 @@ describe('preview_url tool — file branch boot-on-demand', () => {
     const result = await handler({ file: '/loose/z.md' });
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('ok open');
+    expect(result.content[0]?.text).toContain('gq open');
   });
   test('relative file path is rejected (must be absolute)', async () => {
     const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG);
@@ -604,7 +604,7 @@ describe('preview_url tool — file branch boot-on-demand', () => {
     const result = await handler({ file: '/loose/gone.md' });
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('ok open');
+    expect(result.content[0]?.text).toContain('gq open');
   });
   test('file branch honors a user-scoped autoOpen=false preference', async () => {
     const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
@@ -624,34 +624,34 @@ describe('preview_url tool — names the running channel command', () => {
     vi.unstubAllEnvs();
   });
 
-  test('a Beta hosted agent is steered to ok-beta open', async () => {
+  test('a Beta hosted agent is steered to gq-beta open', async () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     const cwd = temporaryProject();
     bindTestUiServerLock(cwd);
     const handler = captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true });
 
     const doc = await handler({ document: 'specs/foo/SPEC' });
-    expect(doc.structuredContent?.okOpenCommand).toBe('ok-beta open specs/foo/SPEC');
-    expect(doc.content[0]?.text ?? '').toContain('run `ok-beta open specs/foo/SPEC`');
+    expect(doc.structuredContent?.okOpenCommand).toBe('gq-beta open specs/foo/SPEC');
+    expect(doc.content[0]?.text ?? '').toContain('run `gq-beta open specs/foo/SPEC`');
   });
 
-  test('a Beta server with nothing running says ok-beta start', async () => {
+  test('a Beta server with nothing running says gq-beta start', async () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     const handler = captureRegistration(temporaryProject());
     const result = await handler({ document: 'specs/foo/SPEC' });
-    expect(result.content[0]?.text).toContain('Start it with `ok-beta start`');
-    expect(result.content[0]?.text).not.toContain('`ok start`');
+    expect(result.content[0]?.text).toContain('Start it with `gq-beta start`');
+    expect(result.content[0]?.text).not.toContain('`gq start`');
   });
 
-  test('a Beta server without a mounted UI says ok-beta start', async () => {
+  test('a Beta server without a mounted UI says gq-beta start', async () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     const cwd = temporaryProject();
     bindTestServerLock(cwd, 4321, ['http', 'ws']);
     const result = await captureRegistration(cwd)({ document: 'specs/foo/SPEC' });
-    expect(result.content[0]?.text).toContain('Restart it with plain `ok-beta start`');
+    expect(result.content[0]?.text).toContain('Restart it with plain `gq-beta start`');
   });
 
-  test('a Beta loose file without a session says ok-beta open', async () => {
+  test('a Beta loose file without a session says gq-beta open', async () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     const empty: OffCwdResolverDeps = {
       discover: async () => [],
@@ -662,7 +662,7 @@ describe('preview_url tool — names the running channel command', () => {
       offCwdResolverDeps: empty,
     });
     const result = await handler({ file: '/loose/y.md' });
-    expect(result.content[0]?.text).toContain('`ok-beta open /loose/y.md` starts one');
+    expect(result.content[0]?.text).toContain('`gq-beta open /loose/y.md` starts one');
   });
 
   test('Stable hints stay byte-identical', async () => {
@@ -672,11 +672,11 @@ describe('preview_url tool — names the running channel command', () => {
     const steered = await captureRegistration(cwd, BASE_CONFIG, { isHostedAgent: true })({
       folder: 'specs/foo',
     });
-    expect(steered.structuredContent?.okOpenCommand).toBe('ok open specs/foo');
+    expect(steered.structuredContent?.okOpenCommand).toBe('gq open specs/foo');
 
     const idle = await captureRegistration(temporaryProject())({ document: 'specs/foo/SPEC' });
     expect(idle.content[0]?.text).toContain(
-      'No GitQuire server is running for this project. Start it with `ok start` (also starts the preview UI), or open the project in OK Electron.',
+      'No GitQuire server is running for this project. Start it with `gq start` (also starts the preview UI), or open the project in OK Electron.',
     );
   });
 });

@@ -3,10 +3,14 @@ title: CLI
 icon: LuTerminal
 description: Run GitQuire with the CLI on your computer, a VM, or a server.
 ---
-Install GitQuire from npm, then run the server yourself:
+Install the GitQuire CLI from a checkout (it is not published to npm), then run the server yourself:
 
 ```bash
-npm install -g @inkeep/open-knowledge
+git clone https://github.com/docdru/GitQuire.git
+cd GitQuire
+pnpm install
+pnpm exec turbo run build --filter=@gitquire/cli
+cd packages/cli && pnpm pack && npm install -g ./gitquire-cli-*.tgz
 ```
 
 Run GitQuire on a laptop or an always-on server. Use a private network, tunnel, or reverse proxy to make it reachable. See the [Remote Control overview](/docs/remote-control/overview) to choose an access method.
@@ -17,7 +21,7 @@ A tunnel gives the GitQuire server on your laptop an HTTPS URL. The server is av
 
 ### 1. Pin a port and open a tunnel
 
-A local start normally picks a free port dynamically, but a tunnel forwards to one fixed port, so pin it first. Add a `server:` block to the `.ok/config.yml` that `ok init` created (the file is all commented defaults until you add keys):
+A local start normally picks a free port dynamically, but a tunnel forwards to one fixed port, so pin it first. Add a `server:` block to the `.ok/config.yml` that `gq init` created (the file is all commented defaults until you add keys):
 
 ```yaml title=".ok/config.yml"
 server:
@@ -101,13 +105,13 @@ server:
 Now start it from the project directory:
 
 ```bash
-ok start
+gq start
 ```
 
 The server prints a warning banner naming the public origin on every exposed start. For a one-off session, the environment does the same job without touching config files:
 
 ```bash
-OK_ALLOW_EXTERNAL=1 OK_IDLE_SHUTDOWN=off ok start --external-url https://<your-tunnel-url> --port 8080
+OK_ALLOW_EXTERNAL=1 OK_IDLE_SHUTDOWN=off gq start --external-url https://<your-tunnel-url> --port 8080
 ```
 
 If the URL is public, [add access control](/docs/remote-control/authentication) before opening it. Tailscale Serve already limits access to your tailnet. Once the route is protected, [try it out](/docs/remote-control/overview#try-it-out).
@@ -120,20 +124,23 @@ Use a VPS, Mac mini, or another always-on computer. This keeps the knowledge bas
 
 Create an Ubuntu 24.04 VPS with Hetzner, DigitalOcean, Lightsail, or another provider. Allocate 1 GB of RAM. A small knowledge base can run with 512 MB. Add an SSH key during setup, then connect with `ssh root@<ip>`. Run the following commands in that shell.
 
-Install Node 24 and GitQuire:
+Install Node 24, pnpm and GitQuire:
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash - && sudo apt-get install -y nodejs git
-npm install -g @inkeep/open-knowledge
+sudo npm install -g corepack@latest && sudo corepack enable
+git clone https://github.com/docdru/GitQuire.git && cd GitQuire
+pnpm install && pnpm exec turbo run build --filter=@gitquire/cli
+cd packages/cli && pnpm pack && sudo npm install -g ./gitquire-cli-*.tgz && cd ~
 ```
 
-Create the project (`ok init` sets up git for you):
+Create the project (`gq init` sets up git for you):
 
 ```bash
-mkdir ~/knowledge && cd ~/knowledge && ok init
+mkdir ~/knowledge && cd ~/knowledge && gq init
 ```
 
-To start from existing notes, `git clone` them as the project directory instead of `mkdir`, then run `ok init` inside.
+To start from existing notes, `git clone` them as the project directory instead of `mkdir`, then run `gq init` inside.
 
 ### Configure network access
 
@@ -170,7 +177,7 @@ After=network-online.target
 [Service]
 User=root
 WorkingDirectory=/root/knowledge
-ExecStart=/usr/bin/env ok start
+ExecStart=/usr/bin/env gq start
 Restart=on-failure
 
 [Install]
@@ -186,7 +193,7 @@ sudo systemctl enable --now gitquire
 ```
 
 <Callout>
-**macOS and Windows do not use systemd.** Run `ok start` in a terminal and disable sleep. For automatic restarts, use launchd on macOS, or Task Scheduler or a Windows service on Windows.
+**macOS and Windows do not use systemd.** Run `gq start` in a terminal and disable sleep. For automatic restarts, use launchd on macOS, or Task Scheduler or a Windows service on Windows.
 </Callout>
 
 If the URL is public, [add access control](/docs/remote-control/authentication) before opening it. Once the route is protected, [try it out](/docs/remote-control/overview#try-it-out).

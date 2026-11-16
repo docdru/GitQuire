@@ -93,8 +93,8 @@ describe('CLI argv parsing', () => {
   }, 30_000);
 });
 
-describe('ok ui tombstone', () => {
-  test('`ok ui` prints the removal pointer and exits non-zero (not the default-command arity error)', () => {
+describe('gq ui tombstone', () => {
+  test('`gq ui` prints the removal pointer and exits non-zero (not the default-command arity error)', () => {
     const result = Bun.spawnSync({
       cmd: [
         'node',
@@ -113,8 +113,8 @@ describe('ok ui tombstone', () => {
 
     const stderr = result.stderr.toString();
     expect(result.exitCode).toBe(1);
-    expect(stderr).toContain('`ok ui` was removed');
-    expect(stderr).toContain('ok start');
+    expect(stderr).toContain('`gq ui` was removed');
+    expect(stderr).toContain('gq start');
     expect(stderr).not.toContain('too many arguments');
   }, 30_000);
 });
@@ -142,22 +142,22 @@ describe('CLI names the running channel command', () => {
     const result = runCliSource(['--help'], 'stable');
     const stdout = result.stdout.toString();
     expect(result.exitCode).toBe(0);
-    expect(stdout).toContain('Usage: open-knowledge [options] [command]');
+    expect(stdout).toContain('Usage: gitquire [options] [command]');
   }, 30_000);
 
-  test('Beta --help names open-knowledge-beta', () => {
+  test('Beta --help names gitquire-beta', () => {
     const result = runCliSource(['--help'], 'beta');
     const stdout = result.stdout.toString();
     expect(result.exitCode).toBe(0);
-    expect(stdout).toContain('Usage: open-knowledge-beta [options] [command]');
+    expect(stdout).toContain('Usage: gitquire-beta [options] [command]');
     expect(stdout).not.toMatch(/^ {2}ok /m);
   }, 30_000);
 
-  test('Beta `ui` tombstone points at ok-beta start', () => {
+  test('Beta `ui` tombstone points at gq-beta start', () => {
     const result = runCliSource(['ui'], 'beta');
     expect(result.exitCode).toBe(1);
     expect(result.stderr.toString()).toContain(
-      '`ok-beta ui` was removed — the editor UI is served by the project server. Run `ok-beta start` instead.',
+      '`gq-beta ui` was removed — the editor UI is served by the project server. Run `gq-beta start` instead.',
     );
   }, 30_000);
 });

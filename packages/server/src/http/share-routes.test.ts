@@ -41,7 +41,7 @@ function buildGroup(overrides: Partial<ShareRouteDeps> = {}) {
     localOpCliArgs: ['open-knowledge'],
     localOpGuard: { tryAcquire: () => true, release: () => {} },
     getSyncEngine: undefined,
-    resolveCredentialConfig: async () => ['credential.helper=!open-knowledge auth git-credential'],
+    resolveCredentialConfig: async () => ['credential.helper=!gitquire auth git-credential'],
     toGitRelativePath: () => null,
     ...overrides,
   });
@@ -51,8 +51,8 @@ describe('share target-status credential chain', () => {
   test('each status check runs with the chain the resolver returns at request time', async () => {
     targetStatusCredentialConfigs.length = 0;
     const chains = [
-      ['credential.helper=', 'credential.helper=!open-knowledge auth git-credential'],
-      ['credential.helper=!open-knowledge auth git-credential'],
+      ['credential.helper=', 'credential.helper=!gitquire auth git-credential'],
+      ['credential.helper=!gitquire auth git-credential'],
     ];
     let call = 0;
     const group = buildGroup({

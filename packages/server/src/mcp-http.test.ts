@@ -571,11 +571,11 @@ async function previewUrlOkOpenCommand(
   return body.result?.structuredContent?.okOpenCommand ?? null;
 }
 
-test('hosted-agent header reaches preview_url as the ok open steer', async () => {
+test('hosted-agent header reaches preview_url as the gq open steer', async () => {
   const harness = await bootHandler(ConfigSchema.parse({}));
   openHarnesses.push(harness);
   expect(await previewUrlOkOpenCommand(harness.port, { [MCP_HOSTED_AGENT_HEADER]: '1' })).toBe(
-    'ok open specs/foo/SPEC',
+    'gq open specs/foo/SPEC',
   );
 });
 

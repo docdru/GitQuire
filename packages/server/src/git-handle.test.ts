@@ -138,7 +138,7 @@ describe('createGitInstance (credential.helper config)', () => {
 
   test('accepts credential.helper config without throwing', async () => {
     const handle = createGitInstance(tmpDir, {
-      credentialConfig: buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: true }),
+      credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: true }),
     });
     const version = await handle.git.raw(['--version']);
     expect(version).toContain('git version');
@@ -183,7 +183,7 @@ describe('createGitInstance (credential.helper config)', () => {
 
   test('keeps pinning credential.interactive off alongside credential.helper config', async () => {
     const handle = createGitInstance(tmpDir, {
-      credentialConfig: buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: true }),
+      credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: true }),
     });
     expect((await handle.git.raw(['config', '--get', 'credential.interactive'])).trim()).toBe(
       'false',
@@ -216,7 +216,7 @@ describe('createGitInstance under a process environment carrying GIT_CONFIG_COUN
 
   test('server git runs instead of meeting simple-git refusing GIT_CONFIG_COUNT', async () => {
     const handle = createGitInstance(repoDir, {
-      credentialConfig: buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: true }),
+      credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: true }),
     });
 
     await expect(handle.git.raw(['rev-parse', '--is-inside-work-tree'])).resolves.toBe('true\n');
@@ -253,27 +253,27 @@ describe.skipIf(process.platform === 'win32')(
       execSync("git config credential.helper '!/ambient/stub'", { cwd: repoDir });
 
       const handle = createGitInstance(repoDir, {
-        credentialConfig: buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: true }),
+        credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: true }),
       });
       isolateAmbientGitConfig(handle);
 
       const raw = await handle.git.raw(['config', '-z', '--get-all', 'credential.helper']);
       const entries = raw.split('\0').slice(0, -1);
-      expect(entries).toEqual(['!/ambient/stub', '', '!open-knowledge auth git-credential']);
+      expect(entries).toEqual(['!/ambient/stub', '', '!gitquire auth git-credential']);
     });
 
     test('non-GitHub origin keeps its ambient helper and gets no reset', async () => {
       execSync("git config credential.helper '!/ambient/stub'", { cwd: repoDir });
 
       const handle = createGitInstance(repoDir, {
-        credentialConfig: buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: false }),
+        credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: false }),
       });
       isolateAmbientGitConfig(handle);
 
       const raw = await handle.git.raw(['config', '-z', '--get-all', 'credential.helper']);
       const values = raw.split('\0').slice(0, -1);
 
-      expect(values).toEqual(['!/ambient/stub', '!open-knowledge auth git-credential']);
+      expect(values).toEqual(['!/ambient/stub', '!gitquire auth git-credential']);
     });
 
     test('with an ambient helper configured, git sends `get` to OK helper only', async () => {
@@ -293,7 +293,7 @@ describe.skipIf(process.platform === 'win32')(
           '',
         ].join('\n');
       writeFileSync(ambientHelper, stubScript(ambientLog, 'ambient'), { mode: 0o755 });
-      writeFileSync(okCli, stubScript(okLog, 'ok'), { mode: 0o755 });
+      writeFileSync(okCli, stubScript(okLog, 'gq'), { mode: 0o755 });
 
       execSync(`git config credential.helper '!${ambientHelper}'`, { cwd: repoDir });
 
@@ -404,25 +404,22 @@ describe('buildSyncCredentialConfig()', () => {
   });
 
   test('bare command (dev default) stays unquoted', () => {
-    const config = buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: true });
+    const config = buildSyncCredentialConfig(['gitquire'], { resetAmbient: true });
     expect(config).toEqual([
       'credential.helper=',
-      'credential.helper=!open-knowledge auth git-credential',
+      'credential.helper=!gitquire auth git-credential',
     ]);
-    expect(argvFromHelper(config)).toEqual(['open-knowledge', 'auth', 'git-credential']);
+    expect(argvFromHelper(config)).toEqual(['gitquire', 'auth', 'git-credential']);
   });
 
   test('undefined / empty argv falls back to the bare CLI name', () => {
-    const expected = [
-      'credential.helper=',
-      'credential.helper=!open-knowledge auth git-credential',
-    ];
+    const expected = ['credential.helper=', 'credential.helper=!gitquire auth git-credential'];
     expect(buildSyncCredentialConfig(undefined, { resetAmbient: true })).toEqual(expected);
     expect(buildSyncCredentialConfig([], { resetAmbient: true })).toEqual(expected);
   });
 
   test('multi-element argv escapes each element independently', () => {
-    const argv = ['/Users/me/Library/Application Support/bun', '/opt/ok cli/cli.mjs'];
+    const argv = ['/Users/me/Library/Application Support/bun', '/opt/gq cli/cli.mjs'];
     const config = buildSyncCredentialConfig(argv, { resetAmbient: true });
     expect(argvFromHelper(config)).toEqual([...argv, 'auth', 'git-credential']);
   });
@@ -451,7 +448,7 @@ describe('buildSyncCredentialConfig()', () => {
         'git-credential',
       ]);
       expect(buildSyncCredentialConfig(undefined, { resetAmbient: true }).at(-1)).toBe(
-        'credential.helper=!open-knowledge auth git-credential',
+        'credential.helper=!gitquire auth git-credential',
       );
     });
   });
@@ -482,9 +479,9 @@ describe('buildSyncCredentialConfig() — ambient helper neutralization', () => 
 
   test("emits an empty credential.helper reset before OK's own helper", () => {
     const values = credentialHelperValues(
-      buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: true }),
+      buildSyncCredentialConfig(['gitquire'], { resetAmbient: true }),
     );
-    expect(values).toEqual(['', '!open-knowledge auth git-credential']);
+    expect(values).toEqual(['', '!gitquire auth git-credential']);
   });
 
   test('packaged bundle path keeps the reset ahead of the escaped helper', () => {
@@ -498,8 +495,8 @@ describe('buildSyncCredentialConfig() — ambient helper neutralization', () => 
 
   test('resetAmbient:false omits the reset, preserving the ambient chain', () => {
     const values = credentialHelperValues(
-      buildSyncCredentialConfig(['open-knowledge'], { resetAmbient: false }),
+      buildSyncCredentialConfig(['gitquire'], { resetAmbient: false }),
     );
-    expect(values).toEqual(['!open-knowledge auth git-credential']);
+    expect(values).toEqual(['!gitquire auth git-credential']);
   });
 });

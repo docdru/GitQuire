@@ -150,27 +150,27 @@ describe('the no-web-UI hint names the running channel CLI', () => {
 
   const detailOf = (body: string): string => (JSON.parse(body) as { detail: string }).detail;
 
-  test('Stable keeps its exact ok start detail with and without a content middleware', async () => {
+  test('Stable keeps its exact gq start detail with and without a content middleware', async () => {
     vi.stubEnv('OK_CHANNEL', 'stable');
     const bare = await start();
     expect(detailOf((await rawRequest(bare.port, '/unrecognized')).body)).toBe(
-      'This server is running without the web UI. Restart it with plain `ok start` to serve the editor. No handler for /unrecognized',
+      'This server is running without the web UI. Restart it with plain `gq start` to serve the editor. No handler for /unrecognized',
     );
     const contentOnly = await start({ contentAssetMiddleware: (_req, _res, next) => next() });
     expect(detailOf((await rawRequest(contentOnly.port, '/unrecognized')).body)).toBe(
-      'This server is running without the web UI. Restart it with plain `ok start` to serve the editor. No handler for /unrecognized',
+      'This server is running without the web UI. Restart it with plain `gq start` to serve the editor. No handler for /unrecognized',
     );
   });
 
-  test('Beta names ok-beta start with and without a content middleware', async () => {
+  test('Beta names gq-beta start with and without a content middleware', async () => {
     vi.stubEnv('OK_CHANNEL', 'beta');
     const bare = await start();
     expect(detailOf((await rawRequest(bare.port, '/unrecognized')).body)).toContain(
-      'Restart it with plain `ok-beta start` to serve the editor.',
+      'Restart it with plain `gq-beta start` to serve the editor.',
     );
     const contentOnly = await start({ contentAssetMiddleware: (_req, _res, next) => next() });
     expect(detailOf((await rawRequest(contentOnly.port, '/unrecognized')).body)).toContain(
-      'Restart it with plain `ok-beta start` to serve the editor.',
+      'Restart it with plain `gq-beta start` to serve the editor.',
     );
   });
 });

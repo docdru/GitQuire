@@ -232,7 +232,7 @@ const PREVIEWS: Partial<Record<string, string>> = {
       patterns, and folder defaults all live in this one file.
     </TabPreview>
     <TabPreview label="Serve">
-      \`ok start\` boots the collaboration server and opens the editor.
+      \`gq start\` boots the collaboration server and opens the editor.
     </TabPreview>
   </TabsPreview>
 </ComponentPreview>`,

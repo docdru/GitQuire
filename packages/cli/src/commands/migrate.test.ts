@@ -37,7 +37,7 @@ afterEach(() => {
   process.exitCode = 0;
 });
 
-describe('ok migrate notion — exit codes', () => {
+describe('gq migrate notion — exit codes', () => {
   test('exit 2 for an unknown --only transform', async () => {
     const root = makeTree({ 'page.md': '# P\n' });
     expect((await run([root, '--only', 'bogus'])).code).toBe(2);

@@ -13,7 +13,7 @@ const previewHarness: { value: InternalDocPreview } = {
     title: 'Install guide',
     folderPath: 'guides',
     lastEditedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    excerpt: 'Install the CLI and run ok start to boot the server.',
+    excerpt: 'Install the CLI and run gq start to boot the server.',
   },
 };
 

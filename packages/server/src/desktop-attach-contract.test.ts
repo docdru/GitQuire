@@ -41,7 +41,7 @@ describe('server.lock — the Desktop attach advertisement', () => {
         expect(res.status).toBe(404);
         const body = parseProblem(await res.text());
         expect(body.detail).toContain('running without the web UI');
-        expect(body.detail).toContain('ok start');
+        expect(body.detail).toContain('gq start');
         const lock = readServerLock(resolve(tmp, '.ok', 'local'));
         expect(lock?.capabilities ?? []).not.toContain('ui');
         expect(existsSync(resolve(tmp, '.ok', 'local', 'ui.lock'))).toBe(false);

@@ -135,9 +135,9 @@ describe('buildStatusReport', () => {
 });
 
 describe('renderStatusText', () => {
-  test('reused-pid renders as stale and points at ok clean', () => {
+  test('reused-pid renders as stale and points at gq clean', () => {
     const out = renderStatusText(buildStatusReport(reused(4242)));
-    expect(out).toContain('stale (pid=4242 now belongs to another process); run `ok clean`');
+    expect(out).toContain('stale (pid=4242 now belongs to another process); run `gq clean`');
   });
 
   test('alive entries include pid + port + startedAt', () => {
@@ -157,11 +157,11 @@ describe('renderStatusText', () => {
     expect(out).toContain('not running');
   });
 
-  test('stale entries suggest ok clean', () => {
+  test('stale entries suggest gq clean', () => {
     const out = renderStatusText(buildStatusReport(dead(999)));
     expect(out).toContain('stale');
     expect(out).toContain('pid=999');
-    expect(out).toContain('ok clean');
+    expect(out).toContain('gq clean');
   });
 });
 
@@ -224,8 +224,8 @@ describe('status hints name the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([
-    ['stable', 'ok'],
-    ['beta', 'ok-beta'],
+    ['stable', 'gq'],
+    ['beta', 'gq-beta'],
   ])('%s: stale and corrupt locks suggest %s clean', (channel, command) => {
     vi.stubEnv('OK_CHANNEL', channel);
     expect(renderStatusText(buildStatusReport(dead(999)))).toContain(

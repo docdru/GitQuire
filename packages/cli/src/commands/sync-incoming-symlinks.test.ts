@@ -99,7 +99,7 @@ function existsAsEntry(relPath: string): boolean {
   }
 }
 
-describe('ok pull refusal remedies', () => {
+describe('gq pull refusal remedies', () => {
   test.each([
     [
       [{ path: 'a', reason: 'requires-newer-git' }],
@@ -125,7 +125,7 @@ describe('ok pull refusal remedies', () => {
   });
 });
 
-describe('ok pull without a running server', () => {
+describe('gq pull without a running server', () => {
   test('refuses a remote symlink into private state, naming it only when rendered', async () => {
     await pushSymlink('notes/leak.md', '../.git/config');
 
@@ -243,7 +243,7 @@ describe('ok pull without a running server', () => {
     expect(readlinkSync(join(projectDir, 'notes', 'alias.md'))).toBe('real.md');
   });
 
-  test('ok pull --json keeps stdout to JSON lines and reports the refused path in its error record', async () => {
+  test('gq pull --json keeps stdout to JSON lines and reports the refused path in its error record', async () => {
     await pushSymlink('notes/leak.md', '../.git/config');
     const env = { ...process.env };
     for (const variable of ['NODE_ENV', 'LOG_LEVEL', 'OK_CONSOLE_LEVEL', 'OK_FILE_LEVEL']) {

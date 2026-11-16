@@ -300,8 +300,8 @@ describe('containers and visual-only demos', () => {
   });
 
   test('a card keeps the inline formatting in its description', () => {
-    expect(serialize('<Card title="CLI" href="/docs/reference/cli">Run `ok init`.</Card>')).toBe(
-      '- [CLI](https://openknowledge.ai/docs/reference/cli): Run `ok init`.',
+    expect(serialize('<Card title="CLI" href="/docs/reference/cli">Run `gq init`.</Card>')).toBe(
+      '- [CLI](https://openknowledge.ai/docs/reference/cli): Run `gq init`.',
     );
   });
 

@@ -327,7 +327,7 @@ function readRawSinkBlock(absPath: string): RawLocalSinkBlock {
     parsed = parseYaml(readFileSync(absPath, 'utf-8'));
   } catch (err) {
     console.warn(
-      `[ok diagnose bundle] failed to parse ${absPath} for manifest config; ` +
+      `[gq diagnose bundle] failed to parse ${absPath} for manifest config; ` +
         `manifest will report schema defaults. Reason: ${err instanceof Error ? err.message : String(err)}`,
     );
     return {};
@@ -786,7 +786,7 @@ export async function writeBundle(opts: WriteBundleOpts): Promise<string> {
   const parent = dirname(outputPath);
   if (!existsSync(parent)) {
     throw new Error(
-      `ok diagnose bundle: parent directory does not exist: ${parent}. ` +
+      `gq diagnose bundle: parent directory does not exist: ${parent}. ` +
         'Create it or pass --out with an existing parent.',
     );
   }
