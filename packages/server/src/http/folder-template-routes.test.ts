@@ -44,9 +44,9 @@ function buildGroup() {
 }
 
 describe('createFolderTemplateRoutes table', () => {
-  test('registers exactly the three folder-template paths', () => {
+  test('registers exactly the four folder-template paths', () => {
     expect([...buildGroup().paths].sort()).toEqual(
-      ['/api/folder-config', '/api/template', '/api/template/import'].sort(),
+      ['/api/folder-config', '/api/template', '/api/template/import', '/api/templates'].sort(),
     );
   });
 
