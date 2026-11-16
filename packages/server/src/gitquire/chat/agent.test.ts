@@ -276,8 +276,12 @@ function scriptedProviders(turns: ProviderTurn[]) {
   return {
     requests,
     providers: {
-      async turn(_provider: string, _key: string, request: { onText?: unknown }) {
-        const { onText: _onText, ...rest } = request;
+      async turn(
+        _provider: string,
+        _key: string,
+        request: { onText?: unknown; onUnfinishedUsage?: unknown },
+      ) {
+        const { onText: _onText, onUnfinishedUsage: _onUsage, ...rest } = request;
         requests.push(structuredClone(rest));
         const next = turns.shift();
         if (next === undefined) throw new Error('no more turns');
@@ -335,6 +339,39 @@ describe('the chat loop', () => {
       'done',
     ]);
     expect(chat.messages.at(-1)).toMatchObject({ role: 'assistant', text: 'Fixed.' });
+  });
+
+  it('counts the tokens of an answer that failed halfway', async () => {
+    const chat = chatRecord();
+    const providers = {
+      async turn(
+        _p: string,
+        _k: string,
+        request: {
+          onUnfinishedUsage?: (usage: { inputTokens: number; outputTokens: number }) => void;
+        },
+      ) {
+        request.onUnfinishedUsage?.({ inputTokens: 40, outputTokens: 5 });
+        throw new ProviderError('network', 'lost');
+      },
+      async checkKey() {},
+    };
+    const events: ChatEvent[] = [];
+    let saved = 0;
+    await runChatTurn({
+      chat,
+      apiKey: 'k',
+      providers,
+      tools: fakeTools(),
+      system: 'sys',
+      emit: (event) => events.push(event),
+      persist: () => {
+        saved += 1;
+      },
+    });
+    expect(events.map((event) => event.type)).toEqual(['usage', 'error', 'done']);
+    expect(chat.usage).toMatchObject({ inputTokens: 40, outputTokens: 5 });
+    expect(saved).toBeGreaterThan(0);
   });
 
   it('runs tools until the model answers, saving each step', async () => {

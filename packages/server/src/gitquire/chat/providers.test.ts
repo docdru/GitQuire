@@ -254,4 +254,123 @@ describe('streamed answers', () => {
     expect(deltas).toEqual(['All at once.']);
     expect(turn.usage).toEqual({ inputTokens: 3, outputTokens: 4 });
   });
+
+  it('a stream that ends before message_stop is an error, and the tokens so far are reported', async () => {
+    const providers = providersAnswering(() =>
+      sse([
+        {
+          event: 'message_start',
+          data: {
+            type: 'message_start',
+            message: { usage: { input_tokens: 12, output_tokens: 1 } },
+          },
+        },
+        {
+          event: 'content_block_start',
+          data: {
+            type: 'content_block_start',
+            index: 0,
+            content_block: { type: 'tool_use', id: 't1', name: 'search' },
+          },
+        },
+        {
+          event: 'content_block_delta',
+          data: {
+            type: 'content_block_delta',
+            index: 0,
+            delta: { type: 'input_json_delta', partial_json: '{"que' },
+          },
+        },
+      ]),
+    );
+    const reported: unknown[] = [];
+    const failure = await providers
+      .turn('claude', 'k', { ...request, onUnfinishedUsage: (usage) => reported.push(usage) })
+      .catch((err: unknown) => err);
+    expect(failure).toBeInstanceOf(ProviderError);
+    expect((failure as ProviderError).code).toBe('network');
+    expect(reported).toEqual([{ inputTokens: 12, outputTokens: 1 }]);
+  });
+
+  it('a Mistral stream without a finish reason or [DONE] is an error', async () => {
+    const providers = providersAnswering(() =>
+      sse([{ data: { choices: [{ index: 0, delta: { content: 'Half' } }] } }]),
+    );
+    const failure = await providers.turn('mistral', 'k', request).catch((err: unknown) => err);
+    expect((failure as ProviderError).code).toBe('network');
+  });
+
+  it('reads events whose CRLF line ends are split across chunks', async () => {
+    const encoder = new TextEncoder();
+    const first = JSON.stringify({ choices: [{ index: 0, delta: { content: 'A' } }] });
+    const second = JSON.stringify({
+      choices: [{ index: 0, delta: { content: 'B' }, finish_reason: 'stop' }],
+    });
+    const chunks = [`data: ${first}\r\n\r`, `\ndata: ${second}\r\n\r\n`, 'data: [DONE]\r\n\r\n'];
+    const providers = providersAnswering(
+      () =>
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+              controller.close();
+            },
+          }),
+          { status: 200, headers: { 'content-type': 'text/event-stream' } },
+        ),
+    );
+    const turn = await providers.turn('mistral', 'k', request);
+    expect(turn.text).toBe('AB');
+    expect(turn.stopReason).toBe('end');
+  });
+
+  it('keeps Mistral tool calls apart when they come without an index', async () => {
+    const providers = providersAnswering(() =>
+      sse([
+        {
+          data: {
+            choices: [
+              {
+                index: 0,
+                delta: {
+                  tool_calls: [{ id: 'aaaaaaaa1', function: { name: 'search', arguments: '{}' } }],
+                },
+              },
+            ],
+          },
+        },
+        {
+          data: {
+            choices: [
+              {
+                index: 0,
+                delta: {
+                  tool_calls: [
+                    { id: 'bbbbbbbb2', function: { name: 'read', arguments: '{"path"' } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          data: {
+            choices: [
+              {
+                index: 0,
+                delta: { tool_calls: [{ function: { arguments: ':"a.md"}' } }] },
+                finish_reason: 'tool_calls',
+              },
+            ],
+          },
+        },
+        { data: '[DONE]' },
+      ]),
+    );
+    const turn = await providers.turn('mistral', 'k', request);
+    expect(turn.toolCalls).toEqual([
+      { id: 'aaaaaaaa1', name: 'search', input: {} },
+      { id: 'bbbbbbbb2', name: 'read', input: { path: 'a.md' } },
+    ]);
+  });
 });

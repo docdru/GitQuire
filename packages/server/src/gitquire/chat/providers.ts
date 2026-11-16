@@ -16,6 +16,7 @@ interface ProviderTurnRequest {
   maxTokens: number;
   signal?: AbortSignal;
   onText?: (delta: string) => void;
+  onUnfinishedUsage?: (usage: ChatUsage) => void;
 }
 
 type StopReason = 'end' | 'tool_use' | 'max_tokens' | 'context_full' | 'other';
@@ -158,7 +159,7 @@ interface StreamEvent {
   data: string;
 }
 
-export async function* readEventStream(
+async function* readEventStream(
   response: Response,
   signal: AbortSignal | undefined,
 ): AsyncGenerator<StreamEvent> {
@@ -167,6 +168,8 @@ export async function* readEventStream(
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let carry = '';
+  let finished = false;
   const parse = (chunk: string): StreamEvent | undefined => {
     let event: string | undefined;
     const data: string[] = [];
@@ -186,8 +189,14 @@ export async function* readEventStream(
         if (signal?.aborted) throw err;
         throw new ProviderError('network', 'The connection to the AI provider was lost.');
       }
-      if (read.done) break;
-      buffer += decoder.decode(read.value, { stream: true }).replace(/\r\n/g, '\n');
+      if (read.done) {
+        finished = true;
+        break;
+      }
+      let text = carry + decoder.decode(read.value, { stream: true });
+      carry = text.endsWith('\r') ? '\r' : '';
+      if (carry !== '') text = text.slice(0, -1);
+      buffer += text.replace(/\r\n?/g, '\n');
       let split = buffer.indexOf('\n\n');
       while (split !== -1) {
         const parsed = parse(buffer.slice(0, split));
@@ -196,11 +205,21 @@ export async function* readEventStream(
         split = buffer.indexOf('\n\n');
       }
     }
-    const rest = parse(buffer + decoder.decode());
+    const rest = parse(
+      `${buffer}${carry === '' ? '' : '\n'}${decoder.decode().replace(/\r\n?/g, '\n')}`,
+    );
     if (rest !== undefined) yield rest;
   } finally {
+    if (!finished) await reader.cancel().catch(() => undefined);
     reader.releaseLock();
   }
+}
+
+function endedEarly(): ProviderError {
+  return new ProviderError(
+    'network',
+    'The connection to the AI provider ended before the answer was complete.',
+  );
 }
 
 function parseData(data: string): Record<string, unknown> | undefined {
@@ -418,59 +437,69 @@ async function anthropicFromStream(
   const partialJson = new Map<number, string>();
   const usage: Record<string, unknown> = {};
   let stop: unknown;
-  for await (const { data } of readEventStream(response, request.signal)) {
-    const record = parseData(data);
-    if (record === undefined) continue;
-    switch (record.type) {
-      case 'message_start': {
-        const message = (record.message ?? {}) as Record<string, unknown>;
-        Object.assign(usage, (message.usage ?? {}) as Record<string, unknown>);
-        break;
-      }
-      case 'content_block_start': {
-        const index = number(record.index);
-        const block = { ...((record.content_block ?? {}) as Record<string, unknown>) };
-        if (block.type === 'tool_use') block.input = {};
-        blocks[index] = block;
-        break;
-      }
-      case 'content_block_delta': {
-        const index = number(record.index);
-        const block = blocks[index];
-        const delta = (record.delta ?? {}) as Record<string, unknown>;
-        if (block === undefined) break;
-        if (delta.type === 'text_delta' && typeof delta.text === 'string') {
-          block.text = `${typeof block.text === 'string' ? block.text : ''}${delta.text}`;
-          if (delta.text !== '') request.onText?.(delta.text);
-        } else if (delta.type === 'input_json_delta' && typeof delta.partial_json === 'string') {
-          partialJson.set(index, `${partialJson.get(index) ?? ''}${delta.partial_json}`);
-        } else if (delta.type === 'thinking_delta' && typeof delta.thinking === 'string') {
-          block.thinking = `${typeof block.thinking === 'string' ? block.thinking : ''}${delta.thinking}`;
-        } else if (delta.type === 'signature_delta' && typeof delta.signature === 'string') {
-          block.signature = delta.signature;
+  let complete = false;
+  try {
+    for await (const { data } of readEventStream(response, request.signal)) {
+      const record = parseData(data);
+      if (record === undefined) continue;
+      switch (record.type) {
+        case 'message_start': {
+          const message = (record.message ?? {}) as Record<string, unknown>;
+          Object.assign(usage, (message.usage ?? {}) as Record<string, unknown>);
+          break;
         }
-        break;
-      }
-      case 'content_block_stop': {
-        const index = number(record.index);
-        const block = blocks[index];
-        const json = partialJson.get(index);
-        if (block !== undefined && json !== undefined)
-          block.input = parseInput(json === '' ? '{}' : json);
-        break;
-      }
-      case 'message_delta': {
-        const delta = (record.delta ?? {}) as Record<string, unknown>;
-        if (delta.stop_reason !== undefined) stop = delta.stop_reason;
-        const more = (record.usage ?? {}) as Record<string, unknown>;
-        for (const [key, value] of Object.entries(more)) {
-          if (typeof value === 'number') usage[key] = value;
+        case 'content_block_start': {
+          const index = number(record.index);
+          const block = { ...((record.content_block ?? {}) as Record<string, unknown>) };
+          if (block.type === 'tool_use') block.input = {};
+          blocks[index] = block;
+          break;
         }
-        break;
+        case 'content_block_delta': {
+          const index = number(record.index);
+          const block = blocks[index];
+          const delta = (record.delta ?? {}) as Record<string, unknown>;
+          if (block === undefined) break;
+          if (delta.type === 'text_delta' && typeof delta.text === 'string') {
+            block.text = `${typeof block.text === 'string' ? block.text : ''}${delta.text}`;
+            if (delta.text !== '') request.onText?.(delta.text);
+          } else if (delta.type === 'input_json_delta' && typeof delta.partial_json === 'string') {
+            partialJson.set(index, `${partialJson.get(index) ?? ''}${delta.partial_json}`);
+          } else if (delta.type === 'thinking_delta' && typeof delta.thinking === 'string') {
+            block.thinking = `${typeof block.thinking === 'string' ? block.thinking : ''}${delta.thinking}`;
+          } else if (delta.type === 'signature_delta' && typeof delta.signature === 'string') {
+            block.signature = delta.signature;
+          }
+          break;
+        }
+        case 'content_block_stop': {
+          const index = number(record.index);
+          const block = blocks[index];
+          const json = partialJson.get(index);
+          if (block !== undefined && json !== undefined)
+            block.input = parseInput(json === '' ? '{}' : json);
+          break;
+        }
+        case 'message_delta': {
+          const delta = (record.delta ?? {}) as Record<string, unknown>;
+          if (delta.stop_reason !== undefined) stop = delta.stop_reason;
+          const more = (record.usage ?? {}) as Record<string, unknown>;
+          for (const [key, value] of Object.entries(more)) {
+            if (typeof value === 'number') usage[key] = value;
+          }
+          break;
+        }
+        case 'message_stop':
+          complete = true;
+          break;
+        case 'error':
+          throw streamError(record);
       }
-      case 'error':
-        throw streamError(record);
     }
+    if (!complete) throw endedEarly();
+  } catch (err) {
+    request.onUnfinishedUsage?.(anthropicFromContent([], usage, stop).usage);
+    throw err;
   }
   return anthropicFromContent(
     blocks.filter((block) => block !== undefined),
@@ -548,6 +577,20 @@ function mistralUsage(usage: Record<string, unknown>): ProviderTurn['usage'] {
   };
 }
 
+function mistralCallIndex(
+  calls: ReadonlyMap<number, { id: string }>,
+  raw: Record<string, unknown>,
+  position: number,
+): number {
+  if (typeof raw.index === 'number') return raw.index;
+  const id = typeof raw.id === 'string' ? raw.id : '';
+  if (id === '') return calls.size === 0 ? position : Math.max(...calls.keys());
+  for (const [index, call] of calls) {
+    if (call.id === id) return index;
+  }
+  return calls.size === 0 ? position : Math.max(...calls.keys()) + 1;
+}
+
 async function mistralFromStream(
   response: Response,
   request: ProviderTurnRequest,
@@ -556,43 +599,56 @@ async function mistralFromStream(
   const calls = new Map<number, { id: string; name: string; args: string }>();
   let usage: Record<string, unknown> = {};
   let finish: unknown;
-  for await (const { data } of readEventStream(response, request.signal)) {
-    if (data.trim() === '[DONE]') break;
-    const record = parseData(data);
-    if (record === undefined) continue;
-    if (record.object === 'error' || (record.error !== undefined && record.choices === undefined)) {
-      throw streamError(record);
-    }
-    if (typeof record.usage === 'object' && record.usage !== null) {
-      usage = record.usage as Record<string, unknown>;
-    }
-    const choice = (Array.isArray(record.choices) ? record.choices[0] : undefined) as
-      | Record<string, unknown>
-      | undefined;
-    if (choice === undefined) continue;
-    if (choice.finish_reason !== undefined && choice.finish_reason !== null) {
-      finish = choice.finish_reason;
-    }
-    const delta = (choice.delta ?? {}) as Record<string, unknown>;
-    const piece = mistralText(delta.content);
-    if (piece !== '') {
-      text += piece;
-      request.onText?.(piece);
-    }
-    if (Array.isArray(delta.tool_calls)) {
-      for (const [position, raw] of (delta.tool_calls as Record<string, unknown>[]).entries()) {
-        const index = typeof raw.index === 'number' ? raw.index : position;
-        const fn = (raw.function ?? {}) as Record<string, unknown>;
-        const current = calls.get(index) ?? { id: '', name: '', args: '' };
-        if (typeof raw.id === 'string' && raw.id !== '') current.id = raw.id;
-        if (typeof fn.name === 'string' && fn.name !== '') current.name = fn.name;
-        if (typeof fn.arguments === 'string') current.args += fn.arguments;
-        else if (typeof fn.arguments === 'object' && fn.arguments !== null) {
-          current.args = JSON.stringify(fn.arguments);
+  let sawDone = false;
+  try {
+    for await (const { data } of readEventStream(response, request.signal)) {
+      if (data.trim() === '[DONE]') {
+        sawDone = true;
+        break;
+      }
+      const record = parseData(data);
+      if (record === undefined) continue;
+      if (
+        record.object === 'error' ||
+        (record.error !== undefined && record.choices === undefined)
+      ) {
+        throw streamError(record);
+      }
+      if (typeof record.usage === 'object' && record.usage !== null) {
+        usage = record.usage as Record<string, unknown>;
+      }
+      const choice = (Array.isArray(record.choices) ? record.choices[0] : undefined) as
+        | Record<string, unknown>
+        | undefined;
+      if (choice === undefined) continue;
+      if (choice.finish_reason !== undefined && choice.finish_reason !== null) {
+        finish = choice.finish_reason;
+      }
+      const delta = (choice.delta ?? {}) as Record<string, unknown>;
+      const piece = mistralText(delta.content);
+      if (piece !== '') {
+        text += piece;
+        request.onText?.(piece);
+      }
+      if (Array.isArray(delta.tool_calls)) {
+        for (const [position, raw] of (delta.tool_calls as Record<string, unknown>[]).entries()) {
+          const index = mistralCallIndex(calls, raw, position);
+          const fn = (raw.function ?? {}) as Record<string, unknown>;
+          const current = calls.get(index) ?? { id: '', name: '', args: '' };
+          if (typeof raw.id === 'string' && raw.id !== '') current.id = raw.id;
+          if (typeof fn.name === 'string' && fn.name !== '') current.name = fn.name;
+          if (typeof fn.arguments === 'string') current.args += fn.arguments;
+          else if (typeof fn.arguments === 'object' && fn.arguments !== null) {
+            current.args = JSON.stringify(fn.arguments);
+          }
+          calls.set(index, current);
         }
-        calls.set(index, current);
       }
     }
+    if (!sawDone && (finish === undefined || finish === null)) throw endedEarly();
+  } catch (err) {
+    request.onUnfinishedUsage?.(mistralUsage(usage));
+    throw err;
   }
   const toolCalls: ToolCall[] = [...calls.entries()]
     .sort(([a], [b]) => a - b)
