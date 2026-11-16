@@ -5312,6 +5312,9 @@ msgstr "頁面會在搜尋第一次需要它們的時候產生嵌入向量。"
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "已建立索引的頁面：{semanticIndexedCount} / {semanticTotalCount}。"
 
+msgid "Pages to link"
+msgstr ""
+
 msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
 msgstr ""
 

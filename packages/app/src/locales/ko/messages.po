@@ -5312,6 +5312,9 @@ msgstr "검색에 필요할 때 페이지를 처음 임베딩합니다."
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "인덱싱된 페이지: {semanticTotalCount}개 중 {semanticIndexedCount}개."
 
+msgid "Pages to link"
+msgstr ""
+
 msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
 msgstr ""
 

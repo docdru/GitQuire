@@ -5308,6 +5308,9 @@ msgstr "কোনো অনুসন্ধানের প্রথমবার 
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "ইনডেক্স করা পৃষ্ঠা: {semanticTotalCount}টির মধ্যে {semanticIndexedCount}টি।"
 
+msgid "Pages to link"
+msgstr ""
+
 msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
 msgstr ""
 

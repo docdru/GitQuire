@@ -5308,6 +5308,9 @@ msgstr "पेज पहली बार तभी एम्बेड होत�
 msgid "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgstr "इंडेक्स किए गए पेज: {semanticTotalCount} में से {semanticIndexedCount}।"
 
+msgid "Pages to link"
+msgstr ""
+
 msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
 msgstr ""
 
