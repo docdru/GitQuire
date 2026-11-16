@@ -62,6 +62,7 @@ GitQuire as `smtp://mailpit:1025?starttls=off`.
 | `OK_ALLOW_EXTERNAL` | unset | Must be `1` to accept non-local connections |
 | `OK_EXTERNAL_URL` | unset | Public origin, required behind a domain or proxy |
 | `GITQUIRE_GIT_NAME`, `GITQUIRE_GIT_EMAIL` | `GitQuire`, `gitquire@localhost` | Git identity for commits not made by a signed-in person |
+| `GITQUIRE_AGENTS_FILE` | on | `off` stops GitQuire from writing its section of `AGENTS.md` (rules for AI agents) at the root of the wiki |
 
 ## GitHub sign-in
 

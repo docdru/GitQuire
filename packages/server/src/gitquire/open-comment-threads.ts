@@ -12,7 +12,7 @@ const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_SCANNED_FILES = 5000;
 const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', 'out', 'vendor']);
 
-export interface OpenCommentEntry {
+interface OpenCommentEntry {
   author: string;
   at: string;
   body: string;

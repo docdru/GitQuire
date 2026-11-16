@@ -1,6 +1,6 @@
 export const COMMENT_LABEL_PREFIX = 'c-';
 
-export const COMMENT_HEADER_ICON = '💬';
+const COMMENT_HEADER_ICON = '💬';
 
 export interface FootnoteAuthor {
   id: string;
@@ -121,7 +121,7 @@ export function stepFence(state: FenceState, line: string): boolean {
   return true;
 }
 
-export function parseHeader(text: string): string | undefined {
+function parseHeader(text: string): string | undefined {
   if (!text.startsWith(COMMENT_HEADER_ICON)) return undefined;
   const rest = text.slice(COMMENT_HEADER_ICON.length).trim();
   if (rest === '' || rest === 'comment') return '';
