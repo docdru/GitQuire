@@ -47,6 +47,9 @@ export class DurationShardSequencer extends BaseSequencer {
     const byPath = new Map(
       files.map((spec) => [relative(root, spec.moduleId).split('\\').join('/'), spec]),
     );
+    if (byPath.size !== files.length) {
+      throw new Error('duration sharding expects each test file once, in a single project');
+    }
     const shards = partitionByDuration([...byPath.keys()], readDurations(), shard.count);
     return shards[shard.index - 1].map((path) => byPath.get(path) as TestSpecification);
   }

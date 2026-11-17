@@ -111,6 +111,6 @@
     "group": "uncached",
     "cache": "server",
     "build": "pnpm exec turbo run build --filter=@gitquire/server...",
-    "run": "pnpm --dir packages/core run test && pnpm run test:uncached"
+    "run": "core=0; uncached=0; pnpm --dir packages/core run test || core=$?; pnpm run test:uncached || uncached=$?; exit $(( core || uncached ))"
   }
 ]
