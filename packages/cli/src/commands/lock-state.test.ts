@@ -10,7 +10,6 @@ const startedBeforeFixtureLocks = (): ProcessStart => ({
   startedAtMs: Date.parse('2026-04-15T00:00:00Z'),
   clock: 'creation',
 });
-const bootedBeforeFixtureLocks = () => Date.parse('2026-04-15T00:00:00Z');
 
 const tempDir = createTempDirFactory(afterEach);
 
@@ -262,7 +261,6 @@ describe('inspectLock', () => {
       inspectLock(dir, 'server', {
         isAlive: () => true,
         readProcessStart,
-        readBootInstant: bootedBeforeFixtureLocks,
       }),
     ).toEqual({
       status: 'alive',

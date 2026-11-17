@@ -67,7 +67,7 @@ describe('detectGit probe reasons with a stubbed spawn', () => {
   });
 
   test('a timed-out fallback probe is not reported as GitNotAvailableError', (ctx) => {
-    const [candidate] = fallbackPaths(process.platform);
+    const [candidate] = fallbackPaths();
     ctx.skip(candidate === undefined, 'this platform has no fallback git candidates');
     existsSyncMock.mockImplementation((path: unknown) => path === candidate);
     spawnSyncMock.mockImplementation((command: string) =>
@@ -84,7 +84,7 @@ describe('detectGit probe reasons with a stubbed spawn', () => {
   });
 
   test('timeout evidence survives a later fallback failure', (ctx) => {
-    const candidates = fallbackPaths(process.platform);
+    const candidates = fallbackPaths();
     const first = candidates[0];
     const second = candidates[1];
     ctx.skip(
@@ -110,7 +110,7 @@ describe('detectGit probe reasons with a stubbed spawn', () => {
   });
 
   test('a failing fallback candidate records its own reason', (ctx) => {
-    const [candidate] = fallbackPaths(process.platform);
+    const [candidate] = fallbackPaths();
     ctx.skip(candidate === undefined, 'this platform has no fallback git candidates');
     existsSyncMock.mockImplementation((path: unknown) => path === candidate);
     spawnSyncMock.mockImplementation((command: string) =>

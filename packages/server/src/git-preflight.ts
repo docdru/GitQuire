@@ -1,6 +1,5 @@
 import { type SpawnSyncOptions, spawnSync } from 'node:child_process';
-import { accessSync, existsSync, constants as fsConstants, readFileSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { accessSync, existsSync, constants as fsConstants, statSync } from 'node:fs';
 import { isAbsolute, join, delimiter as PATH_DELIM } from 'node:path';
 import { currentCliCommandName } from '@gitquire/core';
 import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
@@ -108,7 +107,7 @@ export function detectGit(): GitDetected {
 
   let fallback: GitProbeFailureReason | null = null;
   let fallbackTimedOut = false;
-  for (const candidate of fallbackPaths(process.platform)) {
+  for (const candidate of fallbackPaths()) {
     if (!existsSync(candidate)) continue;
     const result = probeGit(candidate);
     if (result.kind === 'ok') {
@@ -128,9 +127,9 @@ export function detectGit(): GitDetected {
     fallback: fallbackTimedOut ? 'timeout' : fallback,
   };
   if (stage1.reason === 'timeout' || fallbackTimedOut) {
-    throw new GitProbeTimeoutError(process.platform, buildGuidance(process.platform), probe);
+    throw new GitProbeTimeoutError(process.platform, buildGuidance(), probe);
   }
-  throw new GitNotAvailableError(process.platform, buildGuidance(process.platform), { probe });
+  throw new GitNotAvailableError(process.platform, buildGuidance(), { probe });
 }
 
 export function assertGitAvailable(): GitDetected {
@@ -141,7 +140,7 @@ export function assertGitAvailable(): GitDetected {
       detected.version,
       MIN_GIT_VERSION,
       detected.resolvedPath,
-      buildGuidance(process.platform),
+      buildGuidance(),
     );
   }
   return detected;
@@ -193,29 +192,10 @@ export function __seedResolveOnPathCacheForTests(name: string, resolvedPath: str
   resolveOnPathCache.set(name, resolvedPath);
 }
 
-function envValue(name: string): string | undefined {
-  if (process.platform !== 'win32') return process.env[name];
-  const key = Object.keys(process.env).find((k) => k.toUpperCase() === name);
-  return key === undefined ? undefined : process.env[key];
-}
-
-function commandFileNames(name: string): readonly string[] {
-  if (process.platform !== 'win32') return [name];
-  const configured = (envValue('PATHEXT') ?? '')
-    .split(';')
-    .map((ext) => ext.trim().toLowerCase())
-    .filter((ext) => ext.startsWith('.'));
-  const extensions = configured.length > 0 ? configured : ['.com', '.exe', '.bat', '.cmd'];
-  const lower = name.toLowerCase();
-  return extensions.some((ext) => lower.endsWith(ext))
-    ? [name]
-    : extensions.map((ext) => `${name}${ext}`);
-}
-
 function isRunnableFile(path: string): boolean {
   try {
     if (!statSync(path).isFile()) return false;
-    if (process.platform !== 'win32') accessSync(path, fsConstants.X_OK);
+    accessSync(path, fsConstants.X_OK);
     return true;
   } catch {
     return false;
@@ -227,177 +207,36 @@ export function resolveOnPath(name: string, pathOverride?: string): string | nul
   const cacheKey = pathOverride === undefined ? name : `${pathOverride}\u0000${name}`;
   const cached = resolveOnPathCache.get(cacheKey);
   if (cached !== undefined) return cached;
-  const dirs = (pathOverride ?? envValue('PATH') ?? '')
+  const dirs = (pathOverride ?? process.env.PATH ?? '')
     .split(PATH_DELIM)
     .map((dir) => dir.trim().replace(/^"(.*)"$/, '$1'))
     .filter((dir) => dir !== '' && isAbsolute(dir));
-  const fileNames = commandFileNames(name);
   for (const dir of dirs) {
-    for (const fileName of fileNames) {
-      const candidate = join(dir, fileName);
-      if (isRunnableFile(candidate)) {
-        resolveOnPathCache.set(cacheKey, candidate);
-        return candidate;
-      }
+    const candidate = join(dir, name);
+    if (isRunnableFile(candidate)) {
+      resolveOnPathCache.set(cacheKey, candidate);
+      return candidate;
     }
   }
   return null;
 }
 
-export function fallbackPaths(platform: NodeJS.Platform): readonly string[] {
-  switch (platform) {
-    case 'darwin':
-      return [
-        '/opt/homebrew/bin/git',
-        '/usr/local/bin/git',
-        '/Library/Developer/CommandLineTools/usr/bin/git',
-        '/usr/bin/git',
-      ];
-    case 'win32':
-      return [
-        'C:\\Program Files\\Git\\cmd\\git.exe',
-        'C:\\Program Files (x86)\\Git\\cmd\\git.exe',
-        join(homedir(), 'scoop', 'apps', 'git', 'current', 'cmd', 'git.exe'),
-      ];
-    default:
-      return [
-        '/usr/bin/git',
-        '/usr/local/bin/git',
-        join(homedir(), '.local', 'bin', 'git'),
-        '/snap/bin/git',
-      ];
-  }
+export function fallbackPaths(): readonly string[] {
+  return ['/usr/bin/git', '/usr/local/bin/git'];
 }
 
-export function buildGuidance(platform: NodeJS.Platform): InstallGuidance {
-  switch (platform) {
-    case 'darwin': {
-      const options: InstallOption[] = [];
-      if (hasBrew()) {
-        options.push({
-          label: 'Install with Homebrew (recommended; no admin needed)',
-          command: 'brew install git',
-          requiresAdmin: false,
-        });
-      }
-      options.push({
-        label: 'Install Xcode Command Line Tools',
-        command: 'xcode-select --install',
-        requiresAdmin: true,
-      });
-      return {
-        product: 'Git',
-        url: 'https://git-scm.com/download/mac',
-        options,
-      };
-    }
-    case 'win32': {
-      const options: InstallOption[] = [];
-      if (hasWinget()) {
-        options.push({
-          label: 'Install with winget',
-          command: 'winget install --id Git.Git -e --source winget',
-          requiresAdmin: true,
-        });
-      }
-      if (hasScoop()) {
-        options.push({
-          label: 'Install with Scoop (no admin)',
-          command: 'scoop install git',
-          requiresAdmin: false,
-        });
-      }
-      if (hasChoco()) {
-        options.push({
-          label: 'Install with Chocolatey',
-          command: 'choco install git -y',
-          requiresAdmin: true,
-        });
-      }
-      options.push({
-        label: 'Download the official installer',
-        command: 'Open https://gitforwindows.org/ in your browser',
+export function buildGuidance(): InstallGuidance {
+  return {
+    product: 'Git',
+    url: 'https://github.com/docdru/GitQuire/blob/main/DEPLOY.md',
+    options: [
+      {
+        label: 'The GitQuire image includes Git; pull or rebuild the image',
+        command: 'docker compose pull && docker compose up -d',
         requiresAdmin: false,
-      });
-      return {
-        product: 'Git for Windows',
-        url: 'https://gitforwindows.org/',
-        options,
-      };
-    }
-    default:
-      return {
-        product: 'Git',
-        url: 'https://git-scm.com/download/linux',
-        options: linuxInstallOptions(),
-      };
-  }
-}
-
-function linuxInstallOptions(): InstallOption[] {
-  const family = detectLinuxFamily();
-  switch (family) {
-    case 'debian':
-      return [{ label: 'Install with apt', command: 'sudo apt install git', requiresAdmin: true }];
-    case 'fedora':
-      return [{ label: 'Install with dnf', command: 'sudo dnf install git', requiresAdmin: true }];
-    case 'arch':
-      return [{ label: 'Install with pacman', command: 'sudo pacman -S git', requiresAdmin: true }];
-    case 'opensuse':
-      return [
-        { label: 'Install with zypper', command: 'sudo zypper install git', requiresAdmin: true },
-      ];
-    case 'alpine':
-      return [{ label: 'Install with apk', command: 'sudo apk add git', requiresAdmin: true }];
-    default:
-      return [
-        {
-          label: "Use your distribution's package manager",
-          command:
-            'apt / dnf / pacman / zypper / apk install git (one of these will fit your system)',
-          requiresAdmin: true,
-        },
-      ];
-  }
-}
-
-export type LinuxFamily = 'debian' | 'fedora' | 'arch' | 'opensuse' | 'alpine' | 'unknown';
-
-export function detectLinuxFamily(osReleaseContents?: string): LinuxFamily {
-  let contents = osReleaseContents;
-  if (contents === undefined) {
-    try {
-      contents = readFileSync('/etc/os-release', 'utf-8');
-    } catch {
-      return 'unknown';
-    }
-  }
-  const id = /^ID=(.+)$/m.exec(contents)?.[1]?.replace(/["']/g, '');
-  const idLike = /^ID_LIKE=(.+)$/m.exec(contents)?.[1]?.replace(/["']/g, '') ?? '';
-  const tokens = [id, ...idLike.split(/\s+/)].filter((t): t is string => Boolean(t));
-  if (tokens.some((t) => /^(debian|ubuntu|mint|pop)$/i.test(t))) return 'debian';
-  if (tokens.some((t) => /^(fedora|rhel|centos|alma|rocky)$/i.test(t))) return 'fedora';
-  if (tokens.some((t) => /^(arch|manjaro|endeavouros)$/i.test(t))) return 'arch';
-  if (tokens.some((t) => /^opensuse/i.test(t)) || tokens.includes('suse')) return 'opensuse';
-  if (tokens.some((t) => /^alpine$/i.test(t))) return 'alpine';
-  return 'unknown';
-}
-
-function hasCommand(name: string): boolean {
-  return resolveOnPath(name) !== null;
-}
-
-function hasBrew(): boolean {
-  return hasCommand('brew');
-}
-function hasWinget(): boolean {
-  return hasCommand('winget');
-}
-function hasScoop(): boolean {
-  return hasCommand('scoop');
-}
-function hasChoco(): boolean {
-  return hasCommand('choco');
+      },
+    ],
+  };
 }
 
 function buildMissingMessage(g: InstallGuidance): string {
