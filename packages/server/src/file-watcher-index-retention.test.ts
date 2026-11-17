@@ -49,7 +49,6 @@ test('the file index keeps titles and descriptions without keeping each document
   const before = settledHeapBytes();
   handle = await startWatcher(contentDir, async () => {}, undefined, {
     clock: createManualClock(Date.now()),
-    freshnessIntervalMs: null,
   });
   const retained = settledHeapBytes() - before;
 

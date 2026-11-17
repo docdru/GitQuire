@@ -3367,8 +3367,6 @@ function _fileWatcherDropsCounter() {
   return _fwDropsCounterCache;
 }
 
-const _GLOB_METACHARACTER_RE = /[*?[\]{}()!+@|\\]/;
-
 function structuralIgnoreOccurrence(relativePath: string): string | null {
   for (const dir of WATCHER_STRUCTURAL_IGNORE_DIRS) {
     if (relativePath === dir || relativePath.endsWith(`/${dir}`)) return relativePath;
@@ -3923,7 +3921,6 @@ interface RecoveryDriverDeps {
   setActivePublicMutations: (mutations: RecoveryPublicMutations | null) => void;
   onAfterMutation: () => void;
   recoveryHooks: RecoveryHooks;
-  backendName: 'off';
 }
 
 interface RecoveryHooks {
@@ -3933,9 +3930,7 @@ interface RecoveryHooks {
 
 interface RecoveryDriver {
   requestRecovery: (mode: RecoveryMode, handed?: HandedObservation) => Promise<RecheckResult>;
-  isIdle: () => boolean;
   passesStarted: () => number;
-  beginPass: () => number;
 }
 
 function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
@@ -3984,19 +3979,16 @@ function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
           partial: outcome.partial === true,
         };
         if (mode === 'full' || counter.dispatched > 0) {
-          log.info(finished, `${deps.backendName} watcher recovery finished`);
+          log.info(finished, 're-check finished');
         } else {
-          log.debug(finished, `${deps.backendName} watcher recovery finished`);
+          log.debug(finished, 're-check finished');
         }
       } else {
         result = { status: 'incomplete', candidates: 0, dispatched: counter.dispatched };
-        log.warn(
-          { dispatched: counter.dispatched },
-          `${deps.backendName} watcher recovery incomplete; known state retained`,
-        );
+        log.warn({ dispatched: counter.dispatched }, 're-check incomplete; known state retained');
       }
     } catch (handleErr) {
-      log.error({ err: handleErr }, `${deps.backendName} batch error`);
+      log.error({ err: handleErr }, 're-check error');
       result = { status: 'failed', candidates: 0, dispatched: counter.dispatched };
     } finally {
       try {
@@ -4042,18 +4034,14 @@ function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
   };
   return {
     requestRecovery,
-    isIdle: () => !recoveryRunning && nextRecovery === undefined,
     passesStarted: () => passesStarted,
-    beginPass: () => ++passesStarted,
   };
 }
 
 interface WatcherBackendSubscription extends AsyncSubscription {
   runOrdered(work: () => Promise<void>): Promise<void>;
   requestRecovery(mode: RecoveryMode, handed?: HandedObservation): Promise<RecheckResult>;
-  isRecoveryIdle(): boolean;
   recoveryPassesStarted(): number;
-  beginRecoveryPass(): number;
   noticeRootMissing(): void;
 }
 
@@ -4084,7 +4072,7 @@ function startUnwatchedRecovery(
     });
     return next;
   };
-  const { requestRecovery, isIdle, passesStarted, beginPass } = createRecoveryDriver({
+  const { requestRecovery, passesStarted } = createRecoveryDriver({
     runOrdered,
     isClosed: () => closed,
     recover: (recoveryMutations, counter, mode, handed) =>
@@ -4109,14 +4097,11 @@ function startUnwatchedRecovery(
     setActivePublicMutations,
     onAfterMutation,
     recoveryHooks,
-    backendName: 'off',
   });
   return {
     runOrdered,
     requestRecovery,
-    isRecoveryIdle: isIdle,
     recoveryPassesStarted: passesStarted,
-    beginRecoveryPass: beginPass,
     noticeRootMissing: () => {
       log.warn({ contentDir }, `the content folder ${contentDir} is missing`);
     },
@@ -4248,12 +4233,10 @@ async function startWatcherWithClock(
   );
 
   const backendSubscription = subscription;
-  let _handleClosed = false;
   log.info({ contentDir }, 'the content folder is re-read after Git moves and on request');
 
   return {
     async unsubscribe() {
-      _handleClosed = true;
       clock.clearInterval(evictionInterval);
       clock.clearInterval(dropSummaryInterval);
       try {

@@ -140,7 +140,7 @@ async function awaitWatcherObservationOfDoc(docName: string): Promise<void> {
       getWatcherDecisionRingSnapshot().some((record) => basename(record.path) === `${docName}.md`),
     15_000,
     25,
-    `the file watcher to observe the creation of ${docName}.md, without which @parcel/watcher can coalesce that creation with the unlink the resolution issues next into one batch entry that its inotify backend drops outright`,
+    `the re-check to observe the creation of ${docName}.md`,
   );
 }
 

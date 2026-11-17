@@ -107,7 +107,6 @@ async function openSaved(
   file: string,
   saved: string,
   options: {
-    freshnessIntervalMs?: number | null;
     historyFails?: () => boolean;
     stalenessSweepIntervalMs?: number;
     keepContentDir?: boolean;
@@ -119,7 +118,6 @@ async function openSaved(
   const s = await createTestServer({
     gitEnabled: true,
     watcherClock: clock,
-    freshnessIntervalMs: options.freshnessIntervalMs ?? null,
     debounce: 300_000,
     maxDebounce: 600_000,
     stalenessSweepIntervalMs: options.stalenessSweepIntervalMs,
