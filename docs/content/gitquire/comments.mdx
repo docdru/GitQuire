@@ -43,9 +43,9 @@ The exact rules, the tolerant reading of hand-written replies and example files 
 [Comment format](./comment-format.mdx). Pages from before this format keep working; they are
 converted the next time they are saved, or all at once with `gq comments convert`.
 
-## When files change outside GitQuire
+## When files change in a sync
 
-When someone pushes a commit to GitHub, or an agent or editor writes a page directly, GitQuire checks
+When someone pushes a commit to GitHub and a sync brings it in, GitQuire checks
 the comments of the open page: a thread deleted while its mark is still in the text is put back, and
 a mark that disappeared while its quoted text is still there once is put back after it. A thread
 deleted together with its mark counts as resolved.

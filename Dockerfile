@@ -51,11 +51,8 @@ RUN npm install -g /tmp/gitquire.tgz && rm /tmp/gitquire.tgz && gitquire --versi
 # GITQUIRE_BIND=0.0.0.0 makes the listener reachable from the container network.
 # Exposure consent (GITQUIRE_ALLOW_EXTERNAL=1) is deliberately not baked in: a run
 # without it refuses to boot and names the fix.
-# GITQUIRE_FILE_WATCHER_BACKEND=off: changes reach the server through GitQuire itself
-# (the editor, sync, drafts, agents); a direct edit on the volume needs a re-read.
 ENV PORT=8080 \
-    GITQUIRE_BIND=0.0.0.0 \
-    GITQUIRE_FILE_WATCHER_BACKEND=off
+    GITQUIRE_BIND=0.0.0.0
 
 # Mount a persistent volume at /data. It holds the project (a git working copy).
 WORKDIR /data

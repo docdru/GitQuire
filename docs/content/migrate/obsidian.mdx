@@ -14,6 +14,8 @@ GitQuire and Obsidian are both editors over a [folder of plain markdown](/docs/r
 
 GitQuire serves a Git repository. Put the vault in a GitHub repository (if it is not one already), then point a GitQuire server at it as described in [Repository sync](/docs/gitquire/repository-sync) and [Run with Docker](/docs/gitquire/run-with-docker). GitQuire uses the files in place; it does not copy or move your notes.
 
+You can keep using Obsidian on your own clone of the repository: your changes reach GitQuire when you push and GitQuire syncs. Do not point Obsidian at the GitQuire server's own folder; GitQuire does not watch it, so open pages would not show those edits.
+
 <Callout type="info">
   [What GitQuire writes](/docs/reference/what-gitquire-writes) lists the files GitQuire adds next to your notes.
 </Callout>
