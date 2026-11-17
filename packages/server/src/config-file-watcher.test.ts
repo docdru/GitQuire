@@ -98,4 +98,16 @@ describe('startMultiPathConfigFileWatcher', () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith(second, 'dist/\n');
     expect(await watcher.recheck()).toBe(false);
   });
+
+  test('reports a removed file once, as empty', async () => {
+    const first = join(root, '.okignore');
+    writeFileSync(first, 'tmp/\n');
+    const onChange = vi.fn();
+    const watcher = await startMultiPathConfigFileWatcher([first], onChange);
+    watchers.push(watcher);
+    unlinkSync(first);
+    expect(await watcher.recheck()).toBe(true);
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(first, '');
+    expect(await watcher.recheck()).toBe(false);
+  });
 });

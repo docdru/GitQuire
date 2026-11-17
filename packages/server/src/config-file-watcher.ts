@@ -111,14 +111,20 @@ export async function startMultiPathConfigFileWatcher(
       content = readFileSync(path, 'utf-8');
     } catch (err) {
       const code = errnoCode(err);
-      if (code === 'ENOENT') {
-        if (logMissing) {
-          log.debug({ path }, 'config file disappeared between event and read; dropping');
-        }
+      if (code !== 'ENOENT') {
+        log.warn({ err, path }, 'config file read failed; dropping event');
         return false;
       }
-      log.warn({ err, path }, 'config file read failed; dropping event');
-      return false;
+      if (lastContent.get(path) === null) return false;
+      if (logMissing) log.debug({ path }, 'config file was removed; taking it in as empty');
+      content = '';
+      lastContent.set(path, null);
+      try {
+        await onChange(path, content);
+      } catch (handlerErr) {
+        log.warn({ err: handlerErr, path }, 'config file change handler threw');
+      }
+      return true;
     }
     if (content === lastContent.get(path)) return false;
     lastContent.set(path, content);

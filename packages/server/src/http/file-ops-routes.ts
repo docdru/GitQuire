@@ -7,7 +7,7 @@ import {
   unlinkSync,
 } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { dirname, extname, resolve } from 'node:path';
+import { dirname, extname, join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import {
   type AttachmentFolderUploadIssue,
@@ -271,6 +271,7 @@ function readUploadBody(req: IncomingMessage, projectDir: string): Promise<Uploa
 
 export interface FileOpsRouteDeps {
   contentDir: string;
+  takeInPaths?: (absolutePaths: readonly string[]) => Promise<void>;
   projectDir: string | undefined;
   log: PinoLogger;
   getPrincipal: (() => Principal | null) | undefined;
@@ -1478,6 +1479,7 @@ export function createFileOpsRoutes(deps: FileOpsRouteDeps): ApiRouteGroup {
       placement,
     });
     if (outcome.ok) {
+      await deps.takeInPaths?.([join(deps.contentDir, outcome.path)]);
       log.info(
         {
           event: 'upload',

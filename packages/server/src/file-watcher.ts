@@ -4966,9 +4966,12 @@ async function startWatcherWithClock(
         const changed: InternalRawFileEvent[] = [];
         for (const path of unique) {
           const known = lastKnownHash.get(path);
-          const tracked = known !== undefined || indexedPaths.has(path);
+          const relativePath = toPosix(relative(contentDir, path));
+          const trackedFile = generalOwnerNames(generalFileIndex, relativePath).length > 0;
+          const tracked = known !== undefined || indexedPaths.has(path) || trackedFile;
+          let entry: Stats;
           try {
-            lstatSync(path);
+            entry = lstatSync(path);
           } catch (err) {
             const code = errnoCode(err);
             if (code === 'ENOENT' || code === 'ENOTDIR') {
@@ -4987,7 +4990,9 @@ async function startWatcherWithClock(
               contentFilter,
             )
           ) {
-            log.debug({ path }, `skipped a re-read of ${path}: not an admitted Markdown file`);
+            if (!trackedFile && (entry.isFile() || entry.isSymbolicLink())) {
+              changed.push({ type: 'create', path });
+            }
             continue;
           }
           let content: string;

@@ -36,6 +36,7 @@ import {
   describeGitPreflightFailure,
   emitPreflightFailureSpan,
 } from './git-preflight-telemetry.ts';
+import type { LiveServerHandle } from './gitquire/drafts/setup.ts';
 import {
   createAccessGateFromEnv,
   createGitQuireHttp,
@@ -299,7 +300,9 @@ async function bootServerInner(
     projectDir: opts.projectDir ?? opts.contentDir,
     tokens: gitHubAppTokens,
   });
+  const liveServer: LiveServerHandle = {};
   const gitquireHttp = createGitQuireHttp(process.env, {
+    liveServer,
     projectDir: opts.projectDir ?? opts.contentDir,
     contentDir: opts.contentDir,
     gate: accessGate,
@@ -439,6 +442,10 @@ async function bootServerInner(
     configHomedirOverride: opts.configHomedirOverride,
     watcherClock: opts.watcherClock,
   });
+  liveServer.current = {
+    pull: () => serverInstance.syncEngine?.trigger('pull') ?? Promise.resolve(),
+    reread: () => serverInstance.recheckDisk(),
+  };
   gitquireHttp.useContentFilter({
     isExcluded: (rel) => serverInstance.contentFilter.isExcluded(rel),
     isDirExcluded: (rel) => serverInstance.contentFilter.isDirExcluded(rel),

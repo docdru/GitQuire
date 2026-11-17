@@ -379,6 +379,7 @@ interface HandedGitMove {
   dirty: string[];
   holders: number;
   ready: Promise<void>;
+  holdId: string;
 }
 
 const HANDED_PATH_RECHECK_LIMIT = 200;
@@ -827,6 +828,8 @@ export function createServer(options: ServerOptions): ServerInstance {
     else await watcher.recheck('full');
   }
 
+  let handedGitMoveCount = 0;
+
   async function beginHandedGitMove(owner: string): Promise<void> {
     const running = handedGitMoves.get(owner);
     if (running !== undefined) {
@@ -836,6 +839,8 @@ export function createServer(options: ServerOptions): ServerInstance {
     }
     const head = readProjectHeadState(projectDir);
     const { promise: ready, resolve: markReady } = Promise.withResolvers<void>();
+    handedGitMoveCount += 1;
+    const holdId = `${owner}#${handedGitMoveCount}`;
     const move: HandedGitMove = {
       oldHead: head.oid,
       oldBranch: head.branch,
@@ -843,15 +848,16 @@ export function createServer(options: ServerOptions): ServerInstance {
       dirty: [],
       holders: 1,
       ready,
+      holdId,
     };
     handedGitMoves.set(owner, move);
     try {
       try {
-        await gitMoveSteps?.begin(owner, owner);
+        await gitMoveSteps?.begin(holdId, owner);
       } catch (err) {
         log.error({ err, owner }, '[batch] preparing for a Git move failed');
       }
-      holdBatch(owner);
+      holdBatch(holdId);
       try {
         move.top = await gitTopLevel();
         move.dirty = await dirtyProjectPaths(move.top);
@@ -868,6 +874,8 @@ export function createServer(options: ServerOptions): ServerInstance {
     if (start === undefined) return;
     start.holders--;
     if (start.holders > 0) return;
+    handedGitMoves.delete(owner);
+    const { holdId } = start;
     try {
       const head = readProjectHeadState(projectDir);
       const batchKind = gitMoveKind(start.oldBranch, head.branch);
@@ -895,7 +903,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       handedBranch = head.branch;
       if (gitMoveSteps === null) return;
       try {
-        await gitMoveSteps.end(owner, {
+        await gitMoveSteps.end(holdId, {
           headMoved: start.oldHead !== head.oid,
           oldHead: start.oldHead,
           newHead: head.oid,
@@ -908,9 +916,8 @@ export function createServer(options: ServerOptions): ServerInstance {
         log.error({ err, owner }, '[batch] finishing a Git move failed');
       }
     } finally {
-      handedGitMoves.delete(owner);
-      releaseGitMoveAdmission(owner);
-      if (releaseBatchHold(owner)) {
+      releaseGitMoveAdmission(holdId);
+      if (releaseBatchHold(holdId)) {
         await finishBatch().catch((err: unknown) => {
           log.error({ err, owner }, '[batch] draining after the batch failed');
         });
@@ -1300,6 +1307,7 @@ export function createServer(options: ServerOptions): ServerInstance {
 
   async function takeInOwnIgnoreWrite(): Promise<void> {
     if (!contentFilter) return;
+    configFileWatcherResyncs.get(CONFIG_DOC_NAME_OKIGNORE)?.();
     try {
       const result = await contentFilter.rebuildIgnorePatterns();
       if (!result.ok) {
@@ -1307,7 +1315,6 @@ export function createServer(options: ServerOptions): ServerInstance {
         return;
       }
       cc1Broadcaster?.signal('files');
-      await watcher?.recheck('full');
     } catch (err) {
       log.warn({ err }, '[ignore] taking in the saved .okignore failed');
     }
@@ -3010,6 +3017,12 @@ export function createServer(options: ServerOptions): ServerInstance {
       setCheckoutInProgress: batchFlagFor('checkout'),
       refreshDocumentsFromDisk,
       rereadFromDisk,
+      takeInPaths: async (paths) => {
+        await watcher?.recheckPaths(paths);
+      },
+      takeInFolder: async () => {
+        await watcher?.recheck('full');
+      },
       localOpCliArgs,
       authStreamHeartbeatMs,
       projectDir,

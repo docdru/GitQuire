@@ -815,7 +815,14 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
             `template-delete: ${result.path}`,
           );
           scheduleOkArtifactFlush('template-delete');
-          recentlyRemovedDocs?.setDeleted(templateDocNameFor(validated.folderRel, name));
+          const deletedDocName = templateDocNameFor(validated.folderRel, name);
+          recentlyRemovedDocs?.setDeleted(deletedDocName);
+          mutateFileIndex?.({
+            kind: 'delete',
+            path: resolve(validated.resolvedContentDir, result.path),
+            docName: deletedDocName,
+          });
+          signalChannel?.('files');
         }
         successResponse(
           res,
@@ -1037,12 +1044,18 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
           }
         }
 
+        mutateFileIndex?.({
+          kind: 'delete',
+          path: resolve(fromValidated.resolvedContentDir, result.fromPath),
+          docName: templateDocNameFor(fromValidated.folderRel, body.fromName),
+        });
         try {
           registerWrittenDocInFileIndex(
             templateDocNameFor(toValidated.folderRel, body.toName),
             readFileSync(movedAbs, 'utf-8'),
           );
         } catch {}
+        signalChannel?.('files');
 
         if (contentEditError) {
           const isServerError =
