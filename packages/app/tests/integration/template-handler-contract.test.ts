@@ -52,10 +52,10 @@ describe('template handler asymmetries (FR5)', () => {
     expect(teardown).toBeLessThan(fsDirectEdit);
   });
 
-  test('the files signal fires on move and import but not on put and delete', () => {
+  test('the files signal fires on move, import and delete but not on put', () => {
     expect(move.includes("signalChannel?.('files')")).toBe(true);
     expect(imp.includes("signalChannel?.('files')")).toBe(true);
     expect(put.includes("signalChannel?.('files')")).toBe(false);
-    expect(del.includes("signalChannel?.('files')")).toBe(false);
+    expect(del.includes("signalChannel?.('files')")).toBe(true);
   });
 });

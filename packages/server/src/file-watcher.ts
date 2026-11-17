@@ -4658,6 +4658,16 @@ export interface StartWatcherOptions {
   freshnessIntervalMs?: number | null;
 }
 
+function isRegularFileOrLinkToOne(entry: Stats, path: string): boolean {
+  if (entry.isFile()) return true;
+  if (!entry.isSymbolicLink()) return false;
+  try {
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+
 export async function startWatcher(
   contentDirRaw: string,
   onDiskEvent: (event: DiskEvent) => Promise<void>,
@@ -4990,7 +5000,7 @@ async function startWatcherWithClock(
               contentFilter,
             )
           ) {
-            if (!trackedFile && (entry.isFile() || entry.isSymbolicLink())) {
+            if (!trackedFile && isRegularFileOrLinkToOne(entry, path)) {
               changed.push({ type: 'create', path });
             }
             continue;
