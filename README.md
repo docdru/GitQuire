@@ -7,7 +7,6 @@
 **A collaborative, WYSIWYG Markdown wiki for small teams, with GitHub as the backend.**
 
 [![Checks](https://github.com/docdru/GitQuire/actions/workflows/checks.yml/badge.svg)](https://github.com/docdru/GitQuire/actions/workflows/checks.yml)
-[![Docker image](https://github.com/docdru/GitQuire/actions/workflows/docker.yml/badge.svg)](https://github.com/docdru/GitQuire/actions/workflows/docker.yml)
 [![Docs site](https://github.com/docdru/GitQuire/actions/workflows/pages.yml/badge.svg)](https://github.com/docdru/GitQuire/actions/workflows/pages.yml)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](./LICENSE)
 [![ghcr.io](https://img.shields.io/badge/ghcr.io-docdru%2Fgitquire-2496ED?logo=docker&logoColor=white)](https://github.com/docdru/GitQuire/pkgs/container/gitquire)

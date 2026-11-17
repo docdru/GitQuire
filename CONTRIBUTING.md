@@ -161,9 +161,9 @@ lockfile it produces.
 ## Pull requests
 
 - Keep each pull request focused on one change and describe what it does and why.
-- CI (`.github/workflows/checks.yml` and `docker.yml`) must be green: lint, typecheck, tests and
-  the Docker build with its smoke tests. Once the test App is configured, pull requests that
-  touch sync also run the sync test against it.
+- CI must be green: the `ci-ok` check of `.github/workflows/checks.yml` (see
+  [What CI runs](#what-ci-runs)). Once the test App is configured, pull requests that touch sync
+  also run the sync test against it.
 - Add or update tests for behavior you change. Changesets are not used in GitQuire.
 - New user-facing text goes through Lingui (`t`, `<Trans>`) so it can be translated.
 - Use the GitQuire names: `gq`/`gitquire`, `@gitquire/*`, `GITQUIRE_*`, `.gitquire/`, `GQ_*`,
@@ -171,6 +171,44 @@ lockfile it produces.
   OpenKnowledge-era name (`ok`, `@inkeep/`, `OK_*`, `.ok/`, …) beyond
   `scripts/old-names-baseline.json`. If one is needed on purpose (compatibility, history), run
   `node scripts/check-old-names.mjs --update` and say why in the pull request.
+
+## What CI runs
+
+`.github/workflows/checks.yml` starts with a `plan` job (`scripts/ci-plan.mjs`) that picks the
+suites from the event, the base branch, the `full-ci` label and the paths the pull request changes
+(`git diff --name-only` of the merge commit against its base). Its decision and the reason are in
+the job summary. The `checks` job (lint, translation catalogs, typecheck) always runs; the Docker
+build (`.github/workflows/docker.yml`, called from `checks.yml`) runs as one of the suites.
+
+**Everything runs** on a push to `main`, on `workflow_dispatch`, with the `full-ci` label, and when
+a pull request changes `pnpm-lock.yaml`, the root `package.json`, `turbo.json`, `tsconfig.json`,
+`patches/`, `test-support/`, `.github/` (except `.github/e2e/`), `scripts/`, `lint-plugins/`,
+`packages/core/`, or any path the table below does not name.
+
+Otherwise the union of these rows runs:
+
+| Changed | Suites |
+| --- | --- |
+| `docs/`, `*.md` outside `packages/` | docs |
+| `packages/server/` | server 1–4, app unit 1–4, app DOM, app integration 1–4, cli, uncached, Docker |
+| `packages/app/` | app unit 1–4, app DOM, app integration 1–4, uncached, Docker |
+| `packages/cli/` | cli, uncached, Docker |
+| `Dockerfile`, `.dockerignore`, `docker/`, `.github/e2e/` | Docker |
+
+The server row includes the app unit and DOM suites because the app unit shards also run the
+integration files against the server, and the DOM tests import server code. The app row includes
+uncached because some uncached tests are app files.
+
+**Stacked pull requests** (base branch other than `main`) run the same selection without Docker and
+the app integration shards, unless they have the `full-ci` label. When such a pull request is
+retargeted to `main`, `.github/workflows/ci-rerun.yml` starts a full run on its branch; adding the
+`full-ci` label does the same. A stacked pull request is ready when its reduced set is green; it
+is ready to merge into `main` only once the full run after retargeting is green, because a failure
+in a skipped suite shows up only then.
+
+`ci-ok` is the one required check: it fails when any needed job failed or was cancelled, and passes
+when the plan skipped jobs. `node scripts/ci-timings.mjs <run-id>...` prints how long each job
+queued, set up, installed, built and tested.
 
 ## License
 
