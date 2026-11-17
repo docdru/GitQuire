@@ -54,6 +54,9 @@ jobs:
             /scripts/image-content.mjs > /tmp/image-content.txt
           head -2 /tmp/image-content.txt
           sha256sum /tmp/image-content.txt
+          echo "::group::image content"
+          cat /tmp/image-content.txt
+          echo "::endgroup::"
 
       - name: Upload image content
         uses: actions/upload-artifact@v4
