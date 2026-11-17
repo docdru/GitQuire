@@ -2,7 +2,6 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
   realpathSync,
   writeFileSync,
@@ -317,11 +316,6 @@ describe('test-reset with scope=server returns an isolated server to its booted 
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ scope: 'server', residue: NO_RESIDUE });
-    expect(
-      readdirSync(join(contentDir, '.gitquire')).filter((name) =>
-        name.startsWith('watcher-settle-fence-'),
-      ),
-    ).toEqual([]);
     writeFileSync(join(contentDir, 'sidebar-folder', 'after-reset.md'), '', 'utf-8');
     await rereadFromDisk(server);
     await pollUntil(

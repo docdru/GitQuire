@@ -23,16 +23,14 @@ import { DocumentDurabilityState } from './document-durability-state.ts';
 import {
   contentHash,
   type DiskEvent,
-  getWatcherDecisionRingSnapshot,
-  registerRemoval,
   registerWrite,
   resetWatcherDecisionDiagnostics,
   startWatcher,
 } from './file-watcher.ts';
 import { LocalTargetIndex } from './local-target-index.ts';
 import { createPersistenceExtension } from './persistence.ts';
+import type { ServerInstance } from './server-factory.ts';
 import { destroyShadowRepo, initShadowRepo, shadowGit } from './shadow-repo.ts';
-import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 
 const echoGate = vi.hoisted(() => ({
   docName: null as string | null,
@@ -361,31 +359,29 @@ describe('directory identity across server components', () => {
   });
 });
 
-function watcherDecisionsFor(fileName: string): string[] {
-  return getWatcherDecisionRingSnapshot()
-    .filter((record) => record.path.endsWith(`${sep}${fileName}`))
-    .map((record) => record.decision);
+type DirectConnection = Awaited<ReturnType<ServerInstance['hocuspocus']['openDirectConnection']>>;
+
+async function _appendParagraph(connection: DirectConnection, text: string): Promise<void> {
+  await connection.transact((doc) => {
+    const paragraph = new Y.XmlElement('paragraph');
+    paragraph.insert(0, [new Y.XmlText(text)]);
+    const fragment = doc.getXmlFragment('default');
+    fragment.insert(fragment.length, [paragraph]);
+  });
 }
 
-async function untilWatcherReportsChanges(contentDir: string): Promise<void> {
-  const probeName = `armed-${randomUUID().slice(0, 8)}.md`;
-  await waitWithinTestBudget(
-    `a watcher decision for ${probeName} under ${contentDir}`,
-    () => {
-      if (watcherDecisionsFor(probeName).length > 0) return true;
-      writeFileSync(join(contentDir, probeName), `# Armed\n\n${randomUUID()}\n`);
-      return false;
-    },
-    { timeoutMs: Number.POSITIVE_INFINITY },
-  );
+async function _storeNow(server: ServerInstance, docName: string): Promise<void> {
+  const debounceId = `onStoreDocument-${docName}`;
+  await vi.waitFor(() => expect(server.hocuspocus.debouncer.isDebounced(debounceId)).toBe(true));
+  await server.hocuspocus.debouncer.executeNow(debounceId);
 }
 
 const WATCHED_ROOT_ROWS = ROOT_SPELLINGS.flatMap((spelling) =>
-  (['chokidar', 'default'] as const).map((watcher) => [spelling, watcher] as const),
+  (['default'] as const).map((watcher) => [spelling, watcher] as const),
 );
 
-function watcherOptions(backend: (typeof WATCHED_ROOT_ROWS)[number][1]) {
-  return backend === 'chokidar' ? { forceBackend: 'chokidar' as const } : {};
+function watcherOptions(_backend: (typeof WATCHED_ROOT_ROWS)[number][1]) {
+  return {};
 }
 
 interface ListedEntry {
@@ -410,77 +406,6 @@ async function documentListingFrom(contentDir: string): Promise<ListedEntry[]> {
 }
 
 describe('one directory identity for watcher keys and linked documents', () => {
-  test.for(['natively spelled', 'case-aliased', '8.3 short-name'] as const)(
-    'a write registered under the %s root before it lands is suppressed by the chokidar watcher',
-    async (spelling, ctx) => {
-      const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
-      const fileName = `raw-${randomUUID().slice(0, 8)}.md`;
-      const filePath = join(root.contentDir, fileName);
-      writeFileSync(filePath, '# Raw\n\nBefore.\n');
-      const watcher = await startWatcher(root.contentDir, async () => {}, undefined, {
-        forceBackend: 'chokidar',
-      });
-      try {
-        resetWatcherDecisionDiagnostics();
-        const written = '# Raw\n\nAfter.\n';
-        registerWrite(filePath, contentHash(written));
-        writeFileSync(filePath, written);
-        await vi.waitFor(() => expect(watcherDecisionsFor(fileName)).not.toEqual([]));
-        expect(watcherDecisionsFor(fileName)).toContain('self-write-skip');
-      } finally {
-        await watcher.unsubscribe();
-      }
-    },
-  );
-
-  test.for(['natively spelled', 'case-aliased', '8.3 short-name'] as const)(
-    'a write registered under the %s root before its file exists is suppressed by the chokidar watcher',
-    async (spelling, ctx) => {
-      const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
-      const fileName = `fresh-${randomUUID().slice(0, 8)}.md`;
-      const filePath = join(root.contentDir, fileName);
-      const watcher = await startWatcher(root.contentDir, async () => {}, undefined, {
-        forceBackend: 'chokidar',
-      });
-      try {
-        resetWatcherDecisionDiagnostics();
-        const written = '# Fresh\n\nWritten after its registration.\n';
-        expect(existsSync(filePath)).toBe(false);
-        registerWrite(filePath, contentHash(written));
-        writeFileSync(filePath, written);
-        await vi.waitFor(() => expect(watcherDecisionsFor(fileName)).not.toEqual([]));
-        expect(watcherDecisionsFor(fileName)).toContain('self-write-skip');
-      } finally {
-        await watcher.unsubscribe();
-      }
-    },
-  );
-
-  test.for(ROOT_SPELLINGS)(
-    'a removal declared under the %s root before the unlink is suppressed by the chokidar watcher',
-    async (spelling, ctx) => {
-      const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
-      const fileName = `gone-${randomUUID().slice(0, 8)}.md`;
-      const filePath = join(root.contentDir, fileName);
-      writeFileSync(filePath, '# Gone\n');
-      const watcher = await startWatcher(root.contentDir, async () => {}, undefined, {
-        forceBackend: 'chokidar',
-      });
-      try {
-        resetWatcherDecisionDiagnostics();
-        registerRemoval(filePath);
-        unlinkSync(filePath);
-        await vi.waitFor(() => expect(watcherDecisionsFor(fileName)).not.toEqual([]));
-        expect(watcherDecisionsFor(fileName)).toContain('self-removal-skip');
-      } finally {
-        await watcher.unsubscribe();
-      }
-    },
-  );
-
   test.for(ROOT_SPELLINGS)(
     'links spelled through the %s root or its native spelling load and store, while links out of the root or into private state stay refused',
     async (spelling, ctx) => {
@@ -557,7 +482,7 @@ describe('one directory identity for watcher keys and linked documents', () => {
   );
 
   test.for(WATCHED_ROOT_ROWS)(
-    'a page created under the %s root and deleted on disk is reported deleted under its own name by the %s watcher',
+    'a page created under the %s root and deleted on disk is reported deleted under its own name after a re-check (%s)',
     async ([spelling, backend], ctx) => {
       const root = spelledRoot(spelling);
       requireSpellingOnThisLeg(root, ctx);
@@ -575,13 +500,12 @@ describe('one directory identity for watcher keys and linked documents', () => {
         watcherOptions(backend),
       );
       try {
-        await untilWatcherReportsChanges(root.contentDir);
         resetWatcherDecisionDiagnostics();
         writeFileSync(fullPath, content, { flag: 'wx' });
         registerWrite(fullPath, contentHash(content));
         watcher.mutateFileIndex({ kind: 'create', path: fullPath, docName, content });
-        await vi.waitFor(() => expect(watcherDecisionsFor(fileName)).not.toEqual([]));
         unlinkSync(fullPath);
+        await watcher.recheck();
         await vi.waitFor(() =>
           expect(events).toContainEqual(expect.objectContaining({ kind: 'delete', docName })),
         );
@@ -593,7 +517,7 @@ describe('one directory identity for watcher keys and linked documents', () => {
   );
 
   test.for(WATCHED_ROOT_ROWS)(
-    'links created under the %s root through its own spelling or its native spelling are aliases of their target for the %s watcher',
+    'links created under the %s root through its own spelling or its native spelling are aliases of their target after a re-check (%s)',
     async ([spelling, backend], ctx) => {
       const root = spelledRoot(spelling);
       requireSpellingOnThisLeg(root, ctx);
@@ -605,7 +529,6 @@ describe('one directory identity for watcher keys and linked documents', () => {
         watcherOptions(backend),
       );
       try {
-        await untilWatcherReportsChanges(root.contentDir);
         resetWatcherDecisionDiagnostics();
         symlinkSync(
           join(root.canonicalContentDir, 'target.md'),
@@ -615,10 +538,7 @@ describe('one directory identity for watcher keys and linked documents', () => {
           join(root.contentDir, 'target.md'),
           join(root.canonicalContentDir, 'link-root.md'),
         );
-        await vi.waitFor(() => {
-          expect(watcherDecisionsFor('link-native.md')).not.toEqual([]);
-          expect(watcherDecisionsFor('link-root.md')).not.toEqual([]);
-        });
+        await watcher.recheck();
         expect(Object.fromEntries(watcher.getAliasMap())).toEqual({
           'link-native': 'target',
           'link-root': 'target',

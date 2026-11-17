@@ -74,9 +74,6 @@
     "yjs": "^13.6.30",
     "zod": "^4.6.7"
   },
-  "optionalDependencies": {
-    "@parcel/watcher": "^2.5.6"
-  },
   "devDependencies": {
     "@gitquire/app": "workspace:*",
     "@gitquire/core": "workspace:*",

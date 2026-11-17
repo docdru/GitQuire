@@ -5,7 +5,6 @@ import { getMetrics } from '@gitquire/server';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
-import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import { dismissDocNotice, fetchDocNotices } from '../../src/hooks/use-doc-notices';
 import { dispatchCC1Stateless, SYSTEM_DOC_NAME } from '../../src/lib/cc1';
 import {
@@ -40,7 +39,6 @@ function edit(c: TestClient, find: string, replace: string): void {
 async function serverWithOpenDoc(docName: string, saved: string) {
   const s = await createTestServer({
     gitEnabled: true,
-    watcherBackend: createWatcherDouble().backend,
     debounce: 300_000,
     maxDebounce: 600_000,
   });

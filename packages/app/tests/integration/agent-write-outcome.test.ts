@@ -3,7 +3,6 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSy
 import { join } from 'node:path';
 import { AGENT_WRITE_NEXT_STEPS, AGENT_WRITE_OUTCOMES } from '@gitquire/core';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {
   agentWriteMd,
   createTestClient,
@@ -31,7 +30,6 @@ interface Answer {
 async function boot(): Promise<TestServer> {
   const server = await createTestServer({
     gitEnabled: true,
-    watcherBackend: createWatcherDouble().backend,
     debounce: 300_000,
     maxDebounce: 600_000,
   });
@@ -291,7 +289,6 @@ describe('what each refusal and each kind of document reports', () => {
     async () => {
       const server = await createTestServer({
         gitEnabled: true,
-        watcherBackend: createWatcherDouble().backend,
         debounce: 300_000,
         maxDebounce: 0,
       });
@@ -334,7 +331,6 @@ describe('what each refusal and each kind of document reports', () => {
   test('a Mermaid undo whose save runs at once reports that save, never applied', async () => {
     const server = await createTestServer({
       gitEnabled: true,
-      watcherBackend: createWatcherDouble().backend,
       debounce: 300_000,
       maxDebounce: 0,
     });

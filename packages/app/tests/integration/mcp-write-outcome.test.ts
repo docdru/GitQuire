@@ -3,7 +3,6 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 import { connectMcpTestClient } from '../../../server/src/mcp/client.test-helper.ts';
-import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {
   agentWriteMd,
   createTestClient,
@@ -27,7 +26,6 @@ type Mcp = Awaited<ReturnType<typeof connectMcpTestClient>>;
 async function rig(): Promise<{ server: TestServer; mcp: Mcp }> {
   const server = await createTestServer({
     gitEnabled: true,
-    watcherBackend: createWatcherDouble().backend,
     debounce: 300_000,
     maxDebounce: 600_000,
   });

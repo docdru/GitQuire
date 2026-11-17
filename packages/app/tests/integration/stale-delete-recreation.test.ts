@@ -70,8 +70,6 @@ function foldNameCaseLikeApfs(dir: string) {
 }
 
 test.each([
-  ['before raw classification', 'raw', true, 'api'],
-  ['before handler entry', 'classified', true, 'api'],
   ['while indexing an open page', 'index', true, 'external'],
   ['while indexing an unloaded page', 'index', false, 'external'],
 ] as const)(

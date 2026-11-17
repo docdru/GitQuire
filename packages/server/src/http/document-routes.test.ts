@@ -17,7 +17,7 @@ import { join } from 'node:path';
 import { LOCAL_DIR } from '@gitquire/core';
 import { filesystemIdentity } from '@gitquire/core/server';
 import { Hocuspocus } from '@hocuspocus/server';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { streamShowAllEntries, walkContentDirForShowAll } from '../api-extension.ts';
 import { makeCaptureRes, makeSyntheticReq } from '../composition-rig.test-helper.ts';
 import { createTestConflictAuthority } from '../conflict-authority.test-helper.ts';
@@ -32,16 +32,7 @@ import {
 } from '../file-watcher.ts';
 import { localTargetInventoryFromWatcher } from '../local-target-inventory.ts';
 import { loggerFactory } from '../logger.ts';
-import {
-  forgetNativeSubscriptions,
-  nativeSubscriptionOn,
-} from '../parcel-watcher-double.test-helper.ts';
 import { createDocumentRoutes, type DocumentRouteDeps } from './document-routes.ts';
-
-vi.mock('@parcel/watcher', async () => {
-  const { parcelWatcherModule } = await import('../parcel-watcher-double.test-helper.ts');
-  return parcelWatcherModule;
-});
 
 const DOC_NAME = 'notes/topic';
 const DOC_FILE = 'notes/topic.md';
@@ -495,41 +486,32 @@ test('a public recovery creation preserves its literal folder alias and one list
   const created = join(real, 'created.csv');
   const events: DiskEvent[] = [];
   let creations = 0;
-  forgetNativeSubscriptions();
-  const watcher = await startWatcher(
-    root,
-    async (event) => {
-      events.push(event);
-      if (event.kind !== 'delete' || event.docName !== 'first') return;
-      symlinkSync(real, linked);
-      writeFileSync(join(linked, 'created.csv'), 'public,bytes\n');
-      const stat = statSync(created);
-      const statIdentity = filesystemIdentity(statSync(created, { bigint: true }));
-      watcher.mutateFileIndex({
-        kind: 'file-create',
-        path: created,
-        relativePath: 'linked.mdx/created.csv',
-        size: stat.size,
-        modifiedTs: stat.mtimeMs,
-        inode: statIdentity,
-      });
-      creations++;
-      expect(
-        localTargetInventoryFromWatcher(watcher, root)?.fileTargets.includes('real.md/known.csv'),
-      ).toBe(true);
-    },
-    undefined,
-    { forceBackend: 'parcel', platform: 'darwin' },
-  );
+  const watcher = await startWatcher(root, async (event) => {
+    events.push(event);
+    if (event.kind !== 'delete' || event.docName !== 'first') return;
+    symlinkSync(real, linked);
+    writeFileSync(join(linked, 'created.csv'), 'public,bytes\n');
+    const stat = statSync(created);
+    const statIdentity = filesystemIdentity(statSync(created, { bigint: true }));
+    watcher.mutateFileIndex({
+      kind: 'file-create',
+      path: created,
+      relativePath: 'linked.mdx/created.csv',
+      size: stat.size,
+      modifiedTs: stat.mtimeMs,
+      inode: statIdentity,
+    });
+    creations++;
+    expect(
+      localTargetInventoryFromWatcher(watcher, root)?.fileTargets.includes('real.md/known.csv'),
+    ).toBe(true);
+  });
   const hocuspocus = new Hocuspocus({ quiet: true });
   try {
     expect(watcher.getFolderIndex().has('real.md')).toBe(true);
     expect(watcher.getFolderAliasIndex().size).toBe(0);
     unlinkSync(first);
-    await nativeSubscriptionOn(root).deliver(
-      [],
-      new Error('Events were dropped by the FSEvents client. File system must be re-scanned.'),
-    );
+    await watcher.recheck('full');
     expect(creations).toBe(1);
     expect(events).toContainEqual({ kind: 'delete', path: first, docName: 'first' });
     expect.soft([...watcher.getFolderAliasIndex()]).toEqual([['linked.mdx', 'real.md']]);
@@ -574,6 +556,5 @@ test('a public recovery creation preserves its literal folder alias and one list
     expect(readFileSync(created, 'utf8')).toBe('public,bytes\n');
   } finally {
     await watcher.unsubscribe();
-    expect(nativeSubscriptionOn(root).nativeReleases()).toBe(1);
   }
 });

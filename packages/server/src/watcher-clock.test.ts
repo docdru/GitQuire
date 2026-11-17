@@ -12,7 +12,6 @@ import {
   type WatcherHandle,
   writeTracker,
 } from './file-watcher.ts';
-import type { NativeWatcherBackend } from './parcel-subscription.ts';
 import { createManualClock } from './watcher-clock.test-helper.ts';
 import {
   installWatcherClock,
@@ -20,7 +19,6 @@ import {
   type WatcherClock,
   watcherClock,
 } from './watcher-clock.ts';
-import { createWatcherDouble } from './watcher-double.test-helper.ts';
 
 describe('watcher clock', () => {
   let restore: (() => void) | undefined;
@@ -30,7 +28,6 @@ describe('watcher clock', () => {
   async function start(contentDir: string, clock: WatcherClock): Promise<WatcherHandle> {
     mkdirSync(contentDir, { recursive: true });
     const handle = await startWatcher(contentDir, async () => {}, undefined, {
-      nativeBackend: createWatcherDouble().backend,
       clock,
     });
     running.add(handle);
@@ -117,25 +114,6 @@ describe('watcher clock', () => {
 
     await stop(handle);
     expect(watcherClock()).toBe(systemWatcherClock);
-  });
-
-  test('a watcher that fails to start leaves the system clock installed and no timers behind', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'ok-watcher-clock-'));
-    const manual = createManualClock();
-    const refusingBackend: NativeWatcherBackend = {
-      subscribe: async () => {
-        throw new Error('subscribe refused');
-      },
-    };
-    await expect(
-      startWatcher(dir, async () => {}, undefined, {
-        forceBackend: 'parcel',
-        nativeBackend: refusingBackend,
-        clock: manual,
-      }),
-    ).rejects.toThrow('forced backend');
-    expect(watcherClock()).toBe(systemWatcherClock);
-    expect(manual.pendingTimers()).toBe(0);
   });
 
   test('two watchers on two clocks unwind to the system clock when stopped in start order', async () => {

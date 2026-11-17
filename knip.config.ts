@@ -30,7 +30,7 @@ export default {
     'pgrep', // process lookup — process-scan.ts
     'taskkill', // Windows process-tree termination — mcp/npm-child.test-helper.ts
     'sw_vers', // macOS version query — bug-report.ts
-    'mkfifo', // named-pipe creation — keepalive-orphan-reaping.test.ts
+    'mkfifo', // named-pipe creation — file-watcher-recheck.test.ts
   ],
   ignoreIssues: {
     'test-support/**': ['exports', 'types'],
@@ -126,7 +126,7 @@ export default {
       entry: ['src/**/*.test.{ts,tsx}'],
     },
     'packages/server': {
-      entry: ['src/**/*.test.ts', 'src/shadow-fixture-launch.test-helper.mjs'],
+      entry: ['src/**/*.test.ts'],
       project: 'src/**',
       ignoreDependencies: ['@types/shell-quote'],
     },

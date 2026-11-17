@@ -44,6 +44,7 @@ test('a completed rename preserves a recreation admitted at its old name', async
   registerCleanup(() => release.resolve());
 
   renameSync(sourcePath, destinationPath);
+  scenario.takeInDiskChange();
   await reached.promise;
   expect(existsSync(sourcePath)).toBe(false);
   expect(readFileSync(destinationPath, 'utf-8')).toBe(ORIGINAL);
@@ -101,6 +102,7 @@ test('a completed conflict deletion preserves an accepted same-name creation', a
   });
   registerCleanup(() => conflictSpy.mockRestore());
   writeFileSync(path, '# Doc\n\n<<<<<<< ours\nalpha-ours\n=======\nalpha-theirs\n>>>>>>> theirs\n');
+  await scenario.server.instance.recheckDisk();
   await raised.promise;
 
   const reached = Promise.withResolvers<void>();
@@ -201,6 +203,7 @@ test('a completed rename retires an unadopted resident loaded at its old name du
   await loading.promise;
   expect(hocuspocus.documents.get(scenario.docName)).toBeUndefined();
   renameSync(sourcePath, destinationPath);
+  scenario.takeInDiskChange();
   await reached.promise;
   loaded.resolve();
   const late = await opening;

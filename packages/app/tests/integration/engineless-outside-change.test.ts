@@ -16,7 +16,6 @@ import * as Y from 'yjs';
 import { getMetrics } from '../../../server/src/metrics';
 import { saveInMemoryCheckpoint } from '../../../server/src/shadow-repo';
 import { createManualClock, type ManualClock } from '../../../server/src/watcher-clock.test-helper';
-import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {
   createTestClient,
   createTestServer,
@@ -64,7 +63,6 @@ function unblockBackups(home: string): void {
 interface Rig {
   s: TestServer;
   c: TestClient;
-  double: ReturnType<typeof createWatcherDouble>;
   clock: ManualClock;
   path: string;
 }
@@ -109,21 +107,17 @@ async function openSaved(
   file: string,
   saved: string,
   options: {
-    freshnessIntervalMs?: number | null;
     historyFails?: () => boolean;
     stalenessSweepIntervalMs?: number;
     keepContentDir?: boolean;
     home?: string;
   } = {},
 ): Promise<Rig> {
-  const double = createWatcherDouble();
   const clock = createManualClock(Date.now());
   const historyFails = options.historyFails;
   const s = await createTestServer({
     gitEnabled: true,
-    watcherBackend: double.backend,
     watcherClock: clock,
-    freshnessIntervalMs: options.freshnessIntervalMs ?? null,
     debounce: 300_000,
     maxDebounce: 600_000,
     stalenessSweepIntervalMs: options.stalenessSweepIntervalMs,
@@ -149,7 +143,7 @@ async function openSaved(
   });
   client = c;
   await pollUntil(() => c.ytext.toString() === saved, 10_000, 25, `${file} to load`);
-  return { s, c, double, clock, path };
+  return { s, c, clock, path };
 }
 
 function editInClient(c: TestClient, find: string, replace: string): void {

@@ -232,6 +232,7 @@ export function createFileOpsService(deps: FileOpsDeps): FileOpsService {
       deps.invalidateReferencedAssetsCache();
 
       purgeFileIndex(deletedDocNames);
+      for (const docName of deletedDocNames) deps.contentFilter?.decrementMdDir(dirname(docName));
       void deps.deleteDerivedDocumentsBestEffort(deletedDocNames, 'delete-path');
       if (operationKind === 'asset') await deps.takeInPaths?.([targetPath]);
       else if (operationKind === 'folder') await deps.takeInFolder?.();

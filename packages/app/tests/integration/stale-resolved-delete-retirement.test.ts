@@ -40,6 +40,7 @@ test('a resolved deletion retires its unadopted old resident while preserving a 
   });
   registerCleanup(() => conflictSpy.mockRestore());
   writeFileSync(path, '# Doc\n\n<<<<<<< ours\nalpha-ours\n=======\nalpha-theirs\n>>>>>>> theirs\n');
+  await scenario.server.instance.recheckDisk();
   await raised.promise;
 
   const reached = Promise.withResolvers<void>();
