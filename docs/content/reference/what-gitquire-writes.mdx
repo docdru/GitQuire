@@ -54,7 +54,7 @@ can read it through `exec` or the document tools.
 | `.gitquire/local/conflicts.json` | Documents held because of an unresolved conflict. A row can contain full copies of a page, so keep the file while a conflict is open |
 | `.gitquire/local/stale-external-writes.json` | Recovery copy of an outside save that was refused because it was out of date |
 | `.gitquire/local/doc-notices.json` | Notices shown on a page after both versions of an edit were kept; names and times, no page text |
-| `.gitquire/local/receipts.jsonl` | A hash, size and modification time per document, used to notice outside edits; no page text |
+| `.gitquire/local/receipts.jsonl` | A hash, size and modification time per document, used to notice changes made on disk while the server was stopped; no page text |
 | `.gitquire/local/server.lock`, `.gitquire/local/state.json`, `.gitquire/local/last-server-crash.json` | The running server's address, the state format version, and the last crash the server recorded |
 
 ## Inside `.git/`

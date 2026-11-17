@@ -56,6 +56,9 @@ Comments are footnotes whose label starts with \`c-\`.
 - Real footnotes (labels not starting with \`c-\`) are page content.
 
 ## Committing
+- Change pages through GitQuire's MCP tools or through Git (clone, commit,
+  push). Do not edit the files on the GitQuire server: it does not watch
+  them, so open pages would not show the change.
 - One commit per request, with a message saying what changed and why.
 - Pull before you start and before you push; do not force-push.
 - Never touch hidden folders such as \`.gitquire/\`.`;

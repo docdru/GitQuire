@@ -169,9 +169,10 @@ Serve this project's web UI and `/mcp` endpoint to your other devices through an
 | Command | What it does |
 | --- | --- |
 | `gq seed` | Scaffold a starter pack into the project (`--list-packs` to browse, `--pack <id>` to choose, `--root <dir>` to nest in a subfolder, `--dry-run` to preview) |
-| `gq preview` | Show what content the watcher will track (read-only) — the quick check after a `content.dir` or `.okignore` change |
+| `gq preview` | Show what content GitQuire will track (read-only) — the quick check after a `content.dir` or `.okignore` change |
+| `gq reread` | Make the running server read the content folder and config files from disk again, after changing files on the server directly (`--json` for machine output) |
 | `gq migrate notion <dir>` | Clean up a Notion export in place, dry-run unless `--apply` (see [migrating from Notion](/docs/migrate/notion)) |
-| `gq comments convert` | Rewrite every page that still keeps comments in the old hidden block as [footnote threads](/docs/gitquire/comment-format), in one commit (`--dry-run` to list the pages, `--no-commit` to leave committing to you or the server). Best run while the server is stopped; GitQuire also converts a page by itself the next time it is saved |
+| `gq comments convert` | Rewrite every page that still keeps comments in the old hidden block as [footnote threads](/docs/gitquire/comment-format), in one commit (`--dry-run` to list the pages, `--no-commit` to leave committing to you or the server). Best run while the server is stopped (or run `gq reread` afterwards); GitQuire also converts a page by itself the next time it is saved |
 | `gq config validate` | Validate the merged config (defaults → user → project) |
 | `gq config migrate` | Remove keys the schema no longer reads from your config files (`--dry-run` to preview; `--scope` to narrow — defaults to every layer) |
 | `gq bug-report` | Package a support bundle — recent app logs, the project's server logs and lock diagnostics, and system info — as an auto-redacted zip under `~/.gitquire/bug-reports/`, revealed in your file manager when it's done (`--no-reveal` to skip); `gq diagnose bundle` produces the `full` superset (telemetry spans, live server state) into the project's `.gitquire/local/diagnostics/` |
