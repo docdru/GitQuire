@@ -1,0 +1,70 @@
+name: Set up GitQuire
+description: >-
+  pnpm, Node.js from .node-version, pnpm install, the Turbo cache of one cache group,
+  and optionally Playwright's Chromium for the app package.
+
+inputs:
+  turbo-cache:
+    description: Turbo cache group restored before and saved after the job; empty for none.
+    required: false
+    default: ''
+  playwright:
+    description: Install Playwright's Chromium for packages/app, from the cache when it is there.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: .node-version
+        cache: pnpm
+
+    - name: Install
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Turbo cache key
+      if: inputs.turbo-cache != ''
+      shell: bash
+      run: cat turbo-cache-key.json
+
+    - name: Restore Turbo cache
+      if: inputs.turbo-cache != ''
+      uses: actions/cache@v4
+      with:
+        path: .turbo/cache
+        key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.node-version') }}-${{ inputs.turbo-cache }}-${{ github.sha }}
+        restore-keys: |
+          turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.node-version') }}-${{ inputs.turbo-cache }}-
+          turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.node-version') }}-
+
+    - name: Drop Turbo cache entries older than a week
+      if: inputs.turbo-cache != ''
+      shell: bash
+      run: |
+        mkdir -p .turbo/cache
+        find .turbo/cache -type f -mtime +7 -delete
+        du -sh .turbo/cache
+
+    - name: Playwright version
+      id: playwright
+      if: inputs.playwright == 'true'
+      shell: bash
+      run: echo "version=$(pnpm --dir packages/app exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Playwright browsers
+      id: playwright-cache
+      if: inputs.playwright == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+
+    - name: Install Playwright browsers
+      if: inputs.playwright == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: pnpm --dir packages/app exec playwright install chromium

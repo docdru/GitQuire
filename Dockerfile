@@ -17,10 +17,20 @@ ENV CI=1
 RUN npm install -g corepack@latest && corepack enable
 
 WORKDIR /src
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches ./patches
+COPY packages/app/package.json packages/app/
+COPY packages/cli/package.json packages/cli/
+COPY packages/core/package.json packages/core/
+COPY packages/server/package.json packages/server/
+COPY docs/package.json docs/
+
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
 COPY . .
 
-RUN pnpm install --frozen-lockfile
-
+RUN node scripts/create-turbo-cache-key.mjs \
+ && node packages/app/scripts/compile-i18n-catalogs.ts --best-effort
 RUN cd packages/app && pnpm run i18n:compile
 RUN pnpm exec turbo run build --filter=@gitquire/cli
 RUN mkdir -p /out && cd packages/cli && pnpm pack --pack-destination /out \

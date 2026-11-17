@@ -1,0 +1,125 @@
+[
+  {
+    "suite": "core",
+    "group": "core",
+    "cache": "core",
+    "build": "pnpm exec turbo run build --filter=@gitquire/core",
+    "run": "pnpm --dir packages/core run test"
+  },
+  {
+    "suite": "server 1/4",
+    "group": "server",
+    "cache": "server-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/server^...",
+    "run": "pnpm --dir packages/server exec vitest run --shard=1/4"
+  },
+  {
+    "suite": "server 2/4",
+    "group": "server",
+    "cache": "server-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/server^...",
+    "run": "pnpm --dir packages/server exec vitest run --shard=2/4"
+  },
+  {
+    "suite": "server 3/4",
+    "group": "server",
+    "cache": "server-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/server^...",
+    "run": "pnpm --dir packages/server exec vitest run --shard=3/4"
+  },
+  {
+    "suite": "server 4/4",
+    "group": "server",
+    "cache": "server-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/server^...",
+    "run": "pnpm --dir packages/server exec vitest run --shard=4/4"
+  },
+  {
+    "suite": "app unit 1/4",
+    "group": "app-unit",
+    "cache": "app-deps",
+    "playwright": "true",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=1/4"
+  },
+  {
+    "suite": "app unit 2/4",
+    "group": "app-unit",
+    "cache": "app-deps",
+    "playwright": "true",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=2/4"
+  },
+  {
+    "suite": "app unit 3/4",
+    "group": "app-unit",
+    "cache": "app-deps",
+    "playwright": "true",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=3/4"
+  },
+  {
+    "suite": "app unit 4/4",
+    "group": "app-unit",
+    "cache": "app-deps",
+    "playwright": "true",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=4/4"
+  },
+  {
+    "suite": "app DOM",
+    "group": "app-dom",
+    "cache": "app-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.dom.config.ts"
+  },
+  {
+    "suite": "app integration, watching off 1/4",
+    "group": "app-integration",
+    "cache": "app-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=1/4"
+  },
+  {
+    "suite": "app integration, watching off 2/4",
+    "group": "app-integration",
+    "cache": "app-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=2/4"
+  },
+  {
+    "suite": "app integration, watching off 3/4",
+    "group": "app-integration",
+    "cache": "app-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=3/4"
+  },
+  {
+    "suite": "app integration, watching off 4/4",
+    "group": "app-integration",
+    "cache": "app-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=4/4"
+  },
+  {
+    "suite": "cli",
+    "group": "cli",
+    "cache": "cli",
+    "build": "pnpm exec turbo run build --filter=@gitquire/cli...",
+    "run": "pnpm --dir packages/cli run test"
+  },
+  {
+    "suite": "docs",
+    "group": "docs",
+    "cache": "docs-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/docs^...",
+    "run": "pnpm --dir docs run test"
+  },
+  {
+    "suite": "uncached",
+    "group": "uncached",
+    "cache": "server",
+    "build": "pnpm exec turbo run build --filter=@gitquire/server...",
+    "run": "pnpm run test:uncached"
+  }
+]

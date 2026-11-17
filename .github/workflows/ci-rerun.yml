@@ -1,0 +1,29 @@
+name: CI full run on retarget or label
+
+on:
+  pull_request:
+    types: [edited, labeled]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository && (
+        (github.event.action == 'edited' && github.event.changes.base && github.event.pull_request.base.ref == 'main')
+        || (github.event.action == 'labeled' && github.event.label.name == 'full-ci')
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Start a full Checks run on the pull request's branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          WHY: ${{ github.event.action == 'edited' && 'retargeted to main' || 'label full-ci' }}
+        run: |
+          gh workflow run checks.yml --repo "$REPO" --ref "$HEAD_REF"
+          echo "Started a full Checks run on $HEAD_REF ($WHY)." >> "$GITHUB_STEP_SUMMARY"
