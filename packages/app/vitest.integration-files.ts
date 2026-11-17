@@ -28,6 +28,11 @@ export function integrationTestFiles(root = APP_ROOT): string[] {
     { cwd: root },
   )
     .map((path) => path.split('\\').join('/'))
-    .filter((path) => !kept.has(path) && !path.endsWith('/per-session-um-perf.test.ts'))
+    .filter(
+      (path) =>
+        !kept.has(path) &&
+        !path.endsWith('/per-session-um-perf.test.ts') &&
+        !path.includes('.uncached.test.'),
+    )
     .sort();
 }
