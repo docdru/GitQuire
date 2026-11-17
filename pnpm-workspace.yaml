@@ -16,7 +16,6 @@ pmOnFail: ignore
 # Flat-root hoist for the native addons the CLI bundle keeps external.
 publicHoistPattern:
   - '@napi-rs/keyring*'
-  - '@parcel/watcher'
 
 # Supply-chain cooldown (admission-time): refuse npm versions published less
 # than 3 days ago, to dodge freshly-published malware. Unit = MINUTES
@@ -40,7 +39,6 @@ verifyDepsBeforeRun: false
 allowBuilds:
   '@memlab/cli': false
   '@mongodb-js/zstd': false
-  '@parcel/watcher': false
   core-js: false
   esbuild: false
   memlab: false

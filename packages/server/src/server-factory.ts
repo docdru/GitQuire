@@ -5845,8 +5845,6 @@ export function createServer(options: ServerOptions): ServerInstance {
               startWatcher(canonicalContentDir, onDiskEvent, contentFilter, {
                 onRecoveryComplete: () => derivedDocumentIndex.recordInventoryReconciled(),
                 onRecoveryPassCompleted: (pass, whole) => settleVanishedDocuments(pass, whole),
-                forceBackend: 'off',
-                freshnessIntervalMs: null,
               }),
             ),
           (handle) => {

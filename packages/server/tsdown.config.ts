@@ -30,7 +30,7 @@ export default defineConfig({
   clean: true,
   plugins: externalizePinoInDts,
   deps: {
-    neverBundle: ['@parcel/watcher', 'simple-git'],
+    neverBundle: ['simple-git'],
     // The packaged Electron app installs the server into node_modules and
     // resolves bare specifiers through it. If any future native dep makes
     // electron-builder relocate this package into app.asar.unpacked/ (the

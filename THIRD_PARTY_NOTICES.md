@@ -1726,11 +1726,6 @@ Homepage: https://github.com/timmywil/panzoom
 
 _(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
 
-### `@parcel/watcher@2.5.6`
-Homepage: https://github.com/parcel-bundler/watcher
-
-Copyright (c) 2017-present Devon Govett
-
 ### `@pinojs/redact@0.4.0`
 Homepage: https://github.com/pinojs/redact#readme
 
@@ -2874,11 +2869,6 @@ Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>
 Homepage: https://github.com/langium/chevrotain-allstar
 
 Copyright 2022 TypeFox GmbH
-
-### `chokidar@5.0.0`
-Homepage: https://github.com/paulmillr/chokidar
-
-Copyright (c) 2012 Paul Miller (https://paulmillr.com), Elan Shanker
 
 ### `chokidar@3.6.0`
 Homepage: https://github.com/paulmillr/chokidar
@@ -4484,11 +4474,6 @@ Homepage: https://github.com/electron/node-abi#readme
 
 Copyright (c) 2016 Lukas Geiger
 
-### `node-addon-api@7.1.1`
-Homepage: https://github.com/nodejs/node-addon-api
-
-Copyright (c) 2017 [Node.js API collaborators](https://github.com/nodejs/node-addon-api#collaborators)
-
 ### `node-addon-api@8.9.0`
 Homepage: https://github.com/nodejs/node-addon-api
 
@@ -5034,11 +5019,6 @@ Homepage: https://github.com/nodejs/readable-stream
 
 Copyright Node.js contributors. All rights reserved.
 Copyright Joyent, Inc. and other Node contributors. All rights reserved.
-
-### `readdirp@5.0.0`
-Homepage: https://github.com/paulmillr/readdirp
-
-Copyright (c) 2012-2019 Thorsten Lorenz, Paul Miller (https://paulmillr.com)
 
 ### `readdirp@3.6.0`
 Homepage: https://github.com/paulmillr/readdirp

@@ -6,7 +6,6 @@ import { runInNewContext } from 'node:vm';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { lastKnownHash, startWatcher, type WatcherHandle } from './file-watcher.ts';
 import { createManualClock } from './watcher-clock.test-helper.ts';
-import { createWatcherDouble } from './watcher-double.test-helper.ts';
 
 setFlagsFromString('--expose_gc');
 const collectGarbage = runInNewContext('gc') as () => void;
@@ -49,7 +48,6 @@ test('the file index keeps titles and descriptions without keeping each document
 
   const before = settledHeapBytes();
   handle = await startWatcher(contentDir, async () => {}, undefined, {
-    nativeBackend: createWatcherDouble().backend,
     clock: createManualClock(Date.now()),
     freshnessIntervalMs: null,
   });

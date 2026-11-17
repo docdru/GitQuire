@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import {
   type BigIntStats,
   type Dirent,
@@ -7,9 +6,7 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
-  type Stats,
   statSync,
-  watch as watchFsPath,
 } from 'node:fs';
 import { lstat, readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { basename, dirname, extname, isAbsolute, join, relative, sep } from 'node:path';
@@ -29,54 +26,24 @@ import {
   stripDocExtension,
 } from './doc-extensions.ts';
 import { canonicalContentPathIsRefused, resolvesIntoPrivateState } from './fs-safety.ts';
-import {
-  classifyFsPath,
-  normalizeFsPath,
-  tracedMkdirSync,
-  tracedRmSync,
-  tracedWriteFileSync,
-} from './fs-traced.ts';
+import { classifyFsPath, normalizeFsPath } from './fs-traced.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
-import {
-  addFreshnessCarryOver,
-  addFreshnessFilesHashed,
-  addFreshnessFinds,
-  incrementFreshnessPasses,
-  incrementFreshnessPassesIncomplete,
-  incrementWatcherErrors,
-  incrementWatcherUnreadableEntries,
-} from './metrics.ts';
+import { incrementWatcherUnreadableEntries } from './metrics.ts';
 import {
   extractPageDescription,
   extractPageIcon,
   extractPageTitle,
   extractPageType,
 } from './page-identity.ts';
-import { classifyParcelNotification } from './parcel-recovery.ts';
-import { type NativeWatcherBackend, subscribeParcel } from './parcel-subscription.ts';
 import { toPosix } from './path-utils.ts';
 import { containsConflictMarkers } from './reconciliation.ts';
+import { FRESHNESS_HASH_BUDGET, type RecoveryMode } from './recovery-mode.ts';
 import { isRacyStat, sampleWallClockNs, statSignature } from './stat-signature.ts';
 import { getMeter, withSpan } from './telemetry.ts';
 import { contentHash } from './version-hash.ts';
-import {
-  installWatcherClock,
-  type WatcherClock,
-  type WatcherTimer,
-  watcherClock,
-} from './watcher-clock.ts';
-import {
-  createResubscriber,
-  FRESHNESS_HASH_BUDGET,
-  FRESHNESS_MAX_INTERVAL_MS,
-  nextFreshnessDelayMs,
-  RESUBSCRIBE_SLOW_RETRY_MS,
-  type RecoveryMode,
-  resolveFreshnessInterval,
-} from './watcher-freshness.ts';
+import { installWatcherClock, type WatcherClock, watcherClock } from './watcher-clock.ts';
 
-export type { NativeWatcherBackend } from './parcel-subscription.ts';
 export { contentHash } from './version-hash.ts';
 
 const log = getLogger('file-watcher');
@@ -84,8 +51,6 @@ const log = getLogger('file-watcher');
 export interface AsyncSubscription {
   unsubscribe(): Promise<void>;
 }
-
-type WatcherBackend = 'parcel' | 'chokidar' | 'off';
 
 type MarkdownDiskEvent =
   | { kind: 'create'; path: string; docName: string; content: string }
@@ -706,12 +671,12 @@ function noteIntakeMutation(path: string): void {
   if (openObservationWindows > 0) intakeEpochByPath.set(path, intakeEpoch);
 }
 
-function openObservationWindow(): number {
+function _openObservationWindow(): number {
   openObservationWindows++;
   return intakeEpoch;
 }
 
-function closeObservationWindow(): void {
+function _closeObservationWindow(): void {
   openObservationWindows--;
   if (openObservationWindows === 0) intakeEpochByPath.clear();
 }
@@ -3401,7 +3366,7 @@ function _fileWatcherDropsCounter() {
   return _fwDropsCounterCache;
 }
 
-const GLOB_METACHARACTER_RE = /[*?[\]{}()!+@|\\]/;
+const _GLOB_METACHARACTER_RE = /[*?[\]{}()!+@|\\]/;
 
 function structuralIgnoreOccurrence(relativePath: string): string | null {
   for (const dir of WATCHER_STRUCTURAL_IGNORE_DIRS) {
@@ -3938,23 +3903,12 @@ async function recoverDiskChanges(
   };
 }
 
-export function toParcelIgnorePaths(
-  watcherIgnoreGlobs: readonly string[],
-  discoveredStructuralDirs: Iterable<string> = [],
-): string[] {
-  const prefixIgnorable = new Set<string>(WATCHER_STRUCTURAL_IGNORE_DIRS);
-  const entries = new Set(watcherIgnoreGlobs.filter((entry) => prefixIgnorable.has(entry)));
-  for (const dir of discoveredStructuralDirs) entries.add(dir);
-  return [...entries].filter((entry) => !GLOB_METACHARACTER_RE.test(entry));
-}
-
 type RecoveryPublicMutations = GeneralMutationRecord & {
   markdownNames: Set<string>;
   hashEffects: Map<string, string | null>;
 };
 
 /* WARN: LEASE_RESET_MS in packages/app/tests/stress/_helpers/reuse/lease-fixture.ts must exceed this bound plus the rest of a slot reset. */
-export const INTERIM_SETTLE_NO_PROGRESS_MS = 20_000;
 
 interface RecoveryDriverDeps {
   runOrdered: (work: () => Promise<void>) => Promise<void>;
@@ -3968,7 +3922,7 @@ interface RecoveryDriverDeps {
   setActivePublicMutations: (mutations: RecoveryPublicMutations | null) => void;
   onAfterMutation: () => void;
   recoveryHooks: RecoveryHooks;
-  backendName: WatcherBackend;
+  backendName: 'off';
 }
 
 interface RecoveryHooks {
@@ -4102,472 +4056,6 @@ interface WatcherBackendSubscription extends AsyncSubscription {
   noticeRootMissing(): void;
 }
 
-async function startParcelWatcher(
-  contentDir: string,
-  contentFilter: ContentFilter | undefined,
-  fileIndex: Map<string, FileIndexEntry>,
-  generalFileIndex: GeneralFileIndex,
-  folderIndex: Map<string, FolderIndexEntry>,
-  onDiskEvent: (event: DiskEvent) => Promise<void>,
-  aliasMap: Map<string, string>,
-  aliasPaths: Map<string, string>,
-  folderAliasIndex: Map<string, string>,
-  setActivePublicMutations: (mutations: RecoveryPublicMutations | null) => void,
-  onAfterMutation: () => void,
-  getFileIndexGeneration: () => number,
-  platform: NodeJS.Platform,
-  onRawBatch?: (absPaths: readonly string[]) => void,
-  discoveredStructuralDirs?: ReadonlySet<string>,
-  recoveryHooks: RecoveryHooks = {},
-  clock: WatcherClock = watcherClock(),
-  nativeBackend?: NativeWatcherBackend,
-  carryOver: Set<string> = new Set(),
-  coverageWhileLost: string = coverageWithoutWatcher(null),
-): Promise<(WatcherBackendSubscription & { settle(): Promise<void> }) | null> {
-  let parcel: NativeWatcherBackend;
-  if (nativeBackend) {
-    parcel = nativeBackend;
-  } else {
-    try {
-      parcel = await import('@parcel/watcher');
-    } catch (err) {
-      log.debug(
-        { err: err instanceof Error ? err.message : String(err) },
-        '[file-watcher] @parcel/watcher import failed; falling back to chokidar',
-      );
-      return null;
-    }
-  }
-
-  try {
-    const subscribeOpts = () =>
-      contentFilter
-        ? {
-            ignore: toParcelIgnorePaths(
-              contentFilter.getWatcherIgnoreGlobs(),
-              discoveredStructuralDirs ?? [],
-            ),
-          }
-        : undefined;
-
-    let closed = false;
-    let failure: Error | undefined;
-    const settleFences = new Map<string, PromiseWithResolvers<void>>();
-    const settleProgress = new Set<() => void>();
-    let workTail = Promise.resolve();
-    const runOrdered = (work: () => Promise<void>): Promise<void> => {
-      if (closed) return Promise.resolve();
-      const next = workTail.then(work);
-      workTail = next
-        .catch((err) => {
-          log.error({ err }, 'parcel batch error');
-        })
-        .then(() => {
-          for (const progressed of settleProgress) progressed();
-        });
-      return next;
-    };
-    const { requestRecovery, isIdle, passesStarted, beginPass } = createRecoveryDriver({
-      runOrdered,
-      isClosed: () => closed,
-      recover: (recoveryMutations, counter, mode, handed) =>
-        recoverDiskChanges(
-          contentDir,
-          contentFilter,
-          fileIndex,
-          generalFileIndex,
-          folderIndex,
-          aliasMap,
-          aliasPaths,
-          folderAliasIndex,
-          recoveryMutations,
-          onDiskEvent,
-          onAfterMutation,
-          getFileIndexGeneration,
-          counter,
-          onRawBatch,
-          handed ? undefined : beginFreshnessReuse(mode, fileIndex, carryOver),
-          handed,
-        ),
-      setActivePublicMutations,
-      onAfterMutation,
-      recoveryHooks,
-      backendName: 'parcel',
-    });
-    const notificationsFor =
-      (generation: number): Parameters<typeof subscribeParcel>[2] =>
-      (err, events) => {
-        if (closed || !resubscriber.isLive(generation)) return;
-        const notification = classifyParcelNotification(err, events);
-        if (notification.kind === 'error') {
-          log.error({ err: notification.error }, 'parcel watcher callback error');
-          failure = new Error(
-            `the file watcher is subscribing again after an error and cannot settle until it is back: ${notification.error.message}`,
-          );
-          for (const fence of settleFences.values()) fence.reject(failure);
-          incrementWatcherErrors();
-          resubscriber.lost('error', generation, notification.error);
-          return;
-        }
-        if (notification.kind === 'rescan') {
-          log.warn(
-            { err: notification.error, eventCount: notification.events.length },
-            'parcel watcher recovery requested',
-          );
-        }
-        const records = runOrdered(async () => {
-          if (closed) return;
-          try {
-            onRawBatch?.(notification.events.map((event) => event.path));
-            await handleRawEventsInternal(
-              notification.events.map((event) => ({ type: event.type, path: event.path })),
-              contentDir,
-              contentFilter,
-              fileIndex,
-              folderIndex,
-              onDiskEvent,
-              aliasMap,
-              undefined,
-              generalFileIndex,
-              aliasPaths,
-            );
-            onAfterMutation();
-          } catch (handleErr) {
-            log.error({ err: handleErr }, 'parcel batch error');
-          }
-          for (const event of notification.events)
-            settleFences.get(basename(event.path))?.resolve();
-        });
-        if (
-          notification.events.some((event) => event.type === 'delete' && event.path === contentDir)
-        ) {
-          resubscriber.lost('root-delete', generation);
-        }
-        if (notification.kind !== 'rescan') return records;
-        const fencesBeforeRescan = [...settleFences.values()];
-        return Promise.all([
-          records,
-          requestRecovery('full').then(() => {
-            for (const fence of fencesBeforeRescan) fence.resolve();
-          }),
-        ]);
-      };
-    const resubscriber = createResubscriber({
-      clock,
-      root: contentDir,
-      backendName: 'parcel',
-      coverageWhileLost,
-      onGaveUp: (err) => {
-        const message = err instanceof Error ? err.message : String(err);
-        failure = new Error(
-          `the file watcher gave up subscribing after repeated failures (${message}); it tries again every ${RESUBSCRIBE_SLOW_RETRY_MS / 60_000} minutes and cannot settle until it is back`,
-        );
-        for (const fence of settleFences.values()) fence.reject(failure);
-      },
-      subscribe: (generation) =>
-        subscribeParcel(
-          parcel,
-          contentDir,
-          notificationsFor(generation),
-          subscribeOpts(),
-          platform,
-        ),
-      onResubscribed: () => {
-        failure = undefined;
-        void requestRecovery('full');
-      },
-    });
-    await resubscriber.start();
-
-    return {
-      runOrdered,
-      requestRecovery,
-      isRecoveryIdle: isIdle,
-      recoveryPassesStarted: passesStarted,
-      beginRecoveryPass: beginPass,
-      noticeRootMissing: () => resubscriber.noticeRootMissing(),
-      async settle() {
-        if (closed) return;
-        if (failure) throw failure;
-        const name = `watcher-settle-fence-${randomUUID()}`;
-        const fencePath = join(contentDir, '.gitquire', name);
-        const reached = Promise.withResolvers<void>();
-        let quiet: WatcherTimer | undefined;
-        const progressed = (): void => {
-          clock.clearTimeout(quiet);
-          quiet = clock.setTimeout(() => {
-            reached.reject(
-              new Error(
-                `the file watcher handled no batch for ${INTERIM_SETTLE_NO_PROGRESS_MS} ms before it saw its settle fence`,
-              ),
-            );
-          }, INTERIM_SETTLE_NO_PROGRESS_MS);
-        };
-        settleFences.set(name, reached);
-        let fenceWritten = false;
-        try {
-          tracedMkdirSync(dirname(fencePath), { recursive: true });
-          tracedWriteFileSync(fencePath, '');
-          fenceWritten = true;
-          settleProgress.add(progressed);
-          progressed();
-          await reached.promise;
-        } finally {
-          clock.clearTimeout(quiet);
-          settleProgress.delete(progressed);
-          settleFences.delete(name);
-          if (fenceWritten) tracedRmSync(fencePath, { force: true });
-        }
-      },
-      async unsubscribe() {
-        closed = true;
-        for (const fence of settleFences.values()) {
-          fence.reject(new Error('the file watcher stopped before it saw its settle fence'));
-        }
-        await resubscriber.close();
-        await workTail;
-      },
-    };
-  } catch (err) {
-    log.warn({ err }, '@parcel/watcher subscribe failed, falling back to chokidar');
-    return null;
-  }
-}
-
-export function isChokidarPathIgnored(
-  contentDir: string,
-  contentFilter: ContentFilter,
-  filePath: string,
-  stats?: Stats,
-): boolean {
-  const rel = toPosix(relative(contentDir, filePath));
-  if (rel === '' || rel === '.') return false;
-  let isDirectory: boolean;
-  if (stats) {
-    isDirectory = stats.isDirectory();
-  } else {
-    try {
-      isDirectory = lstatSync(filePath).isDirectory();
-    } catch {
-      return false;
-    }
-  }
-  if (isDirectory) {
-    const m = /^(\.[A-Za-z0-9_-]+)(\/skills(\/[^/]+)?)?$/.exec(rel);
-    if (m && m[1] !== '.gitquire') {
-      if (m[2] !== undefined) return false;
-      if (existsSync(join(contentDir, rel, 'skills'))) return false;
-    }
-    return contentFilter.isDirExcluded(rel);
-  }
-  return contentFilter.isExcluded(rel);
-}
-
-const CHOKIDAR_READY_TIMEOUT_MS = 10_000;
-export const CHOKIDAR_BATCH_WINDOW_MS = 50;
-
-/* UPSTREAM(nodejs/node#52601, libuv/libuv#3866, libuv/libuv#637): a macOS directory fs.watch
-   returns before FSEvents covers its path; closing one waits for the stream rebuild that covers
-   every earlier registration. */
-function waitForPendingFsEventsRegistrations(dir: string, platform: NodeJS.Platform): void {
-  if (platform !== 'darwin') return;
-  try {
-    watchFsPath(dir).close();
-  } catch (err) {
-    log.warn(
-      { err },
-      'could not wait for FSEvents to cover the chokidar-watched directories; a change made right after start may be missed',
-    );
-  }
-}
-
-const CHOKIDAR_NON_FATAL_ERROR_CODES: ReadonlySet<string> = new Set([
-  'EACCES',
-  'EPERM',
-  'ENOSPC',
-  'EMFILE',
-  'ENFILE',
-]);
-
-async function startChokidarWatcher(
-  contentDir: string,
-  contentFilter: ContentFilter | undefined,
-  fileIndex: Map<string, FileIndexEntry>,
-  generalFileIndex: GeneralFileIndex,
-  folderIndex: Map<string, FolderIndexEntry>,
-  onDiskEvent: (event: DiskEvent) => Promise<void>,
-  aliasMap: Map<string, string>,
-  aliasPaths: Map<string, string>,
-  folderAliasIndex: Map<string, string>,
-  setActivePublicMutations: (mutations: RecoveryPublicMutations | null) => void,
-  onAfterMutation: () => void,
-  getFileIndexGeneration: () => number,
-  platform: NodeJS.Platform,
-  clock: WatcherClock,
-  onRawBatch?: (absPaths: readonly string[]) => void,
-  recoveryHooks: RecoveryHooks = {},
-  carryOver: Set<string> = new Set(),
-  coverageWhileLost: string = coverageWithoutWatcher(null),
-): Promise<WatcherBackendSubscription> {
-  const { watch } = await import('chokidar');
-
-  let closed = false;
-  let workTail = Promise.resolve();
-  const runOrdered = (work: () => Promise<void>): Promise<void> => {
-    if (closed) return Promise.resolve();
-    const next = workTail.then(work);
-    workTail = next.catch((err) => {
-      log.error({ err }, 'chokidar batch error');
-    });
-    return next;
-  };
-  const { requestRecovery, isIdle, passesStarted, beginPass } = createRecoveryDriver({
-    runOrdered,
-    isClosed: () => closed,
-    recover: (recoveryMutations, counter, mode, handed) =>
-      recoverDiskChanges(
-        contentDir,
-        contentFilter,
-        fileIndex,
-        generalFileIndex,
-        folderIndex,
-        aliasMap,
-        aliasPaths,
-        folderAliasIndex,
-        recoveryMutations,
-        onDiskEvent,
-        onAfterMutation,
-        getFileIndexGeneration,
-        counter,
-        onRawBatch,
-        handed ? undefined : beginFreshnessReuse(mode, fileIndex, carryOver),
-        handed,
-      ),
-    setActivePublicMutations,
-    onAfterMutation,
-    recoveryHooks,
-    backendName: 'chokidar',
-  });
-
-  let pendingEvents: InternalRawFileEvent[] = [];
-  let batchTimer: WatcherTimer | null = null;
-
-  function queueEvent(event: InternalRawFileEvent) {
-    pendingEvents.push(event);
-    batchTimer ||= clock.setTimeout(() => {
-      const batch = pendingEvents;
-      pendingEvents = [];
-      batchTimer = null;
-      void runOrdered(async () => {
-        try {
-          onRawBatch?.(batch.map((e) => e.path));
-          await handleRawEventsInternal(
-            batch,
-            contentDir,
-            contentFilter,
-            fileIndex,
-            folderIndex,
-            onDiskEvent,
-            aliasMap,
-            undefined,
-            generalFileIndex,
-            aliasPaths,
-          );
-          onAfterMutation();
-        } catch (err) {
-          log.error({ err }, 'chokidar batch error');
-        }
-      });
-    }, CHOKIDAR_BATCH_WINDOW_MS);
-  }
-
-  const reportedNonFatalCodes = new Set<string>();
-  const watchAs = async (generation: number): Promise<AsyncSubscription> => {
-    const watcher = watch(contentDir, {
-      ignoreInitial: true,
-      followSymlinks: false,
-      ignored: contentFilter
-        ? (filePath: string, stats?: Stats) =>
-            isChokidarPathIgnored(contentDir, contentFilter, filePath, stats)
-        : undefined,
-    });
-    const live = (): boolean => !closed && resubscriber.isLive(generation);
-    const queueLive = (event: InternalRawFileEvent): void => {
-      if (live()) queueEvent(event);
-    };
-
-    watcher.on('error', (err) => {
-      if (!live()) return;
-      incrementWatcherErrors();
-      const code = errnoCode(err);
-      if (code !== undefined && CHOKIDAR_NON_FATAL_ERROR_CODES.has(code)) {
-        if (reportedNonFatalCodes.has(code)) return;
-        reportedNonFatalCodes.add(code);
-        log.warn(
-          { err, code },
-          `chokidar reported ${code}; the watcher stays up, and for what it cannot watch ${coverageWhileLost}`,
-        );
-        return;
-      }
-      log.error({ err }, 'chokidar error');
-      resubscriber.lost('error', generation, err);
-    });
-    watcher.on('add', (path) => queueLive({ type: 'create', path }));
-    watcher.on('change', (path) => queueLive({ type: 'update', path }));
-    watcher.on('unlink', (path) => queueLive({ type: 'delete', path, entryKind: 'file' }));
-    watcher.on('addDir', (path) => queueLive({ type: 'create', path }));
-    watcher.on('unlinkDir', (path) => {
-      queueLive({ type: 'delete', path, entryKind: 'folder' });
-      if (path === contentDir && live()) resubscriber.lost('root-delete', generation);
-    });
-
-    await new Promise<void>((resolveReady) => {
-      let settled = false;
-      const settle = () => {
-        if (settled) return;
-        settled = true;
-        resolveReady();
-      };
-      watcher.once('ready', settle);
-      clock.setTimeout(settle, CHOKIDAR_READY_TIMEOUT_MS).unref();
-    });
-
-    waitForPendingFsEventsRegistrations(contentDir, platform);
-    return { unsubscribe: () => watcher.close() };
-  };
-
-  const resubscriber = createResubscriber({
-    clock,
-    root: contentDir,
-    backendName: 'chokidar',
-    coverageWhileLost,
-    subscribe: watchAs,
-    onResubscribed: () => {
-      void requestRecovery('full');
-    },
-  });
-  await resubscriber.start();
-
-  return {
-    runOrdered,
-    requestRecovery,
-    isRecoveryIdle: isIdle,
-    recoveryPassesStarted: passesStarted,
-    beginRecoveryPass: beginPass,
-    noticeRootMissing: () => resubscriber.noticeRootMissing(),
-    unsubscribe: async () => {
-      closed = true;
-      if (batchTimer) {
-        clock.clearTimeout(batchTimer);
-        batchTimer = null;
-        pendingEvents = [];
-      }
-      await resubscriber.close();
-      await workTail;
-    },
-  };
-}
-
 function startUnwatchedRecovery(
   contentDir: string,
   contentFilter: ContentFilter | undefined,
@@ -4638,24 +4126,11 @@ function startUnwatchedRecovery(
   };
 }
 
-function coverageWithoutWatcher(freshnessIntervalMs: number | null): string {
-  if (freshnessIntervalMs === null) {
-    return 'changes made outside the app are found only by an explicit re-check';
-  }
-  const fastest = freshnessIntervalMs / 1000;
-  const slowest = Math.max(freshnessIntervalMs, FRESHNESS_MAX_INTERVAL_MS) / 1000;
-  return `the timed re-check still finds changes made outside the app, every ${fastest} to ${slowest} seconds`;
-}
-
 export interface StartWatcherOptions {
-  forceBackend?: 'parcel' | 'chokidar' | 'off';
   onRawBatch?: (absPaths: readonly string[]) => void;
   onRecoveryComplete?: () => Promise<void>;
   onRecoveryPassCompleted?: (pass: number, whole: boolean) => Promise<void>;
-  platform?: NodeJS.Platform;
-  nativeBackend?: NativeWatcherBackend;
   clock?: WatcherClock;
-  freshnessIntervalMs?: number | null;
 }
 
 function isRegularFileOrLinkToOne(entry: Stats, path: string): boolean {
@@ -4750,194 +4225,39 @@ async function startWatcherWithClock(
     WATCHER_DROP_SUMMARY_INTERVAL_MS,
   );
 
-  const freshnessIntervalMs = resolveFreshnessInterval(opts.freshnessIntervalMs);
-  const coverageWhileLost = coverageWithoutWatcher(freshnessIntervalMs);
   const carryOver = new Set<string>();
-  let subscription: WatcherBackendSubscription;
-  let runOrderedRescan: ((work: () => Promise<void>) => Promise<void>) | undefined;
-  let settleSubscription: (() => Promise<void>) | undefined;
-  let backend: WatcherBackend;
-  const forceChokidar = process.env.GITQUIRE_FILE_WATCHER_BACKEND === 'chokidar';
-  const platform = opts.platform ?? process.platform;
-  const watchingOff = opts.forceBackend === 'off';
-  try {
-    const parcelSub =
-      watchingOff || forceChokidar || opts.forceBackend === 'chokidar'
-        ? null
-        : await startParcelWatcher(
-            contentDir,
-            contentFilter,
-            fileIndex,
-            generalFileIndex,
-            folderIndex,
-            onDiskEvent,
-            aliasMap,
-            aliasPaths,
-            folderAliasIndex,
-            (mutations) => {
-              activePublicMutations = mutations;
-            },
-            bumpFileIndexGeneration,
-            () => fileIndexGeneration,
-            platform,
-            onRawBatch,
-            structuralIgnoreDirs,
-            recoveryHooks,
-            clock,
-            opts.nativeBackend,
-            carryOver,
-            coverageWhileLost,
-          );
-    if (parcelSub) {
-      subscription = parcelSub;
-      runOrderedRescan = parcelSub.runOrdered;
-      settleSubscription = () => parcelSub.settle();
-      backend = 'parcel';
-    } else if (watchingOff) {
-      subscription = startUnwatchedRecovery(
-        contentDir,
-        contentFilter,
-        fileIndex,
-        generalFileIndex,
-        folderIndex,
-        onDiskEvent,
-        aliasMap,
-        aliasPaths,
-        folderAliasIndex,
-        (mutations) => {
-          activePublicMutations = mutations;
-        },
-        bumpFileIndexGeneration,
-        () => fileIndexGeneration,
-        onRawBatch,
-        recoveryHooks,
-        carryOver,
-      );
-      backend = 'off';
-    } else {
-      if (opts.forceBackend === 'parcel') {
-        throw new Error('@parcel/watcher unavailable (forced backend)');
-      }
-      const chokidarSub = await startChokidarWatcher(
-        contentDir,
-        contentFilter,
-        fileIndex,
-        generalFileIndex,
-        folderIndex,
-        onDiskEvent,
-        aliasMap,
-        aliasPaths,
-        folderAliasIndex,
-        (mutations) => {
-          activePublicMutations = mutations;
-        },
-        bumpFileIndexGeneration,
-        () => fileIndexGeneration,
-        platform,
-        clock,
-        onRawBatch,
-        recoveryHooks,
-        carryOver,
-        coverageWhileLost,
-      );
-      subscription = chokidarSub;
-      backend = 'chokidar';
-    }
-  } catch (e) {
-    clock.clearInterval(evictionInterval);
-    clock.clearInterval(dropSummaryInterval);
-    throw e;
-  }
+  const subscription = startUnwatchedRecovery(
+    contentDir,
+    contentFilter,
+    fileIndex,
+    generalFileIndex,
+    folderIndex,
+    onDiskEvent,
+    aliasMap,
+    aliasPaths,
+    folderAliasIndex,
+    (mutations) => {
+      activePublicMutations = mutations;
+    },
+    bumpFileIndexGeneration,
+    () => fileIndexGeneration,
+    onRawBatch,
+    recoveryHooks,
+    carryOver,
+  );
 
   const backendSubscription = subscription;
-  let handleClosed = false;
-  let freshnessTimer: WatcherTimer | null = null;
-  let freshnessPassInFlight: Promise<void> | null = null;
-  const scheduleFreshnessPass = (baseMs: number, delayMs: number): void => {
-    if (handleClosed) return;
-    freshnessTimer = clock.setTimeout(() => {
-      freshnessTimer = null;
-      const pass = runFreshnessPass(baseMs);
-      freshnessPassInFlight = pass;
-      void pass.finally(() => {
-        if (freshnessPassInFlight === pass) freshnessPassInFlight = null;
-      });
-    }, delayMs);
-    freshnessTimer.unref();
-  };
-  const walkForFreshness = async (): Promise<DiskObservation | null> => {
-    contentFilter?.refreshInPlaceSkillDirs();
-    const reuse = beginFreshnessReuse('metadata', fileIndex, carryOver);
-    const observed = await observeDisk(contentDir, contentFilter, reuse, () => handleClosed);
-    if (handleClosed) return null;
-    if (reuse) {
-      addFreshnessFilesHashed(reuse.hashed);
-      addFreshnessCarryOver(reuse.deferred.size);
-    }
-    return observed;
-  };
-  const runFreshnessPass = async (baseMs: number): Promise<void> => {
-    if (handleClosed) return;
-    if (!existsSync(contentDir)) {
-      backendSubscription.noticeRootMissing();
-      scheduleFreshnessPass(baseMs, baseMs);
-      return;
-    }
-    if (!backendSubscription.isRecoveryIdle()) {
-      scheduleFreshnessPass(baseMs, baseMs);
-      return;
-    }
-    const startedAt = clock.now();
-    let elapsedMs = 0;
-    const sinceEpoch = openObservationWindow();
-    const pass = backendSubscription.beginRecoveryPass();
-    try {
-      const observed = await walkForFreshness();
-      if (observed === null) return;
-      const result = observed.complete
-        ? await backendSubscription.requestRecovery('metadata', { observed, sinceEpoch, pass })
-        : { status: 'incomplete' as const, candidates: 0, dispatched: 0 };
-      if (handleClosed) return;
-      elapsedMs = clock.now() - startedAt;
-      addFreshnessFinds(result.dispatched);
-      if (result.status === 'incomplete' || result.status === 'failed') {
-        incrementFreshnessPassesIncomplete();
-      }
-      log.debug({ ...result, elapsedMs }, 'freshness re-check pass finished');
-    } catch (err) {
-      if (handleClosed) return;
-      incrementFreshnessPassesIncomplete();
-      log.warn({ err }, 'freshness re-check pass failed');
-    } finally {
-      closeObservationWindow();
-      if (!handleClosed) {
-        incrementFreshnessPasses();
-        scheduleFreshnessPass(baseMs, nextFreshnessDelayMs(elapsedMs, baseMs));
-      }
-    }
-  };
-  if (freshnessIntervalMs !== null) scheduleFreshnessPass(freshnessIntervalMs, freshnessIntervalMs);
-
-  if (watchingOff) {
-    log.info(
-      { contentDir, backend, freshnessIntervalMs },
-      'file watching is off; the content folder is re-read after Git moves and on request',
-    );
-  } else {
-    log.info({ contentDir, backend, freshnessIntervalMs }, 'watching for external .md changes');
-  }
+  let _handleClosed = false;
+  log.info({ contentDir }, 'the content folder is re-read after Git moves and on request');
 
   return {
     async unsubscribe() {
-      handleClosed = true;
-      clock.clearTimeout(freshnessTimer);
-      freshnessTimer = null;
+      _handleClosed = true;
       clock.clearInterval(evictionInterval);
       clock.clearInterval(dropSummaryInterval);
       try {
         await backendSubscription.unsubscribe();
       } finally {
-        await freshnessPassInFlight;
         writeTracker.clear();
         removalTracker.clear();
         lastKnownHash.clear();
@@ -5287,13 +4607,7 @@ async function startWatcherWithClock(
       return pruned;
     },
     async settle() {
-      if (watchingOff) return;
-      if (settleSubscription === undefined) {
-        throw new Error(
-          'settling disk events needs the parcel watcher backend, and this watcher runs on chokidar',
-        );
-      }
-      await settleSubscription();
+      await subscription.runOrdered(async () => {});
     },
     async rescanFromDisk() {
       const reseed = async () => {
@@ -5341,8 +4655,7 @@ async function startWatcherWithClock(
           activeReseedMutations = null;
         }
       };
-      if (runOrderedRescan) return runOrderedRescan(reseed);
-      return reseed();
+      return subscription.runOrdered(reseed);
     },
   };
 }

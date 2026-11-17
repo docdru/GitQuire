@@ -18,7 +18,6 @@ const TYPECHECK_SCRIPT = 'typecheck:test-helper-callers';
 const HELPERS = [
   'wait-within-test-budget.test-helper.ts',
   'expect-stable.test-helper.ts',
-  'forked-watcher-process.test-helper.ts',
   'process-scan.test-helper.ts',
 ];
 

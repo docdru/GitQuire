@@ -30,7 +30,6 @@ export default {
     'pgrep', // process lookup — process-scan.ts
     'taskkill', // Windows process-tree termination — mcp/npm-child.test-helper.ts
     'sw_vers', // macOS version query — bug-report.ts
-    'mkfifo', // named-pipe creation — keepalive-orphan-reaping.test.ts
   ],
   ignoreIssues: {
     'test-support/**': ['exports', 'types'],

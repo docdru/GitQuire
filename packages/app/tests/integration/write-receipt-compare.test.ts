@@ -10,7 +10,6 @@ import * as diskContentIntake from '../../../server/src/disk-content-intake';
 import * as fsTraced from '../../../server/src/fs-traced';
 import { getMetrics } from '../../../server/src/metrics';
 import { contentHash } from '../../../server/src/version-hash';
-import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {
   createTestClient,
   createTestServer,
@@ -46,7 +45,6 @@ async function startWithDoc(
   options: Parameters<typeof createTestServer>[0] = {},
 ): Promise<{ server: TestServer; docName: string; file: string }> {
   const started = await createTestServer({
-    watcherBackend: createWatcherDouble().backend,
     debounce: 50,
     maxDebounce: 200,
     ...options,
@@ -269,7 +267,6 @@ describe('compare before every Markdown write', () => {
     server = await createTestServer({
       contentDir,
       keepContentDir: true,
-      watcherBackend: createWatcherDouble().backend,
       debounce: 50,
       maxDebounce: 200,
     });
@@ -331,7 +328,6 @@ describe('compare before every Markdown write', () => {
 
   test('a save with no agreed version whose ingest of the outside file fails is held and leaves no receipt for the outside bytes', async () => {
     const started = await createTestServer({
-      watcherBackend: createWatcherDouble().backend,
       debounce: 300_000,
       maxDebounce: 600_000,
     });
@@ -558,7 +554,6 @@ async function startWithUnsavedEdit(
 ): Promise<{ server: TestServer; docName: string; file: string }> {
   const started = await createTestServer({
     gitEnabled: true,
-    watcherBackend: createWatcherDouble().backend,
     debounce: 300_000,
     maxDebounce: 600_000,
   });

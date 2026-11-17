@@ -33,7 +33,6 @@ import {
   resetWatcherDecisionDiagnostics,
   retractRemoval,
   startWatcher,
-  toParcelIgnorePaths,
   updateFileIndex,
   updateLastKnownHash,
   writeTracker,
@@ -1151,29 +1150,6 @@ describe('startWatcher file index', () => {
       await handle.unsubscribe();
     }
   });
-
-  test('folderIndex detects externally-created empty directory via live watcher', async ({
-    onTestFinished,
-  }) => {
-    const liveContentDir = await mkdtemp(resolve(tmpdir(), 'ok-watcher-live-empty-'));
-    onTestFinished(() => rm(liveContentDir, { recursive: true, force: true }));
-    const events: DiskEvent[] = [];
-    const folderCreated = Promise.withResolvers<void>();
-    const handle = await startWatcher(liveContentDir, async (e) => {
-      events.push(e);
-      if (e.kind === 'folder-create' && e.relativePath === 'live-empty') {
-        folderCreated.resolve();
-      }
-    });
-    onTestFinished(() => handle.unsubscribe());
-
-    mkdirSync(resolve(liveContentDir, 'live-empty'));
-    await folderCreated.promise;
-    expect(handle.getFolderIndex().has('live-empty')).toBe(true);
-    expect(events.some((e) => e.kind === 'folder-create' && e.relativePath === 'live-empty')).toBe(
-      true,
-    );
-  });
 });
 
 describe('reconcileFileIndexAfterFilterRebuild', () => {
@@ -2222,75 +2198,7 @@ describe('startWatcher symlink handling', () => {
   });
 });
 
-describe('toParcelIgnorePaths', () => {
-  let projectDir: string;
-
-  beforeEach(async () => {
-    projectDir = await mkdtemp(resolve(tmpdir(), 'ok-parcel-ignore-'));
-  });
-
-  afterEach(async () => {
-    await rm(projectDir, { recursive: true, force: true });
-  });
-
-  test('keeps the structural roots a prefix match can stand in for', () => {
-    const filter = createContentFilter({ projectDir, contentDir: projectDir });
-
-    expect(toParcelIgnorePaths(filter.getWatcherIgnoreGlobs()).sort()).toEqual([
-      '.git',
-      '.gitquire/local',
-      '.gitquire/worktrees',
-      'node_modules',
-    ]);
-  });
-
-  test('drops the recursive and children forms of those same roots', () => {
-    expect(
-      toParcelIgnorePaths([
-        '.git',
-        '.git/**',
-        '**/.git',
-        '**/.git/**',
-        'node_modules',
-        'node_modules/**',
-        '**/node_modules',
-        '**/node_modules/**',
-      ]),
-    ).toEqual(['.git', 'node_modules']);
-  });
-
-  test('drops ordinary user exclusions, whose subtrees can still admit content', () => {
-    writeFileSync(resolve(projectDir, '.gitignore'), 'dist/\ntmp/\n');
-    writeFileSync(resolve(projectDir, '.okignore'), 'drafts/\n');
-
-    const filter = createContentFilter({ projectDir, contentDir: projectDir });
-    const ignorePaths = toParcelIgnorePaths(filter.getWatcherIgnoreGlobs());
-
-    expect(filter.getWatcherIgnoreGlobs()).toEqual(
-      expect.arrayContaining(['dist/', 'tmp/', 'drafts/']),
-    );
-    expect(ignorePaths).not.toContain('dist/');
-    expect(ignorePaths).not.toContain('tmp/');
-    expect(ignorePaths).not.toContain('drafts/');
-  });
-
-  test('never hands @parcel/watcher an entry its native matcher reads as a glob', () => {
-    writeFileSync(
-      resolve(projectDir, '.gitignore'),
-      ['dist/', '*.log', 'build/**', 'coverage', '**/*.tmp', 'a[0-9]/', 'x{1,2}/'].join('\n'),
-    );
-
-    const filter = createContentFilter({ projectDir, contentDir: projectDir });
-    const ignorePaths = toParcelIgnorePaths(filter.getWatcherIgnoreGlobs());
-
-    expect(ignorePaths.length).toBeGreaterThan(0);
-    for (const entry of ignorePaths) {
-      expect(entry).not.toMatch(/[*?[\]{}()!+@|\\]/);
-    }
-  });
-});
-
-describe('structural-ignore discovery feeds the parcel prefix list', () => {
+describe('structural-ignore discovery', () => {
   let contentDir: string;
 
   beforeEach(async () => {
@@ -2301,42 +2209,6 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
     await rm(contentDir, { recursive: true, force: true });
   });
 
-  test('merges discovered nested occurrences with the structural roots', () => {
-    const merged = toParcelIgnorePaths(
-      [
-        '.git',
-        'node_modules',
-        '.gitquire/local',
-        '.gitquire/worktrees',
-        '**/node_modules/**',
-        'dist/',
-      ],
-      ['packages/app/node_modules', 'vendor/lib/.git', 'sub/.gitquire/local'],
-    );
-
-    expect(merged).toEqual(
-      expect.arrayContaining([
-        '.git',
-        'node_modules',
-        'packages/app/node_modules',
-        'vendor/lib/.git',
-        'sub/.gitquire/local',
-      ]),
-    );
-    expect(merged).not.toContain('**/node_modules/**');
-    expect(merged).not.toContain('dist/');
-  });
-
-  test('drops a discovered directory whose real name contains a glob metacharacter', () => {
-    const merged = toParcelIgnorePaths(
-      ['.git', 'node_modules'],
-      ['a[0-9]/node_modules', 'ok-dir/node_modules'],
-    );
-
-    expect(merged).toContain('ok-dir/node_modules');
-    expect(merged).not.toContain('a[0-9]/node_modules');
-  });
-
   test('the seed walk records nested structural dirs it prunes', async () => {
     mkdirSync(resolve(contentDir, 'packages/app/node_modules/pkg'), { recursive: true });
     mkdirSync(resolve(contentDir, 'docs/lib/.git/objects'), { recursive: true });
@@ -2345,9 +2217,7 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
     writeFileSync(resolve(contentDir, 'packages/app/node_modules/pkg/index.md'), 'dep\n');
 
     const filter = createContentFilter({ projectDir: contentDir, contentDir });
-    const watcher = await startWatcher(contentDir, async () => {}, filter, {
-      forceBackend: 'chokidar',
-    });
+    const watcher = await startWatcher(contentDir, async () => {}, filter);
     try {
       expect([...watcher.getFileIndex().keys()]).toContain('notes/keep');
       expect([...watcher.getFileIndex().keys()]).not.toContain(
@@ -2368,9 +2238,7 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
     writeFileSync(resolve(contentDir, 'packages/sub/.gitquire/templates/note.md'), '# tmpl\n');
 
     const filter = createContentFilter({ projectDir: contentDir, contentDir });
-    const watcher = await startWatcher(contentDir, async () => {}, filter, {
-      forceBackend: 'chokidar',
-    });
+    const watcher = await startWatcher(contentDir, async () => {}, filter);
     try {
       const discovered = [...watcher.getStructuralIgnoreDirs()];
       expect(discovered).toContain('packages/sub/.gitquire/local');
@@ -2385,9 +2253,7 @@ describe('structural-ignore discovery feeds the parcel prefix list', () => {
     mkdirSync(resolve(contentDir, 'app/node_modules'), { recursive: true });
 
     const filter = createContentFilter({ projectDir: contentDir, contentDir });
-    const watcher = await startWatcher(contentDir, async () => {}, filter, {
-      forceBackend: 'chokidar',
-    });
+    const watcher = await startWatcher(contentDir, async () => {}, filter);
     try {
       expect([...watcher.getStructuralIgnoreDirs()]).toEqual(['app/node_modules']);
     } finally {

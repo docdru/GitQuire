@@ -3,7 +3,6 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getMetrics } from '@gitquire/server';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {
   agentWriteMd,
   type CreateTestServerOptions,
@@ -41,7 +40,6 @@ async function openWithUnsavedEdit(
 ): Promise<{ s: TestServer; c: TestClient; file: string }> {
   const s = await createTestServer({
     gitEnabled: true,
-    watcherBackend: createWatcherDouble().backend,
     debounce: 300_000,
     maxDebounce: 600_000,
     mergeHistoryWriter,

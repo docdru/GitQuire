@@ -4,58 +4,10 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { runTeardownPhases } from '../stress/_helpers/teardown-fs.ts';
 import { ORIGINAL, startDeletionScenario } from './stale-delete-recreation.test-helper.ts';
 
-const nativeWriteObservation = vi.hoisted(
-  (): {
-    current?: {
-      directory: string;
-      path: string;
-      consumed: PromiseWithResolvers<void>;
-    };
-  } => ({}),
-);
-
-vi.mock('../../../server/src/parcel-subscription.ts', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('../../../server/src/parcel-subscription.ts')>();
-  const subscribe = actual.subscribeParcel;
-  return {
-    ...actual,
-    subscribeParcel: (...args: Parameters<typeof subscribe>) => {
-      const [parcel, directory, callback, options, platform] = args;
-      return subscribe(
-        parcel,
-        directory,
-        (error, events) => {
-          const observation = nativeWriteObservation.current;
-          const selected =
-            observation !== undefined &&
-            observation.directory === directory &&
-            events.some(
-              (event) =>
-                event.path === observation.path &&
-                (event.type === 'create' || event.type === 'update'),
-            );
-          const result = callback(error, events);
-          if (selected) {
-            void Promise.resolve(result).then(
-              () => observation.consumed.resolve(),
-              (cause: unknown) => observation.consumed.reject(cause),
-            );
-          }
-          return result;
-        },
-        options,
-        platform,
-      );
-    },
-  };
-});
-
 const cleanups: Array<() => Promise<void>> = [];
 const registerCleanup = (cleanup: () => Promise<void>) => cleanups.push(cleanup);
 
 afterEach(async () => {
-  nativeWriteObservation.current = undefined;
   await runTeardownPhases(...cleanups.splice(0).reverse());
 });
 
@@ -84,13 +36,6 @@ test('an older write completion cannot adopt the unmodified resident of a recrea
     }
     return result;
   });
-  const canonicalWriteConsumed = Promise.withResolvers<void>();
-  void canonicalWriteConsumed.promise.catch(() => {});
-  nativeWriteObservation.current = {
-    directory: scenario.server.contentDir,
-    path: join(scenario.server.contentDir, `${scenario.docName}.md`),
-    consumed: canonicalWriteConsumed,
-  };
   const pendingWrite = fetch(`${scenario.server.baseUrl}/api/agent-write-md`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -110,7 +55,6 @@ test('an older write completion cannot adopt the unmodified resident of a recrea
   const filePath = join(scenario.server.contentDir, `${scenario.docName}.md`);
   expect(readFileSync(filePath, 'utf8')).toBe(oldWritten);
   expect(oldResident?.getText('source').toString()).toBe(oldWritten);
-  await canonicalWriteConsumed.promise;
   scenario.deleteExternally();
   await scenario.waitUntilHeld();
   const created = await fetch(`${scenario.server.baseUrl}/api/create-page`, {

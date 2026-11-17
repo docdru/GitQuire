@@ -2,18 +2,9 @@ import { mkdirSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from 
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { createContentFilter } from './content-filter.ts';
 import { type AllFileEntries, lastKnownHash, startWatcher } from './file-watcher.ts';
-import {
-  forgetNativeSubscriptions,
-  nativeSubscriptionOn,
-} from './parcel-watcher-double.test-helper.ts';
-
-vi.mock('@parcel/watcher', async () => {
-  const { parcelWatcherModule } = await import('./parcel-watcher-double.test-helper.ts');
-  return parcelWatcherModule;
-});
 
 function indexedKinds(all: AllFileEntries, name: string) {
   return [...all].filter(([indexedName]) => indexedName === name).map(([, entry]) => entry.kind);
@@ -28,7 +19,6 @@ describe('PRD-7117 US-001 — kind discriminator + all-files admission', () => {
     contentDir = resolve(tmpDir, 'content');
     mkdirSync(contentDir, { recursive: true });
     lastKnownHash.clear();
-    forgetNativeSubscriptions();
   });
 
   afterEach(async () => {
@@ -130,13 +120,13 @@ describe('PRD-7117 US-001 — kind discriminator + all-files admission', () => {
     }
   });
 
-  test('live file-create event admits a new non-md file as kind:"file"', async () => {
+  test('a re-check admits a new non-md file as kind:"file"', async () => {
     writeFileSync(resolve(contentDir, 'starter.md'), '# Start\n');
     const handle = await startWatcher(contentDir, async () => {});
     try {
       const newFile = resolve(contentDir, 'fresh.ts');
       writeFileSync(newFile, 'export const fresh = true;');
-      await nativeSubscriptionOn(contentDir).deliver([{ type: 'create', path: newFile }]);
+      await handle.recheck();
 
       const all = handle.getAllFilesIndex();
       expect(indexedKinds(all, 'fresh.ts')).toEqual(['file']);
@@ -146,7 +136,7 @@ describe('PRD-7117 US-001 — kind discriminator + all-files admission', () => {
     }
   });
 
-  test('live file-delete event removes a non-md entry without touching markdown siblings', async () => {
+  test('a re-check removes a non-md entry without touching markdown siblings', async () => {
     writeFileSync(resolve(contentDir, 'doc.md'), '# Doc\n');
     writeFileSync(resolve(contentDir, 'old.txt'), 'old');
     const handle = await startWatcher(contentDir, async () => {});
@@ -155,9 +145,7 @@ describe('PRD-7117 US-001 — kind discriminator + all-files admission', () => {
       expect(indexedKinds(handle.getAllFilesIndex(), 'doc')).toEqual(['markdown']);
 
       unlinkSync(resolve(contentDir, 'old.txt'));
-      await nativeSubscriptionOn(contentDir).deliver([
-        { type: 'delete', path: resolve(contentDir, 'old.txt') },
-      ]);
+      await handle.recheck();
 
       expect(indexedKinds(handle.getAllFilesIndex(), 'old.txt')).toEqual([]);
       expect(indexedKinds(handle.getAllFilesIndex(), 'doc')).toEqual(['markdown']);
