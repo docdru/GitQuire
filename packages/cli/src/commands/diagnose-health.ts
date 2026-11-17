@@ -10,7 +10,6 @@ import {
   makeConfigYamlCheck,
   makeContentDirCheck,
   makeGitCheck,
-  makeMacosCodesigCheck,
   makeServerLockCheck,
   makeShadowHealthCheck,
   makeShadowRepoCheck,
@@ -41,7 +40,6 @@ export function defaultChecks(): CheckDefinition[] {
     makeServerLockCheck(),
     makeShadowRepoCheck(),
     makeShadowHealthCheck(),
-    makeMacosCodesigCheck(),
   ];
 }
 

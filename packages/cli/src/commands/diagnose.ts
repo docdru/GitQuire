@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { currentCliCommandName } from '@gitquire/core';
@@ -13,17 +13,6 @@ import {
   collectBundle,
   writeBundle,
 } from '../diagnose/bundle.ts';
-import {
-  collectDiagnosticReports,
-  type DiagnosticReportCollection,
-  renderDiagnosticReportsStatus,
-} from '../diagnose/diagnostic-reports.ts';
-import {
-  collectOsTerminationEvidence,
-  describeOsTerminationEvidence,
-  type OsTerminationEvidence,
-  type OsTerminationEvidenceDeps,
-} from '../diagnose/os-termination-evidence.ts';
 import {
   discoverLockDirs,
   type ProcessUsage,
@@ -451,8 +440,6 @@ export interface RunDiagnoseBundleDeps {
   prompt?: (question: string) => Promise<string>;
   runProcessDiagnose?: (pid: number) => Promise<string>;
   collectDeps?: CollectBundleDeps;
-  diagnosticReportsDir?: string;
-  osTerminationEvidenceDeps?: OsTerminationEvidenceDeps;
   now?: () => Date;
 }
 
@@ -497,14 +484,10 @@ function describeContentDirPath(collected: CollectedBundle): string {
     : 'not present';
 }
 
-function describeCredentials(collected: CollectedBundle, stagedDiagnosticReports: number): string {
+function describeCredentials(collected: CollectedBundle): string {
   const scrub = collected.manifest.redaction.secretScrub;
   if (scrub === undefined) {
-    return pc.yellow(
-      stagedDiagnosticReports > 0
-        ? 'NOT scrubbed (--no-redact): tokens and keys ship verbatim, crash reports excepted'
-        : 'NOT scrubbed (--no-redact): tokens and keys ship verbatim',
-    );
+    return pc.yellow('NOT scrubbed (--no-redact): tokens and keys ship verbatim');
   }
   return `scrubbed known credential formats (${scrub.redactedLineCount} line(s) across ${scrub.redactions.length} file(s))`;
 }
@@ -513,8 +496,6 @@ function printSummary(
   log: (msg: string) => void,
   collected: CollectedBundle,
   outputPath: string,
-  diagnosticReports: DiagnosticReportCollection,
-  osTerminationEvidence: OsTerminationEvidence,
 ): void {
   const { summary, manifest } = collected;
   log('');
@@ -526,24 +507,8 @@ function printSummary(
     `  Document names:      included in cleartext (${summary.docNameCount} doc.name occurrence(s) in telemetry)`,
   );
   log(`  Content-dir path:    ${describeContentDirPath(collected)}`);
-  log(`  Credentials:         ${describeCredentials(collected, summary.stagedDiagnosticReports)}`);
+  log(`  Credentials:         ${describeCredentials(collected)}`);
   log(`  Server status:       ${manifest.serverStatus}`);
-  log(
-    `  macOS crash reports: ${renderDiagnosticReportsStatus(diagnosticReports, summary.stagedDiagnosticReports)}`,
-  );
-  if (summary.stagedDiagnosticReports > 0) {
-    log('                       each carrying machine details macOS puts in every report: the');
-    log('                       account uid, the Mac model, and the name of the process that');
-    log('                       launched this app, which on a managed machine can be internal');
-    log('                       tooling.');
-    log('                       Rewritten on the way in: escaped path separators normalised so');
-    log('                       the scrub can read them, and the identifiers that would link');
-    log("                       this machine's bundles to each other replaced.");
-    log('                       Not byte-identical to the files macOS wrote, on any tier and');
-    log('                       regardless of --no-redact. A report of ours still names the');
-    log('                       processes it was running alongside.');
-  }
-  log(`  OS termination log:  ${describeOsTerminationEvidence(osTerminationEvidence)}`);
   log(`  Output:              ${outputPath}`);
   log('');
 }
@@ -580,19 +545,12 @@ export async function runDiagnoseBundle(
   }
 
   const redact = opts.redact !== false;
-  const diagnosticReports = collectDiagnosticReports(
-    deps.diagnosticReportsDir ?? join(homedir(), 'Library', 'Logs', 'DiagnosticReports'),
-    now(),
-  );
-  const osTerminationEvidence = await collectOsTerminationEvidence(deps.osTerminationEvidenceDeps);
   const collected = await collectBundle({
     contentDir: opts.contentDir,
     projectDir: opts.projectDir,
     processDir,
     redact,
     scrubSecrets: redact,
-    diagnosticReports,
-    osTerminationEvidence,
     deps: deps.collectDeps,
   });
 
@@ -600,7 +558,7 @@ export async function runDiagnoseBundle(
     if (collected.manifest.serverStatus === 'not-running') {
       log(pc.yellow('  server not running — live state unavailable'));
     }
-    printSummary(log, collected, outputPath, diagnosticReports, osTerminationEvidence);
+    printSummary(log, collected, outputPath);
 
     if (opts.yes !== true) {
       const answer = await prompt('Write bundle? [y/N]: ');

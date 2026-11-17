@@ -18,7 +18,6 @@ describe('staged-content coverage', () => {
     telemetry: 'masked',
     logs: 'masked',
     process: 'masked',
-    'diagnostic-reports': 'masked',
     state: 'masked-separately',
     legacy: 'masked-separately',
     extra: 'raw-bytes-by-design',
@@ -41,7 +40,6 @@ describe('staged-content coverage', () => {
 
   test('the secret-scrub extension set is exactly what is declared', () => {
     expect([...SECRET_SCRUB_EXTENSIONS].sort()).toEqual([
-      '.ips',
       '.json',
       '.jsonl',
       '.lock',
@@ -57,7 +55,6 @@ describe('staged-content coverage', () => {
       telemetry: ['.jsonl'],
       logs: ['.jsonl', '.log'],
       process: ['.json', '.txt'],
-      'diagnostic-reports': ['.ips'],
     } as const;
     expect(Object.keys(stagedExtensions).sort()).toEqual([...CONTENT_SUBDIRS_MASKED].sort());
     for (const [dir, exts] of Object.entries(stagedExtensions)) {
@@ -88,14 +85,6 @@ describe('staged-content coverage', () => {
       writeFileSync(join(legacyDir, filename), '{"source":"legacy"}\n');
     }
 
-    const reportsDir = mkdtempSync(resolve(tmpdir(), 'ok-staging-coverage-reports-'));
-    tmpDirs.push(reportsDir);
-    const reportPath = join(reportsDir, 'OpenKnowledge-2026-05-28-142201.ips');
-    writeFileSync(
-      reportPath,
-      `${JSON.stringify({ name: 'OpenKnowledge', timestamp: '2026-05-28 14:22:01.00 +0000' })}\n{"procName":"OpenKnowledge"}\n`,
-    );
-
     const processDir = mkdtempSync(resolve(tmpdir(), 'ok-staging-coverage-process-'));
     tmpDirs.push(processDir);
     writeFileSync(join(processDir, 'sample.txt'), 'process sample\n');
@@ -109,14 +98,6 @@ describe('staged-content coverage', () => {
       contentDir,
       processDir,
       extraFiles: [{ sourcePath: extraPath }],
-      diagnosticReports: {
-        files: [reportPath],
-        outcome: 'collected',
-        foreignIgnored: 0,
-        unparseable: 0,
-        droppedOverCap: 0,
-        windowDays: 7,
-      },
       deps: {
         fetchAgentPresence: async () => null,
         fetchAgentEffects: async () => null,
@@ -135,7 +116,6 @@ describe('staged-content coverage', () => {
       const produced = readdirSync(collected.stagingDir, { withFileTypes: true })
         .filter((e) => e.isDirectory())
         .map((e) => e.name);
-      expect(produced).toContain('diagnostic-reports');
       expect(produced).toContain('process');
       expect(produced).toContain('extra');
       expect(produced).toContain('legacy');

@@ -1,20 +1,12 @@
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import {
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-} from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { freemem, type as osType, platform, release, totalmem, uptime } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import {
   ACP_LAUNCH_FAILURE_LOG,
   type BundleManifest,
   type BundleRedaction,
-  DESKTOP_PRODUCTS,
   okUserHomeDisplayPath,
   PROJECT_DIAGNOSTIC_FILES,
   REPORT_SENT_MARKER_SUFFIX,
@@ -26,16 +18,6 @@ import { okProjectLogsDir, okUserHomeDir } from '@gitquire/core/server';
 import { withHiddenWindowsConsole } from '@gitquire/server';
 import type { ZipFile } from 'yazl';
 import type { DesktopMetadata } from '../diagnose/bundle.ts';
-import {
-  type DiagnosticReportCollection,
-  prepareDiagnosticReportText,
-  renderDiagnosticReportsStatus,
-} from '../diagnose/diagnostic-reports.ts';
-import {
-  OS_TERMINATION_EVIDENCE_PATH,
-  type OsTerminationEvidence,
-  renderOsTerminationEvidence,
-} from '../diagnose/os-termination-evidence.ts';
 import type { LanguageMetadata } from '../report-language.ts';
 import { redactContent, SECRET_PATTERN_NAMES } from './bug-report-redact.ts';
 
@@ -78,10 +60,7 @@ export interface CollectStandardBundleOptions {
   revealDocNames?: boolean;
   outputPath: string;
   userLogsDir?: string;
-  shipItLogFiles?: string[];
   bugReportLedgerFiles?: string[];
-  diagnosticReports?: DiagnosticReportCollection;
-  osTerminationEvidence?: OsTerminationEvidence;
   note?: string;
   extraFiles?: BundleExtraFile[];
   desktop?: DesktopMetadata | null;
@@ -172,53 +151,6 @@ function isProjectTaggable(file: string): boolean {
 
 export function collectUserLogFiles(projectSlug: string | null, logsDir: string): string[] {
   return collectLogs(projectSlug, logsDir).files;
-}
-
-export const DESKTOP_BUNDLE_ID = DESKTOP_PRODUCTS.stable.appId;
-
-const SHIPIT_LOG_STREAMS = ['ShipIt_stderr.log', 'ShipIt_stdout.log'] as const;
-
-const SHIPIT_LOG_FILES_PER_STREAM = 4;
-
-export function collectShipItLogFiles(
-  cachesDir: string,
-  bundleId: string = DESKTOP_BUNDLE_ID,
-): string[] {
-  const shipItDir = join(cachesDir, `${bundleId}.ShipIt`);
-  if (!existsSync(shipItDir)) return [];
-
-  let entries: string[];
-  try {
-    entries = readdirSync(shipItDir);
-  } catch {
-    return [];
-  }
-
-  return SHIPIT_LOG_STREAMS.flatMap((stream) =>
-    entries
-      .map((entry) => {
-        if (entry === stream) return { entry, suffix: -1 };
-        if (!entry.startsWith(`${stream}.`)) return null;
-        const suffix = entry.slice(stream.length + 1);
-        return /^\d+$/.test(suffix) ? { entry, suffix: Number(suffix) } : null;
-      })
-      .filter((match) => match !== null)
-      .map((match) => {
-        const path = join(shipItDir, match.entry);
-        return { path, suffix: match.suffix, mtimeMs: readMtimeMs(path) };
-      })
-      .sort((a, b) => b.mtimeMs - a.mtimeMs || b.suffix - a.suffix)
-      .slice(0, SHIPIT_LOG_FILES_PER_STREAM)
-      .map((match) => match.path),
-  );
-}
-
-function readMtimeMs(path: string): number {
-  try {
-    return statSync(path).mtimeMs;
-  } catch {
-    return 0;
-  }
 }
 
 export const MAX_BUNDLED_LEDGER_REPORTS = 25;
@@ -371,7 +303,7 @@ function addContentFiles(args: {
       addTextEntry({
         zipfile: args.zipfile,
         name: `${args.prefix}/${basename(file)}`,
-        content: file.endsWith('.ips') ? prepareDiagnosticReportText(raw) : raw,
+        content: raw,
         redact: args.redact,
         revealDocNames: args.revealDocNames,
         bundleFiles: args.bundleFiles,
@@ -417,8 +349,6 @@ export async function collectStandardBundle(
         join(opts.projectDir, '.gitquire', 'local'),
       )
     : { files: [], legacyFiles: [] };
-  const shipItFiles = opts.shipItLogFiles ?? [];
-  const diagnosticReportFiles = opts.diagnosticReports?.files ?? [];
 
   logger?.info(
     {
@@ -426,8 +356,6 @@ export async function collectStandardBundle(
       logFilesExcludedByProjectSlug,
       lockFileCount: lockFiles.length + spawnErrorFiles.length + legacySpawnErrorFiles.length,
       localSinkFileCount: localSinkFiles.length + legacyLocalSinkFiles.length,
-      shipItLogFileCount: shipItFiles.length,
-      diagnosticReportCount: diagnosticReportFiles.length,
     },
     'files collected',
   );
@@ -440,7 +368,7 @@ export async function collectStandardBundle(
 
   addContentFiles({
     zipfile,
-    files: [...logFiles, ...shipItFiles],
+    files: logFiles,
     prefix: 'logs',
     redact,
     revealDocNames,
@@ -499,17 +427,6 @@ export async function collectStandardBundle(
     logger,
   });
 
-  addContentFiles({
-    zipfile,
-    files: diagnosticReportFiles,
-    prefix: 'diagnostic-reports',
-    redact,
-    revealDocNames,
-    bundleFiles,
-    redactions,
-    logger,
-  });
-
   for (const extra of opts.extraFiles ?? []) {
     try {
       const raw = readFileSync(extra.sourcePath);
@@ -538,29 +455,6 @@ export async function collectStandardBundle(
     });
   }
 
-  const diagnosticReportEntryNames = new Set(
-    diagnosticReportFiles.map((f) => `diagnostic-reports/${basename(f)}`),
-  );
-  const diagnosticReportEntries = bundleFiles.filter((f) => diagnosticReportEntryNames.has(f));
-  const diagnosticReportsStatus =
-    opts.diagnosticReports === undefined
-      ? 'not-collected (no collection attempted)'
-      : renderDiagnosticReportsStatus(opts.diagnosticReports, diagnosticReportEntries.length);
-  zipfile.addBuffer(
-    Buffer.from(`${diagnosticReportsStatus}\n`, 'utf8'),
-    'state/diagnostic-reports-status.txt',
-  );
-  bundleFiles.push('state/diagnostic-reports-status.txt');
-  addTextEntry({
-    zipfile,
-    name: OS_TERMINATION_EVIDENCE_PATH,
-    content: renderOsTerminationEvidence(opts.osTerminationEvidence),
-    redact,
-    revealDocNames: true,
-    bundleFiles,
-    redactions,
-  });
-
   const sysinfoJson = JSON.stringify(sysinfo, null, 2);
   zipfile.addBuffer(Buffer.from(sysinfoJson, 'utf8'), 'sysinfo.json');
   bundleFiles.push('sysinfo.json');
@@ -577,39 +471,14 @@ export async function collectStandardBundle(
 
   const totalRedacted = redactions.reduce((sum, r) => sum + r.lineCount, 0);
 
-  const shipItEntryNames = new Set(shipItFiles.map((f) => `logs/${basename(f)}`));
-  const installerLogEntries = bundleFiles.filter((f) => shipItEntryNames.has(f));
-
   const ledgerEntryNames = new Set(
     (opts.bugReportLedgerFiles ?? []).map((f) => `${REPORT_SIDECAR_BUNDLE_DIR}/${basename(f)}`),
   );
   const ledgerEntries = bundleFiles.filter((f) => ledgerEntryNames.has(f));
 
   const userWideLogEntries = projectSlug
-    ? bundleFiles.filter(
-        (f) => f.startsWith('logs/') && !isProjectTaggable(f) && !shipItEntryNames.has(f),
-      )
+    ? bundleFiles.filter((f) => f.startsWith('logs/') && !isProjectTaggable(f))
     : [];
-
-  const diagnosticReportCaveat =
-    diagnosticReportEntries.length > 0
-      ? [
-          'Crash reports under diagnostic-reports/ are rewritten on the way in,',
-          'independently of this setting: escaped path separators are normalised',
-          'so the scrub above can read them, and the identifiers that link this',
-          "machine's bundles to each other are replaced. Nothing else is changed;",
-          'they are not byte-identical to the files macOS wrote.',
-        ]
-      : [];
-
-  const noRedactDisclosure =
-    diagnosticReportCaveat.length > 0
-      ? [
-          'Redaction was disabled for this bundle; file contents are unmodified,',
-          'with one exception.',
-          ...diagnosticReportCaveat,
-        ]
-      : ['Redaction was disabled for this bundle; file contents are unmodified.'];
 
   const readme = [
     '# Bug Report Bundle',
@@ -639,51 +508,6 @@ export async function collectStandardBundle(
           '',
         ]
       : []),
-    ...(installerLogEntries.length > 0
-      ? [
-          'Installer logs: written by the macOS update helper rather than by',
-          'GitQuire itself, and machine-wide rather than scoped to any one',
-          'project. They record the install and update history of this app on',
-          'this machine. Only this app is collected, never other applications',
-          'that use the same update mechanism:',
-          ...installerLogEntries.map((f) => `- ${f}`),
-          '',
-        ]
-      : []),
-    ...(diagnosticReportEntries.length > 0
-      ? [
-          'Crash reports: written by macOS itself rather than by GitQuire,',
-          'and machine-wide rather than scoped to any one project. They record',
-          'why the operating system ended a process of this app — the signal or',
-          'exception, the code-signing verdict, and whatever text the process',
-          'left behind as it died. They also carry machine details the OS puts',
-          'in every report: the account uid, the Mac model, and the name of the',
-          'process that launched this app, which on a managed machine can be',
-          "internal tooling. The identifiers that would link this machine's",
-          'bundles to each other are replaced before bundling. Only this',
-          "app's own reports are collected, never another application's, though",
-          'a report of ours still names the processes it ran alongside:',
-          ...diagnosticReportEntries.map((f) => `- ${f}`),
-          '',
-        ]
-      : []),
-    ...((opts.osTerminationEvidence?.events.length ?? 0) > 0
-      ? [
-          "Termination records: read from the operating system's own logs, covering",
-          'the last 7 days, to explain an exit the app could not record itself. On',
-          'macOS: the memory-pressure (jetsam) reports',
-          "that list processes of this app, with each one's memory use and whether",
-          'it was killed. On Linux: kernel and systemd-oomd out-of-memory kills of',
-          'this app, as structured fields with the machine name, cgroup paths and',
-          "user id left out, plus display-connection errors this app's desktop",
-          "process wrote to the user's own journal, with Chromium's message cut to",
-          '200 characters. On Windows: crash and hang records for this app with',
-          'file paths left out, plus the time of every shutdown, restart, power',
-          'loss and low-memory warning on the machine, whatever caused it:',
-          `- ${OS_TERMINATION_EVIDENCE_PATH}`,
-          '',
-        ]
-      : []),
     ...(ledgerEntries.length > 0
       ? [
           'Send history: a small record for each bug report previously generated',
@@ -704,11 +528,10 @@ export async function collectStandardBundle(
             ? `${totalRedacted} line(s) were scrubbed across ${redactions.length} file(s).`
             : 'No redactions were needed.',
           'See MANIFEST.json for the full redaction audit report.',
-          ...diagnosticReportCaveat,
           '',
           'This bundle is safe to attach to a GitHub issue.',
         ]
-      : noRedactDisclosure),
+      : ['Redaction was disabled for this bundle; file contents are unmodified.']),
   ].join('\n');
   zipfile.addBuffer(Buffer.from(readme, 'utf8'), 'README.md');
 

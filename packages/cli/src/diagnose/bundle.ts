@@ -48,16 +48,6 @@ import { redactContent } from '../commands/bug-report-redact.ts';
 import { PACKAGE_VERSION } from '../constants.ts';
 import { defaultReadLanguage, type LanguageMetadata } from '../report-language.ts';
 import { contentDirSpellings, isRotatedLogPath, redactStagedBundle } from './bundle-redact.ts';
-import {
-  type DiagnosticReportCollection,
-  prepareDiagnosticReportText,
-  renderDiagnosticReportsStatus,
-} from './diagnostic-reports.ts';
-import {
-  OS_TERMINATION_EVIDENCE_PATH,
-  type OsTerminationEvidence,
-  renderOsTerminationEvidence,
-} from './os-termination-evidence.ts';
 
 type BundleSchemaVersion = 2;
 
@@ -126,8 +116,6 @@ export interface CollectBundleOpts {
   extraFiles?: BundleExtraFile[];
   userLogFiles?: string[];
   userStateFiles?: string[];
-  diagnosticReports?: DiagnosticReportCollection;
-  osTerminationEvidence?: OsTerminationEvidence;
   deps?: CollectBundleDeps;
 }
 
@@ -150,7 +138,6 @@ interface BundleSummary {
   totalBytes: number;
   fileCount: number;
   docNameCount: number;
-  stagedDiagnosticReports: number;
   contentDirVisible: boolean;
   redacted: boolean;
 }
@@ -396,11 +383,7 @@ function stageFileIfPresent(srcPath: string, destPath: string): boolean {
   if (!existsSync(srcPath)) return false;
   try {
     mkdirSync(dirname(destPath), { recursive: true });
-    if (srcPath.endsWith('.ips')) {
-      writeFileSync(destPath, prepareDiagnosticReportText(readFileSync(srcPath, 'utf-8')));
-    } else {
-      cpSync(srcPath, destPath);
-    }
+    cpSync(srcPath, destPath);
     return true;
   } catch {
     return false;
@@ -454,7 +437,6 @@ export const SECRET_SCRUB_EXTENSIONS = new Set([
   '.lock',
   '.yaml',
   '.yml',
-  '.ips',
 ]);
 
 function isSecretScrubbable(relPath: string): boolean {
@@ -538,14 +520,6 @@ export async function collectBundle(opts: CollectBundleOpts): Promise<CollectedB
         userStatePath,
         join(stagingDir, REPORT_SIDECAR_BUNDLE_DIR, basename(userStatePath)),
       );
-    }
-    let stagedDiagnosticReports = 0;
-    for (const reportPath of opts.diagnosticReports?.files ?? []) {
-      if (
-        stageFileIfPresent(reportPath, join(stagingDir, 'diagnostic-reports', basename(reportPath)))
-      ) {
-        stagedDiagnosticReports += 1;
-      }
     }
 
     const lockDir = join(projectDir, '.gitquire', 'local');
@@ -647,19 +621,6 @@ export async function collectBundle(opts: CollectBundleOpts): Promise<CollectedB
       serverStatus === 'running' ? 'running\n' : `not-running (${serverStatusReason})\n`;
     writeFileSync(join(stagingDir, 'state', 'server-status.txt'), statusBody);
 
-    const diagnosticReportsStatus =
-      opts.diagnosticReports === undefined
-        ? 'not-collected (no collection attempted)'
-        : renderDiagnosticReportsStatus(opts.diagnosticReports, stagedDiagnosticReports);
-    writeFileSync(
-      join(stagingDir, 'state', 'diagnostic-reports-status.txt'),
-      `${diagnosticReportsStatus}\n`,
-    );
-    writeFileSync(
-      join(stagingDir, OS_TERMINATION_EVIDENCE_PATH),
-      renderOsTerminationEvidence(opts.osTerminationEvidence),
-    );
-
     if (opts.processDir && existsSync(opts.processDir)) {
       const processDest = join(stagingDir, 'process');
       mkdirSync(processDest, { recursive: true });
@@ -759,7 +720,6 @@ export async function collectBundle(opts: CollectBundleOpts): Promise<CollectedB
     });
 
     const summary: BundleSummary = {
-      stagedDiagnosticReports,
       totalBytes,
       fileCount: files.length,
       docNameCount,
