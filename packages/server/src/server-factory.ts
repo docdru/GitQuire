@@ -496,6 +496,7 @@ export interface ServerInstance {
   readonly resolveEmbed: (basename: string, sourcePath: string) => string | null;
   readonly resolveTrackedFile: (relativePath: string) => string | undefined;
   readonly recheckDisk: () => Promise<RecheckResult>;
+  readonly runGitMove: <T>(step: () => Promise<T>) => Promise<T>;
 }
 
 export function observeShutdownDocumentRetirements(
@@ -1296,6 +1297,21 @@ export function createServer(options: ServerOptions): ServerInstance {
 
   let lastAppliedAttachmentFolderPath: string | undefined;
   let projectConfigEpoch = 0;
+
+  async function takeInOwnIgnoreWrite(): Promise<void> {
+    if (!contentFilter) return;
+    try {
+      const result = await contentFilter.rebuildIgnorePatterns();
+      if (!result.ok) {
+        cc1Broadcaster?.emitConfigIgnoreNestedError('.okignore', result.error.message);
+        return;
+      }
+      cc1Broadcaster?.signal('files');
+      await watcher?.recheck('full');
+    } catch (err) {
+      log.warn({ err }, '[ignore] taking in the saved .okignore failed');
+    }
+  }
 
   function applyPersistedConfigToConsumers(
     configDocName: string,
@@ -2508,6 +2524,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       onConfigPersisted: (docName) => {
         applyPersistedConfigToConsumers(docName);
         logConfigDiagnostics(docName);
+        if (docName === CONFIG_DOC_NAME_OKIGNORE) void takeInOwnIgnoreWrite();
       },
       isRecentlyRemoved: (docName) => recentlyRemovedDocs.has(docName),
       mdManager: options.mdManager,
@@ -6321,13 +6338,21 @@ export function createServer(options: ServerOptions): ServerInstance {
     getLinkPreviewsEnabled: readLinkPreviewsEnabled,
     resolveEmbed,
     resolveTrackedFile,
-    recheckDisk: () => {
+    recheckDisk: async () => {
       if (!watcher) {
-        return Promise.reject(
-          new Error('the file watcher is not running, so there is nothing to re-check'),
-        );
+        throw new Error('the file watcher is not running, so there is nothing to re-check');
       }
+      await recheckConfigFiles();
       return watcher.recheck();
+    },
+    runGitMove: async (step) => {
+      const handOver = batchFlagFor('git-move');
+      await handOver(true);
+      try {
+        return await step();
+      } finally {
+        await handOver(false);
+      }
     },
   };
 }

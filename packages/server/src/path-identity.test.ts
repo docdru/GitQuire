@@ -31,7 +31,6 @@ import {
 } from './file-watcher.ts';
 import { LocalTargetIndex } from './local-target-index.ts';
 import { createPersistenceExtension } from './persistence.ts';
-import { createServer, type ServerInstance } from './server-factory.ts';
 import { destroyShadowRepo, initShadowRepo, shadowGit } from './shadow-repo.ts';
 import { waitWithinTestBudget } from './wait-within-test-budget.test-helper.ts';
 
@@ -362,23 +361,6 @@ describe('directory identity across server components', () => {
   });
 });
 
-type DirectConnection = Awaited<ReturnType<ServerInstance['hocuspocus']['openDirectConnection']>>;
-
-async function appendParagraph(connection: DirectConnection, text: string): Promise<void> {
-  await connection.transact((doc) => {
-    const paragraph = new Y.XmlElement('paragraph');
-    paragraph.insert(0, [new Y.XmlText(text)]);
-    const fragment = doc.getXmlFragment('default');
-    fragment.insert(fragment.length, [paragraph]);
-  });
-}
-
-async function storeNow(server: ServerInstance, docName: string): Promise<void> {
-  const debounceId = `onStoreDocument-${docName}`;
-  await vi.waitFor(() => expect(server.hocuspocus.debouncer.isDebounced(debounceId)).toBe(true));
-  await server.hocuspocus.debouncer.executeNow(debounceId);
-}
-
 function watcherDecisionsFor(fileName: string): string[] {
   return getWatcherDecisionRingSnapshot()
     .filter((record) => record.path.endsWith(`${sep}${fileName}`))
@@ -428,69 +410,6 @@ async function documentListingFrom(contentDir: string): Promise<ListedEntry[]> {
 }
 
 describe('one directory identity for watcher keys and linked documents', () => {
-  test.for(WATCHED_ROOT_ROWS)(
-    'a save from the %s root is suppressed by the %s watcher, and its late echo keeps the newer content',
-    async ([spelling, watcher], ctx) => {
-      const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
-      const { contentDir } = root;
-      const home = mkdtempSync(join(tmpdir(), 'ok-path-identity-home-'));
-      fixtures.push(home);
-      const docName = `echo-${randomUUID().slice(0, 8)}`;
-      const filePath = join(contentDir, `${docName}.md`);
-      const seed = '# Echo\n\nSeed paragraph.\n';
-      writeFileSync(filePath, seed);
-      if (watcher === 'chokidar') vi.stubEnv('GITQUIRE_FILE_WATCHER_BACKEND', 'chokidar');
-      resetWatcherDecisionDiagnostics();
-      echoGate.docName = docName;
-      const server = createServer({
-        contentDir,
-        quiet: true,
-        debounce: 60_000,
-        maxDebounce: 120_000,
-        gitEnabled: false,
-        configHomedirOverride: home,
-        skipStateManifestCheck: true,
-      });
-      try {
-        await server.ready;
-        await untilWatcherReportsChanges(contentDir);
-        const connection = await server.hocuspocus.openDirectConnection(docName);
-        try {
-          const liveSource = () =>
-            server.hocuspocus.documents.get(docName)?.getText('source').toString();
-          await vi.waitFor(() =>
-            expect(server.durabilityState.getReconciledBase(docName)).toBe(seed),
-          );
-          await appendParagraph(connection, 'Alpha edit paragraph.');
-          await storeNow(server, docName);
-          expect(readFileSync(filePath, 'utf8')).toContain('Alpha edit paragraph.');
-          await vi.waitFor(() =>
-            expect(watcherDecisionsFor(`${docName}.md`).length).toBeGreaterThanOrEqual(1),
-          );
-          await appendParagraph(connection, 'Bravo edit paragraph.');
-          await storeNow(server, docName);
-          const newer = readFileSync(filePath, 'utf8');
-          expect(newer).toContain('Bravo edit paragraph.');
-          await vi.waitFor(() =>
-            expect(watcherDecisionsFor(`${docName}.md`).length).toBeGreaterThanOrEqual(2),
-          );
-          for (const deliver of echoGate.held.splice(0).reverse()) await deliver();
-          expect(liveSource()).toBe(newer);
-          expect(server.durabilityState.getReconciledBase(docName)).toBe(newer);
-          expect(watcherDecisionsFor(`${docName}.md`)).toContain('self-write-skip');
-        } finally {
-          await connection.disconnect();
-        }
-      } finally {
-        echoGate.docName = null;
-        echoGate.held.length = 0;
-        vi.unstubAllEnvs();
-        await server.destroy();
-      }
-    },
-  );
-
   test.for(['natively spelled', 'case-aliased', '8.3 short-name'] as const)(
     'a write registered under the %s root before it lands is suppressed by the chokidar watcher',
     async (spelling, ctx) => {

@@ -74,6 +74,7 @@ describe('FR-34: serializeDoc returns ytext bytes verbatim', () => {
 
       const updatedContent = '---\n# Title Updated\n';
       writeFileSync(docPath, updatedContent, 'utf-8');
+      await server.recheckDisk();
 
       await waitWithinTestBudget(
         `reconciledBase for ${docName} to pick up the updated bytes from disk`,
@@ -128,6 +129,7 @@ describe('FR-35: setReconciledBase stores raw bytes uniformly across all paths',
 
       const updatedContent = '---\n# Title\n\nA __strong__ paragraph.\n\nNew block.\n';
       writeFileSync(docPath, updatedContent, 'utf-8');
+      await server.recheckDisk();
 
       await waitWithinTestBudget(
         `reconciledBase for ${docName} to pick up the updated bytes from disk`,

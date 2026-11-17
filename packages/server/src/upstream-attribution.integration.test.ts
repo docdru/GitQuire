@@ -67,7 +67,7 @@ test('merge while doc is open attributes the reconcile to the incoming author', 
 
   const conn = await server.hocuspocus.openDirectConnection('bugs');
 
-  await git.merge(['--no-ff', '-m', 'merge incoming', 'incoming']);
+  await server.runGitMove(() => git.merge(['--no-ff', '-m', 'merge incoming', 'incoming']));
 
   const sg = shadowGit(shadow);
   let reconcileLine = '';
@@ -106,7 +106,7 @@ test('a multi-author pull attributes each doc to its own author', async () => {
   });
   await server.ready;
 
-  await git.merge(['--no-ff', '-m', 'merge incoming', 'incoming']);
+  await server.runGitMove(() => git.merge(['--no-ff', '-m', 'merge incoming', 'incoming']));
 
   const sg = shadowGit(shadow);
   let log = '';

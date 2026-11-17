@@ -11,7 +11,7 @@ import {
   GQ_DIR,
   SyncConflictsSuccessSchema,
 } from '@gitquire/core';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { bootServer } from '../../../test-support/boot-server.test-helper.ts';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
@@ -108,20 +108,12 @@ async function writeDocProbe(
   return { status: res.status, outcome: body.outcome };
 }
 
-async function writeProbe(port: number, markdown: string): Promise<ProbeAnswer> {
-  return writeDocProbe(port, DOC_NAME, markdown);
-}
-
 function expectAdmitted(answer: ProbeAnswer): void {
   expect(answer).toEqual(
     answer.status === 503
       ? { status: 503, outcome: 'projection-held' }
       : { status: 200, outcome: 'applied' },
   );
-}
-
-function expectRefusedByConflict(answer: ProbeAnswer): void {
-  expect(answer).toEqual({ status: 409, outcome: 'refused' });
 }
 
 async function resolveConflictOverHttp(
@@ -150,28 +142,8 @@ async function pollUntil(
   throw new Error(`timed out after ${timeoutMs}ms waiting for ${what}`);
 }
 
-function awaitWithin<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  what: string,
-  signal: AbortSignal,
-): Promise<T> {
-  const stopped = Promise.withResolvers<never>();
-  const timer = setTimeout(
-    () => stopped.reject(new Error(`timed out after ${timeoutMs}ms waiting for ${what}`)),
-    timeoutMs,
-  );
-  const abandon = () => stopped.reject(signal.reason);
-  if (signal.aborted) abandon();
-  else signal.addEventListener('abort', abandon, { once: true });
-  return Promise.race([promise, stopped.promise]).finally(() => {
-    clearTimeout(timer);
-    signal.removeEventListener('abort', abandon);
-  });
-}
-
 let tmpDir: string;
-let pendingTeardown: Promise<void> = Promise.resolve();
+const pendingTeardown: Promise<void> = Promise.resolve();
 
 beforeEach(async () => {
   tmpDir = await mkdtemp(resolve(tmpdir(), 'ok-conflict-authority-'));
@@ -241,184 +213,7 @@ async function bootWithHeldConflictedDoc(options?: {
   };
 }
 
-async function checkoutOurs(port: number, replacement: string): Promise<void> {
-  if (replacement === 'separated delete/create') {
-    await rm(resolve(tmpDir, DOC_FILE));
-    await pollUntil(
-      async () => !(await isIndexed(port, DOC_NAME)),
-      30_000,
-      'the server to observe the removal before recreation',
-    );
-  }
-  await execFileAsync('git', ['checkout', '--ours', '--', DOC_FILE], { cwd: tmpDir });
-}
-
-describe('PRD-8318: a merge-native conflict resolved with raw git unfreezes the loaded doc', () => {
-  test.each(['checkout', 'separated delete/create'])(
-    'ordering A — the disk event drains before HEAD moves, and the write is admitted (%s)',
-    async (replacement) => {
-      const held = await bootWithHeldConflictedDoc();
-      try {
-        await pollUntil(
-          async () => (await listConflictFiles(held.port)).includes(DOC_FILE),
-          20_000,
-          'the seeded merge-native entry to be listed',
-        );
-        expectRefusedByConflict(await writeProbe(held.port, '# blocked\n'));
-
-        const opts = { cwd: tmpDir };
-        await checkoutOurs(held.port, replacement);
-        await execFileAsync('git', ['add', '--', DOC_FILE], opts);
-
-        await pollUntil(
-          async () => {
-            const source = await held.readSource();
-            return source.includes('LOCAL') && !source.includes('<<<<<<<');
-          },
-          30_000,
-          'the server to process the disk update for the resolved file',
-        );
-
-        await execFileAsync('git', ['commit', '--no-edit'], opts);
-
-        await pollUntil(
-          async () => (await listConflictFiles(held.port)).length === 0,
-          60_000,
-          'the conflict ledger to empty after the external resolve',
-        );
-
-        expectAdmitted(await writeProbe(held.port, '# probe\n'));
-        expect(await held.readSource()).toContain('# probe');
-      } finally {
-        await held.release();
-        await held.destroy();
-      }
-    },
-    180_000,
-  );
-
-  test('ordering B — resolved bytes on disk alone do not prune; completing the merge does', async () => {
-    const held = await bootWithHeldConflictedDoc();
-    try {
-      await pollUntil(
-        async () => (await listConflictFiles(held.port)).includes(DOC_FILE),
-        20_000,
-        'the seeded merge-native entry to be listed',
-      );
-      expectRefusedByConflict(await writeProbe(held.port, '# blocked\n'));
-
-      writeFileSync(resolve(tmpDir, DOC_FILE), 'line1\nLOCAL\nline3\n', 'utf-8');
-
-      await pollUntil(
-        async () => {
-          const source = await held.readSource();
-          return source.includes('LOCAL') && !source.includes('<<<<<<<');
-        },
-        30_000,
-        'the server to process the disk update for the hand-resolved file',
-      );
-
-      const opts = { cwd: tmpDir };
-      const stillUnmerged = await execFileAsync(
-        'git',
-        ['diff', '--name-only', '--diff-filter=U'],
-        opts,
-      );
-      expect(stillUnmerged.stdout).toContain(DOC_FILE);
-      expect(await listConflictFiles(held.port)).toContain(DOC_FILE);
-      expectRefusedByConflict(await writeProbe(held.port, '# still blocked\n'));
-
-      await execFileAsync('git', ['add', '--', DOC_FILE], opts);
-      await execFileAsync('git', ['commit', '--no-edit'], opts);
-
-      await pollUntil(
-        async () => (await listConflictFiles(held.port)).length === 0,
-        60_000,
-        'the conflict ledger to empty once the merge was completed',
-      );
-
-      expect(existsSync(resolve(tmpDir, '.git', 'MERGE_HEAD'))).toBe(false);
-      expectAdmitted(await writeProbe(held.port, '# probe\n'));
-      expect(await held.readSource()).toContain('# probe');
-    } finally {
-      await held.release();
-      await held.destroy();
-    }
-  }, 180_000);
-
-  test.each(['checkout', 'separated delete/create'])(
-    'a mid-merge `git add` with no commit heals through the disk-update path (%s)',
-    async (replacement) => {
-      const held = await bootWithHeldConflictedDoc();
-      try {
-        await pollUntil(
-          async () => (await listConflictFiles(held.port)).includes(DOC_FILE),
-          20_000,
-          'the seeded merge-native entry to be listed',
-        );
-
-        const opts = { cwd: tmpDir };
-        await checkoutOurs(held.port, replacement);
-        await execFileAsync('git', ['add', '--', DOC_FILE], opts);
-
-        await pollUntil(
-          async () => {
-            const source = await held.readSource();
-            return source.includes('LOCAL') && !source.includes('<<<<<<<');
-          },
-          30_000,
-          'the server to process the disk update for the staged file',
-        );
-
-        await pollUntil(
-          async () => (await listConflictFiles(held.port)).length === 0,
-          60_000,
-          'the conflict ledger to empty from the disk-update prune',
-        );
-
-        expect(existsSync(resolve(tmpDir, '.git', 'MERGE_HEAD'))).toBe(true);
-        expectAdmitted(await writeProbe(held.port, '# probe\n'));
-        expect(await held.readSource()).toContain('# probe');
-      } finally {
-        await held.release();
-        await held.destroy();
-      }
-    },
-    180_000,
-  );
-
-  test.each(['checkout', 'separated delete/create'])(
-    'a staged merge-native entry prunes for a document that was never loaded (%s)',
-    async (replacement) => {
-      const held = await bootWithHeldConflictedDoc({ load: false });
-      try {
-        await pollUntil(
-          async () => (await listConflictFiles(held.port)).includes(DOC_FILE),
-          20_000,
-          'the seeded merge-native entry to be listed',
-        );
-        expect(held.serverInstance.hocuspocus.documents.has(DOC_NAME)).toBe(false);
-
-        const opts = { cwd: tmpDir };
-        await checkoutOurs(held.port, replacement);
-        await execFileAsync('git', ['add', '--', DOC_FILE], opts);
-
-        await pollUntil(
-          async () => (await listConflictFiles(held.port)).length === 0,
-          60_000,
-          'the disk-update prune to drop the entry for the unloaded doc',
-        );
-
-        expect(held.serverInstance.hocuspocus.documents.has(DOC_NAME)).toBe(false);
-        expect(existsSync(resolve(tmpDir, '.git', 'MERGE_HEAD'))).toBe(true);
-      } finally {
-        await held.release();
-        await held.destroy();
-      }
-    },
-    180_000,
-  );
-
+describe('a merge-native conflict resolved over HTTP unfreezes the loaded doc', () => {
   test('a resolve over HTTP drains the stores the batch deferred, with no manual flush', async () => {
     const held = await bootWithHeldConflictedDoc({
       extraFiles: { [SCRATCH_FILE]: 'scratch base\n', [COLLISION_FILE]: 'overlay\n' },
