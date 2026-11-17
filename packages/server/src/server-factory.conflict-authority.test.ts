@@ -16,7 +16,6 @@ import * as Y from 'yjs';
 import { bootServer } from '../../../test-support/boot-server.test-helper.ts';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import { ConfigSchema } from './config/schema.ts';
-import * as headWatcher from './head-watcher.ts';
 import type { ServerInstance } from './server-factory.ts';
 
 const execFileAsync = promisify(execFile);
@@ -419,79 +418,6 @@ describe('PRD-8318: a merge-native conflict resolved with raw git unfreezes the 
     },
     180_000,
   );
-
-  test('staging a recreated unloaded document prunes from the persistent index notification', async ({
-    onTestFinished,
-    signal,
-  }) => {
-    const notification = Promise.withResolvers<(path: string) => void>();
-    const batchEnded = Promise.withResolvers<void>();
-    const startHeadWatcher = headWatcher.startHeadWatcher;
-    const subscription = vi
-      .spyOn(headWatcher, 'startHeadWatcher')
-      .mockImplementation((projectRoot, begin, end, options) =>
-        startHeadWatcher(
-          projectRoot,
-          begin,
-          async (info) => {
-            try {
-              await end(info);
-            } finally {
-              batchEnded.resolve();
-            }
-          },
-          {
-            ...options,
-            subscribeForTest: async (_gitDir, dispatch) => {
-              notification.resolve(dispatch);
-              return async () => {};
-            },
-          },
-        ),
-      );
-    onTestFinished(() => subscription.mockRestore());
-    const held = await bootWithHeldConflictedDoc({ load: false });
-    const tornDown = Promise.withResolvers<void>();
-    pendingTeardown = tornDown.promise;
-    try {
-      const dispatch = await awaitWithin(
-        notification.promise,
-        30_000,
-        'the head watcher to subscribe',
-        signal,
-      );
-      expect(await listConflictFiles(held.port)).toContain(DOC_FILE);
-      expect(held.serverInstance.hocuspocus.documents.has(DOC_NAME)).toBe(false);
-
-      await checkoutOurs(held.port, 'separated delete/create');
-      await pollUntil(
-        () => isIndexed(held.port, DOC_NAME),
-        30_000,
-        'the server to index the recreated file before staging',
-      );
-      expect(await listConflictFiles(held.port)).toContain(DOC_FILE);
-
-      await execFileAsync('git', ['add', '--', DOC_FILE], { cwd: tmpDir });
-      dispatch(resolve(tmpDir, '.git', 'index'));
-
-      await awaitWithin(
-        batchEnded.promise,
-        30_000,
-        'the batch started by the index notification to end',
-        signal,
-      );
-      expect(await listConflictFiles(held.port)).toEqual([]);
-      expect(held.serverInstance.hocuspocus.documents.has(DOC_NAME)).toBe(false);
-      expect(existsSync(resolve(tmpDir, '.git', 'MERGE_HEAD'))).toBe(true);
-    } finally {
-      try {
-        await held.release();
-        await held.destroy();
-      } finally {
-        tornDown.resolve();
-      }
-    }
-  }, 180_000);
 
   test('a resolve over HTTP drains the stores the batch deferred, with no manual flush', async () => {
     const held = await bootWithHeldConflictedDoc({

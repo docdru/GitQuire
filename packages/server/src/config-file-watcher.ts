@@ -3,7 +3,6 @@ import { dirname } from 'node:path';
 import { tracedMkdirSync } from './fs-traced.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import { getLogger } from './logger.ts';
-import { startPolledPathWatcher } from './polled-path-watcher.ts';
 
 export type ConfigFileWatcherUnsubscribe = () => Promise<void>;
 
@@ -11,10 +10,6 @@ export type ConfigFileWatcher = ConfigFileWatcherUnsubscribe & {
   readonly resync: () => void;
   readonly recheck: () => Promise<boolean>;
 };
-
-export interface ConfigFileWatcherOptions {
-  readonly poll?: boolean;
-}
 
 function readOrNull(path: string, log: ReturnType<typeof getLogger>): string | null {
   try {
@@ -30,7 +25,6 @@ function readOrNull(path: string, log: ReturnType<typeof getLogger>): string | n
 export async function startConfigFileWatcher(
   absPath: string,
   onChange: (content: string) => void | Promise<void>,
-  options: ConfigFileWatcherOptions = {},
 ): Promise<ConfigFileWatcher> {
   const log = getLogger('config-file-watcher');
 
@@ -70,24 +64,8 @@ export async function startConfigFileWatcher(
     }
     return true;
   };
-  const handleUnlink = (path: string): void => {
-    if (path !== absPath) return;
-    log.debug({ path }, 'config file unlinked; Y.Text retained at current state');
-  };
 
-  const stop =
-    options.poll === false
-      ? async (): Promise<void> => {}
-      : await startPolledPathWatcher({
-          listPaths: async () => [absPath],
-          onEvent: (event, path) => {
-            if (event === 'unlink') handleUnlink(path);
-            else void handlePath(path);
-          },
-          onError: (err, path) => {
-            log.warn({ err, path }, '[config-file-watcher] poll error');
-          },
-        });
+  const stop = async (): Promise<void> => {};
   void handlePath(absPath, false);
   return Object.assign(() => stop(), {
     resync: () => {
@@ -100,7 +78,6 @@ export async function startConfigFileWatcher(
 export async function startMultiPathConfigFileWatcher(
   absPaths: ReadonlyArray<string>,
   onChange: (path: string, content: string) => void | Promise<void>,
-  options: ConfigFileWatcherOptions = {},
 ): Promise<ConfigFileWatcher> {
   if (absPaths.length === 0) {
     throw new Error('startMultiPathConfigFileWatcher requires at least one absolute path');
@@ -152,24 +129,8 @@ export async function startMultiPathConfigFileWatcher(
     }
     return true;
   };
-  const handleUnlink = (path: string): void => {
-    if (!watchedPaths.has(path)) return;
-    log.debug({ path }, 'config file unlinked; downstream state retained');
-  };
 
-  const stop =
-    options.poll === false
-      ? async (): Promise<void> => {}
-      : await startPolledPathWatcher({
-          listPaths: async () => Array.from(watchedPaths),
-          onEvent: (event, path) => {
-            if (event === 'unlink') handleUnlink(path);
-            else void handlePath(path);
-          },
-          onError: (err, path) => {
-            log.warn({ err, path }, '[config-file-watcher] poll error');
-          },
-        });
+  const stop = async (): Promise<void> => {};
   const recheck = async (): Promise<boolean> => {
     let changed = false;
     for (const path of watchedPaths) {

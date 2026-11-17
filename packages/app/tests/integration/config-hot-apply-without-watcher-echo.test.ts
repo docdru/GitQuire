@@ -23,23 +23,6 @@ vi.mock('@napi-rs/keyring', () => ({
   },
 }));
 
-const statPollWatchers = vi.hoisted(() => ({ swallowEvents: true, swallowed: 0 }));
-afterAll(() => {
-  statPollWatchers.swallowEvents = false;
-});
-vi.mock('../../../server/src/polled-path-watcher.ts', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('../../../server/src/polled-path-watcher.ts')>();
-  return {
-    ...actual,
-    startPolledPathWatcher: (...args: Parameters<typeof actual.startPolledPathWatcher>) => {
-      if (!statPollWatchers.swallowEvents) return actual.startPolledPathWatcher(...args);
-      statPollWatchers.swallowed += 1;
-      return Promise.resolve(async () => {});
-    },
-  };
-});
-
 import {
   bindConfigDoc,
   CONFIG_DOC_NAME_PROJECT,
@@ -58,7 +41,6 @@ import {
 } from './test-harness';
 
 const execFileAsync = promisify(execFile);
-const WATCHING = process.env.GITQUIRE_FILE_WATCHER_BACKEND !== 'off';
 
 describe('PRD-7260 — persisted config change reaches in-process consumers without the watcher echo', () => {
   let srv: TestServer;
@@ -70,9 +52,7 @@ describe('PRD-7260 — persisted config change reaches in-process consumers with
   let projectBinding: ConfigBinding;
 
   beforeAll(async () => {
-    const swallowedBefore = statPollWatchers.swallowed;
     srv = await createTestServer({ seedProjectConfigYml: '{}\n' });
-    if (WATCHING) expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
 
     ydoc = new Y.Doc();
     provider = new HocuspocusProvider({
@@ -186,12 +166,10 @@ describe('configured attachment folder composes into real Git sync without the w
   };
 
   beforeAll(async () => {
-    const swallowedBefore = statPollWatchers.swallowed;
     srv = await createSyncWiredTestServer({
       originSeed: { 'seed.txt': 'seed\n' },
       projectConfigYml: '{}\n',
     });
-    if (WATCHING) expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
 
     ydoc = new Y.Doc();
     provider = new HocuspocusProvider({
@@ -255,9 +233,7 @@ describe('PRD-7260 — reconciled config change reaches in-process consumers wit
   let binding: ConfigBinding;
 
   beforeAll(async () => {
-    const swallowedBefore = statPollWatchers.swallowed;
     srv = await createTestServer();
-    if (WATCHING) expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
 
     ydoc = new Y.Doc();
     provider = new HocuspocusProvider({

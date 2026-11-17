@@ -22,7 +22,6 @@ import {
   makeCaptureRes,
   makeSyntheticReq,
 } from './composition-rig.test-helper.ts';
-import * as headWatcherModule from './head-watcher.ts';
 import {
   type ConfigSystemRouteDeps,
   createConfigSystemRoutes,
@@ -527,50 +526,6 @@ describe('server-info branch reporting over the composed listener', () => {
       expect(emitServerInfo).toHaveBeenCalledWith(expect.any(String), 'feat/probe');
     } finally {
       emitServerInfo.mockRestore();
-    }
-  }, 60_000);
-
-  test('a failed HEAD watcher reports the git branch while rescue uses the storage branch', async () => {
-    const startHeadWatcher = vi
-      .spyOn(headWatcherModule, 'startHeadWatcher')
-      .mockRejectedValueOnce(new Error('watcher unavailable'));
-    try {
-      const server = await bootOn('watcher-failed-', (dir) => {
-        execFileSync('git', ['init', '-q', '-b', 'feat/probe'], { cwd: dir });
-        configureTestGitRepository(dir);
-      });
-
-      expect(server.degraded).toContain('head-watcher');
-      expect(await currentBranchOf(server)).toBe('feat/probe');
-
-      const shadow = {
-        gitDir: resolveShadowDir(server.contentDir),
-        workTree: server.contentDir,
-      };
-      await saveInMemoryCheckpoint(shadow, '', {
-        kind: 'external-change-rescue',
-        docName: 'storage-branch.md',
-        contents: '# Storage branch\n',
-        label: 'Storage branch rescue',
-        branch: 'main',
-        metadata: { incomingDiskSha: '' },
-      });
-      await saveInMemoryCheckpoint(shadow, '', {
-        kind: 'external-change-rescue',
-        docName: 'reported-branch.md',
-        contents: '# Reported branch\n',
-        label: 'Reported branch rescue',
-        branch: 'feat/probe',
-        metadata: { incomingDiskSha: '' },
-      });
-
-      const rescue = await fetch(`http://127.0.0.1:${server.port}/api/rescue`);
-      expect(rescue.status).toBe(200);
-      const entries = (await rescue.json()) as Array<{ docName: string }>;
-      expect(entries.map((entry) => entry.docName)).toContain('storage-branch.md');
-      expect(entries.map((entry) => entry.docName)).not.toContain('reported-branch.md');
-    } finally {
-      startHeadWatcher.mockRestore();
     }
   }, 60_000);
 

@@ -109,10 +109,7 @@ export interface CreateTestServerOptions {
   pushIntervalSeconds?: number;
   agentSessionOptions?: ServerOptions['agentSessionOptions'];
   seedSkillHostRoot?: boolean;
-  watcherBackend?: ServerOptions['watcherBackend'];
   watcherClock?: ServerOptions['watcherClock'];
-  freshnessIntervalMs?: ServerOptions['freshnessIntervalMs'];
-  fileWatching?: ServerOptions['fileWatching'];
   mergeHistoryWriter?: ServerOptions['mergeHistoryWriter'];
 }
 
@@ -190,10 +187,7 @@ export async function createTestServer(options: CreateTestServerOptions = {}): P
       pullIntervalSeconds: options.pullIntervalSeconds,
       pushIntervalSeconds: options.pushIntervalSeconds,
       agentSessionOptions: options.agentSessionOptions,
-      watcherBackend: options.watcherBackend,
       watcherClock: options.watcherClock,
-      freshnessIntervalMs: options.freshnessIntervalMs ?? null,
-      ...(options.fileWatching ? { fileWatching: options.fileWatching } : {}),
       mergeHistoryWriter: options.mergeHistoryWriter,
       ...(ephemeral ? { ephemeral: true, singleDocRelPath: options.singleDocRelPath } : {}),
       skipStateManifestCheck: true,
@@ -687,10 +681,7 @@ export interface RereadOutcome {
   found: number;
 }
 
-const WATCHING_IN_TESTS = process.env.GITQUIRE_FILE_WATCHER_BACKEND?.trim().toLowerCase() !== 'off';
-
 export async function rereadFromDisk(server: { port: number }): Promise<RereadOutcome> {
-  if (WATCHING_IN_TESTS) return { status: 'watched', found: 0 };
   const res = await fetch(`http://127.0.0.1:${server.port}/api/documents/reread`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

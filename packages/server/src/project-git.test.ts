@@ -10,7 +10,7 @@ import {
   __resetResolveOnPathCacheForTests,
   __seedResolveOnPathCacheForTests,
 } from './git-preflight.ts';
-import { readProjectHeadState } from './head-watcher.ts';
+import { readProjectHeadState } from './project-head.ts';
 import { ensureProjectGit, ProjectGitInitError } from './project-git.ts';
 
 const execFileAsync = promisify(execFile);

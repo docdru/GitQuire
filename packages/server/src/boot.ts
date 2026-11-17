@@ -153,9 +153,7 @@ export interface BootServerOptions
     | 'singleDocRelPath'
     | 'ephemeral'
     | 'configHomedirOverride'
-    | 'watcherBackend'
     | 'watcherClock'
-    | 'freshnessIntervalMs'
   > {
   config: Config;
   skipAutoInit?: boolean;
@@ -439,9 +437,7 @@ async function bootServerInner(
     singleDocRelPath: opts.singleDocRelPath,
     ephemeral: opts.ephemeral,
     configHomedirOverride: opts.configHomedirOverride,
-    watcherBackend: opts.watcherBackend,
     watcherClock: opts.watcherClock,
-    freshnessIntervalMs: opts.freshnessIntervalMs,
   });
   gitquireHttp.useContentFilter({
     isExcluded: (rel) => serverInstance.contentFilter.isExcluded(rel),

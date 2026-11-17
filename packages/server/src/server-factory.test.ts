@@ -74,7 +74,7 @@ import { TagIndex } from './tag-index.ts';
 import { contentHash } from './version-hash.ts';
 import { createWatcherDouble } from './watcher-double.test-helper.ts';
 
-const watcherStartupFailures = vi.hoisted(() => ({ file: false, head: false }));
+const watcherStartupFailures = vi.hoisted(() => ({ file: false }));
 
 vi.mock('./file-watcher.ts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./file-watcher.ts')>();
@@ -85,19 +85,6 @@ vi.mock('./file-watcher.ts', async (importOriginal) => {
         throw new Error('injected file-watcher startup failure');
       }
       return actual.startWatcher(...args);
-    },
-  };
-});
-
-vi.mock('./head-watcher.ts', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./head-watcher.ts')>();
-  return {
-    ...actual,
-    startHeadWatcher: async (...args: Parameters<typeof actual.startHeadWatcher>) => {
-      if (watcherStartupFailures.head) {
-        throw new Error('injected head-watcher startup failure');
-      }
-      return actual.startHeadWatcher(...args);
     },
   };
 });
@@ -1703,7 +1690,6 @@ describe('createServer() degraded signal', () => {
 
   afterEach(() => {
     watcherStartupFailures.file = false;
-    watcherStartupFailures.head = false;
     resetBootTimingsForTest();
     rmSync(testProjectDir, { recursive: true, force: true });
   });
@@ -1816,7 +1802,6 @@ describe('createServer() degraded signal', () => {
 
   test.each([
     { failure: 'file' as const, label: 'file-watcher' },
-    { failure: 'head' as const, label: 'head-watcher' },
   ])('$label startup failure is reported at runtime', async ({ failure, label }) => {
     watcherStartupFailures[failure] = true;
     if (failure === 'file') startBootTimings('2026-07-23T00:00:00.000Z');

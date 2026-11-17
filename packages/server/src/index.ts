@@ -239,7 +239,7 @@ export {
   migrateLegacyDataFolders,
   migrateLegacyHomeFolder,
 } from './gitquire/legacy-data-folder.ts';
-export { type ProjectHeadState, readProjectHeadState } from './head-watcher.ts';
+export { type ProjectHeadState, readProjectHeadState } from './project-head.ts';
 export {
   assertSafeProjectRoot,
   canonicalizeForCompare,
