@@ -30,7 +30,6 @@ import { noUnwrappedUserFacingString } from './rules/no-unwrapped-user-facing-st
 import { pathConditionalMapDrivenOrigin } from './rules/path-conditional-map-driven-origin.mjs';
 import { playwrightPreferToHaveCount } from './rules/playwright-prefer-to-have-count.mjs';
 import { requireUtf8MultipartParser } from './rules/require-utf8-multipart-parser.mjs';
-import { requireWindowshideOnSpawn } from './rules/require-windowshide-on-spawn.mjs';
 import { scoped } from './scope.mjs';
 
 export const PLUGIN_NAME = 'gq';
@@ -68,7 +67,6 @@ const declared = {
   'path-conditional-map-driven-origin': pathConditionalMapDrivenOrigin,
   'playwright-prefer-to-have-count': playwrightPreferToHaveCount,
   'require-utf8-multipart-parser': requireUtf8MultipartParser,
-  'require-windowshide-on-spawn': requireWindowshideOnSpawn,
 };
 
 export const rules = Object.fromEntries(

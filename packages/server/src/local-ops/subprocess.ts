@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process';
 import { posix, win32 } from 'node:path';
 import { envWithoutDevChannel, type GqCliCommand, type GqCliRefusal } from '@gitquire/core';
-import { withHiddenWindowsConsole } from '../child-process-windows-hide.ts';
 import type { LocalOpSubprocessLifetime } from './subprocess-lifetime.ts';
 
 interface ParsedLine {
@@ -152,15 +151,11 @@ export function runSubprocess(opts: SubprocessRunOptions): SubprocessController 
   let child: ReturnType<typeof spawn>;
   try {
     const launch = () =>
-      spawn(
-        cmd,
-        argv,
-        withHiddenWindowsConsole({
-          stdio,
-          cwd: opts.cwd,
-          env: childEnv,
-        }),
-      );
+      spawn(cmd, argv, {
+        stdio,
+        cwd: opts.cwd,
+        env: childEnv,
+      });
     child = opts.lifetime ? opts.lifetime.spawn(launch) : launch();
   } catch (err) {
     return {

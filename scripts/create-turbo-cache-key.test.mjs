@@ -100,7 +100,6 @@ function git(root, args) {
   const result = spawnSync('git', args, {
     cwd: root,
     encoding: 'utf8',
-    windowsHide: true,
     env: isolatedEnv({
       GIT_AUTHOR_NAME: 'fixture',
       GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
@@ -158,7 +157,6 @@ function plan(root) {
     cwd: root,
     encoding: 'utf8',
     timeout: 60_000,
-    windowsHide: true,
     env: isolatedEnv(),
   });
   expect(result.error, `turbo did not exit on its own\n${result.stderr}`).toBeUndefined();

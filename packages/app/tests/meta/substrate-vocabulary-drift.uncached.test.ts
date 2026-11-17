@@ -43,7 +43,6 @@ function listPackageTestFiles(root: string): string[] {
         encoding: 'utf8',
         env: gitCleanEnv(),
         maxBuffer: 64 * 1024 * 1024,
-        windowsHide: true,
       },
     ),
   );
@@ -115,7 +114,6 @@ function runGit(root: string, args: readonly string[]): void {
     cwd: root,
     encoding: 'utf8',
     env: gitCleanEnv(),
-    windowsHide: true,
   });
   expect(result.status, result.stderr).toBe(0);
 }

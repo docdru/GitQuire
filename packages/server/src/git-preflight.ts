@@ -3,7 +3,6 @@ import { accessSync, existsSync, constants as fsConstants, readFileSync, statSyn
 import { homedir } from 'node:os';
 import { isAbsolute, join, delimiter as PATH_DELIM } from 'node:path';
 import { currentCliCommandName } from '@gitquire/core';
-import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 
 export const MIN_GIT_VERSION = '2.31.0';
 
@@ -152,12 +151,11 @@ type ProbeResult =
   | { kind: 'fail'; reason: GitProbeFailureReason };
 
 function probeGit(command: string): ProbeResult {
-  const opts: SpawnSyncOptions = withHiddenWindowsConsole({
+  const opts: SpawnSyncOptions = {
     encoding: 'utf-8',
     timeout: PROBE_TIMEOUT_MS,
     env: { ...process.env, LANG: 'C', LC_ALL: 'C' },
-  });
-  // oxlint-disable-next-line gq/require-windowshide-on-spawn -- windowsHide is set on `opts` via withHiddenWindowsConsole above; the rule can't see through the by-reference options variable.
+  };
   const result = spawnSync(command, ['--version'], opts);
   if (result.error) {
     if ('signal' in result && result.signal === 'SIGTERM')

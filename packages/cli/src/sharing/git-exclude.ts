@@ -3,7 +3,6 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { GQ_DIR, LEGACY_SKILL_STORE_ROOT, pathspecArgs, toPathspec } from '@gitquire/core';
 import { discoverGitRepository } from '@gitquire/core/git-repository';
-import { withHiddenWindowsConsole } from '@gitquire/server';
 
 const GQ_IGNORE_FILENAME = '.okignore';
 
@@ -179,14 +178,10 @@ export function probeTrackedOkPaths(
     const abs = resolve(projectRoot, p);
     if (!existsSync(abs)) continue;
     try {
-      execFileSync(
-        'git',
-        ['ls-files', '--error-unmatch', ...pathspecArgs([p])],
-        withHiddenWindowsConsole({
-          cwd: projectRoot,
-          stdio: ['ignore', 'ignore', 'ignore'],
-        }),
-      );
+      execFileSync('git', ['ls-files', '--error-unmatch', ...pathspecArgs([p])], {
+        cwd: projectRoot,
+        stdio: ['ignore', 'ignore', 'ignore'],
+      });
       tracked.push(p);
     } catch {}
   }

@@ -16,7 +16,6 @@ import {
 } from '@gitquire/core';
 import ignore, { type Ignore } from 'ignore';
 import { isReservedForUserTree } from './cc1-broadcast.ts';
-import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 import { isSupportedDocFile, stripDocExtension } from './doc-extensions.ts';
 import { isProjectRoot } from './fs/find-project-root.ts';
 import { getLogger } from './logger.ts';
@@ -507,30 +506,22 @@ async function loadGitExcludeSourcesAsync(
 }
 
 function readGitCommonDirSync(projectDir: string): string | null {
-  const probe = spawnSync(
-    'git',
-    ['rev-parse', '--git-common-dir'],
-    withHiddenWindowsConsole({
-      cwd: projectDir,
-      encoding: 'utf-8',
-      timeout: 5_000,
-    }),
-  );
+  const probe = spawnSync('git', ['rev-parse', '--git-common-dir'], {
+    cwd: projectDir,
+    encoding: 'utf-8',
+    timeout: 5_000,
+  });
   if (probe.status !== 0 || !probe.stdout) return null;
   return resolve(projectDir, probe.stdout.trim());
 }
 
 async function readGitCommonDirAsync(projectDir: string): Promise<string | null> {
   try {
-    const { stdout } = await execFileAsync(
-      'git',
-      ['rev-parse', '--git-common-dir'],
-      withHiddenWindowsConsole({
-        cwd: projectDir,
-        encoding: 'utf-8',
-        timeout: 5_000,
-      }),
-    );
+    const { stdout } = await execFileAsync('git', ['rev-parse', '--git-common-dir'], {
+      cwd: projectDir,
+      encoding: 'utf-8',
+      timeout: 5_000,
+    });
     if (!stdout) return null;
     return resolve(projectDir, stdout.trim());
   } catch {
@@ -539,15 +530,11 @@ async function readGitCommonDirAsync(projectDir: string): Promise<string | null>
 }
 
 function resolveGlobalExcludesfileSync(projectDir: string): string | null {
-  const configProbe = spawnSync(
-    'git',
-    ['config', '--get', '--type=path', 'core.excludesfile'],
-    withHiddenWindowsConsole({
-      cwd: projectDir,
-      encoding: 'utf-8',
-      timeout: 5_000,
-    }),
-  );
+  const configProbe = spawnSync('git', ['config', '--get', '--type=path', 'core.excludesfile'], {
+    cwd: projectDir,
+    encoding: 'utf-8',
+    timeout: 5_000,
+  });
   if (configProbe.status === 0 && configProbe.stdout) {
     const raw = configProbe.stdout.trim();
     if (raw) return raw;
@@ -560,7 +547,7 @@ async function resolveGlobalExcludesfileAsync(projectDir: string): Promise<strin
     const { stdout } = await execFileAsync(
       'git',
       ['config', '--get', '--type=path', 'core.excludesfile'],
-      withHiddenWindowsConsole({ cwd: projectDir, encoding: 'utf-8', timeout: 5_000 }),
+      { cwd: projectDir, encoding: 'utf-8', timeout: 5_000 },
     );
     const raw = stdout.trim();
     if (raw) return raw;

@@ -19,7 +19,7 @@ describe('spawnDetachedScrubbed', () => {
     }) as unknown as NonNullable<Parameters<typeof spawnDetachedScrubbed>[2]>['spawn'];
   }
 
-  test('spawns detached, stdio:ignore, windowsHide, and unref()s the child', () => {
+  test('spawns detached, stdio:ignore, and unref()s the child', () => {
     const captured: Captured = {};
     let unrefCalled = false;
     spawnDetachedScrubbed('open', ['-b', 'com.example.app'], {
@@ -32,7 +32,6 @@ describe('spawnDetachedScrubbed', () => {
     expect(captured.args).toEqual(['-b', 'com.example.app']);
     expect(captured.opts?.detached).toBe(true);
     expect(captured.opts?.stdio).toBe('ignore');
-    expect(captured.opts?.windowsHide).toBe(true);
     expect(unrefCalled).toBe(true);
   });
 

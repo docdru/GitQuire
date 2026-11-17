@@ -3,7 +3,6 @@ import {
   type spawn as NativeSpawn,
   spawn as nativeSpawn,
 } from 'node:child_process';
-import { withHiddenWindowsConsole } from '@gitquire/server';
 
 function scrubElectronRunAsNode(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const next = { ...env };
@@ -32,12 +31,12 @@ function classifySpawnError(err: unknown): SpawnDetachedScrubbedOutcome {
 }
 
 function detachedSpawnOptions(env: NodeJS.ProcessEnv): Parameters<typeof nativeSpawn>[2] {
-  return withHiddenWindowsConsole({
+  return {
     detached: true,
     stdio: 'ignore' as const,
     shell: false,
     env: scrubElectronRunAsNode(env),
-  });
+  };
 }
 
 export function spawnDetachedScrubbed(

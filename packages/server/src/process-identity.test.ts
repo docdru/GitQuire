@@ -1048,7 +1048,6 @@ describe('readPsProcessStart', () => {
       options: {
         encoding: 'utf8',
         timeout: 5000,
-        windowsHide: true,
         env: { PATH: '/usr/bin', LC_ALL: 'C', TZ: 'UTC0' },
       },
     });

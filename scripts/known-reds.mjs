@@ -681,7 +681,11 @@ function addVariableBindings(bindings, list) {
       }
     }
     forEachBindingName(declaration.name, (name) => {
-      addBinding(bindings, name, destructured.get(name) ?? { initializer: null, destructured: null });
+      addBinding(
+        bindings,
+        name,
+        destructured.get(name) ?? { initializer: null, destructured: null },
+      );
     });
   }
 }
@@ -736,7 +740,9 @@ function scopeBindings(scope) {
   }
   if (ts.isFunctionLike(scope)) {
     for (const parameter of scope.parameters) {
-      forEachBindingName(parameter.name, (name) => addBinding(bindings, name, { initializer: null }));
+      forEachBindingName(parameter.name, (name) =>
+        addBinding(bindings, name, { initializer: null }),
+      );
     }
   }
   if (
@@ -745,7 +751,9 @@ function scopeBindings(scope) {
     ts.isVariableDeclarationList(scope.initializer)
   ) {
     for (const declaration of scope.initializer.declarations) {
-      forEachBindingName(declaration.name, (name) => addBinding(bindings, name, { initializer: null }));
+      forEachBindingName(declaration.name, (name) =>
+        addBinding(bindings, name, { initializer: null }),
+      );
     }
   }
   if (ts.isCatchClause(scope) && scope.variableDeclaration) {
@@ -1525,7 +1533,6 @@ export function listTestFiles(root) {
       encoding: 'utf8',
       env: gitCleanEnv(),
       maxBuffer: 1 << 28,
-      windowsHide: true,
     },
   );
   if (listed.error || listed.status !== 0) {

@@ -1,10 +1,7 @@
 import { type ExecFileSyncOptionsWithStringEncoding, execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { hostname, uptime } from 'node:os';
-import {
-  LOCAL_OP_PIPE_STDIO_OPTIONS,
-  withHiddenWindowsConsole,
-} from './child-process-windows-hide.ts';
+import { LOCAL_OP_PIPE_STDIO_OPTIONS } from './child-process-options.ts';
 import { getLogger } from './logger.ts';
 import { getMachineId } from './machine-id.ts';
 import { isProcessAlive } from './process-alive.ts';
@@ -143,12 +140,12 @@ export function readPsProcessStart(
   if (!isReadableProcessId(pid)) return null;
   const env = options.env ?? process.env;
   const run = options.run ?? execFileSync;
-  const commandOptions: ExecFileSyncOptionsWithStringEncoding = withHiddenWindowsConsole({
+  const commandOptions: ExecFileSyncOptionsWithStringEncoding = {
     encoding: 'utf8',
     ...LOCAL_OP_PIPE_STDIO_OPTIONS,
     timeout: PS_PROCESS_START_QUERY_TIMEOUT_MS,
     env: { ...env, LC_ALL: 'C', TZ: 'UTC0' },
-  });
+  };
   try {
     const raw = run('ps', ['-p', String(pid), '-o', 'lstart='], commandOptions).trim();
     if (!PS_LSTART_PATTERN.test(raw)) return null;

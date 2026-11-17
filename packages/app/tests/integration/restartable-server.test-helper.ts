@@ -8,7 +8,6 @@ import { ensureProjectGit } from '@gitquire/server';
 import { z } from 'zod';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { testAuthorityRegistryPath } from '../../../../test-support/server-authority-registry.test-helper.ts';
-import { withHiddenWindowsConsole } from '../../../server/src/child-process-windows-hide.ts';
 import { getFreePort } from '../free-port.test-helper.ts';
 import { removeAllStrictDuringTeardown } from '../stress/_helpers/teardown-fs.ts';
 import type { CreateTestServerOptions } from './test-harness.ts';
@@ -90,11 +89,11 @@ export async function createRestartableServer(
       'tsx',
       fileURLToPath(new URL('./restartable-server-worker.test-helper.ts', import.meta.url)),
     ],
-    withHiddenWindowsConsole({
+    {
       cwd: fileURLToPath(new URL('../..', import.meta.url)),
       stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
       env: { ...process.env, HOME: home, USERPROFILE: home },
-    } satisfies SpawnOptions),
+    } satisfies SpawnOptions,
   );
   let diagnostics = '';
   const capture = (chunk: Buffer): void => {

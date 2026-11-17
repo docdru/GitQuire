@@ -34,8 +34,7 @@ const CODE = `gq(${RULE})`;
 const FIXTURE = `lint-plugins/gq-rules/__fixtures__/${RULE}.fixture.tsx`;
 const README = 'lint-plugins/gq-rules/README.md';
 const BARE_IMPORT = "import { sharedExtensions } from '@gitquire/core';\n";
-const SUBPATH_IMPORT =
-  "import { sharedExtensions } from '@gitquire/core/extensions/shared';\n";
+const SUBPATH_IMPORT = "import { sharedExtensions } from '@gitquire/core/extensions/shared';\n";
 const PRODUCTION_SHAPED = [
   'packages/app/src/App.tsx',
   'packages/app/src/server/hocuspocus-plugin.ts',
@@ -71,7 +70,7 @@ function lintWithRepoConfig(root, files) {
   const result = spawnSync(
     join(ROOT, 'node_modules/.bin/oxlint'),
     ['-f', 'json', '--max-warnings', '0', ...files],
-    { cwd: root, encoding: 'utf8', windowsHide: true, maxBuffer: 64 * 1024 * 1024 },
+    { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );
   expect(result.error).toBeUndefined();
   expect(typeof result.status).toBe('number');
@@ -115,9 +114,7 @@ describe(`${RULE} oxlint rule`, () => {
     expect(fires.map((fire) => Number(fire.position.split(':')[0]))).toEqual(positiveLines);
     for (const fire of fires) {
       const [line, column] = fire.position.split(':').map(Number);
-      expect(lines[line - 1].slice(column - 1)).toMatch(
-        /^['`]@gitquire\/core(?:[?#][^'`]*)?['`]/,
-      );
+      expect(lines[line - 1].slice(column - 1)).toMatch(/^['`]@gitquire\/core(?:[?#][^'`]*)?['`]/);
       expect(fire.message).toContain('Import each binding from the core subpath');
       expect(fire.message).toMatch(/https?:\/\/[^\s]+/);
       expect(fire.message).toContain(`${README}#${RULE}`);
