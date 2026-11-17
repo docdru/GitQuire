@@ -47,6 +47,21 @@ jobs:
           curl -fsS http://127.0.0.1:8080/ | grep -qi "<html"
           echo "web app served"
 
+      - name: Image content
+        run: |
+          set -eu
+          docker run --rm -v "$GITHUB_WORKSPACE/.github/scripts:/scripts:ro" --entrypoint node gitquire:ci \
+            /scripts/image-content.mjs > /tmp/image-content.txt
+          head -2 /tmp/image-content.txt
+          sha256sum /tmp/image-content.txt
+
+      - name: Upload image content
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-content
+          path: /tmp/image-content.txt
+          retention-days: 14
+
       - name: Seed a sample page
         run: |
           set -eu
