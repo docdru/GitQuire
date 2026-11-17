@@ -15,6 +15,7 @@ permissions:
 
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/gitquire
+  PLAYWRIGHT_VERSION: 1.63.0
 
 jobs:
   build:
@@ -31,6 +32,8 @@ jobs:
           context: .
           load: true
           tags: gitquire:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Smoke test
         run: |
@@ -86,16 +89,31 @@ jobs:
           MD
           sleep 3
 
+      - name: Install Playwright
+        run: |
+          set -eu
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "playwright@$PLAYWRIGHT_VERSION" "@playwright/test@$PLAYWRIGHT_VERSION" >/dev/null
+
+      - name: Restore Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}-chromium
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: cd /tmp/pw && npx playwright install chromium
+
       - name: Capture layout screenshots
         continue-on-error: true
         run: |
           set -eu
-          mkdir -p /tmp/shots && cd /tmp/shots
-          npm init -y >/dev/null
-          npm install --no-audit --no-fund playwright@1.63.0 >/dev/null
-          npx playwright install --with-deps chromium >/dev/null
+          cd /tmp/pw
           cp "$GITHUB_WORKSPACE/.github/scripts/screenshots.mjs" .
-          SCREENSHOT_DIR=/tmp/shots/out SCREENSHOT_LOG=1 node screenshots.mjs
+          SCREENSHOT_DIR=/tmp/pw/shots SCREENSHOT_LOG=1 node screenshots.mjs
 
       - name: Upload layout screenshots
         if: always()
@@ -103,7 +121,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: layout-screenshots
-          path: /tmp/shots/out
+          path: /tmp/pw/shots
           if-no-files-found: ignore
           retention-days: 14
 
@@ -122,10 +140,7 @@ jobs:
           A page for the browser tests.
           MD
           sleep 3
-          mkdir -p /tmp/e2e && cd /tmp/e2e
-          npm init -y >/dev/null
-          npm install --no-audit --no-fund @playwright/test@1.63.0 >/dev/null
-          npx playwright install --with-deps chromium >/dev/null
+          cd /tmp/pw
           cp "$GITHUB_WORKSPACE"/.github/e2e/* .
           GITQUIRE_URL=http://127.0.0.1:8082 GITQUIRE_CONTAINER=gq-e2e \
             npx playwright test -c playwright.config.mjs
@@ -136,8 +151,8 @@ jobs:
         with:
           name: browser-test-report
           path: |
-            /tmp/e2e/report
-            /tmp/e2e/results
+            /tmp/pw/report
+            /tmp/pw/results
           if-no-files-found: ignore
           retention-days: 14
 
@@ -222,6 +237,8 @@ jobs:
         with:
           context: .
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:sha-${{ github.sha }}
