@@ -39,19 +39,20 @@ export function jobTimings(job, runCreatedAt) {
 }
 
 export function runTimings(run, jobs) {
-  const rows = jobs.map((job) => jobTimings(job, run.created_at));
+  const startedAt = run.run_started_at ?? run.created_at;
+  const rows = jobs.map((job) => jobTimings(job, startedAt));
   const ran = rows.filter((row) => !row.skipped);
   const end = jobs.reduce(
     (latest, job) => (job.completed_at && job.completed_at > latest ? job.completed_at : latest),
-    run.created_at,
+    startedAt,
   );
   return {
-    id: run.id,
+    id: run.run_attempt > 1 ? `${run.id}/${run.run_attempt}` : run.id,
     workflow: run.name,
     event: run.event,
     branch: run.head_branch,
     conclusion: run.conclusion,
-    wall: seconds(run.created_at, end),
+    wall: seconds(startedAt, end),
     jobMinutes: ran.reduce((sum, row) => sum + row.total, 0) / 60,
     jobsRun: ran.length,
     jobsSkipped: rows.length - ran.length,
@@ -128,11 +129,13 @@ export function parseArgs(argv) {
     const arg = argv[index];
     if (arg === '--repo') options.repo = argv[++index];
     else if (arg === '--json') options.json = true;
-    else if (/^\d+$/.test(arg)) options.ids.push(arg);
+    else if (/^\d+(\/\d+)?$/.test(arg)) options.ids.push(arg);
     else throw new Error(`unknown argument: ${arg}`);
   }
   if (options.ids.length === 0) {
-    throw new Error('usage: node scripts/ci-timings.mjs [--repo owner/name] [--json] <run-id>...');
+    throw new Error(
+      'usage: node scripts/ci-timings.mjs [--repo owner/name] [--json] <run-id>[/<attempt>]...',
+    );
   }
   return options;
 }
@@ -141,11 +144,15 @@ function ghJson(path) {
   return JSON.parse(execFileSync('gh', ['api', path], { encoding: 'utf8', maxBuffer: 64 << 20 }));
 }
 
-function fetchRun(repo, id) {
-  const run = ghJson(`repos/${repo}/actions/runs/${id}`);
+function fetchRun(repo, spec) {
+  const [id, attempt] = spec.split('/');
+  const base = attempt
+    ? `repos/${repo}/actions/runs/${id}/attempts/${attempt}`
+    : `repos/${repo}/actions/runs/${id}`;
+  const run = ghJson(base);
   const jobs = [];
   for (let page = 1; ; page += 1) {
-    const batch = ghJson(`repos/${repo}/actions/runs/${id}/jobs?per_page=100&page=${page}`);
+    const batch = ghJson(`${base}/jobs?per_page=100&page=${page}`);
     jobs.push(...batch.jobs);
     if (jobs.length >= batch.total_count || batch.jobs.length === 0) break;
   }

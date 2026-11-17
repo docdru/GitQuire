@@ -76,6 +76,16 @@ test('reports a skipped job with zero time and leaves it out of the job minutes'
   expect(formatTable(run.rows)).toContain('| publish | – | – |');
 });
 
+test('measures a re-run from the start of its attempt', () => {
+  const run = runTimings(
+    { id: 7, run_attempt: 2, name: 'Checks', created_at: at(0), run_started_at: at(4) },
+    [testJob],
+  );
+  expect(run.id).toBe('7/2');
+  expect(run.wall).toBe(46);
+  expect(run.rows[0].start).toBe(1);
+});
+
 test('takes the median per job across runs', () => {
   const runs = [10, 30, 20].map((testSeconds, index) =>
     runTimings({ id: index, name: 'Checks', created_at: at(0) }, [
@@ -94,10 +104,10 @@ test('formats durations as minutes and seconds', () => {
 });
 
 test('reads run ids and options from the command line', () => {
-  expect(parseArgs(['--repo', 'a/b', '--json', '12', '34'])).toEqual({
+  expect(parseArgs(['--repo', 'a/b', '--json', '12', '34/2'])).toEqual({
     repo: 'a/b',
     json: true,
-    ids: ['12', '34'],
+    ids: ['12', '34/2'],
   });
   expect(() => parseArgs([])).toThrow(/usage/);
   expect(() => parseArgs(['--nope'])).toThrow(/unknown argument/);
