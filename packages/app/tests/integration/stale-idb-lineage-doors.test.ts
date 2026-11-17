@@ -13,6 +13,7 @@ import {
   createTestServer,
   getServerState,
   pollUntil,
+  rereadFromDisk,
   seedPoolServerInstanceId,
   wait,
 } from './test-harness';
@@ -89,6 +90,7 @@ describe('client-persisted state meets a re-seeded doc lineage (deferred-attach 
     const docName = `lineage-deferred-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, FIXTURE_V1, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const pool = new ProviderPool(3, `ws://127.0.0.1:${server.port}/collab`, {
@@ -116,8 +118,10 @@ describe('client-persisted state meets a re-seeded doc lineage (deferred-attach 
     pool.close(docName);
 
     rmSync(filePath);
+    await rereadFromDisk(server);
     await pollUntil(() => getServerState(server, docName) === null, 20_000, 100);
     writeFileSync(filePath, FIXTURE_V2, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     pool.setExpectedServerInstanceId(null);
@@ -169,6 +173,7 @@ describe('client-persisted state meets a re-seeded doc lineage (fresh-pool rejoi
     const docName = `lineage-freshpool-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, FIXTURE_V1, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const wsUrl = `ws://127.0.0.1:${server.port}/collab`;
@@ -196,8 +201,10 @@ describe('client-persisted state meets a re-seeded doc lineage (fresh-pool rejoi
     poolA.dispose();
 
     rmSync(filePath);
+    await rereadFromDisk(server);
     await pollUntil(() => getServerState(server, docName) === null, 20_000, 100);
     writeFileSync(filePath, FIXTURE_V2, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const poolB = new ProviderPool(3, wsUrl, { storage: sharedStorage });

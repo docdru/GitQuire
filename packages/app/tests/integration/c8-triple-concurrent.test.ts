@@ -12,6 +12,7 @@ import {
   createTestServer,
   pollUntil,
   readTestDoc,
+  rereadFromDisk,
   serializeFragment,
   type TestClient,
   type TestServer,
@@ -64,6 +65,7 @@ describe('C8: triple concurrent write surfaces', () => {
     const docName = `c8-triple-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, '# C8 Triple Test\n\nSeed content.\n', 'utf-8');
+    await rereadFromDisk(server);
 
     await wait(500);
 
@@ -89,6 +91,7 @@ describe('C8: triple concurrent write surfaces', () => {
 
       const currentDisk = readTestDoc(server.contentDir, docName);
       writeFileSync(filePath, `${currentDisk}\nC8-FILE-WATCHER-CONTENT\n`, 'utf-8');
+      await rereadFromDisk(server);
 
       await pollUntil(() => client.ytext.toString().includes('C8-FILE-WATCHER-CONTENT'), 8000);
 
@@ -114,6 +117,7 @@ describe('C8: triple concurrent write surfaces', () => {
     const docName = `c8-multi-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, '# C8 Multi-Client\n\nBase.\n', 'utf-8');
+    await rereadFromDisk(server);
     await wait(500);
 
     const clients = await createTestClients(server.port, {
@@ -144,6 +148,7 @@ describe('C8: triple concurrent write surfaces', () => {
 
       const currentDisk = readTestDoc(server.contentDir, docName);
       writeFileSync(filePath, `${currentDisk}\nC8-MULTI-FILE-WATCHER\n`, 'utf-8');
+      await rereadFromDisk(server);
 
       await assertConverged(clients, [
         'C8 Multi-Client',
@@ -160,6 +165,7 @@ describe('C8: triple concurrent write surfaces', () => {
     const docName = `c8-overwrite-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, '# C8 Overwrite\n\nOriginal.\n', 'utf-8');
+    await rereadFromDisk(server);
     await wait(500);
 
     const client = await createTestClient(server.port, docName, { skipInvariantWatcher: true });
@@ -176,6 +182,7 @@ describe('C8: triple concurrent write surfaces', () => {
 
       const currentDisk = readTestDoc(server.contentDir, docName);
       writeFileSync(filePath, `${currentDisk}\nC8-FILE-WATCHER-AFTER-AGENT\n`, 'utf-8');
+      await rereadFromDisk(server);
 
       await pollUntil(() => client.ytext.toString().includes('C8-FILE-WATCHER-AFTER-AGENT'), 8000);
       await wait(500);
@@ -194,6 +201,7 @@ describe('C8: triple concurrent write surfaces', () => {
     const docName = `c8-wysiwyg-file-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, '# C8 WYSIWYG File\n\nSeed.\n', 'utf-8');
+    await rereadFromDisk(server);
     await wait(500);
 
     const client = await createTestClient(server.port, docName, { skipInvariantWatcher: true });
@@ -208,6 +216,7 @@ describe('C8: triple concurrent write surfaces', () => {
 
       const currentDisk = readTestDoc(server.contentDir, docName);
       writeFileSync(filePath, `${currentDisk}\nC8-FILE-AFTER-WYSIWYG\n`, 'utf-8');
+      await rereadFromDisk(server);
 
       await pollUntil(() => client.ytext.toString().includes('C8-FILE-AFTER-WYSIWYG'), 8000);
       await wait(500);

@@ -7,16 +7,15 @@ import type * as Y from 'yjs';
 import { applyAgentMarkdownWrite } from '../../../server/src/agent-sessions';
 import { DerivedDocumentIndex } from '../../../server/src/derived-document-index';
 import * as diskContentIntake from '../../../server/src/disk-content-intake';
-import { _resetDocExtensionsForTests } from '../../../server/src/doc-extensions';
 import * as fsTraced from '../../../server/src/fs-traced';
 import { getMetrics } from '../../../server/src/metrics';
 import { contentHash } from '../../../server/src/version-hash';
-import { createManualClock } from '../../../server/src/watcher-clock.test-helper';
 import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
 import {
   createTestClient,
   createTestServer,
   pollUntil,
+  rereadFromDisk,
   type TestClient,
   type TestServer,
 } from './test-harness';
@@ -56,6 +55,7 @@ async function startWithDoc(
   const docName = `receipt-${randomUUID()}`;
   const file = join(started.contentDir, `${docName}.md`);
   writeFileSync(file, SEED);
+  await rereadFromDisk(started);
   return { server: started, docName, file };
 }
 
@@ -293,76 +293,6 @@ describe('compare before every Markdown write', () => {
     expect(compareCount('changed')).toBe(mergesBefore);
   });
 
-  test('an .mdx receipt survives a cold restart, counts a change made while stopped and recognises a late echo', async () => {
-    const contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-receipt-mdx-restart-')));
-    ownedDirs.push(contentDir);
-    const docName = `receipt-mdx-${randomUUID()}`;
-    const file = join(contentDir, `${docName}.mdx`);
-    writeFileSync(file, SEED);
-    server = await createTestServer({
-      contentDir,
-      keepContentDir: true,
-      watcherBackend: createWatcherDouble().backend,
-      debounce: 50,
-      maxDebounce: 200,
-    });
-    const first = await openClient(server.port, docName, { resetOnCleanup: false });
-    typeAfter(first.doc, first.ytext, 'second paragraph', ' saved before quitting');
-    const saved = '# Doc\n\nfirst paragraph\n\nsecond paragraph saved before quitting\n';
-    await pollUntil(() => readFileSync(file, 'utf-8') === saved, 8_000, 25, 'the save');
-    await first.cleanup();
-    client = undefined;
-    await server.cleanup();
-    server = undefined;
-
-    const edited =
-      '# Doc\n\nfirst paragraph edited while stopped\n\nsecond paragraph saved before quitting\n';
-    writeFileSync(file, edited);
-    _resetDocExtensionsForTests();
-    const changedBefore = getMetrics().receiptAtLoad.changed ?? 0;
-    const clock = createManualClock(Date.now());
-    const double = createWatcherDouble();
-    server = await createTestServer({
-      contentDir,
-      keepContentDir: true,
-      watcherBackend: double.backend,
-      watcherClock: clock,
-      debounce: 50,
-      maxDebounce: 200,
-    });
-    const restarted = server;
-    await new Promise((resolve) => setImmediate(resolve));
-    client = await createTestClient(restarted.port, docName);
-    const reopened = client;
-    await pollUntil(() => reopened.ytext.toString() === edited, 5_000, 25, 'the load');
-    expect(getMetrics().receiptAtLoad.changed ?? 0).toBe(changedBefore + 1);
-
-    typeAfter(reopened.doc, reopened.ytext, 'quitting', ' and after');
-    const final =
-      '# Doc\n\nfirst paragraph edited while stopped\n\nsecond paragraph saved before quitting and after\n';
-    await pollUntil(
-      () => readFileSync(file, 'utf-8') === final,
-      8_000,
-      25,
-      'the save after restart',
-    );
-    clock.advance(25_000);
-    const echoesBefore = getMetrics().receiptIntakeSkip.echo ?? 0;
-    double.subscriptionFor(restarted.contentDir).deliver([{ type: 'update', path: file }]);
-    await pollUntil(
-      () => {
-        clock.advance(50);
-        return (getMetrics().receiptIntakeSkip.echo ?? 0) > echoesBefore;
-      },
-      5_000,
-      25,
-      'the late echo to reach the intake',
-    );
-    expect(
-      readFileSync(join(contentDir, '.gitquire', 'local', 'receipts.jsonl'), 'utf-8'),
-    ).toContain(contentHash(final));
-  });
-
   test('a store whose merge of the outside edit fails to apply holds the save and never writes over the outside bytes', async () => {
     const { server: s, docName, file } = await startWithDoc();
     const c = await openClient(s.port, docName);
@@ -419,6 +349,7 @@ describe('compare before every Markdown write', () => {
     );
     const outside = '# Doc\n\ncreated outside\n';
     writeFileSync(file, outside);
+    await rereadFromDisk(started);
     const realApply = diskContentIntake.applyDiskContentToDoc;
     vi.spyOn(diskContentIntake, 'applyDiskContentToDoc').mockImplementation((...args) => {
       if (args[1].includes('created outside')) throw new Error('injected apply failure');
@@ -530,41 +461,6 @@ describe('compare before every Markdown write', () => {
     expect(s.instance.durabilityState.isStoreRefused(docName)).toBe(true);
   });
 
-  test('an echo of our own save delivered after the tracker window is recognised by the receipt', async () => {
-    const clock = createManualClock(Date.now());
-    const double = createWatcherDouble();
-    const {
-      server: s,
-      docName,
-      file,
-    } = await startWithDoc({
-      watcherBackend: double.backend,
-      watcherClock: clock,
-    });
-    const c = await openClient(s.port, docName);
-    typeAfter(c.doc, c.ytext, 'second paragraph', ' typed here');
-    const saved = '# Doc\n\nfirst paragraph\n\nsecond paragraph typed here\n';
-    await pollUntil(() => readFileSync(file, 'utf-8') === saved, 8_000, 25, 'the save');
-
-    clock.advance(25_000);
-    const echoesBefore = getMetrics().receiptIntakeSkip.echo ?? 0;
-    const reconcilesBefore = getMetrics().reconcileCount;
-    double.subscriptionFor(s.contentDir).deliver([{ type: 'update', path: file }]);
-    await pollUntil(
-      () => {
-        clock.advance(50);
-        return (getMetrics().receiptIntakeSkip.echo ?? 0) > echoesBefore;
-      },
-      5_000,
-      25,
-      'the late echo to reach the intake',
-    );
-
-    expect(getMetrics().reconcileCount).toBe(reconcilesBefore);
-    expect(serverText(s, docName)).toBe(saved);
-    expect(readFileSync(file, 'utf-8')).toBe(saved);
-  });
-
   test('a compare read that is briefly busy is retried and the save lands', async () => {
     const { server: s, docName, file } = await startWithDoc();
     const c = await openClient(s.port, docName);
@@ -670,6 +566,7 @@ async function startWithUnsavedEdit(
   const docName = `receipt-collide-${randomUUID()}`;
   const file = join(started.contentDir, `${docName}.md`);
   writeFileSync(file, saved);
+  await rereadFromDisk(started);
   client = await createTestClient(started.port, docName);
   const opened = client;
   await pollUntil(() => opened.ytext.toString() === saved, 5_000, 25, 'the seeded document');

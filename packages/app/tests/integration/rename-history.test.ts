@@ -14,6 +14,7 @@ import {
   createTestClient,
   pollUntil,
   type RestartableServer,
+  rereadFromDisk,
   wait,
 } from './test-harness';
 
@@ -635,6 +636,7 @@ describe('Timeline rename-history mitigation — integration', () => {
   test('user-supplied summary lands on the same commit as the rename event (no leak across drains)', async () => {
     const server = await bootServer();
     writeFileSync(join(server.contentDir, 'summary-a.md'), '# A\n', 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(async () => {
       const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`);
       if (!res.ok) return false;
@@ -719,6 +721,7 @@ describe('Timeline rename-history mitigation — integration', () => {
     });
     cleanups.push(() => server.shutdown());
     writeFileSync(join(server.contentDir, 'pure-a.md'), '# Pure A\n', 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(async () => {
       const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`);
       if (!res.ok) return false;
@@ -761,6 +764,7 @@ describe('Timeline rename-history mitigation — integration', () => {
     await crossSecondBoundary();
 
     renameSync(join(first.contentDir, 'outside-a.md'), join(first.contentDir, 'outside-b.md'));
+    await rereadFromDisk(first);
     await pollUntil(
       () =>
         readRenameLogEntries(first).some(
@@ -878,6 +882,7 @@ describe('Timeline rename-history mitigation — integration', () => {
     mkdirSync(join(server.contentDir, 'big'), { recursive: true });
     for (let i = 0; i < COUNT; i++) {
       writeFileSync(join(server.contentDir, 'big', `doc-${i}.md`), `# doc-${i}\n`, 'utf-8');
+      await rereadFromDisk(server);
     }
 
     const rescanRes = await fetch(`http://127.0.0.1:${server.port}/api/test-rescan-files`, {

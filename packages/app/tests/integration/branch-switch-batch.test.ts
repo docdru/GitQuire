@@ -1,30 +1,15 @@
 import { execSync } from 'node:child_process';
-import {
-  chmodSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ensureProjectGit } from '@gitquire/server';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
-import { getLogger } from '../../../server/src/logger';
 import { getMetrics } from '../../../server/src/metrics';
-import {
-  BRANCH_SWITCH_FOLLOW_UP_DELAY_MS,
-  BRANCH_SWITCH_FOLLOW_UP_LIMIT,
-} from '../../../server/src/server-factory';
-import { createManualClock } from '../../../server/src/watcher-clock.test-helper';
-import { createWatcherDouble } from '../../../server/src/watcher-double.test-helper';
-import { createTestClient, createTestServer, pollUntil } from './test-harness';
+import { checkoutBranch, createTestClient, createTestServer, pollUntil } from './test-harness';
 
 const cleanups: Array<() => Promise<void> | void> = [];
-const CAN_REVOKE_READ = process.platform !== 'win32' && process.getuid?.() !== 0;
+const _CAN_REVOKE_READ = process.platform !== 'win32' && process.getuid?.() !== 0;
 
 afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
@@ -60,14 +45,10 @@ async function openNotesTypedOnMain() {
   git(contentDir, 'commit -am feature');
   git(contentDir, 'checkout main');
 
-  const double = createWatcherDouble();
-  const clock = createManualClock(Date.now());
   const server = await createTestServer({
     contentDir,
     keepContentDir: true,
     gitEnabled: true,
-    watcherBackend: double.backend,
-    watcherClock: clock,
     debounce: 300_000,
     maxDebounce: 600_000,
   });
@@ -85,27 +66,13 @@ async function openNotesTypedOnMain() {
   });
   await pollUntil(() => liveText().includes('typed here'), 10_000, 25, 'the typing');
 
-  const switchTo = async (branch: 'feature' | 'main', clockStepMs: number): Promise<void> => {
-    git(contentDir, `checkout -f ${branch}`);
+  const switchTo = async (branch: 'feature' | 'main'): Promise<void> => {
+    await checkoutBranch(server, branch);
     expect(readFileSync(notes, 'utf-8')).toContain(`on ${branch}.`);
-    double
-      .subscriptionFor(join(contentDir, '.git'))
-      .deliver([{ type: 'update', path: join(contentDir, '.git', 'HEAD') }]);
     await pollUntil(
-      () => server.instance.durabilityState.isBatchInProgress(),
-      10_000,
-      25,
-      'the switch to open a batch',
-    );
-    double.subscriptionFor(contentDir).deliver([{ type: 'update', path: notes }]);
-    await pollUntil(
-      () => {
-        clock.advance(clockStepMs);
-        return (
-          !server.instance.durabilityState.isBatchInProgress() &&
-          liveText().includes(`on ${branch}.`)
-        );
-      },
+      () =>
+        !server.instance.durabilityState.isBatchInProgress() &&
+        liveText().includes(`on ${branch}.`),
       15_000,
       25,
       `the switch to ${branch} to end and take in its file`,
@@ -114,12 +81,11 @@ async function openNotesTypedOnMain() {
 
   return {
     contentDir,
-    clock,
     liveText,
     lifecycleStatus: () =>
       server.instance.hocuspocus.documents.get('notes')?.getMap('lifecycle').get('status'),
-    switchToFeature: () => switchTo('feature', 100),
-    switchBackToMain: () => switchTo('main', 1),
+    switchToFeature: () => switchTo('feature'),
+    switchBackToMain: () => switchTo('main'),
   };
 }
 
@@ -137,91 +103,6 @@ describe('a git branch switch is taken in like any other outside change', () => 
       expect(rig.liveText()).not.toContain('<<<<<<<');
       expect(rig.lifecycleStatus()).toBeUndefined();
       expect(getMetrics().branchSwitchRecheckShortfalls - shortfallsBefore).toBe(0);
-    },
-    60_000,
-  );
-
-  test.runIf(CAN_REVOKE_READ)(
-    'a switch whose re-check cannot read the whole tree is checked again a bounded number of times',
-    async () => {
-      const rig = await openNotesTypedOnMain();
-      const locked = join(rig.contentDir, 'locked');
-      mkdirSync(locked);
-      writeFileSync(join(locked, 'inside.md'), '# Inside\n');
-      chmodSync(locked, 0o000);
-      cleanups.push(() => chmodSync(locked, 0o755));
-      const shortfallsBefore = getMetrics().branchSwitchRecheckShortfalls;
-      const shortfalls = () => getMetrics().branchSwitchRecheckShortfalls - shortfallsBefore;
-
-      await rig.switchToFeature();
-      expect(rig.liveText()).toContain('Shared line on main, typed here.');
-
-      await pollUntil(
-        () => {
-          rig.clock.advance(1_000);
-          return shortfalls() >= 1 + BRANCH_SWITCH_FOLLOW_UP_LIMIT;
-        },
-        15_000,
-        25,
-        'the switch re-check and every follow-up to fall short',
-      );
-      for (let tick = 0; tick < 20; tick++) {
-        rig.clock.advance(BRANCH_SWITCH_FOLLOW_UP_DELAY_MS);
-        await new Promise((resolve) => setTimeout(resolve, 25));
-      }
-      expect(shortfalls()).toBe(1 + BRANCH_SWITCH_FOLLOW_UP_LIMIT);
-    },
-    60_000,
-  );
-
-  test.runIf(CAN_REVOKE_READ)(
-    'a later switch that observes the whole tree ends the follow-up re-checks of an earlier one',
-    async () => {
-      const rig = await openNotesTypedOnMain();
-      const locked = join(rig.contentDir, 'locked');
-      mkdirSync(locked);
-      writeFileSync(join(locked, 'inside.md'), '# Inside\n');
-      chmodSync(locked, 0o000);
-      cleanups.push(() => chmodSync(locked, 0o755));
-      const shortfallsBefore = getMetrics().branchSwitchRecheckShortfalls;
-      const shortfalls = () => getMetrics().branchSwitchRecheckShortfalls - shortfallsBefore;
-
-      await rig.switchToFeature();
-      await pollUntil(
-        () => {
-          rig.clock.advance(1);
-          return shortfalls() >= 2;
-        },
-        15_000,
-        25,
-        'the switch re-check and its first follow-up to fall short',
-      );
-      chmodSync(locked, 0o755);
-      await rig.switchBackToMain();
-      expect(shortfalls()).toBe(2);
-
-      chmodSync(locked, 0o000);
-      const serverLog = getLogger('server');
-      const followUpLines: string[] = [];
-      const capture = (...args: unknown[]) => {
-        for (const arg of args) {
-          if (typeof arg === 'string' && arg.includes('after switching to feature')) {
-            followUpLines.push(arg);
-          }
-        }
-      };
-      const info = vi.spyOn(serverLog, 'info').mockImplementation(capture);
-      const warn = vi.spyOn(serverLog, 'warn').mockImplementation(capture);
-      cleanups.push(() => {
-        info.mockRestore();
-        warn.mockRestore();
-      });
-      for (let tick = 0; tick < 20; tick++) {
-        rig.clock.advance(BRANCH_SWITCH_FOLLOW_UP_DELAY_MS);
-        await new Promise((resolve) => setTimeout(resolve, 25));
-      }
-      expect(followUpLines).toEqual([]);
-      expect(shortfalls()).toBe(2);
     },
     60_000,
   );

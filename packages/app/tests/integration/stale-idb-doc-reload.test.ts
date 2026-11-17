@@ -13,6 +13,7 @@ import {
   createTestServer,
   getServerState,
   pollUntil,
+  rereadFromDisk,
   seedPoolServerInstanceId,
   wait,
 } from './test-harness';
@@ -72,6 +73,7 @@ describe('client-persisted state meets a re-seeded doc lineage (same server inst
     const docName = `lineage-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, FIXTURE_V1, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const pool = new ProviderPool(3, `ws://127.0.0.1:${server.port}/collab`);
@@ -97,8 +99,10 @@ describe('client-persisted state meets a re-seeded doc lineage (same server inst
     pool.close(docName);
 
     rmSync(filePath);
+    await rereadFromDisk(server);
     await pollUntil(() => getServerState(server, docName) === null, 20_000, 100);
     writeFileSync(filePath, FIXTURE_V2, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     pool.open(docName);

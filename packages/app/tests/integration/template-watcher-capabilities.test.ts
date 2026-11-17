@@ -9,6 +9,7 @@ import {
   HARNESS_BOOT_TIMEOUT_MS,
   pollUntil,
   readTestDoc,
+  rereadFromDisk,
   type TestServer,
 } from './test-harness.ts';
 
@@ -74,7 +75,9 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
 
       const tplFile = resolve(rig.contentDir, folder, '.gitquire', 'templates', `${name}.md`);
       mkdirSync(resolve(tplFile, '..'), { recursive: true });
+      await rereadFromDisk(server);
       writeFileSync(tplFile, src, 'utf-8');
+      await rereadFromDisk(server);
 
       await awaitPageIndexed(rig, docName);
 
@@ -112,6 +115,7 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
       );
 
       rmSync(tplFile);
+      await rereadFromDisk(server);
 
       await pollUntil(() => serverDoc(rig, docName) === undefined, 15000);
       expect(readTestDoc(rig.contentDir, docName)).toBe('');
@@ -146,6 +150,7 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
       await pollUntil(() => client.ytext.toString() === src, 8000);
 
       renameSync(fromFile, toFile);
+      await rereadFromDisk(server);
 
       await pollUntil(() => lifecycleStatus(rig, fromDoc) === 'renamed', 15000);
       expect(lifecycleStatus(rig, fromDoc)).toBe('renamed');
@@ -176,6 +181,7 @@ describe('template watcher capabilities — content pipeline parity (FR4)', () =
       const conflicted =
         '---\ntitle: T\ndescription: initial\n---\n\n# Template\n\n<<<<<<< HEAD\nours.\n=======\ntheirs.\n>>>>>>> branch\n';
       writeFileSync(tplFile, conflicted, 'utf-8');
+      await rereadFromDisk(server);
 
       await pollUntil(() => rig.instance.conflicts.has(docName), 15000);
       expect(rig.instance.conflicts.findByDocName(docName)).toMatchObject({

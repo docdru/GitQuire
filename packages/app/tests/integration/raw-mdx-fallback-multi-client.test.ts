@@ -8,6 +8,7 @@ import {
   createTestClient,
   createTestServer,
   pollUntil,
+  rereadFromDisk,
   serializeFragment,
   type TestClient,
   type TestServer,
@@ -77,6 +78,7 @@ describe('rawMdxFallback multi-client Y.Item identity (US-011, M8, Q5)', () => {
     const brokenContent =
       '# Top heading\n\nSafe paragraph above.\n\n<Foo>broken content</Bar>\n\n## Bottom heading\n\nSafe text below.\n';
     writeFileSync(join(server.contentDir, 'test-doc.md'), brokenContent, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(() => clientA.ytext.toString().includes('broken content'), 10_000);
     await pollUntil(() => clientB.ytext.toString().includes('broken content'), 10_000);
@@ -162,6 +164,7 @@ describe('rawMdxFallback multi-client Y.Item identity (US-011, M8, Q5)', () => {
   test('rawMdxFallback visible on both clients after seeding via disk write', async () => {
     const brokenContent = '# Title\n\n<Callout>mismatched</Calout>\n\nParagraph.\n';
     writeFileSync(join(server.contentDir, 'test-doc.md'), brokenContent, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(() => clientA.ytext.toString().includes('mismatched'), 10_000);
     await pollUntil(() => clientB.ytext.toString().includes('mismatched'), 10_000);
@@ -180,6 +183,7 @@ describe('rawMdxFallback multi-client Y.Item identity (US-011, M8, Q5)', () => {
   test('content-based rawMdxFallback allows concurrent edits from two clients without Y.Item churn', async () => {
     const brokenContent = 'First paragraph.\n\n<Broken>content</Mismatch>\n\nSecond paragraph.\n';
     writeFileSync(join(server.contentDir, 'test-doc.md'), brokenContent, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(() => clientA.ytext.toString().includes('Broken'), 10_000);
     await pollUntil(() => clientB.ytext.toString().includes('Broken'), 10_000);

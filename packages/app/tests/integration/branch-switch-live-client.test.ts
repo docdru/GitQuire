@@ -12,6 +12,7 @@ import { handleBranchSwitched } from '../../src/editor/branch-invalidation';
 import { ProviderPool } from '../../src/editor/provider-pool';
 import { parseCC1BranchSwitched, SYSTEM_DOC_NAME } from '../../src/lib/cc1';
 import {
+  checkoutBranch,
   clientIdsInDoc,
   createInspectableServer,
   pollDiskContentStable,
@@ -153,7 +154,7 @@ describe('T5: Branch switch while tab open', () => {
     const preSwitchDisk = readFileSync(join(contentDir, 'test-doc.md'), 'utf-8');
     expect(preSwitchDisk.includes('main-sibling')).toBe(true);
 
-    git(contentDir, 'checkout feature');
+    await checkoutBranch(server, 'feature');
 
     await pollUntil(
       () =>

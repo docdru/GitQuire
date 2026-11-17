@@ -5,6 +5,7 @@ import {
   mkdtempSync,
   readFileSync,
   realpathSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs';
 import { createServer as createHttpServer } from 'node:http';
@@ -679,6 +680,52 @@ export async function refreshServerInfoAndAwaitMismatch(
     );
   }
   await pool.awaitMismatchSettled();
+}
+
+export interface RereadOutcome {
+  status: string;
+  found: number;
+}
+
+const WATCHING_IN_TESTS = process.env.GITQUIRE_FILE_WATCHER_BACKEND?.trim().toLowerCase() !== 'off';
+
+export async function rereadFromDisk(server: { port: number }): Promise<RereadOutcome> {
+  if (WATCHING_IN_TESTS) return { status: 'watched', found: 0 };
+  const res = await fetch(`http://127.0.0.1:${server.port}/api/documents/reread`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  if (!res.ok) throw new Error(`rereadFromDisk: the server answered ${res.status}`);
+  return (await res.json()) as RereadOutcome;
+}
+
+export async function writeAsIfPulled(
+  server: { port: number; contentDir: string },
+  files: Record<string, string | null>,
+): Promise<RereadOutcome> {
+  for (const [path, content] of Object.entries(files)) {
+    const target = join(server.contentDir, path);
+    if (content === null) {
+      rmSync(target, { recursive: true, force: true });
+    } else {
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, content);
+    }
+  }
+  return rereadFromDisk(server);
+}
+
+export async function checkoutBranch(server: { port: number }, branch: string): Promise<void> {
+  const res = await fetch(`http://127.0.0.1:${server.port}/api/git/checkout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ branch }),
+  });
+  const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+  if (!res.ok || body.ok !== true) {
+    throw new Error(`checkoutBranch: ${branch} refused (${res.status} ${JSON.stringify(body)})`);
+  }
 }
 
 export async function awaitFileWatcherIndexed(

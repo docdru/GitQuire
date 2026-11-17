@@ -16,6 +16,7 @@ import {
   mdManager,
   pollUntil,
   readTestDoc,
+  rereadFromDisk,
   schema,
   serializeFragment,
   type TestClient,
@@ -314,6 +315,7 @@ describe('file-watcher-disk-to-crdt: disk writes', () => {
         '# From Disk\n\nWritten externally.',
         'utf-8',
       );
+      await rereadFromDisk(server);
       await pollUntil(() => client.ytext.toString().includes('From Disk'), 10_000);
       expect(client.ytext.toString()).toContain('Written externally');
       assertBridgeInvariant(client.ytext, client.fragment);
@@ -333,6 +335,7 @@ describe('file-watcher-disk-to-crdt: disk writes', () => {
         '# Disk Fragment\n\nVisible in WYSIWYG from disk.',
         'utf-8',
       );
+      await rereadFromDisk(server);
       await pollUntil(() => serializeFragment(client.fragment).includes('Disk Fragment'), 10_000);
       const fragContent = serializeFragment(client.fragment);
       expect(fragContent).toContain('Visible in WYSIWYG from disk');
@@ -352,6 +355,7 @@ describe('initial sync and test isolation', () => {
       '# Pre-existing\n\nAlready on disk.',
       'utf-8',
     );
+    await rereadFromDisk(server);
 
     const client = await createTestClient(server.port, 'test-doc');
     try {
@@ -368,6 +372,7 @@ describe('initial sync and test isolation', () => {
     const originalBytes = '# Title\n\n| A | B |\n| - | - |\n| 1 | 22 |\n';
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, originalBytes, 'utf-8');
+    await rereadFromDisk(server);
     await wait(500);
 
     const client = await createTestClient(server.port, docName);
@@ -388,6 +393,7 @@ describe('initial sync and test isolation', () => {
       '---\ntitle: Test\ntags: [a, b]\n---\n\n# Content\n\n| A | B |\n| - | - |\n| 1 | 22 |\n';
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, originalBytes, 'utf-8');
+    await rereadFromDisk(server);
     await wait(500);
 
     const client = await createTestClient(server.port, docName);
@@ -428,6 +434,7 @@ describe('initial sync and test isolation', () => {
   test('test-reset truncates accumulated .okignore patterns by default', async () => {
     const okignorePath = join(server.contentDir, '.okignore');
     writeFileSync(okignorePath, '/leftover-from-earlier-test.md\nstale-pattern/\n', 'utf-8');
+    await rereadFromDisk(server);
 
     await testReset(server.port);
     await wait(300);
@@ -440,6 +447,7 @@ describe('initial sync and test isolation', () => {
     const okignorePath = join(server.contentDir, '.okignore');
     const seeded = '/keep-me-on-reset.md\n';
     writeFileSync(okignorePath, seeded, 'utf-8');
+    await rereadFromDisk(server);
 
     const res = await fetch(`http://127.0.0.1:${server.port}/api/test-reset?reset-okignore=false`, {
       method: 'POST',

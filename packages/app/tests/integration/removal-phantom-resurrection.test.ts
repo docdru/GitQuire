@@ -16,7 +16,7 @@ import {
 } from '@gitquire/server';
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
-import { createTestServer, type TestServer } from './test-harness';
+import { createTestServer, rereadFromDisk, type TestServer } from './test-harness';
 
 async function pollUntilAsync(
   predicate: () => Promise<boolean>,
@@ -121,7 +121,9 @@ async function createPage(
 async function seedDoc(server: TestServer, docName: string, content = '# seed\n'): Promise<void> {
   const filePath = join(server.contentDir, `${docName}.md`);
   mkdirSync(dirname(filePath), { recursive: true });
+  await rereadFromDisk(server);
   writeFileSync(filePath, content, 'utf-8');
+  await rereadFromDisk(server);
   await pollUntilAsync(async () => {
     const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`);
     if (!res.ok) return false;
@@ -357,6 +359,7 @@ describe('RecentlyRemovedDocs — cache lifecycle', () => {
     await seedDoc(server, fromName);
 
     renameSync(join(server.contentDir, `${fromName}.md`), join(server.contentDir, `${toName}.md`));
+    await rereadFromDisk(server);
 
     const rejection = await pollUntilGuardSettled(server, fromName, 'reject');
     expect(rejection).toBeInstanceOf(HocuspocusAuthRejection);
@@ -371,6 +374,7 @@ describe('RecentlyRemovedDocs — cache lifecycle', () => {
     await seedDoc(server, docName);
 
     unlinkSync(join(server.contentDir, `${docName}.md`));
+    await rereadFromDisk(server);
 
     const rejection = await pollUntilGuardSettled(server, docName, 'reject');
     expect(parseAuthRejectionWire((rejection as HocuspocusAuthRejection).reason).kind).toBe(
@@ -387,6 +391,7 @@ describe('RecentlyRemovedDocs — cache lifecycle', () => {
     expect(await runAuthGuard(server, docName)).toBeInstanceOf(HocuspocusAuthRejection);
 
     writeFileSync(join(server.contentDir, `${docName}.md`), '# resurrected\n', 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntilGuardSettled(server, docName, 'admit');
   }, 30_000);

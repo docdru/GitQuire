@@ -7,7 +7,13 @@ import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-ti
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type * as Y from 'yjs';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
-import { createTestServer, getServerState, mdManager, type TestServer } from './test-harness.ts';
+import {
+  createTestServer,
+  getServerState,
+  mdManager,
+  rereadFromDisk,
+  type TestServer,
+} from './test-harness.ts';
 
 const schema = getSchema(sharedExtensions);
 const freshMdManager = new MarkdownManager({
@@ -197,8 +203,10 @@ describe('H3 paired-intake loss injection through public paths', () => {
       GEN1.replace('Intro paragraph.', 'Intro paragraph, edited out of band.'),
       'utf-8',
     );
+
     expect(serializeFragment(fragment)).toContain(PENDING_LINE);
     expect(ytext.toString()).not.toContain(PENDING_LINE);
+    await rereadFromDisk(server);
 
     const trip = await pollForTrip(
       server.contentDir,

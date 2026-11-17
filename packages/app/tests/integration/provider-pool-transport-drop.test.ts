@@ -8,6 +8,7 @@ import {
   createInspectableServer,
   type InspectableServer,
   pollUntil,
+  rereadFromDisk,
   seedPoolServerInstanceId,
 } from './test-harness';
 
@@ -26,6 +27,7 @@ afterEach(async () => {
 
 async function openSynced(server: InspectableServer, pool: ProviderPool, docName: string) {
   writeFileSync(join(server.contentDir, `${docName}.md`), FIXTURE, 'utf-8');
+  await rereadFromDisk(server);
   pool.open(docName);
   pool.setActive(docName);
   await pollUntil(() => pool.getActive()?.provider.isSynced === true, 10_000, 50);
@@ -66,6 +68,7 @@ describe('ProviderPool transport drop recovery', () => {
       `${FIXTURE}\nPOST-DROP MARKER\n`,
       'utf-8',
     );
+    await rereadFromDisk(server);
     await pollUntil(
       () =>
         (pool.getActive()?.provider.document.getText('source').toString() ?? '').includes(
@@ -88,10 +91,12 @@ describe('ProviderPool transport drop recovery', () => {
 
     for (let i = 0; i < 30; i += 1) {
       writeFileSync(join(server.contentDir, `churn-${i}.md`), `# churn ${i}\n`, 'utf-8');
+      await rereadFromDisk(server);
     }
     expect(dropTransport(server, docName)).toBeGreaterThan(0);
     for (let i = 30; i < 60; i += 1) {
       writeFileSync(join(server.contentDir, `churn-${i}.md`), `# churn ${i}\n`, 'utf-8');
+      await rereadFromDisk(server);
     }
 
     await pollUntil(() => pool.getActive()?.provider.isSynced === true, 20_000, 100);
@@ -100,6 +105,7 @@ describe('ProviderPool transport drop recovery', () => {
       `${FIXTURE}\nCHURN-DROP MARKER\n`,
       'utf-8',
     );
+    await rereadFromDisk(server);
     await pollUntil(
       () =>
         (pool.getActive()?.provider.document.getText('source').toString() ?? '').includes(
@@ -134,6 +140,7 @@ describe('ProviderPool transport drop recovery', () => {
       `${FIXTURE}\nSECOND-DROP MARKER\n`,
       'utf-8',
     );
+    await rereadFromDisk(server);
     await pollUntil(
       () =>
         (pool.getActive()?.provider.document.getText('source').toString() ?? '').includes(

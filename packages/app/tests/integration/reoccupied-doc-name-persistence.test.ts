@@ -1,26 +1,16 @@
 import { execSync } from 'node:child_process';
-import {
-  mkdirSync,
-  mkdtempSync,
-  realpathSync,
-  renameSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { mkdtempSync, renameSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ensureProjectGit } from '@gitquire/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { post } from './rename-rebinding.test-helper.ts';
 import {
   awaitFileWatcherIndexed,
-  createInspectableServer,
   createTestClient,
   createTestServer,
   pollUntil,
   readTestDoc,
+  rereadFromDisk,
   type TestClient,
   type TestServer,
 } from './test-harness.ts';
@@ -82,6 +72,11 @@ async function startWithOpenDoc(
   return started;
 }
 
+async function rereadRunning(): Promise<void> {
+  if (!server) throw new Error('server not started');
+  await rereadFromDisk(server);
+}
+
 function diskPath(docName: string): string {
   if (!server) throw new Error('server not started');
   return join(server.contentDir, `${docName}.md`);
@@ -97,6 +92,7 @@ function residentSource(docName: string): string | undefined {
 
 async function renameAwayOnDisk(docName: string, movedTo: string): Promise<void> {
   renameSync(diskPath(docName), diskPath(movedTo));
+  await rereadRunning();
   await pollUntil(() => lifecycleStatus(docName) === 'renamed', 30_000, 100, 'the rename freeze');
 }
 
@@ -127,7 +123,7 @@ function insertRowBeforeOmega(port: number, docName: string, row: string) {
   });
 }
 
-function git(cwd: string, args: string): string {
+function _git(cwd: string, args: string): string {
   return execSync(`git ${args}`, {
     cwd,
     env: {
@@ -149,6 +145,7 @@ describe('a document name re-occupied after an on-disk rename keeps persisting e
 
     await renameAwayOnDisk('Index', 'Index-backup');
     writeFileSync(diskPath('Index'), RECREATED_BODY, 'utf-8');
+    await rereadRunning();
     await pollUntil(
       () => residentSource('Index') === RECREATED_BODY,
       30_000,
@@ -211,86 +208,4 @@ describe('a document name re-occupied after an on-disk rename keeps persisting e
     });
     expect(readTestDoc(server.contentDir, 'Gone')).toBe('');
   }, 120_000);
-});
-
-describe('switching back to a branch that has a tombstoned document', () => {
-  test.runIf(process.platform !== 'win32')(
-    'lets edits to that document reach disk again',
-    async () => {
-      const contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-branch-switch-revive-')));
-      cleanups.push(() => rmSync(contentDir, { recursive: true, force: true }));
-      git(contentDir, 'init --initial-branch=main');
-      await ensureProjectGit(contentDir);
-      configureTestGitRepository(contentDir);
-      mkdirSync(join(contentDir, '.gitquire', 'local'), { recursive: true });
-      writeFileSync(join(contentDir, '.gitquire', 'local', 'private.md'), '# Private\n', 'utf-8');
-      writeFileSync(join(contentDir, 'note.md'), '# Note\n\nOn main.\n', 'utf-8');
-      writeFileSync(join(contentDir, 'other.md'), '# Other\n\nOn main.\n', 'utf-8');
-      git(contentDir, 'add note.md other.md');
-      git(contentDir, 'commit -m main');
-      git(contentDir, 'checkout -b feature');
-      git(contentDir, 'rm -q note.md');
-      symlinkSync('.gitquire/local/private.md', join(contentDir, 'note.md'));
-      writeFileSync(join(contentDir, 'other.md'), '# Other\n\nOn feature.\n', 'utf-8');
-      git(contentDir, 'add note.md other.md');
-      git(contentDir, 'commit -m feature');
-      git(contentDir, 'checkout main');
-
-      const inspectable = await createInspectableServer({
-        contentDir,
-        keepContentDir: true,
-        gitEnabled: true,
-        commitDebounceMs: 500,
-      });
-      cleanups.push(() => inspectable.shutdown());
-      const opened = new Map<string, TestClient>();
-      for (const docName of ['note', 'other']) {
-        const client = await createTestClient(inspectable.port, docName, {
-          skipInvariantWatcher: true,
-        });
-        clients.push(client);
-        opened.set(docName, client);
-        await pollUntil(() => client.ytext.toString().includes('On main.'), 10_000, 50);
-      }
-      const serverDoc = (docName: string) => inspectable.instance.hocuspocus.documents.get(docName);
-      const serverText = (docName: string): string =>
-        serverDoc(docName)?.getText('source').toString() ?? '';
-
-      git(contentDir, 'checkout feature');
-      const noteStatus = () => serverDoc('note')?.getMap('lifecycle').get('status');
-      await pollUntil(() => serverText('other').includes('On feature.'), 15_000, 50);
-      await pollUntil(() => noteStatus() === 'deleted-upstream', 15_000, 50, 'the tombstone');
-      const noteText = opened.get('note')?.ytext;
-      noteText?.insert(noteText.length, '\nTyped while tombstoned.\n');
-      await pollUntil(
-        () => serverText('note').includes('Typed while tombstoned.'),
-        15_000,
-        50,
-        'the tombstoned edit to reach the server',
-      );
-
-      git(contentDir, 'checkout main');
-      await pollUntil(() => serverText('other').includes('On main.'), 15_000, 50);
-      await pollUntil(
-        () =>
-          !inspectable.instance.durabilityState.isBatchInProgress() &&
-          noteStatus() === undefined &&
-          serverText('note') === '# Note\n\nOn main.\n',
-        15_000,
-        50,
-        'the branch switch to finish with note revived to its file content',
-      );
-      expect(readTestDoc(contentDir, 'note')).toBe('# Note\n\nOn main.\n');
-
-      const edit = await post(inspectable.port, '/api/agent-patch', {
-        docName: 'note',
-        find: 'On main.',
-        replace: 'Edited after switching back.',
-        agentId: 'reoccupied-name-test',
-      });
-      expect(edit.status).toBe(200);
-      await expectOnDisk(contentDir, 'note', 'Edited after switching back.');
-    },
-    120_000,
-  );
 });

@@ -7,7 +7,13 @@ import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
 import { afterEach, describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
 import { ProviderPool } from '../../src/editor/provider-pool';
-import { createInspectableServer, getServerState, pollUntil, schema } from './test-harness';
+import {
+  createInspectableServer,
+  getServerState,
+  pollUntil,
+  rereadFromDisk,
+  schema,
+} from './test-harness';
 
 interface PmJsonNode {
   type?: string;
@@ -39,7 +45,7 @@ afterEach(async () => {
 });
 
 describe('asset-move embed re-resolution — head-watcher-independent fallback', () => {
-  test('moving photo.png → assets/photo.png updates PM image src without git', async () => {
+  test('moving photo.png → assets/photo.png updates PM image src without git once re-read', async () => {
     const contentDir = realpathSync(mkdtempSync(join(tmpdir(), 'ok-asset-move-')));
     cleanups.push(() => {
       try {
@@ -86,6 +92,7 @@ describe('asset-move embed re-resolution — head-watcher-independent fallback',
 
     rmSync(join(contentDir, 'photo.png'));
     writeRel(contentDir, 'assets/photo.png', PNG_BYTES);
+    await rereadFromDisk(server);
 
     await pollUntil(
       () => {
@@ -170,6 +177,7 @@ describe('asset-move embed re-resolution — head-watcher-independent fallback',
     await wait(300);
 
     rmSync(join(contentDir, 'photo.png'));
+    await rereadFromDisk(server);
 
     await pollUntil(
       () => {

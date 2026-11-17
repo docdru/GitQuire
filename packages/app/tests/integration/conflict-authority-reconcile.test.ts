@@ -8,6 +8,7 @@ import {
   createTestClient,
   createTestServer,
   pollUntil,
+  rereadFromDisk,
   type TestServer,
 } from './test-harness';
 
@@ -95,6 +96,7 @@ async function assertStaysAbsent(filePath: string, windowMs: number): Promise<vo
 
 async function seedDoc(server: TestServer, docName: string): Promise<void> {
   writeFileSync(join(server.contentDir, `${docName}.md`), BASE_CONTENT, 'utf-8');
+  await rereadFromDisk(server);
   await pollUntil(
     async () => {
       const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`).catch(() => null);
@@ -125,6 +127,7 @@ async function driveDiskWriteOverEditorEdit(
   });
   await pollUntil(() => client.ytext.toString().includes('alpha-editor'), 5_000);
   writeFileSync(join(server.contentDir, `${docName}.md`), diskContent, 'utf-8');
+  await rereadFromDisk(server);
   return client;
 }
 
@@ -224,6 +227,7 @@ describe('PRD-7947: a reconcile-born conflict is tracked, inspectable and resolv
     await pollUntil(() => client.ytext.toString().includes('alpha'), 15_000);
 
     writeFileSync(join(server.contentDir, `${docName}.md`), MARKER_CONTENT, 'utf-8');
+    await rereadFromDisk(server);
 
     await assertReconcileConflictIsResolvable(server, docName, 'disk-markers');
   }, 120_000);
@@ -346,6 +350,7 @@ describe('PRD-7947: resolving a reconcile conflict with `delete` keeps the file 
     });
     await pollUntil(() => client.ytext.toString().includes('alpha-editor'), 5_000);
     writeFileSync(absPath, MARKER_CONTENT, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(
       async () => (await listConflicts(server.port)).some((c) => c.file === file),

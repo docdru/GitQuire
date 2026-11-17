@@ -5272,6 +5272,7 @@ async function startWatcherWithClock(
       return pruned;
     },
     async settle() {
+      if (watchingOff) return;
       if (settleSubscription === undefined) {
         throw new Error(
           'settling disk events needs the parcel watcher backend, and this watcher runs on chokidar',

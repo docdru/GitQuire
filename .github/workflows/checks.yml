@@ -123,6 +123,26 @@ jobs:
           - suite: app DOM
             build: pnpm exec turbo run build --filter=@gitquire/app^...
             run: pnpm --dir packages/app exec vitest run --config vitest.dom.config.ts
+          - suite: app integration, watching off 1/4
+            build: pnpm exec turbo run build --filter=@gitquire/app^...
+            run: >-
+              GITQUIRE_FILE_WATCHER_BACKEND=off
+              pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=1/4
+          - suite: app integration, watching off 2/4
+            build: pnpm exec turbo run build --filter=@gitquire/app^...
+            run: >-
+              GITQUIRE_FILE_WATCHER_BACKEND=off
+              pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=2/4
+          - suite: app integration, watching off 3/4
+            build: pnpm exec turbo run build --filter=@gitquire/app^...
+            run: >-
+              GITQUIRE_FILE_WATCHER_BACKEND=off
+              pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=3/4
+          - suite: app integration, watching off 4/4
+            build: pnpm exec turbo run build --filter=@gitquire/app^...
+            run: >-
+              GITQUIRE_FILE_WATCHER_BACKEND=off
+              pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=4/4
           - suite: cli
             build: pnpm exec turbo run build --filter=@gitquire/cli...
             run: pnpm --dir packages/cli run test

@@ -6,7 +6,7 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import { afterEach, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { buildAuthToken } from '../../src/lib/auth-token';
-import { createRestartableServer, pollUntil, waitForSync } from './test-harness';
+import { createRestartableServer, pollUntil, rereadFromDisk, waitForSync } from './test-harness';
 
 const cleanups: Array<() => Promise<void> | void> = [];
 
@@ -25,6 +25,7 @@ describe('PRD-6881: config-doc server-instance recovery', () => {
     let server = await createRestartableServer();
     cleanups.push(() => server.shutdown());
     writeFileSync(join(server.contentDir, '.okignore'), 'foo\n', 'utf-8');
+    await rereadFromDisk(server);
 
     const doc = new Y.Doc();
     const provider = new HocuspocusProvider({
@@ -51,6 +52,7 @@ describe('PRD-6881: config-doc server-instance recovery', () => {
     let server = await createRestartableServer();
     cleanups.push(() => server.shutdown());
     writeFileSync(join(server.contentDir, '.okignore'), 'foo\n', 'utf-8');
+    await rereadFromDisk(server);
 
     const instanceA = server.serverInstanceId;
     const doc = new Y.Doc();

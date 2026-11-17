@@ -4,7 +4,7 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { parseCC1DerivedView, SYSTEM_DOC_NAME } from '../../src/lib/cc1';
-import { createTestServer, pollUntil, type TestServer } from './test-harness';
+import { createTestServer, pollUntil, rereadFromDisk, type TestServer } from './test-harness';
 
 describe('invalid external config write keeps the previous attachment admission', () => {
   let srv: TestServer;
@@ -40,15 +40,19 @@ describe('invalid external config write keeps the previous attachment admission'
 
     const baseline = lintConfigFrames;
     writeFileSync(configPath, 'content: [unclosed\n', 'utf-8');
+    await rereadFromDisk(srv);
     await pollUntil(() => lintConfigFrames > baseline, 15_000);
     expect(srv.instance.contentFilter.isExcluded('assets/new.png')).toBe(false);
 
     writeFileSync(configPath, 'content:\n  attachmentFolderPath: media\n', 'utf-8');
+    await rereadFromDisk(srv);
     await pollUntil(() => srv.instance.contentFilter.isExcluded('media/pic.png') === false, 15_000);
     expect(srv.instance.contentFilter.isExcluded('assets/new.png')).toBe(true);
 
     mkdirSync(join(srv.contentDir, 'media'), { recursive: true });
+    await rereadFromDisk(srv);
     writeFileSync(join(srv.contentDir, 'media', 'pic.png'), 'image-bytes', 'utf-8');
+    await rereadFromDisk(srv);
     await pollUntil(async () => {
       const response = await fetch(`http://127.0.0.1:${srv.port}/api/documents`);
       if (!response.ok) return false;

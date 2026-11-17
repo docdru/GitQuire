@@ -16,6 +16,7 @@ import {
   createTestServer,
   pollUntil,
   readTestDoc,
+  rereadFromDisk,
   type TestClient,
   type TestServer,
 } from './test-harness.ts';
@@ -72,6 +73,7 @@ describe('an external (git-sync/watcher) move rebinds the open tab (PRD-8486)', 
     expect(oldClient.provider.isAuthenticated).toBe(true);
 
     renameSync(join(server.contentDir, `${OLD_DOC}.md`), join(server.contentDir, `${NEW_DOC}.md`));
+    await rereadFromDisk(server);
 
     await pollUntil(async () => (await getHeadings(server.port, NEW_DOC)).status === 200, 30_000);
     await pollUntil(async () => closeEvents.length > 0, 20_000, 100, 'a server-driven close');
@@ -101,6 +103,7 @@ describe('an external (git-sync/watcher) move rebinds the open tab (PRD-8486)', 
     expect(newClient.provider.isAuthenticated).toBe(true);
 
     renameSync(join(server.contentDir, `${NEW_DOC}.md`), join(server.contentDir, `${OLD_DOC}.md`));
+    await rereadFromDisk(server);
 
     await pollUntil(async () => (await getHeadings(server.port, OLD_DOC)).status === 200, 30_000);
     await pollUntil(async () => closeEvents.length > 0, 20_000, 100, 'a server-driven close');
@@ -171,6 +174,7 @@ describe('an external move of a document with unflushed edits rescues them (PRD-
 
     const rescuesBefore = getMetrics().rescueBufferCount;
     renameSync(join(server.contentDir, `${OLD_DOC}.md`), join(server.contentDir, `${NEW_DOC}.md`));
+    await rereadFromDisk(server);
 
     await pollUntil(() => lifecycleStatus(server, OLD_DOC) === 'renamed', 30_000);
     await pollUntil(
