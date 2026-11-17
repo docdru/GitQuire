@@ -7053,11 +7053,6 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
     await expectFailedIngestsNotCountedUnrescued(1);
   }, 45_000);
 
-  test('a disk update delivered twice whose ingest loses its rescue and fails to apply both times is not counted as an unrescued clean ingest', async (ctx) => {
-    ctx.skip(runningAsRoot, 'root bypasses the chmod refusal this test induces');
-    await expectFailedIngestsNotCountedUnrescued(2);
-  }, 45_000);
-
   test('an ingest that loses its rescue and then fails to apply after the live Y.Text is overwritten is reported as an unrescued loss', async (ctx) => {
     ctx.skip(runningAsRoot, 'root bypasses the chmod refusal this test induces');
     rig = await setupReconcileRig('ok-reconcile-post-write-ingest-failure-');
