@@ -197,9 +197,6 @@ describe('GET /api/asset content-filter exclusions', () => {
       isPathIgnored(rel: string): boolean {
         return rel === excludedDirSegment || rel.startsWith(`${excludedDirSegment}/`);
       },
-      getWatcherIgnoreGlobs(): string[] {
-        return [excludedDirSegment];
-      },
       incrementMdDir(): void {},
       decrementMdDir(): void {},
       rebuildDirCount(): void {},
@@ -256,7 +253,6 @@ describe('GET /api/asset tracked-file fallback on an exact miss', () => {
       isExcluded: (rel) => rel.startsWith('private/'),
       isDirExcluded: (rel) => rel === 'private',
       isPathIgnored: (rel) => rel === 'private' || rel.startsWith('private/'),
-      getWatcherIgnoreGlobs: () => ['private'],
       incrementMdDir() {},
       decrementMdDir() {},
       rebuildDirCount() {},

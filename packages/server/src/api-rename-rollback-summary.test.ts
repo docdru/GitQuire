@@ -686,7 +686,6 @@ describe('handleRenamePath — content-filter admission (FR11)', () => {
     return {
       isExcluded: (relativePath: string) => excludedFiles.has(relativePath),
       isDirExcluded: (relativePath: string) => excludedDirs.has(relativePath),
-      getWatcherIgnoreGlobs: () => [],
       incrementMdDir: () => {},
       decrementMdDir: () => {},
     };
