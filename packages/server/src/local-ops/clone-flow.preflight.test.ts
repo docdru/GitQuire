@@ -7,80 +7,13 @@ import {
   __resetResolveOnPathCacheForTests,
   __seedResolveOnPathCacheForTests,
 } from '../git-preflight.ts';
-import {
-  isRecoverableGitSignal,
-  withBrokenBareGitOnly,
-  withUnusableGitEverywhere,
-} from '../git-unusable-setup.test-helper.ts';
-import { type RawCloneEvent, runCloneSubprocess } from './clone-flow.ts';
+import { withBrokenBareGitOnly } from '../git-unusable-setup.test-helper.ts';
+import { runCloneSubprocess } from './clone-flow.ts';
 
 const okCli = (
   cliArgs: readonly string[],
   cliEnv?: Readonly<Record<string, string | undefined>>,
 ): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
-
-const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
-const RAW_GIT_FAILURE_CLI = fixtureCli(
-  `process.stderr.write("xcrun: error: unable to load libxcrun (... incompatible architecture (have 'arm64', need 'arm64e')) ...\\n"); process.exit(128);`,
-);
-
-type CloneOutcome = string;
-
-function classifyCloneOutcome(
-  syncThrow: unknown,
-  doneErr: unknown,
-  events: readonly RawCloneEvent[],
-): CloneOutcome {
-  if (isRecoverableGitSignal(syncThrow)) return 'recoverable-git-preflight-signal';
-  if (isRecoverableGitSignal(doneErr)) return 'recoverable-git-preflight-signal';
-  if (events.some((e) => e.type === 'error' && isRecoverableGitSignal(e.message))) {
-    return 'recoverable-git-preflight-signal';
-  }
-  const errEvent = events.find(
-    (e): e is Extract<RawCloneEvent, { type: 'error' }> => e.type === 'error',
-  );
-  if (errEvent) return `raw-clone-error: ${errEvent.message}`;
-  if (events.some((e) => e.type === 'complete')) return 'completed-as-if-success';
-  if (doneErr) return `done-rejected: ${doneErr instanceof Error ? doneErr.name : String(doneErr)}`;
-  if (syncThrow) return `threw: ${syncThrow instanceof Error ? syncThrow.name : String(syncThrow)}`;
-  return 'no-signal';
-}
-
-describe('runCloneSubprocess — git-preflight at the clone-setup boundary (#356)', () => {
-  test('surfaces the recoverable git-preflight signal (not a raw clone error) when git is unusable', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'ok356-clone-'));
-    const events: RawCloneEvent[] = [];
-    let syncThrow: unknown;
-    let doneErr: unknown;
-    try {
-      await withUnusableGitEverywhere(async () => {
-        let controller: ReturnType<typeof runCloneSubprocess> | undefined;
-        try {
-          controller = runCloneSubprocess({
-            cli: okCli(RAW_GIT_FAILURE_CLI),
-            url: 'https://github.com/octocat/hello.git',
-            dir,
-            timeoutMs: 30_000,
-            onEvent: (e) => events.push(e),
-          });
-        } catch (err) {
-          syncThrow = err;
-          return;
-        }
-        try {
-          await controller.done;
-        } catch (err) {
-          doneErr = err;
-        }
-      });
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-
-    const outcome = classifyCloneOutcome(syncThrow, doneErr, events);
-    expect(outcome).toBe('recoverable-git-preflight-signal');
-  });
-});
 
 function pathCapturingCli(pathFile: string, dir: string): readonly string[] {
   return [

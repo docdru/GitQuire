@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { type Config, simpleGit, UnsafeIncomingSymlinkError } from '@gitquire/server';
+import { simpleGit, UnsafeIncomingSymlinkError } from '@gitquire/server';
 import type { SimpleGitOptions } from 'simple-git';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
@@ -1537,34 +1537,6 @@ describe('clone stores the remote URL verbatim, userinfo included', () => {
       expect(config).toContain(`url = ${declaredUrl}`);
     } finally {
       rmSync(base, { recursive: true, force: true });
-    }
-  });
-});
-
-describe('runClone git preflight', () => {
-  it('git unusable everywhere → runClone surfaces the recoverable GitNotAvailableError', async () => {
-    const originalPath = process.env.PATH;
-    const originalPlatform = process.platform;
-    process.env.PATH = '/nonexistent';
-    Object.defineProperty(process, 'platform', {
-      value: originalPlatform === 'win32' ? 'linux' : 'win32',
-      configurable: true,
-    });
-    try {
-      const { GitNotAvailableError } = await import('@gitquire/server');
-      const cwd = join(
-        tmpdir(),
-        `ok-clone-preflight-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      );
-      await expect(
-        runClone('inkeep/playbooks', { json: true }, {} as unknown as Config, cwd),
-      ).rejects.toBeInstanceOf(GitNotAvailableError);
-    } finally {
-      Object.defineProperty(process, 'platform', {
-        value: originalPlatform,
-        configurable: true,
-      });
-      process.env.PATH = originalPath;
     }
   });
 });

@@ -2,7 +2,6 @@ import type { SpawnSyncReturns } from 'node:child_process';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeChildProcess } from './process-scan.test-helper.ts';
 
-const realPlatform = process.platform;
 const spawnSyncMock =
   vi.fn<(command: string, args: readonly string[]) => SpawnSyncReturns<string>>();
 const execFileSyncMock = vi.fn();
@@ -12,7 +11,6 @@ const lstatSyncMock = vi.fn();
 
 let scanLockProcesses: typeof import('./process-scan.ts').scanLockProcesses;
 let discoverLockDirs: typeof import('./process-scan.ts').discoverLockDirs;
-let findOkProcessPids: typeof import('./process-scan.ts').findOkProcessPids;
 let readPidCwds: typeof import('./process-scan.ts').readPidCwds;
 let isDefunctProcess: typeof import('./process-scan.ts').isDefunctProcess;
 let isLockProcessRunning: typeof import('./process-scan.ts').isLockProcessRunning;
@@ -48,7 +46,6 @@ beforeAll(async () => {
   ({
     scanLockProcesses,
     discoverLockDirs,
-    findOkProcessPids,
     readPidCwds,
     isDefunctProcess,
     isLockProcessRunning,
@@ -57,12 +54,10 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
   vi.spyOn(process, 'kill').mockReturnValue(true);
 });
 
 afterEach(() => {
-  Object.defineProperty(process, 'platform', { value: realPlatform, configurable: true });
   vi.restoreAllMocks();
 });
 
@@ -82,156 +77,6 @@ function makeSpawnResult(overrides: Partial<SpawnSyncReturns<string>>): SpawnSyn
     ...overrides,
   };
 }
-
-describe('findOkProcessPids with Windows Unix tools', () => {
-  let spawnSyncSpy: typeof spawnSyncMock;
-
-  beforeEach(() => {
-    Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    spawnSyncMock.mockReset().mockImplementation(refuseUnmockedSpawn);
-    spawnSyncSpy = spawnSyncMock;
-  });
-
-  afterEach(() => {
-    spawnSyncMock.mockReset();
-  });
-
-  it('returns PIDs parsed from pgrep output when pgrep is available', async () => {
-    spawnSyncSpy.mockReturnValue(
-      makeSpawnResult({
-        stdout:
-          '12345 /usr/local/bin/bun /path/to/open-knowledge/packages/cli/dist/cli.mjs start\n',
-        status: 0,
-      }),
-    );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([12345]);
-    const [cmd, args] = spawnSyncSpy.mock.calls[0] as [string, string[]];
-    expect(cmd).toBe('pgrep');
-    expect(args.join(' ')).toContain('open-knowledge');
-  });
-
-  it('finds npx-installed open-knowledge bin processes', async () => {
-    spawnSyncSpy.mockReturnValue(
-      makeSpawnResult({
-        stdout:
-          '54321 /usr/local/bin/node /Users/mike/.npm/_npx/64e3e56af53daa3b/node_modules/.bin/open-knowledge start\n',
-        status: 0,
-      }),
-    );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([54321]);
-  });
-
-  it('finds Electron utility processes by explicit lock-dir marker', async () => {
-    const encoded = Buffer.from('/Users/mike/notes/.gitquire/local', 'utf8').toString('base64url');
-    spawnSyncSpy.mockReturnValue(
-      makeSpawnResult({
-        stdout: `24680 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper --type=utility --gq-lock-dir-b64=${encoded}\n`,
-        status: 0,
-      }),
-    );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([24680]);
-  });
-
-  it('finds packaged OpenKnowledge Helper processes without lock-dir marker', async () => {
-    spawnSyncSpy.mockReturnValue(
-      makeSpawnResult({
-        stdout:
-          '5816 /Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Helper.app/Contents/MacOS/OpenKnowledge Helper --type=utility --utility-sub-type=node.mojom.NodeService\n',
-        status: 0,
-      }),
-    );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([5816]);
-  });
-
-  it('still finds a pre-rename "Open Knowledge" packaged Helper (backward-compat regex)', async () => {
-    spawnSyncSpy.mockReturnValue(
-      makeSpawnResult({
-        stdout:
-          '5817 /Applications/Open Knowledge.app/Contents/Frameworks/Open Knowledge Helper.app/Contents/MacOS/Open Knowledge Helper --type=utility --utility-sub-type=node.mojom.NodeService\n',
-        status: 0,
-      }),
-    );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([5817]);
-  });
-
-  it('falls back to ps when pgrep is unavailable (ENOENT)', async () => {
-    const enoent = Object.assign(new Error('pgrep not found'), { code: 'ENOENT' });
-
-    spawnSyncSpy
-      .mockReturnValueOnce(makeSpawnResult({ error: enoent as NodeJS.ErrnoException }))
-      .mockReturnValueOnce(
-        makeSpawnResult({
-          stdout:
-            'PID COMMAND\n 99999 /usr/local/bin/open-knowledge start\n' +
-            '   123 some-other-process\n',
-          status: 0,
-        }),
-      );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([99999]);
-
-    const calls = spawnSyncSpy.mock.calls as [string, string[]][];
-    expect(calls[0]?.[0]).toBe('pgrep');
-    expect(calls[1]?.[0]).toBe('ps');
-  });
-
-  it('returns empty array when pgrep exits 1 (no matches) — does NOT fall back to ps', async () => {
-    spawnSyncSpy.mockReturnValue(makeSpawnResult({ stdout: '', status: 1 }));
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([]);
-    expect(spawnSyncSpy.mock.calls.length).toBe(1);
-  });
-
-  it('falls back to ps when pgrep returns PID-only lines', async () => {
-    spawnSyncSpy
-      .mockReturnValueOnce(makeSpawnResult({ stdout: '12345\n', status: 0 }))
-      .mockReturnValueOnce(
-        makeSpawnResult({
-          stdout:
-            'PID COMMAND\n 12345 /usr/local/bin/node /path/node_modules/.bin/open-knowledge start\n',
-          status: 0,
-        }),
-      );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toEqual([12345]);
-    expect(spawnSyncSpy.mock.calls.map((call) => call[0])).toEqual(['pgrep', 'ps']);
-  });
-
-  it('filters out non-ok processes from ps output', async () => {
-    const enoent = Object.assign(new Error('pgrep not found'), { code: 'ENOENT' });
-
-    spawnSyncSpy
-      .mockReturnValueOnce(makeSpawnResult({ error: enoent as NodeJS.ErrnoException }))
-      .mockReturnValueOnce(
-        makeSpawnResult({
-          stdout:
-            '  PID COMMAND\n' +
-            '  111 /usr/bin/ruby some-script.rb\n' +
-            '  222 /usr/local/bin/ok start\n' +
-            '  333 /usr/local/bin/bun run dev packages/app\n',
-          status: 0,
-        }),
-      );
-
-    const pids = await findOkProcessPids();
-    expect(pids).toContain(222);
-    expect(pids).toContain(333);
-    expect(pids).not.toContain(111);
-  });
-});
 
 describe('readPidCwds', () => {
   let spawnSyncSpy: typeof spawnSyncMock;
@@ -950,7 +795,6 @@ describe('lock recovery process evidence', () => {
 });
 
 describe('isDefunctProcess', () => {
-  const realPlatform = process.platform;
   let stderrWrites: string[];
   beforeEach(() => {
     execFileSyncMock.mockReset();
@@ -961,19 +805,10 @@ describe('isDefunctProcess', () => {
     });
   });
   afterEach(() => {
-    Object.defineProperty(process, 'platform', { value: realPlatform, configurable: true });
     vi.restoreAllMocks();
     execFileSyncMock.mockReset().mockReturnValue('S\n');
   });
 
-  it('skips the probe entirely on an unsupported platform', () => {
-    execFileSyncMock.mockReturnValue('SN  \n');
-    expect(isDefunctProcess(4242)).toBe(false);
-    expect(execFileSyncMock).toHaveBeenCalledTimes(1);
-    Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    expect(isDefunctProcess(4242)).toBe(false);
-    expect(execFileSyncMock).toHaveBeenCalledTimes(1);
-  });
   it('reads a zombie state as defunct', () => {
     execFileSyncMock.mockReturnValue('Z+  \n');
     expect(isDefunctProcess(4242)).toBe(true);
@@ -999,7 +834,6 @@ describe('isDefunctProcess', () => {
 });
 
 describe('readProcessState', () => {
-  const realPlatform = process.platform;
   let stderrWrites: string[];
   beforeEach(() => {
     execFileSyncMock.mockReset();
@@ -1010,7 +844,6 @@ describe('readProcessState', () => {
     });
   });
   afterEach(() => {
-    Object.defineProperty(process, 'platform', { value: realPlatform, configurable: true });
     vi.restoreAllMocks();
     execFileSyncMock.mockReset().mockReturnValue('S\n');
   });
@@ -1031,24 +864,13 @@ describe('readProcessState', () => {
     });
     expect(readProcessState(4242)).toEqual({ status: 'unreadable', reason: 'ENOENT' });
   });
-  it('reports an unsupported platform as unreadable without probing or writing', () => {
-    Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    expect(readProcessState(4242)).toEqual({
-      status: 'unreadable',
-      reason: 'no process-state query on win32',
-    });
-    expect(execFileSyncMock).not.toHaveBeenCalled();
-    expect(stderrWrites.join('')).toBe('');
-  });
 });
 
 describe('isLockProcessRunning', () => {
-  const realPlatform = process.platform;
   beforeEach(() => {
     execFileSyncMock.mockReset();
   });
   afterEach(() => {
-    Object.defineProperty(process, 'platform', { value: realPlatform, configurable: true });
     vi.restoreAllMocks();
     execFileSyncMock.mockReset().mockReturnValue('S\n');
   });

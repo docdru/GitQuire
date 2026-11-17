@@ -26,10 +26,6 @@ async function withBrokenGitDir(fn: (dir: string) => Promise<void>): Promise<voi
   }
 }
 
-function setPlatform(value: NodeJS.Platform): void {
-  Object.defineProperty(process, 'platform', { value, configurable: true });
-}
-
 export async function withBrokenBareGitOnly(fn: () => Promise<void>): Promise<void> {
   await withBrokenGitDir(async (dir) => {
     const origPath = process.env.PATH;
@@ -37,22 +33,6 @@ export async function withBrokenBareGitOnly(fn: () => Promise<void>): Promise<vo
     try {
       await fn();
     } finally {
-      if (origPath === undefined) delete process.env.PATH;
-      else process.env.PATH = origPath;
-    }
-  });
-}
-
-export async function withUnusableGitEverywhere(fn: () => Promise<void>): Promise<void> {
-  await withBrokenGitDir(async (dir) => {
-    const origPath = process.env.PATH;
-    const origPlatform = process.platform;
-    process.env.PATH = dir;
-    setPlatform(origPlatform === 'win32' ? 'linux' : 'win32');
-    try {
-      await fn();
-    } finally {
-      setPlatform(origPlatform);
       if (origPath === undefined) delete process.env.PATH;
       else process.env.PATH = origPath;
     }

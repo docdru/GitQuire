@@ -27,7 +27,6 @@ import {
   readProcessStart,
   verdictHoldsLock,
 } from './process-identity.ts';
-import { sleepSyncMs } from './sleep-sync.ts';
 import { PROTOCOL_VERSION, RUNTIME_VERSION } from './version-constants.ts';
 
 const log = getLogger('process-lock');
@@ -198,16 +197,6 @@ export function removeLockIfUnchanged(lockPath: string, assessedText: string): L
   }
 }
 
-const WIN32_TRANSIENT_LOCK_FILE_CODES = new Set(['EBUSY', 'EPERM', 'EACCES']);
-const WIN32_TRANSIENT_RETRY_PAUSE_MS = 100;
-
-function isTransientLockFileError(err: unknown): boolean {
-  const code = errnoCode(err);
-  return (
-    process.platform === 'win32' && code !== undefined && WIN32_TRANSIENT_LOCK_FILE_CODES.has(code)
-  );
-}
-
 function removeExitedHolderLock(lockName: LockName, lockPath: string, assessedText: string): void {
   try {
     removeLockIfUnchanged(lockPath, assessedText);
@@ -283,48 +272,27 @@ export function acquireProcessLock(opts: {
   const payload = JSON.stringify(record, null, 2);
 
   const MAX_ATTEMPTS = 3;
-  const keepTransientFailure = (
-    failure: LockFileFailure,
-    err: unknown,
-    attempt: number,
-  ): ProcessLockFileError => {
-    const error = new ProcessLockFileError(logPrefix, failure, lockPath, err);
-    if (!isTransientLockFileError(err)) throw error;
-    if (attempt < MAX_ATTEMPTS) {
-      const code = errnoCode(err);
-      log.warn(
-        { lockPath, code, attempt },
-        `${logPrefix} Could not ${LOCK_FILE_FAILURE_ACTIONS[failure]} at ${lockPath} (${code}); retrying, attempt ${attempt} of ${MAX_ATTEMPTS}`,
-      );
-      sleepSyncMs(WIN32_TRANSIENT_RETRY_PAUSE_MS * attempt);
-    }
-    return error;
+  const failLockFile = (failure: LockFileFailure, err: unknown): never => {
+    throw new ProcessLockFileError(logPrefix, failure, lockPath, err);
   };
-  const removeAssessedLock = (
-    kind: 'stale' | 'corrupt',
-    text: string,
-    attempt: number,
-  ): ProcessLockFileError | undefined => {
+  const removeAssessedLock = (kind: 'stale' | 'corrupt', text: string): void => {
     try {
       removeLockIfUnchanged(lockPath, text);
-      return undefined;
     } catch (err) {
-      return keepTransientFailure(kind, err, attempt);
+      failLockFile(kind, err);
     }
   };
-  const removeDanglingLink = (attempt: number): ProcessLockFileError | undefined => {
+  const removeDanglingLink = (): void => {
     try {
-      if (!lstatSync(lockPath).isSymbolicLink()) return undefined;
+      if (!lstatSync(lockPath).isSymbolicLink()) return;
       unlinkSync(lockPath);
       log.warn({ lockPath }, `${logPrefix} Removed a broken symbolic link at ${lockPath}`);
-      return undefined;
     } catch (err) {
-      if (errnoCode(err) === 'ENOENT') return undefined;
-      return keepTransientFailure('dangling-link', err, attempt);
+      if (errnoCode(err) === 'ENOENT') return;
+      failLockFile('dangling-link', err);
     }
   };
 
-  let lastTransientFailure: ProcessLockFileError | undefined;
   for (let attempt = 1; ; attempt++) {
     if (!existsSync(lockPath)) {
       try {
@@ -342,16 +310,13 @@ export function acquireProcessLock(opts: {
       }
     }
     if (attempt > MAX_ATTEMPTS) break;
-    lastTransientFailure = undefined;
 
     let text: string;
     try {
       text = readFileSync(lockPath, 'utf-8');
     } catch (err) {
-      lastTransientFailure =
-        errnoCode(err) === 'ENOENT'
-          ? removeDanglingLink(attempt)
-          : keepTransientFailure('read', err, attempt);
+      if (errnoCode(err) !== 'ENOENT') failLockFile('read', err);
+      removeDanglingLink();
       continue;
     }
 
@@ -382,19 +347,16 @@ export function acquireProcessLock(opts: {
         { lockPid: existing.pid, host: existing.hostname, holder: assessment.verdict },
         `${logPrefix} Stale lock detected (pid=${existing.pid}, host=${existing.hostname}) — replacing`,
       );
-      lastTransientFailure = removeAssessedLock('stale', text, attempt);
+      removeAssessedLock('stale', text);
       continue;
     }
 
     log.warn({ lockPath }, `${logPrefix} Corrupt lock file at ${lockPath} — replacing`);
-    lastTransientFailure = removeAssessedLock('corrupt', text, attempt);
+    removeAssessedLock('corrupt', text);
   }
 
-  throw (
-    lastTransientFailure ??
-    new Error(
-      `${logPrefix} Failed to acquire ${lockPath} after ${MAX_ATTEMPTS} attempts (concurrent acquire contention).`,
-    )
+  throw new Error(
+    `${logPrefix} Failed to acquire ${lockPath} after ${MAX_ATTEMPTS} attempts (concurrent acquire contention).`,
   );
 }
 
