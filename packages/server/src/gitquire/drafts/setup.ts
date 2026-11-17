@@ -56,6 +56,15 @@ function pullLiveSoon(env: Env): void {
   }).catch(() => undefined);
 }
 
+function rereadLiveSoon(env: Env): void {
+  const port = Number(env.PORT ?? '') || 8080;
+  fetch(`http://127.0.0.1:${port}/api/documents/reread`, {
+    method: 'POST',
+    headers: { ...internalRequestHeaders(), 'Content-Type': 'application/json' },
+    body: '{}',
+  }).catch(() => undefined);
+}
+
 export function isDraftInstance(env: Env): boolean {
   const value = env[DRAFT_INSTANCE_ENV];
   return value !== undefined && value.trim() !== '';
@@ -151,6 +160,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     baseBranch,
     log: deps.log,
     onPublished: () => pullLiveSoon(deps.env),
+    onLiveFilesChanged: () => rereadLiveSoon(deps.env),
   });
   const http = createDraftsHttp({
     service,

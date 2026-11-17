@@ -2011,6 +2011,9 @@ msgstr "تعذّر تجهيز هذا المشروع للنشر."
 msgid "Couldn't publish the draft."
 msgstr ""
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "تعذّرت إعادة قراءة الملفات. حاول مرة أخرى."
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "تعذّر الوصول إلى خادم التعاون — {errorDetail}. جرّب <0>{cliCommand} status</0> أو اجمع السجلات باستخدام <1>{cliCommand} diagnose bundle</1>."
 
@@ -3421,6 +3424,9 @@ msgstr "تغيّر GitQuire على هذا الكمبيوتر إلى نسخة م�
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "أصبح GitQuire على هذا الكمبيوتر بالإصدار v{serverVersion}، لكن هذا التبويب لا يزال يشغّل v{tabVersion}."
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "يستقبل GitQuire التغييرات التي تصل عبر المزامنة. إذا غيّر أحدهم ملفات في مجلد المحتوى مباشرة على الخادم، فأعد قراءتها من هنا."
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "يقوم GitQuire بإعادة كتابة ملفات index.md هذه مع تغير المستندات، لذلك يتم استبدال التعديلات اليدوية عليها."
@@ -5709,6 +5715,21 @@ msgstr "أعد المصادقة مع خادم GitHub Enterprise"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "تحدث إعادة التضمين أثناء تشغيل عمليات البحث، لذا تبدأ التغطية من الصفر وتمتلئ من جديد."
 
+msgid "Re-read files"
+msgstr "إعادة قراءة الملفات"
+
+msgid "Re-read files from disk"
+msgstr "إعادة قراءة الملفات من القرص"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "أُعيدت قراءة الملفات واستُقبلت {found} تغييرات."
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "أُعيدت قراءة الملفات. لم يتغير شيء."
+
+msgid "Re-reading…"
+msgstr "جارٍ إعادة القراءة…"
+
 msgid "Re-run the project audit"
 msgstr "إعادة تشغيل مراجعة المشروع"
 
@@ -7194,6 +7215,9 @@ msgstr "استمر حجم المتجه لدى موفر الخدمة في الت�
 
 msgid "The quoted text is no longer in the page."
 msgstr ""
+
+msgid "The re-read did not finish. Try again."
+msgstr "لم تكتمل إعادة القراءة. حاول مرة أخرى."
 
 msgid "The same text changed in both places"
 msgstr ""

@@ -36,6 +36,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { RereadFromDiskSetting } from '@/gitquire-settings/RereadFromDiskSetting';
 import {
   useSyncDefaultWriter,
   useSyncIntervalWriter,
@@ -714,6 +715,7 @@ function SyncSectionContent({
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
+      <RereadFromDiskSetting />
       <EnableSyncConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}

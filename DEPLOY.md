@@ -355,6 +355,18 @@ can still change them there.
 | `GITQUIRE_NAMING=off` | Keep page and folder names exactly as typed instead of lowercase-hyphenated. |
 | `validation.links: off` | Hide the broken-links button in the header. |
 
+### Files changed directly on the server
+
+The image does not watch the content folder. Pages change through GitQuire: the editor, sync with
+GitHub, drafts and AI agents. If you change files on the data volume yourself, for example with
+`docker exec` or a backup restore, tell GitQuire to read them again:
+
+- in the app, under **Wiki administration** → **Sync & sharing**, choose **Re-read files**, or
+- run `gitquire reread` inside the container.
+
+To watch the folder again as older versions did, set `GITQUIRE_FILE_WATCHER_BACKEND=parcel`. Nothing
+else changes when you upgrade.
+
 ## Build the image yourself
 
 ```bash
@@ -416,4 +428,4 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_AGENT_TOKEN_DAYS`, `GITQUIRE_MCP_CONNECTORS`, `GITQUIRE_MCP_TOKEN` | [AI agents](#ai-agents) |
 | `GITQUIRE_AI_CHAT`, `GITQUIRE_ANTHROPIC_BASE_URL`, `GITQUIRE_MISTRAL_BASE_URL` | [AI chat](#ai-chat) |
 | `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
-| `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |
+| `GITQUIRE_NAMING`, `GITQUIRE_FILE_WATCHER_BACKEND` | [Wiki administration](#wiki-administration) |

@@ -238,3 +238,11 @@ export const DocumentRefreshSuccessSchema = z
   })
   .loose() satisfies StandardSchemaV1;
 export type DocumentRefreshSuccess = z.infer<typeof DocumentRefreshSuccessSchema>;
+
+export const DocumentRereadSuccessSchema = z
+  .object({
+    status: z.enum(['completed', 'incomplete', 'failed', 'closed']),
+    found: z.number().int().nonnegative(),
+  })
+  .loose() satisfies StandardSchemaV1;
+export type DocumentRereadSuccess = z.infer<typeof DocumentRereadSuccessSchema>;

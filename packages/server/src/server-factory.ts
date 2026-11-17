@@ -29,6 +29,7 @@ import {
   DEFAULT_SIGTERM_GRACE_MS,
   DEFAULT_SUPPRESS_LOG_LINK_ADVISORIES,
   DOCUMENT_OPEN_BYTE_LIMIT,
+  type DocumentRereadSuccess,
   humanFormat,
   isKnownConfigError,
   type LinterConfig,
@@ -915,6 +916,24 @@ export function createServer(options: ServerOptions): ServerInstance {
       if (releaseBatchHold(owner)) {
         await finishBatch().catch((err: unknown) => {
           log.error({ err, owner }, '[batch] draining after the batch failed');
+        });
+      }
+    }
+  }
+
+  async function rereadFromDisk(): Promise<DocumentRereadSuccess> {
+    const owner = 'reread';
+    holdBatch(owner);
+    try {
+      await recheckConfigFiles();
+      if (!watcher) return { status: 'closed', found: 0 };
+      const result = await watcher.recheck('full');
+      log.info({ result }, '[reread] re-read the content folder from disk');
+      return { status: result.status, found: result.dispatched };
+    } finally {
+      if (releaseBatchHold(owner)) {
+        await finishBatch().catch((err: unknown) => {
+          log.error({ err }, '[reread] draining after the re-read failed');
         });
       }
     }
@@ -2977,6 +2996,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       setBatchInProgress: batchFlagFor('conflict-resolve'),
       setCheckoutInProgress: batchFlagFor('checkout'),
       refreshDocumentsFromDisk,
+      rereadFromDisk,
       localOpCliArgs,
       authStreamHeartbeatMs,
       projectDir,

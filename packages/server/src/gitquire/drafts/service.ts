@@ -55,6 +55,7 @@ export interface DraftServiceDeps {
   log: GateLogger;
   now?: () => Date;
   onPublished?: () => void;
+  onLiveFilesChanged?: () => void;
 }
 
 interface DraftSummary {
@@ -497,6 +498,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
       mkdirSync(dirname(liveFile), { recursive: true });
       writeFileSync(liveFile, before);
     }
+    deps.onLiveFilesChanged?.();
     deps.log.info(
       { draft: draft.slug, path, by: user.login },
       '[gitquire-drafts] moved recent edits into a draft',
