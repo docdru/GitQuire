@@ -329,17 +329,17 @@ msgstr "{errorText}, {warningText}"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount}개 파일을 업로드하지 못했습니다}}"
 
-msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file}이(가) GitQuire 밖에서 UTF-8 텍스트가 아닌 내용으로 변경되어 저장되지 않았고, 파일을 덮어쓰지 않았습니다. 편집 내용은 여기에 그대로 있으며, 파일이 변경되면 다시 저장을 시도합니다."
+msgid "{file} was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file}이(가) 디스크에서 UTF-8 텍스트가 아닌 내용으로 바뀌어 저장되지 않았으며 파일을 덮어쓰지 않았습니다. 편집 내용은 여기에 남아 있으며 파일이 바뀌면 다시 저장을 시도합니다."
 
-msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file}을(를) 외부 변경과 비교하기 위해 읽을 수 없어 저장되지 않았고, 파일을 덮어쓰지 않았습니다. 편집 내용은 여기에 그대로 있으며, 다시 저장을 시도합니다."
+msgid "{file} was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file}을(를) 읽을 수 없어 디스크의 변경 사항과 비교하지 못해 저장되지 않았으며 파일을 덮어쓰지 않았습니다. 편집 내용은 여기에 남아 있으며 다시 저장을 시도합니다."
 
-msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
-msgstr "{file}이(가) GitQuire 밖에서 계속 변경되어 저장되지 않았습니다. 편집 내용은 여기에 그대로 있으며, 다시 저장을 시도합니다."
+msgid "{file} was not saved because it kept changing on disk. Your edits stay here, and saving is tried again."
+msgstr "{file}이(가) 디스크에서 계속 바뀌어 저장되지 않았습니다. 편집 내용은 여기에 남아 있으며 다시 저장을 시도합니다."
 
-msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file}이(가) 저장되지 않았습니다. GitQuire 밖에서 변경되었지만 그 버전을 기록이나 백업 폴더에 보관할 수 없어 파일을 덮어쓰지 않았습니다. 편집 내용은 여기에 그대로 있으며, 다시 저장을 시도합니다."
+msgid "{file} was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file}이(가) 저장되지 않았습니다. 디스크에서 바뀌었고 그 버전을 기록이나 백업 폴더에 보관할 수 없어 파일을 덮어쓰지 않았습니다. 편집 내용은 여기에 남아 있으며 다시 저장을 시도합니다."
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, other {파일 #개}}"
@@ -679,6 +679,21 @@ msgstr "템플릿 목록에서 제목 아래에 표시되는 짧은 문장입니
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "주제별 파일 하나와 일일 저널을 제공하는 간단한 작성 공간입니다. 글쓰기를 시작하고 시간이 지나며 노트 사이의 링크를 쌓고 싶다면 이것을 선택하세요."
 
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version is in the timeline."
+msgstr "{fileName}의 동기화된 변경 사항을 병합할 수 없어 이 버전을 유지했습니다. 동기화된 버전은 타임라인에 있습니다."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to {backupPath}."
+msgstr "{fileName}의 동기화된 변경 사항을 병합할 수 없어 이 버전을 유지했습니다. 동기화된 버전은 {backupPath}에 저장되었습니다."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to the document's history."
+msgstr "{fileName}의 동기화된 변경 사항을 병합할 수 없어 이 버전을 유지했습니다. 동기화된 버전은 문서 기록에 저장되었습니다."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet."
+msgstr "{fileName}의 동기화된 변경 사항이 올바른 설정이 아니어서 설정을 유지했습니다. 동기화된 버전의 사본은 이 프로젝트의 기록에 보관되었으며, 앱에서는 아직 표시할 수 없습니다."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was saved to {backupPath}."
+msgstr "{fileName}의 동기화된 변경 사항이 올바른 설정이 아니어서 설정을 유지했습니다. 동기화된 버전의 사본은 {backupPath}에 저장되었습니다."
+
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "<0>{trimmedSlug}</0>이라는 템플릿이 이미 있습니다. 저장하면 이 폴더에서 해당 템플릿을 덮어쓰는 로컬 복사본이 생성됩니다."
 
@@ -961,21 +976,6 @@ msgstr "이미 git 저장소가 있나요? 프로젝트 폴더에서 <0>git remo
 msgid "Already open"
 msgstr "이미 열려 있음"
 
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version is in the timeline."
-msgstr "{fileName}의 외부 변경을 병합할 수 없어 이 버전이 유지되었습니다. 외부 버전은 타임라인에 있습니다."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to {backupPath}."
-msgstr "{fileName}의 외부 변경을 병합할 수 없어 이 버전이 유지되었습니다. 외부 버전은 {backupPath}에 저장되었습니다."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to the document's history."
-msgstr "{fileName}의 외부 변경을 병합할 수 없어 이 버전이 유지되었습니다. 외부 버전은 문서 기록에 저장되었습니다."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet."
-msgstr "{fileName}의 외부 변경이 올바른 설정이 아니어서 기존 설정이 유지되었습니다. 외부 버전의 사본은 이 프로젝트 기록에 보관되었지만, 앱에서는 아직 볼 수 없습니다."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was saved to {backupPath}."
-msgstr "{fileName}의 외부 변경이 올바른 설정이 아니어서 기존 설정이 유지되었습니다. 외부 버전의 사본은 {backupPath}에 저장되었습니다."
-
 msgid "An unexpected error occurred."
 msgstr "예기치 않은 오류가 발생했습니다."
 
@@ -1232,8 +1232,8 @@ msgstr "누군가 이 템플릿으로 문서를 만들면 문서 내용이 됩�
 msgid "Before"
 msgstr "이전"
 
-msgid "Before an outside change was merged"
-msgstr "외부 변경을 병합하기 전"
+msgid "Before a synced change was merged"
+msgstr "동기화된 변경 사항을 병합하기 전"
 
 msgid "Before syncing, set your identity for git commits:"
 msgstr "동기화하기 전에 git 커밋에 사용할 사용자 정보를 설정하세요:"
@@ -1287,8 +1287,8 @@ msgstr "둘 다"
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "두 버전이 동일합니다. 현재 항목 적용을 선택하면 GitQuire의 보호가 켜진 상태로 유지되어 이전 버전의 또 다른 저장이 다시 거부됩니다. 수신 항목 적용을 선택하면 그 보호가 해제됩니다."
 
-msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
-msgstr "{fileName}에 두 버전이 모두 유지되었습니다. 이 파일이 GitQuire 밖에서 여기와 같은 위치가 변경되어, 외부 버전이 이 버전 바로 아래에 있습니다."
+msgid "Both versions were kept in {fileName}. A sync changed it in the same place as here, so the synced version is directly under this one."
+msgstr "{fileName}에 두 버전을 모두 유지했습니다. 동기화가 여기와 같은 위치를 변경해서 동기화된 버전이 이 버전 바로 아래에 있습니다."
 
 msgid "Branch"
 msgstr "브랜치"
@@ -1374,14 +1374,14 @@ msgstr "임베딩 제공업체를 변경하시겠습니까?"
 msgid "Changed"
 msgstr "변경됨"
 
+msgid "changed by a sync"
+msgstr "동기화로 변경됨"
+
 msgid "Changed here and on the remote"
 msgstr "여기와 원격 모두에서 변경됨"
 
 msgid "Changed in this draft"
 msgstr ""
-
-msgid "changed outside"
-msgstr "외부에서 변경됨"
 
 msgid "Changes"
 msgstr ""
@@ -5276,9 +5276,6 @@ msgstr "개요"
 msgid "Outside any block"
 msgstr "블록 밖"
 
-msgid "Outside version"
-msgstr "외부 버전"
-
 msgid "Outside what GitQuire commits."
 msgstr "GitQuire가 커밋하는 범위 밖입니다."
 
@@ -6451,11 +6448,11 @@ msgstr "설정을 불러오지 못했습니다"
 msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
 msgstr ""
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "{fileName}의 설정이 GitQuire 밖에서 변경되어 이제 적용됩니다. 진행 중이던 변경 내용의 사본은 이 프로젝트 기록에 보관되었지만, 앱에서는 아직 볼 수 없습니다."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "{fileName}의 설정이 동기화로 바뀌어 이제 적용됩니다. 작업 중이던 변경 사항의 사본은 이 프로젝트의 기록에 보관되었으며, 앱에서는 아직 표시할 수 없습니다."
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "{fileName}의 설정이 GitQuire 밖에서 변경되어 이제 적용됩니다. 진행 중이던 변경 내용의 사본은 {backupPath}에 저장되었습니다."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "{fileName}의 설정이 동기화로 바뀌어 이제 적용됩니다. 작업 중이던 변경 사항의 사본은 {backupPath}에 저장되었습니다."
 
 msgid "Settings sections"
 msgstr "설정 섹션"
@@ -6915,6 +6912,9 @@ msgstr "동기화됨"
 
 msgid "Synced from disk"
 msgstr "디스크에서 동기화됨"
+
+msgid "Synced version"
+msgstr "동기화된 버전"
 
 msgid "Synced. The link is up to date."
 msgstr "동기화됨. 링크가 최신 상태입니다."

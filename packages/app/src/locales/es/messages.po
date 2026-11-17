@@ -329,17 +329,17 @@ msgstr "{errorText} y {warningText}"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, one {No se pudo subir 1 archivo} many {No se pudieron subir {failedCount} archivos} other {No se pudieron subir {failedCount} archivos}}"
 
-msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} no se guardó porque cambió fuera de GitQuire a un contenido que no es texto UTF-8, así que no se sobrescribió el archivo. Tus ediciones se mantienen aquí y se volverá a intentar guardar cuando el archivo cambie."
+msgid "{file} was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} no se guardó porque cambió en el disco a un contenido que no es texto UTF-8, así que el archivo no se sobrescribió. Tus cambios siguen aquí y se volverá a intentar guardar cuando el archivo cambie."
 
-msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} no se guardó porque no se pudo leer para compararlo con los cambios externos, así que no se sobrescribió el archivo. Tus ediciones se mantienen aquí y se volverá a intentar guardar."
+msgid "{file} was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} no se guardó porque no se pudo leer para compararlo con los cambios en el disco, así que el archivo no se sobrescribió. Tus cambios siguen aquí y se volverá a intentar guardar."
 
-msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
-msgstr "{file} no se guardó porque seguía cambiando fuera de GitQuire. Tus ediciones se mantienen aquí y se volverá a intentar guardar."
+msgid "{file} was not saved because it kept changing on disk. Your edits stay here, and saving is tried again."
+msgstr "{file} no se guardó porque seguía cambiando en el disco. Tus cambios siguen aquí y se volverá a intentar guardar."
 
-msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} no se guardó. Cambió fuera de GitQuire y esa versión no se pudo conservar en el historial ni en la carpeta de copias de seguridad, así que no se sobrescribió el archivo. Tus ediciones se mantienen aquí y se volverá a intentar guardar."
+msgid "{file} was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} no se guardó. Cambió en el disco y esa versión no se pudo conservar en el historial ni en la carpeta de copias, así que el archivo no se sobrescribió. Tus cambios siguen aquí y se volverá a intentar guardar."
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, one {# archivo} many {# archivos} other {# archivos}}"
@@ -679,6 +679,21 @@ msgstr "Una línea breve que aparece bajo el título en la lista de plantillas."
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "Un sitio sencillo para escribir, con un archivo por tema y un diario. Elige esto si solo quieres empezar a escribir y dejar que los enlaces entre notas surjan con el tiempo."
 
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version is in the timeline."
+msgstr "Un cambio sincronizado en {fileName} no se pudo fusionar, así que se mantuvo esta versión. La versión sincronizada está en la línea de tiempo."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to {backupPath}."
+msgstr "Un cambio sincronizado en {fileName} no se pudo fusionar, así que se mantuvo esta versión. La versión sincronizada se guardó en {backupPath}."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to the document's history."
+msgstr "Un cambio sincronizado en {fileName} no se pudo fusionar, así que se mantuvo esta versión. La versión sincronizada se guardó en el historial del documento."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet."
+msgstr "Un cambio sincronizado en {fileName} no era una configuración válida, así que tu configuración se mantuvo. Se guardó una copia de la versión sincronizada en el historial de este proyecto, que la app aún no puede mostrar."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was saved to {backupPath}."
+msgstr "Un cambio sincronizado en {fileName} no era una configuración válida, así que tu configuración se mantuvo. Se guardó una copia de la versión sincronizada en {backupPath}."
+
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "Ya existe aquí una plantilla llamada <0>{trimmedSlug}</0>. Al guardar se crea una copia local que la sustituye en esta carpeta."
 
@@ -961,21 +976,6 @@ msgstr "¿Ya tienes un repositorio git? Añádelo con <0>git remote add origin <
 msgid "Already open"
 msgstr "Ya está abierto"
 
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version is in the timeline."
-msgstr "Un cambio externo en {fileName} no se pudo combinar, así que se mantuvo esta versión. La versión externa está en la cronología."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to {backupPath}."
-msgstr "Un cambio externo en {fileName} no se pudo combinar, así que se mantuvo esta versión. La versión externa se guardó en {backupPath}."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to the document's history."
-msgstr "Un cambio externo en {fileName} no se pudo combinar, así que se mantuvo esta versión. La versión externa se guardó en el historial del documento."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet."
-msgstr "Un cambio externo en {fileName} no contenía ajustes válidos, así que se mantuvieron tus ajustes. Se guardó una copia de la versión externa en el historial de este proyecto, que la aplicación todavía no puede mostrar."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was saved to {backupPath}."
-msgstr "Un cambio externo en {fileName} no contenía ajustes válidos, así que se mantuvieron tus ajustes. Se guardó una copia de la versión externa en {backupPath}."
-
 msgid "An unexpected error occurred."
 msgstr "Se produjo un error inesperado."
 
@@ -1232,8 +1232,8 @@ msgstr "Se convierte en el contenido del documento cuando alguien crea uno a par
 msgid "Before"
 msgstr "Antes"
 
-msgid "Before an outside change was merged"
-msgstr "Antes de combinar un cambio externo"
+msgid "Before a synced change was merged"
+msgstr "Antes de fusionar un cambio sincronizado"
 
 msgid "Before syncing, set your identity for git commits:"
 msgstr "Antes de sincronizar, define tu identidad para los commits de git:"
@@ -1287,8 +1287,8 @@ msgstr "Ambos"
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "Las dos versiones son idénticas. Elegir Aceptar actual mantiene activa la protección de GitQuire, así que otro guardado de la versión anterior se rechazará de nuevo. Elegir Aceptar entrante desactiva esa protección."
 
-msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
-msgstr "Se conservaron las dos versiones en {fileName}. El archivo cambió fuera de GitQuire en el mismo lugar que aquí, así que la versión externa está justo debajo de esta."
+msgid "Both versions were kept in {fileName}. A sync changed it in the same place as here, so the synced version is directly under this one."
+msgstr "Se conservaron ambas versiones en {fileName}. Una sincronización lo cambió en el mismo lugar que aquí, así que la versión sincronizada está justo debajo de esta."
 
 msgid "Branch"
 msgstr "Rama"
@@ -1374,14 +1374,14 @@ msgstr "¿Cambiar el proveedor de embeddings?"
 msgid "Changed"
 msgstr "Modificado"
 
+msgid "changed by a sync"
+msgstr "cambiado por una sincronización"
+
 msgid "Changed here and on the remote"
 msgstr "Cambiados aquí y en el remoto"
 
 msgid "Changed in this draft"
 msgstr ""
-
-msgid "changed outside"
-msgstr "modificado fuera"
 
 msgid "Changes"
 msgstr ""
@@ -5276,9 +5276,6 @@ msgstr "Esquema"
 msgid "Outside any block"
 msgstr "Fuera de cualquier bloque"
 
-msgid "Outside version"
-msgstr "Versión externa"
-
 msgid "Outside what GitQuire commits."
 msgstr "Fuera de lo que confirma GitQuire."
 
@@ -6451,11 +6448,11 @@ msgstr "No se pudieron cargar los ajustes"
 msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
 msgstr ""
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "Los ajustes de {fileName} cambiaron fuera de GitQuire y ya se aplican. Se guardó una copia del cambio que estabas haciendo en el historial de este proyecto, que la aplicación todavía no puede mostrar."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "La configuración de {fileName} cambió en una sincronización y ya se aplica. Se guardó una copia del cambio que estabas haciendo en el historial de este proyecto, que la app aún no puede mostrar."
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "Los ajustes de {fileName} cambiaron fuera de GitQuire y ya se aplican. Se guardó una copia del cambio que estabas haciendo en {backupPath}."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "La configuración de {fileName} cambió en una sincronización y ya se aplica. Se guardó una copia del cambio que estabas haciendo en {backupPath}."
 
 msgid "Settings sections"
 msgstr "Secciones de ajustes"
@@ -6915,6 +6912,9 @@ msgstr "Sincronizado"
 
 msgid "Synced from disk"
 msgstr "Sincronizado desde el disco"
+
+msgid "Synced version"
+msgstr "Versión sincronizada"
 
 msgid "Synced. The link is up to date."
 msgstr "Sincronizado. El enlace está al día."

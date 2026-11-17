@@ -413,7 +413,9 @@ describe('a settings file notice inside the Settings dialog', () => {
     renderWithNotices(onOpenChange);
 
     const notice = await screen.findByRole('region', { name: 'File change notice' });
-    expect(notice.textContent).toContain('Settings in .gitquire/local/config.yml changed outside');
+    expect(notice.textContent).toContain(
+      'Settings in .gitquire/local/config.yml changed in a sync',
+    );
     const content = screen.getByRole('region', { name: 'Settings content' });
     content.focus();
     await user.tab();

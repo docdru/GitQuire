@@ -329,17 +329,17 @@ msgstr "{errorText} et {warningText}"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, one {L'envoi d'un fichier a échoué} many {L'envoi de {failedCount} fichiers a échoué} other {L'envoi de {failedCount} fichiers a échoué}}"
 
-msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} n'a pas été enregistré, car il a été modifié en dehors de GitQuire avec un contenu qui n'est pas du texte UTF-8, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté quand le fichier changera."
+msgid "{file} was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} n'a pas été enregistré, car il a changé sur le disque vers un contenu qui n'est pas du texte UTF-8 ; le fichier n'a donc pas été écrasé. Vos modifications restent ici et l'enregistrement sera retenté quand le fichier changera."
 
-msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} n'a pas été enregistré, car il n'a pas pu être lu pour le comparer aux modifications externes, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté."
+msgid "{file} was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} n'a pas été enregistré, car il n'a pas pu être lu pour le comparer aux changements sur le disque ; le fichier n'a donc pas été écrasé. Vos modifications restent ici et l'enregistrement sera retenté."
 
-msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
-msgstr "{file} n'a pas été enregistré, car il continuait de changer en dehors de GitQuire. Vos modifications restent ici, et l'enregistrement sera retenté."
+msgid "{file} was not saved because it kept changing on disk. Your edits stay here, and saving is tried again."
+msgstr "{file} n'a pas été enregistré, car il changeait sans cesse sur le disque. Vos modifications restent ici et l'enregistrement sera retenté."
 
-msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} n'a pas été enregistré. Il a été modifié en dehors de GitQuire, et cette version n'a pu être conservée ni dans l'historique ni dans le dossier de sauvegarde, donc le fichier n'a pas été écrasé. Vos modifications restent ici, et l'enregistrement sera retenté."
+msgid "{file} was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} n'a pas été enregistré. Il a changé sur le disque et cette version n'a pu être conservée ni dans l'historique ni dans le dossier de sauvegarde ; le fichier n'a donc pas été écrasé. Vos modifications restent ici et l'enregistrement sera retenté."
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, one {# fichier} many {# fichiers} other {# fichiers}}"
@@ -679,6 +679,21 @@ msgstr "Une courte ligne affichée sous le titre dans la liste des modèles."
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "Un espace d'écriture simple, avec un fichier par sujet et un journal quotidien. Choisissez ceci si vous voulez juste commencer à écrire et laisser les liens entre les notes se construire au fil du temps."
 
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version is in the timeline."
+msgstr "Une modification synchronisée de {fileName} n'a pas pu être fusionnée, cette version a donc été conservée. La version synchronisée se trouve dans la chronologie."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to {backupPath}."
+msgstr "Une modification synchronisée de {fileName} n'a pas pu être fusionnée, cette version a donc été conservée. La version synchronisée a été enregistrée dans {backupPath}."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to the document's history."
+msgstr "Une modification synchronisée de {fileName} n'a pas pu être fusionnée, cette version a donc été conservée. La version synchronisée a été enregistrée dans l'historique du document."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet."
+msgstr "Une modification synchronisée de {fileName} n'était pas un réglage valide, vos réglages ont donc été conservés. Une copie de la version synchronisée a été gardée dans l'historique de ce projet, que l'application ne peut pas encore afficher."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was saved to {backupPath}."
+msgstr "Une modification synchronisée de {fileName} n'était pas un réglage valide, vos réglages ont donc été conservés. Une copie de la version synchronisée a été enregistrée dans {backupPath}."
+
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "Un modèle nommé <0>{trimmedSlug}</0> existe déjà ici. L'enregistrer crée une copie locale qui le remplace pour ce dossier."
 
@@ -961,21 +976,6 @@ msgstr "Vous avez déjà un dépôt git ? Ajoutez-le avec <0>git remote add orig
 msgid "Already open"
 msgstr "Déjà ouvert"
 
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version is in the timeline."
-msgstr "Une modification externe de {fileName} n'a pas pu être fusionnée, donc cette version a été conservée. La version externe se trouve dans la chronologie."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to {backupPath}."
-msgstr "Une modification externe de {fileName} n'a pas pu être fusionnée, donc cette version a été conservée. La version externe a été enregistrée dans {backupPath}."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to the document's history."
-msgstr "Une modification externe de {fileName} n'a pas pu être fusionnée, donc cette version a été conservée. La version externe a été enregistrée dans l'historique du document."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet."
-msgstr "Une modification externe de {fileName} ne contenait pas de paramètres valides, donc vos paramètres ont été conservés. Une copie de la version externe a été conservée dans l'historique de ce projet, que l'application ne peut pas encore afficher."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was saved to {backupPath}."
-msgstr "Une modification externe de {fileName} ne contenait pas de paramètres valides, donc vos paramètres ont été conservés. Une copie de la version externe a été enregistrée dans {backupPath}."
-
 msgid "An unexpected error occurred."
 msgstr "Une erreur inattendue s'est produite."
 
@@ -1232,8 +1232,8 @@ msgstr "Devient le contenu du document lorsque quelqu'un en crée un à partir d
 msgid "Before"
 msgstr "Avant"
 
-msgid "Before an outside change was merged"
-msgstr "Avant la fusion d'une modification externe"
+msgid "Before a synced change was merged"
+msgstr "Avant la fusion d'une modification synchronisée"
 
 msgid "Before syncing, set your identity for git commits:"
 msgstr "Avant de synchroniser, définissez votre identité pour les commits git :"
@@ -1287,8 +1287,8 @@ msgstr "Les deux"
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "Les deux versions sont identiques. Choisir Accepter l’actuel laisse la protection de GitQuire activée : un nouvel enregistrement de la version antérieure sera de nouveau refusé. Choisir Accepter l’entrant désactive cette protection."
 
-msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
-msgstr "Les deux versions ont été conservées dans {fileName}. Le fichier a été modifié en dehors de GitQuire au même endroit qu'ici, donc la version externe se trouve juste en dessous de celle-ci."
+msgid "Both versions were kept in {fileName}. A sync changed it in the same place as here, so the synced version is directly under this one."
+msgstr "Les deux versions ont été conservées dans {fileName}. Une synchronisation l'a modifié au même endroit qu'ici ; la version synchronisée se trouve donc juste en dessous de celle-ci."
 
 msgid "Branch"
 msgstr "Branche"
@@ -1374,14 +1374,14 @@ msgstr "Changer de fournisseur d'embeddings ?"
 msgid "Changed"
 msgstr "Modifié"
 
+msgid "changed by a sync"
+msgstr "modifié par une synchronisation"
+
 msgid "Changed here and on the remote"
 msgstr "Modifiés ici et sur le distant"
 
 msgid "Changed in this draft"
 msgstr ""
-
-msgid "changed outside"
-msgstr "modifié à l'extérieur"
 
 msgid "Changes"
 msgstr ""
@@ -5276,9 +5276,6 @@ msgstr "Plan"
 msgid "Outside any block"
 msgstr "En dehors de tout bloc"
 
-msgid "Outside version"
-msgstr "Version externe"
-
 msgid "Outside what GitQuire commits."
 msgstr "En dehors de ce que valide GitQuire."
 
@@ -6451,11 +6448,11 @@ msgstr "Échec du chargement des paramètres"
 msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
 msgstr ""
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "Les paramètres de {fileName} ont été modifiés en dehors de GitQuire et s'appliquent désormais. Une copie de la modification que vous étiez en train de faire a été conservée dans l'historique de ce projet, que l'application ne peut pas encore afficher."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "Les réglages de {fileName} ont changé lors d'une synchronisation et s'appliquent maintenant. Une copie de la modification que vous faisiez a été gardée dans l'historique de ce projet, que l'application ne peut pas encore afficher."
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "Les paramètres de {fileName} ont été modifiés en dehors de GitQuire et s'appliquent désormais. Une copie de la modification que vous étiez en train de faire a été enregistrée dans {backupPath}."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "Les réglages de {fileName} ont changé lors d'une synchronisation et s'appliquent maintenant. Une copie de la modification que vous faisiez a été enregistrée dans {backupPath}."
 
 msgid "Settings sections"
 msgstr "Sections des paramètres"
@@ -6915,6 +6912,9 @@ msgstr "Synchronisé"
 
 msgid "Synced from disk"
 msgstr "Synchronisé depuis le disque"
+
+msgid "Synced version"
+msgstr "Version synchronisée"
 
 msgid "Synced. The link is up to date."
 msgstr "Synchronisé. Le lien est à jour."

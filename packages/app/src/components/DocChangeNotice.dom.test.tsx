@@ -97,7 +97,7 @@ describe('DocChangeNotice', () => {
 
     const notice = await findNotice();
     expect(notice.textContent).toContain('Both versions were kept in notes.md.');
-    expect(notice.textContent).toContain('the outside version is directly under this one');
+    expect(notice.textContent).toContain('the synced version is directly under this one');
     expect(
       within(notice)
         .getAllByRole('button')
@@ -113,7 +113,7 @@ describe('DocChangeNotice', () => {
       },
       {
         notice: moved('n-theirs', 'folder/plan', 'theirs'),
-        says: 'An outside change to plan.md could not be merged, so this version stayed. The outside version is in the timeline.',
+        says: 'A synced change to plan.md could not be merged, so this version stayed. The synced version is in the timeline.',
       },
       {
         notice: moved('n-ours', 'folder/plan', 'ours'),
@@ -125,7 +125,7 @@ describe('DocChangeNotice', () => {
           file: 'folder/flow.mmd',
           reason: 'no-merge-engine',
         },
-        says: 'An outside change to flow.mmd could not be merged, so this version stayed. The outside version is in the timeline.',
+        says: 'A synced change to flow.mmd could not be merged, so this version stayed. The synced version is in the timeline.',
       },
       {
         notice: {
@@ -133,7 +133,7 @@ describe('DocChangeNotice', () => {
           file: '.gitquire/config.yml',
           reason: 'outside-settings-applied',
         },
-        says: "Settings in config.yml changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet.",
+        says: "Settings in config.yml changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet.",
       },
       {
         notice: {
@@ -141,7 +141,7 @@ describe('DocChangeNotice', () => {
           file: '.okignore',
           reason: 'outside-settings-invalid',
         },
-        says: "An outside change to .okignore was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet.",
+        says: "A synced change to .okignore was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet.",
       },
     ];
     for (const { notice, says } of cases) {
@@ -173,19 +173,19 @@ describe('DocChangeNotice', () => {
           reason: 'no-merge-engine',
           backup,
         },
-        says: `An outside change to flow.mmd could not be merged, so this version stayed. The outside version was saved to ${backup}.`,
+        says: `A synced change to flow.mmd could not be merged, so this version stayed. The synced version was saved to ${backup}.`,
       },
       {
         notice: { ...common, id: 'n-held-none', kind: 'save-held', cause: 'no-history-or-backup' },
-        says: 'flow.mmd was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again.',
+        says: 'flow.mmd was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again.',
       },
       {
         notice: { ...common, id: 'n-held-busy', kind: 'save-held', cause: 'keeps-changing' },
-        says: 'flow.mmd was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again.',
+        says: 'flow.mmd was not saved because it kept changing on disk. Your edits stay here, and saving is tried again.',
       },
       {
         notice: { ...common, id: 'n-held-bytes', kind: 'save-held', cause: 'not-utf8' },
-        says: 'flow.mmd was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
+        says: 'flow.mmd was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
       },
     ];
     for (const { notice, says } of cases) {
@@ -220,12 +220,12 @@ describe('DocChangeNotice', () => {
     );
     const [held, kept] = screen.getAllByRole('region', { name: 'File change notice' });
     expect(held?.textContent).toContain(
-      'notes.md was not saved because it could not be read to compare it with outside changes, so the file was not written over.',
+      'notes.md was not saved because it could not be read to compare it with changes on disk, so the file was not written over.',
     );
-    expect(kept?.textContent).toContain('An outside change to notes.md could not be merged');
+    expect(kept?.textContent).toContain('A synced change to notes.md could not be merged');
     await waitFor(() =>
       expect(screen.getByRole('status').textContent).toBe(
-        'notes.md was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again. An outside change to notes.md could not be merged, so this version stayed. The outside version is in the timeline.',
+        'notes.md was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again. A synced change to notes.md could not be merged, so this version stayed. The synced version is in the timeline.',
       ),
     );
 
@@ -234,7 +234,7 @@ describe('DocChangeNotice', () => {
     await waitFor(() => expect(dismissBodies).toEqual([{ docName: 'notes', id: 'n-held' }]));
     expect(screen.getAllByRole('region', { name: 'File change notice' })).toHaveLength(1);
     expect(screen.getByRole('region', { name: 'File change notice' }).textContent).toContain(
-      'An outside change to notes.md could not be merged',
+      'A synced change to notes.md could not be merged',
     );
   });
 
@@ -294,7 +294,7 @@ describe('DocChangeNotice', () => {
     };
     serverNotices = [moved('n-no-timeline', 'notes', 'theirs')];
     renderNotice('notes', false);
-    await expectNoTimeline("The outside version was saved to the document's history.");
+    await expectNoTimeline("The synced version was saved to the document's history.");
   });
 
   test('when no history entry was written, the notice claims none and offers no Open timeline', async () => {
@@ -371,6 +371,6 @@ describe('DocChangeNotice', () => {
       await findNotice();
     }
 
-    expect(status.textContent).toContain('An outside change to plan.md could not be merged');
+    expect(status.textContent).toContain('A synced change to plan.md could not be merged');
   });
 });

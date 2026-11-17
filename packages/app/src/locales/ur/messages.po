@@ -329,17 +329,17 @@ msgstr "{errorText} اور {warningText}"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, one {1 فائل اپ لوڈ نہیں ہو سکی} other {{failedCount} فائلیں اپ لوڈ نہیں ہو سکیں}}"
 
-msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} محفوظ نہیں ہوئی، کیونکہ اسے GitQuire کے باہر ایسے مواد میں بدلا گیا جو UTF-8 متن نہیں ہے، اس لیے فائل کو اوور رائٹ نہیں کیا گیا۔ آپ کی ترامیم یہیں موجود ہیں، اور فائل بدلنے پر محفوظ کرنے کی دوبارہ کوشش کی جائے گی۔"
+msgid "{file} was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} محفوظ نہیں ہوئی کیونکہ ڈسک پر یہ ایسے مواد میں بدل گئی جو UTF-8 متن نہیں ہے، اس لیے فائل کو اوور رائٹ نہیں کیا گیا۔ آپ کی ترامیم یہیں ہیں، اور فائل بدلنے پر دوبارہ محفوظ کرنے کی کوشش کی جائے گی۔"
 
-msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} محفوظ نہیں ہوئی، کیونکہ باہر کی تبدیلیوں سے موازنہ کرنے کے لیے اسے پڑھا نہیں جا سکا، اس لیے فائل کو اوور رائٹ نہیں کیا گیا۔ آپ کی ترامیم یہیں موجود ہیں، اور محفوظ کرنے کی دوبارہ کوشش کی جائے گی۔"
+msgid "{file} was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} محفوظ نہیں ہوئی کیونکہ ڈسک کی تبدیلیوں سے موازنہ کرنے کے لیے اسے پڑھا نہیں جا سکا، اس لیے فائل کو اوور رائٹ نہیں کیا گیا۔ آپ کی ترامیم یہیں ہیں، اور دوبارہ محفوظ کرنے کی کوشش کی جائے گی۔"
 
-msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
-msgstr "{file} محفوظ نہیں ہوئی، کیونکہ یہ GitQuire کے باہر بار بار بدلتی رہی۔ آپ کی ترامیم یہیں موجود ہیں، اور محفوظ کرنے کی دوبارہ کوشش کی جائے گی۔"
+msgid "{file} was not saved because it kept changing on disk. Your edits stay here, and saving is tried again."
+msgstr "{file} محفوظ نہیں ہوئی کیونکہ یہ ڈسک پر بار بار بدل رہی تھی۔ آپ کی ترامیم یہیں ہیں، اور دوبارہ محفوظ کرنے کی کوشش کی جائے گی۔"
 
-msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} محفوظ نہیں ہوئی۔ اسے GitQuire کے باہر بدلا گیا، اور وہ ورژن نہ تاریخ میں رکھا جا سکا نہ بیک اپ فولڈر میں، اس لیے فائل کو اوور رائٹ نہیں کیا گیا۔ آپ کی ترامیم یہیں موجود ہیں، اور محفوظ کرنے کی دوبارہ کوشش کی جائے گی۔"
+msgid "{file} was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} محفوظ نہیں ہوئی۔ یہ ڈسک پر بدل گئی، اور وہ ورژن تاریخ یا بیک اپ فولڈر میں نہیں رکھا جا سکا، اس لیے فائل کو اوور رائٹ نہیں کیا گیا۔ آپ کی ترامیم یہیں ہیں، اور دوبارہ محفوظ کرنے کی کوشش کی جائے گی۔"
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, one {# فائل} other {# فائلیں}}"
@@ -679,6 +679,21 @@ msgstr "ٹیمپلیٹ کی فہرست میں عنوان کے نیچے دکھا�
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "لکھنے کے لیے ایک سادہ جگہ، ہر موضوع کے لیے ایک فائل اور روزانہ کا جریدہ۔ اگر آپ صرف لکھنا شروع کرنا چاہتے ہیں اور نوٹس کے درمیان روابط کو وقت کے ساتھ بننے دینا چاہتے ہیں تو یہ منتخب کریں۔"
 
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version is in the timeline."
+msgstr "{fileName} میں سنک سے آئی تبدیلی ضم نہیں ہو سکی، اس لیے یہ ورژن رکھا گیا۔ سنک والا ورژن ٹائم لائن میں ہے۔"
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to {backupPath}."
+msgstr "{fileName} میں سنک سے آئی تبدیلی ضم نہیں ہو سکی، اس لیے یہ ورژن رکھا گیا۔ سنک والا ورژن {backupPath} میں محفوظ کیا گیا۔"
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to the document's history."
+msgstr "{fileName} میں سنک سے آئی تبدیلی ضم نہیں ہو سکی، اس لیے یہ ورژن رکھا گیا۔ سنک والا ورژن دستاویز کی تاریخ میں محفوظ کیا گیا۔"
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet."
+msgstr "{fileName} میں سنک سے آئی تبدیلی درست ترتیبات نہیں تھی، اس لیے آپ کی ترتیبات برقرار رہیں۔ سنک والے ورژن کی ایک نقل اس پروجیکٹ کی تاریخ میں رکھی گئی، جسے ایپ ابھی نہیں دکھا سکتی۔"
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was saved to {backupPath}."
+msgstr "{fileName} میں سنک سے آئی تبدیلی درست ترتیبات نہیں تھی، اس لیے آپ کی ترتیبات برقرار رہیں۔ سنک والے ورژن کی ایک نقل {backupPath} میں محفوظ کی گئی۔"
+
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "<0>{trimmedSlug}</0> نام کا ٹیمپلیٹ یہاں پہلے سے موجود ہے۔ محفوظ کرنے سے مقامی نقل بنتی ہے جو اس فولڈر کے لیے اسے منسوخ کر دیتی ہے۔"
 
@@ -961,21 +976,6 @@ msgstr "پہلے سے git ریپازٹری موجود ہے؟ اس پروجیکٹ
 msgid "Already open"
 msgstr "پہلے سے کھلا ہے"
 
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version is in the timeline."
-msgstr "{fileName} میں باہر سے کی گئی تبدیلی مرج نہیں ہو سکی، اس لیے یہی ورژن رہا۔ باہر والا ورژن ٹائم لائن میں ہے۔"
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to {backupPath}."
-msgstr "{fileName} میں باہر سے کی گئی تبدیلی مرج نہیں ہو سکی، اس لیے یہی ورژن رہا۔ باہر والا ورژن {backupPath} میں محفوظ کر دیا گیا ہے۔"
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to the document's history."
-msgstr "{fileName} میں باہر سے کی گئی تبدیلی مرج نہیں ہو سکی، اس لیے یہی ورژن رہا۔ باہر والا ورژن دستاویز کی تاریخ میں محفوظ کر دیا گیا ہے۔"
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet."
-msgstr "{fileName} میں باہر سے کی گئی تبدیلی درست ترتیبات نہیں تھی، اس لیے آپ کی ترتیبات برقرار رہیں۔ باہر والے ورژن کی ایک نقل اس پروجیکٹ کی تاریخ میں رکھی گئی ہے، جسے ایپ ابھی نہیں دکھا سکتی۔"
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was saved to {backupPath}."
-msgstr "{fileName} میں باہر سے کی گئی تبدیلی درست ترتیبات نہیں تھی، اس لیے آپ کی ترتیبات برقرار رہیں۔ باہر والے ورژن کی ایک نقل {backupPath} میں محفوظ کی گئی ہے۔"
-
 msgid "An unexpected error occurred."
 msgstr "ایک غیر متوقع خرابی پیش آئی۔"
 
@@ -1232,8 +1232,8 @@ msgstr "جب کوئی اس ٹیمپلیٹ سے دستاویز بناتا ہے ت
 msgid "Before"
 msgstr "پہلے"
 
-msgid "Before an outside change was merged"
-msgstr "باہر کی تبدیلی مرج ہونے سے پہلے"
+msgid "Before a synced change was merged"
+msgstr "سنک سے آئی تبدیلی ضم ہونے سے پہلے"
 
 msgid "Before syncing, set your identity for git commits:"
 msgstr "مطابقت پذیری سے پہلے، git کمٹس کے لیے اپنی شناخت مقرر کریں:"
@@ -1287,8 +1287,8 @@ msgstr "دونوں"
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "دونوں ورژن یکساں ہیں۔ موجودہ قبول کریں منتخب کرنے سے GitQuire کا تحفظ فعال رہتا ہے، اس لیے پرانے ورژن کا ایک اور سیو دوبارہ مسترد کر دیا جائے گا۔ آنے والا قبول کریں منتخب کرنے سے وہ تحفظ بند ہو جاتا ہے۔"
 
-msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
-msgstr "{fileName} میں دونوں ورژن رکھے گئے۔ فائل GitQuire کے باہر اسی جگہ بدلی جہاں یہاں بھی تبدیلی ہوئی تھی، اس لیے باہر والا ورژن عین اس کے نیچے ہے۔"
+msgid "Both versions were kept in {fileName}. A sync changed it in the same place as here, so the synced version is directly under this one."
+msgstr "{fileName} میں دونوں ورژن رکھے گئے۔ ایک سنک نے اسے یہیں والی جگہ پر بدلا، اس لیے سنک والا ورژن اس کے بالکل نیچے ہے۔"
 
 msgid "Branch"
 msgstr "برانچ"
@@ -1374,14 +1374,14 @@ msgstr "ایمبیڈنگز فراہم کنندہ بدلیں؟"
 msgid "Changed"
 msgstr "تبدیل شدہ"
 
+msgid "changed by a sync"
+msgstr "سنک سے بدلا گیا"
+
 msgid "Changed here and on the remote"
 msgstr "یہاں اور ریموٹ دونوں پر تبدیل ہوئیں"
 
 msgid "Changed in this draft"
 msgstr ""
-
-msgid "changed outside"
-msgstr "باہر تبدیل ہوا"
 
 msgid "Changes"
 msgstr ""
@@ -5276,9 +5276,6 @@ msgstr "خاکہ"
 msgid "Outside any block"
 msgstr "کسی بھی بلاک سے باہر"
 
-msgid "Outside version"
-msgstr "باہر والا ورژن"
-
 msgid "Outside what GitQuire commits."
 msgstr "اس دائرے سے باہر جسے GitQuire کمٹ کرتا ہے۔"
 
@@ -6451,11 +6448,11 @@ msgstr "ترتیبات لوڈ نہیں ہو سکیں"
 msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
 msgstr ""
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "{fileName} کی ترتیبات GitQuire کے باہر بدلی گئیں اور اب لاگو ہیں۔ آپ جو تبدیلی کر رہے تھے اس کی ایک نقل اس پروجیکٹ کی تاریخ میں رکھی گئی ہے، جسے ایپ ابھی نہیں دکھا سکتی۔"
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "{fileName} کی ترتیبات ایک سنک میں بدلیں اور اب لاگو ہیں۔ آپ جو تبدیلی کر رہے تھے اس کی ایک نقل اس پروجیکٹ کی تاریخ میں رکھی گئی، جسے ایپ ابھی نہیں دکھا سکتی۔"
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "{fileName} کی ترتیبات GitQuire کے باہر بدلی گئیں اور اب لاگو ہیں۔ آپ جو تبدیلی کر رہے تھے اس کی ایک نقل {backupPath} میں محفوظ کی گئی ہے۔"
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "{fileName} کی ترتیبات ایک سنک میں بدلیں اور اب لاگو ہیں۔ آپ جو تبدیلی کر رہے تھے اس کی ایک نقل {backupPath} میں محفوظ کی گئی۔"
 
 msgid "Settings sections"
 msgstr "ترتیبات کے سیکشنز"
@@ -6915,6 +6912,9 @@ msgstr "مطابق ہو گیا"
 
 msgid "Synced from disk"
 msgstr "ڈسک سے مطابق"
+
+msgid "Synced version"
+msgstr "سنک والا ورژن"
 
 msgid "Synced. The link is up to date."
 msgstr "مطابق ہو گیا۔ لنک تازہ ترین ہے۔"

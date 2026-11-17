@@ -335,7 +335,7 @@ describe('SettingsDialogBody preferences runtime', () => {
 
     await waitFor(() =>
       expect(shown).toHaveBeenCalledWith(
-        '~/.gitquire/global.yml was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
+        '~/.gitquire/global.yml was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes.',
         { duration: 8000 },
       ),
     );
@@ -352,7 +352,7 @@ describe('SettingsDialogBody preferences runtime', () => {
 
     await waitFor(() =>
       expect(shown).toHaveBeenLastCalledWith(
-        '~/.gitquire/global.yml was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again.',
+        '~/.gitquire/global.yml was not saved because it kept changing on disk. Your edits stay here, and saving is tried again.',
         { duration: 8000 },
       ),
     );
