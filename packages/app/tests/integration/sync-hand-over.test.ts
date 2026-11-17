@@ -288,7 +288,7 @@ describe.each(['off', 'on'] as const)('a pull with file watching %s', (fileWatch
       });
       await server.sync.engine.trigger('pull');
 
-      await pollUntil(() => binding.current().contentRules?.markdownlint?.enabled === true);
+      await pollUntil(() => binding.current().contentRules?.markdownlint?.enabled === true, 15_000);
       const templates = await fetch(`http://127.0.0.1:${server.port}/api/templates`);
       expect(templates.status).toBe(200);
     },

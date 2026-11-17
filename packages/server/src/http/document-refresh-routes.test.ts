@@ -9,6 +9,7 @@ import { createApiRequestPipeline } from './api-pipeline.ts';
 import { createDocumentRefreshRoutes } from './document-refresh-routes.ts';
 
 const REFRESH_PATH = '/api/documents/refresh';
+const REREAD_PATH = '/api/documents/reread';
 
 function makeRequest(body: unknown, method = 'POST'): IncomingMessage {
   const req = new IncomingMessage(new Socket());
@@ -34,13 +35,15 @@ async function dispatch(refresh: RefreshDocumentsFromDisk, body: unknown, method
 }
 
 describe('createDocumentRefreshRoutes table', () => {
-  test('owns only the refresh path and classifies it as mutating', () => {
+  test('owns only the refresh and re-read paths and classifies them as mutating', () => {
     const group = createDocumentRefreshRoutes({
       refreshDocumentsFromDisk: async () => ({ checked: 0, found: 0 }),
     });
-    expect(group.paths).toEqual([REFRESH_PATH]);
-    expect(group.table.resolve(REFRESH_PATH)?.dispatch).toBeDefined();
-    expect(group.table.isMutating(REFRESH_PATH)).toBe(true);
+    expect(group.paths).toEqual([REFRESH_PATH, REREAD_PATH]);
+    for (const path of [REFRESH_PATH, REREAD_PATH]) {
+      expect(group.table.resolve(path)?.dispatch).toBeDefined();
+      expect(group.table.isMutating(path)).toBe(true);
+    }
     for (const path of ['/api/documents', '/api/documents/refresh/', '/api/documents/other']) {
       expect(group.table.resolve(path), path).toBeNull();
       expect(group.table.isMutating(path), path).toBe(false);
@@ -65,5 +68,38 @@ describe('createDocumentRefreshRoutes table', () => {
 
     expect(captured.status).toBe(500);
     expect(parseProblem(captured.body).type).toBe('urn:ok:error:internal-server-error');
+  });
+});
+
+describe('POST /api/documents/reread', () => {
+  async function reread(rereadFromDisk?: () => Promise<{ status: 'completed'; found: number }>) {
+    const group = createDocumentRefreshRoutes({
+      refreshDocumentsFromDisk: async () => ({ checked: 0, found: 0 }),
+      rereadFromDisk,
+    });
+    const pipeline = createApiRequestPipeline({
+      log: loggerFactory.getLogger('document-refresh-routes-test'),
+      policy: buildIngressPolicy({}),
+      table: group.table,
+    });
+    const req = makeRequest({});
+    req.url = REREAD_PATH;
+    const { res, captured } = makeCaptureRes();
+    await pipeline(req, res);
+    return captured;
+  }
+
+  test('re-reads the content folder and answers with what it found', async () => {
+    const run = vi.fn(async () => ({ status: 'completed' as const, found: 3 }));
+    const captured = await reread(run);
+    expect(captured.status).toBe(200);
+    expect(JSON.parse(captured.body)).toEqual({ status: 'completed', found: 3 });
+    expect(run).toHaveBeenCalledOnce();
+  });
+
+  test('answers 503 when the server cannot re-read', async () => {
+    const captured = await reread();
+    expect(captured.status).toBe(503);
+    expect(parseProblem(captured.body).type).toBe('urn:ok:error:file-rescan-not-configured');
   });
 });

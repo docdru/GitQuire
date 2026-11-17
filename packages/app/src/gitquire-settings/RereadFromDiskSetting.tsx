@@ -8,29 +8,35 @@ interface RereadResult {
   found?: number;
 }
 
+async function requestReread(fetchImpl: typeof fetch): Promise<RereadResult | null> {
+  const response = await fetchImpl('/api/documents/reread', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  if (!response.ok) return null;
+  return (await response.json()) as RereadResult;
+}
+
 export function RereadFromDiskSetting({ fetchImpl = fetch }: { fetchImpl?: typeof fetch }) {
   const { t } = useLingui();
   const [busy, setBusy] = useState(false);
 
-  async function reread() {
-    setBusy(true);
-    try {
-      const response = await fetchImpl('/api/documents/reread', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
-      if (!response.ok) throw new Error(String(response.status));
-      const result = (await response.json()) as RereadResult;
-      const found = result.found ?? 0;
-      if (result.status !== 'completed') toast.warning(t`The re-read did not finish. Try again.`);
-      else if (found === 0) toast.success(t`Re-read the files. Nothing had changed.`);
-      else toast.success(t`Re-read the files and took in ${found} changes.`);
-    } catch {
+  function report(result: RereadResult | null) {
+    setBusy(false);
+    if (result === null) {
       toast.error(t`Couldn't re-read the files. Try again.`);
-    } finally {
-      setBusy(false);
+      return;
     }
+    const found = result.found ?? 0;
+    if (result.status !== 'completed') toast.warning(t`The re-read did not finish. Try again.`);
+    else if (found === 0) toast.success(t`Re-read the files. Nothing had changed.`);
+    else toast.success(t`Re-read the files and took in ${found} changes.`);
+  }
+
+  function reread() {
+    setBusy(true);
+    requestReread(fetchImpl).then(report, () => report(null));
   }
 
   return (
@@ -48,7 +54,7 @@ export function RereadFromDiskSetting({ fetchImpl = fetch }: { fetchImpl?: typeo
         variant="outline"
         size="sm"
         disabled={busy}
-        onClick={() => void reread()}
+        onClick={reread}
         data-testid="reread-from-disk-button"
       >
         {busy ? t`Re-reading…` : t`Re-read files`}
