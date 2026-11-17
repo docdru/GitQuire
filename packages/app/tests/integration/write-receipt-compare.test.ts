@@ -296,7 +296,7 @@ describe('compare before every Markdown write', () => {
     const outside = '# Doc\n\nfirst paragraph changed outside\n\nsecond paragraph\n';
     const realApply = diskContentIntake.applyDiskContentToDoc;
     vi.spyOn(diskContentIntake, 'applyDiskContentToDoc').mockImplementation((...args) => {
-      if (args[1].includes('changed outside')) throw new Error('injected apply failure');
+      if (args[1].includes('changed by a sync')) throw new Error('injected apply failure');
       return realApply(...args);
     });
     const heldBefore = compareCount('pending-intake-failed');
@@ -312,7 +312,7 @@ describe('compare before every Markdown write', () => {
     );
     expect(readFileSync(file, 'utf-8')).toBe(outside);
     expect(serverText(s, docName)).toContain('typed here');
-    expect(serverText(s, docName)).not.toContain('changed outside');
+    expect(serverText(s, docName)).not.toContain('changed by a sync');
     expect(s.instance.durabilityState.getReceipt(docName)?.hash).not.toBe(contentHash(outside));
     expect(s.instance.durabilityState.isStoreRefused(docName)).toBe(true);
 

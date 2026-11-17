@@ -329,17 +329,17 @@ msgstr "{errorText}和{warningText}"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount} 個檔案上傳失敗}}"
 
-msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} 未儲存，因為它在 GitQuire 之外被改成了非 UTF-8 文字的內容，所以沒有覆寫該檔案。你的編輯仍保留在這裡，檔案再次變更時會重新嘗試儲存。"
+msgid "{file} was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} 未儲存，因為它在磁碟上變成了非 UTF-8 文字的內容，所以沒有覆寫該檔案。你的編輯仍保留在這裡，檔案變更時會再次嘗試儲存。"
 
-msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} 未儲存，因為無法讀取它來與外部變更進行比較，所以沒有覆寫該檔案。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
+msgid "{file} was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} 未儲存，因為無法讀取它來與磁碟上的變更進行比較，所以沒有覆寫該檔案。你的編輯仍保留在這裡，並會再次嘗試儲存。"
 
-msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
-msgstr "{file} 未儲存，因為它在 GitQuire 之外持續變更。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
+msgid "{file} was not saved because it kept changing on disk. Your edits stay here, and saving is tried again."
+msgstr "{file} 未儲存，因為它在磁碟上不斷變更。你的編輯仍保留在這裡，並會再次嘗試儲存。"
 
-msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} 未儲存。它在 GitQuire 之外被變更，而該版本無法儲存到記錄或備份資料夾中，所以沒有覆寫該檔案。你的編輯仍保留在這裡，稍後會重新嘗試儲存。"
+msgid "{file} was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} 未儲存。它在磁碟上發生了變更，而該版本無法保存在歷程記錄或備份資料夾中，所以沒有覆寫該檔案。你的編輯仍保留在這裡，並會再次嘗試儲存。"
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, other {# 個檔案}}"
@@ -679,6 +679,21 @@ msgstr "在範本清單中顯示在標題下方的簡短說明。"
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "一個單純的寫作空間，每個主題一個檔案，外加一份日誌。如果你只想先動筆，讓筆記之間的連結慢慢長出來，請選這個。"
 
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version is in the timeline."
+msgstr "{fileName} 的同步變更無法合併，因此保留了此版本。同步的版本在時間軸中。"
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to {backupPath}."
+msgstr "{fileName} 的同步變更無法合併，因此保留了此版本。同步的版本已儲存到 {backupPath}。"
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to the document's history."
+msgstr "{fileName} 的同步變更無法合併，因此保留了此版本。同步的版本已儲存到文件歷程記錄中。"
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet."
+msgstr "{fileName} 的同步變更不是有效的設定，因此保留了你的設定。同步版本的副本已保存在此專案的歷程記錄中，應用程式暫時還無法顯示。"
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was saved to {backupPath}."
+msgstr "{fileName} 的同步變更不是有效的設定，因此保留了你的設定。同步版本的副本已儲存到 {backupPath}。"
+
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "這裡已存在名為 <0>{trimmedSlug}</0> 的範本。儲存會建立一份本機副本，在這個資料夾中覆蓋它。"
 
@@ -961,21 +976,6 @@ msgstr "已經有 git 儲存庫了？在這個專案的資料夾中用 <0>git re
 msgid "Already open"
 msgstr "已經開啟"
 
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version is in the timeline."
-msgstr "{fileName} 的外部變更無法合併，因此保留了目前的版本。外部版本在時間軸中。"
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to {backupPath}."
-msgstr "{fileName} 的外部變更無法合併，因此保留了目前的版本。外部版本已儲存到 {backupPath}。"
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to the document's history."
-msgstr "{fileName} 的外部變更無法合併，因此保留了目前的版本。外部版本已儲存到文件的記錄中。"
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet."
-msgstr "{fileName} 的外部變更不是有效的設定，因此保留了你的設定。外部版本已儲存一份副本到這個專案的記錄中，應用程式暫時無法顯示這些記錄。"
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was saved to {backupPath}."
-msgstr "{fileName} 的外部變更不是有效的設定，因此保留了你的設定。外部版本已儲存一份副本到 {backupPath}。"
-
 msgid "An unexpected error occurred."
 msgstr "發生了非預期的錯誤。"
 
@@ -1232,8 +1232,8 @@ msgstr "當有人用這個範本建立文件時，這會成為那份文件的內
 msgid "Before"
 msgstr "之前"
 
-msgid "Before an outside change was merged"
-msgstr "合併外部變更之前"
+msgid "Before a synced change was merged"
+msgstr "合併同步變更之前"
 
 msgid "Before syncing, set your identity for git commits:"
 msgstr "同步之前，請先設定你用於 git 提交的身分："
@@ -1287,8 +1287,8 @@ msgstr "兩者"
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "兩個版本完全相同。選擇「採用目前」會讓 GitQuire 的保護保持開啟，因此再次儲存較舊的版本仍會被拒絕。選擇「採用傳入」會關閉該保護。"
 
-msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
-msgstr "{fileName} 的兩個版本都已保留。它在 GitQuire 之外被修改的位置與這裡相同，因此外部版本緊接在此版本下方。"
+msgid "Both versions were kept in {fileName}. A sync changed it in the same place as here, so the synced version is directly under this one."
+msgstr "{fileName} 中保留了兩個版本。一次同步在與這裡相同的位置變更了它，因此同步的版本就在此版本的正下方。"
 
 msgid "Branch"
 msgstr "分支"
@@ -1374,14 +1374,14 @@ msgstr "要更換嵌入服務供應商嗎？"
 msgid "Changed"
 msgstr "已修改"
 
+msgid "changed by a sync"
+msgstr "已被同步變更"
+
 msgid "Changed here and on the remote"
 msgstr "本機和遠端都有變更"
 
 msgid "Changed in this draft"
 msgstr ""
-
-msgid "changed outside"
-msgstr "在外部被改動"
 
 msgid "Changes"
 msgstr ""
@@ -5276,9 +5276,6 @@ msgstr "大綱"
 msgid "Outside any block"
 msgstr "不在任何區塊內"
 
-msgid "Outside version"
-msgstr "外部版本"
-
 msgid "Outside what GitQuire commits."
 msgstr "不在 GitQuire 的提交範圍內。"
 
@@ -6451,11 +6448,11 @@ msgstr "設定載入失敗"
 msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
 msgstr ""
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "{fileName} 中的設定已在 GitQuire 之外變更，現已生效。你正在進行的變更已儲存一份副本到這個專案的記錄中，應用程式暫時無法顯示這些記錄。"
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "{fileName} 中的設定在同步中發生了變更，現已生效。你正在進行的變更的副本已保存在此專案的歷程記錄中，應用程式暫時還無法顯示。"
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "{fileName} 中的設定已在 GitQuire 之外變更，現已生效。你正在進行的變更已儲存一份副本到 {backupPath}。"
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "{fileName} 中的設定在同步中發生了變更，現已生效。你正在進行的變更的副本已儲存到 {backupPath}。"
 
 msgid "Settings sections"
 msgstr "設定分區"
@@ -6915,6 +6912,9 @@ msgstr "已同步"
 
 msgid "Synced from disk"
 msgstr "已從磁碟同步"
+
+msgid "Synced version"
+msgstr "同步的版本"
 
 msgid "Synced. The link is up to date."
 msgstr "已同步。連結是最新的。"

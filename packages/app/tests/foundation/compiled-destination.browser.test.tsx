@@ -50,7 +50,7 @@ describe('the compiled browser destination', () => {
   test('a product component renders its string from the real English catalog and from the real Spanish catalog once Spanish activates', async () => {
     const view = renderWithI18n(<ChangedOutsideBadge testId="changed-outside" />);
     const badge = view.getByTestId('changed-outside');
-    expect(badge.textContent).toBe('changed outside');
+    expect(badge.textContent).toBe('changed by a sync');
 
     await act(() => dynamicActivate('es'));
 

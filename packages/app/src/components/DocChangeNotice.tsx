@@ -46,22 +46,22 @@ function NoticeMessage({
     if (notice.reason === 'outside-settings-applied') {
       return (
         <Trans>
-          Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you
-          were making was saved to {backupPath}.
+          Settings in {fileName} changed in a sync and now apply. A copy of the change you were
+          making was saved to {backupPath}.
         </Trans>
       );
     }
     if (notice.reason === 'outside-settings-invalid') {
       return (
         <Trans>
-          An outside change to {fileName} was not valid settings, so your settings stayed. A copy of
-          the outside version was saved to {backupPath}.
+          A synced change to {fileName} was not valid settings, so your settings stayed. A copy of
+          the synced version was saved to {backupPath}.
         </Trans>
       );
     }
     return (
       <Trans>
-        An outside change to {fileName} could not be merged, so this version stayed. The outside
+        A synced change to {fileName} could not be merged, so this version stayed. The synced
         version was saved to {backupPath}.
       </Trans>
     );
@@ -70,8 +70,8 @@ function NoticeMessage({
     if (notice.kept.duplicated > 0) {
       return (
         <Trans>
-          Both versions were kept in {fileName}. It changed outside GitQuire in the same place as
-          here, so the outside version is directly under this one.
+          Both versions were kept in {fileName}. A sync changed it in the same place as here, so the
+          synced version is directly under this one.
         </Trans>
       );
     }
@@ -97,28 +97,28 @@ function NoticeMessage({
   if (notice.reason === 'outside-settings-applied') {
     return (
       <Trans>
-        Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were
-        making was kept in this project's history, which the app cannot show yet.
+        Settings in {fileName} changed in a sync and now apply. A copy of the change you were making
+        was kept in this project's history, which the app cannot show yet.
       </Trans>
     );
   }
   if (notice.reason === 'outside-settings-invalid') {
     return (
       <Trans>
-        An outside change to {fileName} was not valid settings, so your settings stayed. A copy of
-        the outside version was kept in this project's history, which the app cannot show yet.
+        A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the
+        synced version was kept in this project's history, which the app cannot show yet.
       </Trans>
     );
   }
   if (notice.side === 'theirs') {
     return canOpenTimeline ? (
       <Trans>
-        An outside change to {fileName} could not be merged, so this version stayed. The outside
+        A synced change to {fileName} could not be merged, so this version stayed. The synced
         version is in the timeline.
       </Trans>
     ) : (
       <Trans>
-        An outside change to {fileName} could not be merged, so this version stayed. The outside
+        A synced change to {fileName} could not be merged, so this version stayed. The synced
         version was saved to the document's history.
       </Trans>
     );

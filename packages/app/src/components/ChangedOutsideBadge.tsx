@@ -14,7 +14,7 @@ export function ChangedOutsideBadge({
       data-testid={testId}
       {...(title !== undefined ? { title } : {})}
     >
-      <Trans>changed outside</Trans>
+      <Trans>changed by a sync</Trans>
     </span>
   );
 }

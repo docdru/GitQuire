@@ -159,7 +159,7 @@ const MERGE_VERSION_ROWS: Array<{ checkpoint: ParsedCheckpoint; title: string; s
       size: 12,
       metadata: { side: 'ours', keptBlocks: 1 },
     },
-    title: 'Before an outside change was merged',
+    title: 'Before a synced change was merged',
     side: 'Version in GitQuire',
   },
   {
@@ -169,8 +169,8 @@ const MERGE_VERSION_ROWS: Array<{ checkpoint: ParsedCheckpoint; title: string; s
       size: 12,
       metadata: { side: 'theirs', keptBlocks: 1 },
     },
-    title: 'Before an outside change was merged',
-    side: 'Outside version',
+    title: 'Before a synced change was merged',
+    side: 'Synced version',
   },
   {
     checkpoint: {
@@ -180,7 +180,7 @@ const MERGE_VERSION_ROWS: Array<{ checkpoint: ParsedCheckpoint; title: string; s
       metadata: { side: 'theirs', reason: 'check-failed' },
     },
     title: 'Not merged',
-    side: 'Outside version',
+    side: 'Synced version',
   },
   {
     checkpoint: {
@@ -200,7 +200,7 @@ const MERGE_VERSION_ROWS: Array<{ checkpoint: ParsedCheckpoint; title: string; s
       metadata: { side: 'theirs', fileType: 'mermaid' },
     },
     title: 'Not merged',
-    side: 'Outside version',
+    side: 'Synced version',
   },
 ];
 const AUTO_CONSOLIDATION: ParsedCheckpoint = {

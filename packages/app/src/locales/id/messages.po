@@ -329,17 +329,17 @@ msgstr "{errorText} dan {warningText}"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, other {{failedCount} berkas gagal diunggah}}"
 
-msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "{file} tidak disimpan karena diubah dari luar GitQuire menjadi konten yang bukan teks UTF-8, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi saat file berubah."
+msgid "{file} was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "{file} tidak disimpan karena berubah di disk menjadi konten yang bukan teks UTF-8, sehingga file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan dicoba lagi saat file berubah."
 
-msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} tidak disimpan karena tidak bisa dibaca untuk dibandingkan dengan perubahan dari luar, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
+msgid "{file} was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} tidak disimpan karena tidak dapat dibaca untuk dibandingkan dengan perubahan di disk, sehingga file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan dicoba lagi."
 
-msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
-msgstr "{file} tidak disimpan karena terus berubah dari luar GitQuire. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
+msgid "{file} was not saved because it kept changing on disk. Your edits stay here, and saving is tried again."
+msgstr "{file} tidak disimpan karena terus berubah di disk. Suntingan Anda tetap di sini, dan penyimpanan dicoba lagi."
 
-msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "{file} tidak disimpan. File ini diubah dari luar GitQuire, dan versi tersebut tidak bisa disimpan di riwayat maupun di folder cadangan, jadi file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan akan dicoba lagi."
+msgid "{file} was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "{file} tidak disimpan. File berubah di disk, dan versi itu tidak dapat disimpan di riwayat maupun di folder cadangan, sehingga file tidak ditimpa. Suntingan Anda tetap di sini, dan penyimpanan dicoba lagi."
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, other {# berkas}}"
@@ -675,6 +675,21 @@ msgstr "Satu baris singkat yang ditampilkan di bawah judul pada daftar templat."
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "Tempat sederhana untuk menulis, dengan satu berkas per topik dan jurnal harian. Pilih ini jika Anda hanya ingin mulai menulis dan membiarkan tautan antarcatatan tumbuh seiring waktu."
 
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version is in the timeline."
+msgstr "Perubahan tersinkron pada {fileName} tidak dapat digabungkan, jadi versi ini dipertahankan. Versi tersinkron ada di linimasa."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to {backupPath}."
+msgstr "Perubahan tersinkron pada {fileName} tidak dapat digabungkan, jadi versi ini dipertahankan. Versi tersinkron disimpan ke {backupPath}."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to the document's history."
+msgstr "Perubahan tersinkron pada {fileName} tidak dapat digabungkan, jadi versi ini dipertahankan. Versi tersinkron disimpan ke riwayat dokumen."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet."
+msgstr "Perubahan tersinkron pada {fileName} bukan pengaturan yang valid, jadi pengaturan Anda dipertahankan. Salinan versi tersinkron disimpan di riwayat proyek ini, yang belum dapat ditampilkan aplikasi."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was saved to {backupPath}."
+msgstr "Perubahan tersinkron pada {fileName} bukan pengaturan yang valid, jadi pengaturan Anda dipertahankan. Salinan versi tersinkron disimpan ke {backupPath}."
+
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "Templat bernama <0>{trimmedSlug}</0> sudah ada di sini. Menyimpan akan membuat salinan lokal yang menimpanya untuk folder ini."
 
@@ -957,21 +972,6 @@ msgstr "Sudah punya repositori git? Tambahkan dengan <0>git remote add origin <u
 msgid "Already open"
 msgstr "Sudah terbuka"
 
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version is in the timeline."
-msgstr "Perubahan dari luar pada {fileName} tidak bisa digabungkan, jadi versi ini tetap dipakai. Versi dari luar ada di lini masa."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to {backupPath}."
-msgstr "Perubahan dari luar pada {fileName} tidak bisa digabungkan, jadi versi ini tetap dipakai. Versi dari luar disimpan di {backupPath}."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to the document's history."
-msgstr "Perubahan dari luar pada {fileName} tidak bisa digabungkan, jadi versi ini tetap dipakai. Versi dari luar disimpan di riwayat dokumen."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet."
-msgstr "Perubahan dari luar pada {fileName} bukan pengaturan yang valid, jadi pengaturan Anda tetap dipakai. Salinan versi dari luar disimpan di riwayat proyek ini, yang belum bisa ditampilkan aplikasi."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was saved to {backupPath}."
-msgstr "Perubahan dari luar pada {fileName} bukan pengaturan yang valid, jadi pengaturan Anda tetap dipakai. Salinan versi dari luar disimpan di {backupPath}."
-
 msgid "An unexpected error occurred."
 msgstr "Terjadi galat yang tidak terduga."
 
@@ -1228,8 +1228,8 @@ msgstr "Menjadi isi dokumen ketika seseorang membuat dokumen dari templat ini. K
 msgid "Before"
 msgstr "Sebelum"
 
-msgid "Before an outside change was merged"
-msgstr "Sebelum perubahan dari luar digabungkan"
+msgid "Before a synced change was merged"
+msgstr "Sebelum perubahan tersinkron digabungkan"
 
 msgid "Before syncing, set your identity for git commits:"
 msgstr "Sebelum menyinkronkan, setel identitas Anda untuk commit git:"
@@ -1283,8 +1283,8 @@ msgstr "Keduanya"
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "Kedua versi identik. Memilih Terima yang sekarang membuat perlindungan GitQuire tetap aktif, sehingga penyimpanan versi lama berikutnya akan ditolak lagi. Memilih Terima yang masuk menonaktifkan perlindungan tersebut."
 
-msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
-msgstr "Kedua versi disimpan di {fileName}. File ini diubah di luar GitQuire di tempat yang sama dengan di sini, jadi versi dari luar ada tepat di bawah versi ini."
+msgid "Both versions were kept in {fileName}. A sync changed it in the same place as here, so the synced version is directly under this one."
+msgstr "Kedua versi dipertahankan di {fileName}. Sinkronisasi mengubahnya di tempat yang sama dengan di sini, jadi versi tersinkron ada tepat di bawah versi ini."
 
 msgid "Branch"
 msgstr "Cabang"
@@ -1370,14 +1370,14 @@ msgstr "Ganti penyedia embedding?"
 msgid "Changed"
 msgstr "Diubah"
 
+msgid "changed by a sync"
+msgstr "diubah oleh sinkronisasi"
+
 msgid "Changed here and on the remote"
 msgstr "Berubah di sini dan di remote"
 
 msgid "Changed in this draft"
 msgstr ""
-
-msgid "changed outside"
-msgstr "diubah di luar"
 
 msgid "Changes"
 msgstr ""
@@ -5272,9 +5272,6 @@ msgstr "Kerangka"
 msgid "Outside any block"
 msgstr "Di luar blok mana pun"
 
-msgid "Outside version"
-msgstr "Versi dari luar"
-
 msgid "Outside what GitQuire commits."
 msgstr "Di luar cakupan commit GitQuire."
 
@@ -6447,11 +6444,11 @@ msgstr "Gagal memuat pengaturan"
 msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
 msgstr ""
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "Pengaturan di {fileName} diubah dari luar GitQuire dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di riwayat proyek ini, yang belum bisa ditampilkan aplikasi."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "Pengaturan di {fileName} berubah dalam sinkronisasi dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di riwayat proyek ini, yang belum dapat ditampilkan aplikasi."
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "Pengaturan di {fileName} diubah dari luar GitQuire dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan di {backupPath}."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "Pengaturan di {fileName} berubah dalam sinkronisasi dan kini berlaku. Salinan perubahan yang sedang Anda buat disimpan ke {backupPath}."
 
 msgid "Settings sections"
 msgstr "Bagian pengaturan"
@@ -6911,6 +6908,9 @@ msgstr "Tersinkron"
 
 msgid "Synced from disk"
 msgstr "Tersinkron dari disk"
+
+msgid "Synced version"
+msgstr "Versi tersinkron"
 
 msgid "Synced. The link is up to date."
 msgstr "Tersinkron. Tautannya sudah mutakhir."

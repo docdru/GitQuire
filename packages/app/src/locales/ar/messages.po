@@ -329,17 +329,17 @@ msgstr "{errorText} و{warningText}"
 msgid "{failedCount, plural, one {1 file failed to upload} other {{failedCount} files failed to upload}}"
 msgstr "{failedCount, plural, zero {فشل رفع {failedCount} ملف} one {فشل رفع ملف واحد} two {فشل رفع ملفين} few {فشل رفع {failedCount} ملفات} many {فشل رفع {failedCount} ملفًا} other {فشل رفع {failedCount} ملف}}"
 
-msgid "{file} was not saved because it changed outside GitQuire to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
-msgstr "لم يُحفظ {file} لأنه تغيّر خارج GitQuire إلى محتوى ليس نصًا بترميز UTF-8، لذا لم يُكتب فوق الملف. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ عندما يتغيّر الملف."
+msgid "{file} was not saved because it changed on disk to content that is not UTF-8 text, so the file was not written over. Your edits stay here, and saving is tried again when the file changes."
+msgstr "لم يُحفظ {file} لأنه تغيّر على القرص إلى محتوى ليس نصًا بترميز UTF-8، لذلك لم يُكتب فوق الملف. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ عندما يتغيّر الملف."
 
-msgid "{file} was not saved because it could not be read to compare it with outside changes, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "لم يُحفظ {file} لأنه تعذّرت قراءته لمقارنته بالتغييرات الخارجية، لذا لم يُكتب فوق الملف. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ."
+msgid "{file} was not saved because it could not be read to compare it with changes on disk, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "لم يُحفظ {file} لأنه تعذّرت قراءته لمقارنته بالتغييرات على القرص، لذلك لم يُكتب فوق الملف. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ."
 
-msgid "{file} was not saved because it kept changing outside GitQuire. Your edits stay here, and saving is tried again."
-msgstr "لم يُحفظ {file} لأنه ظل يتغيّر خارج GitQuire. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ."
+msgid "{file} was not saved because it kept changing on disk. Your edits stay here, and saving is tried again."
+msgstr "لم يُحفظ {file} لأنه ظلّ يتغيّر على القرص. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ."
 
-msgid "{file} was not saved. It changed outside GitQuire, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
-msgstr "لم يُحفظ {file}. تغيّر خارج GitQuire، وتعذّر الاحتفاظ بتلك النسخة في السجل أو في مجلد النسخ الاحتياطية، لذا لم يُكتب فوق الملف. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ."
+msgid "{file} was not saved. It changed on disk, and that version could not be kept in history or in the backup folder, so the file was not written over. Your edits stay here, and saving is tried again."
+msgstr "لم يُحفظ {file}. لقد تغيّر على القرص، وتعذّر الاحتفاظ بتلك النسخة في السجل أو في مجلد النسخ الاحتياطية، لذلك لم يُكتب فوق الملف. تبقى تعديلاتك هنا، وستُعاد محاولة الحفظ."
 
 msgid "{fileCount, plural, one {# file} other {# files}}"
 msgstr "{fileCount, plural, zero {# ملف} one {ملف واحد} two {ملفان} few {# ملفات} many {# ملفًا} other {# ملف}}"
@@ -679,6 +679,21 @@ msgstr "سطر قصير يظهر تحت العنوان في قائمة القو�
 msgid "A simple place to write, with one file per topic and a daily journal. Pick this if you just want to start writing and let the links between notes build up over time."
 msgstr "مكان بسيط للكتابة، بملف واحد لكل موضوع ويومية يومية. اختر هذا إن أردت البدء بالكتابة فحسب وترك الروابط بين الملاحظات تتكوّن مع الوقت."
 
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version is in the timeline."
+msgstr "تعذّر دمج تغيير متزامن في {fileName}، لذلك بقيت هذه النسخة. النسخة المتزامنة موجودة في المخطط الزمني."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to {backupPath}."
+msgstr "تعذّر دمج تغيير متزامن في {fileName}، لذلك بقيت هذه النسخة. حُفظت النسخة المتزامنة في {backupPath}."
+
+msgid "A synced change to {fileName} could not be merged, so this version stayed. The synced version was saved to the document's history."
+msgstr "تعذّر دمج تغيير متزامن في {fileName}، لذلك بقيت هذه النسخة. حُفظت النسخة المتزامنة في سجل المستند."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was kept in this project's history, which the app cannot show yet."
+msgstr "لم يكن تغيير متزامن في {fileName} إعدادات صالحة، لذلك بقيت إعداداتك. احتُفظ بنسخة من النسخة المتزامنة في سجل هذا المشروع، الذي لا يستطيع التطبيق عرضه بعد."
+
+msgid "A synced change to {fileName} was not valid settings, so your settings stayed. A copy of the synced version was saved to {backupPath}."
+msgstr "لم يكن تغيير متزامن في {fileName} إعدادات صالحة، لذلك بقيت إعداداتك. حُفظت نسخة من النسخة المتزامنة في {backupPath}."
+
 msgid "A template named <0>{trimmedSlug}</0> already exists here. Saving creates a local copy that overrides it for this folder."
 msgstr "يوجد بالفعل قالب باسم <0>{trimmedSlug}</0> هنا. الحفظ ينشئ نسخة محلية تتجاوزه في هذا المجلد."
 
@@ -961,21 +976,6 @@ msgstr "هل لديك مستودع git بالفعل؟ أضفه بالأمر <0>g
 msgid "Already open"
 msgstr "مفتوح بالفعل"
 
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version is in the timeline."
-msgstr "تعذّر دمج تغيير خارجي في {fileName}، لذا بقيت هذه النسخة. النسخة الخارجية موجودة في الخط الزمني."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to {backupPath}."
-msgstr "تعذّر دمج تغيير خارجي في {fileName}، لذا بقيت هذه النسخة. حُفظت النسخة الخارجية في {backupPath}."
-
-msgid "An outside change to {fileName} could not be merged, so this version stayed. The outside version was saved to the document's history."
-msgstr "تعذّر دمج تغيير خارجي في {fileName}، لذا بقيت هذه النسخة. حُفظت النسخة الخارجية في سجل المستند."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was kept in this project's history, which the app cannot show yet."
-msgstr "لم يكن التغيير الخارجي في {fileName} إعدادات صالحة، لذا بقيت إعداداتك. احتُفظ بنسخة من النسخة الخارجية في سجل هذا المشروع، ولا يستطيع التطبيق عرضه بعد."
-
-msgid "An outside change to {fileName} was not valid settings, so your settings stayed. A copy of the outside version was saved to {backupPath}."
-msgstr "لم يكن التغيير الخارجي في {fileName} إعدادات صالحة، لذا بقيت إعداداتك. حُفظت نسخة من النسخة الخارجية في {backupPath}."
-
 msgid "An unexpected error occurred."
 msgstr "حدث خطأ غير متوقع."
 
@@ -1232,8 +1232,8 @@ msgstr "يصبح محتوى المستند عندما ينشئ أحدهم مست
 msgid "Before"
 msgstr "قبل"
 
-msgid "Before an outside change was merged"
-msgstr "قبل دمج تغيير خارجي"
+msgid "Before a synced change was merged"
+msgstr "قبل دمج تغيير متزامن"
 
 msgid "Before syncing, set your identity for git commits:"
 msgstr "قبل المزامنة، اضبط هويتك لإيداعات git:"
@@ -1287,8 +1287,8 @@ msgstr "كلاهما"
 msgid "Both versions are identical. Choosing Accept current leaves GitQuire's protection on, so another save of the older version is refused again. Choosing Accept incoming turns that protection off."
 msgstr "النسختان متطابقتان. اختيار قبول الحالي يُبقي حماية GitQuire مفعّلة، لذا سيُرفض مجددًا أي حفظ آخر للنسخة الأقدم. اختيار قبول الوارد يوقف تلك الحماية."
 
-msgid "Both versions were kept in {fileName}. It changed outside GitQuire in the same place as here, so the outside version is directly under this one."
-msgstr "تم الاحتفاظ بالنسختين في {fileName}. تغيّر الملف خارج GitQuire في المكان نفسه الذي تغيّر فيه هنا، لذا تظهر النسخة الخارجية أسفل هذه النسخة مباشرة."
+msgid "Both versions were kept in {fileName}. A sync changed it in the same place as here, so the synced version is directly under this one."
+msgstr "احتُفظ بالنسختين في {fileName}. غيّرته مزامنة في المكان نفسه الموجود هنا، لذلك النسخة المتزامنة أسفل هذه النسخة مباشرةً."
 
 msgid "Branch"
 msgstr "فرع"
@@ -1374,14 +1374,14 @@ msgstr "هل تريد تغيير مزوّد التضمينات؟"
 msgid "Changed"
 msgstr "تغيّر"
 
+msgid "changed by a sync"
+msgstr "تغيّر بمزامنة"
+
 msgid "Changed here and on the remote"
 msgstr "تغيّرت هنا وعلى المستودع البعيد"
 
 msgid "Changed in this draft"
 msgstr ""
-
-msgid "changed outside"
-msgstr "تغيّر خارجًا"
 
 msgid "Changes"
 msgstr ""
@@ -5276,9 +5276,6 @@ msgstr "المخطط"
 msgid "Outside any block"
 msgstr "خارج أي كتلة"
 
-msgid "Outside version"
-msgstr "النسخة الخارجية"
-
 msgid "Outside what GitQuire commits."
 msgstr "خارج نطاق ما يودعه GitQuire."
 
@@ -6451,11 +6448,11 @@ msgstr "فشل تحميل الإعدادات"
 msgid "Settings for this wiki. They apply to everyone; most are stored in the repository."
 msgstr ""
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
-msgstr "تغيّرت الإعدادات في {fileName} خارج GitQuire وأصبحت سارية الآن. احتُفظ بنسخة من التغيير الذي كنت تجريه في سجل هذا المشروع، ولا يستطيع التطبيق عرضه بعد."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was kept in this project's history, which the app cannot show yet."
+msgstr "تغيّرت الإعدادات في {fileName} في مزامنة وأصبحت سارية الآن. احتُفظ بنسخة من التغيير الذي كنت تجريه في سجل هذا المشروع، الذي لا يستطيع التطبيق عرضه بعد."
 
-msgid "Settings in {fileName} changed outside GitQuire and now apply. A copy of the change you were making was saved to {backupPath}."
-msgstr "تغيّرت الإعدادات في {fileName} خارج GitQuire وأصبحت سارية الآن. حُفظت نسخة من التغيير الذي كنت تجريه في {backupPath}."
+msgid "Settings in {fileName} changed in a sync and now apply. A copy of the change you were making was saved to {backupPath}."
+msgstr "تغيّرت الإعدادات في {fileName} في مزامنة وأصبحت سارية الآن. حُفظت نسخة من التغيير الذي كنت تجريه في {backupPath}."
 
 msgid "Settings sections"
 msgstr "أقسام الإعدادات"
@@ -6915,6 +6912,9 @@ msgstr "متزامن"
 
 msgid "Synced from disk"
 msgstr "متزامن من القرص"
+
+msgid "Synced version"
+msgstr "النسخة المتزامنة"
 
 msgid "Synced. The link is up to date."
 msgstr "تمت المزامنة. الرابط محدَّث."

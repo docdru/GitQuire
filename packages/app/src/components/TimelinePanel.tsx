@@ -180,7 +180,7 @@ function docLeaf(path: string): string {
 function displayAuthor(entry: TimelineEntry): string {
   if (entry.type === 'checkpoint') {
     if (entry.checkpoint?.kind === 'external-change-both-kept') {
-      return t`Before an outside change was merged`;
+      return t`Before a synced change was merged`;
     }
     if (
       entry.checkpoint?.kind === 'external-change-kept-live' ||
@@ -373,7 +373,7 @@ function EntryDetail({
   if (descriptor.kind === 'merge-version') {
     return (
       <p className="truncate text-xs text-muted-foreground">
-        {descriptor.side === 'ours' ? t`Version in GitQuire` : t`Outside version`}
+        {descriptor.side === 'ours' ? t`Version in GitQuire` : t`Synced version`}
       </p>
     );
   }
