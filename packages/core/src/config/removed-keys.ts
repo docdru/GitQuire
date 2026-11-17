@@ -250,6 +250,15 @@ export const REMOVED_KEYS: readonly RemovedKey[] = [
       ].join(' ');
     },
   },
+  {
+    path: ['server', 'openBrowser'],
+    get redirect() {
+      return [
+        'server.openBrowser has been removed: GitQuire runs in a container and never opens a browser.',
+        migrateHint(),
+      ].join(' ');
+    },
+  },
 ];
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

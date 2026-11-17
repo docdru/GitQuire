@@ -59,35 +59,28 @@ describe('resolveServerRuntimeConfig — defaults', () => {
     expect(resolved.port).toBeUndefined();
     expect(resolved.externalUrl).toBeUndefined();
     expect(resolved.allowExternal).toBe(false);
-    expect(resolved.openBrowser).toBe(true);
     expect(resolved.idleShutdown).toBe(DEFAULT_LOOPBACK_IDLE_SHUTDOWN);
   });
 
   test('undefined config resolves like an empty one', () => {
     const resolved = resolveServerRuntimeConfig(undefined);
     expect(resolved.bind).toEqual(['127.0.0.1']);
-    expect(resolved.openBrowser).toBe(true);
     expect(resolved.idleShutdown).toBe(DEFAULT_LOOPBACK_IDLE_SHUTDOWN);
   });
 
-  test('a non-loopback bind derives headless defaults (no browser, no idle shutdown)', () => {
+  test('a non-loopback bind derives headless defaults (no idle shutdown)', () => {
     const resolved = resolveServerRuntimeConfig(parse({ server: { bind: ['0.0.0.0'] } }));
     expect(resolved.loopbackOnly).toBe(false);
-    expect(resolved.openBrowser).toBe(false);
     expect(resolved.idleShutdown).toBe('off');
   });
 
-  test('explicit openBrowser / idleShutdown win over the derivation in both directions', () => {
-    const headlessLaptop = resolveServerRuntimeConfig(
-      parse({ server: { openBrowser: false, idleShutdown: 'off' } }),
-    );
-    expect(headlessLaptop.openBrowser).toBe(false);
+  test('explicit idleShutdown wins over the derivation in both directions', () => {
+    const headlessLaptop = resolveServerRuntimeConfig(parse({ server: { idleShutdown: 'off' } }));
     expect(headlessLaptop.idleShutdown).toBe('off');
 
     const eagerContainer = resolveServerRuntimeConfig(
-      parse({ server: { bind: ['0.0.0.0'], openBrowser: true, idleShutdown: '2h' } }),
+      parse({ server: { bind: ['0.0.0.0'], idleShutdown: '2h' } }),
     );
-    expect(eagerContainer.openBrowser).toBe(true);
     expect(eagerContainer.idleShutdown).toBe('2h');
   });
 

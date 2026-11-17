@@ -492,10 +492,9 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
     expect(config.server.allowExternal).toBe(false);
   });
 
-  test('committed openBrowser / idleShutdown (project-local, no schema default) are also inert', () => {
-    writeWorkspaceConfig('server:\n  openBrowser: true\n  idleShutdown: off\n');
+  test('committed idleShutdown (project-local, no schema default) is also inert', () => {
+    writeWorkspaceConfig('server:\n  idleShutdown: off\n');
     const { config } = loadConfig(testDir);
-    expect(config.server.openBrowser).toBeUndefined();
     expect(config.server.idleShutdown).toBeUndefined();
   });
 
@@ -513,10 +512,10 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
 
   test('project-local wins over project for a project-local leaf it sets', () => {
     writeWorkspaceConfig('server:\n  port: 8080\n');
-    writeLocalConfig('server:\n  openBrowser: false\n');
+    writeLocalConfig('server:\n  idleShutdown: off\n');
     const { config } = loadConfig(testDir);
     expect(config.server.port).toBe(8080);
-    expect(config.server.openBrowser).toBe(false);
+    expect(config.server.idleShutdown).toBe('off');
   });
 
   test('project layer still owns project-scoped server keys (port, externalUrl)', () => {
@@ -572,14 +571,14 @@ describe('loadConfig — scope-aware layering (project-local)', () => {
   });
 
   test('schema-invalid project-local file throws loud with the file named', () => {
-    writeLocalConfig('server:\n  openBrowser: "sometimes"\n');
-    expect(() => loadConfig(testDir)).toThrow(/openBrowser/);
+    writeLocalConfig('server:\n  idleShutdown: "sometimes"\n');
+    expect(() => loadConfig(testDir)).toThrow(/idleShutdown/);
   });
 
   test('removed keys in the project-local file strip-and-continue', () => {
-    writeLocalConfig('server:\n  host: 0.0.0.0\n  openBrowser: false\n');
+    writeLocalConfig('server:\n  host: 0.0.0.0\n  idleShutdown: off\n');
     const { config, diagnostics } = loadConfig(testDir);
-    expect(config.server.openBrowser).toBe(false);
+    expect(config.server.idleShutdown).toBe('off');
     expect(removedKeys(diagnostics).some((k) => k.dotted === 'server.host')).toBe(true);
   });
 });

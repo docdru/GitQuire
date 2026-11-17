@@ -62,7 +62,7 @@ describe('assertSafeProjectRoot', () => {
     } catch (err) {
       expect(err).toBeInstanceOf(FilesystemRootProjectError);
       expect((err as FilesystemRootProjectError).projectRoot).toBe(resolve('/'));
-      expect((err as FilesystemRootProjectError).message).toContain('top of a drive');
+      expect((err as FilesystemRootProjectError).message).toContain('filesystem root');
     }
   });
 
@@ -81,32 +81,7 @@ describe('isFilesystemRoot', () => {
   test('false for ordinary directories, including top-level ones', () => {
     expect(isFilesystemRoot(home)).toBe(false);
     expect(isFilesystemRoot(tmpdir())).toBe(false);
-    expect(isFilesystemRoot('/opt', 'linux')).toBe(false);
-  });
-
-  test.each(['C:\\', 'C:/', 'd:\\'])('true for the Windows drive root %s', (dir) => {
-    expect(isFilesystemRoot(dir, 'win32')).toBe(true);
-  });
-
-  test.skipIf(process.platform === 'win32').each(['\\\\server\\share', '\\\\server\\share\\'])(
-    'true for the Windows share root %s',
-    (dir) => {
-      expect(isFilesystemRoot(dir, 'win32')).toBe(true);
-    },
-  );
-
-  test.each(['C:\\Users', 'C:\\notes'])('false for the Windows folder %s', (dir) => {
-    expect(isFilesystemRoot(dir, 'win32')).toBe(false);
-  });
-
-  test.skipIf(process.platform === 'win32')('false for a folder inside a Windows share', () => {
-    expect(isFilesystemRoot('\\\\server\\share\\notes', 'win32')).toBe(false);
-  });
-
-  test('the macOS data volume counts as a root on darwin only', () => {
-    expect(isFilesystemRoot('/System/Volumes/Data', 'darwin')).toBe(true);
-    expect(isFilesystemRoot('/System/Volumes/Data/notes', 'darwin')).toBe(false);
-    expect(isFilesystemRoot('/System/Volumes/Data', 'linux')).toBe(false);
+    expect(isFilesystemRoot('/opt')).toBe(false);
   });
 });
 
@@ -142,8 +117,8 @@ describe('the remediation names the running channel CLI', () => {
         `  Make a folder for this project, then run 'gq init' inside it.`,
     );
     expect(new FilesystemRootProjectError('/').message).toBe(
-      `Refusing to set up a GitQuire project at the top of a drive (/).\n` +
-        `  A project here would scan every file on the drive and run 'git init' at its root.\n` +
+      `Refusing to set up a GitQuire project at the filesystem root (/).\n` +
+        `  A project here would scan every file on the system and run 'git init' at its root.\n` +
         `  Make a folder for this project, then run 'gq init' inside it.`,
     );
   });

@@ -149,7 +149,7 @@ Internet  (Claude / Cursor cloud dial in from here)
 **GitQuire** runs on loopback, told its public origin. Pomerium is the only way in, so the server keeps no exposure of its own:
 
 ```bash
-GITQUIRE_ALLOW_EXTERNAL=1 gq start -p 24550 --no-open-browser --idle-shutdown off \
+GITQUIRE_ALLOW_EXTERNAL=1 gq start -p 24550 --idle-shutdown off \
   --external-url https://<host>
 ```
 

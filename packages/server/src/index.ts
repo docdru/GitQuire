@@ -126,10 +126,6 @@ export {
   restoreContributors,
   swapContributors,
 } from './contributor-tracker.ts';
-export {
-  type DetectClaudeDesktopOptions,
-  detectClaudeDesktopPresence,
-} from './detect-claude-desktop.ts';
 export { FILE_WATCHER_ORIGIN } from './disk-content-intake.ts';
 export {
   DocumentDurabilityState,

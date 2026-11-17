@@ -182,7 +182,6 @@ describe('POST /api/github-reference', () => {
             port: 0,
             externalUrl: 'https://ok.example.com',
             allowExternal: true,
-            openBrowser: false,
             idleShutdown: 'off',
             loopbackOnly: false,
           },

@@ -101,7 +101,6 @@ function sourceShellLaunch(host: string, port: number): ProductionShellLaunch {
       String(port),
       '--bind',
       host,
-      '--no-open-browser',
       '--mode',
       'browser',
       '--react-shell-dist-dir',

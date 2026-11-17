@@ -44,7 +44,7 @@ gq init
 
 In a sub-folder of a git repo, `gq init` sets the project up at the git root — one `.gitquire/` per repo — and the whole repo becomes the content scope. Pass `--content-dir <dir>` to limit content to one folder (`gq init --content-dir .` scopes it to the folder you run in); the choice is saved as `content.dir` in `.gitquire/config.yml`. For scripts, `--json` prints a structured JSON summary.
 
-`gq init` refuses to set up a project in your home directory or at the top of a drive (`/`, `C:\`, a network share root) and exits with status 64. Make a folder for the project and run it there.
+`gq init` refuses to set up a project in your home directory or at the filesystem root (`/`) and exits with status 64. Make a folder for the project and run it there.
 
 Once you have initialized your project, launch the app in your browser:
 
@@ -52,7 +52,7 @@ Once you have initialized your project, launch the app in your browser:
 gq start
 ```
 
-One server on one port serves everything — the editor, the API, the MCP endpoint, and real-time collaboration — and the editor opens in your browser automatically (pass `--no-open-browser` to skip that). Running `gq start` again for the same project while its server is already up prints the running server's URL and exits.
+One server on one port serves everything — the editor, the API, the MCP endpoint, and real-time collaboration. Running `gq start` again for the same project while its server is already up prints the running server's URL and exits.
 
 `gq start` also takes `-p/--port` and `--bind` to pick the address, `--idle-shutdown` (`off` or a duration like `30m`) to control when an unused server exits, and `--only server` to run without the editor UI.
 
@@ -175,7 +175,7 @@ Serve this project's web UI and `/mcp` endpoint to your other devices through an
 | `gq comments convert` | Rewrite every page that still keeps comments in the old hidden block as [footnote threads](/docs/gitquire/comment-format), in one commit (`--dry-run` to list the pages, `--no-commit` to leave committing to you or the server). Best run while the server is stopped (or run `gq reread` afterwards); GitQuire also converts a page by itself the next time it is saved |
 | `gq config validate` | Validate the merged config (defaults → user → project) |
 | `gq config migrate` | Remove keys the schema no longer reads from your config files (`--dry-run` to preview; `--scope` to narrow — defaults to every layer) |
-| `gq bug-report` | Package a support bundle — recent app logs, the project's server logs and lock diagnostics, and system info — as an auto-redacted zip under `~/.gitquire/bug-reports/`, revealed in your file manager when it's done (`--no-reveal` to skip); `gq diagnose bundle` produces the `full` superset (telemetry spans, live server state) into the project's `.gitquire/local/diagnostics/` |
+| `gq bug-report` | Package a support bundle — recent app logs, the project's server logs and lock diagnostics, and system info — as an auto-redacted zip under `~/.gitquire/bug-reports/`, printing its path; `gq diagnose bundle` produces the `full` superset (telemetry spans, live server state) into the project's `.gitquire/local/diagnostics/` |
 
 ## Global flags
 

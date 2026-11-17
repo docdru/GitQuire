@@ -888,12 +888,6 @@
   "packages/core/src/constants/ok-user-home.test.ts": {
     "open-knowledge": 2
   },
-  "packages/core/src/constants/path-shim-layout.test.ts": {
-    "open-knowledge": 12
-  },
-  "packages/core/src/constants/path-shim-layout.ts": {
-    "open-knowledge": 6
-  },
   "packages/core/src/constants/product.test.ts": {
     "open-knowledge": 40
   },

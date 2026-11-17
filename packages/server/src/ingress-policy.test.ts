@@ -21,7 +21,6 @@ function runtime(overrides: Partial<ServerRuntimeConfig> = {}): ServerRuntimeCon
     bind: ['127.0.0.1'],
     externalUrl: undefined,
     allowExternal: false,
-    openBrowser: true,
     idleShutdown: '30m',
     loopbackOnly: true,
     ...overrides,
@@ -32,7 +31,6 @@ const TUNNEL_EXPOSURE_RUNTIME: Partial<ServerRuntimeConfig> = {
   externalUrl: 'https://myproject.ngrok.app',
   allowExternal: true,
   idleShutdown: 'off',
-  openBrowser: false,
 };
 
 describe('buildIngressPolicy', () => {

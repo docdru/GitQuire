@@ -450,7 +450,6 @@ describe('server.* (canonical listener/exposure surface)', () => {
     expect(config.server.allowExternal).toBe(false);
     expect(config.server.port).toBeUndefined();
     expect(config.server.externalUrl).toBeUndefined();
-    expect(config.server.openBrowser).toBeUndefined();
     expect(config.server.idleShutdown).toBeUndefined();
   });
 

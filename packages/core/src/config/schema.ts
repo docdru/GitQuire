@@ -1204,17 +1204,6 @@ export const ConfigSchema = z.looseObject({
             'Exposure consent interlock. A non-loopback server.bind without allowExternal: true is refused at boot with a one-line fix; a server.externalUrl without it boots (a committed externalUrl never arms exposure on clones — but it is project-scoped, so its host still joins the Host/Origin allowlists there), but requests carrying forwarding headers (X-Forwarded-For etc.) are refused until consent is given — proxy tolerance requires both keys. Default off. The server has no authentication of its own, so only consent behind an authenticating edge. Per-machine (project-local) — consent never travels via git, clone, or share; containers consent via the environment instead.',
         })
         .default(false),
-      openBrowser: z
-        .boolean()
-        .register(fieldRegistry, {
-          scope: 'project-local',
-          agentSettable: false,
-          reload: 'boot',
-          defaultScope: 'project-local',
-          description:
-            'Open the UI in a browser when the server starts. Default derived: true when every bind address is loopback (a laptop start pops the UI), false otherwise (a container or exposed bind is headless and must never try). Acts once at start. Per-machine (project-local) — not shared.',
-        })
-        .optional(),
       idleShutdown: z
         .union([z.literal('off'), z.string().regex(IDLE_SHUTDOWN_DURATION_RE)])
         .register(fieldRegistry, {

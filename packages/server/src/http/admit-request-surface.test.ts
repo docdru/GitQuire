@@ -58,7 +58,6 @@ const consentPolicy = buildIngressPolicy({
     bind: ['127.0.0.1', '100.64.0.7'],
     externalUrl: 'http://laptop.tail:55222',
     allowExternal: true,
-    openBrowser: false,
     idleShutdown: 'off',
     loopbackOnly: false,
   } satisfies ServerRuntimeConfig,

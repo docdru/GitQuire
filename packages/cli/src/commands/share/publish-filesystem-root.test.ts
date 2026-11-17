@@ -11,7 +11,7 @@ vi.mock('../auth/repos.ts', () => ({
 
 const { sharePublishCommand } = await import('./publish.ts');
 
-describe('share publish refuses the top of a drive', () => {
+describe('share publish refuses the filesystem root', () => {
   afterEach(() => {
     tokenLookups.count = 0;
   });
@@ -28,7 +28,7 @@ describe('share publish refuses the top of a drive', () => {
 
       expect(process.exitCode).toBe(64);
       const printed = stderrSpy.mock.calls.map((call) => String(call[0])).join('');
-      expect(printed).toContain('top of a drive');
+      expect(printed).toContain('filesystem root');
       expect(tokenLookups.count).toBe(0);
     } finally {
       process.exitCode = savedExitCode;

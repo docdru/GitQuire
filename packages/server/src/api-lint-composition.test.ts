@@ -44,7 +44,6 @@ beforeAll(async () => {
       port: 0,
       externalUrl: 'https://lint.example.com',
       allowExternal: true,
-      openBrowser: false,
       idleShutdown: 'off',
       loopbackOnly: true,
     },

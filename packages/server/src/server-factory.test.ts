@@ -3427,7 +3427,6 @@ describe('createServer() — config-doc admission guard', () => {
           bind: ['127.0.0.1'],
           externalUrl: 'https://myproject.ngrok.app',
           allowExternal: true,
-          openBrowser: false,
           idleShutdown: 'off',
           loopbackOnly: true,
         },

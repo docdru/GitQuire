@@ -98,21 +98,6 @@ export function shouldWarnHostOverridesMultiBind(input: {
   return !input.flagBindSet && !input.okBindSet && input.hostEnvSet && input.fileBindCount > 1;
 }
 
-export function shouldOpenBrowser(input: {
-  openBrowser: boolean;
-  explicitOn: boolean;
-  host: string;
-  isTTY: boolean;
-  ephemeral: boolean;
-  only: OnlyModule | undefined;
-  servesUi: boolean;
-}): boolean {
-  if (!input.openBrowser) return false;
-  if (input.ephemeral || input.only === 'server') return false;
-  if (!input.servesUi) return false;
-  return (input.explicitOn || isLoopbackHost(input.host)) && input.isTTY;
-}
-
 function parseHttpOriginFlag(flagName: string, value: string): string {
   let parsed: URL;
   try {
@@ -475,7 +460,6 @@ interface StartCommandOptions {
   mode?: string;
   port?: string | number;
   bind?: string[];
-  openBrowser?: boolean;
   only?: OnlyModule;
   idleShutdown?: string;
   serveContentAssets?: boolean;
@@ -772,20 +756,6 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
         }
         console.log();
       }
-
-      const openDecision = shouldOpenBrowser({
-        openBrowser: opts.openBrowser !== false && runtime.openBrowser,
-        explicitOn: opts.openBrowser !== false && envConfig.server?.openBrowser === true,
-        host,
-        isTTY: process.stdout.isTTY === true,
-        ephemeral: opts.singleFile !== undefined,
-        only: opts.only,
-        servesUi: reactShellDistDir !== undefined,
-      });
-      if (openDecision) {
-        const { openBrowser } = await import('../utils/open-browser.ts');
-        openBrowser(localUrl);
-      }
     })
     .catch((err) => {
       console.error(
@@ -905,10 +875,6 @@ export function startCommand(getConfig: () => Config): Command {
       '--bind <address>',
       'Bind address (repeatable; default 127.0.0.1 — loopback only)',
       (value: string, prev: string[] | undefined) => [...(prev ?? []), value],
-    )
-    .option(
-      '--no-open-browser',
-      'Do not open the browser after start (interactive loopback starts open it by default)',
     )
     .option(
       '--only <module>',

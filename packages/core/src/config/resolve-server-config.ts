@@ -8,7 +8,6 @@ export interface ServerRuntimeConfig {
   bind: readonly string[];
   externalUrl: string | undefined;
   allowExternal: boolean;
-  openBrowser: boolean;
   idleShutdown: string;
   loopbackOnly: boolean;
 }
@@ -65,7 +64,6 @@ export function resolveServerRuntimeConfig(config: Config | undefined): ServerRu
     bind,
     externalUrl,
     allowExternal: server?.allowExternal ?? false,
-    openBrowser: server?.openBrowser ?? loopbackOnly,
     idleShutdown:
       server?.idleShutdown ?? (loopbackOnly && !exposed ? DEFAULT_LOOPBACK_IDLE_SHUTDOWN : 'off'),
     loopbackOnly,
