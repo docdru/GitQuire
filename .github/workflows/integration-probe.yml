@@ -1,0 +1,43 @@
+name: Integration probe
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: integration (${{ matrix.watching }} ${{ matrix.shard }}/12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        watching: [on, off]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm exec turbo run build --filter=@gitquire/app^...
+      - name: Test
+        env:
+          GITQUIRE_FILE_WATCHER_BACKEND: ${{ matrix.watching == 'off' && 'off' || '' }}
+        run: >-
+          pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts
+          --shard=${{ matrix.shard }}/12 --reporter=default --reporter=json
+          --outputFile.json=integration-${{ matrix.watching }}-${{ matrix.shard }}.json
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-${{ matrix.watching }}-${{ matrix.shard }}
+          path: packages/app/integration-${{ matrix.watching }}-${{ matrix.shard }}.json
