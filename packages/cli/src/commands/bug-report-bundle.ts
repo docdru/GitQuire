@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { freemem, type as osType, platform, release, totalmem, uptime } from 'node:os';
@@ -15,7 +14,6 @@ import {
   SPAWN_ERROR_LOG,
 } from '@gitquire/core';
 import { okProjectLogsDir, okUserHomeDir } from '@gitquire/core/server';
-import { withHiddenWindowsConsole } from '@gitquire/server';
 import type { ZipFile } from 'yazl';
 import type { DesktopMetadata } from '../diagnose/bundle.ts';
 import type { LanguageMetadata } from '../report-language.ts';
@@ -118,14 +116,6 @@ function collectSysinfo(): Record<string, unknown> {
     v8Version: process.versions.v8 ?? null,
     pid: process.pid,
   };
-
-  try {
-    const ver = execSync(
-      'sw_vers -productVersion 2>/dev/null',
-      withHiddenWindowsConsole({ encoding: 'utf8' }),
-    ).trim();
-    info.macosVersion = ver;
-  } catch {}
 
   try {
     const pkgPath = join(__dirname, '..', '..', 'package.json');
