@@ -3,7 +3,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import { afterEach, describe, expect, test } from 'vitest';
-import { createTestClient, createTestServer, pollUntil, type TestServer } from './test-harness';
+import {
+  createTestClient,
+  createTestServer,
+  pollUntil,
+  rereadFromDisk,
+  type TestServer,
+} from './test-harness';
 
 const BASE_CONTENT = '# Base\n\nBase paragraph.\n';
 const THEIRS_CONTENT = '# Theirs\n\nTeam version.\n';
@@ -29,6 +35,7 @@ async function setupServerWithDoc(docName: string, initial: string): Promise<Tes
   const server = await createTestServer({ debounce: 100, maxDebounce: 500 });
   cleanups.push(() => server.cleanup());
   writeFileSync(join(server.contentDir, `${docName}.md`), initial, 'utf-8');
+  await rereadFromDisk(server);
   await pollUntil(async () => {
     const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`).catch(() => null);
     if (!res?.ok) return false;
@@ -50,6 +57,7 @@ describe('case "conflict" disk event -> conflict ledger', () => {
     const filePath = join(server.contentDir, `${docName}.md`);
 
     writeFileSync(filePath, CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(
       async () => (await listedConflictFiles(server.port)).includes(`${docName}.md`),
@@ -57,6 +65,7 @@ describe('case "conflict" disk event -> conflict ledger', () => {
     );
 
     writeFileSync(filePath, THEIRS_CONTENT, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(() => client.ytext.toString().includes('Team version'), 30_000);
 
@@ -81,9 +90,11 @@ describe('case "conflict" disk event -> conflict ledger', () => {
     const filePath = join(server.contentDir, `${docName}.md`);
 
     writeFileSync(filePath, CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(() => server.instance.conflicts.has(docName), 30_000);
 
     writeFileSync(filePath, BASE_CONTENT, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(() => !server.instance.conflicts.has(docName), 30_000);
     expect(server.instance.conflicts.findByDocName(docName)).toBeUndefined();
@@ -101,6 +112,7 @@ describe('case "conflict" disk event -> conflict ledger', () => {
     const filePath = join(server.contentDir, `${docName}.md`);
 
     writeFileSync(filePath, CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(() => server.instance.conflicts.has(docName), 30_000);
 
     expect(readFileSync(filePath, 'utf-8')).toContain('<<<<<<<');
@@ -131,6 +143,7 @@ describe('same-block reconcile -> both versions kept, nothing in the conflict le
     const server = await createTestServer({ debounce: 60_000, maxDebounce: 60_000 });
     cleanups.push(() => server.cleanup());
     writeFileSync(join(server.contentDir, `${docName}.md`), baseContent, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(async () => {
       const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`).catch(() => null);
       if (!res?.ok) return false;
@@ -159,6 +172,7 @@ describe('same-block reconcile -> both versions kept, nothing in the conflict le
 
     const theirsContent = '# Heading\n\nTheir version of first paragraph.\n\nSecond paragraph.\n';
     writeFileSync(filePath, theirsContent, 'utf-8');
+    await rereadFromDisk(server);
 
     const bothKept =
       '# Heading\n\nOur version of first paragraph.\n\nTheir version of first paragraph.\n\nSecond paragraph.\n';
@@ -178,6 +192,7 @@ describe('FR7 + FR9: mutating handlers refuse with RFC 9457 slim 409 during conf
 
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(() => server.instance.conflicts.has(docName), 30_000);
     return { docName, server };
   }
@@ -339,6 +354,7 @@ describe('FR7 + FR9: mutating handlers refuse with RFC 9457 slim 409 during conf
     await pollUntil(() => client.ytext.toString().includes('Base paragraph'));
 
     writeFileSync(join(server.contentDir, folder, `${childBase}.md`), CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(() => server.instance.conflicts.has(childDocName), 30_000);
     return { folder, childDocName, server };
   }
@@ -370,6 +386,7 @@ describe('GET /api/sync/conflict-content?source=ytext', () => {
     const filePath = join(server.contentDir, `${docName}.md`);
 
     writeFileSync(filePath, CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(() => server.instance.conflicts.has(docName), 30_000);
 
     const midConflictMarker = '## Mid-conflict authored content\n';
@@ -414,6 +431,7 @@ describe('GET /api/sync/conflict-content?source=ytext', () => {
     const filePath = join(server.contentDir, `${docName}.md`);
 
     writeFileSync(filePath, CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(() => server.instance.conflicts.has(docName), 30_000);
 
     client.doc.transact(() => {

@@ -21,7 +21,13 @@ import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/pro
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { removeAllDuringTeardown } from '../stress/_helpers/teardown-fs.ts';
-import { createTestClient, createTestServer, pollUntil, type TestServer } from './test-harness';
+import {
+  createTestClient,
+  createTestServer,
+  pollUntil,
+  rereadFromDisk,
+  type TestServer,
+} from './test-harness';
 
 const keyring = vi.hoisted(() => new Map<string, string>());
 vi.mock('@napi-rs/keyring', () => ({
@@ -293,6 +299,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
       if (running) await server.cleanup();
     });
     writeFileSync(join(contentDir, 'sidebar-folder', 'left-behind.md'), '# earlier run\n', 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(
       async () => (await pageNames(server)).includes('sidebar-folder/left-behind'),
       30_000,
@@ -316,6 +323,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
       ),
     ).toEqual([]);
     writeFileSync(join(contentDir, 'sidebar-folder', 'after-reset.md'), '', 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(
       async () => (await pageNames(server)).includes('sidebar-folder/after-reset'),
       30_000,
@@ -338,6 +346,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     local.close();
     const okignorePath = join(server.contentDir, '.okignore');
     writeFileSync(okignorePath, 'kept-by-request/\n', 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(
       () => server.instance.contentFilter.isExcluded('kept-by-request/note.md'),
       15_000,
@@ -372,6 +381,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     const server = await isolatedServer();
     const seeded = 'content:\n  attachmentFolderPath: assets\n';
     writeFileSync(projectConfigPath(server), seeded, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(
       () => !server.instance.contentFilter.isExcluded('assets/new.png'),
       15_000,
@@ -382,6 +392,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     expect((await resetServer(server)).status).toBe(200);
     expect(server.instance.contentFilter.isExcluded('assets/new.png')).toBe(true);
     writeFileSync(projectConfigPath(server), seeded, 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(
       () => !server.instance.contentFilter.isExcluded('assets/new.png'),
@@ -397,6 +408,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     const server = await isolatedServer();
     const okignorePath = join(server.contentDir, '.okignore');
     writeFileSync(okignorePath, 'seeded-again/\n', 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(
       () => server.instance.contentFilter.isExcluded('seeded-again/note.md'),
       15_000,
@@ -407,6 +419,7 @@ describe('test-reset with scope=server returns an isolated server to its booted 
     expect((await resetServer(server)).status).toBe(200);
     expect(server.instance.contentFilter.isExcluded('seeded-again/note.md')).toBe(false);
     writeFileSync(okignorePath, 'seeded-again/\n', 'utf-8');
+    await rereadFromDisk(server);
 
     await pollUntil(
       () => server.instance.contentFilter.isExcluded('seeded-again/note.md'),

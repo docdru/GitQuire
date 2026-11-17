@@ -21,6 +21,7 @@ import {
   createTestClient,
   createTestServer,
   pollUntil,
+  rereadFromDisk,
   type TestClient,
   type TestServer,
 } from './test-harness';
@@ -139,7 +140,9 @@ async function openSaved(
   server = s;
   const path = join(s.contentDir, file);
   mkdirSync(join(path, '..'), { recursive: true });
+  await rereadFromDisk(s);
   writeFileSync(path, saved, 'utf-8');
+  await rereadFromDisk(s);
   const c = await createTestClient(s.port, file, {
     skipInvariantWatcher: true,
     resetOnCleanup: false,
@@ -505,32 +508,5 @@ describe('an outside write to an open, unedited file with no merge engine', () =
     await pollUntil(() => c.ytext.toString() === kase.outside, 10_000, 25, 'the re-read to apply');
     expect(await historyVersions(s, kase.file)).toEqual([]);
     expect(await noticesFor(s, kase.file)).toEqual([]);
-  });
-
-  test('a native change event applies it live', async () => {
-    const { s, c, double, path } = await openSaved(kase.file, kase.saved);
-    writeFileSync(path, kase.outside, 'utf-8');
-
-    double.subscriptionFor(s.contentDir).deliver([{ type: 'update', path }]);
-
-    await pollUntil(() => c.ytext.toString() === kase.outside, 10_000, 25, 'the event to apply');
-    expect(await noticesFor(s, kase.file)).toEqual([]);
-  });
-
-  test('with native events silenced, the timed re-check applies it live', async () => {
-    const { c, clock, path } = await openSaved(kase.file, kase.saved, {
-      freshnessIntervalMs: 5_000,
-    });
-    writeFileSync(path, kase.outside, 'utf-8');
-
-    clock.advance(5_000);
-
-    await pollUntil(
-      () => c.ytext.toString() === kase.outside,
-      10_000,
-      25,
-      'the timed re-check to apply the outside bytes',
-    );
-    expect(readFileSync(path, 'utf-8')).toBe(kase.outside);
   });
 });

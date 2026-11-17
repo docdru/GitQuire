@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { DocumentListSuccessSchema } from '@gitquire/core';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
-import { createTestServer, type TestServer, wait } from './test-harness';
+import { createTestServer, rereadFromDisk, type TestServer, wait } from './test-harness';
 
 const LIVE_FOLDER_TIMEOUT_MS = 45_000;
 const LIVE_FOLDER_TEST_TIMEOUT_MS = LIVE_FOLDER_TIMEOUT_MS + 5_000;
@@ -69,7 +69,7 @@ describe('/api/documents empty folder — boot-time', () => {
   });
 });
 
-describe('/api/documents empty folder — live creation', () => {
+describe('/api/documents empty folder — after a re-read', () => {
   let server: TestServer;
 
   beforeAll(async () => {
@@ -83,9 +83,10 @@ describe('/api/documents empty folder — live creation', () => {
   });
 
   test(
-    'detects empty folder created externally after server start',
+    'lists an empty folder created on disk after start once it is re-read',
     async () => {
       mkdirSync(join(server.contentDir, 'live-empty'));
+      await rereadFromDisk(server);
 
       await awaitFolderPathsIndexed(server, ['live-empty']);
     },
@@ -96,6 +97,7 @@ describe('/api/documents empty folder — live creation', () => {
     'detects deeply-nested empty folder hierarchy created with mkdir -p',
     async () => {
       mkdirSync(join(server.contentDir, 'deep', 'nested', 'empty'), { recursive: true });
+      await rereadFromDisk(server);
 
       await awaitFolderPathsIndexed(server, ['deep', 'deep/nested', 'deep/nested/empty']);
     },

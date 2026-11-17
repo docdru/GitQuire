@@ -9,7 +9,7 @@ import {
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { expect, test } from 'vitest';
 import * as Y from 'yjs';
-import { createTestServer, pollUntil, waitForSync } from './test-harness.ts';
+import { createTestServer, pollUntil, rereadFromDisk, waitForSync } from './test-harness.ts';
 
 type RelationChannel = 'backlinks' | 'graph' | 'tags';
 const RELATION_CHANNELS: readonly RelationChannel[] = ['backlinks', 'graph', 'tags'];
@@ -108,11 +108,13 @@ test('direct create, duplicate, rename, and delete keep links and tags in lockst
   const relationSignals = connectRelationSignals(server.port);
   const templateDir = join(server.contentDir, '.gitquire', 'templates');
   mkdirSync(templateDir, { recursive: true });
+  await rereadFromDisk(server);
   writeFileSync(
     join(templateDir, 'lifecycle.md'),
     '---\ntemplate:\n  title: Lifecycle\ntags: [lifecycle]\n---\n\nSee [[target]].\n',
     'utf-8',
   );
+  await rereadFromDisk(server);
 
   try {
     await waitForSync(relationSignals.provider);

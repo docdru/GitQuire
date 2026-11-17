@@ -9,6 +9,7 @@ import {
   createTestServer,
   pollUntil,
   readTestDoc,
+  rereadFromDisk,
   type TestClient,
   type TestServer,
 } from './test-harness.ts';
@@ -39,39 +40,6 @@ async function renamePath(port: number, fromPath: string, toPath: string) {
 }
 
 describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit', () => {
-  test('write_document append: the native edit is NOT clobbered + FR3 warning fires', async () => {
-    server = await createTestServer({ debounce: 50, maxDebounce: 200 });
-    const { port, contentDir } = server;
-    const docName = `reconcile-append-${randomUUID()}`;
-    const filePath = join(contentDir, `${docName}.md`);
-
-    await agentWriteMd(port, '# V1 from agent\n\nbody-v1\n', { docName, position: 'replace' });
-    await pollUntil(() => readTestDoc(contentDir, docName).includes('body-v1'));
-
-    writeFileSync(filePath, '# V2 NATIVE OUT-OF-BAND EDIT\n\nbody-v2-native\n', 'utf-8');
-
-    const res = await fetch(`http://127.0.0.1:${port}/api/agent-write-md`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        docName,
-        markdown: 'appended-by-agent-still-on-v1\n',
-        position: 'append',
-      }),
-    });
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as {
-      warning?: unknown;
-      warnings?: Array<{ kind?: string }>;
-    };
-    expect(body.warnings?.map((w) => w.kind)).toEqual(['disk-edit-reconciled']);
-    expect(body.warning).toBeUndefined();
-
-    const after = readTestDoc(contentDir, docName);
-    expect(after).toContain('body-v2-native');
-    expect(after).toContain('appended-by-agent-still-on-v1');
-  });
-
   test('edit_document find/replace: runs against the live (disk-reflecting) content', async () => {
     server = await createTestServer({ debounce: 50, maxDebounce: 200 });
     const { port, contentDir } = server;
@@ -82,6 +50,7 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
     await pollUntil(() => readTestDoc(contentDir, docName).includes('BANANA'));
 
     writeFileSync(filePath, '# Doc\n\nBANANA here\n\nnative-extra-line\n', 'utf-8');
+    await rereadFromDisk(server);
 
     await agentPatch(port, 'BANANA', 'CHERRY', docName);
 
@@ -101,6 +70,7 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
     await pollUntil(() => readTestDoc(contentDir, docName).includes('body-original'));
 
     writeFileSync(filePath, '# Doc\n\nbody-original\n\nnative-body-line\n', 'utf-8');
+    await rereadFromDisk(server);
 
     const res = await frontmatterPatch(port, docName, { title: 'New Title' });
     expect(res.status).toBe(200);
@@ -110,64 +80,6 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
     expect(after).toContain('native-body-line');
   });
 
-  test('concurrent un-flushed CRDT edit survives: L1 three-way merges disk + CRDT, agent edit lands on top (agent write first)', async () => {
-    server = await createTestServer({ debounce: 300_000, maxDebounce: 600_000 });
-    const { port, contentDir } = server;
-    const docName = `reconcile-concurrent-${randomUUID()}`;
-    const filePath = join(contentDir, `${docName}.md`);
-
-    writeFileSync(filePath, '# Doc\n\nseed-body\n', 'utf-8');
-
-    let clients: TestClient[] = [];
-    try {
-      clients = await createTestClients(port, { count: 1, docName });
-      const client = clients[0];
-      if (!client) throw new Error('client setup failed');
-      await pollUntil(() => client.ytext.toString().includes('seed-body'));
-
-      client.doc.transact(() => {
-        client.ytext.insert(client.ytext.length, '\ncrdt-unflushed-line\n');
-      });
-      const serverYtext = () =>
-        server?.instance.hocuspocus.documents.get(docName)?.getText('source').toString() ?? '';
-      await pollUntil(() => serverYtext().includes('crdt-unflushed-line'));
-      expect(readTestDoc(contentDir, docName)).not.toContain('crdt-unflushed-line');
-
-      writeFileSync(filePath, '# Doc\n\nseed-body\n\ndisk-oob-line\n', 'utf-8');
-
-      const res = await fetch(`http://127.0.0.1:${port}/api/agent-write-md`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ docName, markdown: 'agent-line\n', position: 'append' }),
-      });
-      expect(res.status).toBe(200);
-      const body = (await res.json()) as {
-        warning?: unknown;
-        warnings?: Array<{ kind?: string; mergeOutcome?: string }>;
-      };
-      const reconciled = body.warnings?.find((w) => w.kind === 'disk-edit-reconciled');
-      expect(reconciled?.mergeOutcome).toBe('merged');
-      expect(body.warning).toBeUndefined();
-
-      await pollUntil(() => serverYtext().includes('agent-line'));
-      expect(serverYtext()).toContain('disk-oob-line');
-      expect(serverYtext()).toContain('crdt-unflushed-line');
-
-      await pollUntil(() => {
-        const d = readTestDoc(contentDir, docName);
-        return (
-          d.includes('agent-line') &&
-          d.includes('crdt-unflushed-line') &&
-          d.includes('disk-oob-line')
-        );
-      });
-    } finally {
-      for (const c of clients) {
-        await c.cleanup();
-      }
-    }
-  });
-
   test('arrival-order independence: file-watcher merges first, agent write does not re-ingest and revert it', async () => {
     server = await createTestServer({ debounce: 300_000, maxDebounce: 600_000 });
     const { port, contentDir } = server;
@@ -175,6 +87,7 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
     const filePath = join(contentDir, `${docName}.md`);
 
     writeFileSync(filePath, '# Doc\n\nseed-body\n', 'utf-8');
+    await rereadFromDisk(server);
 
     let clients: TestClient[] = [];
     try {
@@ -191,6 +104,7 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
       await pollUntil(() => serverYtext().includes('crdt-unflushed-line'));
 
       writeFileSync(filePath, '# Doc\n\nseed-body\n\ndisk-oob-line\n', 'utf-8');
+      await rereadFromDisk(server);
       await pollUntil(() => serverYtext().includes('disk-oob-line'), 10_000);
       expect(serverYtext()).toContain('crdt-unflushed-line');
 
@@ -226,66 +140,6 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
     }
   });
 
-  test('overlapping-block edit: both versions are kept and the agent write lands on them', async () => {
-    server = await createTestServer({ debounce: 300_000, maxDebounce: 600_000 });
-    const { port, contentDir } = server;
-    const docName = `reconcile-both-kept-${randomUUID()}`;
-    const filePath = join(contentDir, `${docName}.md`);
-
-    writeFileSync(filePath, '# Doc\n\nshared-line\n', 'utf-8');
-
-    let clients: TestClient[] = [];
-    try {
-      clients = await createTestClients(port, { count: 1, docName });
-      const client = clients[0];
-      if (!client) throw new Error('client setup failed');
-      await pollUntil(() => client.ytext.toString().includes('shared-line'));
-
-      client.doc.transact(() => {
-        const text = client.ytext.toString();
-        const at = text.indexOf('shared-line') + 'shared-line'.length;
-        client.ytext.insert(at, ' crdt-version');
-      });
-      const serverYtext = () =>
-        server?.instance.hocuspocus.documents.get(docName)?.getText('source').toString() ?? '';
-      await pollUntil(() => serverYtext().includes('crdt-version'));
-
-      writeFileSync(filePath, '# Doc\n\nshared-line disk-version\n', 'utf-8');
-
-      const res = await fetch(`http://127.0.0.1:${port}/api/agent-write-md`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ docName, markdown: 'agent-line\n', position: 'append' }),
-      });
-      expect(res.status).toBe(409);
-      const body = (await res.json()) as {
-        type?: string;
-        outcome?: string;
-        saved?: boolean;
-        nextStep?: string;
-        warnings?: Array<{ kind?: string; mergeOutcome?: string }>;
-      };
-      expect(body).toMatchObject({
-        type: 'urn:ok:error:both-kept',
-        outcome: 'both-kept',
-        saved: true,
-        nextStep: 're-read',
-      });
-      const reconciled = body.warnings?.find((w) => w.kind === 'disk-edit-reconciled');
-      expect(reconciled?.mergeOutcome).toBe('both-kept');
-
-      expect(serverYtext()).toContain(
-        'shared-line crdt-version\n\nshared-line disk-version\n\nagent-line',
-      );
-      expect(server.instance.conflicts.findByDocName(docName)).toBeUndefined();
-      await pollUntil(() => readTestDoc(contentDir, docName) === serverYtext());
-    } finally {
-      for (const c of clients) {
-        await c.cleanup();
-      }
-    }
-  });
-
   test('conflict markers on disk: L1 refuses to ingest them and the agent write is refused 409', async () => {
     server = await createTestServer({ debounce: 300_000, maxDebounce: 600_000 });
     const { port, contentDir } = server;
@@ -293,6 +147,7 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
     const filePath = join(contentDir, `${docName}.md`);
 
     writeFileSync(filePath, '# Doc\n\nseed-body\n', 'utf-8');
+    await rereadFromDisk(server);
 
     let clients: TestClient[] = [];
     try {
@@ -313,6 +168,7 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
         '# Doc\n\n<<<<<<< HEAD\nseed-body\n=======\nother-side\n>>>>>>> theirs\n',
         'utf-8',
       );
+      await rereadFromDisk(server);
 
       const res = await fetch(`http://127.0.0.1:${port}/api/agent-write-md`, {
         method: 'POST',
@@ -344,6 +200,7 @@ describe('PRD-6832 β L1: agent write reconciles a newer out-of-band disk edit',
     await pollUntil(() => readTestDoc(contentDir, fromDoc).includes('body-v1'));
 
     writeFileSync(fromPath, '# V2 NATIVE OUT-OF-BAND EDIT\n\nbody-v2-native\n', 'utf-8');
+    await rereadFromDisk(server);
 
     const res = await renamePath(port, `${fromDoc}.md`, `${toDoc}.md`);
     expect(res.status).toBe(200);

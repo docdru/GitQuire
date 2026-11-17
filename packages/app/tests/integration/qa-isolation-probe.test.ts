@@ -8,6 +8,7 @@ import {
   createTestServer,
   pollUntil,
   readTestDoc,
+  rereadFromDisk,
   serializeFragment,
 } from './test-harness';
 
@@ -46,6 +47,7 @@ describe('isolation: external disk edit trajectory', () => {
 
       const withRuns = '\n\nAbove.\n\nBelow.\n\n\n';
       writeFileSync(join(server.contentDir, `${docName}.md`), withRuns, 'utf-8');
+      await rereadFromDisk(server);
       const trajectory: Array<Record<string, unknown>> = [];
       let rescued = false;
       for (let s = 0; s < 30; s++) {

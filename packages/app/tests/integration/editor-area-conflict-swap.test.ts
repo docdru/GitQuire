@@ -1,7 +1,13 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
-import { createTestClient, createTestServer, pollUntil, type TestServer } from './test-harness';
+import {
+  createTestClient,
+  createTestServer,
+  pollUntil,
+  rereadFromDisk,
+  type TestServer,
+} from './test-harness';
 
 const BASE_CONTENT = '# Base\n\nBase paragraph.\n';
 const CONFLICT_MARKERS =
@@ -19,6 +25,7 @@ async function setupServerWithDoc(docName: string, initial: string): Promise<Tes
   const server = await createTestServer({ debounce: 100, maxDebounce: 500 });
   cleanups.push(() => server.cleanup());
   writeFileSync(join(server.contentDir, `${docName}.md`), initial, 'utf-8');
+  await rereadFromDisk(server);
   await pollUntil(async () => {
     const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`).catch(() => null);
     if (!res?.ok) return false;
@@ -41,6 +48,7 @@ describe('editor-area swap — gate propagation', () => {
 
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, CONFLICT_MARKERS, 'utf-8');
+    await rereadFromDisk(server);
     await pollUntil(() => server.instance.conflicts.has(docName), 30_000);
 
     expect(server.instance.conflicts.findByDocName(docName)).toMatchObject({

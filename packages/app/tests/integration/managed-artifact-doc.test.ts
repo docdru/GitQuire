@@ -2,7 +2,12 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { createTestClient, createTestServer, type TestServer } from './test-harness.ts';
+import {
+  createTestClient,
+  createTestServer,
+  rereadFromDisk,
+  type TestServer,
+} from './test-harness.ts';
 
 describe('template CRDT docs — end to end', () => {
   let server: TestServer;
@@ -92,6 +97,7 @@ describe('template CRDT docs — end to end', () => {
     const start = Date.now();
     while (Date.now() - start < 15000 && client.ytext.toString() !== edited) {
       writeFileSync(tplFile, edited, 'utf-8');
+      await rereadFromDisk(server);
       await new Promise((r) => setTimeout(r, 200));
     }
     expect(client.ytext.toString()).toBe(edited);

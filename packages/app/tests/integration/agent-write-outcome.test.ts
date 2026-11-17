@@ -9,6 +9,7 @@ import {
   createTestClient,
   createTestServer,
   pollUntil,
+  rereadFromDisk,
   type TestClient,
   type TestServer,
 } from './test-harness';
@@ -298,7 +299,9 @@ describe('what each refusal and each kind of document reports', () => {
       const docName = `diagrams/outcome-${randomUUID()}.mmd`;
       const file = join(server.contentDir, docName);
       mkdirSync(join(server.contentDir, 'diagrams'), { recursive: true });
+      await rereadFromDisk(server);
       writeFileSync(file, 'graph TD\n  A-->B\n');
+      await rereadFromDisk(server);
       const write = (markdown: string) =>
         post(server, '/api/agent-write-md', {
           docName,
@@ -309,6 +312,7 @@ describe('what each refusal and each kind of document reports', () => {
       expect((await write('graph TD\n  A-->C\n')).body).toMatchObject({ outcome: 'applied' });
 
       writeFileSync(file, 'graph TD\n  A-->Outside\n');
+      await rereadFromDisk(server);
       const merged = await write('graph TD\n  A-->Agent\n');
       expect(merged.status).toBe(200);
       expect(merged.body).toMatchObject({ outcome: 'merged-first', saved: true });
@@ -339,7 +343,9 @@ describe('what each refusal and each kind of document reports', () => {
     const docName = `diagrams/outcome-${randomUUID()}.mmd`;
     const file = join(server.contentDir, docName);
     mkdirSync(join(server.contentDir, 'diagrams'), { recursive: true });
+    await rereadFromDisk(server);
     writeFileSync(file, 'graph TD\n  A-->B\n');
+    await rereadFromDisk(server);
     const written = await post(server, '/api/agent-write-md', {
       docName,
       markdown: 'graph TD\n  A-->C\n',
@@ -349,6 +355,7 @@ describe('what each refusal and each kind of document reports', () => {
     expect(written.body).toMatchObject({ outcome: 'applied' });
     const notText = Buffer.from([0x67, 0x72, 0xff, 0xfe, 0x0a]);
     writeFileSync(file, notText);
+    await rereadFromDisk(server);
 
     const undo = await post(server, '/api/agent-undo', {
       docName,
@@ -468,15 +475,14 @@ describe('a held save on a document with no agreed version', () => {
 
 describe('a rename outside the app of a document nobody has open', () => {
   test('leaves no rename-carry record once it settles', async () => {
-    const double = createWatcherDouble();
-    const server = await createTestServer({ watcherBackend: double.backend });
+    const server = await createTestServer();
     cleanups.push(() => server.cleanup());
     const pages = async (): Promise<string> =>
       JSON.stringify(await (await fetch(`${server.baseUrl}/api/pages`)).json());
     const docName = `outcome-unopened-${randomUUID()}`;
     const file = join(server.contentDir, `${docName}.md`);
     writeFileSync(file, SEED);
-    double.subscriptionFor(server.contentDir).deliver([{ type: 'create', path: file }]);
+    await rereadFromDisk(server);
     await pollUntil(async () => (await pages()).includes(docName), 10_000, 25, 'the new file');
     expect(server.instance.hocuspocus.documents.has(docName)).toBe(false);
     const carries = vi.spyOn(server.instance.durabilityState, 'beginRenameCarry');
@@ -484,10 +490,7 @@ describe('a rename outside the app of a document nobody has open', () => {
 
     const moved = join(server.contentDir, `${docName}-moved.md`);
     renameSync(file, moved);
-    double.subscriptionFor(server.contentDir).deliver([
-      { type: 'delete', path: file },
-      { type: 'create', path: moved },
-    ]);
+    await rereadFromDisk(server);
     await pollUntil(
       async () => (await pages()).includes(`${docName}-moved`),
       10_000,

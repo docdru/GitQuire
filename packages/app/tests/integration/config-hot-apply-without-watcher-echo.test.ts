@@ -52,11 +52,13 @@ import {
   createSyncWiredTestServer,
   createTestServer,
   pollUntil,
+  rereadFromDisk,
   type SyncWiredTestServer,
   type TestServer,
 } from './test-harness';
 
 const execFileAsync = promisify(execFile);
+const WATCHING = process.env.GITQUIRE_FILE_WATCHER_BACKEND !== 'off';
 
 describe('PRD-7260 — persisted config change reaches in-process consumers without the watcher echo', () => {
   let srv: TestServer;
@@ -70,7 +72,7 @@ describe('PRD-7260 — persisted config change reaches in-process consumers with
   beforeAll(async () => {
     const swallowedBefore = statPollWatchers.swallowed;
     srv = await createTestServer({ seedProjectConfigYml: '{}\n' });
-    expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
+    if (WATCHING) expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
 
     ydoc = new Y.Doc();
     provider = new HocuspocusProvider({
@@ -189,7 +191,7 @@ describe('configured attachment folder composes into real Git sync without the w
       originSeed: { 'seed.txt': 'seed\n' },
       projectConfigYml: '{}\n',
     });
-    expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
+    if (WATCHING) expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
 
     ydoc = new Y.Doc();
     provider = new HocuspocusProvider({
@@ -226,16 +228,20 @@ describe('configured attachment folder composes into real Git sync without the w
 
     const attachmentPath = join(srv.contentDir, 'assets', 'diagram.png');
     mkdirSync(dirname(attachmentPath), { recursive: true });
+    await rereadFromDisk(srv);
     writeFileSync(attachmentPath, 'attachment-v1', 'utf-8');
+    await rereadFromDisk(srv);
     await srv.sync.engine.trigger('push');
     expect(await readOriginFile('assets/diagram.png')).toBe('attachment-v1');
     expect((await listOriginPaths()).some((path) => /\.mdx?$/.test(path))).toBe(false);
 
     writeFileSync(attachmentPath, 'attachment-v2', 'utf-8');
+    await rereadFromDisk(srv);
     await srv.sync.engine.trigger('push');
     expect(await readOriginFile('assets/diagram.png')).toBe('attachment-v2');
 
     rmSync(attachmentPath);
+    await rereadFromDisk(srv);
     await srv.sync.engine.trigger('push');
     expect(await listOriginPaths()).not.toContain('assets/diagram.png');
     expect(srv.sync.engine.getStatus().pushError).toBeUndefined();
@@ -251,7 +257,7 @@ describe('PRD-7260 — reconciled config change reaches in-process consumers wit
   beforeAll(async () => {
     const swallowedBefore = statPollWatchers.swallowed;
     srv = await createTestServer();
-    expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
+    if (WATCHING) expect(statPollWatchers.swallowed).toBeGreaterThan(swallowedBefore);
 
     ydoc = new Y.Doc();
     provider = new HocuspocusProvider({

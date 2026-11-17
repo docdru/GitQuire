@@ -12,7 +12,13 @@ import * as encoding from 'lib0/encoding';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
-import { createTestServer, pollUntil, type TestServer, waitForSync } from './test-harness';
+import {
+  createTestServer,
+  pollUntil,
+  rereadFromDisk,
+  type TestServer,
+  waitForSync,
+} from './test-harness';
 
 let server: TestServer;
 
@@ -72,6 +78,7 @@ describe('CC1 broadcast — L1 integration', () => {
 
       const fileName = `cc1-test-${crypto.randomUUID()}.md`;
       writeFileSync(join(server.contentDir, fileName), '# hello\n', 'utf-8');
+      await rereadFromDisk(server);
 
       await wait(500);
 
@@ -163,7 +170,9 @@ describe('CC1 broadcast — L1 integration', () => {
       );
     } finally {
       rmSync(markdownlintFile, { force: true });
+      await rereadFromDisk(server);
       rmSync(schemaPath, { force: true });
+      await rereadFromDisk(server);
       destroy();
     }
   });
@@ -177,6 +186,7 @@ describe('CC1 broadcast — L1 integration', () => {
       const docName = `cc1-empty-${crypto.randomUUID()}`;
       const filesBefore = Math.max(0, ...signals.map((signal) => signal.seq));
       writeFileSync(join(server.contentDir, `${docName}.md`), '', 'utf-8');
+      await rereadFromDisk(server);
 
       await pollUntil(
         () => signals.some((signal) => signal.seq > filesBefore),
@@ -215,6 +225,7 @@ describe('CC1 broadcast — L1 integration', () => {
       for (let i = 0; i < 10; i++) {
         const fileName = `cc1-mono-${i}-${crypto.randomUUID()}.md`;
         writeFileSync(join(server.contentDir, fileName), `# file ${i}\n`, 'utf-8');
+        await rereadFromDisk(server);
         const expected = baseline + i + 1;
         try {
           await pollUntil(() => signals.length >= expected, 5000, 20);
@@ -249,6 +260,7 @@ describe('CC1 broadcast — L1 integration', () => {
       for (let i = 0; i < 50; i++) {
         const fileName = `cc1-burst-${i}-${crypto.randomUUID()}.md`;
         writeFileSync(join(server.contentDir, fileName), `# burst ${i}\n`, 'utf-8');
+        await rereadFromDisk(server);
       }
 
       await wait(500);
@@ -269,12 +281,14 @@ describe('CC1 broadcast — L1 integration', () => {
       const fileName = `cc1-update-test-${crypto.randomUUID()}.md`;
       const filePath = join(server.contentDir, fileName);
       writeFileSync(filePath, '# original\n', 'utf-8');
+      await rereadFromDisk(server);
 
       await wait(500);
       const createCount = signals.length;
       expect(createCount).toBeGreaterThanOrEqual(1);
 
       writeFileSync(filePath, '# updated content\n', 'utf-8');
+      await rereadFromDisk(server);
 
       await wait(500);
       expect(signals.length).toBe(createCount);
@@ -343,6 +357,7 @@ describe('CC1 broadcast — L1 integration', () => {
 
       const fileName = `cc1-shape-${crypto.randomUUID()}.md`;
       writeFileSync(join(server.contentDir, fileName), '# shape test\n', 'utf-8');
+      await rereadFromDisk(server);
       await wait(500);
 
       expect(signals.length).toBeGreaterThanOrEqual(1);
@@ -364,11 +379,13 @@ describe('CC1 broadcast — L1 integration', () => {
       const fileName = `cc1-delete-test-${crypto.randomUUID()}.md`;
       const filePath = join(server.contentDir, fileName);
       writeFileSync(filePath, '# to be deleted\n', 'utf-8');
+      await rereadFromDisk(server);
       await wait(500);
       const createCount = signals.length;
       expect(createCount).toBeGreaterThanOrEqual(1);
 
       unlinkSync(filePath);
+      await rereadFromDisk(server);
       await wait(500);
 
       expect(signals.length).toBeGreaterThan(createCount);
@@ -391,11 +408,13 @@ describe('CC1 broadcast — L1 integration', () => {
       const oldPath = join(server.contentDir, oldName);
       const newPath = join(server.contentDir, newName);
       writeFileSync(oldPath, '# to be renamed\n', 'utf-8');
+      await rereadFromDisk(server);
       await wait(500);
       const createCount = signals.length;
       expect(createCount).toBeGreaterThanOrEqual(1);
 
       renameSync(oldPath, newPath);
+      await rereadFromDisk(server);
       await wait(600);
 
       expect(signals.length).toBeGreaterThan(createCount);
@@ -488,6 +507,7 @@ describe('CC1 broadcast — L1 integration', () => {
         const fileName = `cc1-latency-${i}-${crypto.randomUUID()}.md`;
         const sendAt = performance.now();
         writeFileSync(join(server.contentDir, fileName), `# ${i}\n`, 'utf-8');
+        await rereadFromDisk(server);
         sendTimes.push(sendAt);
         await pollUntil(() => arrivals.length >= arrivalBaseline + i + 1, 5000, 20);
       }

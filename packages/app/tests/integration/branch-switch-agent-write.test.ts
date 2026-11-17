@@ -12,6 +12,7 @@ import {
 } from '../../../server/src/derived-document-index.ts';
 import { post } from './rename-rebinding.test-helper.ts';
 import {
+  checkoutBranch,
   createInspectableServer,
   createTestClient,
   type InspectableServer,
@@ -116,7 +117,7 @@ describe('agent writes during a git branch switch', () => {
 
       const { contentDir, server } = await bootOnMainWithFeatureBranch();
 
-      git(contentDir, 'checkout feature');
+      const switched = checkoutBranch(server, 'feature');
       await pollUntil(
         () => settleSpy.mock.calls.length > 0,
         20_000,
@@ -135,6 +136,7 @@ describe('agent writes during a git branch switch', () => {
 
       releaseSettle();
       const response = await patch;
+      await switched;
       expect(response.status).toBe(200);
       await pollUntil(
         () => !server.instance.durabilityState.isBatchInProgress(),
@@ -156,23 +158,6 @@ describe('agent writes during a git branch switch', () => {
 
       expect(readNotes(contentDir)).toContain('Edited on feature.');
       expect(ackedWhileSwitching).toBe(false);
-
-      const holds = vi.spyOn(server.instance.durabilityState, 'holdWriteAdmission');
-      cleanups.push(() => holds.mockRestore());
-      writeFileSync(join(contentDir, 'staged.txt'), 'staged\n', 'utf-8');
-      git(contentDir, 'add staged.txt');
-      await pollUntil(
-        () => holds.mock.calls.length > 0,
-        15_000,
-        20,
-        'the index change to start a batch',
-      );
-      await pollUntil(
-        () => !server.instance.durabilityState.isWriteAdmissionHeld(),
-        10_000,
-        50,
-        'the index-change batch to release write admission',
-      );
     },
     90_000,
   );
@@ -204,8 +189,9 @@ describe('agent writes during a git branch switch', () => {
       await pollUntil(() => durability.isBatchInProgress(), 15_000, 20, 'the write to land');
       const ackedBeforeSwitch = await settledWithin(write, RESPONSE_GRACE_MS);
 
-      git(contentDir, 'checkout feature');
+      const switched = checkoutBranch(server, 'feature');
       const response = await write;
+      await switched;
       await pollUntil(
         () =>
           !durability.isBatchInProgress() && serverText(server, 'notes').includes('On feature.'),

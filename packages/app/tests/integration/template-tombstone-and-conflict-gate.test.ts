@@ -8,6 +8,7 @@ import {
   createTestServer,
   HARNESS_BOOT_TIMEOUT_MS,
   pollUntil,
+  rereadFromDisk,
   type TestServer,
   wait,
 } from './test-harness.ts';
@@ -99,6 +100,7 @@ describe('template live conflict gate (FR5)', () => {
       const conflicted =
         '---\ntitle: T\ndescription: initial\n---\n\n# Template\n\n<<<<<<< HEAD\nours.\n=======\ntheirs.\n>>>>>>> branch\n';
       writeFileSync(tplFile, conflicted, 'utf-8');
+      await rereadFromDisk(server);
       await pollUntil(() => isConflicted(rig, docName), 30_000);
 
       const put = await fetch(`http://127.0.0.1:${rig.port}/api/template`, {

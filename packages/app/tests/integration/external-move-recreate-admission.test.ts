@@ -13,6 +13,7 @@ import {
   createTestServer,
   HARNESS_BOOT_TIMEOUT_MS,
   pollUntil,
+  rereadFromDisk,
   type TestServer,
 } from './test-harness';
 
@@ -50,6 +51,7 @@ async function seedFile(docName: string, content: string): Promise<string> {
   if (!existsSync(dirname(path))) {
     const folder = dirname(docName);
     mkdirSync(dirname(path));
+    await rereadFromDisk(server);
     await pollUntil(
       async () => (await watcherDispatchCount('folder-create', folder)) > 0,
       undefined,
@@ -58,6 +60,7 @@ async function seedFile(docName: string, content: string): Promise<string> {
     );
   }
   writeFileSync(path, content, { encoding: 'utf-8', flag: 'wx' });
+  await rereadFromDisk(server);
   await pollUntil(
     async () => (await watcherCreateCount(docName)) > 0,
     undefined,
@@ -78,6 +81,7 @@ async function moveLoadedDocument(docName: string): Promise<string> {
       closed = true;
     });
     renameSync(originalPath, destinationPath);
+    await rereadFromDisk(server);
     await pollUntil(
       () =>
         closed &&
@@ -181,6 +185,7 @@ test('native recreation exposes its new content and active lifecycle after watch
     encoding: 'utf-8',
     flag: 'wx',
   });
+  await rereadFromDisk(server);
   await pollUntil(
     async () => (await watcherCreateCount(docName)) > seedCreateCount,
     undefined,

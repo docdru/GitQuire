@@ -13,6 +13,7 @@ import {
   createTestServer,
   getServerState,
   pollUntil,
+  rereadFromDisk,
   seedPoolServerInstanceId,
   wait,
 } from './test-harness';
@@ -148,8 +149,10 @@ async function stageStaleRowsAndReseed(opts: {
   poolA.dispose();
 
   rmSync(filePath);
+  await rereadFromDisk(server);
   await pollUntil(() => getServerState(server, docName) === null, 20_000, 100);
   writeFileSync(filePath, FIXTURE_V2, 'utf-8');
+  await rereadFromDisk(server);
   await awaitFileWatcherIndexed(server, docName);
 }
 
@@ -184,6 +187,7 @@ describe('client-persisted state meets a re-seeded doc lineage (boot-window fres
     const docName = `lineage-bootwindow-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, FIXTURE_V1, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const { stub: sharedStorage, store } = makeStubStorage();
@@ -227,6 +231,7 @@ describe('client-persisted state meets a re-seeded doc lineage (record-absent pr
     const docName = `lineage-noenvelope-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, FIXTURE_V1, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const { stub: storageA } = makeStubStorage();
@@ -261,6 +266,7 @@ describe('refusing dead-lineage state is observable (boot-window fresh-pool door
     const docName = `lineage-bootwindow-telemetry-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, FIXTURE_V1, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const { stub: sharedStorage } = makeStubStorage();
@@ -301,6 +307,7 @@ describe('refusing dead-lineage state is observable (record-absent profile door)
     const docName = `lineage-noenvelope-telemetry-${crypto.randomUUID()}`;
     const filePath = join(server.contentDir, `${docName}.md`);
     writeFileSync(filePath, FIXTURE_V1, 'utf-8');
+    await rereadFromDisk(server);
     await awaitFileWatcherIndexed(server, docName);
 
     const { stub: storageA } = makeStubStorage();

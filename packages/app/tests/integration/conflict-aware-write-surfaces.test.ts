@@ -5,7 +5,13 @@ import { promisify } from 'node:util';
 import { bootServer, ConfigSchema, getLocalDir } from '@gitquire/server';
 import { describe, expect, test } from 'vitest';
 import { configureTestGitRepository } from '../../../../test-support/configure-git-fixture.test-helper.ts';
-import { createTestClient, createTestServer, pollUntil, type TestServer } from './test-harness';
+import {
+  createTestClient,
+  createTestServer,
+  pollUntil,
+  rereadFromDisk,
+  type TestServer,
+} from './test-harness';
 
 const execFileAsync = promisify(execFile);
 
@@ -40,6 +46,7 @@ async function setupServerWithDoc(
   });
   cleanups.push(() => server.cleanup());
   writeFileSync(join(server.contentDir, `${docName}.md`), initial, 'utf-8');
+  await rereadFromDisk(server);
   await pollUntil(async () => {
     const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`).catch(() => null);
     if (!res?.ok) return false;
@@ -178,6 +185,7 @@ describe('FR11 under D34: a same-block reconcile keeps both versions and raises 
       const server = await createTestServer({ debounce: 60_000, maxDebounce: 60_000 });
       cleanups.push(() => server.cleanup());
       writeFileSync(join(server.contentDir, `${docName}.md`), baseContent, 'utf-8');
+      await rereadFromDisk(server);
       await pollUntil(async () => {
         const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`).catch(() => null);
         if (!res?.ok) return false;
@@ -202,6 +210,7 @@ describe('FR11 under D34: a same-block reconcile keeps both versions and raises 
 
       const theirsContent = '# Heading\n\nTheir version of first paragraph.\n\nSecond paragraph.\n';
       writeFileSync(join(server.contentDir, `${docName}.md`), theirsContent, 'utf-8');
+      await rereadFromDisk(server);
 
       const live = () =>
         server.instance.hocuspocus.documents.get(docName)?.getText('source').toString() ?? '';
@@ -452,6 +461,7 @@ describe('FR16: "Keep mine" dispatched as strategy="content" writes the bytes th
       cleanups.push(() => server.cleanup());
 
       writeFileSync(join(server.contentDir, fileName), BASE_CONTENT, 'utf-8');
+      await rereadFromDisk(server);
       await execFileAsync('git', ['-C', server.contentDir, 'config', 'user.name', 'Test']);
       await execFileAsync('git', [
         '-C',
@@ -489,6 +499,7 @@ describe('FR16: "Keep mine" dispatched as strategy="content" writes the bytes th
 
       const otherFile = `fr16-other-${crypto.randomUUID()}.md`;
       writeFileSync(join(server.contentDir, otherFile), '# Other\n', 'utf-8');
+      await rereadFromDisk(server);
       await execFileAsync('git', ['-C', server.contentDir, 'add', otherFile]);
       await execFileAsync('git', ['-C', server.contentDir, 'commit', '-m', 'other base']);
 
@@ -566,7 +577,9 @@ describe('FR17: Conflicts list HTTP shape (data feed the sidebar section consume
       const tmpDir2 = realpathSync2(mkdtempSync2(join(tmpdir(), 'ok-fr17-empty-')));
       cleanups.push(() => rmSync(tmpDir2, { recursive: true, force: true }));
       mkdirSync(join(tmpDir2, '.gitquire'), { recursive: true });
+      await rereadFromDisk(server);
       writeFileSync(join(tmpDir2, '.gitquire', 'config.yml'), '', 'utf-8');
+      await rereadFromDisk(server);
       await execFileAsync('git', ['init', '--initial-branch=main', tmpDir2]);
       configureTestGitRepository(tmpDir2);
       const server2 = await createTestServer({ contentDir: tmpDir2, keepContentDir: true });

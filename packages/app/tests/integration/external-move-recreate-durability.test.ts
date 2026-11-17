@@ -12,6 +12,7 @@ import {
   createTestServer,
   HARNESS_BOOT_TIMEOUT_MS,
   pollUntil,
+  rereadFromDisk,
   type TestServer,
 } from './test-harness';
 
@@ -34,6 +35,7 @@ test('persists an accepted replacement at a recreated path after an external mov
   const replacement = '# Recreated first\n\nNew body.\n\n## Recreated second\n';
 
   writeFileSync(originalPath, original, { encoding: 'utf-8', flag: 'wx' });
+  await rereadFromDisk(server);
   await pollUntil(
     async () => {
       const response = await fetch(`${server.baseUrl}/api/metrics/watcher-recent`);
@@ -60,6 +62,7 @@ test('persists an accepted replacement at a recreated path after an external mov
     });
 
     renameSync(originalPath, destinationPath);
+    await rereadFromDisk(server);
     await pollUntil(
       () =>
         closed &&
