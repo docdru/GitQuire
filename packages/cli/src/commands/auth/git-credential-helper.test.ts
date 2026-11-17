@@ -54,7 +54,6 @@ function hermeticEnv(extra: Record<string, string> = {}): Record<string, string>
   return {
     PATH: process.env.PATH ?? '',
     HOME: home,
-    USERPROFILE: home,
     GIT_CONFIG_NOSYSTEM: '1',
     GIT_CONFIG_GLOBAL: join(home, '.gitconfig'),
     GIT_TERMINAL_PROMPT: '0',

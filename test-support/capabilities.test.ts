@@ -14,7 +14,6 @@ describe('environment capability probes', () => {
     const executable = `/tools/${command}`;
     const input = {
       path: '/empty:/tools',
-      platform: 'linux' as const,
       isExecutableFile: (path: string) => path === executable,
     };
     expect(findExecutable(command, input.path, input)).toBe(true);
@@ -27,7 +26,6 @@ describe('environment capability probes', () => {
   test('a POSIX empty PATH entry searches the current directory', () => {
     expect(
       findExecutable('uvx', '/empty:', {
-        platform: 'darwin',
         isExecutableFile: (path) => path === 'uvx',
       }),
     ).toBe(true);
@@ -36,21 +34,9 @@ describe('environment capability probes', () => {
   test('an unset POSIX PATH uses the process spawn default', () => {
     expect(
       findExecutable('lsof', undefined, {
-        platform: 'linux',
         isExecutableFile: (path) => path === '/usr/bin/lsof',
       }),
     ).toBe(true);
-  });
-
-  test('Windows uvx uses the product PATHEXT search', () => {
-    const input = {
-      path: 'C:\\empty;C:\\tools',
-      platform: 'win32' as const,
-      pathExt: '.COM; .EXE; ;.CMD',
-      isExecutableFile: (path: string) => path === 'C:\\tools\\uvx.EXE',
-    };
-    expect(findExecutable('uvx', input.path, input)).toBe(true);
-    expect(findExecutable('uvx', 'C:\\empty', input)).toBe(false);
   });
 
   test.each(['systemd', 'init', 'tini', 'docker-init', 'dumb-init', 'catatonit'])(
@@ -73,14 +59,13 @@ describe('environment capability probes', () => {
 
   test('uses the supplied search path for an augmented uvx lookup', () => {
     const facts = {
-      platform: 'darwin' as const,
       isExecutableFile: (path: string) => path === '/opt/homebrew/bin/uvx',
     };
     expect(findExecutable('uvx', '/empty', facts)).toBe(false);
     expect(findExecutable('uvx', '/empty:/opt/homebrew/bin', facts)).toBe(true);
   });
 
-  test('an unreadable proc comm does not reject macOS or Windows', () => {
+  test('an unreadable proc comm counts as a reaper', () => {
     expect(probePid1Reaps(undefined)).toBe(true);
   });
 });

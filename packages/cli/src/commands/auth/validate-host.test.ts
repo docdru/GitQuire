@@ -23,7 +23,6 @@ beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), 'ok-validate-host-home-'));
   vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
   vi.stubEnv('HOME', home);
-  vi.stubEnv('USERPROFILE', home);
 });
 
 afterEach(() => {

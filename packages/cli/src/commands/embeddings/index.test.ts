@@ -471,7 +471,7 @@ describe('embeddings hints name the running channel CLI', () => {
       { mode: 0o600 },
     );
     renameSync(recordedPath, movedPath);
-    symlinkSync(target, recordedPath, process.platform === 'win32' ? 'junction' : 'dir');
+    symlinkSync(target, recordedPath, 'dir');
     await embeddingsCommand().exitOverride().parseAsync(['migrate-keys'], { from: 'user' });
     expect(process.exitCode).toBe(0);
     expect(existsSync(join(dir, 'secrets.yml'))).toBe(false);

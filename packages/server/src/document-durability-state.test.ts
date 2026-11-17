@@ -934,7 +934,7 @@ describe('displaced-version history', () => {
       const before = statSync(persistencePath);
       new DocumentDurabilityState('feature', { persistencePath });
       expect(statSync(persistencePath).mtimeMs).toBe(before.mtimeMs);
-      if (process.platform !== 'win32') expect(before.mode & 0o777).toBe(0o600);
+      expect(before.mode & 0o777).toBe(0o600);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

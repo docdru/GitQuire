@@ -39,7 +39,6 @@ describe('share publish honours the environment command-scope git config (GIT_CO
     mkdirSync(projectDir, { recursive: true });
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
-    vi.stubEnv('USERPROFILE', home);
     vi.stubEnv('XDG_CONFIG_HOME', join(home, '.config'));
     vi.stubEnv('GIT_CONFIG_NOSYSTEM', '1');
     vi.stubEnv('GIT_AUTHOR_NAME', undefined);

@@ -337,21 +337,18 @@ build/
     expect(result.kind).toBe('updated');
   });
 
-  it.skipIf(process.platform === 'win32')(
-    'reports an unreadable linked-worktree common-dir pointer as inaccessible',
-    () => {
-      rmSync(join(dir, '.git'), { recursive: true });
-      const gitDir = join(dir, '.git-state');
-      mkdirSync(gitDir);
-      writeFileSync(join(dir, '.git'), `gitdir: ${gitDir}\n`);
-      symlinkSync('commondir', join(gitDir, 'commondir'));
+  it('reports an unreadable linked-worktree common-dir pointer as inaccessible', () => {
+    rmSync(join(dir, '.git'), { recursive: true });
+    const gitDir = join(dir, '.git-state');
+    mkdirSync(gitDir);
+    writeFileSync(join(dir, '.git'), `gitdir: ${gitDir}\n`);
+    symlinkSync('commondir', join(gitDir, 'commondir'));
 
-      expect(removeOkPathsFromGitExclude(dir, ['.gitquire/'])).toEqual({
-        kind: 'no-exclude',
-        reason: 'inaccessible',
-      });
-    },
-  );
+    expect(removeOkPathsFromGitExclude(dir, ['.gitquire/'])).toEqual({
+      kind: 'no-exclude',
+      reason: 'inaccessible',
+    });
+  });
 
   it('reports the actually-removed artifact paths in `removed` (not the full candidate list)', () => {
     writeExclude(dir, '# header\n.gitquire/\n.mcp.json\nbuild/\n');
@@ -462,7 +459,7 @@ describe('probeTrackedOkPaths', () => {
 });
 
 function quoteForPlatform(value: string): string {
-  return process.platform === 'win32' ? `"${value}"` : `'${value}'`;
+  return `'${value}'`;
 }
 
 describe('formatTrackedRemediation', () => {

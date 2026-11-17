@@ -40,7 +40,6 @@ beforeEach(() => {
   const home = join(root, 'home');
   mkdirSync(home);
   vi.stubEnv('HOME', home);
-  vi.stubEnv('USERPROFILE', home);
   vi.stubEnv('CODEX_HOME', join(home, '.codex'));
   vi.stubEnv('CLAUDE_CONFIG_DIR', join(home, '.claude'));
   vi.stubEnv('GITQUIRE_CHANNEL', 'stable');

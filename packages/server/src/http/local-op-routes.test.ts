@@ -272,7 +272,6 @@ describe('auth-login stream displacement (a second start orphans the first clien
     const home = mkdtempSync(join(tmpdir(), 'ok-local-op-beta-user-'));
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     vi.stubEnv('HOME', home);
-    vi.stubEnv('USERPROFILE', home);
     try {
       execFileSync('git', ['init', '-q'], { cwd: projectDir });
       configureTestGitRepository(projectDir);

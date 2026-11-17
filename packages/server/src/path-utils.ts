@@ -1,4 +1,4 @@
-import { isAbsolute, type PlatformPath } from 'node:path';
+import { isAbsolute } from 'node:path';
 
 export function toPosix(p: string): string {
   return p.replace(/\\/g, '/');
@@ -10,10 +10,7 @@ export function isWithinDir(child: string, parent: string): boolean {
   return c === p || c.startsWith(`${p}/`);
 }
 
-export function escapesRoot(
-  rel: string,
-  pathApi: Pick<PlatformPath, 'isAbsolute'> = { isAbsolute },
-): boolean {
+export function escapesRoot(rel: string): boolean {
   const forwardSlashed = toPosix(rel);
-  return forwardSlashed === '..' || forwardSlashed.startsWith('../') || pathApi.isAbsolute(rel);
+  return forwardSlashed === '..' || forwardSlashed.startsWith('../') || isAbsolute(rel);
 }

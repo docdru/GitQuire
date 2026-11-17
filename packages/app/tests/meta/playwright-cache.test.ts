@@ -12,7 +12,7 @@ test('native browser children retain the provisioned cache when HOME is isolated
       ['-e', 'process.stdout.write(require("@playwright/test").chromium.executablePath())'],
       {
         cwd: fileURLToPath(new URL('../..', import.meta.url)),
-        env: { ...process.env, HOME: home, USERPROFILE: home },
+        env: { ...process.env, HOME: home },
         encoding: 'utf8',
       },
     );

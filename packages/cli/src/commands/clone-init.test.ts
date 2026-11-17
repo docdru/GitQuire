@@ -40,7 +40,6 @@ describe('clone initialization', () => {
       if (name.startsWith('GIT_')) vi.stubEnv(name, undefined);
     }
     vi.stubEnv('HOME', home);
-    vi.stubEnv('USERPROFILE', home);
     vi.stubEnv('XDG_CONFIG_HOME', join(home, '.config'));
     vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
     vi.stubEnv('DO_NOT_TRACK', '1');
