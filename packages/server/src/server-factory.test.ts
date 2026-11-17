@@ -58,7 +58,7 @@ import { getMetrics, resetMetrics } from './metrics.ts';
 import { ensureProjectGit } from './project-git.ts';
 import { MAX_LCS_CELLS } from './reconciliation.ts';
 import { saveRemovedDocsJournal } from './removed-docs-journal.ts';
-import { createServer, type ServerInstance, type ServerOptions } from './server-factory.ts';
+import { createServer, type ServerInstance } from './server-factory.ts';
 import { releaseServerLock } from './server-lock.ts';
 import {
   initShadowRepo,
@@ -70,7 +70,6 @@ import { simpleGit } from './simple-git-client.ts';
 import { SyncEngine } from './sync-engine.ts';
 import { TagIndex } from './tag-index.ts';
 import { contentHash } from './version-hash.ts';
-import { createWatcherDouble } from './watcher-double.test-helper.ts';
 
 const watcherStartupFailures = vi.hoisted(() => ({ file: false }));
 
@@ -1350,6 +1349,7 @@ describe('createServer().destroy() — graceful shutdown flush', () => {
       });
       chmodSync(mintDocPath, 0o000);
       unlinkSync(mintDocPath);
+      await server.recheckDisk();
 
       await vi.waitFor(
         () =>
@@ -1368,6 +1368,7 @@ describe('createServer().destroy() — graceful shutdown flush', () => {
       const flushDocName = 'shadowless-flush-doc';
       const flushDocPath = join(contentDir, `${flushDocName}.md`);
       writeFileSync(flushDocPath, '# Shadowless flush doc\n\nSecond doc.\n', 'utf-8');
+      await server.recheckDisk();
       const _conn2 = await server.hocuspocus.openDirectConnection(flushDocName);
       const serverDoc2 = server.hocuspocus.documents.get(flushDocName);
       expect(serverDoc2).toBeDefined();
@@ -5689,10 +5690,7 @@ async function setupReconcileRig(prefix: string): Promise<ReconcileRig> {
   };
 }
 
-function createReconcileServer(
-  rig: ReconcileRig,
-  watcher: Pick<ServerOptions, 'watcherBackend' | 'freshnessIntervalMs'> = {},
-): ServerInstance {
+function createReconcileServer(rig: ReconcileRig): ServerInstance {
   return createServer({
     contentDir: rig.tmpDir,
     projectDir: rig.tmpDir,
@@ -5701,7 +5699,6 @@ function createReconcileServer(
     maxDebounce: 500,
     gitEnabled: false,
     shadowRepo: rig.shadow,
-    ...watcher,
   });
 }
 
@@ -6962,11 +6959,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
     const docPath = join(rig.tmpDir, `${docName}.md`);
     writeFileSync(docPath, initial, 'utf-8');
 
-    const watcher = createWatcherDouble();
-    const server = createReconcileServer(rig, {
-      watcherBackend: watcher.backend,
-      freshnessIntervalMs: null,
-    });
+    const server = createReconcileServer(rig);
     const chmodEntries: Array<{ path: string; mode: number }> = [];
     const warnSpy = vi.spyOn(getLogger('server'), 'warn');
     const infoSpy = vi.spyOn(getLogger('server'), 'info');
@@ -7015,7 +7008,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
         writeFileSync(docPath, theirs, 'utf-8');
         await server.recheckDisk();
         for (let delivery = 0; delivery < deliveries; delivery++) {
-          watcher.subscriptionFor(rig.tmpDir).deliver([{ type: 'update', path: docPath }]);
+          await server.recheckDisk();
         }
 
         await vi.waitFor(
