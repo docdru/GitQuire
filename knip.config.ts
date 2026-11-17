@@ -125,7 +125,7 @@ export default {
       entry: ['src/**/*.test.{ts,tsx}'],
     },
     'packages/server': {
-      entry: ['src/**/*.test.ts', 'src/shadow-fixture-launch.test-helper.mjs'],
+      entry: ['src/**/*.test.ts'],
       project: 'src/**',
       ignoreDependencies: ['@types/shell-quote'],
     },

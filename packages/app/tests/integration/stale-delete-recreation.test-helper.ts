@@ -21,7 +21,6 @@ import { expect, vi } from 'vitest';
 import { DerivedDocumentIndex } from '../../../server/src/derived-document-index.ts';
 import * as fileWatcher from '../../../server/src/file-watcher.ts';
 import { resetMetrics } from '../../../server/src/metrics.ts';
-import * as parcelSubscription from '../../../server/src/parcel-subscription.ts';
 import { runTeardownPhases } from '../stress/_helpers/teardown-fs.ts';
 import {
   createTestClient,
@@ -32,7 +31,7 @@ import {
 
 export const ORIGINAL = '# Original page\n\nOld body.\n';
 export const RECREATED = '# Recreated page\n\nNew body with [target](target.md).\n';
-export type DeletionHold = 'raw' | 'classified' | 'index' | 'none';
+export type DeletionHold = 'classified' | 'index' | 'none';
 
 export async function startDeletionScenario(
   hold: DeletionHold,
@@ -51,7 +50,6 @@ export async function startDeletionScenario(
   const closedClients = new WeakSet<TestClient>();
   let server: TestServer | undefined;
   let rawTail = Promise.resolve();
-  let sawDelete = false;
   let held = false;
   const pause = async () => {
     if (held) return;
@@ -59,34 +57,6 @@ export async function startDeletionScenario(
     reached.resolve();
     await release.promise;
   };
-
-  const subscribe = parcelSubscription.subscribeParcel;
-  const subscriptionSpy = vi
-    .spyOn(parcelSubscription, 'subscribeParcel')
-    .mockImplementation((parcel, dir, onEvents, options, platform) =>
-      subscribe(
-        parcel,
-        dir,
-        (error, events) => {
-          if (dir !== contentDir) return onEvents(error, events);
-          const selected =
-            !sawDelete &&
-            events.some((event) => event.type === 'delete' && event.path === filePath);
-          const follower = sawDelete;
-          if (selected) sawDelete = true;
-          const work = rawTail.then(async () => {
-            if (selected && hold === 'raw') await pause();
-            if (follower) await followers.promise;
-            await onEvents(error, events);
-            if (selected) completed.resolve();
-          });
-          rawTail = work;
-          return work;
-        },
-        options,
-        platform,
-      ),
-    );
 
   const startWatcher = fileWatcher.startWatcher;
   const watcherSpy = vi
@@ -100,7 +70,7 @@ export async function startDeletionScenario(
           await onDiskEvent(event);
         },
         contentFilter,
-        { ...options, forceBackend: 'parcel' },
+        options,
       ),
     );
 
@@ -124,7 +94,6 @@ export async function startDeletionScenario(
       () => {
         indexSpy.mockRestore();
         watcherSpy.mockRestore();
-        subscriptionSpy.mockRestore();
       },
       () => rmSync(contentDir, { recursive: true, force: true }),
     );
@@ -167,6 +136,13 @@ export async function startDeletionScenario(
     expect(response.status).toBe(200);
     await expect.poll(() => client.ytext.toString()).toBe(RECREATED);
     return client;
+  };
+
+  const settleThroughRecheck = () => {
+    rawTail = running.instance.recheckDisk().then(
+      () => completed.resolve(),
+      (error: unknown) => completed.reject(error),
+    );
   };
 
   const finishDeletion = async () => {
@@ -215,10 +191,15 @@ export async function startDeletionScenario(
     waitUntilHeld: () => reached.promise,
     finishDeletion,
     releaseFollowers: followers.resolve,
+    takeInDiskChange: settleThroughRecheck,
     async deleteThroughApi() {
       expect((await post('/api/delete-path', { kind: 'file', path: docName })).status).toBe(200);
+      settleThroughRecheck();
     },
-    deleteExternally: () => unlinkSync(filePath),
+    deleteExternally: () => {
+      unlinkSync(filePath);
+      settleThroughRecheck();
+    },
     async readDocument() {
       const response = await fetch(
         `${running.baseUrl}/api/document?docName=${encodeURIComponent(docName)}`,
