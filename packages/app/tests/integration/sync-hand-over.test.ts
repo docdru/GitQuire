@@ -53,6 +53,14 @@ async function documentNames(server: SyncWiredTestServer): Promise<string[]> {
   return (body.documents ?? []).map((document) => document.docName);
 }
 
+async function folderPaths(server: SyncWiredTestServer): Promise<string[]> {
+  const res = await fetch(`http://127.0.0.1:${server.port}/api/documents`);
+  const body = (await res.json()) as { documents?: Array<{ kind?: string; path?: string }> };
+  return (body.documents ?? [])
+    .filter((entry) => entry.kind === 'folder')
+    .map((entry) => entry.path ?? '');
+}
+
 async function backlinksOf(server: SyncWiredTestServer, docName: string): Promise<string[]> {
   const res = await fetch(
     `http://127.0.0.1:${server.port}/api/backlinks?docName=${encodeURIComponent(docName)}`,
@@ -133,6 +141,59 @@ describe.each(['off', 'on'] as const)('a pull with file watching %s', (fileWatch
           onDisk.includes('typed in the browser')
         );
       });
+    },
+    HARNESS_BOOT_TIMEOUT_MS,
+  );
+
+  test(
+    'keeps an edit that is not on disk yet when the pull starts',
+    async () => {
+      const server = await serverWith({
+        'guide.md': '# Guide\n\nfirst paragraph\n\nsecond paragraph\n',
+      });
+      await server.sync.pushToOrigin({
+        'guide.md': '# Guide\n\nfirst paragraph changed on GitHub\n\nsecond paragraph\n',
+      });
+      const client = await openDoc(server, 'guide', 'second paragraph');
+      appendParagraph(client, 'typed just before the pull');
+      await server.sync.engine.trigger('pull');
+
+      await pollUntil(() =>
+        serializeFragment(client.fragment).includes('first paragraph changed on GitHub'),
+      );
+      expect(serializeFragment(client.fragment)).toContain('typed just before the pull');
+      await pollUntil(() => {
+        const onDisk = readFileSync(join(server.contentDir, 'guide.md'), 'utf-8');
+        return (
+          onDisk.includes('first paragraph changed on GitHub') &&
+          onDisk.includes('typed just before the pull')
+        );
+      });
+    },
+    HARNESS_BOOT_TIMEOUT_MS,
+  );
+
+  test(
+    'adds and removes folders the pull adds and empties',
+    async () => {
+      const server = await serverWith({
+        'old/one.md': '# One\n\nold\n',
+        'old/two.md': '# Two\n\nold\n',
+      });
+      await pollUntil(async () => (await folderPaths(server)).includes('old'));
+
+      await server.sync.pushToOrigin({ 'notes/new/page.md': '# Page\n\nnew\n' });
+      await server.sync.removeFromOrigin(['old/one.md', 'old/two.md']);
+      await server.sync.engine.trigger('pull');
+
+      await pollUntil(async () => (await documentNames(server)).includes('notes/new/page'));
+      await pollUntil(async () => {
+        const folders = await folderPaths(server);
+        return folders.includes('notes/new') && !folders.includes('old');
+      });
+      const folders = await folderPaths(server);
+      expect(folders).toContain('notes/new');
+      expect(folders).not.toContain('old');
     },
     HARNESS_BOOT_TIMEOUT_MS,
   );
@@ -274,7 +335,8 @@ describe.each(['off', 'on'] as const)('a pull with file watching %s', (fileWatch
         body: JSON.stringify({ branch: 'notes' }),
       });
       expect(checkout.status).toBe(200);
-      expect(((await checkout.json()) as { ok: boolean }).ok).toBe(true);
+      const { ok } = (await checkout.json()) as { ok: boolean };
+      expect(ok).toBe(true);
       await pollUntil(() => serializeFragment(client.fragment).includes('on the notes branch'));
       await pollUntil(async () => (await documentNames(server)).includes('only-notes'));
     },

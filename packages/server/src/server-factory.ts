@@ -374,10 +374,12 @@ interface GitMoveEnd {
 }
 
 interface HandedGitMove {
-  readonly oldHead: string | null;
-  readonly oldBranch: string | null;
-  readonly top: string | null;
-  readonly dirty: readonly string[];
+  oldHead: string | null;
+  oldBranch: string | null;
+  top: string | null;
+  dirty: string[];
+  holders: number;
+  ready: Promise<void>;
 }
 
 const HANDED_PATH_RECHECK_LIMIT = 200;
@@ -716,14 +718,20 @@ export function createServer(options: ServerOptions): ServerInstance {
 
   async function dirtyProjectPaths(top: string): Promise<string[]> {
     const fields = (
-      await gitOutput(['status', '--porcelain=v1', '-z', '--untracked-files=all'])
+      await gitOutput([
+        '--no-optional-locks',
+        'status',
+        '--porcelain=v1',
+        '-z',
+        '--untracked-files=all',
+      ])
     ).split('\0');
     const paths: string[] = [];
     for (let i = 0; i < fields.length; i++) {
       const entry = fields[i];
       if (entry === undefined || entry.length < 4) continue;
       paths.push(join(top, entry.slice(3)));
-      if (entry[0] === 'R' || entry[0] === 'C') {
+      if ('RC'.includes(entry[0] ?? ' ') || 'RC'.includes(entry[1] ?? ' ')) {
         const source = fields[++i];
         if (source) paths.push(join(top, source));
       }
@@ -732,7 +740,9 @@ export function createServer(options: ServerOptions): ServerInstance {
   }
 
   async function pathsChangedBetween(top: string, from: string, to: string): Promise<string[]> {
-    const fields = (await gitOutput(['diff', '--name-status', '-z', '-M', from, to])).split('\0');
+    const fields = (
+      await gitOutput(['--no-optional-locks', 'diff', '--name-status', '-z', '-M', from, to])
+    ).split('\0');
     const paths: string[] = [];
     for (let i = 0; i < fields.length; i++) {
       const status = fields[i];
@@ -750,53 +760,116 @@ export function createServer(options: ServerOptions): ServerInstance {
     return resolve(projectDir, (await gitOutput(['rev-parse', '--show-toplevel'])).trim());
   }
 
-  function recheckConfigFiles(): void {
-    for (const recheck of configFileWatcherRechecks.values()) recheck();
+  async function recheckConfigFiles(): Promise<boolean> {
+    let ignoreChanged = false;
+    for (const [docName, recheck] of configFileWatcherRechecks) {
+      try {
+        const changed = await recheck();
+        if (changed && docName === CONFIG_DOC_NAME_OKIGNORE) ignoreChanged = true;
+      } catch (err) {
+        log.warn({ err, docName }, '[batch] re-reading a config file failed');
+      }
+    }
+    return ignoreChanged;
+  }
+
+  function realContentRoot(): string {
+    try {
+      return realpathSync(contentDir);
+    } catch {
+      return resolve(contentDir);
+    }
+  }
+
+  function contentPathsOf(paths: readonly string[]): string[] {
+    const root = resolve(contentDir);
+    const realRoot = realContentRoot();
+    const inside = new Set<string>();
+    for (const path of paths) {
+      if (path === realRoot || path.startsWith(`${realRoot}/`)) {
+        inside.add(join(root, relative(realRoot, path)));
+      } else if (path === root || path.startsWith(`${root}/`)) {
+        inside.add(path);
+      }
+    }
+    return [...inside];
+  }
+
+  function canRecheckPathByPath(paths: readonly string[]): boolean {
+    if (!watcher || paths.length > HANDED_PATH_RECHECK_LIMIT) return false;
+    const root = resolve(contentDir);
+    const known = new Set<string>();
+    for (const entry of watcher.getFileIndex().values()) known.add(entry.canonicalPath);
+    return paths.every((path) => {
+      if (!isPlainMarkdownPath(relative(root, path))) return false;
+      if (dirname(path) === root) return true;
+      return known.has(path) && existsSync(path);
+    });
   }
 
   async function rereadAfterGitMove(paths: readonly string[] | 'all'): Promise<void> {
-    recheckConfigFiles();
+    const ignoreChanged = await recheckConfigFiles();
     if (!watcher) return;
-    if (paths === 'all') {
-      await watcher.recheck('metadata');
+    if (paths === 'all' || ignoreChanged) {
+      await watcher.recheck('full');
       return;
     }
-    const root = resolve(contentDir);
-    const inside = [
-      ...new Set(paths.filter((path) => path === root || path.startsWith(`${root}/`))),
-    ];
-    if (inside.length === 0) return;
-    const markdownOnly =
-      inside.length <= HANDED_PATH_RECHECK_LIMIT &&
-      inside.every((path) => isPlainMarkdownPath(relative(root, path)));
-    if (markdownOnly) await watcher.recheckPaths(inside);
-    else await watcher.recheck('metadata');
+    const inside = contentPathsOf(paths);
+    if (inside.length === 0) {
+      if (paths.length > 0) {
+        log.debug(
+          { changed: paths.length },
+          '[batch] a Git move changed nothing in the content folder',
+        );
+      }
+      return;
+    }
+    if (canRecheckPathByPath(inside)) await watcher.recheckPaths(inside);
+    else await watcher.recheck('full');
   }
 
   async function beginHandedGitMove(owner: string): Promise<void> {
-    holdBatch(owner);
-    if (handedGitMoves.has(owner)) return;
-    const head = readProjectHeadState(projectDir);
-    let top: string | null = null;
-    let dirty: string[] = [];
-    try {
-      top = await gitTopLevel();
-      dirty = await dirtyProjectPaths(top);
-    } catch (err) {
-      log.warn({ err, owner }, '[batch] could not list changed files before a Git move');
+    const running = handedGitMoves.get(owner);
+    if (running !== undefined) {
+      running.holders++;
+      await running.ready;
+      return;
     }
-    handedGitMoves.set(owner, { oldHead: head.oid, oldBranch: head.branch, top, dirty });
+    const head = readProjectHeadState(projectDir);
+    const { promise: ready, resolve: markReady } = Promise.withResolvers<void>();
+    const move: HandedGitMove = {
+      oldHead: head.oid,
+      oldBranch: head.branch,
+      top: null,
+      dirty: [],
+      holders: 1,
+      ready,
+    };
+    handedGitMoves.set(owner, move);
     try {
-      await gitMoveSteps?.begin(owner, owner);
-    } catch (err) {
-      log.error({ err, owner }, '[batch] preparing for a Git move failed');
+      try {
+        await gitMoveSteps?.begin(owner, owner);
+      } catch (err) {
+        log.error({ err, owner }, '[batch] preparing for a Git move failed');
+      }
+      holdBatch(owner);
+      try {
+        move.top = await gitTopLevel();
+        move.dirty = await dirtyProjectPaths(move.top);
+      } catch (err) {
+        log.warn({ err, owner }, '[batch] could not list changed files before a Git move');
+      }
+    } finally {
+      markReady();
     }
   }
 
   async function endHandedGitMove(owner: string): Promise<void> {
     const start = handedGitMoves.get(owner);
+    if (start === undefined) return;
+    start.holders--;
+    if (start.holders > 0) return;
     try {
-      if (start === undefined) return;
       const head = readProjectHeadState(projectDir);
       const batchKind = gitMoveKind(start.oldBranch, head.branch);
       if (batchKind === 'within-branch') {
@@ -818,7 +891,7 @@ export function createServer(options: ServerOptions): ServerInstance {
           log.error({ err, owner }, '[batch] re-reading files after a Git move failed');
         }
       } else {
-        recheckConfigFiles();
+        await recheckConfigFiles();
       }
       lastHandedGitMove = { head: head.oid, branch: head.branch };
       handedBranch = head.branch;
@@ -3032,7 +3105,7 @@ export function createServer(options: ServerOptions): ServerInstance {
     cleanup: ConfigFileWatcherUnsubscribe;
   }> = [];
   const configFileWatcherResyncs = new Map<ConfigDocName, () => void>();
-  const configFileWatcherRechecks = new Map<ConfigDocName, () => void>();
+  const configFileWatcherRechecks = new Map<ConfigDocName, () => Promise<boolean>>();
 
   function safeRescuePath(shadowGitDir: string, docName: string): string | null {
     const rescueBase = resolve(shadowGitDir, 'rescue');
@@ -5579,14 +5652,13 @@ export function createServer(options: ServerOptions): ServerInstance {
         };
         const cleanup = await startConfigFileWatcher(
           absPath,
-          (content) => {
-            void takeInConfigChange(content).catch((err: unknown) => {
+          (content) =>
+            takeInConfigChange(content).catch((err: unknown) => {
               log.warn(
                 { err, docName: configDocName },
                 '[config-file-watcher] change handler failed',
               );
-            });
-          },
+            }),
           { poll: fileWatching !== 'off' },
         );
         configFileWatcherCleanups.push({ docName: configDocName, cleanup });
@@ -5634,8 +5706,8 @@ export function createServer(options: ServerOptions): ServerInstance {
         ? null
         : await startMultiPathConfigFileWatcher(
             ignorePaths,
-            (changedPath, content) => {
-              void (async () => {
+            (changedPath, content) =>
+              (async () => {
                 if (changedPath === okignorePath) {
                   try {
                     const document = hocuspocus.documents.get(CONFIG_DOC_NAME_OKIGNORE) ?? null;
@@ -5682,8 +5754,7 @@ export function createServer(options: ServerOptions): ServerInstance {
                   { err, changedPath: relative(projectDir, changedPath) || '.' },
                   '[ignore-watcher] handler threw',
                 );
-              });
-            },
+              }),
             { poll: fileWatching !== 'off' },
           );
       if (ignoreCleanup) {
@@ -6109,6 +6180,11 @@ export function createServer(options: ServerOptions): ServerInstance {
               async (info) => {
                 if (headBatchHanded) {
                   headBatchHanded = false;
+                  return;
+                }
+                if (handedGitMoves.size > 0) {
+                  releaseGitMoveAdmission('head-watcher');
+                  releaseBatchHold('head-watcher');
                   return;
                 }
                 const alreadyHanded =

@@ -648,11 +648,14 @@ export class SyncEngine {
 
     if (mergeInProgress && !hasMergeNative()) {
       log.warn({}, '[sync] stale MERGE_HEAD detected with no tracked conflicts — aborting merge');
+      await this.setBatchInProgress?.(true);
       try {
         const handle = this.gitHandle();
         await handle.git.raw(['merge', '--abort']);
       } catch (e) {
         log.warn({ err: e }, '[sync] git merge --abort for stale MERGE_HEAD failed');
+      } finally {
+        await this.setBatchInProgress?.(false);
       }
     }
 
@@ -2330,10 +2333,7 @@ export class SyncEngine {
             await this.validateIncomingSymlinks(retryHandle, this.currentBranch, incoming);
             retryStage = 'push';
             const mergePrep = await this.prepareForMerge(retryHandle, this.currentBranch, incoming);
-            if (!mergePrep.proceed) {
-              await this.setBatchInProgress?.(false);
-              return;
-            }
+            if (!mergePrep.proceed) return;
             try {
               await this.applyCommitIdentity(retryHandle);
               retryStage = 'merge';
