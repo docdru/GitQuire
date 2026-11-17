@@ -100,7 +100,7 @@ overrides:
   'katex@0.16': ~0.18.10 # prototype-pollution trust bypass fixed in 0.18.2; mermaid declares ^0.16.45, the app already ships 0.18
   'lodash-es@4': ~4.18.0
   'mermaid@11': ~11.16.1
-  'minimatch@10': ~11.0.8 # globparts DoS is fixed only in 11; just-bash 2.14 and @ts-morph/common (under shadcn) declare ^10
+  'minimatch@10': ~11.0.8 # globparts DoS is fixed only in 11; just-bash 2.14, @ts-morph/common (under shadcn), eslint 10 and @eslint/config-array declare ^10
   'nanoid@3': ~3.3.18
   'nanoid@4': ~5.1.16
   'nanoid@5': ~5.1.16
