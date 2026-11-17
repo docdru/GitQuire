@@ -2011,6 +2011,9 @@ msgstr "无法为发布准备此项目。"
 msgid "Couldn't publish the draft."
 msgstr ""
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "无法重新读取文件。请重试。"
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "无法连接到协作服务器——{errorDetail}。可尝试 <0>{cliCommand} status</0>，或使用 <1>{cliCommand} diagnose bundle</1> 收集日志。"
 
@@ -3421,6 +3424,9 @@ msgstr "这台电脑上的 GitQuire 已换成另一个构建，但这个标签�
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "这台电脑上的 GitQuire 现在是 v{serverVersion}，但这个标签页仍在运行 v{tabVersion}。"
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "GitQuire 会接收通过同步传入的更改。如果有人直接在服务器上更改了内容文件夹中的文件，请在此重新读取。"
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "当文档更改时，GitQuire 会重写这些 index.md 文件，因此对它们的手动编辑将被替换。"
@@ -5709,6 +5715,21 @@ msgstr "重新通过 GitHub Enterprise Server 认证"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "重新生成嵌入向量会随着搜索进行，因此覆盖率会从零重新累积。"
 
+msgid "Re-read files"
+msgstr "重新读取文件"
+
+msgid "Re-read files from disk"
+msgstr "从磁盘重新读取文件"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "已重新读取文件，接收了 {found} 处更改。"
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "已重新读取文件。没有任何更改。"
+
+msgid "Re-reading…"
+msgstr "正在重新读取…"
+
 msgid "Re-run the project audit"
 msgstr "重新运行项目审查"
 
@@ -7194,6 +7215,9 @@ msgstr "提供商的向量大小不断变化。请重启 GitQuire，然后再按
 
 msgid "The quoted text is no longer in the page."
 msgstr ""
+
+msgid "The re-read did not finish. Try again."
+msgstr "重新读取未完成。请重试。"
 
 msgid "The same text changed in both places"
 msgstr ""

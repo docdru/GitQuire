@@ -2007,6 +2007,9 @@ msgstr "এই প্রকল্পটি প্রকাশের জন্য
 msgid "Couldn't publish the draft."
 msgstr ""
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "ফাইলগুলো আবার পড়া যায়নি। আবার চেষ্টা করুন।"
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "সহযোগিতা সার্ভারের নাগাল পাওয়া যায়নি — {errorDetail}। <0>{cliCommand} status</0> চেষ্টা করুন অথবা <1>{cliCommand} diagnose bundle</1> দিয়ে লগ সংগ্রহ করুন।"
 
@@ -3417,6 +3420,9 @@ msgstr "এই কম্পিউটারে GitQuire অন্য একটি
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "এই কম্পিউটারে GitQuire এখন v{serverVersion}, কিন্তু এই ট্যাব এখনও v{tabVersion} চালাচ্ছে।"
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "GitQuire সিঙ্কের মাধ্যমে আসা পরিবর্তনগুলো নেয়। কেউ যদি সরাসরি সার্ভারে কনটেন্ট ফোল্ডারের ফাইল বদলে থাকে, এখানে সেগুলো আবার পড়ুন।"
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "GitQuire এই index.md ফাইলগুলিকে দস্তাবেজগুলি পরিবর্তন করার সাথে সাথে পুনঃলিখন করে, তাই তাদের ম্যানুয়াল সম্পাদনাগুলি প্রতিস্থাপিত হয়৷"
@@ -5705,6 +5711,21 @@ msgstr "GitHub Enterprise Server-এর সঙ্গে আবার প্র�
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "অনুসন্ধান চলার সঙ্গে সঙ্গেই পুনরায় এমবেড হয়, তাই আওতা শূন্য থেকে আবার শুরু হয়ে ভরে ওঠে।"
 
+msgid "Re-read files"
+msgstr "ফাইল আবার পড়ুন"
+
+msgid "Re-read files from disk"
+msgstr "ডিস্ক থেকে ফাইল আবার পড়ুন"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "ফাইলগুলো আবার পড়া হয়েছে এবং {found}টি পরিবর্তন নেওয়া হয়েছে।"
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "ফাইলগুলো আবার পড়া হয়েছে। কিছুই বদলায়নি।"
+
+msgid "Re-reading…"
+msgstr "আবার পড়া হচ্ছে…"
+
 msgid "Re-run the project audit"
 msgstr "প্রকল্পের নিরীক্ষা আবার চালান"
 
@@ -7190,6 +7211,9 @@ msgstr "প্রোভাইডারের ভেক্টরের আকা�
 
 msgid "The quoted text is no longer in the page."
 msgstr ""
+
+msgid "The re-read did not finish. Try again."
+msgstr "আবার পড়া শেষ হয়নি। আবার চেষ্টা করুন।"
 
 msgid "The same text changed in both places"
 msgstr ""

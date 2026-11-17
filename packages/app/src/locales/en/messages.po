@@ -2011,6 +2011,9 @@ msgstr "Couldn't prepare this project for publish."
 msgid "Couldn't publish the draft."
 msgstr "Couldn't publish the draft."
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "Couldn't re-read the files. Try again."
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 
@@ -3421,6 +3424,9 @@ msgstr "GitQuire on this computer changed to a different build, but this tab is 
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
@@ -5709,6 +5715,21 @@ msgstr "Re-authenticate with GitHub Enterprise Server"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 
+msgid "Re-read files"
+msgstr "Re-read files"
+
+msgid "Re-read files from disk"
+msgstr "Re-read files from disk"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "Re-read the files and took in {found} changes."
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "Re-read the files. Nothing had changed."
+
+msgid "Re-reading…"
+msgstr "Re-reading…"
+
 msgid "Re-run the project audit"
 msgstr "Re-run the project audit"
 
@@ -7194,6 +7215,9 @@ msgstr "The provider's vector size kept changing. Restart GitQuire before search
 
 msgid "The quoted text is no longer in the page."
 msgstr "The quoted text is no longer in the page."
+
+msgid "The re-read did not finish. Try again."
+msgstr "The re-read did not finish. Try again."
 
 msgid "The same text changed in both places"
 msgstr "The same text changed in both places"

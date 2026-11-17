@@ -2007,6 +2007,9 @@ msgstr "इस प्रोजेक्ट को प्रकाशन के �
 msgid "Couldn't publish the draft."
 msgstr ""
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "फ़ाइलें दोबारा नहीं पढ़ी जा सकीं। फिर से कोशिश करें।"
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "सहयोग सर्वर तक नहीं पहुँचा जा सका — {errorDetail}. <0>{cliCommand} status</0> आज़माएँ या <1>{cliCommand} diagnose bundle</1> से लॉग इकट्ठा करें।"
 
@@ -3417,6 +3420,9 @@ msgstr "इस कंप्यूटर पर GitQuire किसी दूस�
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "इस कंप्यूटर पर GitQuire अब v{serverVersion} है, लेकिन यह टैब अभी भी v{tabVersion} चला रहा है।"
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "GitQuire सिंक से आने वाले बदलाव ले लेता है। अगर किसी ने सर्वर पर सीधे कंटेंट फ़ोल्डर की फ़ाइलें बदली हैं, तो उन्हें यहाँ दोबारा पढ़ें।"
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "दस्तावेज़ बदलने पर GitQuire इन index.md फ़ाइलों को फिर से लिखता है, इसलिए उनमें मैन्युअल संपादन बदल दिए जाते हैं।"
@@ -5705,6 +5711,21 @@ msgstr "GitHub Enterprise Server के साथ फिर से प्रम�
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "फिर से एम्बेड करना खोज चलने के साथ होता है, इसलिए कवरेज शून्य से फिर शुरू होकर भरता है।"
 
+msgid "Re-read files"
+msgstr "फ़ाइलें दोबारा पढ़ें"
+
+msgid "Re-read files from disk"
+msgstr "डिस्क से फ़ाइलें दोबारा पढ़ें"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "फ़ाइलें दोबारा पढ़ी गईं और {found} बदलाव लिए गए।"
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "फ़ाइलें दोबारा पढ़ी गईं। कुछ नहीं बदला था।"
+
+msgid "Re-reading…"
+msgstr "दोबारा पढ़ रहे हैं…"
+
 msgid "Re-run the project audit"
 msgstr "प्रोजेक्ट ऑडिट फिर से चलाएँ"
 
@@ -7190,6 +7211,9 @@ msgstr "प्रोवाइडर का वेक्टर आकार ब�
 
 msgid "The quoted text is no longer in the page."
 msgstr ""
+
+msgid "The re-read did not finish. Try again."
+msgstr "दोबारा पढ़ना पूरा नहीं हुआ। फिर से कोशिश करें।"
 
 msgid "The same text changed in both places"
 msgstr ""

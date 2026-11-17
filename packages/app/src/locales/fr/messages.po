@@ -2011,6 +2011,9 @@ msgstr "Impossible de préparer ce projet pour la publication."
 msgid "Couldn't publish the draft."
 msgstr ""
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "Impossible de relire les fichiers. Réessayez."
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "Impossible de joindre le serveur de collaboration — {errorDetail}. Essayez <0>{cliCommand} status</0> ou collectez les journaux avec <1>{cliCommand} diagnose bundle</1>."
 
@@ -3421,6 +3424,9 @@ msgstr "GitQuire sur cet ordinateur est passé à une autre version, mais cet on
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "GitQuire sur cet ordinateur est désormais en v{serverVersion}, mais cet onglet exécute toujours la v{tabVersion}."
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "GitQuire prend en compte les modifications qui arrivent par la synchronisation. Si quelqu'un a modifié des fichiers du dossier de contenu directement sur le serveur, relisez-les ici."
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "GitQuire réécrit ces fichiers index.md à mesure que les documents changent, de sorte que les modifications manuelles apportées à ceux-ci sont remplacées."
@@ -5709,6 +5715,21 @@ msgstr "Se réauthentifier auprès de GitHub Enterprise Server"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "Le recalcul des embeddings se fait au fil des recherches, donc la couverture repart de zéro et se remplit peu à peu."
 
+msgid "Re-read files"
+msgstr "Relire les fichiers"
+
+msgid "Re-read files from disk"
+msgstr "Relire les fichiers depuis le disque"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "Fichiers relus : {found} modifications prises en compte."
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "Fichiers relus. Rien n'avait changé."
+
+msgid "Re-reading…"
+msgstr "Relecture…"
+
 msgid "Re-run the project audit"
 msgstr "Relancer l'audit du projet"
 
@@ -7194,6 +7215,9 @@ msgstr "La taille des vecteurs du fournisseur changeait continuellement. Redéma
 
 msgid "The quoted text is no longer in the page."
 msgstr ""
+
+msgid "The re-read did not finish. Try again."
+msgstr "La relecture n'a pas abouti. Réessayez."
 
 msgid "The same text changed in both places"
 msgstr ""

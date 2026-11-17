@@ -26,6 +26,7 @@ import {
   createWikiAssetResolver,
   DEFAULT_LINTER_CONFIG,
   type DocumentListEntry,
+  type DocumentRereadSuccess,
   type HeadingEntry,
   type InlineAssetMediaKind,
   type LinterConfig,
@@ -1247,6 +1248,7 @@ interface ApiExtensionBaseOptions {
   setBatchInProgress?: (value: boolean) => void | Promise<void>;
   setCheckoutInProgress?: (value: boolean) => void | Promise<void>;
   refreshDocumentsFromDisk: RefreshDocumentsFromDisk;
+  rereadFromDisk?: () => Promise<DocumentRereadSuccess>;
   localOpCliArgs?: string[];
   authStreamHeartbeatMs?: number;
   projectDir?: string;
@@ -4760,6 +4762,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   const assetRoutes = createAssetRoutes({ assetService, log });
   const documentRefreshRoutes = createDocumentRefreshRoutes({
     refreshDocumentsFromDisk: options.refreshDocumentsFromDisk,
+    rereadFromDisk: options.rereadFromDisk,
   });
   const agentWriteRoutes = createAgentWriteRoutes({
     conflicts,

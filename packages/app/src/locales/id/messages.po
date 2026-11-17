@@ -2007,6 +2007,9 @@ msgstr "Tidak dapat menyiapkan proyek ini untuk diterbitkan."
 msgid "Couldn't publish the draft."
 msgstr ""
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "Tidak dapat membaca ulang file. Coba lagi."
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "Server kolaborasi tidak bisa dihubungi — {errorDetail}. Coba <0>{cliCommand} status</0> atau kumpulkan log dengan <1>{cliCommand} diagnose bundle</1>."
 
@@ -3417,6 +3420,9 @@ msgstr "GitQuire di komputer ini berganti ke build lain, tetapi tab ini masih me
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "GitQuire di komputer ini sekarang v{serverVersion}, tetapi tab ini masih menjalankan v{tabVersion}."
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "GitQuire menerima perubahan yang masuk melalui sinkronisasi. Jika seseorang mengubah file di folder konten langsung di server, baca ulang di sini."
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "GitQuire menulis ulang file index.md ini seiring perubahan dokumen, sehingga pengeditan manual pada file tersebut diganti."
@@ -5705,6 +5711,21 @@ msgstr "Autentikasi ulang dengan GitHub Enterprise Server"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "Embedding dihitung ulang seiring pencarian berjalan, jadi cakupannya dimulai lagi dari nol lalu terisi kembali."
 
+msgid "Re-read files"
+msgstr "Baca ulang file"
+
+msgid "Re-read files from disk"
+msgstr "Baca ulang file dari disk"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "File sudah dibaca ulang dan {found} perubahan diterima."
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "File sudah dibaca ulang. Tidak ada yang berubah."
+
+msgid "Re-reading…"
+msgstr "Membaca ulang…"
+
 msgid "Re-run the project audit"
 msgstr "Jalankan ulang audit proyek"
 
@@ -7190,6 +7211,9 @@ msgstr "Ukuran vektor penyedia terus berubah. Mulai ulang GitQuire sebelum menca
 
 msgid "The quoted text is no longer in the page."
 msgstr ""
+
+msgid "The re-read did not finish. Try again."
+msgstr "Pembacaan ulang tidak selesai. Coba lagi."
 
 msgid "The same text changed in both places"
 msgstr ""

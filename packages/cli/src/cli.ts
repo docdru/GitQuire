@@ -47,6 +47,7 @@ import { previewCommand } from './commands/preview.ts';
 import { psCommand } from './commands/ps.ts';
 import { pullCommand } from './commands/pull.ts';
 import { pushCommand } from './commands/push.ts';
+import { rereadCommand } from './commands/reread.ts';
 import { seedCommand } from './commands/seed.ts';
 import { shareCommand } from './commands/share/index.ts';
 import { sharingCommand } from './commands/sharing/index.ts';
@@ -199,6 +200,7 @@ program.addCommand(cloneCommand(() => resolvedConfig));
 program.addCommand(syncCommand(() => resolvedConfig));
 program.addCommand(pushCommand(() => resolvedConfig));
 program.addCommand(pullCommand(() => resolvedConfig));
+program.addCommand(rereadCommand());
 
 program.addCommand(shareCommand());
 

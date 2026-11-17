@@ -571,6 +571,8 @@ export {
   DocumentReadSuccessSchema,
   DocumentRefreshRequestSchema,
   DocumentRefreshSuccessSchema,
+  type DocumentRereadSuccess,
+  DocumentRereadSuccessSchema,
   DuplicatePathRequestSchema,
   DuplicatePathSuccessSchema,
   EmbedDetectSuccessSchema,

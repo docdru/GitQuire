@@ -2011,6 +2011,9 @@ msgstr "اس پروجیکٹ کو اشاعت کے لیے تیار نہیں کیا
 msgid "Couldn't publish the draft."
 msgstr ""
 
+msgid "Couldn't re-read the files. Try again."
+msgstr "فائلیں دوبارہ نہیں پڑھی جا سکیں۔ دوبارہ کوشش کریں۔"
+
 msgid "Couldn't reach collab server — {errorDetail}. Try <0>{cliCommand} status</0> or collect logs with <1>{cliCommand} diagnose bundle</1>."
 msgstr "اشتراکی سرور تک رسائی نہیں ہو سکی — {errorDetail}۔ <0>{cliCommand} status</0> آزمائیں یا <1>{cliCommand} diagnose bundle</1> کے ذریعے لاگز جمع کریں۔"
 
@@ -3421,6 +3424,9 @@ msgstr "اس کمپیوٹر پر GitQuire کسی دوسرے بلڈ میں بدل
 
 msgid "GitQuire on this computer is now v{serverVersion}, but this tab is still running v{tabVersion}."
 msgstr "اس کمپیوٹر پر GitQuire اب v{serverVersion} ہے، لیکن یہ ٹیب ابھی بھی v{tabVersion} چلا رہا ہے۔"
+
+msgid "GitQuire picks up changes that come in through sync. If someone changed files in the content folder directly on the server, re-read them here."
+msgstr "GitQuire سنک کے ذریعے آنے والی تبدیلیاں لے لیتا ہے۔ اگر کسی نے سرور پر براہ راست کنٹینٹ فولڈر کی فائلیں بدلی ہیں تو انہیں یہاں دوبارہ پڑھیں۔"
 
 msgid "GitQuire rewrites these index.md files as documents change, so manual edits to them are replaced."
 msgstr "GitQuire ان index.md فائلوں کو دوبارہ لکھتا ہے جیسے ہی دستاویزات میں تبدیلی آتی ہے، لہذا ان میں دستی ترامیم تبدیل کردی جاتی ہیں۔"
@@ -5709,6 +5715,21 @@ msgstr "GitHub Enterprise Server سے دوبارہ توثیق کریں"
 msgid "Re-embedding happens as searches run, so coverage restarts at zero and refills."
 msgstr "دوبارہ ایمبیڈنگ تلاش چلنے کے دوران ہوتی ہے، اس لیے احاطہ صفر سے شروع ہو کر دوبارہ بھرتا ہے۔"
 
+msgid "Re-read files"
+msgstr "فائلیں دوبارہ پڑھیں"
+
+msgid "Re-read files from disk"
+msgstr "ڈسک سے فائلیں دوبارہ پڑھیں"
+
+msgid "Re-read the files and took in {found} changes."
+msgstr "فائلیں دوبارہ پڑھی گئیں اور {found} تبدیلیاں لی گئیں۔"
+
+msgid "Re-read the files. Nothing had changed."
+msgstr "فائلیں دوبارہ پڑھی گئیں۔ کچھ نہیں بدلا تھا۔"
+
+msgid "Re-reading…"
+msgstr "دوبارہ پڑھ رہے ہیں…"
+
 msgid "Re-run the project audit"
 msgstr "پروجیکٹ کا آڈٹ دوبارہ چلائیں"
 
@@ -7194,6 +7215,9 @@ msgstr "فراہم کنندہ کے ویکٹر کا سائز مسلسل بدلت�
 
 msgid "The quoted text is no longer in the page."
 msgstr ""
+
+msgid "The re-read did not finish. Try again."
+msgstr "دوبارہ پڑھنا مکمل نہیں ہوا۔ دوبارہ کوشش کریں۔"
 
 msgid "The same text changed in both places"
 msgstr ""

@@ -16,6 +16,7 @@ const START = '# Hello\n\nFirst paragraph.\n\nSecond paragraph.\n';
 let repos: TestRepos;
 let instances: ReturnType<typeof fakeInstances>;
 let service: DraftService;
+let liveFileChanges = 0;
 
 beforeEach(() => {
   repos = createTestRepos({ 'hello.md': START });
@@ -29,7 +30,11 @@ beforeEach(() => {
     authEnv: () => ({}),
     baseBranch: async () => 'main',
     log: silentLog,
+    onLiveFilesChanged: () => {
+      liveFileChanges++;
+    },
   });
+  liveFileChanges = 0;
 });
 
 afterEach(() => repos.cleanup());
@@ -183,6 +188,7 @@ describe('drafts', () => {
     const draft = await service.moveRecentEdits(ALICE, 'hello.md', 'My rewrite');
     expect(originFile(draft.branch, 'hello.md')).toBe('# Hello\n\nMy rewrite.\n');
     expect(readFileSync(join(repos.live, 'hello.md'), 'utf8')).toBe(START);
+    expect(liveFileChanges).toBe(1);
   });
 
   it('moves my recent commits but not someone else’s', async () => {

@@ -343,3 +343,48 @@ describe.each(['off', 'on'] as const)('a pull with file watching %s', (fileWatch
     HARNESS_BOOT_TIMEOUT_MS,
   );
 });
+
+describe('re-reading from disk with file watching off', () => {
+  const servers: SyncWiredTestServer[] = [];
+  const clients: TestClient[] = [];
+
+  afterEach(async () => {
+    for (const client of clients.splice(0)) await client.cleanup().catch(() => {});
+    for (const server of servers.splice(0)) await server.cleanup().catch(() => {});
+  });
+
+  test(
+    'takes in files changed directly on disk only when asked',
+    async () => {
+      const server = await createSyncWiredTestServer({
+        mode: 'follow',
+        originSeed: { '.gitquire/config.yml': '{}\n', 'guide.md': '# Guide\n\nversion one\n' },
+        projectConfigYml: '{}\n',
+        serverOptions: { fileWatching: 'off' },
+      });
+      servers.push(server);
+      const client = await createTestClient(server.port, 'guide');
+      clients.push(client);
+      await pollUntil(() => serializeFragment(client.fragment).includes('version one'));
+
+      writeFileSync(join(server.contentDir, 'guide.md'), '# Guide\n\nwritten on the server\n');
+      writeFileSync(join(server.contentDir, 'added.md'), '# Added\n\nnew page\n');
+      await new Promise((settle) => setTimeout(settle, 500));
+      expect(serializeFragment(client.fragment)).toContain('version one');
+      expect(await documentNames(server)).not.toContain('added');
+
+      const reread = await fetch(`http://127.0.0.1:${server.port}/api/documents/reread`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      expect(reread.status).toBe(200);
+      const body = (await reread.json()) as { status: string; found: number };
+      expect(body.status).toBe('completed');
+      expect(body.found).toBeGreaterThan(0);
+      await pollUntil(() => serializeFragment(client.fragment).includes('written on the server'));
+      await pollUntil(async () => (await documentNames(server)).includes('added'));
+    },
+    HARNESS_BOOT_TIMEOUT_MS,
+  );
+});
