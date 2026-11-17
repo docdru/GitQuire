@@ -178,7 +178,6 @@ export function createRecentProcessStartReader(
 ): ProcessStartReader {
   const read = options.read ?? readProcessStart;
   const now = options.now ?? (() => performance.now());
-  const failedReadHoldMs = options.maxAgeMs;
   const recent = new Map<number, { expiresAtMs: number; start: ProcessStart | null }>();
   return (pid) => {
     const at = now();
@@ -188,8 +187,7 @@ export function createRecentProcessStartReader(
     const cached = recent.get(pid);
     if (cached !== undefined) return cached.start;
     const start = read(pid);
-    const holdMs = start === null ? failedReadHoldMs : options.maxAgeMs;
-    recent.set(pid, { expiresAtMs: now() + holdMs, start });
+    recent.set(pid, { expiresAtMs: now() + options.maxAgeMs, start });
     return start;
   };
 }

@@ -87,7 +87,6 @@ describe('buildGuidance', () => {
     expect(guidance.product).toBe('Git');
     expect(guidance.options).toHaveLength(1);
     expect(guidance.options[0]?.command).toBe('docker compose pull && docker compose up -d');
-    expect(guidance.options[0]?.requiresAdmin).toBe(false);
   });
 });
 
@@ -106,7 +105,7 @@ describe('GitNotAvailableError', () => {
     const err = new GitNotAvailableError('linux', guidance);
     expect(err.message).toContain('GitQuire needs Git');
     expect(err.message).toContain(guidance.url);
-    expect(err.message).toContain('After installing');
+    expect(err.message).toContain('this container has no usable Git');
   });
 
   test('message includes every install option label + command', () => {
@@ -166,7 +165,7 @@ describe('GitTooOldError', () => {
   });
 
   test('passes instanceof checks for branching', () => {
-    const err = new GitTooOldError('darwin', '2.10.0', '2.31.0', '/usr/bin/git', buildGuidance());
+    const err = new GitTooOldError('linux', '2.10.0', '2.31.0', '/usr/bin/git', buildGuidance());
     expect(err instanceof GitTooOldError).toBe(true);
     expect(err instanceof Error).toBe(true);
     expect(err instanceof GitNotAvailableError).toBe(false);
@@ -201,7 +200,7 @@ describe('resolveOnPath', () => {
     const project = mkdtempSync(join(tmpdir(), 'resolve-project-'));
     const bin = mkdtempSync(join(tmpdir(), 'resolve-bin-'));
     const name = 'ok-resolve-probe-tool';
-    const file = process.platform === 'win32' ? `${name}.cmd` : name;
+    const file = name;
     for (const dir of [project, bin]) {
       writeFileSync(join(dir, file), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
     }
@@ -228,7 +227,7 @@ describe('resolveOnPath', () => {
   });
 
   test('accepts plain-letter command names with dots / hyphens / underscores', () => {
-    for (const name of ['git', 'brew', 'winget', 'scoop', 'choco', 'sub-command', 'cmd.v2']) {
+    for (const name of ['git', 'sub-command', 'cmd.v2']) {
       const result = resolveOnPath(name);
       expect(result === null || typeof result === 'string').toBe(true);
     }
@@ -245,11 +244,7 @@ describe('detectGit (integration)', () => {
     expect(['PATH', 'fallback']).toContain(detected.source);
   });
 
-  test('Stage 2 fallback fires when PATH has no git and a fallback candidate exists', (ctx) => {
-    ctx.skip(
-      process.platform === 'win32',
-      'the PATH override and the fallback candidates are POSIX',
-    );
+  test('Stage 2 fallback fires when PATH has no git and a fallback candidate exists', () => {
     const originalPath = process.env.PATH;
     process.env.PATH = '/nonexistent-stage2-fallback-test-xyz';
     try {

@@ -20,7 +20,7 @@ function makeGuidance(): InstallGuidance {
   return {
     product: 'Git',
     url: 'https://git-scm.com/download/linux',
-    options: [{ label: 'apt', command: 'sudo apt install git', requiresAdmin: true }],
+    options: [{ label: 'apt', command: 'sudo apt install git' }],
   };
 }
 
@@ -66,10 +66,10 @@ describe('emitPreflightFailureSpan — GitNotAvailableError', () => {
   });
 
   test('preserves the platform tag from the error verbatim', () => {
-    const err = new GitNotAvailableError('darwin', makeGuidance());
+    const err = new GitNotAvailableError('linux', makeGuidance());
     emitPreflightFailureSpan(err);
     const [span] = exporter.getFinishedSpans();
-    expect(span?.attributes['ok.platform']).toBe('darwin');
+    expect(span?.attributes['ok.platform']).toBe('linux');
   });
 });
 
@@ -90,14 +90,14 @@ describe('emitPreflightFailureSpan — GitTooOldError', () => {
 
 describe('emitPreflightFailureSpan — GitProbeTimeoutError', () => {
   test('emits reason=probe_timeout', () => {
-    const err = new GitProbeTimeoutError('win32', makeGuidance(), {
+    const err = new GitProbeTimeoutError('linux', makeGuidance(), {
       path: 'timeout',
       fallback: 'timeout',
     });
     emitPreflightFailureSpan(err);
 
     const [span] = exporter.getFinishedSpans();
-    expect(span?.attributes['ok.platform']).toBe('win32');
+    expect(span?.attributes['ok.platform']).toBe('linux');
     expect(span?.attributes['ok.preflight.git.reason']).toBe('probe_timeout');
     expect(span?.attributes['ok.preflight.git.detected_version']).toBe('');
   });
@@ -117,10 +117,10 @@ describe('emitPreflightFailureSpan — cardinality discipline (FR8 AC8.5)', () =
   });
 
   test('does not carry guidance URL or resolved path as attributes', () => {
-    const err = new GitTooOldError('darwin', '2.20.0', '2.31.0', '/opt/homebrew/bin/git', {
+    const err = new GitTooOldError('linux', '2.20.0', '2.31.0', '/usr/bin/git', {
       product: 'Git',
       url: 'https://git-scm.com/download/mac',
-      options: [{ label: 'brew', command: 'brew install git', requiresAdmin: false }],
+      options: [{ label: 'apt', command: 'apt-get install git' }],
     });
     emitPreflightFailureSpan(err);
     const [span] = exporter.getFinishedSpans();

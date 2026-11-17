@@ -18,7 +18,6 @@ export interface GitDetected {
 export interface InstallOption {
   readonly label: string;
   readonly command: string;
-  readonly requiresAdmin: boolean;
 }
 
 export interface InstallGuidance {
@@ -209,7 +208,7 @@ export function resolveOnPath(name: string, pathOverride?: string): string | nul
   if (cached !== undefined) return cached;
   const dirs = (pathOverride ?? process.env.PATH ?? '')
     .split(PATH_DELIM)
-    .map((dir) => dir.trim().replace(/^"(.*)"$/, '$1'))
+    .map((dir) => dir.trim())
     .filter((dir) => dir !== '' && isAbsolute(dir));
   for (const dir of dirs) {
     const candidate = join(dir, name);
@@ -233,7 +232,6 @@ export function buildGuidance(): InstallGuidance {
       {
         label: 'The GitQuire image includes Git; pull or rebuild the image',
         command: 'docker compose pull && docker compose up -d',
-        requiresAdmin: false,
       },
     ],
   };
@@ -242,21 +240,15 @@ export function buildGuidance(): InstallGuidance {
 function buildMissingMessage(g: InstallGuidance): string {
   const lines: string[] = [];
   lines.push(
-    `GitQuire needs ${g.product} to track changes to your knowledge base, but it isn't installed (or isn't on PATH).`,
+    `GitQuire needs ${g.product} to track changes to your knowledge base, but this container has no usable ${g.product}.`,
   );
   lines.push('');
-  if (g.options.length > 0) {
-    lines.push(`Install ${g.product}:`);
-    for (const opt of g.options) {
-      const adminTag = opt.requiresAdmin ? ' (admin required)' : '';
-      lines.push(`  • ${opt.label}${adminTag}`);
-      lines.push(`      ${opt.command}`);
-    }
-    lines.push('');
+  for (const opt of g.options) {
+    lines.push(`  • ${opt.label}`);
+    lines.push(`      ${opt.command}`);
   }
-  lines.push(`Or download from: ${g.url}`);
   lines.push('');
-  lines.push('After installing, re-run GitQuire.');
+  lines.push(`See: ${g.url}`);
   lines.push(
     `Run \`${currentCliCommandName()} diagnose health --check git\` to verify your installation.`,
   );
@@ -268,7 +260,7 @@ function buildProbeTimeoutMessage(g: InstallGuidance, probe: GitProbeFailures): 
     `GitQuire could not verify ${g.product} because the Git probe timed out. Git may be installed but unavailable while the machine is busy.`,
     '',
     `Probe results: PATH=${probe.path}, fallback=${probe.fallback ?? 'not attempted'}.`,
-    'Check that Git is installed and retry GitQuire.',
+    'Retry GitQuire; if it keeps failing, pull or rebuild the image.',
     `Run \`${currentCliCommandName()} diagnose health --check git\` to verify your installation.`,
   ].join('\n');
 }
@@ -284,18 +276,12 @@ function buildTooOldMessage(
     `GitQuire requires ${g.product} ${required} or newer (detected ${detected} at ${resolvedPath}).`,
   );
   lines.push('');
-  if (g.options.length > 0) {
-    lines.push(`Update ${g.product}:`);
-    for (const opt of g.options) {
-      const adminTag = opt.requiresAdmin ? ' (admin required)' : '';
-      lines.push(`  • ${opt.label}${adminTag}`);
-      lines.push(`      ${opt.command}`);
-    }
-    lines.push('');
+  for (const opt of g.options) {
+    lines.push(`  • ${opt.label}`);
+    lines.push(`      ${opt.command}`);
   }
-  lines.push(`Or download from: ${g.url}`);
   lines.push('');
-  lines.push('After updating, re-run GitQuire.');
+  lines.push(`See: ${g.url}`);
   lines.push(
     `Run \`${currentCliCommandName()} diagnose health --check git\` to verify your installation.`,
   );

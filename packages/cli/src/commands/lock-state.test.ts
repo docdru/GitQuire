@@ -325,7 +325,7 @@ describe('inspectLock', () => {
   });
 });
 
-test.skipIf(process.platform === 'win32' || process.getuid?.() === 0)(
+test.skipIf(process.getuid?.() === 0)(
   'distinguishes unreadable lock contents from malformed JSON',
   () => {
     const dir = freshLockDir();
@@ -357,18 +357,15 @@ describe('describeLockOwnershipRefusal', () => {
 
   test('a lock with another machine ID names the account and home folder remedies before removing the lock', () => {
     expect(
-      describeLockOwnershipRefusal(
-        {
-          status: 'foreign-host',
-          lockPath,
-          lock: {
-            ...lock,
-            hostname: hostname(),
-            machineId: '6f1c2d4e-0000-4000-8000-000000000000',
-          },
+      describeLockOwnershipRefusal({
+        status: 'foreign-host',
+        lockPath,
+        lock: {
+          ...lock,
+          hostname: hostname(),
+          machineId: '6f1c2d4e-0000-4000-8000-000000000000',
         },
-        'darwin',
-      ),
+      }),
     ).toBe(
       `Cannot verify shutdown: the server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}. ` +
         'If the server was started on this machine from another account, run `gq stop` as that account while it is running, or `gq clean` once it has exited. ' +
@@ -380,14 +377,11 @@ describe('describeLockOwnershipRefusal', () => {
   });
 
   test('a lock naming a host with control characters reaches the refusal escaped', () => {
-    const text = describeLockOwnershipRefusal(
-      {
-        status: 'foreign-host',
-        lockPath,
-        lock: { ...lock, hostname: 'evil\nRun: gq clean --all\u001b]52;c;Zm9v\u0007' },
-      },
-      'darwin',
-    );
+    const text = describeLockOwnershipRefusal({
+      status: 'foreign-host',
+      lockPath,
+      lock: { ...lock, hostname: 'evil\nRun: gq clean --all\u001b]52;c;Zm9v\u0007' },
+    });
 
     expect(text).toContain(
       'records only the host evil\\u000aRun: gq clean --all\\u001b]52;c;Zm9v\\u0007,',
@@ -403,18 +397,15 @@ describe('describeLockOwnershipRefusal', () => {
   test('a Beta CLI names its own stop command in the account and home folder remedies', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
     try {
-      const text = describeLockOwnershipRefusal(
-        {
-          status: 'foreign-host',
-          lockPath,
-          lock: {
-            ...lock,
-            hostname: hostname(),
-            machineId: '6f1c2d4e-0000-4000-8000-000000000000',
-          },
+      const text = describeLockOwnershipRefusal({
+        status: 'foreign-host',
+        lockPath,
+        lock: {
+          ...lock,
+          hostname: hostname(),
+          machineId: '6f1c2d4e-0000-4000-8000-000000000000',
         },
-        'darwin',
-      );
+      });
       expect(text).toContain(
         'run `gq-beta stop` as that account while it is running, or `gq-beta clean` once it has exited',
       );

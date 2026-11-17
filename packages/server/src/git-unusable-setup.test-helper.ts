@@ -39,6 +39,34 @@ export async function withBrokenBareGitOnly(fn: () => Promise<void>): Promise<vo
   });
 }
 
+export interface HiddenGitFallbacks {
+  on: boolean;
+}
+
+export const GIT_FALLBACK_PATHS: readonly string[] = ['/usr/bin/git', '/usr/local/bin/git'];
+
+export function existsSyncHidingGitFallbacks(
+  actual: typeof import('node:fs').existsSync,
+  hidden: HiddenGitFallbacks,
+): typeof import('node:fs').existsSync {
+  return (path) =>
+    !(hidden.on && typeof path === 'string' && GIT_FALLBACK_PATHS.includes(path)) && actual(path);
+}
+
+export async function withUnusableGitEverywhere(
+  hidden: HiddenGitFallbacks,
+  fn: () => Promise<void>,
+): Promise<void> {
+  await withBrokenBareGitOnly(async () => {
+    hidden.on = true;
+    try {
+      await fn();
+    } finally {
+      hidden.on = false;
+    }
+  });
+}
+
 export function isRecoverableGitSignal(value: unknown): boolean {
   if (value == null) return false;
   const code = (value as { code?: unknown }).code;

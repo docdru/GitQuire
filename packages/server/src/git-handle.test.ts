@@ -175,7 +175,6 @@ describe('createGitInstance under a process environment carrying GIT_CONFIG_COUN
     repoDir = mkdtempSync(join(tmpdir(), 'ok-git-handle-envcount-'));
     isolatedHome = mkdtempSync(join(tmpdir(), 'ok-git-handle-envcount-home-'));
     vi.stubEnv('HOME', isolatedHome);
-    vi.stubEnv('USERPROFILE', isolatedHome);
     vi.stubEnv('XDG_CONFIG_HOME', join(isolatedHome, '.config'));
     execSync('git init -q', { cwd: repoDir });
     configureTestGitRepository(repoDir);
@@ -199,115 +198,112 @@ describe('createGitInstance under a process environment carrying GIT_CONFIG_COUN
   });
 });
 
-describe.skipIf(process.platform === 'win32')(
-  'createGitInstance × buildSyncCredentialConfig — ambient helper neutralization',
-  () => {
-    let repoDir: string;
-    let isolatedHome: string;
+describe('createGitInstance × buildSyncCredentialConfig — ambient helper neutralization', () => {
+  let repoDir: string;
+  let isolatedHome: string;
 
-    beforeEach(() => {
-      repoDir = mkdtempSync(join(tmpdir(), 'ok-sync-cred-repo-'));
-      isolatedHome = mkdtempSync(join(tmpdir(), 'ok-sync-cred-home-'));
-      execSync('git init -q', { cwd: repoDir });
-      configureTestGitRepository(repoDir);
+  beforeEach(() => {
+    repoDir = mkdtempSync(join(tmpdir(), 'ok-sync-cred-repo-'));
+    isolatedHome = mkdtempSync(join(tmpdir(), 'ok-sync-cred-home-'));
+    execSync('git init -q', { cwd: repoDir });
+    configureTestGitRepository(repoDir);
+  });
+
+  afterEach(() => {
+    rmSync(repoDir, { recursive: true, force: true });
+    rmSync(isolatedHome, { recursive: true, force: true });
+  });
+
+  function isolateAmbientGitConfig(handle: GitHandle): void {
+    applyGitEnv(handle, {
+      GIT_CONFIG_NOSYSTEM: '1',
+      HOME: isolatedHome,
+      XDG_CONFIG_HOME: isolatedHome,
     });
+  }
 
-    afterEach(() => {
-      rmSync(repoDir, { recursive: true, force: true });
-      rmSync(isolatedHome, { recursive: true, force: true });
+  test('git resolves ambient helper, then reset, then OK helper last', async () => {
+    execSync("git config credential.helper '!/ambient/stub'", { cwd: repoDir });
+
+    const handle = createGitInstance(repoDir, {
+      credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: true }),
     });
+    isolateAmbientGitConfig(handle);
 
-    function isolateAmbientGitConfig(handle: GitHandle): void {
-      applyGitEnv(handle, {
-        GIT_CONFIG_NOSYSTEM: '1',
-        HOME: isolatedHome,
-        XDG_CONFIG_HOME: isolatedHome,
+    const raw = await handle.git.raw(['config', '-z', '--get-all', 'credential.helper']);
+    const entries = raw.split('\0').slice(0, -1);
+    expect(entries).toEqual(['!/ambient/stub', '', '!gitquire auth git-credential']);
+  });
+
+  test('non-GitHub origin keeps its ambient helper and gets no reset', async () => {
+    execSync("git config credential.helper '!/ambient/stub'", { cwd: repoDir });
+
+    const handle = createGitInstance(repoDir, {
+      credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: false }),
+    });
+    isolateAmbientGitConfig(handle);
+
+    const raw = await handle.git.raw(['config', '-z', '--get-all', 'credential.helper']);
+    const values = raw.split('\0').slice(0, -1);
+
+    expect(values).toEqual(['!/ambient/stub', '!gitquire auth git-credential']);
+  });
+
+  test('with an ambient helper configured, git sends `get` to OK helper only', async () => {
+    const ambientLog = join(isolatedHome, 'ambient.log');
+    const okLog = join(isolatedHome, 'ok.log');
+    const ambientHelper = join(isolatedHome, 'ambient-helper.sh');
+    const okCli = join(isolatedHome, 'ok-cli.sh');
+
+    const stubScript = (log: string, user: string): string =>
+      [
+        '#!/bin/sh',
+        `printf '%s\\n' "$*" >> '${log}'`,
+        'cat > /dev/null',
+        'case "$*" in',
+        `  *get) printf 'username=${user}\\npassword=${user}-secret\\n' ;;`,
+        'esac',
+        '',
+      ].join('\n');
+    writeFileSync(ambientHelper, stubScript(ambientLog, 'ambient'), { mode: 0o755 });
+    writeFileSync(okCli, stubScript(okLog, 'gq'), { mode: 0o755 });
+
+    execSync(`git config credential.helper '!${ambientHelper}'`, { cwd: repoDir });
+
+    const server: HttpServer = createHttpServer((req, res) => {
+      req.resume();
+      res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="ok-test"' });
+      res.end('auth required');
+    });
+    await new Promise<void>((resolvePromise) => server.listen(0, '127.0.0.1', resolvePromise));
+
+    try {
+      const { port } = server.address() as AddressInfo;
+      execSync(`git remote add origin http://127.0.0.1:${port}/repo.git`, { cwd: repoDir });
+
+      const handle = createGitInstance(repoDir, {
+        credentialConfig: buildSyncCredentialConfig([okCli], { resetAmbient: true }),
+        timeoutMs: 15_000,
+      });
+      isolateAmbientGitConfig(handle);
+
+      await expect(handle.git.raw(['fetch', 'origin'])).rejects.toThrow();
+
+      const callsIn = (log: string): string[] =>
+        existsSync(log)
+          ? readFileSync(log, 'utf-8')
+              .split('\n')
+              .filter((line) => line !== '')
+          : [];
+      expect(callsIn(okLog)).toContain('auth git-credential get');
+      expect(callsIn(ambientLog)).toEqual([]);
+    } finally {
+      await new Promise<void>((resolvePromise) => {
+        server.close(() => resolvePromise());
       });
     }
-
-    test('git resolves ambient helper, then reset, then OK helper last', async () => {
-      execSync("git config credential.helper '!/ambient/stub'", { cwd: repoDir });
-
-      const handle = createGitInstance(repoDir, {
-        credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: true }),
-      });
-      isolateAmbientGitConfig(handle);
-
-      const raw = await handle.git.raw(['config', '-z', '--get-all', 'credential.helper']);
-      const entries = raw.split('\0').slice(0, -1);
-      expect(entries).toEqual(['!/ambient/stub', '', '!gitquire auth git-credential']);
-    });
-
-    test('non-GitHub origin keeps its ambient helper and gets no reset', async () => {
-      execSync("git config credential.helper '!/ambient/stub'", { cwd: repoDir });
-
-      const handle = createGitInstance(repoDir, {
-        credentialConfig: buildSyncCredentialConfig(['gitquire'], { resetAmbient: false }),
-      });
-      isolateAmbientGitConfig(handle);
-
-      const raw = await handle.git.raw(['config', '-z', '--get-all', 'credential.helper']);
-      const values = raw.split('\0').slice(0, -1);
-
-      expect(values).toEqual(['!/ambient/stub', '!gitquire auth git-credential']);
-    });
-
-    test('with an ambient helper configured, git sends `get` to OK helper only', async () => {
-      const ambientLog = join(isolatedHome, 'ambient.log');
-      const okLog = join(isolatedHome, 'ok.log');
-      const ambientHelper = join(isolatedHome, 'ambient-helper.sh');
-      const okCli = join(isolatedHome, 'ok-cli.sh');
-
-      const stubScript = (log: string, user: string): string =>
-        [
-          '#!/bin/sh',
-          `printf '%s\\n' "$*" >> '${log}'`,
-          'cat > /dev/null',
-          'case "$*" in',
-          `  *get) printf 'username=${user}\\npassword=${user}-secret\\n' ;;`,
-          'esac',
-          '',
-        ].join('\n');
-      writeFileSync(ambientHelper, stubScript(ambientLog, 'ambient'), { mode: 0o755 });
-      writeFileSync(okCli, stubScript(okLog, 'gq'), { mode: 0o755 });
-
-      execSync(`git config credential.helper '!${ambientHelper}'`, { cwd: repoDir });
-
-      const server: HttpServer = createHttpServer((req, res) => {
-        req.resume();
-        res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="ok-test"' });
-        res.end('auth required');
-      });
-      await new Promise<void>((resolvePromise) => server.listen(0, '127.0.0.1', resolvePromise));
-
-      try {
-        const { port } = server.address() as AddressInfo;
-        execSync(`git remote add origin http://127.0.0.1:${port}/repo.git`, { cwd: repoDir });
-
-        const handle = createGitInstance(repoDir, {
-          credentialConfig: buildSyncCredentialConfig([okCli], { resetAmbient: true }),
-          timeoutMs: 15_000,
-        });
-        isolateAmbientGitConfig(handle);
-
-        await expect(handle.git.raw(['fetch', 'origin'])).rejects.toThrow();
-
-        const callsIn = (log: string): string[] =>
-          existsSync(log)
-            ? readFileSync(log, 'utf-8')
-                .split('\n')
-                .filter((line) => line !== '')
-            : [];
-        expect(callsIn(okLog)).toContain('auth git-credential get');
-        expect(callsIn(ambientLog)).toEqual([]);
-      } finally {
-        await new Promise<void>((resolvePromise) => {
-          server.close(() => resolvePromise());
-        });
-      }
-    });
-  },
-);
+  });
+});
 
 describe('withParentLock', () => {
   test('serializes concurrent operations in enqueue order', async () => {
