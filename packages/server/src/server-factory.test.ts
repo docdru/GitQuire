@@ -16,7 +16,6 @@ import {
 import { mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
 import {
   BridgeMergeContentLossError,
   DEFAULT_LINTER_CONFIG,
@@ -56,11 +55,10 @@ import {
   writeManagedRenameJournal,
 } from './managed-rename-journal.ts';
 import { getMetrics, resetMetrics } from './metrics.ts';
-import type { NativeWatcherBackend } from './parcel-subscription.ts';
 import { ensureProjectGit } from './project-git.ts';
 import { MAX_LCS_CELLS } from './reconciliation.ts';
 import { saveRemovedDocsJournal } from './removed-docs-journal.ts';
-import { createServer, type ServerInstance, type ServerOptions } from './server-factory.ts';
+import { createServer, type ServerInstance } from './server-factory.ts';
 import { releaseServerLock } from './server-lock.ts';
 import {
   initShadowRepo,
@@ -72,9 +70,8 @@ import { simpleGit } from './simple-git-client.ts';
 import { SyncEngine } from './sync-engine.ts';
 import { TagIndex } from './tag-index.ts';
 import { contentHash } from './version-hash.ts';
-import { createWatcherDouble } from './watcher-double.test-helper.ts';
 
-const watcherStartupFailures = vi.hoisted(() => ({ file: false, head: false }));
+const watcherStartupFailures = vi.hoisted(() => ({ file: false }));
 
 vi.mock('./file-watcher.ts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./file-watcher.ts')>();
@@ -85,19 +82,6 @@ vi.mock('./file-watcher.ts', async (importOriginal) => {
         throw new Error('injected file-watcher startup failure');
       }
       return actual.startWatcher(...args);
-    },
-  };
-});
-
-vi.mock('./head-watcher.ts', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./head-watcher.ts')>();
-  return {
-    ...actual,
-    startHeadWatcher: async (...args: Parameters<typeof actual.startHeadWatcher>) => {
-      if (watcherStartupFailures.head) {
-        throw new Error('injected head-watcher startup failure');
-      }
-      return actual.startHeadWatcher(...args);
     },
   };
 });
@@ -402,7 +386,7 @@ describe('createServer() — derived-index branch lifecycle', () => {
         broadcast(branch);
       });
 
-    await git.checkout('feature');
+    await server.runGitMove(() => git.checkout('feature'));
     await vi.waitFor(() => expect(emit).toHaveBeenCalledWith('feature'), {
       timeout: 10_000,
       interval: 25,
@@ -442,7 +426,7 @@ describe('createServer() — derived-index branch lifecycle', () => {
         broadcast(branch);
       });
 
-    await git.checkout('feature');
+    await server.runGitMove(() => git.checkout('feature'));
     await vi.waitFor(() => expect(emit).toHaveBeenCalledWith('feature'), {
       timeout: 10_000,
       interval: 25,
@@ -475,7 +459,7 @@ describe('createServer() — derived-index branch lifecycle', () => {
       });
     const abort = vi.spyOn(DerivedDocumentIndex.prototype, 'abortBranchSwitch');
 
-    await git.checkout('feature');
+    const moved = server.runGitMove(() => git.checkout('feature'));
     await vi.waitFor(() => expect(beginBranch).toHaveBeenCalledWith('feature'), {
       timeout: 10_000,
       interval: 25,
@@ -490,6 +474,7 @@ describe('createServer() — derived-index branch lifecycle', () => {
       },
       { timeout: 10_000, interval: 25 },
     );
+    await moved;
     await expect(coordinator.getIndexedDocNames()).resolves.toBeInstanceOf(Array);
   }, 20_000);
 });
@@ -519,69 +504,6 @@ describe('createServer().destroy() — graceful shutdown flush', () => {
     await finishControlledInit?.();
     loggerFactory.reset();
     await rm(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  });
-
-  test('late watcher release failure is a shutdown phase error and retains authority', async () => {
-    const contentDir = join(tmpDir, 'content');
-    mkdirSync(contentDir, { recursive: true });
-    const authorityRegistryPath = join(tmpDir, 'authority.sqlite');
-    const releaseFailure = new Error('late watcher release failed');
-    let server: ServerInstance | undefined;
-    let destroyPromise: Promise<void> | undefined;
-    const backend: NativeWatcherBackend = {
-      async subscribe() {
-        if (destroyPromise === undefined) {
-          if (server === undefined) throw new Error('server was not returned before subscription');
-          destroyPromise = server.destroy();
-        }
-        return {
-          async unsubscribe() {
-            throw releaseFailure;
-          },
-        };
-      },
-    };
-
-    server = createServer({
-      contentDir,
-      projectDir: tmpDir,
-      authorityRegistryPath,
-      watcherBackend: backend,
-      gitEnabled: false,
-      quiet: true,
-    });
-
-    try {
-      await server.ready;
-      await destroyPromise;
-
-      expect(server.degraded).not.toContain('file-watcher');
-      expect(server.degraded).not.toContain('head-watcher');
-      const shutdownLogs = logCapture.getCalls('warn', 'shutdown flushed');
-      expect(shutdownLogs).toHaveLength(1);
-      expect(shutdownLogs[0]?.payload.phaseErrors).toContainEqual({
-        phase: 'watcher-unsubscribe',
-        error: releaseFailure.message,
-      });
-      expect(logCapture.getCalls('error', 'shutdown phase-1 watcher unsubscribe failed')).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ payload: expect.objectContaining({ watched: 'content' }) }),
-        ]),
-      );
-      expect(logCapture.getCalls('error', 'disk bridge watcher failed to start')).toHaveLength(0);
-      expect(logCapture.getCalls('error', 'HEAD watcher failed to start')).toHaveLength(0);
-
-      const registry = new DatabaseSync(authorityRegistryPath, { readOnly: true });
-      try {
-        expect(registry.prepare('SELECT count(*) AS count FROM server_authority').get()).toEqual({
-          count: 1,
-        });
-      } finally {
-        registry.close();
-      }
-    } finally {
-      await server.destroy();
-    }
   });
 
   test('flushes L1 markdown writes before destroy() resolves + emits shutdown log', async () => {
@@ -1427,6 +1349,7 @@ describe('createServer().destroy() — graceful shutdown flush', () => {
       });
       chmodSync(mintDocPath, 0o000);
       unlinkSync(mintDocPath);
+      await server.recheckDisk();
 
       await vi.waitFor(
         () =>
@@ -1445,6 +1368,7 @@ describe('createServer().destroy() — graceful shutdown flush', () => {
       const flushDocName = 'shadowless-flush-doc';
       const flushDocPath = join(contentDir, `${flushDocName}.md`);
       writeFileSync(flushDocPath, '# Shadowless flush doc\n\nSecond doc.\n', 'utf-8');
+      await server.recheckDisk();
       const _conn2 = await server.hocuspocus.openDirectConnection(flushDocName);
       const serverDoc2 = server.hocuspocus.documents.get(flushDocName);
       expect(serverDoc2).toBeDefined();
@@ -1703,7 +1627,6 @@ describe('createServer() degraded signal', () => {
 
   afterEach(() => {
     watcherStartupFailures.file = false;
-    watcherStartupFailures.head = false;
     resetBootTimingsForTest();
     rmSync(testProjectDir, { recursive: true, force: true });
   });
@@ -1814,29 +1737,29 @@ describe('createServer() degraded signal', () => {
     }
   });
 
-  test.each([
-    { failure: 'file' as const, label: 'file-watcher' },
-    { failure: 'head' as const, label: 'head-watcher' },
-  ])('$label startup failure is reported at runtime', async ({ failure, label }) => {
-    watcherStartupFailures[failure] = true;
-    if (failure === 'file') startBootTimings('2026-07-23T00:00:00.000Z');
-    const contentDir = mkdtempSync(resolve(testProjectDir, 'content-'));
-    const srv = createServer({
-      contentDir,
-      projectDir: testProjectDir,
-      quiet: true,
-    });
+  test.each([{ failure: 'file' as const, label: 'file-watcher' }])(
+    '$label startup failure is reported at runtime',
+    async ({ failure, label }) => {
+      watcherStartupFailures[failure] = true;
+      if (failure === 'file') startBootTimings('2026-07-23T00:00:00.000Z');
+      const contentDir = mkdtempSync(resolve(testProjectDir, 'content-'));
+      const srv = createServer({
+        contentDir,
+        projectDir: testProjectDir,
+        quiet: true,
+      });
 
-    try {
-      await srv.ready;
-      expect(srv.degraded).toEqual([label]);
-      if (failure === 'file') {
-        expect(getBootTimings()?.indexesMs).toEqual(expect.any(Number));
+      try {
+        await srv.ready;
+        expect(srv.degraded).toEqual([label]);
+        if (failure === 'file') {
+          expect(getBootTimings()?.indexesMs).toEqual(expect.any(Number));
+        }
+      } finally {
+        await srv.destroy();
       }
-    } finally {
-      await srv.destroy();
-    }
-  });
+    },
+  );
 
   test('an .mdx conflict restored before any scan resolves to its .mdx file', async () => {
     watcherStartupFailures.file = true;
@@ -2011,8 +1934,10 @@ describe('createServer() — config file watcher (US-007)', () => {
 
     const configPath = join(testProjectDir, '.gitquire', 'config.yml');
     mkdirSync(join(testProjectDir, '.gitquire'), { recursive: true });
+    await srv.recheckDisk();
     const newContent = 'mcp:\n  autoStart: false\n';
     writeFileSync(configPath, newContent, 'utf-8');
+    await srv.recheckDisk();
 
     const fired = await waitFor(() => ytext.toString() === newContent);
     expect(fired).toBe(true);
@@ -2045,6 +1970,7 @@ describe('createServer() — config file watcher (US-007)', () => {
       homedirOverride: testHomedir,
     });
     expect(written.ok).toBe(true);
+    await srv.recheckDisk();
 
     const fired = await waitFor(() => ytext.toString().includes('wordWrap: false'));
     expect(fired).toBe(true);
@@ -2079,6 +2005,7 @@ describe('createServer() — config file watcher (US-007)', () => {
     expect(ytext.toString()).toBe(validContent);
 
     writeFileSync(configPath, 'content: [unclosed\n', 'utf-8');
+    await srv.recheckDisk();
     const warningLogged = await waitFor(
       () => logs.getCalls('warn', 'project config invalid').length > 0,
     );
@@ -2173,8 +2100,10 @@ describe('createServer() — project-local file watcher → engine.setMode', () 
 
     const localDir = join(testProjectDir, '.gitquire', LOCAL_DIR);
     mkdirSync(localDir, { recursive: true });
+    await srv.recheckDisk();
     const configPath = join(localDir, 'config.yml');
     writeFileSync(configPath, 'autoSync:\n  enabled: true\n', 'utf-8');
+    await srv.recheckDisk();
 
     const flipped = await waitFor(() => srv.syncEngine?.getStatus().syncEnabled === true);
     expect(flipped).toBe(true);
@@ -2206,6 +2135,7 @@ describe('createServer() — project-local file watcher → engine.setMode', () 
       'autoSync:\n  enabled: false\n',
       'utf-8',
     );
+    await srv.recheckDisk();
 
     const disabled = await waitFor(() => srv.syncEngine?.getStatus().syncEnabled === false);
     expect(disabled).toBe(true);
@@ -2226,11 +2156,13 @@ describe('createServer() — project-local file watcher → engine.setMode', () 
     expect(srv.syncEngine?.getStatus().syncEnabled).toBe(false);
 
     mkdirSync(join(testProjectDir, '.gitquire'), { recursive: true });
+    await srv.recheckDisk();
     writeFileSync(
       join(testProjectDir, '.gitquire', 'config.yml'),
       'autoSync:\n  default: true\n',
       'utf-8',
     );
+    await srv.recheckDisk();
 
     const flipped = await waitFor(() => srv.syncEngine?.getStatus().syncEnabled === true);
     expect(flipped).toBe(true);
@@ -2381,6 +2313,7 @@ describe('createServer() — okignore + gitignore multi-path watcher (US-005)', 
     const okignorePath = join(testProjectDir, '.okignore');
     const newContent = 'drafts/\n';
     writeFileSync(okignorePath, newContent, 'utf-8');
+    await srv.recheckDisk();
 
     const ytextSynced = await waitFor(() => ytext.toString() === newContent);
     expect(ytextSynced).toBe(true);
@@ -2416,6 +2349,7 @@ describe('createServer() — okignore + gitignore multi-path watcher (US-005)', 
 
     const gitignorePath = join(testProjectDir, '.gitignore');
     writeFileSync(gitignorePath, 'logs/\n', 'utf-8');
+    await srv.recheckDisk();
 
     const filterUpdated = await waitFor(() => srv.contentFilter.isExcluded('logs/debug.md'));
     expect(filterUpdated).toBe(true);
@@ -2495,6 +2429,7 @@ describe('createServer() — okignore + gitignore multi-path watcher (US-005)', 
       try {
         const okignorePath = join(testProjectDir, '.okignore');
         writeFileSync(okignorePath, 'drafts/\n', 'utf-8');
+        await srv.recheckDisk();
 
         const filterUpdated = await waitFor(() => srv.contentFilter.isExcluded('drafts/foo.md'));
         expect(filterUpdated).toBe(true);
@@ -4330,6 +4265,7 @@ describe('createServer() — generated index wiring', () => {
     dir: string,
     predicate: (markdown: string) => boolean,
   ): Promise<void> {
+    await recheckRunningServer();
     await vi.waitFor(
       () => {
         expect(existsSync(indexPathAt(dir))).toBe(true);
@@ -4349,7 +4285,12 @@ describe('createServer() — generated index wiring', () => {
     writeFileSync(join(contentDir, rel), `---\n${fm.join('\n')}\n---\n\n# ${title}\n`, 'utf-8');
   }
 
+  async function recheckRunningServer(): Promise<void> {
+    if (server) await server.recheckDisk();
+  }
+
   async function waitForIndex(predicate: (markdown: string) => boolean): Promise<void> {
+    await recheckRunningServer();
     await vi.waitFor(
       () => {
         expect(existsSync(indexPath())).toBe(true);
@@ -4493,6 +4434,7 @@ describe('createServer() — generated index wiring', () => {
   test('the setting reaches the server through the real config file', async () => {
     await bootServer();
     writeDoc('note.md', 'A note', 'note', 'Something to index.');
+    await recheckRunningServer();
 
     await waitForIndex((md) => md.includes('A note'));
     expect(readIndex()).toContain('okf_version: "0.2"');
@@ -4595,6 +4537,7 @@ describe('createServer() — generated index wiring', () => {
       stringifyYaml({ contentRules: { okf: { enabled: true, generate: { index: false } } } }),
       'utf-8',
     );
+    await recheckRunningServer();
     releaseFirstWrite();
 
     await expect(activeServer.generatedIndexSweepReady).resolves.toEqual({
@@ -4610,6 +4553,7 @@ describe('createServer() — generated index wiring', () => {
     expect(statSync(indexPathAt('beta')).mtimeMs).toBe(betaMtime);
 
     writeDoc('beta/after-disable.md', 'After disable', 'note');
+    await recheckRunningServer();
     await new Promise((resolve) => setTimeout(resolve, 750));
 
     expect(readIndex()).toBe(preservedRoot);
@@ -4709,11 +4653,13 @@ describe('createServer() — generated index wiring', () => {
   test('creating a document lands its entry in its own folder index', async () => {
     await bootServer();
     writeDoc('concepts/first.md', 'First', 'concept');
+    await recheckRunningServer();
     await waitForIndexAt('concepts', (md) => md.includes('* [First](./first.md)'));
     await waitForIndex((md) => md.includes('* [concepts](./concepts/index.md)'));
     expect(readIndex()).not.toContain('./concepts/first.md');
 
     writeDoc('concepts/second.md', 'Second', 'concept');
+    await recheckRunningServer();
     await waitForIndexAt('concepts', (md) => md.includes('* [Second](./second.md)'));
     expect(readIndexAt('concepts')).toContain('* [First](./first.md)');
   });
@@ -4724,6 +4670,7 @@ describe('createServer() — generated index wiring', () => {
     await waitForIndex((md) => md.includes('[Before]'));
 
     writeDoc('note.md', 'After', 'concept', 'New description');
+    await recheckRunningServer();
 
     await waitForIndex(
       (md) =>
@@ -4822,6 +4769,7 @@ describe('createServer() — generated index wiring', () => {
     const activeServer = await bootServer();
     await activeServer.generatedIndexSweepReady;
     unlinkSync(join(projectDir, '.gitattributes'));
+    await recheckRunningServer();
     expect(existsSync(join(projectDir, '.gitattributes'))).toBe(false);
 
     const response = await fetch(`${await apiBaseUrl()}/api/generated-index/settings`, {
@@ -4846,6 +4794,7 @@ describe('createServer() — generated index wiring', () => {
     const logCapture = captureAllLoggers();
     await bootServer();
     writeDoc('note.md', 'Before drift', 'note');
+    await recheckRunningServer();
     await waitForIndex((md) => md.includes('[Before drift]'));
     const preservedIndex = readIndex();
     const preservedMtime = statSync(indexPath()).mtimeMs;
@@ -4855,7 +4804,9 @@ describe('createServer() — generated index wiring', () => {
       '/content/index.md merge=ours\n/content/**/index.md merge=ours\n',
       'utf-8',
     );
+    await recheckRunningServer();
     writeDoc('note.md', 'Blocked by drift', 'note');
+    await recheckRunningServer();
 
     await vi.waitFor(
       () => {
@@ -4879,6 +4830,7 @@ describe('createServer() — generated index wiring', () => {
     });
 
     unlinkSync(join(projectDir, '.gitattributes'));
+    await recheckRunningServer();
     const repaired = await updateGeneratedIndexGitAttributes({
       projectDir,
       contentDir,
@@ -4888,6 +4840,7 @@ describe('createServer() — generated index wiring', () => {
     expect(repaired.ok).toBe(true);
 
     writeDoc('note.md', 'Recovered after repair', 'note');
+    await recheckRunningServer();
     await waitForIndex(
       (md) => md.includes('[Recovered after repair]') && !md.includes('[Before drift]'),
     );
@@ -4896,10 +4849,13 @@ describe('createServer() — generated index wiring', () => {
   test('deleting an unopened document removes its entry from its folder index', async () => {
     await bootServer();
     writeDoc('concepts/doomed.md', 'Doomed', 'concept');
+    await recheckRunningServer();
     writeDoc('concepts/survivor.md', 'Survivor', 'concept');
+    await recheckRunningServer();
     await waitForIndexAt('concepts', (md) => md.includes('./doomed.md'));
 
     unlinkSync(join(contentDir, 'concepts', 'doomed.md'));
+    await recheckRunningServer();
 
     await waitForIndexAt('concepts', (md) => !md.includes('./doomed.md'));
     expect(readIndexAt('concepts')).toContain('./survivor.md');
@@ -4908,10 +4864,13 @@ describe('createServer() — generated index wiring', () => {
   test('an emptied section disappears rather than lingering as a bare heading', async () => {
     await bootServer();
     writeDoc('only.md', 'Only', 'solo-type');
+    await recheckRunningServer();
     writeDoc('keep.md', 'Keep', 'note');
+    await recheckRunningServer();
     await waitForIndex((md) => md.includes('## solo\\-type'));
 
     unlinkSync(join(contentDir, 'only.md'));
+    await recheckRunningServer();
 
     await waitForIndex((md) => !md.includes('## solo\\-type'));
     expect(readIndex()).toContain('## note');
@@ -4926,6 +4885,7 @@ describe('createServer() — generated index wiring', () => {
     await waitForIndexAt('archive', (md) => md.includes('./anchor.md'));
 
     renameSync(join(contentDir, 'concepts', 'mover.md'), join(contentDir, 'archive', 'mover.md'));
+    await recheckRunningServer();
 
     await waitForIndexAt('archive', (md) => md.includes('./mover.md'));
     await waitForIndexAt(
@@ -4947,6 +4907,7 @@ describe('createServer() — generated index wiring', () => {
     const orphanMtime = statSync(indexPathAt('source')).mtimeMs;
 
     renameSync(join(contentDir, 'source', 'only.md'), join(contentDir, 'destination', 'only.md'));
+    await recheckRunningServer();
 
     await waitForIndexAt(
       'destination',
@@ -4962,6 +4923,7 @@ describe('createServer() — generated index wiring', () => {
   test('a rebuild lands on the ok-generator ref, not a human or service writer', async () => {
     await bootServer();
     writeDoc('note.md', 'A note', 'note', 'Something to index.');
+    await recheckRunningServer();
     await waitForIndex((md) => md.includes('A note'));
 
     const sg = shadowGit(shadowHandle);
@@ -4993,6 +4955,7 @@ describe('createServer() — generated index wiring', () => {
     const logCapture = captureAllLoggers();
     await bootServer();
     writeDoc('note.md', 'A note', 'note', 'A description.');
+    await recheckRunningServer();
     await waitForIndex((md) => md.includes('A note'));
     const regenerationEvents = () =>
       logCapture
@@ -5004,6 +4967,7 @@ describe('createServer() — generated index wiring', () => {
     const bytes = readIndex();
 
     writeFileSync(join(contentDir, 'log.md'), '# Log\n\n## 2026-08-05\n\n- An entry.\n', 'utf-8');
+    await recheckRunningServer();
 
     await vi.waitFor(
       () => {
@@ -5063,6 +5027,7 @@ describe('createServer() — generated index wiring', () => {
       '# Log\n\n## 2026-08-06\n\n- Trigger regeneration.\n',
       'utf-8',
     );
+    await recheckRunningServer();
 
     await vi.waitFor(
       () => {
@@ -5080,6 +5045,7 @@ describe('createServer() — generated index wiring', () => {
     server?.conflicts.dissolveReconcile('concepts/index');
     expect(server?.conflicts.list()).toEqual([]);
     writeDoc('concepts/second.md', 'Second', 'concept');
+    await recheckRunningServer();
     await waitForIndexAt(
       'concepts',
       (md) => md.includes('* [First](./first.md)') && md.includes('* [Second](./second.md)'),
@@ -5091,6 +5057,7 @@ describe('createServer() — generated index wiring', () => {
     const logCapture = captureAllLoggers();
     await bootServer();
     writeDoc('concepts/first.md', 'First', 'concept');
+    await recheckRunningServer();
     await waitForIndexAt('concepts', (md) => md.includes('* [First](./first.md)'));
     await waitForIndex((md) => md.includes('* [concepts](./concepts/index.md)'));
 
@@ -5109,6 +5076,7 @@ describe('createServer() — generated index wiring', () => {
       '',
     ].join('\n');
     writeFileSync(indexPathAt('concepts'), conflicted, 'utf-8');
+    await recheckRunningServer();
 
     await vi.waitFor(
       () => {
@@ -5126,6 +5094,7 @@ describe('createServer() — generated index wiring', () => {
         .filter((entry) => entry.payload.event === 'generated-index-regeneration');
     const baselineEventCount = regenerationEvents().length;
     writeDoc('concepts/second.md', 'Second', 'concept');
+    await recheckRunningServer();
 
     await vi.waitFor(
       () => {
@@ -5162,6 +5131,7 @@ describe('createServer() — generated index wiring', () => {
     });
 
     writeFileSync(indexPathAt('concepts'), canonical, 'utf-8');
+    await recheckRunningServer();
     await vi.waitFor(
       () => {
         expect(server?.conflicts.findByDocName('concepts/index')).toBeUndefined();
@@ -5170,6 +5140,7 @@ describe('createServer() — generated index wiring', () => {
     );
 
     writeDoc('concepts/third.md', 'Third', 'concept');
+    await recheckRunningServer();
     await waitForIndexAt(
       'concepts',
       (md) => md.includes('./second.md') && md.includes('./third.md'),
@@ -5183,6 +5154,7 @@ describe('createServer() — generated index wiring', () => {
     const logCapture = captureAllLoggers();
     await bootServer();
     writeDoc('first.md', 'First', 'note');
+    await recheckRunningServer();
     await waitForIndex((md) => md.includes('./first.md'));
 
     const conn = await server?.hocuspocus.openDirectConnection('index');
@@ -5198,6 +5170,7 @@ describe('createServer() — generated index wiring', () => {
     const baselineEventCount = regenerationEvents().length;
 
     writeDoc('second.md', 'Second', 'note');
+    await recheckRunningServer();
 
     await vi.waitFor(
       () => {
@@ -5227,7 +5200,9 @@ describe('createServer() — generated index wiring', () => {
   test('a document edit rebuilds only its own folder index, not a sibling', async () => {
     await bootServer();
     writeDoc('alpha/a.md', 'A one', 'note');
+    await recheckRunningServer();
     writeDoc('beta/b.md', 'B one', 'note');
+    await recheckRunningServer();
     await waitForIndexAt('alpha', (md) => md.includes('[A one]'));
     await waitForIndexAt('beta', (md) => md.includes('[B one]'));
 
@@ -5235,6 +5210,7 @@ describe('createServer() — generated index wiring', () => {
     const betaMtimeBefore = statSync(indexPathAt('beta')).mtimeMs;
 
     writeDoc('alpha/a.md', 'A renamed', 'note');
+    await recheckRunningServer();
     await waitForIndexAt('alpha', (md) => md.includes('[A renamed]') && !md.includes('[A one]'));
 
     expect(readIndexAt('beta')).toBe(betaBefore);
@@ -5244,6 +5220,7 @@ describe('createServer() — generated index wiring', () => {
   test('editing only body prose rebuilds no index', async () => {
     await bootServer();
     writeDoc('notes/n.md', 'A note', 'note', 'A description.');
+    await recheckRunningServer();
     await waitForIndexAt('notes', (md) => md.includes('[A note]'));
 
     const before = readIndexAt('notes');
@@ -5254,6 +5231,7 @@ describe('createServer() — generated index wiring', () => {
       '---\ntitle: A note\ntype: note\ndescription: A description.\n---\n\n# A note\n\nRewritten prose.\n',
       'utf-8',
     );
+    await recheckRunningServer();
 
     await new Promise((r) => setTimeout(r, 3_000));
 
@@ -5264,6 +5242,7 @@ describe('createServer() — generated index wiring', () => {
   test('an agent write through the API that changes a field rebuilds its folder index', async () => {
     await bootServer();
     writeDoc('notes/n.md', 'Before', 'note', 'A description.');
+    await recheckRunningServer();
     await waitForIndexAt('notes', (md) => md.includes('[Before]'));
     const api = await apiBaseUrl();
 
@@ -5279,6 +5258,7 @@ describe('createServer() — generated index wiring', () => {
   test('an agent write through the API that changes only body prose rebuilds no index', async () => {
     await bootServer();
     writeDoc('notes/n.md', 'A note', 'note', 'A description.');
+    await recheckRunningServer();
     await waitForIndexAt('notes', (md) => md.includes('[A note]'));
     const api = await apiBaseUrl();
 
@@ -5300,11 +5280,14 @@ describe('createServer() — generated index wiring', () => {
   test('deleting a populated subdirectory drops it from its parent index', async () => {
     await bootServer();
     writeDoc('area/top.md', 'Top', 'note');
+    await recheckRunningServer();
     writeDoc('area/sub/deep.md', 'Deep', 'note');
+    await recheckRunningServer();
     await waitForIndexAt('area', (md) => md.includes('* [sub](./sub/index.md)'));
     expect(readIndexAt('area')).toContain('./top.md');
 
     rmSync(join(contentDir, 'area', 'sub'), { recursive: true, force: true });
+    await recheckRunningServer();
 
     await waitForIndexAt('area', (md) => !md.includes('./sub/index.md'));
     expect(readIndexAt('area')).toContain('./top.md');
@@ -5321,6 +5304,7 @@ describe('createServer() — generated index wiring', () => {
     const orphanMtime = statSync(indexPathAt('area')).mtimeMs;
 
     unlinkSync(join(contentDir, 'area', 'only.md'));
+    await recheckRunningServer();
 
     await waitForIndex((md) => !md.includes('./area/index.md'));
     expect(readIndexAt('area')).toBe(orphanBytes);
@@ -5330,8 +5314,11 @@ describe('createServer() — generated index wiring', () => {
   test('a burst across two folders settles both in one convergence', async () => {
     await bootServer();
     writeDoc('one/a.md', 'A', 'note');
+    await recheckRunningServer();
     writeDoc('one/b.md', 'B', 'note');
+    await recheckRunningServer();
     writeDoc('two/c.md', 'C', 'note');
+    await recheckRunningServer();
 
     await waitForIndexAt('one', (md) => md.includes('[A]') && md.includes('[B]'));
     await waitForIndexAt('two', (md) => md.includes('[C]'));
@@ -5375,6 +5362,7 @@ describe('createServer() — generated index wiring', () => {
     expect(readIndex()).not.toContain('./concepts/index.md');
 
     writeDoc('concepts/first.md', 'First', 'concept');
+    await recheckRunningServer();
 
     await waitForIndexAt('concepts', (md) => md.includes('* [First](./first.md)'));
     await waitForIndex((md) => md.includes('* [concepts](./concepts/index.md)'));
@@ -5582,8 +5570,11 @@ describe('createServer() — generated index wiring', () => {
     expect(installed.status).toEqual({ state: 'ready', ownership: 'open-knowledge' });
 
     writeDoc('README.md', 'Home', 'Index');
+    await recheckRunningServer();
     writeDoc('alpha.md', 'Alpha', 'Guide');
+    await recheckRunningServer();
     writeFileSync(indexPath(), UNION_FIXTURE_ANCESTOR_INDEX, 'utf-8');
+    await recheckRunningServer();
     fixtureGit('add', '-A');
     fixtureGit('commit', '-qm', 'old-shape ancestor index');
 
@@ -5699,10 +5690,7 @@ async function setupReconcileRig(prefix: string): Promise<ReconcileRig> {
   };
 }
 
-function createReconcileServer(
-  rig: ReconcileRig,
-  watcher: Pick<ServerOptions, 'watcherBackend' | 'freshnessIntervalMs'> = {},
-): ServerInstance {
+function createReconcileServer(rig: ReconcileRig): ServerInstance {
   return createServer({
     contentDir: rig.tmpDir,
     projectDir: rig.tmpDir,
@@ -5711,7 +5699,6 @@ function createReconcileServer(
     maxDebounce: 500,
     gitEnabled: false,
     shadowRepo: rig.shadow,
-    ...watcher,
   });
 }
 
@@ -5775,6 +5762,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       expect(server.durabilityState.getReconciledBase(docName)).toBeUndefined();
 
       writeFileSync(docPath, theirs, 'utf-8');
+      await server.recheckDisk();
 
       await vi.waitFor(() => expect(serverDoc.getText('source').toString()).toBe(theirs), {
         timeout: 8_000,
@@ -5825,7 +5813,9 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       server.durabilityState.deleteReconciledBase(emptyDoc);
 
       unlinkSync(join(rig.tmpDir, `${fullDoc}.md`));
+      await server.recheckDisk();
       unlinkSync(join(rig.tmpDir, `${emptyDoc}.md`));
+      await server.recheckDisk();
 
       await vi.waitFor(
         async () => {
@@ -6340,6 +6330,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       );
 
       renameSync(join(rig.tmpDir, `${docName}.md`), join(rig.tmpDir, `${newDocName}.md`));
+      await server.recheckDisk();
 
       let rescueSha = '';
       await vi.waitFor(
@@ -6411,14 +6402,14 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
 
       server.durabilityState.deleteReconciledBase(docName);
 
-      await git.checkout('feature');
+      await server.runGitMove(() => git.checkout('feature'));
       await vi.waitFor(() => expect(serverDoc.getText('source').toString()).toBe(featureContent), {
         timeout: 15_000,
         interval: 25,
       });
       expect(serverDoc.getMap('lifecycle').get('status')).toBeUndefined();
 
-      await git.checkout('main');
+      await server.runGitMove(() => git.checkout('main'));
       await vi.waitFor(() => expect(serverDoc.getText('source').toString()).toBe(mainContent), {
         timeout: 15_000,
         interval: 25,
@@ -6485,7 +6476,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       const withWip = '# Park store target\n\nMain branch body.\n\nUnsaved WIP.\n\nTail.\n';
       expect(source.toString()).toBe(withWip);
 
-      await git.checkout('feature');
+      await server.runGitMove(() => git.checkout('feature'));
       const featureWithWip =
         '# Park store target\n\nFeature branch body.\n\nUnsaved WIP.\n\nTail.\n';
       expect(featureWithWip).not.toBe(featureContent);
@@ -6493,7 +6484,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
         timeout: 15_000,
         interval: 25,
       });
-      await git.checkout('main');
+      await server.runGitMove(() => git.checkout('main'));
       await vi.waitFor(() => expect(source.toString()).toBe(withWip), {
         timeout: 15_000,
         interval: 25,
@@ -6579,7 +6570,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       const warnSpy = vi.spyOn(getLogger('server'), 'warn');
       const switched = vi.spyOn(server.cc1Broadcaster, 'emitBranchSwitched');
       try {
-        await git.checkout('feature');
+        await server.runGitMove(() => git.checkout('feature'));
         await vi.waitFor(() => expect(switched).toHaveBeenCalledWith('feature'), {
           timeout: 15_000,
           interval: 25,
@@ -6690,6 +6681,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
 
       const ingestsBefore = getMetrics().diskAuthoritativeIngestCount;
       writeFileSync(docPath, theirs, 'utf-8');
+      await server.recheckDisk();
 
       await vi.waitFor(() => expect(serverDoc.getText('source').toString()).toBe(theirs), {
         timeout: 8_000,
@@ -6760,6 +6752,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
 
       try {
         writeFileSync(docPath, theirs, 'utf-8');
+        await server.recheckDisk();
 
         await vi.waitFor(
           () =>
@@ -6777,6 +6770,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       }
 
       writeFileSync(docPath, followUp, 'utf-8');
+      await server.recheckDisk();
 
       await vi.waitFor(() => expect(serverDoc.getText('source').toString()).toBe(followUp), {
         timeout: 15_000,
@@ -6844,6 +6838,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       const unrescuedBefore = getMetrics().diskAuthoritativeIngestUnrescuedCount;
 
       writeFileSync(docPath, theirs, 'utf-8');
+      await server.recheckDisk();
 
       await vi.waitFor(() => expect(serverDoc.getText('source').toString()).toBe(theirs), {
         timeout: 8_000,
@@ -6911,6 +6906,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
       const ingestsBefore = getMetrics().diskAuthoritativeIngestCount;
       try {
         writeFileSync(docPath, theirs, 'utf-8');
+        await server.recheckDisk();
 
         await vi.waitFor(() => expect(serverDoc.getText('source').toString()).toBe(theirs), {
           timeout: 8_000,
@@ -6963,11 +6959,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
     const docPath = join(rig.tmpDir, `${docName}.md`);
     writeFileSync(docPath, initial, 'utf-8');
 
-    const watcher = createWatcherDouble();
-    const server = createReconcileServer(rig, {
-      watcherBackend: watcher.backend,
-      freshnessIntervalMs: null,
-    });
+    const server = createReconcileServer(rig);
     const chmodEntries: Array<{ path: string; mode: number }> = [];
     const warnSpy = vi.spyOn(getLogger('server'), 'warn');
     const infoSpy = vi.spyOn(getLogger('server'), 'info');
@@ -7014,8 +7006,9 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
 
       try {
         writeFileSync(docPath, theirs, 'utf-8');
+        await server.recheckDisk();
         for (let delivery = 0; delivery < deliveries; delivery++) {
-          watcher.subscriptionFor(rig.tmpDir).deliver([{ type: 'update', path: docPath }]);
+          await server.recheckDisk();
         }
 
         await vi.waitFor(
@@ -7058,11 +7051,6 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
   test('an ingest that loses its rescue and then fails to apply is not counted as an unrescued clean ingest', async (ctx) => {
     ctx.skip(runningAsRoot, 'root bypasses the chmod refusal this test induces');
     await expectFailedIngestsNotCountedUnrescued(1);
-  }, 45_000);
-
-  test('a disk update delivered twice whose ingest loses its rescue and fails to apply both times is not counted as an unrescued clean ingest', async (ctx) => {
-    ctx.skip(runningAsRoot, 'root bypasses the chmod refusal this test induces');
-    await expectFailedIngestsNotCountedUnrescued(2);
   }, 45_000);
 
   test('an ingest that loses its rescue and then fails to apply after the live Y.Text is overwritten is reported as an unrescued loss', async (ctx) => {
@@ -7127,6 +7115,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
 
       try {
         writeFileSync(docPath, theirs, 'utf-8');
+        await server.recheckDisk();
 
         await vi.waitFor(
           () =>
@@ -7210,6 +7199,7 @@ describe('createServer() — disk-event reconcile with an absent reconciled base
 
       try {
         writeFileSync(docPath, theirs, 'utf-8');
+        await server.recheckDisk();
 
         await vi.waitFor(
           () =>
@@ -7293,6 +7283,7 @@ describe('createServer() — disk-event reconcile insert-group dedup reporting',
       const dedupSkippedBefore = getMetrics().reconcileInsertDedupSkipped;
 
       writeFileSync(docPath, theirs, 'utf-8');
+      await server.recheckDisk();
 
       await vi.waitFor(() => expect(getMetrics().reconcileBothKept).toBe(bothKeptBefore + 1), {
         timeout: 20_000,

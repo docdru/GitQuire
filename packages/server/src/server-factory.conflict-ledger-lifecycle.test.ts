@@ -121,6 +121,15 @@ function seedReconcileConflictsJson(projectDir: string, file: string): void {
   );
 }
 
+async function rereadFromDisk(port: number): Promise<void> {
+  const res = await fetch(`http://127.0.0.1:${port}/api/documents/reread`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  if (!res.ok) throw new Error(`re-read answered ${res.status}`);
+}
+
 async function bootPlainProject(seed: (contentDir: string) => void): Promise<{
   port: number;
   destroy: () => Promise<void>;
@@ -294,6 +303,7 @@ describe('a disk delete or rename of a conflicted doc clears its ledger entry', 
       expect(await listConflictFiles(booted.port)).toEqual([DOC_FILE]);
 
       rmSync(resolve(tmpDir, DOC_FILE), { force: true });
+      await rereadFromDisk(booted.port);
 
       await pollUntil(
         async () => (await listConflictFiles(booted.port)).length === 0,
@@ -320,6 +330,7 @@ describe('a disk delete or rename of a conflicted doc clears its ledger entry', 
       expect(await listConflictFiles(booted.port)).toEqual([DOC_FILE]);
 
       renameSync(resolve(tmpDir, DOC_FILE), resolve(tmpDir, 'notes', 'moved.md'));
+      await rereadFromDisk(booted.port);
 
       await pollUntil(
         async () => (await listConflictFiles(booted.port)).length === 0,

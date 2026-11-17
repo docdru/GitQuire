@@ -4658,6 +4658,16 @@ export interface StartWatcherOptions {
   freshnessIntervalMs?: number | null;
 }
 
+function isRegularFileOrLinkToOne(entry: Stats, path: string): boolean {
+  if (entry.isFile()) return true;
+  if (!entry.isSymbolicLink()) return false;
+  try {
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+
 export async function startWatcher(
   contentDirRaw: string,
   onDiskEvent: (event: DiskEvent) => Promise<void>,
@@ -4966,9 +4976,12 @@ async function startWatcherWithClock(
         const changed: InternalRawFileEvent[] = [];
         for (const path of unique) {
           const known = lastKnownHash.get(path);
-          const tracked = known !== undefined || indexedPaths.has(path);
+          const relativePath = toPosix(relative(contentDir, path));
+          const trackedFile = generalOwnerNames(generalFileIndex, relativePath).length > 0;
+          const tracked = known !== undefined || indexedPaths.has(path) || trackedFile;
+          let entry: Stats;
           try {
-            lstatSync(path);
+            entry = lstatSync(path);
           } catch (err) {
             const code = errnoCode(err);
             if (code === 'ENOENT' || code === 'ENOTDIR') {
@@ -4987,7 +5000,9 @@ async function startWatcherWithClock(
               contentFilter,
             )
           ) {
-            log.debug({ path }, `skipped a re-read of ${path}: not an admitted Markdown file`);
+            if (!trackedFile && isRegularFileOrLinkToOne(entry, path)) {
+              changed.push({ type: 'create', path });
+            }
             continue;
           }
           let content: string;

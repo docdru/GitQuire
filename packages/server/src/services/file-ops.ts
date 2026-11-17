@@ -48,6 +48,8 @@ type DuplicatePathOutcome =
 
 export interface FileOpsDeps {
   contentDir: string;
+  takeInPaths?: (absolutePaths: readonly string[]) => Promise<void>;
+  takeInFolder?: () => Promise<void>;
   assertContentSubtree?: (path: string) => void;
   resolveContentEntryPath: (contentDir: string, kind: 'file' | 'folder', path: string) => string;
   docNameForPath: (relPath: string) => string;
@@ -231,6 +233,8 @@ export function createFileOpsService(deps: FileOpsDeps): FileOpsService {
 
       purgeFileIndex(deletedDocNames);
       void deps.deleteDerivedDocumentsBestEffort(deletedDocNames, 'delete-path');
+      if (operationKind === 'asset') await deps.takeInPaths?.([targetPath]);
+      else if (operationKind === 'folder') await deps.takeInFolder?.();
       deps.signalFiles();
       return { ok: true, deletedDocNames };
     },
@@ -471,6 +475,7 @@ export function createFileOpsService(deps: FileOpsDeps): FileOpsService {
         throw err;
       }
       void deps.recordDerivedMutationsBestEffort(derivedMutations, 'duplicate-path-folder');
+      await deps.takeInFolder?.();
       return { ok: true, duplicatedPath, duplicatedDocNames };
     },
   };

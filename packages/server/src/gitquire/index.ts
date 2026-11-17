@@ -8,7 +8,12 @@ import { createRepoAccessCheck, startAccessSweep } from './agent-access.ts';
 import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
 import { ensureAgentsFile } from './agents-file.ts';
 import { createChatFromEnv } from './chat/setup.ts';
-import { createDrafts, type Drafts, isDraftInstance } from './drafts/setup.ts';
+import {
+  createDrafts,
+  type Drafts,
+  isDraftInstance,
+  type LiveServerHandle,
+} from './drafts/setup.ts';
 import {
   type CheckPushPermissionFn,
   createGitHubAppClient,
@@ -192,6 +197,7 @@ export function createGitQuireHttp(
     tokens: InstallationTokenManager | undefined;
     log: GateLogger;
     cli?: readonly string[];
+    liveServer?: LiveServerHandle;
   },
 ): GitQuireHttp {
   const appConfig = options.tokens === undefined ? undefined : resolveGitHubAppConfig(env);
@@ -219,6 +225,7 @@ export function createGitQuireHttp(
           token: () => options.tokens?.current(),
           cli: options.cli ?? [process.execPath, process.argv[1] ?? ''],
           initProject: initProjectWithCli(options.cli ?? [process.execPath, process.argv[1] ?? '']),
+          liveServer: options.liveServer,
         });
   if (!isDraftInstance(env))
     writeAgentsFile(env, options.contentDir ?? options.projectDir, options.log);

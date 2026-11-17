@@ -552,6 +552,7 @@ test.each([120_000, 900_000])(
       warn.mockClear();
       const edited = source.replace(`docTimeoutMs: ${initialTimeout}`, 'docTimeoutMs: 900001');
       writeFileSync(localPath, edited, 'utf-8');
+      await activeServer.recheckDisk();
 
       await vi.waitFor(
         () => {
@@ -606,7 +607,7 @@ test.each([120_000, 900_000])(
   30_000,
 );
 
-test('persisted Y.Text transport fallback warns once after the file watcher echo', async () => {
+test('persisted Y.Text transport fallback warns once', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'ok-sem-fallback-persist-'));
   const warn = vi.spyOn(getLogger('server'), 'warn');
   const info = vi.spyOn(getLogger('server'), 'info');
@@ -656,15 +657,6 @@ test('persisted Y.Text transport fallback warns once after the file watcher echo
     }, origin);
     await connection.disconnect();
 
-    await vi.waitFor(
-      () => {
-        expect(info).toHaveBeenCalledWith(
-          { docName: CONFIG_DOC_NAME_PROJECT_LOCAL, outcome: 'no-op', isEcho: true },
-          '[config-file-watcher] applyExternalConfigChange outcome',
-        );
-      },
-      { timeout: 10_000 },
-    );
     await vi.waitFor(async () => {
       await searchViaServer(activeServer, { query: 'authentication', semantic: true });
       expect(loaderInput?.options).toMatchObject({

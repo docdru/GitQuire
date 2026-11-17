@@ -186,7 +186,6 @@ import {
   getMarkdownEventFacts,
   getMarkdownRemovalCurrentness,
   hasAdmittedMarkdownFile,
-  type NativeWatcherBackend,
   pathToDocName,
   type RecheckResult,
   reconcileFileIndexAfterFilterRebuild,
@@ -214,7 +213,6 @@ import type {
 import { createGitHubTokenResolver } from './github-reference/token-resolver.ts';
 import { sessionPrincipalForAuthPayload } from './gitquire/principal-directory.ts';
 import { applySettingsAccess, createSettingsWriteGuard } from './gitquire/settings-admin.ts';
-import { type HeadWatcherHandle, readProjectHeadState, startHeadWatcher } from './head-watcher.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import type { NativeApiHandle } from './http/http-app.ts';
 import type { LocalApiDispatch } from './http/local-api-dispatch.ts';
@@ -276,6 +274,7 @@ import {
   StructuralDiskReadError,
 } from './persistence-staleness-watchdog.ts';
 import { loadPrincipal } from './principal.ts';
+import { readProjectHeadState } from './project-head.ts';
 import { RecentlyRemovedDocs } from './recently-removed-docs.ts';
 import { type ReconcileOutcome, reconcile } from './reconciliation.ts';
 import { reconcileRecoveredFileTarget } from './recovered-file-target.ts';
@@ -362,7 +361,6 @@ import {
   VanishedDocuments,
 } from './vanished-documents.ts';
 import { type WatcherClock, type WatcherTimer, watcherClock } from './watcher-clock.ts';
-import { FRESHNESS_BASE_INTERVAL_MS } from './watcher-freshness.ts';
 
 interface GitMoveEnd {
   headMoved: boolean;
@@ -381,12 +379,18 @@ interface HandedGitMove {
   dirty: string[];
   holders: number;
   ready: Promise<void>;
+  holdId: string;
 }
 
 const HANDED_PATH_RECHECK_LIMIT = 200;
 
-function fileWatchingFromEnvironment(env: NodeJS.ProcessEnv): 'on' | 'off' {
-  return env.GITQUIRE_FILE_WATCHER_BACKEND?.trim().toLowerCase() === 'off' ? 'off' : 'on';
+function noteRemovedWatcherSetting(env: NodeJS.ProcessEnv): void {
+  const value = env.GITQUIRE_FILE_WATCHER_BACKEND?.trim().toLowerCase();
+  if (value === undefined || value === '' || value === 'off') return;
+  getLogger('server').warn(
+    { value },
+    '[server] GITQUIRE_FILE_WATCHER_BACKEND is ignored: GitQuire no longer watches files; use Re-read files after changing files on the server',
+  );
 }
 
 function isPlainMarkdownPath(relativePath: string): boolean {
@@ -443,10 +447,7 @@ export interface ServerOptions {
   embedderLoader?: (input: LoadOpenAiEmbedderInput) => Promise<Embedder | null>;
   singleDocRelPath?: string;
   ephemeral?: boolean;
-  watcherBackend?: NativeWatcherBackend;
   watcherClock?: WatcherClock;
-  freshnessIntervalMs?: number | null;
-  fileWatching?: 'on' | 'off';
   mergeHistoryWriter?: MergeHistoryWriter;
   generatedIndexTestHooks?: {
     beforePlan?: (context: { fullSweep: boolean; signal: AbortSignal }) => Promise<void> | void;
@@ -496,6 +497,7 @@ export interface ServerInstance {
   readonly resolveEmbed: (basename: string, sourcePath: string) => string | null;
   readonly resolveTrackedFile: (relativePath: string) => string | undefined;
   readonly recheckDisk: () => Promise<RecheckResult>;
+  readonly runGitMove: <T>(step: () => Promise<T>) => Promise<T>;
 }
 
 export function observeShutdownDocumentRetirements(
@@ -648,12 +650,10 @@ export function createServer(options: ServerOptions): ServerInstance {
   });
 
   const log = getLogger('server');
-  let headWatcher: HeadWatcherHandle | null = null;
-  const fileWatching = options.fileWatching ?? fileWatchingFromEnvironment(process.env);
+  noteRemovedWatcherSetting(process.env);
   let handedBranch: string | null = null;
-  const getStorageBranch = () => headWatcher?.getLastKnownBranch() ?? handedBranch;
-  const getReportedBranch = () =>
-    headWatcher ? headWatcher.getLastKnownBranch() : readProjectHeadState(projectDir).branch;
+  const getStorageBranch = () => handedBranch;
+  const getReportedBranch = () => readProjectHeadState(projectDir).branch;
   const generatedIndexWarningScope = createGeneratedIndexWarningScope(resolve(contentDir));
   let cc1Broadcaster: CC1Broadcaster | null = null;
   const initialBranch = readProjectHeadState(projectDir).branch ?? 'main';
@@ -709,7 +709,6 @@ export function createServer(options: ServerOptions): ServerInstance {
     release?.();
   };
   const handedGitMoves = new Map<string, HandedGitMove>();
-  let lastHandedGitMove: { head: string | null; branch: string | null } | null = null;
 
   async function gitOutput(args: readonly string[]): Promise<string> {
     return createGitInstance(projectDir, { credentialConfig: [], timeoutMs: 30_000 }).git.raw([
@@ -829,6 +828,8 @@ export function createServer(options: ServerOptions): ServerInstance {
     else await watcher.recheck('full');
   }
 
+  let handedGitMoveCount = 0;
+
   async function beginHandedGitMove(owner: string): Promise<void> {
     const running = handedGitMoves.get(owner);
     if (running !== undefined) {
@@ -838,6 +839,8 @@ export function createServer(options: ServerOptions): ServerInstance {
     }
     const head = readProjectHeadState(projectDir);
     const { promise: ready, resolve: markReady } = Promise.withResolvers<void>();
+    handedGitMoveCount += 1;
+    const holdId = `${owner}#${handedGitMoveCount}`;
     const move: HandedGitMove = {
       oldHead: head.oid,
       oldBranch: head.branch,
@@ -845,15 +848,16 @@ export function createServer(options: ServerOptions): ServerInstance {
       dirty: [],
       holders: 1,
       ready,
+      holdId,
     };
     handedGitMoves.set(owner, move);
     try {
       try {
-        await gitMoveSteps?.begin(owner, owner);
+        await gitMoveSteps?.begin(holdId, owner);
       } catch (err) {
         log.error({ err, owner }, '[batch] preparing for a Git move failed');
       }
-      holdBatch(owner);
+      holdBatch(holdId);
       try {
         move.top = await gitTopLevel();
         move.dirty = await dirtyProjectPaths(move.top);
@@ -870,6 +874,8 @@ export function createServer(options: ServerOptions): ServerInstance {
     if (start === undefined) return;
     start.holders--;
     if (start.holders > 0) return;
+    handedGitMoves.delete(owner);
+    const { holdId } = start;
     try {
       const head = readProjectHeadState(projectDir);
       const batchKind = gitMoveKind(start.oldBranch, head.branch);
@@ -894,11 +900,10 @@ export function createServer(options: ServerOptions): ServerInstance {
       } else {
         await recheckConfigFiles();
       }
-      lastHandedGitMove = { head: head.oid, branch: head.branch };
       handedBranch = head.branch;
       if (gitMoveSteps === null) return;
       try {
-        await gitMoveSteps.end(owner, {
+        await gitMoveSteps.end(holdId, {
           headMoved: start.oldHead !== head.oid,
           oldHead: start.oldHead,
           newHead: head.oid,
@@ -911,9 +916,8 @@ export function createServer(options: ServerOptions): ServerInstance {
         log.error({ err, owner }, '[batch] finishing a Git move failed');
       }
     } finally {
-      handedGitMoves.delete(owner);
-      releaseGitMoveAdmission(owner);
-      if (releaseBatchHold(owner)) {
+      releaseGitMoveAdmission(holdId);
+      if (releaseBatchHold(holdId)) {
         await finishBatch().catch((err: unknown) => {
           log.error({ err, owner }, '[batch] draining after the batch failed');
         });
@@ -1300,6 +1304,21 @@ export function createServer(options: ServerOptions): ServerInstance {
 
   let lastAppliedAttachmentFolderPath: string | undefined;
   let projectConfigEpoch = 0;
+
+  async function takeInOwnIgnoreWrite(): Promise<void> {
+    if (!contentFilter) return;
+    configFileWatcherResyncs.get(CONFIG_DOC_NAME_OKIGNORE)?.();
+    try {
+      const result = await contentFilter.rebuildIgnorePatterns();
+      if (!result.ok) {
+        cc1Broadcaster?.emitConfigIgnoreNestedError('.okignore', result.error.message);
+        return;
+      }
+      cc1Broadcaster?.signal('files');
+    } catch (err) {
+      log.warn({ err }, '[ignore] taking in the saved .okignore failed');
+    }
+  }
 
   function applyPersistedConfigToConsumers(
     configDocName: string,
@@ -2512,6 +2531,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       onConfigPersisted: (docName) => {
         applyPersistedConfigToConsumers(docName);
         logConfigDiagnostics(docName);
+        if (docName === CONFIG_DOC_NAME_OKIGNORE) void takeInOwnIgnoreWrite();
       },
       isRecentlyRemoved: (docName) => recentlyRemovedDocs.has(docName),
       mdManager: options.mdManager,
@@ -2997,6 +3017,12 @@ export function createServer(options: ServerOptions): ServerInstance {
       setCheckoutInProgress: batchFlagFor('checkout'),
       refreshDocumentsFromDisk,
       rereadFromDisk,
+      takeInPaths: async (paths) => {
+        await watcher?.recheckPaths(paths);
+      },
+      takeInFolder: async () => {
+        await watcher?.recheck('full');
+      },
       localOpCliArgs,
       authStreamHeartbeatMs,
       projectDir,
@@ -5179,8 +5205,6 @@ export function createServer(options: ServerOptions): ServerInstance {
             clearTimeout(shadowWarmupTimer);
             shadowWarmupTimer = null;
           }
-          await releaseWatcher(headWatcher, 'head');
-          headWatcher = null;
           await releaseWatcher(watcher, 'content');
           watcher = null;
           for (const { docName, cleanup } of configFileWatcherCleanups) {
@@ -5670,16 +5694,13 @@ export function createServer(options: ServerOptions): ServerInstance {
             logConfigDiagnostics(configDocName);
           }
         };
-        const cleanup = await startConfigFileWatcher(
-          absPath,
-          (content) =>
-            takeInConfigChange(content).catch((err: unknown) => {
-              log.warn(
-                { err, docName: configDocName },
-                '[config-file-watcher] change handler failed',
-              );
-            }),
-          { poll: fileWatching !== 'off' },
+        const cleanup = await startConfigFileWatcher(absPath, (content) =>
+          takeInConfigChange(content).catch((err: unknown) => {
+            log.warn(
+              { err, docName: configDocName },
+              '[config-file-watcher] change handler failed',
+            );
+          }),
         );
         configFileWatcherCleanups.push({ docName: configDocName, cleanup });
         configFileWatcherResyncs.set(configDocName, cleanup.resync);
@@ -5724,58 +5745,55 @@ export function createServer(options: ServerOptions): ServerInstance {
       );
       const ignoreCleanup = ephemeral
         ? null
-        : await startMultiPathConfigFileWatcher(
-            ignorePaths,
-            (changedPath, content) =>
-              (async () => {
-                if (changedPath === okignorePath) {
-                  try {
-                    const document = hocuspocus.documents.get(CONFIG_DOC_NAME_OKIGNORE) ?? null;
-                    const outcome = await applyExternalConfigChange(
-                      document,
-                      CONFIG_DOC_NAME_OKIGNORE,
-                      content,
-                      persistence.configPersistenceCtx,
-                    );
-                    ignoreLog.info(
-                      { docName: CONFIG_DOC_NAME_OKIGNORE, outcome },
-                      '[ignore-watcher] applyExternalConfigChange outcome',
-                    );
-                  } catch (err) {
-                    ignoreLog.error(
-                      { err, changedPath: relative(projectDir, changedPath) },
-                      '[ignore-watcher] applyExternalConfigChange failed; rebuild proceeds independently',
-                    );
-                  }
-                }
-
-                const result = await contentFilter.rebuildIgnorePatterns();
-                if (result.ok) {
+        : await startMultiPathConfigFileWatcher(ignorePaths, (changedPath, content) =>
+            (async () => {
+              if (changedPath === okignorePath) {
+                try {
+                  const document = hocuspocus.documents.get(CONFIG_DOC_NAME_OKIGNORE) ?? null;
+                  const outcome = await applyExternalConfigChange(
+                    document,
+                    CONFIG_DOC_NAME_OKIGNORE,
+                    content,
+                    persistence.configPersistenceCtx,
+                  );
                   ignoreLog.info(
-                    {
-                      changedPath: relative(projectDir, changedPath),
-                      patternCount: result.patternCount,
-                      nestedFileCount: result.nestedFileCount,
-                      durationMs: result.durationMs,
-                    },
-                    '[ignore-watcher] rebuild succeeded — broadcasting files channel',
+                    { docName: CONFIG_DOC_NAME_OKIGNORE, outcome },
+                    '[ignore-watcher] applyExternalConfigChange outcome',
                   );
-                  cc1Broadcaster?.signal('files');
-                } else {
-                  const projectRelPath = relative(projectDir, changedPath) || '.';
-                  ignoreLog.warn(
-                    { changedPath: projectRelPath, error: result.error.message },
-                    '[ignore-watcher] rebuild failed — emitting config-ignore-nested-error',
+                } catch (err) {
+                  ignoreLog.error(
+                    { err, changedPath: relative(projectDir, changedPath) },
+                    '[ignore-watcher] applyExternalConfigChange failed; rebuild proceeds independently',
                   );
-                  cc1Broadcaster?.emitConfigIgnoreNestedError(projectRelPath, result.error.message);
                 }
-              })().catch((err) => {
-                ignoreLog.error(
-                  { err, changedPath: relative(projectDir, changedPath) || '.' },
-                  '[ignore-watcher] handler threw',
+              }
+
+              const result = await contentFilter.rebuildIgnorePatterns();
+              if (result.ok) {
+                ignoreLog.info(
+                  {
+                    changedPath: relative(projectDir, changedPath),
+                    patternCount: result.patternCount,
+                    nestedFileCount: result.nestedFileCount,
+                    durationMs: result.durationMs,
+                  },
+                  '[ignore-watcher] rebuild succeeded — broadcasting files channel',
                 );
-              }),
-            { poll: fileWatching !== 'off' },
+                cc1Broadcaster?.signal('files');
+              } else {
+                const projectRelPath = relative(projectDir, changedPath) || '.';
+                ignoreLog.warn(
+                  { changedPath: projectRelPath, error: result.error.message },
+                  '[ignore-watcher] rebuild failed — emitting config-ignore-nested-error',
+                );
+                cc1Broadcaster?.emitConfigIgnoreNestedError(projectRelPath, result.error.message);
+              }
+            })().catch((err) => {
+              ignoreLog.error(
+                { err, changedPath: relative(projectDir, changedPath) || '.' },
+                '[ignore-watcher] handler threw',
+              );
+            }),
           );
       if (ignoreCleanup) {
         configFileWatcherCleanups.push({ docName: '__ignore-files__', cleanup: ignoreCleanup });
@@ -5827,15 +5845,8 @@ export function createServer(options: ServerOptions): ServerInstance {
               startWatcher(canonicalContentDir, onDiskEvent, contentFilter, {
                 onRecoveryComplete: () => derivedDocumentIndex.recordInventoryReconciled(),
                 onRecoveryPassCompleted: (pass, whole) => settleVanishedDocuments(pass, whole),
-                nativeBackend: options.watcherBackend,
-                clock: options.watcherClock,
-                ...(fileWatching === 'off' ? { forceBackend: 'off' as const } : {}),
-                freshnessIntervalMs:
-                  fileWatching === 'off'
-                    ? null
-                    : options.freshnessIntervalMs === undefined
-                      ? FRESHNESS_BASE_INTERVAL_MS
-                      : options.freshnessIntervalMs,
+                forceBackend: 'off',
+                freshnessIntervalMs: null,
               }),
             ),
           (handle) => {
@@ -6034,7 +6045,7 @@ export function createServer(options: ServerOptions): ServerInstance {
         try {
           await conflicts.pruneMergeNativeAgainstGit();
         } catch (err) {
-          log.warn({ err }, '[head-watcher] conflict prune against git failed');
+          log.warn({ err }, '[batch] conflict prune against git failed');
         }
       } else {
         incrementBranchSwitch();
@@ -6179,72 +6190,7 @@ export function createServer(options: ServerOptions): ServerInstance {
 
     gitMoveSteps = { begin: beginGitMove, end: endGitMove };
 
-    if (fileWatching === 'off') {
-      handedBranch = readProjectHeadState(projectDir).branch;
-      log.info(
-        {},
-        '[server] HEAD watching is off; Git moves are handed over by the code that makes them',
-      );
-    } else {
-      let headBatchHanded = false;
-      try {
-        await adoptWatcher(
-          () =>
-            startHeadWatcher(
-              projectDir,
-              async ({ trigger }) => {
-                headBatchHanded = handedGitMoves.size > 0;
-                if (headBatchHanded) return;
-                await beginGitMove('head-watcher', trigger);
-              },
-              async (info) => {
-                if (headBatchHanded) {
-                  headBatchHanded = false;
-                  return;
-                }
-                if (handedGitMoves.size > 0) {
-                  releaseGitMoveAdmission('head-watcher');
-                  releaseBatchHold('head-watcher');
-                  return;
-                }
-                const alreadyHanded =
-                  info.newHead !== null &&
-                  info.newHead === lastHandedGitMove?.head &&
-                  info.newBranch === lastHandedGitMove?.branch;
-                await endGitMove(
-                  'head-watcher',
-                  alreadyHanded
-                    ? {
-                        ...info,
-                        headMoved: false,
-                        oldHead: info.newHead,
-                        batchKind: 'within-branch',
-                      }
-                    : info,
-                );
-              },
-              {
-                nativeBackend: options.watcherBackend,
-                clock: options.watcherClock,
-                onGaveUp: () => {
-                  if (!degraded.includes('head-watcher')) degraded.push('head-watcher');
-                },
-                onBack: () => {
-                  const at = degraded.indexOf('head-watcher');
-                  if (at !== -1) degraded.splice(at, 1);
-                },
-              },
-            ),
-          (handle) => {
-            headWatcher = handle;
-          },
-          'head',
-        );
-      } catch (err) {
-        log.error({ err }, '[server] HEAD watcher failed to start');
-        degraded.push('head-watcher');
-      }
-    }
+    handedBranch = readProjectHeadState(projectDir).branch;
 
     conflicts.subscribe((change) => {
       if (change.type !== 'raised') return;
@@ -6405,13 +6351,21 @@ export function createServer(options: ServerOptions): ServerInstance {
     getLinkPreviewsEnabled: readLinkPreviewsEnabled,
     resolveEmbed,
     resolveTrackedFile,
-    recheckDisk: () => {
+    recheckDisk: async () => {
       if (!watcher) {
-        return Promise.reject(
-          new Error('the file watcher is not running, so there is nothing to re-check'),
-        );
+        throw new Error('the file watcher is not running, so there is nothing to re-check');
       }
+      await recheckConfigFiles();
       return watcher.recheck();
+    },
+    runGitMove: async (step) => {
+      const handOver = batchFlagFor('git-move');
+      await handOver(true);
+      try {
+        return await step();
+      } finally {
+        await handOver(false);
+      }
     },
   };
 }

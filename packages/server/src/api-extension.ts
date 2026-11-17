@@ -1249,6 +1249,8 @@ interface ApiExtensionBaseOptions {
   setCheckoutInProgress?: (value: boolean) => void | Promise<void>;
   refreshDocumentsFromDisk: RefreshDocumentsFromDisk;
   rereadFromDisk?: () => Promise<DocumentRereadSuccess>;
+  takeInPaths?: (absolutePaths: readonly string[]) => Promise<void>;
+  takeInFolder?: () => Promise<void>;
   localOpCliArgs?: string[];
   authStreamHeartbeatMs?: number;
   projectDir?: string;
@@ -1641,6 +1643,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   localApi: LocalApiDispatch;
   shutdownLocalOps(): Promise<void>;
 } {
+  const { takeInPaths, takeInFolder } = options;
   const { durabilityState } = options;
   let closingMutations = false;
   const pendingMutations = new Set<Promise<void>>();
@@ -2842,6 +2845,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
             renamedAssets,
           );
           await recordDerivedMutationsBestEffort(derivedMutations, 'asset-rename');
+          await takeInPaths?.([sourcePath, destinationPath]);
           signalChannel?.('files');
 
           rewrittenDocs.sort((a, b) => a.docName.localeCompare(b.docName));
@@ -2985,6 +2989,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
               [{ kind: 'delete', documentName: sourceDocName }, ...rewriteResult.derivedMutations],
               'document-to-file-rename',
             );
+            await takeInPaths?.([destinationPath]);
             signalChannel?.('files');
           });
 
@@ -3098,6 +3103,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
               renamedAssets,
             );
             await recordDerivedMutationsBestEffort(derivedMutations, 'asset-only-folder-rename');
+            await takeInFolder?.();
             rewrittenDocs.sort((a, b) => a.docName.localeCompare(b.docName));
             return { renamed: [], renamedAssets, rewrittenDocs };
           }
@@ -3428,6 +3434,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
             }
           });
 
+          if (kind === 'folder') await takeInFolder?.();
           signalChannel?.('files');
 
           rewrittenDocs.sort((a, b) => a.docName.localeCompare(b.docName));
@@ -4217,6 +4224,8 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   const fileOpsService = createFileOpsService({
     assertContentSubtree,
     contentDir,
+    takeInPaths,
+    takeInFolder,
     resolveContentEntryPath,
     docNameForPath: (relPath) => docNameForFileOperationPath(contentDir, relPath),
     docNameToRelativePath,
@@ -4695,6 +4704,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     semanticSearch,
   });
   const fileOpsRoutes = createFileOpsRoutes({
+    takeInPaths,
     contentDir,
     projectDir,
     log,

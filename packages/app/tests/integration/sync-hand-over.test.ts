@@ -69,7 +69,7 @@ async function backlinksOf(server: SyncWiredTestServer, docName: string): Promis
   return (body.backlinks ?? []).map((link) => link.docName ?? link.source ?? '');
 }
 
-describe.each(['off', 'on'] as const)('a pull with file watching %s', (fileWatching) => {
+describe('a pull', () => {
   const servers: SyncWiredTestServer[] = [];
   const clients: TestClient[] = [];
   const cleanups: Array<() => void> = [];
@@ -85,7 +85,6 @@ describe.each(['off', 'on'] as const)('a pull with file watching %s', (fileWatch
       mode: 'follow',
       originSeed: { '.gitquire/config.yml': '{}\n', ...originSeed },
       projectConfigYml: originSeed['.gitquire/config.yml'] ?? '{}\n',
-      serverOptions: { fileWatching },
     });
     servers.push(server);
     return server;
@@ -344,7 +343,7 @@ describe.each(['off', 'on'] as const)('a pull with file watching %s', (fileWatch
   );
 });
 
-describe('re-reading from disk with file watching off', () => {
+describe('re-reading from disk', () => {
   const servers: SyncWiredTestServer[] = [];
   const clients: TestClient[] = [];
 
@@ -360,7 +359,6 @@ describe('re-reading from disk with file watching off', () => {
         mode: 'follow',
         originSeed: { '.gitquire/config.yml': '{}\n', 'guide.md': '# Guide\n\nversion one\n' },
         projectConfigYml: '{}\n',
-        serverOptions: { fileWatching: 'off' },
       });
       servers.push(server);
       const client = await createTestClient(server.port, 'guide');

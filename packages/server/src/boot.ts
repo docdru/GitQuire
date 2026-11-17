@@ -36,6 +36,7 @@ import {
   describeGitPreflightFailure,
   emitPreflightFailureSpan,
 } from './git-preflight-telemetry.ts';
+import type { LiveServerHandle } from './gitquire/drafts/setup.ts';
 import {
   createAccessGateFromEnv,
   createGitQuireHttp,
@@ -153,9 +154,7 @@ export interface BootServerOptions
     | 'singleDocRelPath'
     | 'ephemeral'
     | 'configHomedirOverride'
-    | 'watcherBackend'
     | 'watcherClock'
-    | 'freshnessIntervalMs'
   > {
   config: Config;
   skipAutoInit?: boolean;
@@ -301,7 +300,9 @@ async function bootServerInner(
     projectDir: opts.projectDir ?? opts.contentDir,
     tokens: gitHubAppTokens,
   });
+  const liveServer: LiveServerHandle = {};
   const gitquireHttp = createGitQuireHttp(process.env, {
+    liveServer,
     projectDir: opts.projectDir ?? opts.contentDir,
     contentDir: opts.contentDir,
     gate: accessGate,
@@ -439,10 +440,12 @@ async function bootServerInner(
     singleDocRelPath: opts.singleDocRelPath,
     ephemeral: opts.ephemeral,
     configHomedirOverride: opts.configHomedirOverride,
-    watcherBackend: opts.watcherBackend,
     watcherClock: opts.watcherClock,
-    freshnessIntervalMs: opts.freshnessIntervalMs,
   });
+  liveServer.current = {
+    pull: () => serverInstance.syncEngine?.trigger('pull') ?? Promise.resolve(),
+    reread: () => serverInstance.recheckDisk(),
+  };
   gitquireHttp.useContentFilter({
     isExcluded: (rel) => serverInstance.contentFilter.isExcluded(rel),
     isDirExcluded: (rel) => serverInstance.contentFilter.isDirExcluded(rel),

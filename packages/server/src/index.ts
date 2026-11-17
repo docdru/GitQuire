@@ -239,7 +239,6 @@ export {
   migrateLegacyDataFolders,
   migrateLegacyHomeFolder,
 } from './gitquire/legacy-data-folder.ts';
-export { type ProjectHeadState, readProjectHeadState } from './head-watcher.ts';
 export {
   assertSafeProjectRoot,
   canonicalizeForCompare,
@@ -476,6 +475,7 @@ export {
   ensureProjectGit,
   ProjectGitInitError,
 } from './project-git.ts';
+export { type ProjectHeadState, readProjectHeadState } from './project-head.ts';
 export { prepareProjectLogsDir, prepareSpawnProjectLogsDir } from './project-logs-retention.ts';
 export {
   CONFLICT_MARKER_RE,

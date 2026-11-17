@@ -761,7 +761,6 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
   const DEGRADED_IMPACTS: Record<string, string> = {
     'shadow-repo': 'Version history and branch-switch safety unavailable',
     'file-watcher': 'External file changes will not sync to the editor',
-    'head-watcher': 'Git branch switches may cause document inconsistency',
   };
   booted.ready
     .then(async () => {

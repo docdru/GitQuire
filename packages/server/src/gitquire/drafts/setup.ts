@@ -26,6 +26,7 @@ const FOLLOW_REMOTE_MS = 2 * 60 * 1000;
 const PROJECT_FILES = ['.gitquire/config.yml', '.okignore'];
 
 export interface DraftsSetupDeps {
+  liveServer?: LiveServerHandle;
   env: Env;
   projectDir: string;
   log: GateLogger;
@@ -47,7 +48,16 @@ export interface Drafts {
   stop: () => Promise<void>;
 }
 
-function pullLiveSoon(env: Env): void {
+export interface LiveServerHandle {
+  current?: { pull: () => Promise<unknown>; reread: () => Promise<unknown> };
+}
+
+function pullLiveSoon(env: Env, live: LiveServerHandle | undefined): void {
+  const inProcess = live?.current;
+  if (inProcess !== undefined) {
+    void inProcess.pull().catch(() => undefined);
+    return;
+  }
   const port = Number(env.PORT ?? '') || 8080;
   fetch(`http://127.0.0.1:${port}/api/sync/trigger`, {
     method: 'POST',
@@ -56,7 +66,12 @@ function pullLiveSoon(env: Env): void {
   }).catch(() => undefined);
 }
 
-function rereadLiveSoon(env: Env): void {
+function rereadLiveSoon(env: Env, live: LiveServerHandle | undefined): void {
+  const inProcess = live?.current;
+  if (inProcess !== undefined) {
+    void inProcess.reread().catch(() => undefined);
+    return;
+  }
   const port = Number(env.PORT ?? '') || 8080;
   fetch(`http://127.0.0.1:${port}/api/documents/reread`, {
     method: 'POST',
@@ -159,8 +174,8 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     authEnv,
     baseBranch,
     log: deps.log,
-    onPublished: () => pullLiveSoon(deps.env),
-    onLiveFilesChanged: () => rereadLiveSoon(deps.env),
+    onPublished: () => pullLiveSoon(deps.env, deps.liveServer),
+    onLiveFilesChanged: () => rereadLiveSoon(deps.env, deps.liveServer),
   });
   const http = createDraftsHttp({
     service,

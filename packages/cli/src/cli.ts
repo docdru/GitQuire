@@ -47,7 +47,7 @@ import { previewCommand } from './commands/preview.ts';
 import { psCommand } from './commands/ps.ts';
 import { pullCommand } from './commands/pull.ts';
 import { pushCommand } from './commands/push.ts';
-import { rereadCommand } from './commands/reread.ts';
+import { rereadCommand, rereadIfRunning } from './commands/reread.ts';
 import { seedCommand } from './commands/seed.ts';
 import { shareCommand } from './commands/share/index.ts';
 import { sharingCommand } from './commands/sharing/index.ts';
@@ -55,6 +55,7 @@ import { runStartCommand, startCommand } from './commands/start.ts';
 import { statusCommand } from './commands/status.ts';
 import { stopCommand } from './commands/stop.ts';
 import { syncCommand } from './commands/sync.ts';
+import { writesFilesForARunningServer } from './commands/writes-files.ts';
 import { PACKAGE_VERSION } from './constants.ts';
 import { loadConfig } from './index.ts';
 import { legacyCommandNotice } from './legacy-command-name.ts';
@@ -81,6 +82,21 @@ program
   )
   .option('--no-color', 'Disable color output')
   .option('--color', 'Force color output')
+  .hook('postAction', async (_thisCommand, actionCommand) => {
+    if (!writesFilesForARunningServer(actionCommand)) return;
+    const opts = actionCommand.opts<{ cwd?: string; json?: boolean }>();
+    try {
+      const reread = await rereadIfRunning(opts.cwd ?? process.cwd());
+      if (reread && opts.json !== true) {
+        process.stderr.write('Asked the running GitQuire server to re-read the files.\n');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      process.stderr.write(
+        `The running GitQuire server could not re-read the files (${message}); run \`gitquire reread\`.\n`,
+      );
+    }
+  })
   .hook('preAction', (thisCommand, actionCommand) => {
     const opts = thisCommand.opts();
     const cwd = opts.cwd as string | undefined;
