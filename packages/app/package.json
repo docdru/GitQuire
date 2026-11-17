@@ -63,22 +63,19 @@
       "name": "main app bundle (gzipped)",
       "path": "dist/assets/index-*.js",
       "limit": "487 kB",
-      "gzip": true,
-      "running": false
+      "gzip": true
     },
     {
       "name": "all JS chunks combined (gzipped)",
       "path": "dist/assets/*.js",
       "limit": "9.22 MB",
-      "gzip": true,
-      "running": false
+      "gzip": true
     },
     {
       "name": "main CSS (gzipped)",
       "path": "dist/assets/index-*.css",
       "limit": "59 kB",
-      "gzip": true,
-      "running": false
+      "gzip": true
     }
   ],
   "dependencies": {
@@ -170,7 +167,7 @@
     "react-medium-image-zoom": "5.4.3",
     "react-resizable-panels": "^4.9.0",
     "scheduler-polyfill": "^1.3.0",
-    "shadcn": "^4.2.0",
+    "shadcn": "^4.23.0",
     "shiki": "^3.23.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
@@ -194,7 +191,7 @@
     "@opentelemetry/sdk-trace-base": "^2.0.0",
     "@playwright/test": "^1.63.0",
     "@rolldown/plugin-babel": "^0.2.2",
-    "@size-limit/preset-app": "^12.1.0",
+    "@size-limit/file": "^12.1.0",
     "@tailwindcss/postcss": "^4.2.2",
     "@testing-library/jest-dom": "^6",
     "@testing-library/react": "^16",
@@ -214,7 +211,6 @@
     "fast-check": "^4.6.0",
     "jsdom": "^29.1.1",
     "lib0": "^0.2.117",
-    "memlab": "2.0.2",
     "playwright": "1.63.0",
     "remark-mdx": "^3.1.1",
     "remark-parse": "^11.0.0",

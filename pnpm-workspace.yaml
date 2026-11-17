@@ -37,14 +37,11 @@ verifyDepsBeforeRun: false
 # Dependency build scripts are blocked by default. Every detected
 # script is explicitly allowed or denied.
 allowBuilds:
-  '@memlab/cli': false
   '@mongodb-js/zstd': false
   core-js: false
   esbuild: false
-  memlab: false
   node-liblzma: false
   protobufjs: false
-  puppeteer: false
   sharp: false
   sleep: false
 
@@ -58,8 +55,8 @@ overrides:
   # `@opentelemetry/core@2` sits under packages/app's `^2.9.0` today for that
   # reason. Check by hand when adding one.
   #
-  # FIVE entries (three below, plus @hono/node-server@1 and happy-dom@20,
-  # explained inline) deliberately cross a breaking boundary, because the vulnerable
+  # SEVEN entries (three below, plus @hono/node-server@1, happy-dom@20,
+  # minimatch@10 and katex@0.16, explained inline) deliberately cross a breaking boundary, because the vulnerable
   # version is the last release on its line and there is no in-line fix at all:
   #   nanoid@4  -> 5.x   (4.0.2 is the final 4.x; consumer
   #                       @excalidraw/mermaid-to-excalidraw pins it exactly at
@@ -100,8 +97,10 @@ overrides:
   'ip-address@10': ~10.7.4
   'js-yaml@3': ~3.15.2
   'js-yaml@4': ~4.3.2
+  'katex@0.16': ~0.18.10 # prototype-pollution trust bypass fixed in 0.18.2; mermaid declares ^0.16.45, the app already ships 0.18
   'lodash-es@4': ~4.18.0
   'mermaid@11': ~11.16.1
+  'minimatch@10': ~11.0.8 # globparts DoS is fixed only in 11; just-bash 2.14 and @ts-morph/common (under shadcn) declare ^10
   'nanoid@3': ~3.3.18
   'nanoid@4': ~5.1.16
   'nanoid@5': ~5.1.16
@@ -113,7 +112,7 @@ overrides:
   # opaque worker error, and `ignoreBuildErrors` does not suppress it. So this
   # floor moves in lockstep with the compiler, never after it. From here the line
   # is security-only again -- a bare `^16` caret would float to the next minor.
-  'next@16': ~16.4.3 # GHSA-2464-fhr4-w9xw + GHSA-673q-mjm6-r5xr (unauthenticated RCE, fixed in 16.4.1)
+  'next@16': ~16.4.6 # GHSA-2464-fhr4-w9xw + GHSA-673q-mjm6-r5xr (unauthenticated RCE, fixed in 16.4.1); 16.4.5 root-param disclosure and cache leak
   'postcss@8': ~8.5.23
   'postcss-selector-parser@7': ~7.1.6
   'proxy-addr@2': ~2.0.8
