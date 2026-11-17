@@ -85,7 +85,7 @@ export interface AsyncSubscription {
   unsubscribe(): Promise<void>;
 }
 
-type WatcherBackend = 'parcel' | 'chokidar';
+type WatcherBackend = 'parcel' | 'chokidar' | 'off';
 
 type MarkdownDiskEvent =
   | { kind: 'create'; path: string; docName: string; content: string }
@@ -4568,6 +4568,76 @@ async function startChokidarWatcher(
   };
 }
 
+function startUnwatchedRecovery(
+  contentDir: string,
+  contentFilter: ContentFilter | undefined,
+  fileIndex: Map<string, FileIndexEntry>,
+  generalFileIndex: GeneralFileIndex,
+  folderIndex: Map<string, FolderIndexEntry>,
+  onDiskEvent: (event: DiskEvent) => Promise<void>,
+  aliasMap: Map<string, string>,
+  aliasPaths: Map<string, string>,
+  folderAliasIndex: Map<string, string>,
+  setActivePublicMutations: (mutations: RecoveryPublicMutations | null) => void,
+  onAfterMutation: () => void,
+  getFileIndexGeneration: () => number,
+  onRawBatch: ((absPaths: readonly string[]) => void) | undefined,
+  recoveryHooks: RecoveryHooks,
+  carryOver: Set<string>,
+): WatcherBackendSubscription {
+  let closed = false;
+  let workTail = Promise.resolve();
+  const runOrdered = (work: () => Promise<void>): Promise<void> => {
+    if (closed) return Promise.resolve();
+    const next = workTail.then(work);
+    workTail = next.catch((err) => {
+      log.error({ err }, 're-check batch error');
+    });
+    return next;
+  };
+  const { requestRecovery, isIdle, passesStarted, beginPass } = createRecoveryDriver({
+    runOrdered,
+    isClosed: () => closed,
+    recover: (recoveryMutations, counter, mode, handed) =>
+      recoverDiskChanges(
+        contentDir,
+        contentFilter,
+        fileIndex,
+        generalFileIndex,
+        folderIndex,
+        aliasMap,
+        aliasPaths,
+        folderAliasIndex,
+        recoveryMutations,
+        onDiskEvent,
+        onAfterMutation,
+        getFileIndexGeneration,
+        counter,
+        onRawBatch,
+        handed ? undefined : beginFreshnessReuse(mode, fileIndex, carryOver),
+        handed,
+      ),
+    setActivePublicMutations,
+    onAfterMutation,
+    recoveryHooks,
+    backendName: 'off',
+  });
+  return {
+    runOrdered,
+    requestRecovery,
+    isRecoveryIdle: isIdle,
+    recoveryPassesStarted: passesStarted,
+    beginRecoveryPass: beginPass,
+    noticeRootMissing: () => {
+      log.warn({ contentDir }, `the content folder ${contentDir} is missing`);
+    },
+    unsubscribe: async () => {
+      closed = true;
+      await workTail;
+    },
+  };
+}
+
 function coverageWithoutWatcher(freshnessIntervalMs: number | null): string {
   if (freshnessIntervalMs === null) {
     return 'changes made outside the app are found only by an explicit re-check';
@@ -4578,7 +4648,7 @@ function coverageWithoutWatcher(freshnessIntervalMs: number | null): string {
 }
 
 export interface StartWatcherOptions {
-  forceBackend?: 'parcel' | 'chokidar';
+  forceBackend?: 'parcel' | 'chokidar' | 'off';
   onRawBatch?: (absPaths: readonly string[]) => void;
   onRecoveryComplete?: () => Promise<void>;
   onRecoveryPassCompleted?: (pass: number, whole: boolean) => Promise<void>;
@@ -4679,9 +4749,10 @@ async function startWatcherWithClock(
   let backend: WatcherBackend;
   const forceChokidar = process.env.GITQUIRE_FILE_WATCHER_BACKEND === 'chokidar';
   const platform = opts.platform ?? process.platform;
+  const watchingOff = opts.forceBackend === 'off';
   try {
     const parcelSub =
-      forceChokidar || opts.forceBackend === 'chokidar'
+      watchingOff || forceChokidar || opts.forceBackend === 'chokidar'
         ? null
         : await startParcelWatcher(
             contentDir,
@@ -4712,6 +4783,27 @@ async function startWatcherWithClock(
       runOrderedRescan = parcelSub.runOrdered;
       settleSubscription = () => parcelSub.settle();
       backend = 'parcel';
+    } else if (watchingOff) {
+      subscription = startUnwatchedRecovery(
+        contentDir,
+        contentFilter,
+        fileIndex,
+        generalFileIndex,
+        folderIndex,
+        onDiskEvent,
+        aliasMap,
+        aliasPaths,
+        folderAliasIndex,
+        (mutations) => {
+          activePublicMutations = mutations;
+        },
+        bumpFileIndexGeneration,
+        () => fileIndexGeneration,
+        onRawBatch,
+        recoveryHooks,
+        carryOver,
+      );
+      backend = 'off';
     } else {
       if (opts.forceBackend === 'parcel') {
         throw new Error('@parcel/watcher unavailable (forced backend)');
@@ -4816,7 +4908,14 @@ async function startWatcherWithClock(
   };
   if (freshnessIntervalMs !== null) scheduleFreshnessPass(freshnessIntervalMs, freshnessIntervalMs);
 
-  log.info({ contentDir, backend, freshnessIntervalMs }, 'watching for external .md changes');
+  if (watchingOff) {
+    log.info(
+      { contentDir, backend, freshnessIntervalMs },
+      'file watching is off; the content folder is re-read after Git moves and on request',
+    );
+  } else {
+    log.info({ contentDir, backend, freshnessIntervalMs }, 'watching for external .md changes');
+  }
 
   return {
     async unsubscribe() {

@@ -9,7 +9,12 @@ export type ConfigFileWatcherUnsubscribe = () => Promise<void>;
 
 export type ConfigFileWatcher = ConfigFileWatcherUnsubscribe & {
   readonly resync: () => void;
+  readonly recheck: () => Promise<boolean>;
 };
+
+export interface ConfigFileWatcherOptions {
+  readonly poll?: boolean;
+}
 
 function readOrNull(path: string, log: ReturnType<typeof getLogger>): string | null {
   try {
@@ -24,7 +29,8 @@ function readOrNull(path: string, log: ReturnType<typeof getLogger>): string | n
 
 export async function startConfigFileWatcher(
   absPath: string,
-  onChange: (content: string) => void,
+  onChange: (content: string) => void | Promise<void>,
+  options: ConfigFileWatcherOptions = {},
 ): Promise<ConfigFileWatcher> {
   const log = getLogger('config-file-watcher');
 
@@ -39,8 +45,8 @@ export async function startConfigFileWatcher(
   }
 
   let lastContent = readOrNull(absPath, log);
-  const handlePath = (path: string, logMissing = true): void => {
-    if (path !== absPath) return;
+  const handlePath = async (path: string, logMissing = true): Promise<boolean> => {
+    if (path !== absPath) return false;
     let content: string;
     try {
       content = readFileSync(path, 'utf-8');
@@ -50,42 +56,51 @@ export async function startConfigFileWatcher(
         if (logMissing) {
           log.debug({ path }, 'config file disappeared between event and read; dropping');
         }
-        return;
+        return false;
       }
       log.warn({ err, path }, 'config file read failed; dropping event');
-      return;
+      return false;
     }
-    if (content === lastContent) return;
+    if (content === lastContent) return false;
     lastContent = content;
     try {
-      onChange(content);
+      await onChange(content);
     } catch (err) {
       log.warn({ err, path }, 'config file change handler threw');
     }
+    return true;
   };
   const handleUnlink = (path: string): void => {
     if (path !== absPath) return;
     log.debug({ path }, 'config file unlinked; Y.Text retained at current state');
   };
 
-  const stop = await startPolledPathWatcher({
-    listPaths: async () => [absPath],
-    onEvent: (event, path) => (event === 'unlink' ? handleUnlink(path) : handlePath(path)),
-    onError: (err, path) => {
-      log.warn({ err, path }, '[config-file-watcher] poll error');
-    },
-  });
-  handlePath(absPath, false);
+  const stop =
+    options.poll === false
+      ? async (): Promise<void> => {}
+      : await startPolledPathWatcher({
+          listPaths: async () => [absPath],
+          onEvent: (event, path) => {
+            if (event === 'unlink') handleUnlink(path);
+            else void handlePath(path);
+          },
+          onError: (err, path) => {
+            log.warn({ err, path }, '[config-file-watcher] poll error');
+          },
+        });
+  void handlePath(absPath, false);
   return Object.assign(() => stop(), {
     resync: () => {
       lastContent = readOrNull(absPath, log);
     },
+    recheck: () => handlePath(absPath, false),
   });
 }
 
 export async function startMultiPathConfigFileWatcher(
   absPaths: ReadonlyArray<string>,
-  onChange: (path: string, content: string) => void,
+  onChange: (path: string, content: string) => void | Promise<void>,
+  options: ConfigFileWatcherOptions = {},
 ): Promise<ConfigFileWatcher> {
   if (absPaths.length === 0) {
     throw new Error('startMultiPathConfigFileWatcher requires at least one absolute path');
@@ -112,8 +127,8 @@ export async function startMultiPathConfigFileWatcher(
   };
   resync();
 
-  const handlePath = (path: string, logMissing = true): void => {
-    if (!watchedPaths.has(path)) return;
+  const handlePath = async (path: string, logMissing = true): Promise<boolean> => {
+    if (!watchedPaths.has(path)) return false;
     let content: string;
     try {
       content = readFileSync(path, 'utf-8');
@@ -123,31 +138,45 @@ export async function startMultiPathConfigFileWatcher(
         if (logMissing) {
           log.debug({ path }, 'config file disappeared between event and read; dropping');
         }
-        return;
+        return false;
       }
       log.warn({ err, path }, 'config file read failed; dropping event');
-      return;
+      return false;
     }
-    if (content === lastContent.get(path)) return;
+    if (content === lastContent.get(path)) return false;
     lastContent.set(path, content);
     try {
-      onChange(path, content);
+      await onChange(path, content);
     } catch (err) {
       log.warn({ err, path }, 'config file change handler threw');
     }
+    return true;
   };
   const handleUnlink = (path: string): void => {
     if (!watchedPaths.has(path)) return;
     log.debug({ path }, 'config file unlinked; downstream state retained');
   };
 
-  const stop = await startPolledPathWatcher({
-    listPaths: async () => Array.from(watchedPaths),
-    onEvent: (event, path) => (event === 'unlink' ? handleUnlink(path) : handlePath(path)),
-    onError: (err, path) => {
-      log.warn({ err, path }, '[config-file-watcher] poll error');
-    },
-  });
-  for (const path of watchedPaths) handlePath(path, false);
-  return Object.assign(() => stop(), { resync });
+  const stop =
+    options.poll === false
+      ? async (): Promise<void> => {}
+      : await startPolledPathWatcher({
+          listPaths: async () => Array.from(watchedPaths),
+          onEvent: (event, path) => {
+            if (event === 'unlink') handleUnlink(path);
+            else void handlePath(path);
+          },
+          onError: (err, path) => {
+            log.warn({ err, path }, '[config-file-watcher] poll error');
+          },
+        });
+  const recheck = async (): Promise<boolean> => {
+    let changed = false;
+    for (const path of watchedPaths) {
+      if (await handlePath(path, false)) changed = true;
+    }
+    return changed;
+  };
+  void recheck();
+  return Object.assign(() => stop(), { resync, recheck });
 }

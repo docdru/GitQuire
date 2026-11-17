@@ -363,6 +363,42 @@ import {
 import { type WatcherClock, type WatcherTimer, watcherClock } from './watcher-clock.ts';
 import { FRESHNESS_BASE_INTERVAL_MS } from './watcher-freshness.ts';
 
+interface GitMoveEnd {
+  headMoved: boolean;
+  oldHead: string | null;
+  newHead: string | null;
+  timeout: boolean;
+  batchKind: 'within-branch' | 'cross-branch' | 'detached-head';
+  oldBranch: string | null;
+  newBranch: string | null;
+}
+
+interface HandedGitMove {
+  oldHead: string | null;
+  oldBranch: string | null;
+  top: string | null;
+  dirty: string[];
+  holders: number;
+  ready: Promise<void>;
+}
+
+const HANDED_PATH_RECHECK_LIMIT = 200;
+
+function fileWatchingFromEnvironment(env: NodeJS.ProcessEnv): 'on' | 'off' {
+  return env.GITQUIRE_FILE_WATCHER_BACKEND?.trim().toLowerCase() === 'off' ? 'off' : 'on';
+}
+
+function isPlainMarkdownPath(relativePath: string): boolean {
+  const segments = relativePath.split(/[\\/]/);
+  if (segments.some((segment) => segment.startsWith('.'))) return false;
+  return /\.mdx?$/i.test(relativePath);
+}
+
+function gitMoveKind(oldBranch: string | null, newBranch: string | null): GitMoveEnd['batchKind'] {
+  if (newBranch?.startsWith('detached-')) return 'detached-head';
+  return oldBranch === newBranch ? 'within-branch' : 'cross-branch';
+}
+
 export interface ServerOptions {
   ingressPolicy?: IngressPolicy;
   port?: number;
@@ -409,6 +445,7 @@ export interface ServerOptions {
   watcherBackend?: NativeWatcherBackend;
   watcherClock?: WatcherClock;
   freshnessIntervalMs?: number | null;
+  fileWatching?: 'on' | 'off';
   mergeHistoryWriter?: MergeHistoryWriter;
   generatedIndexTestHooks?: {
     beforePlan?: (context: { fullSweep: boolean; signal: AbortSignal }) => Promise<void> | void;
@@ -611,7 +648,9 @@ export function createServer(options: ServerOptions): ServerInstance {
 
   const log = getLogger('server');
   let headWatcher: HeadWatcherHandle | null = null;
-  const getStorageBranch = () => headWatcher?.getLastKnownBranch() ?? null;
+  const fileWatching = options.fileWatching ?? fileWatchingFromEnvironment(process.env);
+  let handedBranch: string | null = null;
+  const getStorageBranch = () => headWatcher?.getLastKnownBranch() ?? handedBranch;
   const getReportedBranch = () =>
     headWatcher ? headWatcher.getLastKnownBranch() : readProjectHeadState(projectDir).branch;
   const generatedIndexWarningScope = createGeneratedIndexWarningScope(resolve(contentDir));
@@ -658,17 +697,234 @@ export function createServer(options: ServerOptions): ServerInstance {
     }
     await persistence.flushDeferredStores('within-branch');
   };
+  let gitMoveSteps: {
+    begin: (holder: string, trigger: string) => Promise<void>;
+    end: (holder: string, info: GitMoveEnd) => Promise<void>;
+  } | null = null;
+  const gitMoveAdmissions = new Map<string, () => void>();
+  const releaseGitMoveAdmission = (holder: string): void => {
+    const release = gitMoveAdmissions.get(holder);
+    gitMoveAdmissions.delete(holder);
+    release?.();
+  };
+  const handedGitMoves = new Map<string, HandedGitMove>();
+  let lastHandedGitMove: { head: string | null; branch: string | null } | null = null;
+
+  async function gitOutput(args: readonly string[]): Promise<string> {
+    return createGitInstance(projectDir, { credentialConfig: [], timeoutMs: 30_000 }).git.raw([
+      ...args,
+    ]);
+  }
+
+  async function dirtyProjectPaths(top: string): Promise<string[]> {
+    const fields = (
+      await gitOutput([
+        '--no-optional-locks',
+        'status',
+        '--porcelain=v1',
+        '-z',
+        '--untracked-files=all',
+      ])
+    ).split('\0');
+    const paths: string[] = [];
+    for (let i = 0; i < fields.length; i++) {
+      const entry = fields[i];
+      if (entry === undefined || entry.length < 4) continue;
+      paths.push(join(top, entry.slice(3)));
+      if ('RC'.includes(entry[0] ?? ' ') || 'RC'.includes(entry[1] ?? ' ')) {
+        const source = fields[++i];
+        if (source) paths.push(join(top, source));
+      }
+    }
+    return paths;
+  }
+
+  async function pathsChangedBetween(top: string, from: string, to: string): Promise<string[]> {
+    const fields = (
+      await gitOutput(['--no-optional-locks', 'diff', '--name-status', '-z', '-M', from, to])
+    ).split('\0');
+    const paths: string[] = [];
+    for (let i = 0; i < fields.length; i++) {
+      const status = fields[i];
+      if (!status) continue;
+      const pathCount = status[0] === 'R' || status[0] === 'C' ? 2 : 1;
+      for (let n = 0; n < pathCount; n++) {
+        const path = fields[++i];
+        if (path) paths.push(join(top, path));
+      }
+    }
+    return paths;
+  }
+
+  async function gitTopLevel(): Promise<string> {
+    return resolve(projectDir, (await gitOutput(['rev-parse', '--show-toplevel'])).trim());
+  }
+
+  async function recheckConfigFiles(): Promise<boolean> {
+    let ignoreChanged = false;
+    for (const [docName, recheck] of configFileWatcherRechecks) {
+      try {
+        const changed = await recheck();
+        if (changed && docName === CONFIG_DOC_NAME_OKIGNORE) ignoreChanged = true;
+      } catch (err) {
+        log.warn({ err, docName }, '[batch] re-reading a config file failed');
+      }
+    }
+    return ignoreChanged;
+  }
+
+  function realContentRoot(): string {
+    try {
+      return realpathSync(contentDir);
+    } catch {
+      return resolve(contentDir);
+    }
+  }
+
+  function contentPathsOf(paths: readonly string[]): string[] {
+    const root = resolve(contentDir);
+    const realRoot = realContentRoot();
+    const inside = new Set<string>();
+    for (const path of paths) {
+      if (path === realRoot || path.startsWith(`${realRoot}/`)) {
+        inside.add(join(root, relative(realRoot, path)));
+      } else if (path === root || path.startsWith(`${root}/`)) {
+        inside.add(path);
+      }
+    }
+    return [...inside];
+  }
+
+  function canRecheckPathByPath(paths: readonly string[]): boolean {
+    if (!watcher || paths.length > HANDED_PATH_RECHECK_LIMIT) return false;
+    const root = resolve(contentDir);
+    const known = new Set<string>();
+    for (const entry of watcher.getFileIndex().values()) known.add(entry.canonicalPath);
+    return paths.every((path) => {
+      if (!isPlainMarkdownPath(relative(root, path))) return false;
+      if (dirname(path) === root) return true;
+      return known.has(path) && existsSync(path);
+    });
+  }
+
+  async function rereadAfterGitMove(paths: readonly string[] | 'all'): Promise<void> {
+    const ignoreChanged = await recheckConfigFiles();
+    if (!watcher) return;
+    if (paths === 'all' || ignoreChanged) {
+      await watcher.recheck('full');
+      return;
+    }
+    const inside = contentPathsOf(paths);
+    if (inside.length === 0) {
+      if (paths.length > 0) {
+        log.debug(
+          { changed: paths.length },
+          '[batch] a Git move changed nothing in the content folder',
+        );
+      }
+      return;
+    }
+    if (canRecheckPathByPath(inside)) await watcher.recheckPaths(inside);
+    else await watcher.recheck('full');
+  }
+
+  async function beginHandedGitMove(owner: string): Promise<void> {
+    const running = handedGitMoves.get(owner);
+    if (running !== undefined) {
+      running.holders++;
+      await running.ready;
+      return;
+    }
+    const head = readProjectHeadState(projectDir);
+    const { promise: ready, resolve: markReady } = Promise.withResolvers<void>();
+    const move: HandedGitMove = {
+      oldHead: head.oid,
+      oldBranch: head.branch,
+      top: null,
+      dirty: [],
+      holders: 1,
+      ready,
+    };
+    handedGitMoves.set(owner, move);
+    try {
+      try {
+        await gitMoveSteps?.begin(owner, owner);
+      } catch (err) {
+        log.error({ err, owner }, '[batch] preparing for a Git move failed');
+      }
+      holdBatch(owner);
+      try {
+        move.top = await gitTopLevel();
+        move.dirty = await dirtyProjectPaths(move.top);
+      } catch (err) {
+        log.warn({ err, owner }, '[batch] could not list changed files before a Git move');
+      }
+    } finally {
+      markReady();
+    }
+  }
+
+  async function endHandedGitMove(owner: string): Promise<void> {
+    const start = handedGitMoves.get(owner);
+    if (start === undefined) return;
+    start.holders--;
+    if (start.holders > 0) return;
+    try {
+      const head = readProjectHeadState(projectDir);
+      const batchKind = gitMoveKind(start.oldBranch, head.branch);
+      if (batchKind === 'within-branch') {
+        let paths: string[] | 'all' = 'all';
+        if (start.top !== null) {
+          try {
+            const changed = [...start.dirty, ...(await dirtyProjectPaths(start.top))];
+            if (start.oldHead !== null && head.oid !== null && start.oldHead !== head.oid) {
+              changed.push(...(await pathsChangedBetween(start.top, start.oldHead, head.oid)));
+            }
+            paths = changed;
+          } catch (err) {
+            log.warn({ err, owner }, '[batch] could not list the files a Git move changed');
+          }
+        }
+        try {
+          await rereadAfterGitMove(paths);
+        } catch (err) {
+          log.error({ err, owner }, '[batch] re-reading files after a Git move failed');
+        }
+      } else {
+        await recheckConfigFiles();
+      }
+      lastHandedGitMove = { head: head.oid, branch: head.branch };
+      handedBranch = head.branch;
+      if (gitMoveSteps === null) return;
+      try {
+        await gitMoveSteps.end(owner, {
+          headMoved: start.oldHead !== head.oid,
+          oldHead: start.oldHead,
+          newHead: head.oid,
+          timeout: false,
+          batchKind,
+          oldBranch: start.oldBranch,
+          newBranch: head.branch,
+        });
+      } catch (err) {
+        log.error({ err, owner }, '[batch] finishing a Git move failed');
+      }
+    } finally {
+      handedGitMoves.delete(owner);
+      releaseGitMoveAdmission(owner);
+      if (releaseBatchHold(owner)) {
+        await finishBatch().catch((err: unknown) => {
+          log.error({ err, owner }, '[batch] draining after the batch failed');
+        });
+      }
+    }
+  }
+
   const batchFlagFor =
     (owner: string) =>
-    (value: boolean): void => {
-      if (value) {
-        holdBatch(owner);
-        return;
-      }
-      if (!releaseBatchHold(owner)) return;
-      void finishBatch().catch((err: unknown) => {
-        log.error({ err, owner }, '[batch] draining after the batch failed');
-      });
+    async (value: boolean): Promise<void> => {
+      if (value) await beginHandedGitMove(owner);
+      else await endHandedGitMove(owner);
     };
   const isBatchInProgress = () => durabilityState.isBatchInProgress();
 
@@ -743,7 +999,7 @@ export function createServer(options: ServerOptions): ServerInstance {
               removal.residentCurrent() && document
                 ? rescueUnflushedEditsBeforeTeardown(
                     docName,
-                    headWatcher?.getLastKnownBranch() ?? 'main',
+                    getStorageBranch() ?? 'main',
                     'delete',
                     true,
                   )
@@ -2719,6 +2975,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       getSyncEngine: () => syncEngine,
       conflicts,
       setBatchInProgress: batchFlagFor('conflict-resolve'),
+      setCheckoutInProgress: batchFlagFor('checkout'),
       refreshDocumentsFromDisk,
       localOpCliArgs,
       authStreamHeartbeatMs,
@@ -2848,6 +3105,7 @@ export function createServer(options: ServerOptions): ServerInstance {
     cleanup: ConfigFileWatcherUnsubscribe;
   }> = [];
   const configFileWatcherResyncs = new Map<ConfigDocName, () => void>();
+  const configFileWatcherRechecks = new Map<ConfigDocName, () => Promise<boolean>>();
 
   function safeRescuePath(shadowGitDir: string, docName: string): string | null {
     const rescueBase = resolve(shadowGitDir, 'rescue');
@@ -4917,6 +5175,7 @@ export function createServer(options: ServerOptions): ServerInstance {
           }
           configFileWatcherCleanups.length = 0;
           configFileWatcherResyncs.clear();
+          configFileWatcherRechecks.clear();
 
           try {
             cc1Broadcaster?.destroy();
@@ -5391,16 +5650,20 @@ export function createServer(options: ServerOptions): ServerInstance {
             logConfigDiagnostics(configDocName);
           }
         };
-        const cleanup = await startConfigFileWatcher(absPath, (content) => {
-          void takeInConfigChange(content).catch((err: unknown) => {
-            log.warn(
-              { err, docName: configDocName },
-              '[config-file-watcher] change handler failed',
-            );
-          });
-        });
+        const cleanup = await startConfigFileWatcher(
+          absPath,
+          (content) =>
+            takeInConfigChange(content).catch((err: unknown) => {
+              log.warn(
+                { err, docName: configDocName },
+                '[config-file-watcher] change handler failed',
+              );
+            }),
+          { poll: fileWatching !== 'off' },
+        );
         configFileWatcherCleanups.push({ docName: configDocName, cleanup });
         configFileWatcherResyncs.set(configDocName, cleanup.resync);
+        configFileWatcherRechecks.set(configDocName, cleanup.recheck);
         log.info({ docName: configDocName, path: absPath }, '[config-file-watcher] started');
       } catch (err) {
         log.warn(
@@ -5441,59 +5704,63 @@ export function createServer(options: ServerOptions): ServerInstance {
       );
       const ignoreCleanup = ephemeral
         ? null
-        : await startMultiPathConfigFileWatcher(ignorePaths, (changedPath, content) => {
-            void (async () => {
-              if (changedPath === okignorePath) {
-                try {
-                  const document = hocuspocus.documents.get(CONFIG_DOC_NAME_OKIGNORE) ?? null;
-                  const outcome = await applyExternalConfigChange(
-                    document,
-                    CONFIG_DOC_NAME_OKIGNORE,
-                    content,
-                    persistence.configPersistenceCtx,
-                  );
-                  ignoreLog.info(
-                    { docName: CONFIG_DOC_NAME_OKIGNORE, outcome },
-                    '[ignore-watcher] applyExternalConfigChange outcome',
-                  );
-                } catch (err) {
-                  ignoreLog.error(
-                    { err, changedPath: relative(projectDir, changedPath) },
-                    '[ignore-watcher] applyExternalConfigChange failed; rebuild proceeds independently',
-                  );
+        : await startMultiPathConfigFileWatcher(
+            ignorePaths,
+            (changedPath, content) =>
+              (async () => {
+                if (changedPath === okignorePath) {
+                  try {
+                    const document = hocuspocus.documents.get(CONFIG_DOC_NAME_OKIGNORE) ?? null;
+                    const outcome = await applyExternalConfigChange(
+                      document,
+                      CONFIG_DOC_NAME_OKIGNORE,
+                      content,
+                      persistence.configPersistenceCtx,
+                    );
+                    ignoreLog.info(
+                      { docName: CONFIG_DOC_NAME_OKIGNORE, outcome },
+                      '[ignore-watcher] applyExternalConfigChange outcome',
+                    );
+                  } catch (err) {
+                    ignoreLog.error(
+                      { err, changedPath: relative(projectDir, changedPath) },
+                      '[ignore-watcher] applyExternalConfigChange failed; rebuild proceeds independently',
+                    );
+                  }
                 }
-              }
 
-              const result = await contentFilter.rebuildIgnorePatterns();
-              if (result.ok) {
-                ignoreLog.info(
-                  {
-                    changedPath: relative(projectDir, changedPath),
-                    patternCount: result.patternCount,
-                    nestedFileCount: result.nestedFileCount,
-                    durationMs: result.durationMs,
-                  },
-                  '[ignore-watcher] rebuild succeeded — broadcasting files channel',
+                const result = await contentFilter.rebuildIgnorePatterns();
+                if (result.ok) {
+                  ignoreLog.info(
+                    {
+                      changedPath: relative(projectDir, changedPath),
+                      patternCount: result.patternCount,
+                      nestedFileCount: result.nestedFileCount,
+                      durationMs: result.durationMs,
+                    },
+                    '[ignore-watcher] rebuild succeeded — broadcasting files channel',
+                  );
+                  cc1Broadcaster?.signal('files');
+                } else {
+                  const projectRelPath = relative(projectDir, changedPath) || '.';
+                  ignoreLog.warn(
+                    { changedPath: projectRelPath, error: result.error.message },
+                    '[ignore-watcher] rebuild failed — emitting config-ignore-nested-error',
+                  );
+                  cc1Broadcaster?.emitConfigIgnoreNestedError(projectRelPath, result.error.message);
+                }
+              })().catch((err) => {
+                ignoreLog.error(
+                  { err, changedPath: relative(projectDir, changedPath) || '.' },
+                  '[ignore-watcher] handler threw',
                 );
-                cc1Broadcaster?.signal('files');
-              } else {
-                const projectRelPath = relative(projectDir, changedPath) || '.';
-                ignoreLog.warn(
-                  { changedPath: projectRelPath, error: result.error.message },
-                  '[ignore-watcher] rebuild failed — emitting config-ignore-nested-error',
-                );
-                cc1Broadcaster?.emitConfigIgnoreNestedError(projectRelPath, result.error.message);
-              }
-            })().catch((err) => {
-              ignoreLog.error(
-                { err, changedPath: relative(projectDir, changedPath) || '.' },
-                '[ignore-watcher] handler threw',
-              );
-            });
-          });
+              }),
+            { poll: fileWatching !== 'off' },
+          );
       if (ignoreCleanup) {
         configFileWatcherCleanups.push({ docName: '__ignore-files__', cleanup: ignoreCleanup });
         configFileWatcherResyncs.set(CONFIG_DOC_NAME_OKIGNORE, ignoreCleanup.resync);
+        configFileWatcherRechecks.set(CONFIG_DOC_NAME_OKIGNORE, ignoreCleanup.recheck);
         ignoreLog.info(
           { okignorePath, gitignorePath },
           '[ignore-watcher] multi-path watcher started',
@@ -5542,10 +5809,13 @@ export function createServer(options: ServerOptions): ServerInstance {
                 onRecoveryPassCompleted: (pass, whole) => settleVanishedDocuments(pass, whole),
                 nativeBackend: options.watcherBackend,
                 clock: options.watcherClock,
+                ...(fileWatching === 'off' ? { forceBackend: 'off' as const } : {}),
                 freshnessIntervalMs:
-                  options.freshnessIntervalMs === undefined
-                    ? FRESHNESS_BASE_INTERVAL_MS
-                    : options.freshnessIntervalMs,
+                  fileWatching === 'off'
+                    ? null
+                    : options.freshnessIntervalMs === undefined
+                      ? FRESHNESS_BASE_INTERVAL_MS
+                      : options.freshnessIntervalMs,
               }),
             ),
           (handle) => {
@@ -5633,291 +5903,327 @@ export function createServer(options: ServerOptions): ServerInstance {
       refreshStartupEmbeds();
     }
 
-    let releaseHeadBatchAdmission = () => {};
-    try {
-      await adoptWatcher(
-        () =>
-          startHeadWatcher(
-            projectDir,
-            async ({ trigger }) => {
-              log.info({ trigger }, `[batch] begin trigger=${trigger}`);
-              incrementBatch();
-              hocuspocus.flushPendingStores();
-              await persistence.flushPendingGitCommit();
+    async function beginGitMove(holder: string, trigger: string): Promise<void> {
+      log.info({ trigger }, `[batch] begin trigger=${trigger}`);
+      incrementBatch();
+      hocuspocus.flushPendingStores();
+      await persistence.flushPendingGitCommit();
 
-              holdBatch('head-watcher');
-              releaseHeadBatchAdmission();
-              releaseHeadBatchAdmission = durabilityState.holdWriteAdmission();
+      holdBatch(holder);
+      gitMoveAdmissions.get(holder)?.();
+      gitMoveAdmissions.set(holder, durabilityState.holdWriteAdmission());
 
-              if (shadowRef.current) {
-                const currentBranch = getActiveBranch();
-                const newBranch = readProjectHeadState(projectDir).branch ?? currentBranch;
-                const docs: ParkableDoc[] = [];
-                let absentBaseParkSkips = 0;
-                for (const [docName, document] of hocuspocus.documents) {
-                  if (isReservedForUserTree(docName)) continue;
-                  let markdown: string | null = null;
-                  document.transact(() => {
-                    markdown = serializeDoc(docName);
-                  }, PARK_SNAPSHOT_ORIGIN);
-                  if (markdown === null) continue;
-                  const diskSnapshot = getReconciledBase(docName);
-                  if (diskSnapshot === undefined) {
-                    absentBaseParkSkips++;
-                    continue;
-                  }
-                  docs.push({ docName, markdown, diskSnapshot });
-                }
-                if (absentBaseParkSkips > 0) {
-                  log.warn(
-                    { count: absentBaseParkSkips, branch: currentBranch },
-                    `[history] skipped parking ${absentBaseParkSkips} doc(s) with no reconciled base; their content was not parked to the shadow history`,
-                  );
-                }
-                if (docs.length > 0) {
-                  try {
-                    const sha = await parkBranch(
-                      shadowRef.current,
-                      currentBranch,
-                      SERVICE_WRITER.id,
-                      docs,
-                      newBranch,
-                    );
-                    if (sha) {
-                      incrementPark();
-                      log.info(
-                        { count: docs.length, branch: currentBranch, sha: sha.slice(0, 8) },
-                        `[history] parked ${docs.length} docs on ${currentBranch} → ${sha.slice(0, 8)}`,
-                      );
-                    }
-                  } catch (e) {
-                    log.error({ err: e }, '[shadow] park failed');
-                  }
-                }
-              }
-            },
-            async (info) => {
-              const bufferedCount = eventBuffer.length;
-              const newBranch = info.newBranch ?? 'main';
-
+      if (shadowRef.current) {
+        const currentBranch = getActiveBranch();
+        const newBranch = readProjectHeadState(projectDir).branch ?? currentBranch;
+        const docs: ParkableDoc[] = [];
+        let absentBaseParkSkips = 0;
+        for (const [docName, document] of hocuspocus.documents) {
+          if (isReservedForUserTree(docName)) continue;
+          let markdown: string | null = null;
+          document.transact(() => {
+            markdown = serializeDoc(docName);
+          }, PARK_SNAPSHOT_ORIGIN);
+          if (markdown === null) continue;
+          const diskSnapshot = getReconciledBase(docName);
+          if (diskSnapshot === undefined) {
+            absentBaseParkSkips++;
+            continue;
+          }
+          docs.push({ docName, markdown, diskSnapshot });
+        }
+        if (absentBaseParkSkips > 0) {
+          log.warn(
+            { count: absentBaseParkSkips, branch: currentBranch },
+            `[history] skipped parking ${absentBaseParkSkips} doc(s) with no reconciled base; their content was not parked to the shadow history`,
+          );
+        }
+        if (docs.length > 0) {
+          try {
+            const sha = await parkBranch(
+              shadowRef.current,
+              currentBranch,
+              SERVICE_WRITER.id,
+              docs,
+              newBranch,
+            );
+            if (sha) {
+              incrementPark();
               log.info(
-                {
-                  kind: info.batchKind,
-                  headMoved: info.headMoved,
-                  docs: bufferedCount,
-                  timeout: !!info.timeout,
-                },
-                `[batch] end kind=${info.batchKind} headMoved=${info.headMoved} docs=${bufferedCount}${info.timeout ? ' timeout' : ''}`,
+                { count: docs.length, branch: currentBranch, sha: sha.slice(0, 8) },
+                `[history] parked ${docs.length} docs on ${currentBranch} → ${sha.slice(0, 8)}`,
               );
+            }
+          } catch (e) {
+            log.error({ err: e }, '[shadow] park failed');
+          }
+        }
+      }
+    }
 
-              if (info.batchKind === 'within-branch') {
-                try {
-                  try {
-                    await drainEventBuffer();
-                  } finally {
-                    disposeBufferedRemovalScopes();
-                  }
+    async function endGitMove(holder: string, info: GitMoveEnd): Promise<void> {
+      const bufferedCount = eventBuffer.length;
+      const newBranch = info.newBranch ?? 'main';
 
-                  if (info.headMoved && info.newHead) {
-                    const changes = resolveUpstreamChanges(
-                      projectDir,
-                      resolve(contentDir),
-                      info.oldHead,
-                      info.newHead,
-                    );
-                    if (changes.size > 0) {
-                      dropPendingDocs(changes.keys());
-                      for (const [docName, author] of changes) {
-                        recordContributor(
-                          docName,
-                          gitAuthorWriterId(author.email),
-                          author.name,
-                          author.email,
-                          formatReconcileSubject(docName),
-                        );
-                      }
-                      await persistence.flushContributors();
-                    }
-                  }
-                } finally {
-                  try {
-                    if (releaseBatchHold('head-watcher')) await finishBatch();
-                  } finally {
-                    releaseHeadBatchAdmission();
-                  }
-                }
-                try {
-                  await conflicts.pruneMergeNativeAgainstGit();
-                } catch (err) {
-                  log.warn({ err }, '[head-watcher] conflict prune against git failed');
-                }
-              } else {
-                incrementBranchSwitch();
-                supersedeBranchSwitchFollowUps();
-                let batchReleased = false;
-                let switchPassFellShort = false;
-                let branchTransition: DerivedDocumentIndexBranchTransition | undefined;
-                try {
-                  switchReconciledBaseScope(newBranch);
-                  conflicts.setBranch(newBranch);
-                  syncEngine?.updateCurrentBranch(newBranch);
-                  hydrateStaleExternalWrites();
-                  branchTransition = await derivedDocumentIndex.beginBranchSwitch(newBranch);
-
-                  contentFilter.rebuildDirCount();
-
-                  try {
-                    let reseedSkipCount = 0;
-                    basenameIndex.clear();
-                    await seedBasenameIndex({
-                      contentDir,
-                      contentFilter,
-                      basenameIndex,
-                      onSkip: (reason, code, path) => {
-                        reseedSkipCount++;
-                        log.warn(
-                          { reason, code, path, branch: newBranch },
-                          `[basename-index] skipped entry during branch-switch reseed (${reason}${code ? ` ${code}` : ''})`,
-                        );
-                      },
-                    });
-                    if (reseedSkipCount > 0) {
-                      log.warn(
-                        { count: reseedSkipCount, branch: newBranch },
-                        `[basename-index] branch-switch reseed completed with ${reseedSkipCount} skipped entries — embeds under inaccessible subtrees will not resolve on this branch`,
-                      );
-                      if (!degraded.includes('basename-index-partial')) {
-                        degraded.push('basename-index-partial');
-                      }
-                    }
-                  } catch (err) {
-                    log.error(
-                      { err, branch: newBranch },
-                      '[basename-index] branch-switch reseed failed',
-                    );
-                  }
-
-                  try {
-                    await derivedDocumentIndex.settleBranchFromDisk(branchTransition);
-                  } catch (err) {
-                    derivedDocumentIndex.abortBranchSwitch(branchTransition);
-                    log.error(
-                      { err, branch: newBranch },
-                      '[derived-index] branch-switch rebuild failed; relationship views may be stale',
-                    );
-                  }
-
-                  try {
-                    await drainEventBuffer();
-                    const switchPass = await watcher?.recheck('full');
-                    if (switchPass && (switchPass.status !== 'completed' || switchPass.partial)) {
-                      switchPassFellShort = true;
-                      incrementBranchSwitchRecheckShortfalls();
-                      log.warn(
-                        {
-                          branch: newBranch,
-                          status: switchPass.status,
-                          partial: switchPass.partial === true,
-                        },
-                        `[branch-switch] the re-check after switching to ${newBranch} did not observe the whole tree; another one runs once the switch ends`,
-                      );
-                    }
-                    await drainEventBuffer();
-                  } finally {
-                    disposeBufferedRemovalScopes();
-                  }
-                  tombstoneResidentsResolvingIntoPrivateState(newBranch);
-                  log.info(
-                    { branch: newBranch, docCount: hocuspocus.documents.size },
-                    `[branch-switch] loaded branch ${newBranch} (${hocuspocus.documents.size} docs)`,
-                  );
-
-                  if (info.oldBranch?.startsWith('detached-') && shadowRef.current) {
-                    try {
-                      const sg = shadowGit(shadowRef.current);
-                      const refs = (
-                        await sg.raw(
-                          'for-each-ref',
-                          `refs/wip/${info.oldBranch}/`,
-                          '--format=%(refname)',
-                        )
-                      ).trim();
-                      if (refs) {
-                        await shadowOpGateFor(shadowRef.current).withMutator(async () => {
-                          for (const ref of refs.split('\n')) {
-                            if (ref) {
-                              await sg.raw('update-ref', '-d', ref);
-                            }
-                          }
-                        });
-                        log.info(
-                          { context: info.oldBranch },
-                          `[branch-switch] cleaned up detached context ${info.oldBranch}`,
-                        );
-                      }
-                    } catch (e) {
-                      log.error({ err: e }, '[branch-switch] detached cleanup failed');
-                    }
-                  }
-
-                  batchReleased = true;
-                  if (releaseBatchHold('head-watcher')) await finishBatch();
-                  cc1Broadcaster?.emitBranchSwitched(newBranch);
-                  if (switchPassFellShort) followUpBranchSwitchRecheck(newBranch);
-                } finally {
-                  try {
-                    derivedDocumentIndex.abortBranchSwitch(branchTransition);
-                    if (!batchReleased && releaseBatchHold('head-watcher')) await finishBatch();
-                  } finally {
-                    releaseHeadBatchAdmission();
-                  }
-                }
-              }
-
-              if (info.headMoved && info.newHead && shadowRef.current && bufferedCount > 0) {
-                const contentRootForShadow = contentRoot ?? '.';
-                try {
-                  const sha = await commitUpstreamImport(
-                    shadowRef.current,
-                    contentRootForShadow,
-                    info.oldHead,
-                    info.newHead,
-                    newBranch,
-                  );
-                  incrementUpstreamImport();
-                  log.info(
-                    {
-                      oldHead: info.oldHead?.slice(0, 8) ?? 'null',
-                      newHead: info.newHead.slice(0, 8),
-                      sha: sha.slice(0, 8),
-                    },
-                    `[history] upstream-import from ${info.oldHead?.slice(0, 8) ?? 'null'}..${info.newHead.slice(0, 8)} → ${sha.slice(0, 8)}`,
-                  );
-                } catch (e) {
-                  log.error({ err: e }, '[shadow] upstream-import failed');
-                }
-              }
-            },
-            {
-              nativeBackend: options.watcherBackend,
-              clock: options.watcherClock,
-              onGaveUp: () => {
-                if (!degraded.includes('head-watcher')) degraded.push('head-watcher');
-              },
-              onBack: () => {
-                const at = degraded.indexOf('head-watcher');
-                if (at !== -1) degraded.splice(at, 1);
-              },
-            },
-          ),
-        (handle) => {
-          headWatcher = handle;
+      log.info(
+        {
+          kind: info.batchKind,
+          headMoved: info.headMoved,
+          docs: bufferedCount,
+          timeout: !!info.timeout,
         },
-        'head',
+        `[batch] end kind=${info.batchKind} headMoved=${info.headMoved} docs=${bufferedCount}${info.timeout ? ' timeout' : ''}`,
       );
-    } catch (err) {
-      log.error({ err }, '[server] HEAD watcher failed to start');
-      degraded.push('head-watcher');
+
+      if (info.batchKind === 'within-branch') {
+        try {
+          try {
+            await drainEventBuffer();
+          } finally {
+            disposeBufferedRemovalScopes();
+          }
+
+          if (info.headMoved && info.newHead) {
+            const changes = resolveUpstreamChanges(
+              projectDir,
+              resolve(contentDir),
+              info.oldHead,
+              info.newHead,
+            );
+            if (changes.size > 0) {
+              dropPendingDocs(changes.keys());
+              for (const [docName, author] of changes) {
+                recordContributor(
+                  docName,
+                  gitAuthorWriterId(author.email),
+                  author.name,
+                  author.email,
+                  formatReconcileSubject(docName),
+                );
+              }
+              await persistence.flushContributors();
+            }
+          }
+        } finally {
+          try {
+            if (releaseBatchHold(holder)) await finishBatch();
+          } finally {
+            releaseGitMoveAdmission(holder);
+          }
+        }
+        try {
+          await conflicts.pruneMergeNativeAgainstGit();
+        } catch (err) {
+          log.warn({ err }, '[head-watcher] conflict prune against git failed');
+        }
+      } else {
+        incrementBranchSwitch();
+        supersedeBranchSwitchFollowUps();
+        let batchReleased = false;
+        let switchPassFellShort = false;
+        let branchTransition: DerivedDocumentIndexBranchTransition | undefined;
+        try {
+          switchReconciledBaseScope(newBranch);
+          conflicts.setBranch(newBranch);
+          syncEngine?.updateCurrentBranch(newBranch);
+          hydrateStaleExternalWrites();
+          branchTransition = await derivedDocumentIndex.beginBranchSwitch(newBranch);
+
+          contentFilter.rebuildDirCount();
+
+          try {
+            let reseedSkipCount = 0;
+            basenameIndex.clear();
+            await seedBasenameIndex({
+              contentDir,
+              contentFilter,
+              basenameIndex,
+              onSkip: (reason, code, path) => {
+                reseedSkipCount++;
+                log.warn(
+                  { reason, code, path, branch: newBranch },
+                  `[basename-index] skipped entry during branch-switch reseed (${reason}${code ? ` ${code}` : ''})`,
+                );
+              },
+            });
+            if (reseedSkipCount > 0) {
+              log.warn(
+                { count: reseedSkipCount, branch: newBranch },
+                `[basename-index] branch-switch reseed completed with ${reseedSkipCount} skipped entries — embeds under inaccessible subtrees will not resolve on this branch`,
+              );
+              if (!degraded.includes('basename-index-partial')) {
+                degraded.push('basename-index-partial');
+              }
+            }
+          } catch (err) {
+            log.error({ err, branch: newBranch }, '[basename-index] branch-switch reseed failed');
+          }
+
+          try {
+            await derivedDocumentIndex.settleBranchFromDisk(branchTransition);
+          } catch (err) {
+            derivedDocumentIndex.abortBranchSwitch(branchTransition);
+            log.error(
+              { err, branch: newBranch },
+              '[derived-index] branch-switch rebuild failed; relationship views may be stale',
+            );
+          }
+
+          try {
+            await drainEventBuffer();
+            const switchPass = await watcher?.recheck('full');
+            if (switchPass && (switchPass.status !== 'completed' || switchPass.partial)) {
+              switchPassFellShort = true;
+              incrementBranchSwitchRecheckShortfalls();
+              log.warn(
+                {
+                  branch: newBranch,
+                  status: switchPass.status,
+                  partial: switchPass.partial === true,
+                },
+                `[branch-switch] the re-check after switching to ${newBranch} did not observe the whole tree; another one runs once the switch ends`,
+              );
+            }
+            await drainEventBuffer();
+          } finally {
+            disposeBufferedRemovalScopes();
+          }
+          tombstoneResidentsResolvingIntoPrivateState(newBranch);
+          log.info(
+            { branch: newBranch, docCount: hocuspocus.documents.size },
+            `[branch-switch] loaded branch ${newBranch} (${hocuspocus.documents.size} docs)`,
+          );
+
+          if (info.oldBranch?.startsWith('detached-') && shadowRef.current) {
+            try {
+              const sg = shadowGit(shadowRef.current);
+              const refs = (
+                await sg.raw('for-each-ref', `refs/wip/${info.oldBranch}/`, '--format=%(refname)')
+              ).trim();
+              if (refs) {
+                await shadowOpGateFor(shadowRef.current).withMutator(async () => {
+                  for (const ref of refs.split('\n')) {
+                    if (ref) {
+                      await sg.raw('update-ref', '-d', ref);
+                    }
+                  }
+                });
+                log.info(
+                  { context: info.oldBranch },
+                  `[branch-switch] cleaned up detached context ${info.oldBranch}`,
+                );
+              }
+            } catch (e) {
+              log.error({ err: e }, '[branch-switch] detached cleanup failed');
+            }
+          }
+
+          batchReleased = true;
+          if (releaseBatchHold(holder)) await finishBatch();
+          cc1Broadcaster?.emitBranchSwitched(newBranch);
+          if (switchPassFellShort) followUpBranchSwitchRecheck(newBranch);
+        } finally {
+          try {
+            derivedDocumentIndex.abortBranchSwitch(branchTransition);
+            if (!batchReleased && releaseBatchHold(holder)) await finishBatch();
+          } finally {
+            releaseGitMoveAdmission(holder);
+          }
+        }
+      }
+
+      if (info.headMoved && info.newHead && shadowRef.current && bufferedCount > 0) {
+        const contentRootForShadow = contentRoot ?? '.';
+        try {
+          const sha = await commitUpstreamImport(
+            shadowRef.current,
+            contentRootForShadow,
+            info.oldHead,
+            info.newHead,
+            newBranch,
+          );
+          incrementUpstreamImport();
+          log.info(
+            {
+              oldHead: info.oldHead?.slice(0, 8) ?? 'null',
+              newHead: info.newHead.slice(0, 8),
+              sha: sha.slice(0, 8),
+            },
+            `[history] upstream-import from ${info.oldHead?.slice(0, 8) ?? 'null'}..${info.newHead.slice(0, 8)} → ${sha.slice(0, 8)}`,
+          );
+        } catch (e) {
+          log.error({ err: e }, '[shadow] upstream-import failed');
+        }
+      }
+    }
+
+    gitMoveSteps = { begin: beginGitMove, end: endGitMove };
+
+    if (fileWatching === 'off') {
+      handedBranch = readProjectHeadState(projectDir).branch;
+      log.info(
+        {},
+        '[server] HEAD watching is off; Git moves are handed over by the code that makes them',
+      );
+    } else {
+      let headBatchHanded = false;
+      try {
+        await adoptWatcher(
+          () =>
+            startHeadWatcher(
+              projectDir,
+              async ({ trigger }) => {
+                headBatchHanded = handedGitMoves.size > 0;
+                if (headBatchHanded) return;
+                await beginGitMove('head-watcher', trigger);
+              },
+              async (info) => {
+                if (headBatchHanded) {
+                  headBatchHanded = false;
+                  return;
+                }
+                if (handedGitMoves.size > 0) {
+                  releaseGitMoveAdmission('head-watcher');
+                  releaseBatchHold('head-watcher');
+                  return;
+                }
+                const alreadyHanded =
+                  info.newHead !== null &&
+                  info.newHead === lastHandedGitMove?.head &&
+                  info.newBranch === lastHandedGitMove?.branch;
+                await endGitMove(
+                  'head-watcher',
+                  alreadyHanded
+                    ? {
+                        ...info,
+                        headMoved: false,
+                        oldHead: info.newHead,
+                        batchKind: 'within-branch',
+                      }
+                    : info,
+                );
+              },
+              {
+                nativeBackend: options.watcherBackend,
+                clock: options.watcherClock,
+                onGaveUp: () => {
+                  if (!degraded.includes('head-watcher')) degraded.push('head-watcher');
+                },
+                onBack: () => {
+                  const at = degraded.indexOf('head-watcher');
+                  if (at !== -1) degraded.splice(at, 1);
+                },
+              },
+            ),
+          (handle) => {
+            headWatcher = handle;
+          },
+          'head',
+        );
+      } catch (err) {
+        log.error({ err }, '[server] HEAD watcher failed to start');
+        degraded.push('head-watcher');
+      }
     }
 
     conflicts.subscribe((change) => {

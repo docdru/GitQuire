@@ -1244,7 +1244,8 @@ interface ApiExtensionBaseOptions {
   getSyncEngine?: () => SyncEngine | null;
   resolveSyncCredentialConfig?: () => Promise<string[]>;
   conflicts: ConflictAuthority;
-  setBatchInProgress?: (value: boolean) => void;
+  setBatchInProgress?: (value: boolean) => void | Promise<void>;
+  setCheckoutInProgress?: (value: boolean) => void | Promise<void>;
   refreshDocumentsFromDisk: RefreshDocumentsFromDisk;
   localOpCliArgs?: string[];
   authStreamHeartbeatMs?: number;
@@ -1700,6 +1701,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     getSyncEngine,
     conflicts,
     setBatchInProgress,
+    setCheckoutInProgress,
     localOpCliArgs,
     authStreamHeartbeatMs,
     projectDir,
@@ -4674,6 +4676,7 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     getSyncEngine,
     getPrincipal,
     resolveCredentialConfig: resolveSyncCredentialConfig,
+    setBatchInProgress: setCheckoutInProgress,
   });
   const localOpRoutes = createLocalOpRoutes({
     declaredGitHubHosts,

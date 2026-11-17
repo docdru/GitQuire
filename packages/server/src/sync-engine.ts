@@ -335,7 +335,7 @@ interface SyncEngineOptions {
   cc1Broadcaster?: Pick<CC1Broadcaster, 'signal'> | null;
   conflicts: ConflictAuthority;
   onStateChange?: (state: SyncState) => void;
-  setBatchInProgress?: (value: boolean) => void;
+  setBatchInProgress?: (value: boolean) => void | Promise<void>;
   onAutoDisable?: (reason: 'protected-branch') => void | Promise<void>;
   checkpointBeforeStrandedConversion?: (context: {
     branch: string;
@@ -415,7 +415,7 @@ export class SyncEngine {
   private readonly resolveCredentialConfig: (() => Promise<string[]>) | undefined;
   private cc1Broadcaster: Pick<CC1Broadcaster, 'signal'> | null;
   private onStateChange: ((state: SyncState) => void) | undefined;
-  private setBatchInProgress: ((value: boolean) => void) | undefined;
+  private setBatchInProgress: ((value: boolean) => void | Promise<void>) | undefined;
   private onAutoDisable: ((reason: 'protected-branch') => void | Promise<void>) | undefined;
   private checkpointBeforeStrandedConversion:
     | ((context: { branch: string; ahead: number }) => void | Promise<void>)
@@ -648,11 +648,14 @@ export class SyncEngine {
 
     if (mergeInProgress && !hasMergeNative()) {
       log.warn({}, '[sync] stale MERGE_HEAD detected with no tracked conflicts — aborting merge');
+      await this.setBatchInProgress?.(true);
       try {
         const handle = this.gitHandle();
         await handle.git.raw(['merge', '--abort']);
       } catch (e) {
         log.warn({ err: e }, '[sync] git merge --abort for stale MERGE_HEAD failed');
+      } finally {
+        await this.setBatchInProgress?.(false);
       }
     }
 
@@ -843,11 +846,11 @@ export class SyncEngine {
       const base = (
         await handle.git.raw(['merge-base', 'HEAD', `origin/${this.currentBranch}`])
       ).trim();
-      this.setBatchInProgress?.(true);
+      await this.setBatchInProgress?.(true);
       try {
         await withParentLock(() => handle.git.raw(['reset', '--mixed', base]));
       } finally {
-        this.setBatchInProgress?.(false);
+        await this.setBatchInProgress?.(false);
       }
       const status = await handle.git.status();
       this.ahead = status.ahead;
@@ -1584,7 +1587,7 @@ export class SyncEngine {
     if (this.behind > 0 && this.conflictCount === 0) {
       if (this.pausedReason === 'diverged-local-commits') this.pausedReason = undefined;
       this.transitionTo('pulling');
-      this.setBatchInProgress?.(true);
+      await this.setBatchInProgress?.(true);
       let stashRestored = true;
       let overlaysRestored = true;
       try {
@@ -1645,7 +1648,7 @@ export class SyncEngine {
         this.handleError(classified, 'pull');
         return 'error';
       } finally {
-        this.setBatchInProgress?.(false);
+        await this.setBatchInProgress?.(false);
       }
     }
     this.transitionTo('idle');
@@ -1704,7 +1707,7 @@ export class SyncEngine {
       return 'error';
     }
 
-    this.setBatchInProgress?.(true);
+    await this.setBatchInProgress?.(true);
     try {
       if (overlapping.length > 0) {
         try {
@@ -1799,7 +1802,7 @@ export class SyncEngine {
 
       return plan.newConflicts.length > 0 ? 'conflict' : 'succeeded';
     } finally {
-      this.setBatchInProgress?.(false);
+      await this.setBatchInProgress?.(false);
     }
   }
 
@@ -2317,7 +2320,7 @@ export class SyncEngine {
         if (retriesLeft > 0) {
           log.info({}, '[sync] push rejected (non-fast-forward) — fetching, merging, retrying');
           const retryHandle = this.gitHandle();
-          this.setBatchInProgress?.(true);
+          await this.setBatchInProgress?.(true);
           let retryStage: 'fetch' | 'merge' | 'push' = 'fetch';
           let stashRestored = true;
           let overlaysRestored = true;
@@ -2330,10 +2333,7 @@ export class SyncEngine {
             await this.validateIncomingSymlinks(retryHandle, this.currentBranch, incoming);
             retryStage = 'push';
             const mergePrep = await this.prepareForMerge(retryHandle, this.currentBranch, incoming);
-            if (!mergePrep.proceed) {
-              this.setBatchInProgress?.(false);
-              return;
-            }
+            if (!mergePrep.proceed) return;
             try {
               await this.applyCommitIdentity(retryHandle);
               retryStage = 'merge';
@@ -2386,7 +2386,7 @@ export class SyncEngine {
             this.scheduleSaveState();
             return;
           } finally {
-            this.setBatchInProgress?.(false);
+            await this.setBatchInProgress?.(false);
           }
           await this.doPushCycle(0);
           return;
