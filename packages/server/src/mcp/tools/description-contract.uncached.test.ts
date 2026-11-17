@@ -403,7 +403,7 @@ const SERVER_FIELDS_FOR_GUIDED_RESULT: Readonly<Record<string, AgentWriteOutcome
     message: 'm',
     dropped: 'legacy-name',
   }),
-  '`write-dropped` (409) while an outside change was being taken in': outcomeOfStoreFailure({
+  '`write-dropped` (409) while a synced change was being taken in': outcomeOfStoreFailure({
     code: GQ_WRITE_DROPPED,
     message: 'm',
     dropped: 'intake-landed',
