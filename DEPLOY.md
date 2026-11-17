@@ -429,3 +429,4 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_AI_CHAT`, `GITQUIRE_ANTHROPIC_BASE_URL`, `GITQUIRE_MISTRAL_BASE_URL` | [AI chat](#ai-chat) |
 | `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
 | `GITQUIRE_NAMING`, `GITQUIRE_FILE_WATCHER_BACKEND` | [Wiki administration](#wiki-administration) |
+
