@@ -190,21 +190,27 @@ Otherwise the union of these rows runs:
 | Changed | Suites |
 | --- | --- |
 | `docs/`, `*.md` outside `packages/` | docs |
-| `packages/server/` | server 1–4, app unit 1–4, app DOM, app integration 1–4, cli, uncached, Docker |
-| `packages/app/` | app unit 1–4, app DOM, app integration 1–4, uncached, Docker |
-| `packages/cli/` | cli, uncached, Docker |
+| `packages/server/` | server 1–4, app unit 1–2, app DOM, app integration 1–6, cli, core and uncached, Docker |
+| `packages/app/` | app unit 1–2, app DOM, app integration 1–6, core and uncached, Docker |
+| `packages/cli/` | cli, core and uncached, Docker |
 | `Dockerfile`, `.dockerignore`, `docker/`, `.github/e2e/` | Docker |
 
-The server row includes the app unit and DOM suites because the app unit shards also run the
-integration files against the server, and the DOM tests import server code. The app row includes
-uncached because some uncached tests are app files.
+The server row includes the app suites because the app integration tests run against the server
+and some app unit and DOM tests import server code. The app row includes uncached because some
+uncached tests are app files. The core tests run in the same job as the uncached tests.
 
-**Stacked pull requests** (base branch other than `main`) run the same selection without Docker and
-the app integration shards, unless they have the `full-ci` label. When such a pull request is
+The app unit config leaves out the files the app integration config runs, so each file runs once.
+The app integration shards are split by duration (`packages/app/tests/duration-shards.ts`, largest
+file first into the lightest shard) from `packages/app/tests/integration-durations.json`; a file
+missing from that table counts as the median. When a shard gets noticeably slower than the
+others, refresh the table from a full run with `node scripts/ci-integration-durations.mjs <run-id>`.
+
+**Stacked pull requests** (base branch other than `main`) run the same selection without Docker,
+unless they have the `full-ci` label. When such a pull request is
 retargeted to `main`, `.github/workflows/ci-rerun.yml` starts a full run on its branch; adding the
 `full-ci` label does the same. A stacked pull request is ready when its reduced set is green; it
 is ready to merge into `main` only once the full run after retargeting is green, because a failure
-in a skipped suite shows up only then.
+in Docker shows up only then.
 
 `ci-ok` is the one required check: it fails when any needed job failed or was cancelled, and passes
 when the plan skipped jobs. `node scripts/ci-timings.mjs <run-id>...` prints how long each job
