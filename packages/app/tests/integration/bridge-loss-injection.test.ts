@@ -7,7 +7,13 @@ import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-ti
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type * as Y from 'yjs';
 import { HARNESS_BOOT_TIMEOUT_MS } from './harness-boot-timeout';
-import { createTestServer, getServerState, mdManager, type TestServer } from './test-harness.ts';
+import {
+  createTestServer,
+  getServerState,
+  mdManager,
+  rereadFromDisk,
+  type TestServer,
+} from './test-harness.ts';
 
 const schema = getSchema(sharedExtensions);
 const freshMdManager = new MarkdownManager({
@@ -170,4 +176,62 @@ describe('H3 paired-intake loss injection through public paths', () => {
     );
     expect(row?.checkpoint?.kind).toBe('bridge-derive-loss');
   });
+
+  test('an out-of-band disk edit over un-propagated content trips the detector and checkpoints', async () => {
+    const docName = `loss-watcher-${crypto.randomUUID().slice(0, 8)}`;
+    const created = await fetch(`http://127.0.0.1:${server.port}/api/agent-write-md`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: GEN1, position: 'replace', docName }),
+    });
+    expect(created.status).toBe(200);
+
+    const filePath = join(server.contentDir, `${docName}.md`);
+    await vi.waitFor(() => {
+      expect(readFileSync(filePath, 'utf-8')).toContain('Step one bod');
+    });
+    await new Promise((r) => setTimeout(r, 1_000));
+
+    const state = getServerState(server, docName);
+    const doc = server.instance.hocuspocus.documents.get(docName) as unknown as Y.Doc;
+    const ytext = state?.ytext as Y.Text;
+    const fragment = state?.fragment as Y.XmlFragment;
+    stageUnpropagatedKeystroke(doc, ytext, fragment);
+
+    writeFileSync(
+      filePath,
+      GEN1.replace('Intro paragraph.', 'Intro paragraph, edited out of band.'),
+      'utf-8',
+    );
+
+    expect(serializeFragment(fragment)).toContain(PENDING_LINE);
+    expect(ytext.toString()).not.toContain(PENDING_LINE);
+    await rereadFromDisk(server);
+
+    const trip = await pollForTrip(
+      server.contentDir,
+      (e) =>
+        e.event === 'detector-trip' &&
+        e.site === 'file-watcher-intake' &&
+        e.docName === docName &&
+        Boolean(e.checkpointSha),
+      15_000,
+    );
+    expect(trip.direction).toBe('b');
+    expect(trip.writerId).toBe('file-system');
+    expect(trip.lostLen).toBeGreaterThanOrEqual(PENDING_LINE.length);
+    expect(JSON.stringify(trip)).not.toContain(PENDING_LINE);
+
+    await vi.waitFor(() => {
+      expect(ytext.toString()).toContain('edited out of band');
+    });
+
+    const hist = await fetch(`http://127.0.0.1:${server.port}/api/history?docName=${docName}`).then(
+      (r) => r.json(),
+    );
+    const row = hist.entries.find(
+      (e: { sha: string; checkpoint?: { kind?: string } }) => e.sha === trip.checkpointSha,
+    );
+    expect(row?.checkpoint?.kind).toBe('bridge-derive-loss');
+  }, 30_000);
 });

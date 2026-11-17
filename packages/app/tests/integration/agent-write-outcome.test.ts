@@ -312,7 +312,6 @@ describe('what each refusal and each kind of document reports', () => {
       expect((await write('graph TD\n  A-->C\n')).body).toMatchObject({ outcome: 'applied' });
 
       writeFileSync(file, 'graph TD\n  A-->Outside\n');
-      await rereadFromDisk(server);
       const merged = await write('graph TD\n  A-->Agent\n');
       expect(merged.status).toBe(200);
       expect(merged.body).toMatchObject({ outcome: 'merged-first', saved: true });
