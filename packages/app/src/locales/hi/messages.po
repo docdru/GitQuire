@@ -1557,9 +1557,6 @@ msgstr "नया टैब बंद करें"
 msgid "Close others"
 msgstr "बाकी बंद करें"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "यह प्रीव्यू बंद करें, फिर फ़ाइलें अपलोड करने के लिए फ़ोल्डर खोलें"
-
 msgid "Clusters"
 msgstr "समूह"
 

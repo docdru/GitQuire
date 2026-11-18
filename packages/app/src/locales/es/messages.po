@@ -1561,9 +1561,6 @@ msgstr "Cerrar pestaña nueva"
 msgid "Close others"
 msgstr "Cerrar las demás"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Cierra esta vista previa y abre la carpeta para subir archivos"
-
 msgid "Clusters"
 msgstr "Grupos"
 

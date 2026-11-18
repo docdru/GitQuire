@@ -1561,9 +1561,6 @@ msgstr "새 탭 닫기"
 msgid "Close others"
 msgstr "다른 항목 닫기"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "이 미리보기를 닫고 폴더를 열어 파일을 업로드하세요"
-
 msgid "Clusters"
 msgstr "클러스터"
 

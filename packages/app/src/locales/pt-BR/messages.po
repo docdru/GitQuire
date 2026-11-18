@@ -1557,9 +1557,6 @@ msgstr "Fechar nova aba"
 msgid "Close others"
 msgstr "Fechar as outras"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Feche esta prévia e abra a pasta para enviar arquivos"
-
 msgid "Clusters"
 msgstr "Grupos"
 

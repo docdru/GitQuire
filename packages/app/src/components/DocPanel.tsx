@@ -117,9 +117,8 @@ export function DocPanel({
       applyLintFixes(lintProvider, collectFixes(lintDiagnostics), docName);
     }
   };
-  const tabs = TABS;
-  const effectiveTab: PanelTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'outline';
-  const showTabStrip = mode === 'doc' && tabs.length > 1;
+  const effectiveTab: PanelTab = activeTab;
+  const showTabStrip = mode === 'doc';
   useEffect(() => {
     setDocPanelOnScreen(!isCollapsed);
     return () => {
@@ -145,7 +144,7 @@ export function DocPanel({
             }}
             aria-label={t`Document panels`}
           >
-            {tabs.map(({ id, icon: Icon }) => {
+            {TABS.map(({ id, icon: Icon }) => {
               const label = tabLabel(id);
               const showBadge = id === 'problems' && diagnostics.length > 0;
               return (

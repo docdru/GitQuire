@@ -345,7 +345,6 @@ export function EditorPane() {
   const wasExclusiveRef = useRef(exclusive);
   const [editorShown, setEditorShown] = useState(() => loadBoolPref(WEB_EDITOR_VISIBLE_KEY, true));
   const editorChosenSinceMountRef = useRef(false);
-  const editorVisible = editorShown;
   const narrowSessionKey =
     workspace === null ? null : narrowWorkspaceSessionKey(workspace.contentDir, 'web');
   useEffect(() => {
@@ -435,7 +434,7 @@ export function EditorPane() {
     }
     wasExclusiveRef.current = exclusive;
   }, [exclusive, agentsVisible]);
-  const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : editorVisible;
+  const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : editorShown;
   const effectiveAgentsVisible = exclusive ? narrowSelection === 'agents' : agentsVisible;
   const [placements, setPlacements] = useState<SessionPlacements>({
     agents: { container: null, isShowing: false },

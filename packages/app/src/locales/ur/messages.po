@@ -1561,9 +1561,6 @@ msgstr "نیا ٹیب بند کریں"
 msgid "Close others"
 msgstr "باقی بند کریں"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "یہ پیش نظارہ بند کریں، پھر فائلیں اپ لوڈ کرنے کے لیے فولڈر کھولیں"
-
 msgid "Clusters"
 msgstr "کلسٹرز"
 

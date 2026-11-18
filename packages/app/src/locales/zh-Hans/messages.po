@@ -1561,9 +1561,6 @@ msgstr "关闭新标签页"
 msgid "Close others"
 msgstr "关闭其他"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "关闭此预览，然后打开文件夹以上传文件"
-
 msgid "Clusters"
 msgstr "聚类"
 

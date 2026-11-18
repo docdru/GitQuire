@@ -445,7 +445,7 @@ function AppBody() {
         <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
         <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />
         <SidebarProvider className="h-[calc(100vh-var(--gq-app-header-height,0px))] min-h-[calc(100svh-var(--gq-app-header-height,0px))]">
-          <FileListHostProvider enabled fileList={<FileSidebar />}>
+          <FileListHostProvider fileList={<FileSidebar />}>
             <div
               data-app-main=""
               className="relative flex w-full flex-1 flex-col ps-2 pe-2 pb-2 h-[calc(100vh-var(--gq-app-header-height,0px))]"

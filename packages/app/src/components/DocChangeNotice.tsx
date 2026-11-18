@@ -241,7 +241,6 @@ export function DocChangeNotice({
   const { notices, dismiss } = useDocNotices(docName);
   const messages = useRef(new Map<string, HTMLSpanElement>());
   const [announcement, setAnnouncement] = useState('');
-  const canOpenTimeline = timelineAvailable;
 
   useEffect(() => {
     const fresh = notices.filter((notice) => !announcedNoticeIds.has(notice.id));
@@ -261,7 +260,7 @@ export function DocChangeNotice({
         <NoticeSection
           key={notice.id}
           notice={notice}
-          canOpenTimeline={canOpenTimeline}
+          canOpenTimeline={timelineAvailable}
           fileLabel={fileLabel}
           onDismissFocus={onDismissFocus}
           messageRef={(node) => {
