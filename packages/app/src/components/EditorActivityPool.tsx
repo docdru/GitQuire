@@ -40,7 +40,6 @@ import { TiptapEditor } from '@/editor/TiptapEditor';
 import type { EditorModeValue } from '@/editor/use-editor-mode';
 import { useDocConflict } from '@/hooks/use-conflicts';
 import { ParkingActivity } from '@/lib/activity-park';
-import { isNoteWindow } from '@/lib/note-window-mode';
 import { mark, ProfilerBoundary } from '@/lib/perf';
 import { readNumericOverride } from '@/lib/perf/env-override';
 import { cn } from '@/lib/utils';
@@ -639,7 +638,7 @@ export function ScrollPreservingContainer({
       data-testid="editor-scroll-container"
       className={cn(
         `${DOCUMENT_SCROLL_HOST_CLASS} subtle-scrollbar h-full overflow-y-auto`,
-        isNoteWindow() || !hasToolbar ? 'pt-0 scroll-pt-0' : 'pt-14 scroll-pt-14',
+        !hasToolbar ? 'pt-0 scroll-pt-0' : 'pt-14 scroll-pt-14',
       )}
       style={{ overflowAnchor: 'auto' }}
     >

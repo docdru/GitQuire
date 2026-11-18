@@ -12,7 +12,6 @@ import {
 import { HeaderPaneButtons, useHeaderPaneButtonSet } from '@/components/HeaderPaneButtons';
 import { HeaderSearchBar, onPillRenderError } from '@/components/HeaderSearchBar';
 import { HelpPopover } from '@/components/HelpPopover';
-import { NavigationHistoryControls } from '@/components/NavigationHistoryControls';
 import { PublishToGitHubDialog } from '@/components/PublishToGitHubDialog';
 import { SettingsButton } from '@/components/SettingsButton';
 import { ShareButton, type ShareButtonProps } from '@/components/ShareButton';
@@ -90,7 +89,6 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
   const singleFile = useSingleFileMode();
   const { activeDocName, activeTarget, activeProvider, systemProvider } = useDocumentContext();
   const presence = usePresence(activeProvider, systemProvider, activeDocName);
-  const isElectronHost = false;
   const [publishOpen, setPublishOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
   const badgeCompactRef = useRef(false);
@@ -217,13 +215,10 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
       ref={setHeader}
       aria-label={t`Application`}
       data-app-header=""
-      data-electron-drag={isElectronHost ? '' : undefined}
       className={cn(
         'grid h-[var(--gq-app-header-height,2.75rem)] w-full shrink-0 items-center',
         'grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] grid-rows-1',
         'bg-desk',
-        isElectronHost &&
-          '[-webkit-app-region:drag] [&_a]:[-webkit-app-region:no-drag] [&_button]:[-webkit-app-region:no-drag]',
       )}
     >
       <div
@@ -231,7 +226,6 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         data-app-header-leading=""
         className="flex min-w-0 items-center gap-1 justify-self-start ps-[calc(var(--gq-titlebar-reserve-left,0px)+0.625rem)] rtl:ps-[calc(var(--gq-titlebar-reserve-right,0px)+0.625rem)]"
       >
-        {isElectronHost && !singleFile && <NavigationHistoryControls />}
         {!singleFile && (
           <ErrorBoundary
             fallbackRender={() => null}
@@ -263,8 +257,6 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         className={cn(
           'flex min-w-0 items-center justify-end gap-1 justify-self-end pe-2.5',
           '[&_[data-slot=presence-bar]]:px-0',
-          isElectronHost &&
-            'me-[var(--gq-titlebar-reserve-right,0px)] rtl:me-[var(--gq-titlebar-reserve-left,0px)]',
         )}
       >
         {actionsOverflowed ? (

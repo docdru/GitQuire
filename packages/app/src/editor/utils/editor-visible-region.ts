@@ -2,7 +2,7 @@ import type { DetectOverflowOptions, MiddlewareState, ShiftOptions } from '@floa
 import type { Editor } from '@tiptap/react';
 import { publishedAskComposerHeightPx } from '@/editor/ask-composer-inset';
 import { DOCUMENT_SCROLL_HOST_SELECTOR } from '@/editor/document-scrollports';
-import { editorToolbarOverlapPx } from '@/lib/editor-toolbar-overlap';
+import { EDITOR_TOOLBAR_HEIGHT } from '@/lib/editor-toolbar-overlap';
 import { getEditorView } from './get-editor-view';
 
 interface RegionInsets {
@@ -40,7 +40,7 @@ export function deriveEditorClipOptions(editor: Editor): () => EditorClipOptions
   return () => {
     const boundary = resolveRegionBoundary(editor);
     const padding = {
-      top: editorToolbarOverlapPx(),
+      top: EDITOR_TOOLBAR_HEIGHT,
       bottom: publishedAskComposerHeightPx() + readRootInlinePxVar('--conflict-footer-height'),
     };
     return boundary ? { boundary, padding } : { padding };

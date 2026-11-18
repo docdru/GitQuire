@@ -21,8 +21,6 @@ import {
 } from '@/lib/doc-hash';
 import { emitBranchChanged, emitDocumentsChanged } from '@/lib/documents-events';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
-import { markNoteWindowDocDeleted } from '@/lib/note-window-deleted-store';
-import { isNoteWindow } from '@/lib/note-window-mode';
 import { mark } from '@/lib/perf';
 import { revealEditor, revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { refreshServerInfo } from '@/lib/server-info-refresh';
@@ -903,8 +901,6 @@ export function DocumentProvider({ children }: { children: ReactNode }) {
         const focused = focusedPane(workspaceRef.current);
         navigateToHash(focused.activeTabId ? hashFromTabId(focused.activeTabId) : '');
       },
-      showDocumentDeletedState: (docName) =>
-        isNoteWindow() ? markNoteWindowDocDeleted(docName) : false,
     });
   }
 

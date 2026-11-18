@@ -95,7 +95,6 @@ export function DocPanel({
   onDestinationRequested,
 }: DocPanelProps) {
   const { t } = useLingui();
-  const isElectronHost = false;
   const { activeProvider, activeDocName } = useDocumentContext();
   const { data: lintConfig } = useDocLintConfig(docName);
   const lintProvider = activeDocName === docName ? activeProvider : null;
@@ -136,18 +135,15 @@ export function DocPanel({
       {showTabStrip ? (
         <div
           data-doc-panel-header=""
-          data-electron-drag={isElectronHost ? '' : undefined}
           className={cn(
             PANE_CARD_TOP_BAR_CLASS,
             'flex flex-row items-center justify-center gap-3 px-2',
-            isElectronHost && '[-webkit-app-region:drag]',
           )}
         >
           <ToggleGroup
             type="single"
             variant="outline"
             value={effectiveTab}
-            className={cn(isElectronHost && '[-webkit-app-region:no-drag]')}
             onValueChange={(value: PanelTab) => {
               if (value) onActiveTabChange(value);
             }}

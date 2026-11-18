@@ -271,15 +271,6 @@ msgstr "{count, plural, one {# kolejny uczestnik między dokumentami} few {# kol
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {# kolejny uczestnik} few {# kolejnych uczestników} many {# kolejnych uczestników} other {# kolejnego uczestnika}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {Czy na pewno chcesz usunąć # poniższy katalog i jego zawartość?} few {Czy na pewno chcesz usunąć # poniższe katalogi i ich zawartość?} many {Czy na pewno chcesz usunąć # poniższych katalogów i ich zawartość?} other {Czy na pewno chcesz usunąć # poniższego katalogu i jego zawartość?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {Czy na pewno chcesz usunąć # poniższy plik?} few {Czy na pewno chcesz usunąć # poniższe pliki?} many {Czy na pewno chcesz usunąć # poniższych plików?} other {Czy na pewno chcesz usunąć # poniższego pliku?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {Czy na pewno chcesz usunąć # poniższy plik/katalog i jego zawartość?} few {Czy na pewno chcesz usunąć # poniższe pliki/katalogi i ich zawartość?} many {Czy na pewno chcesz usunąć # poniższych plików/katalogów i ich zawartość?} other {Czy na pewno chcesz usunąć # poniższego pliku/katalogu i jego zawartość?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Natychmiast naprawia # problem, dla którego istnieje znana automatyczna poprawka.} few {Natychmiast naprawia # problemy, dla których istnieje znana automatyczna poprawka.} many {Natychmiast naprawia # problemów, dla których istnieje znana automatyczna poprawka.} other {Natychmiast naprawia # problemu, dla którego istnieje znana automatyczna poprawka.}}"
 
@@ -1054,12 +1045,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Czy na pewno chcesz przekonwertować ten plik na szablon? Oryginalny plik zostanie usunięty. Tej akcji nie można cofnąć."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "Czy na pewno chcesz usunąć \"{name}\" i jego zawartość?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "Czy na pewno chcesz usunąć \"{name}\"?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "Czy na pewno chcesz usunąć {folderName}/ i wszystkie pliki w środku? Tej akcji nie można cofnąć."
 
@@ -1068,12 +1053,6 @@ msgstr "Czy na pewno chcesz usunąć {itemName}? Tej akcji nie można cofnąć."
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "Czy na pewno chcesz usunąć {targetCount} zaznaczonych elementów? Foldery i wszystkie pliki w nich zostaną usunięte. Tej akcji nie można cofnąć."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "Czy na pewno chcesz usunąć zaznaczony element?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "Czy na pewno chcesz usunąć zaznaczone elementy?"
 
 msgid "Ask"
 msgstr "Zapytaj"
@@ -1584,9 +1563,6 @@ msgstr "Zamknij pozostałe"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "Zamknij ten podgląd, a następnie otwórz folder, aby przesłać pliki"
-
-msgid "Close window"
-msgstr "Zamknij okno"
 
 msgid "Clusters"
 msgstr "Klastry"
@@ -4478,9 +4454,6 @@ msgstr "Przenieś do nowego panelu po lewej"
 msgid "Move to new pane right"
 msgstr "Przenieś do nowego panelu po prawej"
 
-msgid "Move to Recycle Bin"
-msgstr "Przenieś do Kosza"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Przejdź do następnego komunikatu lint CodeMirror."
 
@@ -4492,9 +4465,6 @@ msgstr "Przejdź do następnego wyniku wyszukiwania w edytorze wizualnym."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Przejdź do poprzedniego wyniku wyszukiwania w edytorze wizualnym."
-
-msgid "Move to Trash"
-msgstr "Przenieś do Kosza"
 
 msgid "Move up"
 msgstr "Przenieś w górę"
@@ -4519,9 +4489,6 @@ msgstr "przeniesiony szablon"
 
 msgid "Moved up."
 msgstr "Przeniesiono w górę."
-
-msgid "Moving"
-msgstr "Przenoszenie"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Przeglądarka PDF z wieloma stronami i sterowaniem paska narzędzi (miniatury, nawigacja po stronach, powiększenie)."
@@ -4561,9 +4528,6 @@ msgstr "Przejdź do {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Nawigacja i podpowiedzi"
-
-msgid "Navigation history"
-msgstr "Historia nawigacji"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Błąd zagnieżdżonego pliku .okignore w {path}"
@@ -7345,9 +7309,6 @@ msgstr "Ten dokument jest już aktywny w edytorze. Kliknij Otwórz, aby zwiesić
 msgid "This document is missing required properties"
 msgstr "W tym dokumencie brakuje wymaganych właściwości"
 
-msgid "This document was deleted"
-msgstr "Ten dokument został usunięty"
-
 msgid "This draft"
 msgstr ""
 
@@ -8171,12 +8132,6 @@ msgstr "Możesz dołączyć do {MAX_ATTACHMENTS} obrazów."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "Możesz to później zmienić w <0>Ustawienia → Synchronizacja</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "Możesz przywrócić ten plik z Kosza."
-
-msgid "You can restore this file from the Trash."
-msgstr "Możesz przywrócić ten plik z Kosza."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "Anulowano ładowanie „{docName}”."

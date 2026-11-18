@@ -497,11 +497,7 @@ export function DockWorkspace({
         'relative min-h-0 min-w-0 flex-1',
         dragging && 'select-none',
         redock !== null && 'cursor-grabbing',
-        redockable && [
-          '[&_[data-dock-handle]]:select-none',
-          '[&_[data-dock-handle][data-electron-drag]]:[-webkit-app-region:no-drag]',
-          '[&_[data-dock-handle]_[data-electron-drag]]:[-webkit-app-region:no-drag]',
-        ],
+        redockable && ['[&_[data-dock-handle]]:select-none'],
       )}
     >
       {DOCK_PANES.map((pane) => {

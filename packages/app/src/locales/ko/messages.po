@@ -271,15 +271,6 @@ msgstr "{count, plural, other {다른 문서 참여자 #명 더}}"
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, other {참여자 #명 더}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, other {다음 폴더 #개와 그 내용을 삭제하시겠습니까?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, other {다음 파일 #개를 삭제하시겠습니까?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, other {다음 파일 또는 폴더 #개와 그 내용을 삭제하시겠습니까?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {자동 수정이 알려진 문제 #개를 즉시 수정합니다.}}"
 
@@ -1054,12 +1045,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "이 파일을 템플릿으로 변환하시겠습니까? 원본 파일은 삭제됩니다. 이 작업은 취소할 수 없습니다."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "정말로 \"{name}\" 및 해당 내용을 삭제하시겠어요?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "정말로 \"{name}\"을(를) 삭제하시겠어요?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "“{folderName}/” 폴더와 내부의 모든 파일을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
 
@@ -1068,12 +1053,6 @@ msgstr "{itemName}을 삭제하시겠습니까? 이 작업은 취소할 수 없�
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "선택한 {targetCount}개 항목을 삭제하시겠습니까? 폴더와 내부의 모든 파일도 삭제됩니다. 이 작업은 취소할 수 없습니다."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "선택한 항목을 삭제하시겠습니까?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "선택한 항목을 삭제하시겠습니까?"
 
 msgid "Ask"
 msgstr "질문"
@@ -1584,9 +1563,6 @@ msgstr "다른 항목 닫기"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "이 미리보기를 닫고 폴더를 열어 파일을 업로드하세요"
-
-msgid "Close window"
-msgstr "창 닫기"
 
 msgid "Clusters"
 msgstr "클러스터"
@@ -4478,9 +4454,6 @@ msgstr "새 패널 왼쪽으로 이동"
 msgid "Move to new pane right"
 msgstr "새 패널 오른쪽으로 이동"
 
-msgid "Move to Recycle Bin"
-msgstr "휴지통으로 이동"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "다음 CodeMirror lint 진단으로 이동합니다."
 
@@ -4492,9 +4465,6 @@ msgstr "다음 비주얼 편집기 찾기 결과로 이동합니다."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "이전 비주얼 편집기 찾기 결과로 이동합니다."
-
-msgid "Move to Trash"
-msgstr "휴지통으로 이동"
 
 msgid "Move up"
 msgstr "위로 이동"
@@ -4519,9 +4489,6 @@ msgstr "템플릿 이동됨"
 
 msgid "Moved up."
 msgstr "위로 이동했습니다."
-
-msgid "Moving"
-msgstr "이동 중"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "도구 모음 컨트롤이 있는 여러 페이지 PDF 뷰어입니다. 썸네일, 페이지 탐색, 확대/축소를 지원합니다."
@@ -4561,9 +4528,6 @@ msgstr "{docName}로 이동"
 
 msgid "Navigation and suggestions"
 msgstr "탐색 및 제안"
-
-msgid "Navigation history"
-msgstr "탐색 기록"
 
 msgid "Nested .okignore error in {path}"
 msgstr "{path}의 중첩된 .okignore 오류"
@@ -7345,9 +7309,6 @@ msgstr "이 문서는 편집기에서 이미 활성 상태입니다. 열기를 �
 msgid "This document is missing required properties"
 msgstr "이 문서에 필수 속성이 없습니다"
 
-msgid "This document was deleted"
-msgstr "이 문서는 삭제되었습니다"
-
 msgid "This draft"
 msgstr ""
 
@@ -8171,12 +8132,6 @@ msgstr "{MAX_ATTACHMENTS}개 이미지를 첨부할 수 있습니다."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "나중에 <0>설정 → 동기화</0>에서 변경할 수 있습니다."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "휴지통에서 이 파일을 복원할 수 있습니다."
-
-msgid "You can restore this file from the Trash."
-msgstr "휴지통에서 이 파일을 복원할 수 있습니다."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "\"{docName}\" 불러오기를 취소했습니다."

@@ -271,15 +271,6 @@ msgstr "{count, plural, one {# participant inter-documents de plus} many {# part
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {# participant de plus} many {# participants de plus} other {# participants de plus}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {Voulez-vous vraiment supprimer le dossier suivant et son contenu ?} many {Voulez-vous vraiment supprimer les # dossiers suivants et leur contenu ?} other {Voulez-vous vraiment supprimer les # dossiers suivants et leur contenu ?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {Voulez-vous vraiment supprimer le fichier suivant ?} many {Voulez-vous vraiment supprimer les # fichiers suivants ?} other {Voulez-vous vraiment supprimer les # fichiers suivants ?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {Voulez-vous vraiment supprimer le fichier/dossier suivant et son contenu ?} many {Voulez-vous vraiment supprimer les # fichiers/dossiers suivants et leur contenu ?} other {Voulez-vous vraiment supprimer les # fichiers/dossiers suivants et leur contenu ?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Corrige immédiatement le # problème qui a une correction automatique connue.} many {Corrige immédiatement les # problèmes qui ont une correction automatique connue.} other {Corrige immédiatement les # problèmes qui ont une correction automatique connue.}}"
 
@@ -1054,12 +1045,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Voulez-vous vraiment convertir ce fichier en modèle ? Le fichier d'origine sera supprimé. Cette action est irréversible."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "Voulez-vous vraiment supprimer « {name} » et son contenu ?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "Voulez-vous vraiment supprimer « {name} » ?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "Voulez-vous vraiment supprimer {folderName}/ et tous les fichiers qu'il contient ? Cette action est irréversible."
 
@@ -1068,12 +1053,6 @@ msgstr "Voulez-vous vraiment supprimer {itemName} ? Cette action est irréversib
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "Voulez-vous vraiment supprimer les {targetCount} éléments sélectionnés ? Les dossiers et tous les fichiers qu'ils contiennent seront supprimés. Cette action est irréversible."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "Voulez-vous vraiment supprimer l'élément sélectionné ?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "Voulez-vous vraiment supprimer les éléments sélectionnés ?"
 
 msgid "Ask"
 msgstr "Demander"
@@ -1584,9 +1563,6 @@ msgstr "Fermer les autres"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "Fermez cet aperçu, puis ouvrez le dossier pour envoyer des fichiers"
-
-msgid "Close window"
-msgstr "Fermer la fenêtre"
 
 msgid "Clusters"
 msgstr "Groupes"
@@ -4478,9 +4454,6 @@ msgstr "Déplacer vers un nouveau volet à gauche"
 msgid "Move to new pane right"
 msgstr "Déplacer vers un nouveau volet à droite"
 
-msgid "Move to Recycle Bin"
-msgstr "Mettre à la Corbeille"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Va au diagnostic de vérification CodeMirror suivant."
 
@@ -4492,9 +4465,6 @@ msgstr "Va au résultat de recherche suivant dans l'éditeur visuel."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Va au résultat de recherche précédent dans l'éditeur visuel."
-
-msgid "Move to Trash"
-msgstr "Mettre à la corbeille"
 
 msgid "Move up"
 msgstr "Monter"
@@ -4519,9 +4489,6 @@ msgstr "modèle déplacé"
 
 msgid "Moved up."
 msgstr "Déplacé vers le haut."
-
-msgid "Moving"
-msgstr "Déplacement"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Visionneuse PDF multipage avec barre d'outils (miniatures, navigation, zoom)."
@@ -4561,9 +4528,6 @@ msgstr "Aller à {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Navigation et suggestions"
-
-msgid "Navigation history"
-msgstr "Historique de navigation"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Erreur dans le .okignore imbriqué de {path}"
@@ -7345,9 +7309,6 @@ msgstr "Ce document est déjà actif dans l'éditeur. Utilisez Ouvrir pour rédu
 msgid "This document is missing required properties"
 msgstr "Il manque des propriétés obligatoires à ce document"
 
-msgid "This document was deleted"
-msgstr "Ce document a été supprimé"
-
 msgid "This draft"
 msgstr ""
 
@@ -8171,12 +8132,6 @@ msgstr "Vous pouvez joindre jusqu'à {MAX_ATTACHMENTS} images."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "Vous pourrez changer cela plus tard dans <0>Paramètres → Synchronisation</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "Vous pouvez restaurer ce fichier depuis la Corbeille."
-
-msgid "You can restore this file from the Trash."
-msgstr "Vous pouvez restaurer ce fichier depuis la corbeille."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "Vous avez annulé le chargement de « {docName} »."

@@ -119,10 +119,6 @@ describe('local menu-action bus', () => {
 
 const EXPECTED_EMITTERS = [
   { file: 'components/CommandPalette.tsx', origins: ['{ launcherBorne: true }'] },
-  {
-    file: 'components/NavigationHistoryControls.tsx',
-    origins: ['<default: launcher-free>', '<default: launcher-free>'],
-  },
 ];
 
 function emitCallArguments(source: string): string[] {

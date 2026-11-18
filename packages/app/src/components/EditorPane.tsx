@@ -1,4 +1,3 @@
-import { isEditableTextDocFile } from '@gitquire/core/constants/code-languages';
 import type { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   type ReactNode,
@@ -50,7 +49,6 @@ import {
   readNarrowWorkspaceSession,
   writeNarrowWorkspaceSession,
 } from '@/lib/narrow-workspace-session';
-import { isNoteWindow } from '@/lib/note-window-mode';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import {
   assertNeverPaneId,
@@ -62,7 +60,6 @@ import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { useSingleFileMode } from '@/lib/single-file-mode';
 import { useWorkspace } from '@/lib/use-workspace';
 import { setViewMenuState } from '@/lib/view-menu-state-store';
-import { useSyncStatus } from '@/presence/use-sync-status';
 import { AuthModal } from './AuthModal';
 import { AutoSyncOnboardingDialog } from './AutoSyncOnboardingDialog';
 import { resolveAutoSyncOnboarding } from './auto-sync-onboarding-gate';
@@ -74,7 +71,6 @@ import {
   type WorkspaceHeaderChrome,
 } from './EditorArea';
 import { EditorHeader } from './EditorHeader';
-import { EditorModeToggle } from './EditorModeToggle';
 import { EditorSidebarsContextMenu } from './EditorSidebarsContextMenu';
 export type EditorMode = EditorModeValue;
 
@@ -233,7 +229,6 @@ type PaneExtentPublisherState = {
   editorVisible: boolean;
   agentsVisible: boolean;
   agentsAvailable: boolean;
-  noteWindow: boolean;
   exclusive: boolean;
 };
 
@@ -250,9 +245,7 @@ function usePaneExtentPublisher(state: PaneExtentPublisherState) {
     };
     paneVisibilityStore.publish(
       {
-        editor: latest.noteWindow
-          ? null
-          : { open: latest.editorVisible, onScreen: latest.editorVisible },
+        editor: { open: latest.editorVisible, onScreen: latest.editorVisible },
         agents: latest.agentsAvailable
           ? { open: latest.agentsVisible, onScreen: latest.agentsVisible && onScreen.agents }
           : null,
@@ -263,76 +256,32 @@ function usePaneExtentPublisher(state: PaneExtentPublisherState) {
   return publish;
 }
 
-function NoteWindowModeToggle({
-  provider,
-  editorMode,
-  onModeChange,
-}: {
-  provider: HocuspocusProvider | null;
-  editorMode: EditorModeValue;
-  onModeChange: (mode: EditorModeValue) => void;
-}) {
-  const syncStatus = useSyncStatus(provider);
-  return (
-    <EditorModeToggle
-      isSourceMode={editorMode === 'source'}
-      onModeChange={onModeChange}
-      sourceDisabled={syncStatus !== 'connected' && syncStatus !== 'synced'}
-    />
-  );
-}
-
-type WorkspaceHeaderState = {
-  noteWindow: boolean;
-  activeDocName: string | null;
-  activeProvider: HocuspocusProvider | null;
-  editorMode: EditorModeValue;
-  onModeChange: (mode: EditorModeValue) => void;
-};
-
 function WorkspaceHeader({
   tabs,
   leading,
   trailing,
   sidebarSwap,
-  state,
 }: {
   tabs: ReactNode;
   leading: ReactNode;
   trailing: ReactNode;
   sidebarSwap: boolean;
-  state: WorkspaceHeaderState;
 }) {
   const header = (
-    <EditorHeader
-      leading={leading}
-      trailing={trailing}
-      noteModeToggle={
-        state.noteWindow &&
-        state.activeDocName !== null &&
-        !isEditableTextDocFile(state.activeDocName) ? (
-          <NoteWindowModeToggle
-            provider={state.activeProvider}
-            editorMode={state.editorMode}
-            onModeChange={state.onModeChange}
-          />
-        ) : null
-      }
-    >
+    <EditorHeader leading={leading} trailing={trailing}>
       {tabs}
     </EditorHeader>
   );
   return sidebarSwap ? <EditorSidebarsContextMenu>{header}</EditorSidebarsContextMenu> : header;
 }
 
-function createWorkspaceHeaderRenderer(state: WorkspaceHeaderState) {
-  return (tabs: ReactNode, chrome: WorkspaceHeaderChrome) => (
+function renderWorkspaceHeader(tabs: ReactNode, chrome: WorkspaceHeaderChrome) {
+  return (
     <WorkspaceHeader
       tabs={tabs}
       leading={chrome.leading}
       trailing={chrome.trailing}
       sidebarSwap={chrome.sidebarSwap}
-      state={state}
     />
   );
 }
@@ -375,9 +324,8 @@ export function EditorPane() {
   });
   const [activeTab, setActiveTab] = useState<PanelTab>(TABS[0].id);
   const [autoSyncOnboardingDismissed, setAutoSyncOnboardingDismissed] = useState(false);
-  const noteWindow = isNoteWindow();
   const gitquireFeatures = useGitQuireFeatures();
-  const chatPane = !noteWindow && agentsPaneIsChat(gitquireFeatures);
+  const chatPane = agentsPaneIsChat(gitquireFeatures);
   const agentsAvailable = chatPane;
   const singleFile = useSingleFileMode();
   const workspace = useWorkspace();
@@ -386,7 +334,7 @@ export function EditorPane() {
     narrowWorkspaceSnapshot,
     () => false,
   );
-  const exclusive = belowMainBreakpoint && !noteWindow;
+  const exclusive = belowMainBreakpoint;
   const [narrowSelection, setNarrowSelection] = useState<PaneId | null>('editor');
   const [readyNarrowSessionKey, setReadyNarrowSessionKey] = useState<string | null>(null);
   const lastInteractedPaneRef = useRef<PaneId | null>(null);
@@ -397,7 +345,7 @@ export function EditorPane() {
   const initialExclusiveRef = useRef(exclusive);
   const layoutRestoreFocusHoldRef = useRef(false);
   const wasExclusiveRef = useRef(exclusive);
-  const editorToggleable = !noteWindow && !singleFile;
+  const editorToggleable = !singleFile;
   const [editorShown, setEditorShown] = useState(() => loadBoolPref(WEB_EDITOR_VISIBLE_KEY, true));
   const editorChosenSinceMountRef = useRef(false);
   const editorVisible = !editorToggleable || editorShown;
@@ -470,10 +418,7 @@ export function EditorPane() {
     updateDockArrangement((current) => withDockPaneAtEdge(current, pane, edge));
     paneVisibilityStore.request(pane, true);
   });
-  useEffect(() => {
-    if (noteWindow) return;
-    return subscribeDockPaneMoves(moveDockPaneEvent);
-  }, [noteWindow]);
+  useEffect(() => subscribeDockPaneMoves(moveDockPaneEvent), []);
   const [agentsVisible, setAgentsVisible] = useState<boolean>(
     () => readWebDockSessionOrder('agents')?.agentPanelVisible ?? false,
   );
@@ -521,7 +466,7 @@ export function EditorPane() {
     });
 
   useEffect(() => {
-    if (exclusive || noteWindow) return;
+    if (exclusive) return;
     const recordInteraction = (event: Event) => {
       if (event.type === 'focusin') {
         if (layoutRestoreFocusHoldRef.current) return;
@@ -543,7 +488,7 @@ export function EditorPane() {
       document.removeEventListener('pointerdown', recordInteraction, true);
       document.removeEventListener('keydown', recordInteraction, true);
     };
-  }, [exclusive, noteWindow, selectPane]);
+  }, [exclusive, selectPane]);
 
   useEffect(() => {
     if (exclusive && singleFile && narrowSelection === null) selectPane('editor');
@@ -554,7 +499,6 @@ export function EditorPane() {
     editorVisible: effectiveEditorVisible,
     agentsVisible: effectiveAgentsVisible,
     agentsAvailable,
-    noteWindow,
     exclusive,
   });
 
@@ -562,7 +506,6 @@ export function EditorPane() {
 
   useLayoutEffect(() => {
     return paneVisibilityStore.subscribeRequests(({ pane, open }) => {
-      if (noteWindow) return;
       if (pane === 'agents' && !agentsAvailable) return;
       if (exclusive) {
         applyPaneRequest(pane, open);
@@ -583,7 +526,7 @@ export function EditorPane() {
           return assertNeverPaneId(pane);
       }
     });
-  }, [noteWindow, agentsAvailable, editorToggleable, exclusive, applyPaneRequest]);
+  }, [agentsAvailable, editorToggleable, exclusive, applyPaneRequest]);
 
   const { projectConfig, projectLocalConfig, projectLocalSynced, projectSynced } =
     useConfigContext();
@@ -630,7 +573,6 @@ export function EditorPane() {
   });
 
   useEffect(() => {
-    if (noteWindow) return;
     return subscribeLocalMenuAction((action) => {
       if (action === 'toggle-agent-panel') {
         if (!agentsAvailable) return;
@@ -639,7 +581,7 @@ export function EditorPane() {
         toggleEditorEvent();
       }
     });
-  }, [noteWindow, agentsAvailable]);
+  }, [agentsAvailable]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -758,13 +700,7 @@ export function EditorPane() {
             dockTree={dockTree}
             onDockTreeChange={changeDockTree}
             onSessionPlacements={setPlacements}
-            renderWorkspaceHeader={createWorkspaceHeaderRenderer({
-              noteWindow,
-              activeDocName,
-              activeProvider,
-              editorMode,
-              onModeChange: handleModeChange,
-            })}
+            renderWorkspaceHeader={renderWorkspaceHeader}
           />
         </div>
       </div>

@@ -46,7 +46,6 @@ import { TouchEditToolbar } from '@/gitquire-mobile/TouchEditToolbar';
 import { GitQuirePeopleMentions } from '@/gitquire-people/people-mention';
 import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
 import { anchorFromHash } from '@/lib/doc-hash';
-import { claimNoteWindowInitialFocus } from '@/lib/note-window-focus';
 import { mark } from '@/lib/perf';
 import { wrapExtensionsWithTiming } from '@/lib/perf/cold-mount-instrumentation';
 import { useSingleFileMode } from '@/lib/single-file-mode';
@@ -722,21 +721,6 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
       editor.off('transaction', onTransaction);
     };
   }, [editor, provider]);
-
-  useEffect(() => {
-    const focusIfClaimed = () => {
-      if (editor.isDestroyed || !getEditorView(editor)) return;
-      if (claimNoteWindowInitialFocus()) editor.commands.focus();
-    };
-    if (getEditorView(editor)) {
-      focusIfClaimed();
-    } else {
-      editor.on('create', focusIfClaimed);
-    }
-    return () => {
-      editor.off('create', focusIfClaimed);
-    };
-  }, [editor]);
 
   useEffect(() => {
     let fired = false;

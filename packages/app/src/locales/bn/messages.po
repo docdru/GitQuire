@@ -271,15 +271,6 @@ msgstr "{count, plural, one {আরও # ক্রস-নথি অংশগ্�
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {আরও # অংশগ্রহণকারী} other {আরও # অংশগ্রহণকারী}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {আপনি কি নিশ্চিতভাবে নিচের # ফোল্ডার এবং তার বিষয়বস্তু মুছতে চান?} other {আপনি কি নিশ্চিতভাবে নিচের # ফোল্ডার এবং সেগুলির বিষয়বস্তু মুছতে চান?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {আপনি কি নিশ্চিতভাবে নিচের # ফাইলটি মুছতে চান?} other {আপনি কি নিশ্চিতভাবে নিচের # ফাইল মুছতে চান?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {আপনি কি নিশ্চিতভাবে নিচের # ফাইল/ফোল্ডার এবং তার বিষয়বস্তু মুছতে চান?} other {আপনি কি নিশ্চিতভাবে নিচের # ফাইল/ফোল্ডার এবং সেগুলির বিষয়বস্তু মুছতে চান?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {যে # সমস্যার পরিচিত স্বয়ংক্রিয় সমাধান আছে তা সঙ্গে সঙ্গে ঠিক করে।} other {যে # সমস্যার পরিচিত স্বয়ংক্রিয় সমাধান আছে সেগুলো সঙ্গে সঙ্গে ঠিক করে।}}"
 
@@ -1050,12 +1041,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "আপনি কি নিশ্চিত যে এই ফাইলটিকে টেমপ্লেটে রূপান্তর করতে চান? মূল ফাইলটি মুছে ফেলা হবে। এই কাজ ফেরানো যাবে না।"
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "আপনি কি নিশ্চিত যে আপনি \"{name}\" এবং এর সমস্ত সামগ্রী মুছে ফেলতে চান?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "আপনি কি নিশ্চিত যে আপনি \"{name}\" মুছে ফেলতে চান?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "আপনি কি নিশ্চিত যে {folderName}/ এবং এর ভেতরের সব ফাইল মুছে ফেলতে চান? এই কাজ ফেরানো যাবে না।"
 
@@ -1064,12 +1049,6 @@ msgstr "আপনি কি নিশ্চিত যে {itemName} মুছে
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "আপনি কি নিশ্চিত যে নির্বাচিত {targetCount}টি আইটেম মুছে ফেলতে চান? ফোল্ডার ও তার ভেতরের সব ফাইল মুছে যাবে। এই কাজ ফেরানো যাবে না।"
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "আপনি কি নিশ্চিতভাবে নির্বাচিত আইটেমটি মুছতে চান?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "আপনি কি নিশ্চিতভাবে নির্বাচিত আইটেমগুলি মুছতে চান?"
 
 msgid "Ask"
 msgstr "জিজ্ঞেস করুন"
@@ -1580,9 +1559,6 @@ msgstr "বাকিগুলো বন্ধ করুন"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "এই পূর্বরূপ বন্ধ করুন, তারপর ফাইল আপলোড করতে ফোল্ডারটি খুলুন"
-
-msgid "Close window"
-msgstr "উইন্ডো বন্ধ করুন"
 
 msgid "Clusters"
 msgstr "গুচ্ছ"
@@ -4474,9 +4450,6 @@ msgstr "বাঁ পাশের নতুন প্যানে সরান"
 msgid "Move to new pane right"
 msgstr "ডান পাশের নতুন প্যানে সরান"
 
-msgid "Move to Recycle Bin"
-msgstr "রিসাইকেল বিনে পাঠান"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "পরবর্তী CodeMirror lint নির্ণয়ে যান।"
 
@@ -4488,9 +4461,6 @@ msgstr "দৃশ্য-সম্পাদকের পরবর্তী খো
 
 msgid "Move to the previous visual-editor find result."
 msgstr "দৃশ্য-সম্পাদকের আগের খোঁজার ফলাফলে যান।"
-
-msgid "Move to Trash"
-msgstr "ট্র্যাশে পাঠান"
 
 msgid "Move up"
 msgstr "উপরে সরান"
@@ -4515,9 +4485,6 @@ msgstr "টেমপ্লেট সরানো হয়েছে"
 
 msgid "Moved up."
 msgstr "উপরে সরানো হয়েছে।"
-
-msgid "Moving"
-msgstr "সরানো হচ্ছে"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "টুলবার নিয়ন্ত্রণসহ বহু-পাতার PDF দর্শক (থাম্বনেইল, পাতা নেভিগেশন, জুম)।"
@@ -4557,9 +4524,6 @@ msgstr "{docName}-এ যান"
 
 msgid "Navigation and suggestions"
 msgstr "নেভিগেশন ও পরামর্শ"
-
-msgid "Navigation history"
-msgstr "নেভিগেশনের ইতিহাস"
 
 msgid "Nested .okignore error in {path}"
 msgstr "{path}-এ নেস্টেড .okignore ত্রুটি"
@@ -7341,9 +7305,6 @@ msgstr "এই নথিটি সম্পাদকে আগে থেকে�
 msgid "This document is missing required properties"
 msgstr "এই নথিতে আবশ্যক প্রপার্টি অনুপস্থিত"
 
-msgid "This document was deleted"
-msgstr "এই নথিটি মুছে ফেলা হয়েছে"
-
 msgid "This draft"
 msgstr ""
 
@@ -8167,12 +8128,6 @@ msgstr "আপনি সর্বোচ্চ {MAX_ATTACHMENTS}টি ছবি 
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "আপনি এটি পরে <0>Settings → Sync</0>-এ বদলাতে পারেন।"
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "আপনি এই ফাইলটি রিসাইকেল বিন থেকে পুনরুদ্ধার করতে পারেন।"
-
-msgid "You can restore this file from the Trash."
-msgstr "আপনি এই ফাইলটি ট্র্যাশ থেকে পুনরুদ্ধার করতে পারেন।"
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "আপনি \"{docName}\" লোড করা বাতিল করেছেন।"

@@ -271,15 +271,6 @@ msgstr "{count, plural, one {# participante más de otro documento} many {# part
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {# participante más} many {# participantes más} other {# participantes más}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {¿Seguro que quieres eliminar la siguiente # carpeta y su contenido?} many {¿Seguro que quieres eliminar las siguientes # carpetas y su contenido?} other {¿Seguro que quieres eliminar las siguientes # carpetas y su contenido?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {¿Seguro que quieres eliminar el siguiente # archivo?} many {¿Seguro que quieres eliminar los siguientes # archivos?} other {¿Seguro que quieres eliminar los siguientes # archivos?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {¿Seguro que quieres eliminar el siguiente # archivo/carpeta y su contenido?} many {¿Seguro que quieres eliminar los siguientes # archivos/carpetas y su contenido?} other {¿Seguro que quieres eliminar los siguientes # archivos/carpetas y su contenido?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Arregla al instante el # problema que tiene un arreglo automático conocido.} many {Arregla al instante los # problemas que tienen un arreglo automático conocido.} other {Arregla al instante los # problemas que tienen un arreglo automático conocido.}}"
 
@@ -1054,12 +1045,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "¿Seguro que quieres convertir este archivo en una plantilla? El archivo original se eliminará. Esta acción no se puede deshacer."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "¿Seguro que quieres eliminar «{name}» y su contenido?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "¿Seguro que quieres eliminar «{name}»?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "¿Seguro que quieres eliminar {folderName}/ y todos los archivos que contiene? Esta acción no se puede deshacer."
 
@@ -1068,12 +1053,6 @@ msgstr "¿Seguro que quieres eliminar {itemName}? Esta acción no se puede desha
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "¿Seguro que quieres eliminar los {targetCount} elementos seleccionados? Se eliminarán las carpetas y todos los archivos que contienen. Esta acción no se puede deshacer."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "¿Seguro que quieres eliminar el elemento seleccionado?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "¿Seguro que quieres eliminar los elementos seleccionados?"
 
 msgid "Ask"
 msgstr "Preguntar"
@@ -1584,9 +1563,6 @@ msgstr "Cerrar las demás"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "Cierra esta vista previa y abre la carpeta para subir archivos"
-
-msgid "Close window"
-msgstr "Cerrar ventana"
 
 msgid "Clusters"
 msgstr "Grupos"
@@ -4478,9 +4454,6 @@ msgstr "Mover a un panel nuevo a la izquierda"
 msgid "Move to new pane right"
 msgstr "Mover a un panel nuevo a la derecha"
 
-msgid "Move to Recycle Bin"
-msgstr "Mover a la Papelera de reciclaje"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Ir al siguiente diagnóstico de análisis de CodeMirror."
 
@@ -4492,9 +4465,6 @@ msgstr "Ir al siguiente resultado de búsqueda del editor visual."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Ir al resultado de búsqueda anterior del editor visual."
-
-msgid "Move to Trash"
-msgstr "Mover a la Papelera"
 
 msgid "Move up"
 msgstr "Subir"
@@ -4519,9 +4489,6 @@ msgstr "plantilla movida"
 
 msgid "Moved up."
 msgstr "Se movió hacia arriba."
-
-msgid "Moving"
-msgstr "Moviendo"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Visor de PDF de varias páginas con controles en la barra de herramientas (miniaturas, navegación de páginas, zoom)."
@@ -4561,9 +4528,6 @@ msgstr "Ir a {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Navegación y sugerencias"
-
-msgid "Navigation history"
-msgstr "Historial de navegación"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Error en el .okignore anidado de {path}"
@@ -7345,9 +7309,6 @@ msgstr "Este documento ya está activo en el editor. Usa Abrir para contraer el 
 msgid "This document is missing required properties"
 msgstr "A este documento le faltan propiedades obligatorias"
 
-msgid "This document was deleted"
-msgstr "Este documento se eliminó"
-
 msgid "This draft"
 msgstr ""
 
@@ -8171,12 +8132,6 @@ msgstr "Puedes adjuntar hasta {MAX_ATTACHMENTS} imágenes."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "Puedes cambiarlo más adelante en <0>Ajustes → Sincronización</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "Puedes restaurar este archivo desde la Papelera de reciclaje."
-
-msgid "You can restore this file from the Trash."
-msgstr "Puedes restaurar este archivo desde la Papelera."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "Cancelaste la carga de \"{docName}\"."

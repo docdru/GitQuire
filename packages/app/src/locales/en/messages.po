@@ -271,15 +271,6 @@ msgstr "{count, plural, one {# more cross-doc participant} other {# more cross-d
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {# more participant} other {# more participants}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 
@@ -1054,12 +1045,6 @@ msgstr "Approved by {approvers}"
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "Are you sure you want to delete \"{name}\" and its contents?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "Are you sure you want to delete \"{name}\"?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 
@@ -1068,12 +1053,6 @@ msgstr "Are you sure you want to delete {itemName}? This action cannot be undone
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "Are you sure you want to delete the selected item?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "Are you sure you want to delete the selected items?"
 
 msgid "Ask"
 msgstr "Ask"
@@ -1584,9 +1563,6 @@ msgstr "Close others"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "Close this preview, then open the folder to upload files"
-
-msgid "Close window"
-msgstr "Close window"
 
 msgid "Clusters"
 msgstr "Clusters"
@@ -4478,9 +4454,6 @@ msgstr "Move to new pane left"
 msgid "Move to new pane right"
 msgstr "Move to new pane right"
 
-msgid "Move to Recycle Bin"
-msgstr "Move to Recycle Bin"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Move to the next CodeMirror lint diagnostic."
 
@@ -4492,9 +4465,6 @@ msgstr "Move to the next visual-editor find result."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Move to the previous visual-editor find result."
-
-msgid "Move to Trash"
-msgstr "Move to Trash"
 
 msgid "Move up"
 msgstr "Move up"
@@ -4519,9 +4489,6 @@ msgstr "moved template"
 
 msgid "Moved up."
 msgstr "Moved up."
-
-msgid "Moving"
-msgstr "Moving"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
@@ -4561,9 +4528,6 @@ msgstr "Navigate to {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Navigation and suggestions"
-
-msgid "Navigation history"
-msgstr "Navigation history"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Nested .okignore error in {path}"
@@ -7345,9 +7309,6 @@ msgstr "This document is already active in the editor. Use Open to collapse the 
 msgid "This document is missing required properties"
 msgstr "This document is missing required properties"
 
-msgid "This document was deleted"
-msgstr "This document was deleted"
-
 msgid "This draft"
 msgstr "This draft"
 
@@ -8171,12 +8132,6 @@ msgstr "You can attach up to {MAX_ATTACHMENTS} images."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "You can change this later in <0>Settings → Sync</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "You can restore this file from the Recycle Bin."
-
-msgid "You can restore this file from the Trash."
-msgstr "You can restore this file from the Trash."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "You cancelled loading \"{docName}\"."

@@ -77,7 +77,6 @@ import { agentsPaneIsChat, hasClaudeAccess, useGitQuireFeatures } from '@/lib/gi
 import { useCompactViewport } from '@/lib/gitquire/use-compact-viewport';
 import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
-import { isNoteWindow } from '@/lib/note-window-mode';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import type { PaneId } from '@/lib/pane-visibility-store';
 import { ProfilerBoundary } from '@/lib/perf';
@@ -577,9 +576,6 @@ function EditorAreaInner({
   renderWorkspaceHeader = renderTabsWithoutHeader,
 }: EditorAreaProps) {
   const { t } = useLingui();
-  const noteWindow = isNoteWindow();
-  const cardLook = !noteWindow;
-  const cardVariant = cardLook ? 'card' : 'flat';
   const {
     activeDocName,
     activeProvider,
@@ -735,7 +731,7 @@ function EditorAreaInner({
   const [workspaceColumnEl, setWorkspaceColumnEl] = useState<HTMLElement | null>(null);
   const [editorRegion, setEditorRegion] = useState<HTMLDivElement | null>(null);
 
-  const agentsUnitShown = !noteWindow && agentsVisible;
+  const agentsUnitShown = agentsVisible;
   const [dockLayout, setDockLayout] = useState<DockLayout>(EMPTY_DOCK_LAYOUT);
   const editorVisibleRef = useRef(editorVisible);
   const editorCardRef = useRef<HTMLDivElement | null>(null);
@@ -1480,7 +1476,7 @@ function EditorAreaInner({
     const showAskClaude = askClaudeAvailable && bottomComposerFits;
     const renderEditorContent = (activityMount: ReactNode) => (
       <div className="relative flex h-full flex-col">
-        <DocChangeNotice docName={activeDocName} timelineAvailable={!noteWindow} />
+        <DocChangeNotice docName={activeDocName} timelineAvailable />
         <div className="relative min-h-0 flex-1">
           <div className="relative h-full">
             {activityMount}
@@ -1556,8 +1552,6 @@ function EditorAreaInner({
     );
   }
 
-  if (noteWindow) docSlotContent = null;
-
   const docSlotPresent = docSlotContent != null;
   const sidebarFit = resolveCurrentEditorSidebarFit(sidebarFitContext, docSlotPresent);
   const docPanelCanDock = sidebarFit.informationDocked;
@@ -1580,8 +1574,7 @@ function EditorAreaInner({
   useLayoutEffect(() => {
     if (sidebarFit.mode === 'both' && preferredSidebar != null) setPreferredSidebar(null);
   }, [sidebarFit.mode, preferredSidebar]);
-  const showDocPanelToggle =
-    !noteWindow && renderFocusedDocument != null && activeDocConflict === null;
+  const showDocPanelToggle = renderFocusedDocument != null && activeDocConflict === null;
   const docPanelToggle = showDocPanelToggle ? (
     <DocPanelToggle
       isPanelCollapsed={!docPanelOnScreen}
@@ -1858,16 +1851,14 @@ function EditorAreaInner({
         visibleDocNames={renderableVisibleDocNames}
         activityHosts={activityHosts}
         parkingHost={parkingHost}
-        renderToolbar={(docName, provider) =>
-          noteWindow ? null : (
-            <PaneDocumentToolbar
-              docName={docName}
-              provider={provider}
-              isSourceMode={isSourceMode}
-              onModeChange={onModeChange}
-            />
-          )
-        }
+        renderToolbar={(docName, provider) => (
+          <PaneDocumentToolbar
+            docName={docName}
+            provider={provider}
+            isSourceMode={isSourceMode}
+            onModeChange={onModeChange}
+          />
+        )}
         isSourceMode={isSourceMode}
         editorPlaceholder={poolActiveDocName === activeDocName ? editorPlaceholder : undefined}
         previousDocName={previousDocName ?? undefined}
@@ -1985,7 +1976,7 @@ function EditorAreaInner({
     <PaneCard
       ref={editorCardRef}
       pane="editor"
-      variant={cardVariant}
+      variant="card"
       className="flex-row"
       inert={!editorVisible}
       data-editor-hidden={editorVisible ? undefined : ''}
@@ -2017,7 +2008,7 @@ function EditorAreaInner({
                 data-editor-workspace-column=""
                 className="flex h-full min-w-0 flex-col"
               >
-                {noteWindow ? null : workspaceHeaderTarget}
+                {workspaceHeaderTarget}
                 {documentArea}
               </main>
             </ResizablePanel>
@@ -2089,8 +2080,8 @@ function EditorAreaInner({
     </PaneCard>
   );
 
-  const agentsUnit = noteWindow ? null : (
-    <PaneCard pane="agents" variant={cardVariant}>
+  const agentsUnit = (
+    <PaneCard pane="agents" variant="card">
       <section
         ref={setAgentsContainer}
         data-agents-panel-mount=""
@@ -2104,18 +2095,17 @@ function EditorAreaInner({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {noteWindow ? workspaceHeaderTarget : null}
       <div data-editor-area-panels="" className="relative flex min-h-0 flex-1">
         <DockWorkspace
           tree={dockTree}
           visible={{ editor: editorVisible, agents: agentsUnitShown }}
           units={{ editor: editorUnit, agents: agentsUnit }}
-          gap={cardLook ? PANE_CARD_GAP_PX : 0}
+          gap={PANE_CARD_GAP_PX}
           minExtent={dockPaneMinExtent}
           paneLabel={(pane) => t(paneLabel(pane, agentsPaneIsChat(gitquireFeatures)))}
           onTreeChange={onDockTreeChange}
           onLayoutChange={setDockLayout}
-          redockable={!noteWindow}
+          redockable
         />
         {nothingOpen ? <NothingOpen /> : null}
       </div>

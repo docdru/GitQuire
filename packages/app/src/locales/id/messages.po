@@ -271,15 +271,6 @@ msgstr "{count, plural, other {# peserta lagi dari dokumen lain}}"
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, other {# peserta lagi}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, other {Yakin ingin menghapus # folder berikut beserta isinya?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, other {Yakin ingin menghapus # berkas berikut?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, other {Yakin ingin menghapus # berkas/folder berikut beserta isinya?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {Langsung memperbaiki # masalah yang punya perbaikan otomatis yang diketahui.}}"
 
@@ -1050,12 +1041,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Yakin ingin mengubah berkas ini menjadi templat? Berkas aslinya akan dihapus. Tindakan ini tidak bisa dibatalkan."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "Yakin ingin menghapus \"{name}\" beserta isinya?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "Yakin ingin menghapus \"{name}\"?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "Yakin ingin menghapus {folderName}/ dan semua berkas di dalamnya? Tindakan ini tidak bisa dibatalkan."
 
@@ -1064,12 +1049,6 @@ msgstr "Yakin ingin menghapus {itemName}? Tindakan ini tidak bisa dibatalkan."
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "Yakin ingin menghapus {targetCount} item terpilih? Folder dan semua berkas di dalamnya akan dihapus. Tindakan ini tidak bisa dibatalkan."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "Yakin ingin menghapus item yang dipilih?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "Yakin ingin menghapus item yang dipilih?"
 
 msgid "Ask"
 msgstr "Tanya"
@@ -1580,9 +1559,6 @@ msgstr "Tutup yang lain"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "Tutup pratinjau ini, lalu buka folder untuk mengunggah file"
-
-msgid "Close window"
-msgstr "Tutup jendela"
 
 msgid "Clusters"
 msgstr "Klaster"
@@ -4474,9 +4450,6 @@ msgstr "Pindahkan ke panel baru di kiri"
 msgid "Move to new pane right"
 msgstr "Pindahkan ke panel baru di kanan"
 
-msgid "Move to Recycle Bin"
-msgstr "Pindahkan ke Recycle Bin"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Pergi ke diagnostik lint CodeMirror berikutnya."
 
@@ -4488,9 +4461,6 @@ msgstr "Pergi ke hasil pencarian penyunting visual berikutnya."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Pergi ke hasil pencarian penyunting visual sebelumnya."
-
-msgid "Move to Trash"
-msgstr "Pindahkan ke Tempat Sampah"
 
 msgid "Move up"
 msgstr "Naikkan"
@@ -4515,9 +4485,6 @@ msgstr "templat dipindahkan"
 
 msgid "Moved up."
 msgstr "Dipindahkan ke atas."
-
-msgid "Moving"
-msgstr "Memindahkan"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Penampil PDF multi-halaman dengan kendali bilah alat (gambar mini, navigasi halaman, zoom)."
@@ -4557,9 +4524,6 @@ msgstr "Pergi ke {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Navigasi dan saran"
-
-msgid "Navigation history"
-msgstr "Riwayat navigasi"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Galat .okignore bersarang di {path}"
@@ -7341,9 +7305,6 @@ msgstr "Dokumen ini sudah aktif di penyunting. Gunakan Buka untuk menciutkan gra
 msgid "This document is missing required properties"
 msgstr "Dokumen ini kehilangan properti yang wajib"
 
-msgid "This document was deleted"
-msgstr "Dokumen ini telah dihapus"
-
 msgid "This draft"
 msgstr ""
 
@@ -8167,12 +8128,6 @@ msgstr "Anda bisa melampirkan hingga {MAX_ATTACHMENTS} gambar."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "Anda bisa mengubah ini nanti di <0>Pengaturan → Sinkronisasi</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "Anda dapat memulihkan berkas ini dari Recycle Bin."
-
-msgid "You can restore this file from the Trash."
-msgstr "Anda dapat memulihkan berkas ini dari Tempat Sampah."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "Anda membatalkan pemuatan \"{docName}\"."

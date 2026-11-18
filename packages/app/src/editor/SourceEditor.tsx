@@ -27,8 +27,7 @@ import {
 import type { RawMdxNavDetail } from '@/editor/extensions/raw-mdx-nav-event';
 import { useConfigContext } from '@/lib/config-provider';
 import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
-import { editorToolbarOverlapPx } from '@/lib/editor-toolbar-overlap';
-import { claimNoteWindowInitialFocus } from '@/lib/note-window-focus';
+import { EDITOR_TOOLBAR_HEIGHT } from '@/lib/editor-toolbar-overlap';
 import { createSourceClipboardExtension } from './clipboard/index.ts';
 import {
   codeMirrorContentAttributes,
@@ -267,7 +266,7 @@ export function SourceEditor({
                     height: '100%',
                   },
                 }),
-                EditorView.scrollMargins.of(() => ({ top: editorToolbarOverlapPx() })),
+                EditorView.scrollMargins.of(() => ({ top: EDITOR_TOOLBAR_HEIGHT })),
               ],
             });
             const view = new EditorView({ state, parent: el });
@@ -303,7 +302,6 @@ export function SourceEditor({
       viewRef.current = entry.view;
       setSourceViewUndoFlipActive(entry.view, isSourceModeActive);
       registerFullPageCmView(docName, entry.view, 'sourceEditor');
-      if (claimNoteWindowInitialFocus()) entry.view.focus();
     } catch (err) {
       console.error('[SourceEditor] mountCmEditor failed', err);
       cmEntryRef.current = null;

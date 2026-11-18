@@ -271,15 +271,6 @@ msgstr "{count, plural, zero {# مشارك إضافي عبر المستندات}
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, zero {# مشارك إضافي} one {مشارك إضافي واحد} two {مشاركان إضافيان} few {# مشاركين إضافيين} many {# مشاركًا إضافيًا} other {# مشارك إضافي}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, zero {هل تريد بالتأكيد حذف المجلدات التالية ومحتوياتها؟} one {هل تريد بالتأكيد حذف المجلد التالي ومحتوياته؟} two {هل تريد بالتأكيد حذف المجلدين التاليين ومحتوياتهما؟} few {هل تريد بالتأكيد حذف المجلدات # التالية ومحتوياتها؟} many {هل تريد بالتأكيد حذف # مجلدًا من المجلدات التالية ومحتوياتها؟} other {هل تريد بالتأكيد حذف # مجلد من المجلدات التالية ومحتوياتها؟}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, zero {هل تريد بالتأكيد حذف الملفات التالية؟} one {هل تريد بالتأكيد حذف الملف التالي؟} two {هل تريد بالتأكيد حذف الملفين التاليين؟} few {هل تريد بالتأكيد حذف الملفات # التالية؟} many {هل تريد بالتأكيد حذف # ملفًا من الملفات التالية؟} other {هل تريد بالتأكيد حذف # ملف من الملفات التالية؟}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, zero {هل تريد بالتأكيد حذف الملفات/المجلدات التالية ومحتوياتها؟} one {هل تريد بالتأكيد حذف الملف/المجلد التالي ومحتوياته؟} two {هل تريد بالتأكيد حذف العنصرين التاليين ومحتوياتهما؟} few {هل تريد بالتأكيد حذف العناصر # التالية ومحتوياتها؟} many {هل تريد بالتأكيد حذف # عنصرًا من الملفات/المجلدات التالية ومحتوياتها؟} other {هل تريد بالتأكيد حذف # عنصر من الملفات/المجلدات التالية ومحتوياتها؟}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, zero {يصلح فورًا المشكلات # التي لها إصلاح تلقائي معروف.} one {يصلح فورًا المشكلة الواحدة التي لها إصلاح تلقائي معروف.} two {يصلح فورًا المشكلتين اللتين لهما إصلاح تلقائي معروف.} few {يصلح فورًا المشكلات # التي لها إصلاح تلقائي معروف.} many {يصلح فورًا المشكلات # التي لها إصلاح تلقائي معروف.} other {يصلح فورًا المشكلات # التي لها إصلاح تلقائي معروف.}}"
 
@@ -1054,12 +1045,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "هل أنت متأكد أنك تريد تحويل هذا الملف إلى قالب؟ سيُحذف الملف الأصلي. لا يمكن التراجع عن هذا الإجراء."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "هل تريد بالتأكيد حذف ‏«{name}» ومحتوياته؟"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "هل تريد بالتأكيد حذف ‏«{name}»؟"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "هل أنت متأكد أنك تريد حذف {folderName}/ وكل الملفات بداخله؟ لا يمكن التراجع عن هذا الإجراء."
 
@@ -1068,12 +1053,6 @@ msgstr "هل أنت متأكد أنك تريد حذف {itemName}؟ لا يمكن
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "هل أنت متأكد أنك تريد حذف {targetCount} عنصرًا محددًا؟ ستُحذف المجلدات وكل الملفات بداخلها. لا يمكن التراجع عن هذا الإجراء."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "هل تريد بالتأكيد حذف العنصر المحدد؟"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "هل تريد بالتأكيد حذف العناصر المحددة؟"
 
 msgid "Ask"
 msgstr "اسأل"
@@ -1584,9 +1563,6 @@ msgstr "إغلاق الأخرى"
 
 msgid "Close this preview, then open the folder to upload files"
 msgstr "أغلق هذه المعاينة، ثم افتح المجلد لرفع الملفات"
-
-msgid "Close window"
-msgstr "إغلاق النافذة"
 
 msgid "Clusters"
 msgstr "التجمعات"
@@ -4478,9 +4454,6 @@ msgstr "النقل إلى جزء جديد على اليسار"
 msgid "Move to new pane right"
 msgstr "النقل إلى جزء جديد على اليمين"
 
-msgid "Move to Recycle Bin"
-msgstr "النقل إلى سلة المحذوفات"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "انتقل إلى تشخيص الفحص التالي في CodeMirror."
 
@@ -4492,9 +4465,6 @@ msgstr "انتقل إلى نتيجة البحث التالية في المحرر
 
 msgid "Move to the previous visual-editor find result."
 msgstr "انتقل إلى نتيجة البحث السابقة في المحرر المرئي."
-
-msgid "Move to Trash"
-msgstr "النقل إلى المهملات"
 
 msgid "Move up"
 msgstr "تحريك لأعلى"
@@ -4519,9 +4489,6 @@ msgstr "نقل قالبًا"
 
 msgid "Moved up."
 msgstr "تم النقل إلى أعلى."
-
-msgid "Moving"
-msgstr "جارٍ النقل"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "عارض PDF متعدد الصفحات بعناصر تحكم في شريط الأدوات (صور مصغّرة، تنقل بين الصفحات، تكبير)."
@@ -4561,9 +4528,6 @@ msgstr "الانتقال إلى {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "التنقل والاقتراحات"
-
-msgid "Navigation history"
-msgstr "سجل التنقل"
 
 msgid "Nested .okignore error in {path}"
 msgstr "خطأ في .okignore المتداخل في {path}"
@@ -7345,9 +7309,6 @@ msgstr "هذا المستند نشط بالفعل في المحرر. استخد�
 msgid "This document is missing required properties"
 msgstr "ينقص هذا المستند خصائص مطلوبة"
 
-msgid "This document was deleted"
-msgstr "تم حذف هذا المستند"
-
 msgid "This draft"
 msgstr ""
 
@@ -8171,12 +8132,6 @@ msgstr "يمكنك إرفاق ما يصل إلى {MAX_ATTACHMENTS} صور."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "يمكنك تغيير هذا لاحقًا من <0>الإعدادات ← المزامنة</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "يمكنك استعادة هذا الملف من سلة المحذوفات."
-
-msgid "You can restore this file from the Trash."
-msgstr "يمكنك استعادة هذا الملف من المهملات."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "ألغيت تحميل «{docName}»."
