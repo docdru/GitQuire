@@ -7,7 +7,6 @@ import { NoticeBanner } from '@/components/NoticeBanner';
 import { Button } from '@/components/ui/button';
 import { useDocNotices } from '@/hooks/use-doc-notices';
 import { saveHeldMessage } from '@/lib/save-held-message';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 
 const announcedNoticeIds = new Set<string>();
 
@@ -240,10 +239,9 @@ export function DocChangeNotice({
   onDismissFocus?: () => void;
 }) {
   const { notices, dismiss } = useDocNotices(docName);
-  const singleFile = useSingleFileMode();
   const messages = useRef(new Map<string, HTMLSpanElement>());
   const [announcement, setAnnouncement] = useState('');
-  const canOpenTimeline = timelineAvailable && !singleFile;
+  const canOpenTimeline = timelineAvailable;
 
   useEffect(() => {
     const fresh = notices.filter((notice) => !announcedNoticeIds.has(notice.id));

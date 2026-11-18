@@ -66,8 +66,6 @@ mkdirSync(CONTENT_DIR, { recursive: true });
 const isTestIsolated = Boolean(process.env.GITQUIRE_TEST_CONTENT_DIR);
 const gitEnabledForTest = isTestIsolated && process.env.GITQUIRE_TEST_GIT_ENABLED === '1';
 
-const SINGLE_DOC_REL_PATH = process.env.GITQUIRE_TEST_SINGLE_DOC_REL_PATH || undefined;
-const isEphemeralTest = isTestIsolated && SINGLE_DOC_REL_PATH !== undefined;
 const TEST_PROJECT_DIR = process.env.GITQUIRE_TEST_PROJECT_DIR
   ? realpathSync(process.env.GITQUIRE_TEST_PROJECT_DIR)
   : undefined;
@@ -194,13 +192,12 @@ async function attachOkServer(
     projectDir: TEST_PROJECT_DIR ?? (isTestIsolated ? CONTENT_DIR : PROJECT_ROOT),
     contentRoot: isTestIsolated ? '' : CONTENT_ROOT,
     ...(isTestIsolated ? { configHomedirOverride: CONTENT_DIR } : {}),
-    gitEnabled: isEphemeralTest ? false : !isTestIsolated || gitEnabledForTest,
+    gitEnabled: !isTestIsolated || gitEnabledForTest,
     enableTestRoutes: true,
     quiet: true,
     embeddingsKeyStore: makeLazyEmbeddingsKeyStore(),
     capabilities: ['http', 'ws', 'ui'],
     ...(localOpCliArgs === undefined ? {} : { localOpCliArgs }),
-    ...(isEphemeralTest ? { ephemeral: true, singleDocRelPath: SINGLE_DOC_REL_PATH } : {}),
   });
 
   latestLockDir = currentSrv.lockDir;
@@ -256,7 +253,7 @@ async function attachOkServer(
       if (url === '/api/config') {
         const addr = server.httpServer?.address();
         const port = typeof addr === 'object' && addr !== null ? addr.port : 0;
-        const response = computeDevApiConfigResponse(req.method, port, isEphemeralTest);
+        const response = computeDevApiConfigResponse(req.method, port);
         if (response) {
           for (const [name, value] of Object.entries(response.headers)) {
             res.setHeader(name, value);

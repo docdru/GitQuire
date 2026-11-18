@@ -78,7 +78,7 @@ describe('EditorFooter identity row', () => {
     },
   );
 
-  test('shows the current branch with no file list in the tree at all, which is what single-file windows get', async () => {
+  test('shows the current branch with no file list in the tree at all', async () => {
     await renderFooter();
 
     const branch = await screen.findByTestId('editor-footer-branch');

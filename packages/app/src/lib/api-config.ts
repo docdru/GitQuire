@@ -2,7 +2,6 @@ interface ApiConfig {
   collabUrl: string | null;
   previewUrl: string | null;
   port: number;
-  singleFile: boolean;
 }
 
 export type FetchApiConfigResult =
@@ -43,7 +42,6 @@ export async function fetchApiConfig(signal?: AbortSignal): Promise<FetchApiConf
       collabUrl: typeof obj.collabUrl === 'string' ? obj.collabUrl : null,
       previewUrl: typeof obj.previewUrl === 'string' ? obj.previewUrl : null,
       port: typeof obj.port === 'number' ? obj.port : 0,
-      singleFile: obj.singleFile === true,
     },
   };
 }

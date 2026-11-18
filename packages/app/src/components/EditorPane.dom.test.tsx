@@ -16,7 +16,6 @@ import {
 } from '@/lib/dock-arrangement-store';
 import { requestDockPaneMove } from '@/lib/dock-move-requests';
 import { type DockNode, dockPaneDirection, isDockLeaf, moveDockPane } from '@/lib/dock-tree';
-import { narrowWorkspaceSessionKey } from '@/lib/narrow-workspace-session';
 import {
   __resetPaneVisibilityStoreForTests,
   type PaneId,
@@ -418,53 +417,6 @@ describe('EditorPane pane visibility for the header', () => {
     act(() => paneVisibilityStore.request('editor', true));
     expect(editorArea.getAttribute('data-editor-visible')).toBe('true');
     expect(paneVisibilityStore.getSnapshot().editor).toEqual({ open: true, onScreen: true });
-  });
-
-  test('delayed browser single-file configuration replaces an empty restored selection', async () => {
-    const originalMatchMedia = window.matchMedia;
-    const originalFetch = globalThis.fetch;
-    const narrowQuery = originalMatchMedia('(width < 48rem)');
-    Object.defineProperty(narrowQuery, 'matches', { configurable: true, value: true });
-    Object.defineProperty(window, 'matchMedia', {
-      configurable: true,
-      value: (query: string) =>
-        query === '(width < 48rem)' ? narrowQuery : originalMatchMedia(query),
-    });
-    let resolveConfig: (response: Response) => void = () => {};
-    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
-      if (String(input) !== '/api/config') {
-        return Promise.resolve(new Response(null, { status: 404 }));
-      }
-      const { promise, resolve } = Promise.withResolvers<Response>();
-      resolveConfig = resolve;
-      return promise;
-    });
-    const key = narrowWorkspaceSessionKey('/tmp/project', 'web');
-    sessionStorage.setItem(key, JSON.stringify({ version: 1, selected: null }));
-
-    try {
-      const { EditorPane } = await import('./EditorPane');
-      const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
-      render(
-        <SingleFileModeProvider>
-          <EditorPane />
-        </SingleFileModeProvider>,
-      );
-      await act(async () => {});
-      expect(screen.getByTestId('editor-area').getAttribute('data-editor-visible')).toBe('false');
-
-      await act(async () => {
-        resolveConfig(new Response(JSON.stringify({ singleFile: true }), { status: 200 }));
-      });
-      expect(screen.getByTestId('editor-area').getAttribute('data-editor-visible')).toBe('true');
-    } finally {
-      sessionStorage.removeItem(key);
-      globalThis.fetch = originalFetch;
-      Object.defineProperty(window, 'matchMedia', {
-        configurable: true,
-        value: originalMatchMedia,
-      });
-    }
   });
 });
 

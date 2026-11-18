@@ -18,7 +18,6 @@ import { useDocumentContext } from '@/editor/DocumentContext';
 import { useDocLintConfig } from '@/editor/lint-config-client';
 import { useDocDiagnostics } from '@/editor/useDocDiagnostics';
 import { useDocLinkFindings } from '@/editor/validation-audit-client';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { cn } from '@/lib/utils';
 import { type DocProblemCounts, patchDocValidationSource } from '@/lib/validation-store';
 
@@ -31,8 +30,6 @@ export const TABS: { id: PanelTab; icon: typeof ListTree }[] = [
   { id: 'timeline', icon: Clock },
   { id: 'problems', icon: AlertTriangle },
 ];
-
-const SINGLE_FILE_TABS: readonly PanelTab[] = ['outline', 'problems'];
 
 function countsOf(diagnostics: readonly { severity: string }[]): DocProblemCounts {
   let errorCount = 0;
@@ -120,8 +117,7 @@ export function DocPanel({
       applyLintFixes(lintProvider, collectFixes(lintDiagnostics), docName);
     }
   };
-  const singleFile = useSingleFileMode();
-  const tabs = singleFile ? TABS.filter((tab) => SINGLE_FILE_TABS.includes(tab.id)) : TABS;
+  const tabs = TABS;
   const effectiveTab: PanelTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'outline';
   const showTabStrip = mode === 'doc' && tabs.length > 1;
   useEffect(() => {

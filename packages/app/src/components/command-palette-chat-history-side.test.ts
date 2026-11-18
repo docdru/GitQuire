@@ -4,7 +4,6 @@ import { PALETTE_COMMANDS, type PaletteCommandContext } from './command-palette-
 function offeredChatHistoryMoves(chatHistorySide: 'left' | 'right'): string[] {
   const ctx = {
     bridge: null,
-    singleFile: false,
     activeDocName: null,
     viewMenuState: {},
     chatHistorySide,
