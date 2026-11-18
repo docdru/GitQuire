@@ -243,7 +243,6 @@ export {
   DEV_FALLBACK_CLI_REFUSAL,
   type DesktopProduct,
   desktopChannelLabel,
-  desktopWindowsExecutableName,
   envWithoutDevChannel,
   GqCliCommand,
   type GqCliRefusal,

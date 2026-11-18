@@ -58,21 +58,6 @@ describe('resolvePreviewUrl — lock edges', () => {
     const result = resolvePreviewUrl('docs/a', { lockDir });
     expect(result).toBeNull();
   });
-
-  test('never emits openknowledge:// scheme — the url is a bare route', () => {
-    const prior = process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST;
-    try {
-      process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST = '1';
-      seedUiServer(5173);
-      const result = resolvePreviewUrl('docs/a', { lockDir });
-      expect(result?.source).toBe('lock');
-      expect(result?.url.startsWith('/#/')).toBe(true);
-      expect(result?.url.startsWith('openknowledge://')).toBe(false);
-    } finally {
-      if (prior === undefined) delete process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST;
-      else process.env.GITQUIRE_ELECTRON_PROTOCOL_HOST = prior;
-    }
-  });
 });
 
 describe('resolvePreviewUrl — docName encoding (via lock branch)', () => {

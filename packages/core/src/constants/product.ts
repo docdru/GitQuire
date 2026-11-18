@@ -1,64 +1,25 @@
 export const DESKTOP_PRODUCTS = {
   stable: {
-    appId: 'com.inkeep.open-knowledge',
     productName: 'OpenKnowledge',
-    packageName: '@gitquire/desktop',
-    linuxExecutableName: 'openknowledge',
-    protocolScheme: 'openknowledge',
-    linuxPackageNames: {
-      deb: 'openknowledge',
-      rpm: 'openknowledge',
-    },
-    retiredLinuxPackageNames: {
-      deb: [],
-      rpm: ['OpenKnowledge'],
-    },
     cliCommandNames: ['gq', 'gitquire'],
     mcpServerName: 'open-knowledge',
     mcpChainTag: '',
-    npmDistTag: 'latest',
     userHomeDirName: '.gitquire',
     keyringService: 'open-knowledge',
   },
   beta: {
-    appId: 'com.inkeep.open-knowledge.beta',
     productName: 'OpenKnowledge Beta',
-    packageName: 'openknowledge-beta-desktop',
-    linuxExecutableName: 'openknowledge-beta',
-    protocolScheme: 'openknowledge-beta',
-    linuxPackageNames: {
-      deb: 'openknowledge-beta',
-      rpm: 'openknowledge-beta',
-    },
-    retiredLinuxPackageNames: {
-      deb: ['openknowledge-beta-desktop'],
-      rpm: ['openknowledge-beta-desktop'],
-    },
     cliCommandNames: ['gq-beta', 'gitquire-beta'],
     mcpServerName: 'open-knowledge-beta',
     mcpChainTag: '-beta',
-    npmDistTag: 'beta',
     userHomeDirName: '.gitquire-beta',
     keyringService: 'open-knowledge-beta',
   },
   dev: {
-    appId: 'com.inkeep.open-knowledge.dev',
     productName: 'OpenKnowledge Dev',
-    packageName: 'openknowledge-dev-desktop',
-    linuxExecutableName: 'openknowledge-dev',
-    protocolScheme: 'openknowledge-dev',
-    linuxPackageNames: {
-      deb: 'openknowledge-dev',
-      rpm: 'openknowledge-dev',
-    },
-    retiredLinuxPackageNames: {
-      deb: [],
-      rpm: [],
-    },
     cliCommandNames: ['gq-dev', 'gitquire-dev'],
     mcpServerName: 'open-knowledge-dev',
     mcpChainTag: '-dev',
-    npmDistTag: 'latest',
     userHomeDirName: '.gitquire-dev',
     keyringService: 'open-knowledge-dev',
   },
@@ -75,14 +36,6 @@ export const PACKAGED_DESKTOP_PRODUCT_NAMES = [
 export type PackagedDesktopProductName = (typeof PACKAGED_DESKTOP_PRODUCT_NAMES)[number];
 
 export const DEV_CHANNEL = 'dev' satisfies DesktopProductName;
-
-export function desktopWindowsExecutableName(product: DesktopProduct): string {
-  return `${product.productName}.exe`;
-}
-
-export function desktopWindowsInstallDirNames(product: DesktopProduct): readonly string[] {
-  return [product.packageName.replaceAll('/', ''), product.productName];
-}
 
 export const PRODUCT_NAME = DESKTOP_PRODUCTS.stable.productName;
 
@@ -113,34 +66,15 @@ export function desktopChannelLabel(channel: string): string {
     : `${PRODUCT_NAME} (${channel})`;
 }
 
-function executableBaseName(execPath: string): string {
-  return (execPath.split(/[\\/]/).pop() ?? '').replace(/\.exe$/i, '');
-}
-
 export function resolveDesktopProductName(
   env: Record<string, string | undefined> = globalThis.process?.env ?? {},
-  execPath: string = globalThis.process?.execPath ?? '',
 ): DesktopProductName {
   const override = channelOverride(env);
-  if (override) {
-    if (isDesktopProductName(override)) return override;
-    throw new Error(
-      `Unsupported ${GQ_CHANNEL_ENV}=${JSON.stringify(override)}. Expected ${Object.keys(DESKTOP_PRODUCTS).join(' or ')}.`,
-    );
-  }
-  const exe = executableBaseName(execPath);
-  for (const name of PACKAGED_DESKTOP_PRODUCT_NAMES) {
-    if (name === 'stable') continue;
-    const product = DESKTOP_PRODUCTS[name];
-    if (
-      exe === product.linuxExecutableName ||
-      exe === product.productName ||
-      exe.startsWith(`${product.productName} `)
-    ) {
-      return name;
-    }
-  }
-  return 'stable';
+  if (override === undefined) return 'stable';
+  if (isDesktopProductName(override)) return override;
+  throw new Error(
+    `Unsupported ${GQ_CHANNEL_ENV}=${JSON.stringify(override)}. Expected ${Object.keys(DESKTOP_PRODUCTS).join(' or ')}.`,
+  );
 }
 
 export function currentDesktopProduct(): DesktopProduct {
@@ -201,7 +135,6 @@ const STABLE_FALLBACK_REFUSED_COMMANDS: readonly (readonly string[])[] = [
 
 export interface HostCliInvocation {
   readonly cliArgs: readonly string[];
-  readonly cliEnv?: EnvOverlay | undefined;
 }
 
 export interface GqCliSpawn {
@@ -250,7 +183,7 @@ export class GqCliCommand {
     const pinned = channel !== 'stable' && (hostCli || released);
     return new GqCliCommand(
       hostCli ? [first, ...rest] : ['gitquire'],
-      { ...input.host?.cliEnv, ...(pinned ? { [GQ_CHANNEL_ENV]: channel } : {}) },
+      pinned ? { [GQ_CHANNEL_ENV]: channel } : {},
       channel === DEV_CHANNEL && !hostCli,
     );
   }

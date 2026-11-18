@@ -10,13 +10,13 @@ describe('applyDevServerChannel', () => {
   test('pnpm dev serves as the dev channel', () => {
     const env: Record<string, string | undefined> = {};
     applyDevServerChannel(env);
-    expect(resolveDesktopProductName(env, '/usr/local/bin/node')).toBe('dev');
+    expect(resolveDesktopProductName(env)).toBe('dev');
   });
 
   test('an explicit GITQUIRE_CHANNEL still wins', () => {
     const env: Record<string, string | undefined> = { GITQUIRE_CHANNEL: 'stable' };
     applyDevServerChannel(env);
-    expect(resolveDesktopProductName(env, '/usr/local/bin/node')).toBe('stable');
+    expect(resolveDesktopProductName(env)).toBe('stable');
   });
 
   test('a test-isolated run keeps the shipped identity', () => {

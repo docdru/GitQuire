@@ -404,7 +404,7 @@ describe('buildSyncCredentialConfig()', () => {
       const parsed = shellQuote.parse(helper);
       expect(parsed).toEqual(['GITQUIRE_CHANNEL=beta', ...argv, 'auth', 'git-credential']);
       const helperEnv = { GITQUIRE_CHANNEL: String(parsed[0]).split('=')[1] };
-      expect(DESKTOP_PRODUCTS[resolveDesktopProductName(helperEnv, argv[0])].keyringService).toBe(
+      expect(DESKTOP_PRODUCTS[resolveDesktopProductName(helperEnv)].keyringService).toBe(
         'open-knowledge-beta',
       );
     });

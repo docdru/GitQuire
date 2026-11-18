@@ -9,7 +9,6 @@ const entry = {
   'shadow-repo-layout': 'src/shadow-repo-layout.ts',
   server: 'src/server.ts',
   keepalive: 'src/keepalive/keepalive.ts',
-  'helper-bundle': 'src/helper-bundle.ts',
   'acp-thread-protocol': 'src/acp/thread-protocol.ts',
   'desktop-bridge': 'src/desktop-bridge.ts',
   bridge: 'src/bridge/index.ts',

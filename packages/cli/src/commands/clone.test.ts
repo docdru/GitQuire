@@ -556,11 +556,6 @@ describe('buildCloneEnv', () => {
     expect('SOME_UNSET' in env).toBe(false);
   });
 
-  test('inherits ELECTRON_RUN_AS_NODE so the packaged helper re-execs as Node', () => {
-    const env = buildCloneEnv({ PATH: '/usr/bin', ELECTRON_RUN_AS_NODE: '1' });
-    expect(env.ELECTRON_RUN_AS_NODE).toBe('1');
-  });
-
   test('drops repository-location and command GIT_ variables and keeps the rest', () => {
     const env = buildCloneEnv({
       PATH: '/usr/bin',

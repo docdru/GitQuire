@@ -9,46 +9,19 @@ import {
   envWithoutDevChannel,
   GqCliCommand,
   isDevChannel,
-  PACKAGED_DESKTOP_PRODUCT_NAMES,
   resolveDesktopProductName,
   userHomeDisplayPath,
 } from './product.ts';
 
 describe('resolveDesktopProductName', () => {
-  it.each([
-    ['/Applications/OpenKnowledge.app/Contents/MacOS/OpenKnowledge', 'stable'],
-    ['/Applications/OpenKnowledge Beta.app/Contents/MacOS/OpenKnowledge Beta', 'beta'],
-    [
-      '/Applications/OpenKnowledge Beta.app/Contents/Frameworks/OpenKnowledge Beta Server.app/Contents/MacOS/OpenKnowledge Beta Helper',
-      'beta',
-    ],
-    [
-      '/Applications/OpenKnowledge.app/Contents/Frameworks/OpenKnowledge Server.app/Contents/MacOS/OpenKnowledge Helper',
-      'stable',
-    ],
-    ['C:\\Users\\me\\AppData\\Local\\Programs\\OpenKnowledge Beta\\OpenKnowledge Beta.exe', 'beta'],
-    ['/opt/OpenKnowledge Beta/openknowledge-beta', 'beta'],
-    ['/opt/OpenKnowledge/openknowledge', 'stable'],
-    ['/usr/local/bin/node', 'stable'],
-    ['/repo/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron', 'stable'],
-  ] as const)('%s resolves to %s', (execPath, expected) => {
-    expect(resolveDesktopProductName({}, execPath)).toBe(expected);
-  });
-
-  it('lets GITQUIRE_CHANNEL override the executable', () => {
-    expect(resolveDesktopProductName({ GITQUIRE_CHANNEL: 'Beta' }, '/usr/local/bin/node')).toBe(
-      'beta',
-    );
-    expect(
-      resolveDesktopProductName(
-        { GITQUIRE_CHANNEL: 'stable' },
-        '/Applications/OpenKnowledge Beta.app/Contents/MacOS/OpenKnowledge Beta',
-      ),
-    ).toBe('stable');
+  it('reads the channel from GITQUIRE_CHANNEL and defaults to Stable', () => {
+    expect(resolveDesktopProductName({ GITQUIRE_CHANNEL: 'Beta' })).toBe('beta');
+    expect(resolveDesktopProductName({ GITQUIRE_CHANNEL: 'stable' })).toBe('stable');
+    expect(resolveDesktopProductName({})).toBe('stable');
   });
 
   it('rejects an unknown GITQUIRE_CHANNEL instead of guessing', () => {
-    expect(() => resolveDesktopProductName({ GITQUIRE_CHANNEL: 'nightly' }, '')).toThrow(
+    expect(() => resolveDesktopProductName({ GITQUIRE_CHANNEL: 'nightly' })).toThrow(
       /GITQUIRE_CHANNEL/,
     );
   });
@@ -67,79 +40,14 @@ describe('resolveDesktopProductName', () => {
     expect(DESKTOP_PRODUCTS.stable.keyringService).toBe('open-knowledge');
   });
 
-  it('names each channel’s deb and rpm after its Linux executable', () => {
-    expect(
-      Object.fromEntries(
-        Object.entries(DESKTOP_PRODUCTS).map(([name, p]) => [name, p.linuxPackageNames]),
-      ),
-    ).toEqual({
-      stable: { deb: 'openknowledge', rpm: 'openknowledge' },
-      beta: { deb: 'openknowledge-beta', rpm: 'openknowledge-beta' },
-      dev: { deb: 'openknowledge-dev', rpm: 'openknowledge-dev' },
-    });
-    for (const product of Object.values(DESKTOP_PRODUCTS)) {
-      expect(product.linuxPackageNames.deb).toBe(product.linuxExecutableName);
-      expect(product.linuxPackageNames.rpm).toBe(product.linuxExecutableName);
-    }
-  });
-
-  it('retires the package names each channel shipped before, and only its own', () => {
-    expect(DESKTOP_PRODUCTS.stable.retiredLinuxPackageNames).toEqual({
-      deb: [],
-      rpm: ['OpenKnowledge'],
-    });
-    expect(DESKTOP_PRODUCTS.beta.retiredLinuxPackageNames).toEqual({
-      deb: ['openknowledge-beta-desktop'],
-      rpm: ['openknowledge-beta-desktop'],
-    });
-    const current = Object.values(DESKTOP_PRODUCTS).flatMap((p) => [
-      p.linuxPackageNames.deb,
-      p.linuxPackageNames.rpm,
-    ]);
-    const retired = Object.values(DESKTOP_PRODUCTS).flatMap((p) => [
-      ...p.retiredLinuxPackageNames.deb,
-      ...p.retiredLinuxPackageNames.rpm,
-    ]);
-    for (const name of retired) expect(current).not.toContain(name);
-    for (const product of Object.values(DESKTOP_PRODUCTS)) {
-      for (const name of product.retiredLinuxPackageNames.deb)
-        expect(name).toMatch(/^[a-z0-9.+-]+$/);
-    }
-  });
-
-  it('gives every channel its own deep-link scheme, keeping Stable on openknowledge', () => {
-    expect(
-      Object.fromEntries(
-        Object.entries(DESKTOP_PRODUCTS).map(([name, p]) => [name, p.protocolScheme]),
-      ),
-    ).toEqual({
-      stable: 'openknowledge',
-      beta: 'openknowledge-beta',
-      dev: 'openknowledge-dev',
-    });
-  });
-
   it('gives the dev channel its own home, keychain, MCP key and lock channel', () => {
-    const dev = resolveDesktopProductName({ GITQUIRE_CHANNEL: 'dev' }, '/usr/local/bin/node');
+    const dev = resolveDesktopProductName({ GITQUIRE_CHANNEL: 'dev' });
     expect(dev).toBe('dev');
     expect(DESKTOP_PRODUCTS[dev]).toMatchObject({
       userHomeDirName: '.gitquire-dev',
       keyringService: 'open-knowledge-dev',
       mcpServerName: 'open-knowledge-dev',
-      protocolScheme: 'openknowledge-dev',
     });
-  });
-
-  it('never resolves an executable to dev, which ships no app', () => {
-    const dev = DESKTOP_PRODUCTS.dev;
-    for (const execPath of [
-      `/Applications/${dev.productName}.app/Contents/MacOS/${dev.productName}`,
-      `/opt/${dev.productName}/${dev.linuxExecutableName}`,
-      `C:\\Programs\\${dev.productName}\\${dev.productName}.exe`,
-    ]) {
-      expect(resolveDesktopProductName({}, execPath)).toBe('stable');
-    }
-    expect(PACKAGED_DESKTOP_PRODUCT_NAMES).toEqual(['stable', 'beta']);
   });
 });
 
@@ -149,7 +57,7 @@ describe('defaultToDevChannel', () => {
     defaultToDevChannel(env);
     expect(env.GITQUIRE_CHANNEL).toBe('dev');
     expect(isDevChannel(env)).toBe(true);
-    expect(resolveDesktopProductName(env, '/usr/local/bin/node')).toBe('dev');
+    expect(resolveDesktopProductName(env)).toBe('dev');
   });
 
   it.each(['stable', 'beta', 'Beta'])('keeps an explicit GITQUIRE_CHANNEL=%s', (channel) => {
@@ -333,20 +241,5 @@ describe('GqCliCommand', () => {
     expect(cli.shellCommand(['auth', 'git-credential'], (part) => part)).toBe(
       'GITQUIRE_CHANNEL=dev node /src/cli.mjs auth git-credential',
     );
-  });
-
-  it('applies a host overlay, where undefined removes an inherited key', () => {
-    const cli = GqCliCommand.resolve({
-      host: {
-        cliArgs: ['/app/OpenKnowledge.exe', 'cli.mjs'],
-        cliEnv: { ELECTRON_RUN_AS_NODE: '1', NODE_OPTIONS: undefined },
-      },
-      env: { GITQUIRE_CHANNEL: 'stable' },
-    });
-    const spawn = cli.spawn([], { NODE_OPTIONS: '--inspect', PATH: 'C:\\Windows' });
-    expect('env' in spawn && spawn.env).toEqual({
-      PATH: 'C:\\Windows',
-      ELECTRON_RUN_AS_NODE: '1',
-    });
   });
 });
