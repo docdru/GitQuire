@@ -514,7 +514,7 @@ function FileSidebarInner() {
                         {projectName}
                       </span>
                     </CollapsibleTrigger>
-                    {/* biome-ignore lint/a11y/useSemanticElements: same call as ui/button-group — a toolbar cluster is not a form-control set, so the semantic alternative would impose form-field semantics and chrome. */}
+                    {/* biome-ignore lint/a11y/useSemanticElements: a toolbar cluster is not a form-control set, so the semantic alternative would impose form-field semantics and chrome. */}
                     <div
                       role="group"
                       aria-label={t`Files toolbar`}
