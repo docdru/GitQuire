@@ -105,7 +105,7 @@ jobs:
         run: pnpm exec turbo run typecheck --filter=@gitquire/app
 
       - name: CI script tests
-        run: pnpm exec vitest run --config vitest.scripts.config.ts scripts/ci-plan.test.mjs scripts/ci-timings.test.mjs
+        run: pnpm exec vitest run --config vitest.scripts.config.ts scripts/ci-plan.test.mjs scripts/ci-timings.test.mjs scripts/ci-integration-durations.test.mjs
 
   tests:
     name: tests (${{ matrix.suite }})

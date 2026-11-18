@@ -4,8 +4,9 @@ import { classify, compressNames, parseArgs, plan, readSuites } from './ci-plan.
 const suites = readSuites();
 const all = suites.map((suite) => suite.suite);
 const serverShards = ['server 1/4', 'server 2/4', 'server 3/4', 'server 4/4'];
-const appUnit = ['app unit 1/4', 'app unit 2/4', 'app unit 3/4', 'app unit 4/4'];
-const appIntegration = [1, 2, 3, 4].map((n) => `app integration, watching off ${n}/4`);
+const appUnit = ['app unit 1/2', 'app unit 2/2'];
+const appIntegration = [1, 2, 3, 4, 5, 6].map((n) => `app integration ${n}/6`);
+const coreAndUncached = 'core and uncached';
 
 function pr(changedPaths, extra = {}) {
   return plan({ event: 'pull_request', baseRef: 'main', changedPaths, suites, ...extra });
@@ -15,14 +16,13 @@ const names = (result) => result.tests.map((suite) => suite.suite);
 
 test('the suites file lists every suite the workflow ran before path selection', () => {
   expect(all).toEqual([
-    'core',
     ...serverShards,
     ...appUnit,
     'app DOM',
     ...appIntegration,
     'cli',
     'docs',
-    'uncached',
+    coreAndUncached,
   ]);
   for (const suite of suites) {
     expect(suite.build).toMatch(/^pnpm exec turbo run build /);
@@ -90,7 +90,7 @@ test('docs only: checks and docs', () => {
   expect(names(result)).toEqual(['docs']);
   expect(result.docker).toBe(false);
   expect(result.summary).toBe(
-    'docs change: skipped core, server 1–4, app unit 1–4, app DOM, app integration, watching off 1–4, cli, uncached, Docker',
+    'docs change: skipped server 1–4, app unit 1–2, app DOM, app integration 1–6, cli, core and uncached, Docker',
   );
 });
 
@@ -106,22 +106,22 @@ test('server: server, app unit, app DOM, app integration, cli, uncached and Dock
     'app DOM',
     ...appIntegration,
     'cli',
-    'uncached',
+    coreAndUncached,
   ]);
   expect(result.docker).toBe(true);
-  expect(result.skipped).toEqual(['core', 'docs']);
+  expect(result.skipped).toEqual(['docs']);
 });
 
 test('app: app unit, app DOM, app integration, uncached and Docker', () => {
   const result = pr(['packages/app/src/App.tsx']);
-  expect(names(result)).toEqual([...appUnit, 'app DOM', ...appIntegration, 'uncached']);
+  expect(names(result)).toEqual([...appUnit, 'app DOM', ...appIntegration, coreAndUncached]);
   expect(result.docker).toBe(true);
-  expect(result.summary).toBe('app change: skipped core, server 1–4, cli, docs');
+  expect(result.summary).toBe('app change: skipped server 1–4, cli, docs');
 });
 
 test('cli: cli, uncached and Docker', () => {
   const result = pr(['packages/cli/src/index.ts']);
-  expect(names(result)).toEqual(['cli', 'uncached']);
+  expect(names(result)).toEqual(['cli', coreAndUncached]);
   expect(result.docker).toBe(true);
 });
 
@@ -137,25 +137,25 @@ test.each(['Dockerfile', '.dockerignore', 'docker/entrypoint.sh', '.github/e2e/g
 
 test('several rows: the union of their suites', () => {
   const result = pr(['packages/cli/src/index.ts', 'docs/a.mdx', 'Dockerfile']);
-  expect(names(result)).toEqual(['cli', 'docs', 'uncached']);
+  expect(names(result)).toEqual(['cli', 'docs', coreAndUncached]);
   expect(result.docker).toBe(true);
   expect(result.summary).toMatch(/^cli \+ docs \+ Docker change: skipped /);
 });
 
-test('stacked: the table without Docker and app integration', () => {
+test('stacked: the table without Docker', () => {
   const result = pr(['packages/app/src/App.tsx'], { baseRef: 'ci/cache' });
   expect(result.stacked).toBe(true);
-  expect(names(result)).toEqual([...appUnit, 'app DOM', 'uncached']);
+  expect(names(result)).toEqual([...appUnit, 'app DOM', ...appIntegration, coreAndUncached]);
   expect(result.docker).toBe(false);
   expect(result.summary).toBe(
-    'app change; stacked on ci/cache: skipped core, server 1–4, app integration, watching off 1–4, cli, docs, Docker',
+    'app change; stacked on ci/cache: skipped server 1–4, cli, docs, Docker',
   );
 });
 
-test('stacked with a full-run trigger: everything but Docker and app integration', () => {
+test('stacked with a full-run trigger: everything but Docker', () => {
   const result = pr(['packages/core/src/index.ts'], { baseRef: 'ci/cache' });
   expect(result.full).toBe(true);
-  expect(names(result)).toEqual(all.filter((name) => !appIntegration.includes(name)));
+  expect(names(result)).toEqual(all);
   expect(result.docker).toBe(false);
 });
 

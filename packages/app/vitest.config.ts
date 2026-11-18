@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, type ViteUserConfig } from 'vitest/config';
 import { okVitestBase } from '../../test-support/vitest.base';
 import { RENDERER_DEDUPE } from './vite.dedupe';
+import { integrationTestFiles } from './vitest.integration-files';
 
 // `@lingui/{react,core}/macro` only run under the build's Babel macro pass; a
 // plain transpile leaves the specifiers pointing at modules that throw
@@ -68,4 +69,10 @@ export const appVitestConfig = {
   },
 } satisfies ViteUserConfig;
 
-export default defineConfig(appVitestConfig);
+export default defineConfig({
+  ...appVitestConfig,
+  test: {
+    ...appVitestConfig.test,
+    exclude: [...appVitestConfig.test.exclude, ...integrationTestFiles()],
+  },
+} satisfies ViteUserConfig);
