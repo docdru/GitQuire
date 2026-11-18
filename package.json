@@ -11,7 +11,7 @@
     "runtime": {
       "name": "node",
       "version": "24.21.0",
-      "onFail": "ignore"
+      "onFail": "download"
     }
   },
   "scripts": {
@@ -88,8 +88,5 @@
     "undici": "~7.30.1",
     "vitest": "^5.0.5",
     "yaml": "^2.8.3"
-  },
-  "puppeteer": {
-    "skipDownload": true
   }
 }
