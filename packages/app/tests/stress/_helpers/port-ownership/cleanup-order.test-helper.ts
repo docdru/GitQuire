@@ -13,14 +13,13 @@ export async function createCleanupOrder(
   outputDir: string,
   purpose: 'owner-loss' | 'control' = 'owner-loss',
 ) {
-  const nativeOrdering =
-    purpose === 'owner-loss' && (process.platform === 'darwin' || process.platform === 'linux');
+  const nativeOrdering = purpose === 'owner-loss';
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(
     join(outputDir, 'capabilities.json'),
     JSON.stringify({ platform: process.platform, nativeOrdering }),
   );
-  const library = join(outputDir, process.platform === 'darwin' ? 'order.dylib' : 'order.so');
+  const library = join(outputDir, 'order.so');
   if (nativeOrdering) {
     try {
       await execute('cc', [
@@ -32,7 +31,8 @@ export async function createCleanupOrder(
         '-Werror=incompatible-pointer-types',
         '-Werror=format',
         '-Werror=return-type',
-        ...(process.platform === 'darwin' ? ['-dynamiclib'] : ['-shared', '-fPIC']),
+        '-shared',
+        '-fPIC',
         SOURCE,
         '-o',
         library,
@@ -153,7 +153,7 @@ export async function createCleanupOrder(
           GITQUIRE_PORT_OWNERSHIP_SCHEDULE_LIBRARY: library,
           NODE_OPTIONS:
             `${process.env.NODE_OPTIONS ?? ''} --require=${JSON.stringify(PRELOAD)}`.trim(),
-          [process.platform === 'darwin' ? 'DYLD_INSERT_LIBRARIES' : 'LD_PRELOAD']: library,
+          LD_PRELOAD: library,
         }
       : {}),
   };
