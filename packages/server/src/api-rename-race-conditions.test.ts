@@ -101,7 +101,6 @@ describe('Finding 1 — folder-rename enumeration races concurrent index updates
         scheduleIndexMutation();
         return false;
       },
-      getWatcherIgnoreGlobs: () => [],
       incrementMdDir: () => {},
       decrementMdDir: () => {},
       getMdDirRefcounts: () => new Map(),
@@ -162,7 +161,6 @@ describe('Finding 2 — admission check uses on-disk source extension', () => {
     const stubContentFilter = {
       isExcluded: (path: string) => path.endsWith('.mdx'),
       isDirExcluded: (_p: string) => false,
-      getWatcherIgnoreGlobs: () => [],
       incrementMdDir: () => {},
       decrementMdDir: () => {},
       getMdDirRefcounts: () => new Map(),

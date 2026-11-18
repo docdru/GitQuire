@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { posix, win32 } from 'node:path';
+import { delimiter } from 'node:path';
 import { envWithoutDevChannel, type GqCliCommand, type GqCliRefusal } from '@gitquire/core';
 import type { LocalOpSubprocessLifetime } from './subprocess-lifetime.ts';
 
@@ -28,7 +28,6 @@ interface SubprocessRunOptions {
   onLine: (line: ParsedLine) => void;
   onStderr?: (chunk: Buffer) => void;
   stdinData?: string;
-  platform?: NodeJS.Platform;
 }
 
 interface SubprocessRunResult {
@@ -50,54 +49,25 @@ interface GqCliSubprocessController {
   cancel(): void;
 }
 
-function overlayEnvEntry(
-  env: NodeJS.ProcessEnv,
-  key: string,
-  value: string | undefined,
-  platform: NodeJS.Platform,
-): void {
-  if (platform === 'win32') {
-    const folded = key.toLowerCase();
-    for (const existing of Object.keys(env)) {
-      if (existing !== key && existing.toLowerCase() === folded) delete env[existing];
-    }
-  }
+function overlayEnvEntry(env: NodeJS.ProcessEnv, key: string, value: string | undefined): void {
   if (value === undefined) delete env[key];
   else env[key] = value;
-}
-
-function pathDelimiterFor(platform: NodeJS.Platform): string {
-  return platform === 'win32' ? win32.delimiter : posix.delimiter;
-}
-
-function readPathEntry(env: NodeJS.ProcessEnv, platform: NodeJS.Platform): string {
-  if (env.PATH !== undefined) return env.PATH;
-  if (platform === 'win32') {
-    for (const key of Object.keys(env)) {
-      if (key.toLowerCase() === 'path') return env[key] ?? '';
-    }
-  }
-  return '';
 }
 
 export function buildOverlaidEnv(
   baseEnv: NodeJS.ProcessEnv,
   overlay: LocalOpCliEnv | undefined,
   extraPathDirs: readonly string[] | undefined,
-  platform: NodeJS.Platform,
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...baseEnv };
   for (const [key, value] of Object.entries(overlay ?? {})) {
-    overlayEnvEntry(env, key, value, platform);
+    overlayEnvEntry(env, key, value);
   }
   if (extraPathDirs && extraPathDirs.length > 0) {
     overlayEnvEntry(
       env,
       'PATH',
-      [...extraPathDirs, readPathEntry(env, platform)]
-        .filter(Boolean)
-        .join(pathDelimiterFor(platform)),
-      platform,
+      [...extraPathDirs, env.PATH ?? ''].filter(Boolean).join(delimiter),
     );
   }
   return env;
@@ -138,12 +108,10 @@ export function runSubprocess(opts: SubprocessRunOptions): SubprocessController 
   let stdoutBuffer = '';
   const stderrChunks: Buffer[] = [];
 
-  const platform = opts.platform ?? process.platform;
   const childEnv = buildOverlaidEnv(
     envWithoutDevChannel(process.env),
     opts.cliEnv,
     opts.extraPathDirs,
-    platform,
   );
 
   const stdio: ['ignore' | 'pipe', 'pipe', 'pipe'] =

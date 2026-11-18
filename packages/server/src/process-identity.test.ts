@@ -1,6 +1,5 @@
-import { type ExecFileSyncOptionsWithStringEncoding, execFileSync } from 'node:child_process';
 import { hostname } from 'node:os';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 import {
   processStartTokenFromOs,
   readProcessStartFromOs,
@@ -12,7 +11,6 @@ import {
   startOwnedProcess,
   stopOwnedProcess,
 } from '../../../test-support/owned-process.test-helper.ts';
-import { getLogger } from './logger.ts';
 import { getMachineId } from './machine-id.ts';
 import {
   assessLockHolder,
@@ -24,10 +22,7 @@ import {
   type ProcessStart,
   parseProcessStartToken,
   processStartToken,
-  readBootStartedAtMs,
   readProcessStart,
-  readPsProcessStart,
-  registerNativeProcessStartReader,
   type UnverifiedLockHolderCause,
 } from './process-identity.ts';
 
@@ -46,12 +41,6 @@ function lockWrittenAt(extra: Partial<LockHolderIdentity> = {}): LockHolderIdent
 function creationStart(offsetFromWrittenMs: number): ProcessStart {
   return { startedAtMs: WRITTEN_AT_MS + offsetFromWrittenMs, clock: 'creation' };
 }
-
-function bootedAt(offsetFromWrittenMs: number): () => number {
-  return () => WRITTEN_AT_MS + offsetFromWrittenMs;
-}
-
-const BOOTED_BEFORE_LOCK = bootedAt(-THIRTY_SIX_HOURS_MS);
 
 function bootDerivedStart(
   offsetFromWrittenMs: number,
@@ -300,7 +289,6 @@ describe('assessLockHolder', () => {
           {
             isAlive: () => true,
             readProcessStart: () => live,
-            readBootInstant: BOOTED_BEFORE_LOCK,
             sameMachine: true,
             refuseHolderStartedAfterLock,
           },
@@ -406,129 +394,6 @@ describe('assessLockHolder', () => {
       }),
     ).toEqual({ verdict: 'gone' });
   });
-
-  test('an unreadable holder of a lock written before this machine booted is replaced', () => {
-    expect(
-      assessLockHolder(lockWrittenAt({ machineId: getMachineId() }), {
-        isAlive: () => true,
-        readProcessStart: () => null,
-        platform: 'win32',
-        readBootInstant: bootedAt(THIRTY_SIX_HOURS_MS),
-      }),
-    ).toEqual({ verdict: 'replaced' });
-  });
-
-  test('an unreadable holder of a lock naming only this hostname written before boot is replaced', () => {
-    expect(
-      assessLockHolder(lockWrittenAt({ hostname: hostname() }), {
-        isAlive: () => true,
-        readProcessStart: () => null,
-        platform: 'win32',
-        readBootInstant: bootedAt(THIRTY_SIX_HOURS_MS),
-      }),
-    ).toEqual({ verdict: 'replaced' });
-  });
-
-  test('a lock whose recorded process start is after boot is not dated by an earlier startedAt', () => {
-    expect(
-      assessLockHolder(
-        lockWrittenAt({
-          machineId: getMachineId(),
-          processStart: { startedAtMs: WRITTEN_AT_MS + 2 * THIRTY_SIX_HOURS_MS },
-        }),
-        {
-          isAlive: () => true,
-          readProcessStart: () => null,
-          platform: 'win32',
-          readBootInstant: bootedAt(THIRTY_SIX_HOURS_MS),
-        },
-      ),
-    ).toEqual({ verdict: 'unverified', cause: 'process-start-unreadable' });
-  });
-
-  test('an unreadable holder of a lock written minutes before boot stays unverified', () => {
-    expect(
-      assessLockHolder(lockWrittenAt({ machineId: getMachineId() }), {
-        isAlive: () => true,
-        readProcessStart: () => null,
-        platform: 'win32',
-        readBootInstant: bootedAt(60_000),
-      }),
-    ).toEqual({ verdict: 'unverified', cause: 'process-start-unreadable' });
-  });
-
-  test('an unreadable holder of a lock that records no write time stays unverified', () => {
-    expect(
-      assessLockHolder(
-        { pid: HOLDER_PID, machineId: getMachineId() },
-        {
-          isAlive: () => true,
-          readProcessStart: () => null,
-          platform: 'win32',
-          readBootInstant: bootedAt(THIRTY_SIX_HOURS_MS),
-        },
-      ),
-    ).toEqual({ verdict: 'unverified', cause: 'process-start-unreadable' });
-  });
-
-  test('an unreadable holder stays unverified when the boot time cannot be read', () => {
-    expect(
-      assessLockHolder(lockWrittenAt({ machineId: getMachineId() }), {
-        isAlive: () => true,
-        readProcessStart: () => null,
-        platform: 'win32',
-        readBootInstant: () => null,
-      }),
-    ).toEqual({ verdict: 'unverified', cause: 'process-start-unreadable' });
-  });
-
-  test('a lock from another machine written before this machine booted still names that machine', () => {
-    expect(
-      assessLockHolder(lockWrittenAt({ machineId: 'another-machine-0000' }), {
-        isAlive: () => true,
-        readProcessStart: () => null,
-        platform: 'win32',
-        readBootInstant: bootedAt(THIRTY_SIX_HOURS_MS),
-      }),
-    ).toEqual({ verdict: 'unverified', cause: 'foreign-host' });
-  });
-
-  test.each(['linux', 'darwin'] as const)(
-    'on %s an unreadable holder of a lock written before this machine booted stays unverified',
-    (platform) => {
-      expect(
-        assessLockHolder(lockWrittenAt({ machineId: getMachineId() }), {
-          isAlive: () => true,
-          readProcessStart: () => null,
-          platform,
-          readBootInstant: bootedAt(THIRTY_SIX_HOURS_MS),
-        }),
-      ).toEqual({ verdict: 'unverified', cause: 'process-start-unreadable' });
-    },
-  );
-});
-
-describe('readBootStartedAtMs', () => {
-  test('dates the boot by subtracting uptime from now', () => {
-    expect(readBootStartedAtMs(1_000_000_000, () => 120.4)).toBe(1_000_000_000 - 120_400);
-  });
-
-  test('an unusable uptime fails open to null rather than throwing', () => {
-    expect(readBootStartedAtMs(1_000_000_000, () => 0)).toBeNull();
-    expect(readBootStartedAtMs(1_000_000_000, () => Number.NaN)).toBeNull();
-    expect(
-      readBootStartedAtMs(1_000_000_000, () => {
-        throw new Error('uptime unavailable');
-      }),
-    ).toBeNull();
-  });
-
-  test('the live boot instant precedes now', () => {
-    const now = Date.now();
-    const bootStartedAtMs = readBootStartedAtMs(now);
-    expect(bootStartedAtMs).not.toBeNull();
-    expect(bootStartedAtMs).toBeLessThan(now);
-  });
 });
 
 describe('classifyLockHolder', () => {
@@ -549,7 +414,6 @@ describe('classifyLockHolder', () => {
       classifyLockHolder(lockWrittenAt({ machineId: getMachineId() }), {
         isAlive: () => true,
         readProcessStart: () => null,
-        readBootInstant: BOOTED_BEFORE_LOCK,
       }),
     ).toBe('unverified');
   });
@@ -696,10 +560,10 @@ describe('createRecentProcessStartReader', () => {
     expect(recent.readPids).toEqual([HOLDER_PID]);
   });
 
-  test('holds a failed reading for as long as a timed-out ps read can block', () => {
-    const recent = recentReader([null, creationStart(0)], 5_000);
+  test('holds a failed reading for the maximum age', () => {
+    const recent = recentReader([null, creationStart(0)]);
     expect(recent.read(HOLDER_PID)).toBeNull();
-    recent.advance(4_999);
+    recent.advance(999);
     expect(recent.read(HOLDER_PID)).toBeNull();
     expect(recent.readPids).toEqual([HOLDER_PID]);
     recent.advance(1);
@@ -874,9 +738,7 @@ function linuxProcFor(pid: number, overrides: Record<string, string | undefined>
 
 describe('readProcessStart on Linux', () => {
   test('reads start ticks after the last parenthesis of a comm containing spaces and parentheses', () => {
-    expect(
-      readProcessStart(FIXTURE_PID, { platform: 'linux', readFile: linuxProcFor(FIXTURE_PID) }),
-    ).toEqual({
+    expect(readProcessStart(FIXTURE_PID, { readFile: linuxProcFor(FIXTURE_PID) })).toEqual({
       startedAtMs: FIXTURE_BTIME_SECONDS * 1000 + FIXTURE_START_TICKS * 10,
       clock: 'boot-derived',
       startTicks: FIXTURE_START_TICKS,
@@ -886,7 +748,6 @@ describe('readProcessStart on Linux', () => {
 
   test('a host whose boot id cannot be read yields a reading that records no token', () => {
     const start = readProcessStart(FIXTURE_PID, {
-      platform: 'linux',
       readFile: linuxProcFor(FIXTURE_PID, { '/proc/sys/kernel/random/boot_id': undefined }),
     });
     expect(start).toEqual({
@@ -900,7 +761,6 @@ describe('readProcessStart on Linux', () => {
   test('a pid without a /proc entry has no reading', () => {
     expect(
       readProcessStart(FIXTURE_PID + 1, {
-        platform: 'linux',
         readFile: linuxProcFor(FIXTURE_PID),
       }),
     ).toBeNull();
@@ -909,7 +769,6 @@ describe('readProcessStart on Linux', () => {
   test('a truncated stat line has no reading', () => {
     expect(
       readProcessStart(FIXTURE_PID, {
-        platform: 'linux',
         readFile: linuxProcFor(FIXTURE_PID, {
           [`/proc/${FIXTURE_PID}/stat`]: `${FIXTURE_PID} (w) x (y) z) S 1 ${FIXTURE_PID}\n`,
         }),
@@ -920,7 +779,6 @@ describe('readProcessStart on Linux', () => {
   test('a /proc/stat without btime has no reading', () => {
     expect(
       readProcessStart(FIXTURE_PID, {
-        platform: 'linux',
         readFile: linuxProcFor(FIXTURE_PID, { '/proc/stat': 'cpu  10 0 10 1000\nctxt 123\n' }),
       }),
     ).toBeNull();
@@ -933,174 +791,14 @@ describe('readProcessStart on Linux', () => {
         path.endsWith('/stat') && path !== '/proc/stat'
           ? FIXTURE_STAT_WITH_AWKWARD_COMM
           : linuxProcFor(FIXTURE_PID)(path);
-      expect(readProcessStart(pid, { platform: 'linux', readFile })).toBeNull();
-    },
-  );
-});
-
-describe('the registered native process-start reader', () => {
-  const unregisters: Array<() => void> = [];
-
-  afterEach(() => {
-    for (const unregister of unregisters.splice(0)) unregister();
-  });
-
-  function register(read: (pid: number) => number | null): void {
-    unregisters.push(registerNativeProcessStartReader(read));
-  }
-
-  test('is the Windows reading for the pid it is asked about', () => {
-    const askedPids: number[] = [];
-    register((pid) => {
-      askedPids.push(pid);
-      return 1_700_000_000_123;
-    });
-    expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).toEqual({
-      startedAtMs: 1_700_000_000_123,
-      clock: 'creation',
-    });
-    expect(askedPids).toEqual([FIXTURE_PID]);
-  });
-
-  test('is not consulted on Linux or on an unsupported platform', () => {
-    const askedPids: number[] = [];
-    register((pid) => {
-      askedPids.push(pid);
-      return 1_700_000_000_123;
-    });
-    expect(
-      readProcessStart(FIXTURE_PID, { platform: 'linux', readFile: linuxProcFor(FIXTURE_PID) }),
-    ).toMatchObject({ clock: 'boot-derived', startTicks: FIXTURE_START_TICKS });
-    expect(readProcessStart(FIXTURE_PID, { platform: 'aix' })).toBeNull();
-    expect(askedPids).toEqual([]);
-  });
-
-  test('leaves Windows without a reading once unregistered', () => {
-    const unregister = registerNativeProcessStartReader(() => 1_700_000_000_123);
-    expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).not.toBeNull();
-    unregister();
-    expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).toBeNull();
-  });
-
-  test('a reader that cannot identify the process leaves Windows without a reading', () => {
-    register(() => null);
-    expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).toBeNull();
-  });
-
-  test('gives way to a reader passed for the read', () => {
-    register(() => 1_700_000_000_123);
-    expect(
-      readProcessStart(FIXTURE_PID, { platform: 'win32', readNative: () => 1_700_000_000_456 }),
-    ).toEqual({ startedAtMs: 1_700_000_000_456, clock: 'creation' });
-  });
-
-  test('warns once while Windows has no reader to ask', () => {
-    registerNativeProcessStartReader(() => null)();
-    const warn = vi.spyOn(getLogger('process-identity'), 'warn');
-    try {
-      expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).toBeNull();
-      expect(readProcessStart(FIXTURE_PID + 1, { platform: 'win32' })).toBeNull();
-      expect(warn).toHaveBeenCalledTimes(1);
-      expect(warn).toHaveBeenCalledWith(
-        { event: 'process-start-reader-missing' },
-        expect.any(String),
-      );
-    } finally {
-      warn.mockRestore();
-    }
-  });
-
-  test('warns again when a withdrawn reader leaves Windows without one', () => {
-    registerNativeProcessStartReader(() => null)();
-    const warn = vi.spyOn(getLogger('process-identity'), 'warn');
-    try {
-      expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).toBeNull();
-      const unregister = registerNativeProcessStartReader(() => 1_700_000_000_123);
-      expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).not.toBeNull();
-      unregister();
-      expect(readProcessStart(FIXTURE_PID, { platform: 'win32' })).toBeNull();
-      expect(warn).toHaveBeenCalledTimes(2);
-    } finally {
-      warn.mockRestore();
-    }
-  });
-});
-
-describe('readPsProcessStart', () => {
-  test('queries ps in the C locale at UTC and parses lstart as UTC', () => {
-    const calls: Array<{
-      command: string;
-      args: string[];
-      options: ExecFileSyncOptionsWithStringEncoding;
-    }> = [];
-    const startedAtMs = readPsProcessStart(FIXTURE_PID, {
-      env: { PATH: '/usr/bin', LC_ALL: 'de_DE.UTF-8', TZ: 'Europe/Berlin' },
-      run: (command, args, options) => {
-        calls.push({ command, args, options });
-        return 'Tue Oct 13 17:27:40 2026\n';
-      },
-    });
-    expect(startedAtMs).toBe(Date.UTC(2026, 9, 13, 17, 27, 40));
-    expect(calls).toHaveLength(1);
-    expect(calls[0]).toMatchObject({
-      command: 'ps',
-      args: ['-p', String(FIXTURE_PID), '-o', 'lstart='],
-      options: {
-        encoding: 'utf8',
-        timeout: 5000,
-        env: { PATH: '/usr/bin', LC_ALL: 'C', TZ: 'UTC0' },
-      },
-    });
-  });
-
-  test.each([
-    '  PID TTY\n',
-    '',
-    'permission denied',
-    'Tue Sep  8 20:21:34 2026\nTue Sep  8 20:21:34 2026',
-  ])('output %j that is not one lstart date has no reading', (output) => {
-    expect(readPsProcessStart(FIXTURE_PID, { run: () => output })).toBeNull();
-  });
-
-  test('a ps that cannot run or times out has no reading', () => {
-    expect(
-      readPsProcessStart(FIXTURE_PID, {
-        run: () => {
-          throw Object.assign(new Error('spawnSync ps ETIMEDOUT'), { code: 'ETIMEDOUT' });
-        },
-      }),
-    ).toBeNull();
-  });
-
-  test('a ps that exits unsuccessfully has no reading', () => {
-    expect(
-      readPsProcessStart(FIXTURE_PID, {
-        run: (_command, _args, options) =>
-          execFileSync(process.execPath, ['-e', 'process.exit(1)'], options),
-      }),
-    ).toBeNull();
-  });
-
-  test.each([0, -1, Number.NaN, 12.5, 0x1_0000_0000])(
-    'an invalid pid %j has no reading and runs nothing',
-    (pid) => {
-      const commands: string[] = [];
-      expect(
-        readPsProcessStart(pid, {
-          run: (command) => {
-            commands.push(command);
-            return 'Tue Oct 13 17:27:40 2026\n';
-          },
-        }),
-      ).toBeNull();
-      expect(commands).toEqual([]);
+      expect(readProcessStart(pid, { readFile })).toBeNull();
     },
   );
 });
 
 const SECOND_TRUNCATION_PLUS_ONE_TICK_MS = 1_010;
 
-describe.skipIf(process.platform === 'win32')('readProcessStart on this host', () => {
+describe('readProcessStart on this host', () => {
   const owned: OwnedProcess[] = [];
 
   afterEach(async () => {

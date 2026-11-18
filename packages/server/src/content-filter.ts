@@ -191,81 +191,6 @@ function isSkillContentAncestorDir(relativePath: string): boolean {
   );
 }
 
-const WATCHER_CARVE_OUT_CAPABLE_DIRS = new Set<string>([GQ_DIR, ...EDITOR_HOST_DIRS]);
-const WATCHER_SAFE_BUILTIN_SKIP_DIRS = new Set(
-  [...BUILTIN_SKIP_DIRS].filter((dir) => !WATCHER_CARVE_OUT_CAPABLE_DIRS.has(dir)),
-);
-
-export const WATCHER_STRUCTURAL_IGNORE_DIRS = [
-  '.git',
-  'node_modules',
-  '.gitquire/local',
-  '.gitquire/worktrees',
-] as const;
-
-const WATCHER_STRUCTURAL_IGNORE_GLOBS = WATCHER_STRUCTURAL_IGNORE_DIRS.flatMap((dir) => [
-  dir,
-  `${dir}/**`,
-  `**/${dir}`,
-  `**/${dir}/**`,
-]);
-
-function watcherPatternIsConfinedToAlwaysSkippedTree(pattern: string): boolean {
-  const segments = pattern.replace(/^\/+/, '').replace(/\/+$/, '').split('/');
-  if (segments.includes('..')) return false;
-
-  if (segments.some((segment) => WATCHER_SAFE_BUILTIN_SKIP_DIRS.has(segment))) {
-    return true;
-  }
-
-  return segments.some(
-    (segment, index) =>
-      segment.toLowerCase() === GQ_DIR &&
-      GQ_ALWAYS_SKIP_CHILDREN.has((segments[index + 1] ?? '').toLowerCase()),
-  );
-}
-
-const WATCHER_MANAGED_CONTENT_PROBES = [
-  '.gitignore',
-  '.gitquire',
-  '.gitquire/config.yml',
-  '.gitquire/.gitignore',
-  '.gitquire/schemas/frontmatter.json',
-  '.gitquire/templates/example.md',
-  '.gitquire/skills/example/SKILL.md',
-  'docs/.gitquire',
-  'docs/.gitquire/frontmatter.yml',
-  'docs/.gitquire/templates/example.md',
-  ...EDITOR_HOST_DIRS.flatMap((dir) => [dir, `${dir}/skills/example/SKILL.md`]),
-] as const;
-
-function patternIsUnsafeForWatcherIgnore(pattern: string): boolean {
-  const candidate = pattern.trim();
-  if (!candidate || candidate.startsWith('!') || candidate.startsWith('#')) return false;
-  const segments = candidate.replace(/^\/+/, '').replace(/\/+$/, '').split('/');
-  if (segments.includes('..')) return true;
-  if (watcherPatternIsConfinedToAlwaysSkippedTree(candidate)) return false;
-  if (segments.some((segment) => WATCHER_CARVE_OUT_CAPABLE_DIRS.has(segment))) return true;
-
-  try {
-    const matcher = ignore().add(candidate);
-    return WATCHER_MANAGED_CONTENT_PROBES.some((path) => matcher.ignores(path));
-  } catch {
-    return true;
-  }
-}
-
-function buildWatcherIgnoreGlobs(patterns: readonly string[]): string[] {
-  const retained = patterns.filter(
-    (pattern) =>
-      pattern.length > 0 &&
-      !pattern.startsWith('!') &&
-      !pattern.startsWith('#') &&
-      !patternIsUnsafeForWatcherIgnore(pattern),
-  );
-  return [...new Set([...retained, ...WATCHER_STRUCTURAL_IGNORE_GLOBS])];
-}
-
 function templateFolderPrefixIsSkipped(segments: string[], okIndex: number): boolean {
   for (let i = 0; i < okIndex; i++) {
     if (isBuiltinSkipDirName(segments[i])) return true;
@@ -647,7 +572,6 @@ export interface ContentFilter {
   isDirExcluded(relativePath: string, opts?: ContentFilterReadOpts): boolean;
   isPathIgnored(relativePath: string, opts?: ContentFilterPathReadOpts): boolean;
   isExcludedByIgnoreFiles(relativePath: string): boolean;
-  getWatcherIgnoreGlobs(): string[];
   incrementMdDir(dir: string): void;
   decrementMdDir(dir: string): void;
   rebuildDirCount(): void;
@@ -700,7 +624,6 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
   let ig: Ignore;
   let okignoreIg: Ignore;
   let rootIgnorePatterns: string[];
-  let watcherIgnoreGlobs: string[];
   let lastPatternCount = 0;
   let lastNestedFileCount = 0;
   let lastBytes = 0;
@@ -769,12 +692,9 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
       newIg.add(gitExcludePatterns);
     }
 
-    const newWatcherGlobs = buildWatcherIgnoreGlobs(newRootPatterns);
-
     ig = newIg;
     okignoreIg = newOkignoreIg;
     rootIgnorePatterns = newRootPatterns;
-    watcherIgnoreGlobs = newWatcherGlobs;
     lastPatternCount = newRootPatterns.length;
     lastNestedFileCount = nestedFileCount;
     lastBytes = bytes;
@@ -972,10 +892,6 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
       return isIgnored(relativePath);
     },
 
-    getWatcherIgnoreGlobs(): string[] {
-      return watcherIgnoreGlobs;
-    },
-
     incrementMdDir(dir: string): void {
       const normalizedDir = dir === '.' ? '' : dir;
       dirCount.set(normalizedDir, (dirCount.get(normalizedDir) ?? 0) + 1);
@@ -1053,7 +969,6 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
         const prevIg = ig;
         const prevOkignoreIg = okignoreIg;
         const prevRootPatterns = rootIgnorePatterns;
-        const prevWatcherGlobs = watcherIgnoreGlobs;
         const prevPatternCount = lastPatternCount;
         const prevNestedFileCount = lastNestedFileCount;
         const prevBytes = lastBytes;
@@ -1106,7 +1021,6 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
             ig = prevIg;
             okignoreIg = prevOkignoreIg;
             rootIgnorePatterns = prevRootPatterns;
-            watcherIgnoreGlobs = prevWatcherGlobs;
             lastPatternCount = prevPatternCount;
             lastNestedFileCount = prevNestedFileCount;
             lastBytes = prevBytes;
@@ -1365,7 +1279,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
 
   let ig = ignore();
   let okignoreIg = ignore();
-  let watcherIgnoreGlobs: string[] = [];
   let lastPatternCount = 0;
 
   const dirCount = new Map<string, number>();
@@ -1473,7 +1386,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
 
     ig = newIg;
     okignoreIg = newOkignoreIg;
-    watcherIgnoreGlobs = buildWatcherIgnoreGlobs(newRootPatterns);
     lastPatternCount = newRootPatterns.length;
     dirCount.clear();
     for (const [k, v] of newDirCount) dirCount.set(k, v);
@@ -1600,10 +1512,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
       return isIgnored(relativePath);
     },
 
-    getWatcherIgnoreGlobs(): string[] {
-      return watcherIgnoreGlobs;
-    },
-
     incrementMdDir(dir: string): void {
       const normalizedDir = dir === '.' ? '' : dir;
       dirCount.set(normalizedDir, (dirCount.get(normalizedDir) ?? 0) + 1);
@@ -1679,7 +1587,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
         }
         const prevIg = ig;
         const prevOkignoreIg = okignoreIg;
-        const prevWatcherGlobs = watcherIgnoreGlobs;
         const prevDirCount = new Map(dirCount);
         const startedAt = Date.now();
 
@@ -1715,7 +1622,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
           } catch (err) {
             ig = prevIg;
             okignoreIg = prevOkignoreIg;
-            watcherIgnoreGlobs = prevWatcherGlobs;
             dirCount.clear();
             for (const [k, v] of prevDirCount) dirCount.set(k, v);
             const message = err instanceof Error ? err.message : String(err);

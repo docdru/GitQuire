@@ -12,7 +12,6 @@ vi.mock('node:child_process', () => ({ spawnSync, spawn, execFileSync }));
 import { fakeChildProcess } from './process-scan.test-helper.ts';
 import { findOkProcessPids, scanLockProcesses } from './process-scan.ts';
 
-const originalPlatform = process.platform;
 const fixturePid = 24680;
 const lockDir = resolve('/missing/notes-é/.gitquire/local');
 const command = `node --gq-lock-dir-b64=${Buffer.from(lockDir).toString('base64url')}`;
@@ -52,57 +51,39 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  Object.defineProperty(process, 'platform', { value: originalPlatform });
   vi.restoreAllMocks();
 });
 
 describe('process enumeration', () => {
-  it.each(['darwin', 'linux'] as const)('discovers matching commands on %s', async (platform) => {
-    Object.defineProperty(process, 'platform', { value: platform });
-    const readSync = providePsOutput(['PID COMMAND\n', `${row}\n`]);
-    spawnSync.mockImplementation((program: string, args: string[]) => {
-      if (program !== 'pgrep') return readSync(program);
-      const fullCommand =
-        args.includes('-f') &&
-        args.includes('-a') &&
-        (platform !== 'darwin' || args.includes('-l'));
-      return { status: 0, stdout: fullCommand ? `${row}\n` : `${fixturePid}\n` };
-    });
+  it('discovers matching commands', async () => {
+    providePsOutput(['PID COMMAND\n', `${row}\n`]);
 
     expect(await findOkProcessPids()).toEqual([fixturePid]);
   });
 
-  it.each(['missing pgrep', 'PID-only pgrep', 'buffered pgrep overflow'])(
-    'discovers marked processes after an oversized listing with %s',
-    async (mode) => {
-      const unrelated = ' 12345 /usr/bin/unrelated-service\n';
-      const nodeDefaultMaxBuffer = 1024 * 1024;
-      const repeats = Math.ceil(nodeDefaultMaxBuffer / Buffer.byteLength(unrelated));
-      spawnSync.mockImplementation((program: string) => {
-        if (program === 'pgrep') {
-          if (mode === 'PID-only pgrep') return { status: 0, stdout: `${fixturePid}\n` };
-          return { status: null, error: mode === 'missing pgrep' ? unavailable : enobufs };
-        }
-        if (program === 'ps')
-          return { status: 0, error: enobufs, stdout: unrelated.repeat(repeats) };
-        return { status: 1, stdout: '', stderr: '' };
-      });
-      providePsStream(() =>
-        fakeChildProcess({
-          stdout: (function* () {
-            yield 'PID COMMAND\n';
-            for (let index = 0; index < repeats; index++) yield unrelated;
-            yield row;
-          })(),
-        }),
-      );
+  it('discovers marked processes after an oversized listing', async () => {
+    const unrelated = ' 12345 /usr/bin/unrelated-service\n';
+    const nodeDefaultMaxBuffer = 1024 * 1024;
+    const repeats = Math.ceil(nodeDefaultMaxBuffer / Buffer.byteLength(unrelated));
+    spawnSync.mockImplementation((program: string) => {
+      if (program === 'ps') return { status: 0, error: enobufs, stdout: unrelated.repeat(repeats) };
+      return { status: 1, stdout: '', stderr: '' };
+    });
+    providePsStream(() =>
+      fakeChildProcess({
+        stdout: (function* () {
+          yield 'PID COMMAND\n';
+          for (let index = 0; index < repeats; index++) yield unrelated;
+          yield row;
+        })(),
+      }),
+    );
 
-      expect(await scanLockProcesses()).toEqual({
-        candidates: [{ lockDir, pid: fixturePid, source: 'lock-dir-argument' }],
-        unavailable: [],
-      });
-    },
-  );
+    expect(await scanLockProcesses()).toEqual({
+      candidates: [{ lockDir, pid: fixturePid, source: 'lock-dir-argument' }],
+      unavailable: [],
+    });
+  });
 
   it('retains project paths split across byte chunks and an unterminated final row', async () => {
     const project = resolve('/missing/notes-é');
@@ -144,21 +125,11 @@ describe('process enumeration', () => {
   });
 
   it('keeps multiline command text within its owning process', async () => {
-    Object.defineProperty(process, 'platform', { value: 'darwin' });
-    const readSync = providePsOutput([
+    providePsOutput([
       'PID COMMAND\n',
       '13579 unrelated\\01297531 open-knowledge-server notes\n',
       `${row}\n`,
     ]);
-    spawnSync.mockImplementation((program: string, args: string[]) => {
-      if (program !== 'pgrep') return readSync(program);
-      return {
-        status: 0,
-        stdout: args.includes('-l')
-          ? `13579 unrelated\n97531 open-knowledge-server notes\n${row}\n`
-          : `13579\n${fixturePid}\n`,
-      };
-    });
 
     expect(await scanLockProcesses()).toEqual({
       candidates: [{ lockDir, pid: fixturePid, source: 'lock-dir-argument' }],
@@ -167,7 +138,6 @@ describe('process enumeration', () => {
   });
 
   it('discovers accepted dev commands alongside a matching server on Linux', async () => {
-    Object.defineProperty(process, 'platform', { value: 'linux' });
     const project = resolve('/missing/dev-project');
     const devPid = 13579;
     const readSync = providePsOutput([
@@ -176,7 +146,6 @@ describe('process enumeration', () => {
       `${devPid} /usr/local/bin/bun run dev\n`,
     ]);
     spawnSync.mockImplementation((program: string, args: string[]) => {
-      if (program === 'pgrep') return { status: 0, stdout: `${row}\n` };
       if (program === 'lsof' && args.includes('cwd'))
         return { status: 0, stdout: `p${devPid}\nn${project}\n` };
       return readSync(program);
@@ -192,8 +161,7 @@ describe('process enumeration', () => {
     });
   });
 
-  it('retains trailing command arguments under a narrow Linux display width', async () => {
-    Object.defineProperty(process, 'platform', { value: 'linux' });
+  it('retains trailing command arguments under a narrow display width', async () => {
     const narrow = `PID COMMAND\n${fixturePid} /usr/local/node`;
     const complete = `PID COMMAND\n${row}`;
     const outputFor = (args: string[]) =>
@@ -206,20 +174,6 @@ describe('process enumeration', () => {
     });
 
     expect(await scanLockProcesses()).toEqual({
-      candidates: [{ lockDir, pid: fixturePid, source: 'lock-dir-argument' }],
-      unavailable: [],
-    });
-  });
-
-  it('retains existing candidate discovery with Windows Unix tools', async () => {
-    Object.defineProperty(process, 'platform', { value: 'win32' });
-    spawnSync.mockImplementation((program: string) => {
-      if (program === 'pgrep') return { status: 0, stdout: `${row}\n` };
-      if (program === 'lsof') return { status: 1, stdout: '', stderr: '' };
-      return { status: null, error: unavailable };
-    });
-
-    expect(await scanLockProcesses(() => ({ onProbeFailure: () => {} }))).toEqual({
       candidates: [{ lockDir, pid: fixturePid, source: 'lock-dir-argument' }],
       unavailable: [],
     });
@@ -261,16 +215,12 @@ describe('process enumeration', () => {
     expect(await scanLockProcesses()).toEqual({ candidates: [], unavailable: [] });
   });
 
-  it.each(['darwin', 'linux', 'win32'] as const)(
-    'reports a process listing that cannot start on %s',
-    async (platform) => {
-      Object.defineProperty(process, 'platform', { value: platform });
-      providePsStream(() => fakeChildProcess({ stdout: [], status: null, error: unavailable }));
+  it('reports a process listing that cannot start', async () => {
+    providePsStream(() => fakeChildProcess({ stdout: [], status: null, error: unavailable }));
 
-      expect(await scanLockProcesses()).toEqual({
-        candidates: [],
-        unavailable: [expect.stringContaining('Could not enumerate processes')],
-      });
-    },
-  );
+    expect(await scanLockProcesses()).toEqual({
+      candidates: [],
+      unavailable: [expect.stringContaining('Could not enumerate processes')],
+    });
+  });
 });

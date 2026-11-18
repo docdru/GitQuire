@@ -246,29 +246,6 @@ describe('runInit', () => {
       expect(existsSync(join(testDir, GQ_DIR, 'config.yml'))).toBe(true);
       expect(readFileSync(sentinel, 'utf-8')).toBe('do-not-clobber');
     });
-
-    it('git unusable everywhere → runInit surfaces the recoverable GitNotAvailableError (no content scaffolded)', async () => {
-      const originalPath = process.env.PATH;
-      const originalPlatform = process.platform;
-      process.env.PATH = '/nonexistent';
-      Object.defineProperty(process, 'platform', {
-        value: originalPlatform === 'win32' ? 'linux' : 'win32',
-        configurable: true,
-      });
-      try {
-        const { GitNotAvailableError } = await import('@gitquire/server');
-        await expect(runInitForTest()).rejects.toBeInstanceOf(GitNotAvailableError);
-      } finally {
-        Object.defineProperty(process, 'platform', {
-          value: originalPlatform,
-          configurable: true,
-        });
-        process.env.PATH = originalPath;
-      }
-
-      expect(existsSync(join(testDir, GQ_DIR))).toBe(false);
-      expect(existsSync(join(testDir, '.git'))).toBe(false);
-    });
   });
 });
 

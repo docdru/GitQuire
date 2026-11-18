@@ -3,7 +3,6 @@ import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { hostname, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { okUserHomeDisplayPath } from '@gitquire/core';
 import {
   type Config,
   getMachineId,
@@ -451,8 +450,6 @@ describe('runStop identity check at the signal', () => {
     startedAtMs: Date.parse('2026-04-17T12:00:00Z'),
     clock: 'creation' as const,
   });
-  const bootedBeforeTheLock = () => Date.parse('2026-01-01T00:00:00Z');
-  const bootedLongAfterTheLock = () => Date.parse('2026-04-17T12:00:00Z');
 
   function lockState(status: 'alive' | 'foreign-host', owner: Record<string, string>): LockState {
     return {
@@ -485,7 +482,6 @@ describe('runStop identity check at the signal', () => {
       error: (msg) => errors.push(msg),
       probeClients: async () => null,
       logger,
-      readBootInstant: bootedBeforeTheLock,
       ...overrides,
     });
     return { outcome, killed, logs, errors, warnings };
@@ -553,12 +549,11 @@ describe('runStop identity check at the signal', () => {
       isAlive: () => true,
       readProcessStart: () => null,
       force: true,
-      platform: 'darwin',
     });
     const refusal =
       `Could not read when process 100 started, so it cannot be confirmed as the server that wrote ${lockPath}; ` +
       'it was not signalled, and --force does not override this check. ' +
-      'macOS reads the process start with ps, and that read failed, as it does inside some sandboxes; retry from a shell where ps can run. ' +
+      'Linux reads the process start from /proc/100/stat and /proc/stat; restore read access to /proc and retry. ' +
       'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
       `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`;
 
@@ -572,8 +567,6 @@ describe('runStop identity check at the signal', () => {
             cause: 'process-start-unreadable',
             pid: 100,
             lockPath,
-            platform: 'darwin',
-            nativeFailures: [],
           }),
         },
       ],
@@ -586,118 +579,10 @@ describe('runStop identity check at the signal', () => {
         lockDir,
         lockPath,
         lockPid: 100,
-        platform: 'darwin',
         cause: 'process-start-unreadable',
       },
       msg: 'stop declined: lock holder identity unverified',
     });
-  });
-
-  test('on Linux an unreadable start points at the /proc files it reads', async () => {
-    const { outcome } = run(thisMachine(), {
-      isAlive: () => true,
-      readProcessStart: () => null,
-      platform: 'linux',
-    });
-
-    expect((await outcome).failed.map((failure) => failure.error)).toEqual([
-      `Could not read when process 100 started, so it cannot be confirmed as the server that wrote ${lockPath}; ` +
-        'it was not signalled, and --force does not override this check. ' +
-        'Linux reads the process start from /proc/100/stat and /proc/stat; restore read access to /proc and retry. ' +
-        'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
-        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
-    ]);
-  });
-
-  test.each([
-    [
-      'unavailable',
-      'the Windows native addon (native-config.win32-x64-msvc.node) did not load or does not export readProcessStart: the addon was not found',
-      'Reinstall GitQuire to restore the Windows component that verifies process identity. ',
-    ],
-    [
-      'query-failed',
-      'readProcessStart failed: OpenProcess: os error 5',
-      'The Windows component loaded but the operating system refused the query, so reinstalling will not help; retry from an account that can inspect that process. ',
-    ],
-  ] as const)(
-    'on Windows a %s native read reaches the refusal and the record',
-    async (kind, reason, recovery) => {
-      const { outcome, warnings } = run(thisMachine(), {
-        isAlive: () => true,
-        readProcessStart: (_pid, options) => {
-          options?.onNativeFailure?.({ kind, reason });
-          return null;
-        },
-        platform: 'win32',
-      });
-
-      expect((await outcome).failed.map((failure) => failure.error)).toEqual([
-        `Could not read when process 100 started, so it cannot be confirmed as the server that wrote ${lockPath}; ` +
-          'it was not signalled, and --force does not override this check. ' +
-          recovery +
-          `The failure detail is recorded in the CLI log under ${okUserHomeDisplayPath('logs')}. ` +
-          'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
-          `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
-      ]);
-      expect(warnings).toContainEqual({
-        obj: {
-          lockDir,
-          lockPath,
-          lockPid: 100,
-          platform: 'win32',
-          cause: 'process-start-unreadable',
-          nativeFailures: [{ kind, reason }],
-        },
-        msg: 'stop declined: lock holder identity unverified',
-      });
-    },
-  );
-
-  test('on Windows without a logger, as the desktop runs it, a native read failure points at no log', async () => {
-    const { outcome } = run(thisMachine(), {
-      isAlive: () => true,
-      readProcessStart: (_pid, options) => {
-        options?.onNativeFailure?.({
-          kind: 'query-failed',
-          reason: 'readProcessStart failed: OpenProcess: os error 5',
-        });
-        return null;
-      },
-      platform: 'win32',
-      logger: undefined,
-    });
-
-    expect((await outcome).failed.map((failure) => failure.error)).toEqual([
-      `Could not read when process 100 started, so it cannot be confirmed as the server that wrote ${lockPath}; ` +
-        'it was not signalled, and --force does not override this check. ' +
-        'The Windows component loaded but the operating system refused the query, so reinstalling will not help; retry from an account that can inspect that process. ' +
-        'Before ending process 100 yourself, confirm that it is a GitQuire server. ' +
-        `Once you have confirmed no GitQuire server is running for this project, remove ${lockPath}.`,
-    ]);
-  });
-
-  test('on Windows a holder the OS refuses to open, named by a lock written before the last boot, is reported stale and not signalled', async () => {
-    const { outcome, killed, logs, errors, warnings } = run(thisMachine(), {
-      isAlive: () => true,
-      readProcessStart: (_pid, options) => {
-        options?.onNativeFailure?.({
-          kind: 'query-failed',
-          reason: 'readProcessStart failed: OpenProcess: os error 5',
-        });
-        return null;
-      },
-      platform: 'win32',
-      readBootInstant: bootedLongAfterTheLock,
-    });
-
-    expect(await outcome).toEqual({ stopped: [], failed: [], hadTargets: true });
-    expect(killed).toEqual([]);
-    expect(logs).toEqual([]);
-    expect(errors).toEqual([
-      `Process 100 is no longer the server that wrote ${lockPath}; it was not signalled. Run \`gq clean\` to remove the stale lock.`,
-    ]);
-    expect(warnings).toEqual([]);
   });
 
   test('a holder whose start cannot be compared with the recorded start fails without a signal', async () => {
@@ -798,7 +683,6 @@ describe('runStop identity check at the signal', () => {
     const { outcome, killed, errors, warnings } = run(anotherMachine(), {
       isAlive: () => true,
       readProcessStart: startedLongAfterTheLock,
-      platform: 'darwin',
     });
     const refusal =
       `The server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}, so process 100, which is running on this machine, cannot be confirmed as the server that wrote it; ` +
@@ -828,7 +712,6 @@ describe('runStop identity check at the signal', () => {
     const { outcome, warnings } = run(anotherMachine(), {
       isAlive: () => true,
       readProcessStart: () => null,
-      platform: 'darwin',
     });
 
     expect((await outcome).failed.map((failure) => failure.error)).toEqual([
@@ -842,32 +725,25 @@ describe('runStop identity check at the signal', () => {
     expect(warnings.map((w) => w.obj.cause)).toEqual(['foreign-host']);
   });
 
-  test.each([
-    ['darwin', 'HOME'],
-    ['win32', 'USERPROFILE'],
-  ] as const)(
-    "another machine's lock that records a start is refused on %s naming %s and without the restart advice",
-    async (platform, homeVariable) => {
-      const state = anotherMachine();
-      if (state.status !== 'foreign-host') throw new Error('expected a foreign-host lock state');
-      state.lock.processStart = { startedAtMs: Date.parse('2026-04-17T12:00:00Z') + 60_000 };
-      const { outcome, killed, warnings } = run(state, {
-        isAlive: () => true,
-        readProcessStart: startedLongAfterTheLock,
-        platform,
-      });
+  test("another machine's lock that records a start is refused naming HOME and without the restart advice", async () => {
+    const state = anotherMachine();
+    if (state.status !== 'foreign-host') throw new Error('expected a foreign-host lock state');
+    state.lock.processStart = { startedAtMs: Date.parse('2026-04-17T12:00:00Z') + 60_000 };
+    const { outcome, killed, warnings } = run(state, {
+      isAlive: () => true,
+      readProcessStart: startedLongAfterTheLock,
+    });
 
-      expect((await outcome).failed.map((failure) => failure.error)).toEqual([
-        `The server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}, so process 100, which is running on this machine, cannot be confirmed as the server that wrote it; ` +
-          'it was not signalled, and --force does not override this check. ' +
-          'If the server was started on this machine from another account, run `gq stop` as that account. ' +
-          `If it was started from this account with a different home folder, run \`gq stop\` with \`${homeVariable}\` set to that folder. ` +
-          'Otherwise stop it from the machine that owns the lock.',
-      ]);
-      expect(killed).toEqual([]);
-      expect(warnings.map((w) => w.obj.cause)).toEqual(['foreign-host']);
-    },
-  );
+    expect((await outcome).failed.map((failure) => failure.error)).toEqual([
+      `The server lock at ${lockPath} records a machine ID different from the one in ${machineIdFilePath()}, so process 100, which is running on this machine, cannot be confirmed as the server that wrote it; ` +
+        'it was not signalled, and --force does not override this check. ' +
+        'If the server was started on this machine from another account, run `gq stop` as that account. ' +
+        'If it was started from this account with a different home folder, run `gq stop` with `HOME` set to that folder. ' +
+        'Otherwise stop it from the machine that owns the lock.',
+    ]);
+    expect(killed).toEqual([]);
+    expect(warnings.map((w) => w.obj.cause)).toEqual(['foreign-host']);
+  });
 
   test('a lock naming only another host is refused with both host names and the advice for a renamed host', async () => {
     const state = lockState('foreign-host', { hostname: 'another-machine.example' });
@@ -1089,7 +965,6 @@ describe('runStop on a live lock that records no owning machine', () => {
         lockDir,
         lockPath,
         lockPid: process.pid,
-        platform: process.platform,
         cause: 'unverified-owner',
       },
       msg: 'stop declined: lock holder identity unverified',

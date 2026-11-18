@@ -67,7 +67,7 @@ describe('git check', () => {
     const result = await def.run(ctx);
     expect(result.status).toBe('fail');
     expect(result.summary).toBe('git probe timed out');
-    expect(result.remediation).toContain('retry');
+    expect(result.remediation).toContain('Retry');
     expect(result.detail).toContain('could not verify Git');
   });
 

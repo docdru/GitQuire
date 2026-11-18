@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, isAbsolute, join } from 'node:path';
 import { GqCliCommand } from '@gitquire/core';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import {
   __resetResolveOnPathCacheForTests,
   __seedResolveOnPathCacheForTests,
@@ -13,6 +13,17 @@ import {
   withUnusableGitEverywhere,
 } from '../git-unusable-setup.test-helper.ts';
 import { type RawCloneEvent, runCloneSubprocess } from './clone-flow.ts';
+
+const hiddenGitFallbacks = vi.hoisted(() => ({ on: false }));
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>();
+  const { existsSyncHidingGitFallbacks } = await import('../git-unusable-setup.test-helper.ts');
+  return {
+    ...actual,
+    existsSync: existsSyncHidingGitFallbacks(actual.existsSync, hiddenGitFallbacks),
+  };
+});
 
 const okCli = (
   cliArgs: readonly string[],
@@ -53,7 +64,7 @@ describe('runCloneSubprocess — git-preflight at the clone-setup boundary (#356
     let syncThrow: unknown;
     let doneErr: unknown;
     try {
-      await withUnusableGitEverywhere(async () => {
+      await withUnusableGitEverywhere(hiddenGitFallbacks, async () => {
         let controller: ReturnType<typeof runCloneSubprocess> | undefined;
         try {
           controller = runCloneSubprocess({

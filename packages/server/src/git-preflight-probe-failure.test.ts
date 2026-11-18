@@ -40,8 +40,7 @@ describe('detectGit probe failure detail', () => {
     });
   });
 
-  test('records unparseable when the git on PATH prints no version', (ctx) => {
-    ctx.skip(process.platform === 'win32', 'the stub git is a POSIX shell script');
+  test('records unparseable when the git on PATH prints no version', () => {
     const stub = join(binDir, 'git');
     writeFileSync(stub, '#!/bin/sh\necho "not a version"\n');
     chmodSync(stub, 0o755);
