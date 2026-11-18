@@ -13,7 +13,7 @@ import {
 import { mkdtemp, rm } from 'node:fs/promises';
 import { request as httpRequest } from 'node:http';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import { idleShutdownToMs } from '@gitquire/core';
 import { type Config, ConfigSchema } from '@gitquire/server';
@@ -22,12 +22,10 @@ import {
   type BootedStartServer,
   bootStartServer,
   deriveServerProcessTitle,
-  EphemeralProjectDirNotThrowawayError,
   formatServerReuseNotice,
   formatShutdownNotice,
   GqDirMissingError,
   isLoopbackHost,
-  isReapableEphemeralProjectDir,
   isServerLockCollision,
   parseExternalUrlFlag,
   parseIdleShutdownFlag,
@@ -35,13 +33,11 @@ import {
   resolveBundledReactShellDir,
   resolveHost,
   resolveServerReuse,
-  resolveStartConfig,
   resolveStartConsoleLevel,
   resolveStartShellDir,
   shouldWarnHostOverridesMultiBind,
   startCommand,
   tryDescribeLockCollision,
-  withEphemeralTempDirReap,
   withIdleShutdownProcessExit,
 } from './start.ts';
 
@@ -653,181 +649,6 @@ describe('bootStartServer (integration)', () => {
       await rm(shellDir, { recursive: true, force: true });
     }
   });
-
-  test('--single-file with no projectDir self-provisions a throwaway root — cwd is never consumed', async () => {
-    const looseDir = await mkdtemp(resolve(tmpdir(), 'ok-start-loose-'));
-    const sentinel = join(tmpDir, 'IMPORTANT.md');
-    writeFileSync(sentinel, 'keep me', 'utf-8');
-    try {
-      writeFileSync(join(looseDir, 'note.md'), '# loose note\n', 'utf-8');
-      booted = await bootStartServer({
-        config: makeTestConfig(),
-        cwd: tmpDir,
-        host: TEST_HOST,
-        skipAutoInit: true,
-        singleFile: join(looseDir, 'note.md'),
-      });
-      await booted.ready;
-
-      const ephemeralRoot = dirname(dirname(booted.lockDir));
-      expect(ephemeralRoot).not.toBe(tmpDir);
-      expect(booted.lockDir.startsWith(tmpDir)).toBe(false);
-      expect(basename(ephemeralRoot).startsWith('ok-ephemeral-')).toBe(true);
-      expect(existsSync(join(ephemeralRoot, '.gitquire', 'config.yml'))).toBe(true);
-
-      await booted.destroy();
-      booted = null;
-      expect(existsSync(ephemeralRoot)).toBe(false);
-      expect(existsSync(sentinel)).toBe(true);
-      expect(existsSync(join(tmpDir, '.gitquire', 'config.yml'))).toBe(true);
-    } finally {
-      await rm(looseDir, { recursive: true, force: true });
-    }
-  });
-
-  test('--single-file ephemeral teardown records the signal that stopped it', async () => {
-    const looseDir = await mkdtemp(resolve(tmpdir(), 'ok-start-loose-'));
-    const shutdownRecords: Array<Record<string, unknown>> = [];
-    const record = (data: unknown, message?: string): void => {
-      if (message?.includes('shutdown initiated') === true) {
-        shutdownRecords.push(data as Record<string, unknown>);
-      }
-    };
-    const log = {
-      info: record,
-      warn: record,
-      error: record,
-      debug: record,
-      trace: record,
-      fatal: record,
-    } as unknown as NonNullable<Parameters<typeof bootStartServer>[0]['log']>;
-    try {
-      writeFileSync(join(looseDir, 'note.md'), '# loose note\n', 'utf-8');
-      booted = await bootStartServer({
-        config: makeTestConfig(),
-        cwd: tmpDir,
-        host: TEST_HOST,
-        skipAutoInit: true,
-        singleFile: join(looseDir, 'note.md'),
-        log,
-      });
-      await booted.ready;
-
-      await booted.destroy('external-signal', { signal: 'SIGINT' });
-      booted = null;
-      expect(shutdownRecords).toEqual([
-        expect.objectContaining({ reason: 'external-signal', signal: 'SIGINT' }),
-      ]);
-    } finally {
-      await rm(looseDir, { recursive: true, force: true });
-    }
-  });
-
-  test('--single-file with a provided empty --project-dir seeds the synthesized config and boots', async () => {
-    const looseDir = await mkdtemp(resolve(tmpdir(), 'ok-start-loose-'));
-    const providedDir = await mkdtemp(resolve(tmpdir(), 'ok-ephemeral-'));
-    try {
-      writeFileSync(join(looseDir, 'note.md'), '# loose note\n', 'utf-8');
-      booted = await bootStartServer({
-        config: makeTestConfig(),
-        cwd: tmpDir,
-        host: TEST_HOST,
-        skipAutoInit: true,
-        singleFile: join(looseDir, 'note.md'),
-        projectDir: providedDir,
-      });
-      await booted.ready;
-      expect(existsSync(join(providedDir, '.gitquire', 'config.yml'))).toBe(true);
-      expect(existsSync(join(providedDir, '.gitquire', '.gitignore'))).toBe(true);
-
-      await booted.destroy();
-      booted = null;
-      expect(existsSync(providedDir)).toBe(true);
-    } finally {
-      await rm(looseDir, { recursive: true, force: true });
-      await rm(providedDir, { recursive: true, force: true });
-    }
-  });
-
-  test('--single-file with an ordinary bare --project-dir is refused, not seeded', async () => {
-    const looseDir = await mkdtemp(resolve(tmpdir(), 'ok-start-loose-'));
-    const ordinaryDir = await mkdtemp(resolve(tmpdir(), 'ok-start-ordinary-'));
-    try {
-      writeFileSync(join(looseDir, 'note.md'), '# loose note\n', 'utf-8');
-      await expect(
-        bootStartServer({
-          config: makeTestConfig(),
-          cwd: tmpDir,
-          host: TEST_HOST,
-          skipAutoInit: true,
-          singleFile: join(looseDir, 'note.md'),
-          projectDir: ordinaryDir,
-        }),
-      ).rejects.toThrow(EphemeralProjectDirNotThrowawayError);
-      expect(existsSync(join(ordinaryDir, '.gitquire'))).toBe(false);
-    } finally {
-      await rm(looseDir, { recursive: true, force: true });
-      await rm(ordinaryDir, { recursive: true, force: true });
-    }
-  });
-
-  test('--single-file with an initialized real project as --project-dir is refused untouched', async () => {
-    const looseDir = await mkdtemp(resolve(tmpdir(), 'ok-start-loose-'));
-    const realProject = await mkdtemp(resolve(tmpdir(), 'ok-start-realproj-'));
-    try {
-      writeFileSync(join(looseDir, 'note.md'), '# loose note\n', 'utf-8');
-      mkdirSync(join(realProject, '.gitquire'), { recursive: true });
-      writeFileSync(join(realProject, '.gitquire', 'config.yml'), 'content:\n  dir: .\n', 'utf-8');
-      writeFileSync(join(realProject, 'KEEP.md'), 'keep me', 'utf-8');
-      await expect(
-        bootStartServer({
-          config: makeTestConfig(),
-          cwd: tmpDir,
-          host: TEST_HOST,
-          skipAutoInit: true,
-          singleFile: join(looseDir, 'note.md'),
-          projectDir: realProject,
-        }),
-      ).rejects.toThrow(EphemeralProjectDirNotThrowawayError);
-      expect(existsSync(join(realProject, 'KEEP.md'))).toBe(true);
-      expect(existsSync(join(realProject, '.gitquire', 'local'))).toBe(false);
-    } finally {
-      await rm(looseDir, { recursive: true, force: true });
-      await rm(realProject, { recursive: true, force: true });
-    }
-  });
-
-  test('boot failure after self-provisioning reaps the freshly created ephemeral dir', async () => {
-    const looseDir = await mkdtemp(resolve(tmpdir(), 'ok-start-loose-'));
-    const privateTmp = await mkdtemp(resolve(tmpdir(), 'ok-start-privtmp-'));
-    const prevTmpdirEnv = process.env.TMPDIR;
-    const { createServer } = await import('node:http');
-    const blocker = createServer(() => {});
-    await new Promise<void>((r) => blocker.listen(0, '127.0.0.1', () => r()));
-    const addr = blocker.address();
-    const blockedPort = typeof addr === 'object' && addr !== null ? addr.port : 0;
-    try {
-      writeFileSync(join(looseDir, 'note.md'), '# loose note\n', 'utf-8');
-      process.env.TMPDIR = privateTmp;
-      await expect(
-        bootStartServer({
-          config: makeTestConfig(),
-          cwd: tmpDir,
-          host: TEST_HOST,
-          skipAutoInit: true,
-          singleFile: join(looseDir, 'note.md'),
-          port: blockedPort,
-        }),
-      ).rejects.toThrow();
-      expect(readdirSync(privateTmp).filter((n) => n.startsWith('ok-ephemeral-'))).toEqual([]);
-    } finally {
-      if (prevTmpdirEnv === undefined) delete process.env.TMPDIR;
-      else process.env.TMPDIR = prevTmpdirEnv;
-      await new Promise<void>((r) => blocker.close(() => r()));
-      await rm(looseDir, { recursive: true, force: true });
-      await rm(privateTmp, { recursive: true, force: true });
-    }
-  });
 });
 
 describe('bootStartServer — no auto git-init from gq start (US-004)', () => {
@@ -1091,143 +912,6 @@ describe('tryDescribeLockCollision', () => {
     const err = new Error('any');
     const result = tryDescribeLockCollision(err, '/tmp/proj', fm);
     expect(result).toBeNull();
-  });
-});
-
-describe('resolveStartConfig (ephemeral config isolation)', () => {
-  test('single-file sessions drop the project config but keep the user-global layer', () => {
-    const projectConfig = ConfigSchema.parse({ server: { port: 4242 } });
-    const userConfig = ConfigSchema.parse({ server: { port: 5151 } });
-    const resolved = resolveStartConfig(projectConfig, '/tmp/note.md', () => userConfig);
-    expect(resolved.server?.port).toBe(5151);
-    expect(resolved).not.toBe(projectConfig);
-  });
-
-  test('plain gq start keeps the loaded project config untouched', () => {
-    const projectConfig = ConfigSchema.parse({ server: { port: 4242 } });
-    let userReads = 0;
-    const resolved = resolveStartConfig(projectConfig, undefined, () => {
-      userReads += 1;
-      return ConfigSchema.parse({});
-    });
-    expect(resolved).toBe(projectConfig);
-    expect(userReads).toBe(0);
-  });
-});
-
-describe('isReapableEphemeralProjectDir', () => {
-  test('accepts a direct ok-ephemeral-* child of os.tmpdir()', () => {
-    expect(isReapableEphemeralProjectDir(join(tmpdir(), 'ok-ephemeral-abc123'))).toBe(true);
-  });
-
-  test('rejects a dir outside the temp root, whatever its name', () => {
-    expect(isReapableEphemeralProjectDir('/Users/someone/my-project')).toBe(false);
-  });
-
-  test('rejects a temp-root child without the ok-ephemeral- prefix', () => {
-    expect(isReapableEphemeralProjectDir(join(tmpdir(), 'my-scratch-project'))).toBe(false);
-  });
-
-  test('rejects an ok-ephemeral-* dir nested deeper than the temp root', () => {
-    expect(isReapableEphemeralProjectDir(join(tmpdir(), 'nested', 'ok-ephemeral-x'))).toBe(false);
-  });
-
-  test('pierces temp-root symlinks via the injected realpath (macOS /tmp → /private/tmp)', () => {
-    const realpathFn = (p: string): string =>
-      p === '/tmp' || p.startsWith('/tmp/') ? p.replace(/^\/tmp/, '/private/tmp') : p;
-    expect(
-      isReapableEphemeralProjectDir('/tmp/ok-ephemeral-x', {
-        tmpdirFn: () => '/private/tmp',
-        realpathFn,
-      }),
-    ).toBe(true);
-  });
-
-  test('resolves a symlink leaf: an ok-ephemeral-* link pointing elsewhere is refused', () => {
-    const targetDir = mkdtempSync(join(tmpdir(), 'ok-start-symtarget-'));
-    const link = join(tmpdir(), `ok-ephemeral-link-${basename(targetDir)}`);
-    symlinkSync(targetDir, link);
-    try {
-      expect(isReapableEphemeralProjectDir(link)).toBe(false);
-    } finally {
-      rmSync(link, { force: true });
-      rmSync(targetDir, { recursive: true, force: true });
-    }
-  });
-
-  test('accepts a real mkdtemp ok-ephemeral-* dir on this OS (symlinked temp prefix and all)', () => {
-    const real = mkdtempSync(join(tmpdir(), 'ok-ephemeral-'));
-    try {
-      expect(isReapableEphemeralProjectDir(real)).toBe(true);
-    } finally {
-      rmSync(real, { recursive: true, force: true });
-    }
-  });
-});
-
-describe('withEphemeralTempDirReap', () => {
-  const reapable = join(tmpdir(), 'ok-ephemeral-x');
-
-  test('runs the inner handler, then removes the temp projectDir', async () => {
-    const order: string[] = [];
-    const handler = async () => {
-      order.push('handler');
-    };
-    const removed: string[] = [];
-    const wrapped = withEphemeralTempDirReap(handler, reapable, async (dir) => {
-      order.push('rm');
-      removed.push(dir);
-    });
-    await wrapped();
-    expect(order).toEqual(['handler', 'rm']);
-    expect(removed).toEqual([reapable]);
-  });
-
-  test('swallows a rm failure (best-effort) — the handler still completes', async () => {
-    let handled = false;
-    const wrapped = withEphemeralTempDirReap(
-      async () => {
-        handled = true;
-      },
-      reapable,
-      async () => {
-        throw new Error('EBUSY');
-      },
-    );
-    await expect(wrapped()).resolves.toBeUndefined();
-    expect(handled).toBe(true);
-  });
-
-  test('reaps the temp dir even when the inner handler throws (finally)', async () => {
-    const removed: string[] = [];
-    const wrapped = withEphemeralTempDirReap(
-      async () => {
-        throw new Error('destroy failed');
-      },
-      reapable,
-      async (dir) => {
-        removed.push(dir);
-      },
-    );
-    await expect(wrapped()).rejects.toThrow('destroy failed');
-    expect(removed).toEqual([reapable]);
-  });
-
-  test('REFUSES to rm a non-throwaway target — the containment backstop', async () => {
-    const removed: string[] = [];
-    let handled = false;
-    const wrapped = withEphemeralTempDirReap(
-      async () => {
-        handled = true;
-      },
-      '/Users/someone/my-project',
-      async (dir) => {
-        removed.push(dir);
-      },
-    );
-    await wrapped();
-    expect(handled).toBe(true);
-    expect(removed).toEqual([]);
   });
 });
 

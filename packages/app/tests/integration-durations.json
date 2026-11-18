@@ -275,7 +275,6 @@
   "tests/integration/sidebar-show-all-files.test.ts": 0.9,
   "tests/integration/silent-checkpoint-restore.test.ts": 2.2,
   "tests/integration/single-client-paste-duplication.test.ts": 1.2,
-  "tests/integration/single-file-mode.test.ts": 9.9,
   "tests/integration/slash-command-extension.test.ts": 0,
   "tests/integration/source-mode-single-undo.test.ts": 0.2,
   "tests/integration/source-undo-after-mode-flip.test.ts": 1.8,

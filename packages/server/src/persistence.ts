@@ -498,7 +498,6 @@ export interface PersistenceOptions {
   getLossRing?: () => Pick<LossCaptureRing, 'record'> | undefined;
   isRecentlyRemoved?: (docName: string) => boolean;
   lifecycleOf?: (document: Y.Doc, docName: string) => LifecycleView | null;
-  ephemeral?: boolean;
   ingestDiskAtStore: StoreDiskIntake | null;
   mergeHistory: MergeHistoryRecorder | null;
 }
@@ -622,7 +621,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
   const onDiskFlush = options?.onDiskFlush;
   const onConfigPersisted = options?.onConfigPersisted;
   const mgr = options?.mdManager ?? mdManager;
-  const ephemeral = options?.ephemeral ?? false;
   const frozenStatusOf = (
     document: Y.Doc,
     documentName: string,
@@ -642,7 +640,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
     lkgCache: configLkgCache,
     homedirOverride: options?.configHomedirOverride,
     onConfigRejected: options?.onConfigRejected,
-    ephemeral,
     agreedDisk: new Map<string, string>(),
     history: options.mergeHistory,
   };
@@ -971,32 +968,6 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
 
   async function _awaitPendingCommit(): Promise<void> {
     if (commitInFlight) await commitInFlight;
-  }
-
-  /**
-   * Under the Y.Text-is-truth contract (precedent #38) Y.Text holds the user's intended source-form
-   * bytes; fragment must catch up so future edits start from a consistent base.
-   */
-  function canonicalizeForEphemeralBaseline(rawBytes: string, documentName: string): string | null {
-    try {
-      const { frontmatter, body } = stripFrontmatter(rawBytes);
-      const parseOpts = options?.resolveEmbed
-        ? {
-            resolveEmbed: options.resolveEmbed,
-            resolveSize: options?.resolveSize,
-            sourcePath: documentName,
-          }
-        : undefined;
-      const json = mgr.parseWithFallback(body, parseOpts);
-      const canonicalBody = mgr.serialize(json);
-      return normalizeBridge(prependFrontmatter(frontmatter, canonicalBody));
-    } catch (err) {
-      log.debug(
-        { err, documentName },
-        '[g8] ephemeral canonical baseline failed; falling through to write',
-      );
-      return null;
-    }
   }
 
   function reconcileFragmentNow(document: Y.Doc, body: string, documentName: string): void {
@@ -1581,23 +1552,12 @@ export function createPersistenceExtension(options: PersistenceOptions): Persist
 
         const currentBase = durabilityState.getReconciledBase(documentName);
         const normalizedMarkdown = normalizedSourceForm(ytextSnapshot);
-        let markdownSemanticallyUnchanged =
+        const markdownSemanticallyUnchanged =
           currentBase !== undefined &&
           (agentTriggeredStore
             ? markdown === currentBase
             : normalizedMarkdown === normalizeBridge(currentBase) &&
               !addsBlankLines(currentBase, markdown));
-        if (
-          !markdownSemanticallyUnchanged &&
-          !agentTriggeredStore &&
-          ephemeral &&
-          currentBase !== undefined
-        ) {
-          const canonicalBase = canonicalizeForEphemeralBaseline(currentBase, documentName);
-          if (canonicalBase !== null && normalizedMarkdown === canonicalBase) {
-            markdownSemanticallyUnchanged = true;
-          }
-        }
         if (markdownSemanticallyUnchanged) {
           if (contributorCount() > 0) scheduleGitCommit();
           durabilityState.clearStoreRefused(documentName);

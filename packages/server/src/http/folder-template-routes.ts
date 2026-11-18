@@ -72,7 +72,6 @@ import { successResponse } from './success-response.ts';
 export interface FolderTemplateRouteDeps {
   contentDir: string;
   projectDir: string | undefined;
-  ephemeral: boolean;
   log: PinoLogger;
   hocuspocus: Hocuspocus;
   sessionManager: AgentSessionManager;
@@ -143,7 +142,6 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
   const {
     contentDir,
     projectDir,
-    ephemeral,
     log,
     hocuspocus,
     sessionManager,
@@ -398,16 +396,6 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
     FolderConfigPutRequestSchema,
     async (_req, res, body) => {
       try {
-        if (ephemeral) {
-          errorResponse(
-            res,
-            403,
-            'urn:ok:error:single-file-mode',
-            'Folder configuration is not available in single-file mode.',
-            { handler: 'folder-config-put' },
-          );
-          return;
-        }
         const actor = extractActorIdentity(
           body as unknown as Record<string, unknown>,
           getPrincipal,
@@ -607,16 +595,6 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
     TemplatePutRequestSchema,
     async (_req, res, body) => {
       try {
-        if (ephemeral) {
-          errorResponse(
-            res,
-            403,
-            'urn:ok:error:single-file-mode',
-            'Templates are not available in single-file mode.',
-            { handler: 'template-put' },
-          );
-          return;
-        }
         const actor = extractActorIdentity(
           body as unknown as Record<string, unknown>,
           getPrincipal,
@@ -1105,17 +1083,6 @@ export function createFolderTemplateRoutes(deps: FolderTemplateRouteDeps): ApiRo
     async (_req, res, body) => {
       let reservedTarget: string | undefined;
       try {
-        if (ephemeral) {
-          errorResponse(
-            res,
-            403,
-            'urn:ok:error:single-file-mode',
-            'Templates are not available in single-file mode.',
-            { handler: 'template-import' },
-          );
-          return;
-        }
-
         const actor = extractActorIdentity(
           body as unknown as Record<string, unknown>,
           getPrincipal,

@@ -49,15 +49,12 @@ export function canonicalContentPath(path: string): string {
   }
 }
 
-export function snapshotServerContentScope(
-  contentDir: string,
-  singleDocRelPath?: string,
-): ContentScope {
+export function snapshotServerContentScope(contentDir: string): ContentScope {
   return withSpanSync(
     'ok.boot.content-scope',
-    { attributes: { 'content.scope.kind': singleDocRelPath === undefined ? 'tree' : 'file' } },
+    { attributes: { 'content.scope.kind': 'tree' } },
     (span) => {
-      const scope = scanServerContentScope(contentDir, singleDocRelPath);
+      const scope = scanServerContentScope(contentDir);
       span.setAttribute(
         'content.scope.exclusions',
         scope.kind === 'tree' ? scope.excluded.length : 0,
@@ -67,11 +64,8 @@ export function snapshotServerContentScope(
   );
 }
 
-function scanServerContentScope(contentDir: string, singleDocRelPath?: string): ContentScope {
+function scanServerContentScope(contentDir: string): ContentScope {
   const root = canonicalContentPath(contentDir);
-  if (singleDocRelPath !== undefined) {
-    return { kind: 'file', path: canonicalContentPath(resolve(contentDir, singleDocRelPath)) };
-  }
   const excluded: string[] = [];
   const pending = [root];
   while (pending.length > 0) {

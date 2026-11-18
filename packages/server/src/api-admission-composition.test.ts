@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -8,7 +8,6 @@ import { bootCompositionRig, parseProblem, rawRequest } from './composition-rig.
 
 let tmpRoot: string;
 let normal: BootedServer;
-let ephemeral: BootedServer;
 
 beforeAll(async () => {
   tmpRoot = await mkdtemp(resolve(tmpdir(), 'ok-admission-'));
@@ -16,18 +15,10 @@ beforeAll(async () => {
   const normalDir = mkdtempSync(resolve(tmpRoot, 'normal-'));
   normal = await bootCompositionRig(normalDir);
   await normal.ready;
-
-  const ephemeralDir = mkdtempSync(resolve(tmpRoot, 'ephemeral-'));
-  writeFileSync(resolve(ephemeralDir, 'note.md'), '# note\n', 'utf-8');
-  ephemeral = await bootCompositionRig(ephemeralDir, {
-    ephemeral: true,
-    singleDocRelPath: 'note.md',
-  });
-  await ephemeral.ready;
 }, 60_000);
 
 afterAll(async () => {
-  await Promise.allSettled([normal?.destroy(), ephemeral?.destroy()]);
+  await Promise.allSettled([normal?.destroy()]);
   await rm(tmpRoot, { recursive: true, force: true });
 });
 
@@ -121,26 +112,5 @@ describe('/api admission over the composed listener — normal mode', () => {
     });
     expect(res.status).toBe(204);
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
-  });
-});
-
-describe('/api admission over the composed listener — ephemeral mode', () => {
-  test('read route via localhost is served', async () => {
-    const res = await fetch(`http://127.0.0.1:${ephemeral.port}/api/server-info`);
-    expect(res.status).toBe(200);
-  });
-
-  test('EVERY /api route is Host-gated, including reads', async () => {
-    const res = await rawRequest(ephemeral.port, '/api/server-info', {
-      headers: { Host: 'evil.example' },
-    });
-    expect(res.status).toBe(403);
-  });
-
-  test('/mcp is unmounted in ephemeral mode', async () => {
-    const res = await fetch(`http://127.0.0.1:${ephemeral.port}/mcp`, {
-      method: 'OPTIONS',
-    });
-    expect(res.status).toBe(404);
   });
 });
