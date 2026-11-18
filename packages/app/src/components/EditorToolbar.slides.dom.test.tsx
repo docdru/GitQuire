@@ -44,17 +44,6 @@ function makeDeckProvider(): FakeProvider {
   };
 }
 
-function installSlidesBridge() {
-  (window as unknown as { okDesktop?: unknown }).okDesktop = {
-    config: { projectPath: '/proj' },
-    platform: 'darwin',
-    slides: {
-      status: () => Promise.resolve({ kind: 'status', available: true, source: 'global' }),
-      open: () => Promise.resolve({ kind: 'open', ok: true }),
-    },
-  };
-}
-
 async function renderToolbar(provider: FakeProvider | null, docName: string | null = 'talks/Deck') {
   const { EditorToolbar } = await import('./EditorToolbar');
   return render(
@@ -83,13 +72,12 @@ afterEach(() => {
 describe('EditorToolbar — Slidev action gate', () => {
   test('hides the action when the plugin is disabled', async () => {
     mockMergedConfig = { slides: { enabled: false } };
-    installSlidesBridge();
     await renderToolbar(makeDeckProvider());
     await Promise.resolve();
     expect(screen.queryByTestId('slides-toolbar-action')).toBeNull();
   });
 
-  test('on a web host with no desktop bridge renders no action and logs no error', async () => {
+  test('renders no action and logs no error', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockMergedConfig = { slides: { enabled: true } };
     await renderToolbar(makeDeckProvider());
@@ -103,7 +91,6 @@ describe('EditorToolbar — renders without a config provider', () => {
   test('an absent config renders the toolbar and simply withholds the action', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockConfigAbsent = true;
-    installSlidesBridge();
 
     await renderToolbar(makeDeckProvider());
     await Promise.resolve();

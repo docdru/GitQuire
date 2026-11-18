@@ -147,14 +147,6 @@ vi.doMock('sonner', () => ({
   toast: toastMock,
 }));
 
-function setDesktopBridge(bridge: unknown) {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    writable: true,
-    value: bridge,
-  });
-}
-
 async function renderDialog() {
   const { PublishToGitHubDialog } = await import('./PublishToGitHubDialog');
   const onOpenChange = vi.fn((_open: boolean) => {});
@@ -213,7 +205,6 @@ describe('PublishToGitHubDialog runtime behavior', () => {
     isPermissionsPolicyRefusalMock.mockClear();
     toastMock.error.mockClear();
     toastMock.success.mockClear();
-    setDesktopBridge(undefined);
   });
 
   test('renders the dialog frame, fields, default private visibility, and live name-check preview', async () => {

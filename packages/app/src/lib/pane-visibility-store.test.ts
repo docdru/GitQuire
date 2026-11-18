@@ -237,13 +237,12 @@ describe('pane-visibility-store', () => {
     expect(seen).toEqual([{ pane: 'editor', open: true }]);
   });
 
-  test('publishing and requesting touch neither browser storage nor the desktop bridge', () => {
+  test('publishing and requesting never touch browser storage', () => {
     const touched: string[] = [];
     const storage = recordingStandIn('localStorage', touched);
-    const okDesktop = recordingStandIn('okDesktop', touched);
     vi.stubGlobal('localStorage', storage);
     vi.stubGlobal('sessionStorage', recordingStandIn('sessionStorage', touched));
-    vi.stubGlobal('window', { okDesktop, localStorage: storage });
+    vi.stubGlobal('window', { localStorage: storage });
     expect(globalThis.localStorage).toBe(storage);
 
     paneVisibilityStore.subscribe(() => {});

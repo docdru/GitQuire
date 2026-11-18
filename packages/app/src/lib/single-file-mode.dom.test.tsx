@@ -7,14 +7,9 @@ function Probe() {
   return <div data-testid="probe">{singleFile ? 'single-file' : 'project'}</div>;
 }
 
-const originalDesktop = (globalThis as { window?: { okDesktop?: unknown } }).window?.okDesktop;
-
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-  if (typeof window !== 'undefined') {
-    (window as { okDesktop?: unknown }).okDesktop = originalDesktop;
-  }
 });
 
 describe('SingleFileModeProvider — browser /api/config channel', () => {

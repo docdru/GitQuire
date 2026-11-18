@@ -129,9 +129,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
     signature: trailingContentSignature,
     deferRemeasure: overflowOpen,
     slack: HEADER_OVERFLOW_SLACK_PX,
-    measureTrailingWidth: (elements) =>
-      elements.trailing.offsetWidth +
-      (Number.parseFloat(getComputedStyle(elements.trailing).marginInlineEnd) || 0),
+    measureTrailingWidth: (elements) => elements.trailing.offsetWidth,
     measureAvailableWidth: (elements, latchedTrailingWidth) => {
       const headerWidth = elements.header.offsetWidth;
       const badgesWidth = leadingBadgesWidth(elements.leading);

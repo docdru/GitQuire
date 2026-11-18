@@ -2,7 +2,7 @@ import * as actualLinguiMacro from '@lingui/react/macro';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 import {
@@ -48,16 +48,9 @@ vi.doMock('@/components/GraphView', () => ({
   ),
 }));
 
-function setElectronHost(on: boolean) {
-  const w = window as unknown as { okDesktop?: unknown };
-  if (on) w.okDesktop = {};
-  else delete w.okDesktop;
-}
-
 describe('GraphPanel fullscreen safe-area behavior', () => {
   afterEach(() => {
     cleanup();
-    setElectronHost(false);
   });
 
   async function renderExpandedGraphPanel() {
@@ -83,7 +76,6 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
       'overflow-hidden',
       'bg-background',
     ]);
-    expectVisualClassTokensAbsent(panel?.className, ['[-webkit-app-region:no-drag]']);
 
     const header = panel?.querySelector('[data-slot="panel-header"]');
     expectVisualClassTokens(header?.className, ['mt-2', 'h-12', 'py-0']);
@@ -94,18 +86,7 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
     expectVisualClassTokens(titleCluster?.className, ['ml-4']);
   });
 
-  test('fullscreen off Electron declares no drag region', async () => {
-    await renderExpandedGraphPanel();
-
-    const header = screen
-      .getByTestId('graph-view')
-      .closest('[data-slot="panel"]')
-      ?.querySelector('[data-slot="panel-header"]');
-    expectVisualClassTokensAbsent(header?.className, ['[-webkit-app-region:drag]']);
-    expect(header?.getAttribute('data-electron-drag')).toBeNull();
-  });
-
-  test('docked (non-expanded) graph does not reserve the traffic-light footprint', async () => {
+  test('docked (non-expanded) graph does not use the expanded header spacing', async () => {
     const { GraphPanel } = await import('./GraphPanel');
     render(
       <TooltipProvider>
@@ -115,11 +96,7 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
 
     const panel = screen.getByTestId('graph-view').closest('[data-slot="panel"]');
     const header = panel?.querySelector('[data-slot="panel-header"]');
-    expectVisualClassTokensAbsent(header?.className, [
-      'pl-[var(--gq-titlebar-reserve-left,1rem)]',
-      'mt-2',
-      'h-12',
-    ]);
+    expectVisualClassTokensAbsent(header?.className, ['pl-4', 'mt-2', 'h-12']);
     const titleCluster = header?.querySelector('[data-slot="graph-title-cluster"]');
     expectVisualClassTokensAbsent(titleCluster?.className, ['ml-4']);
   });

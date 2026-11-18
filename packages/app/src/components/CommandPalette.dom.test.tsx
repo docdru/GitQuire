@@ -182,65 +182,10 @@ vi.doMock('@/components/command-palette-tag-search', () => ({
   fetchDocsForTag: vi.fn(() => Promise.resolve([])),
 }));
 
-function recent(name: string, path = `/projects/${name.toLowerCase()}`) {
-  return { name, path: path.replaceAll(' ', '-') };
-}
-
-function createBridge({ ptyAvailable = true }: { ptyAvailable?: boolean } = {}) {
-  return {
-    config: {
-      projectName: 'Current Project',
-      projectPath: '/projects/current',
-      ptyAvailable,
-    },
-    project: {
-      listRecent: vi.fn(() =>
-        Promise.resolve([
-          recent('Current', '/projects/current'),
-          recent('Alpha', '/projects/alpha'),
-          recent('Omega', '/archive/proj-7'),
-        ]),
-      ),
-      open: vi.fn(() => Promise.resolve()),
-      openFile: vi.fn(() => Promise.resolve()),
-      removeRecent: vi.fn(() => Promise.resolve()),
-    },
-    dialog: {
-      openFolder: vi.fn(() => Promise.resolve('/chosen/folder')),
-    },
-    navigator: {
-      open: vi.fn(() => Promise.resolve()),
-    },
-    worktree: {
-      create: vi.fn(() =>
-        Promise.resolve({
-          ok: true as const,
-          path: '/projects/current/.gitquire/worktrees/feature-x',
-          created: true,
-        }),
-      ),
-    },
-    update: {
-      checkNow: vi.fn(() => Promise.resolve()),
-    },
-    mcpWiring: {
-      reconfigure: vi.fn(() => Promise.resolve(true)),
-    },
-    spellcheck: {
-      toggle: vi.fn(() => Promise.resolve(true)),
-    },
-    shell: {
-      openExternal: vi.fn(() => Promise.resolve()),
-    },
-  };
-}
-
 async function renderPalette({
-  bridge = createBridge(),
   docName = 'docs/active',
   withSingleFileModeProvider = false,
 }: {
-  bridge?: (ReturnType<typeof createBridge> & { platform?: string }) | null;
   docName?: string | null;
   withSingleFileModeProvider?: boolean;
 } = {}) {
@@ -256,7 +201,7 @@ async function renderPalette({
     render(palette);
   }
   await waitFor(() => expect(screen.getByRole('dialog')).not.toBeNull());
-  return { bridge, onOpenChange };
+  return { onOpenChange };
 }
 
 async function setQuery(value: string) {
@@ -286,13 +231,13 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('hides active-document commands without an active doc and opens the graph panel when one exists', async () => {
-    await renderPalette({ bridge: null, docName: null });
+    await renderPalette({ docName: null });
 
     expect(document.body.textContent).not.toContain('No active doc');
     expect(screen.queryByTestId('command-palette-open-graph')).toBeNull();
 
     cleanup();
-    await renderPalette({ bridge: null, docName: 'docs/active' });
+    await renderPalette({ docName: 'docs/active' });
 
     fireEvent.click(screen.getByTestId('command-palette-open-graph'));
 
@@ -309,7 +254,7 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('new-folder shortcut is desktop-only while new-file shortcut is always visible', async () => {
-    await renderPalette({ bridge: null });
+    await renderPalette();
 
     expect(screen.getByTestId('command-palette-new-file').textContent).toMatch(/⌘ N|Ctrl N/);
     expect(screen.getByTestId('command-palette-new-folder').textContent).not.toMatch(
@@ -318,13 +263,13 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('report-bug row is absent on the web host, so its desktop-only chord never shows there', async () => {
-    await renderPalette({ bridge: null });
+    await renderPalette();
 
     expect(screen.queryByTestId('command-palette-report-bug')).toBeNull();
   });
 
   test('new-file command closes the palette and opens the New Item dialog with kind file', async () => {
-    const { onOpenChange } = await renderPalette({ bridge: null });
+    const { onOpenChange } = await renderPalette();
 
     fireEvent.click(screen.getByTestId('command-palette-new-file'));
 
@@ -336,7 +281,7 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('new-folder command closes the palette and opens the New Item dialog with kind folder', async () => {
-    const { onOpenChange } = await renderPalette({ bridge: null });
+    const { onOpenChange } = await renderPalette();
 
     fireEvent.click(screen.getByTestId('command-palette-new-folder'));
 
@@ -348,7 +293,7 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('settings command is searchable by preferences/config, closes the palette, and routes through the canonical hash', async () => {
-    const { onOpenChange } = await renderPalette({ bridge: null });
+    const { onOpenChange } = await renderPalette();
 
     await setQuery('preferences');
     const settingsByPreference = screen.getByTestId('command-palette-settings');
@@ -367,7 +312,7 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('starter-pack command is searchable, participates in empty-state aggregation, and opens SeedDialog after closing', async () => {
-    const { onOpenChange } = await renderPalette({ bridge: null });
+    const { onOpenChange } = await renderPalette();
 
     await setQuery('scaffold');
     expect(screen.queryByText('No matching commands.')).toBeNull();
@@ -385,7 +330,7 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('an applied starter pack asks a hidden editor to show', async () => {
-    await renderPalette({ bridge: null });
+    await renderPalette();
     await setQuery('scaffold');
     fireEvent.click(screen.getByTestId('command-palette-initialize-starter-pack'));
     await waitFor(() => expect(seedDialogProps.at(-1)?.open).toBe(true));
@@ -417,7 +362,7 @@ describe('CommandPalette DOM behavior', () => {
 
   test('during cold load, a typed query shows a preparing state and never fires the body search', async () => {
     pageListLoading = true;
-    await renderPalette({ bridge: null });
+    await renderPalette();
 
     await setQuery('rename');
 
@@ -432,7 +377,7 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('once the page list has loaded, a typed query fires the body search with no preparing state', async () => {
-    await renderPalette({ bridge: null });
+    await renderPalette();
 
     await setQuery('rename');
 
@@ -447,9 +392,7 @@ describe('CommandPalette DOM behavior', () => {
     pageListLoading = true;
     const { CommandPalette } = await import('./CommandPalette');
     const onOpenChange = vi.fn(() => {});
-    const { rerender } = render(
-      <CommandPalette bridge={null} open={true} onOpenChange={onOpenChange} />,
-    );
+    const { rerender } = render(<CommandPalette open={true} onOpenChange={onOpenChange} />);
     await waitFor(() => expect(screen.getByRole('dialog')).not.toBeNull());
 
     await setQuery('rename');
@@ -460,7 +403,7 @@ describe('CommandPalette DOM behavior', () => {
     expect(fetchMock.mock.calls.some((call) => call[0] === '/api/search')).toBe(false);
 
     pageListLoading = false;
-    rerender(<CommandPalette bridge={null} open={true} onOpenChange={onOpenChange} />);
+    rerender(<CommandPalette open={true} onOpenChange={onOpenChange} />);
 
     await waitFor(() =>
       expect(fetchMock.mock.calls.some((call) => call[0] === '/api/search')).toBe(true),
@@ -482,7 +425,7 @@ describe('CommandPalette DOM behavior', () => {
       return Promise.resolve(new Response(JSON.stringify({ results: [] }), { status: 200 }));
     }) as never;
 
-    await renderPalette({ bridge: null });
+    await renderPalette();
     await setQuery('arch');
 
     await waitFor(() =>
@@ -508,9 +451,7 @@ describe('CommandPalette DOM behavior', () => {
 
     const { CommandPalette } = await import('./CommandPalette');
     const onOpenChange = vi.fn(() => {});
-    const { rerender } = render(
-      <CommandPalette bridge={null} open={true} onOpenChange={onOpenChange} />,
-    );
+    const { rerender } = render(<CommandPalette open={true} onOpenChange={onOpenChange} />);
     await waitFor(() => expect(screen.getByRole('dialog')).not.toBeNull());
     await setQuery('arch');
     await waitFor(() =>
@@ -522,7 +463,7 @@ describe('CommandPalette DOM behavior', () => {
       fetchMock.mock.calls.filter((call) => call[0] === '/api/search').length;
     const callsAtClose = searchCalls();
 
-    rerender(<CommandPalette bridge={null} open={false} onOpenChange={onOpenChange} />);
+    rerender(<CommandPalette open={false} onOpenChange={onOpenChange} />);
 
     await new Promise((resolve) => setTimeout(resolve, COMMAND_PALETTE_POLL_GRACE_MS));
     expect(searchCalls()).toBe(callsAtClose);
@@ -552,7 +493,7 @@ describe('CommandPalette DOM behavior', () => {
       return Promise.resolve(new Response(JSON.stringify({ results: [] }), { status: 200 }));
     }) as never;
 
-    await renderPalette({ bridge: null });
+    await renderPalette();
     await setQuery('arch');
     await waitFor(() =>
       expect(screen.getByTestId('command-palette-search-preparing')).not.toBeNull(),
@@ -566,7 +507,7 @@ describe('CommandPalette DOM behavior', () => {
   });
 
   test('a label match in a later group leads a keyword-only match in an earlier group', async () => {
-    await renderPalette({ bridge: createBridge() });
+    await renderPalette();
 
     await setQuery('show');
 
@@ -778,7 +719,7 @@ describe('Cmd+K menu-parity backfill', () => {
 
   for (const { testid, query, id } of ID_BACKED) {
     test(`AC1: "${id}" renders on query and emits on the bus`, async () => {
-      await renderPalette({ bridge: createBridge() });
+      await renderPalette();
       await setQuery(query);
       const row = screen.getByTestId(testid);
       expect(row).not.toBeNull();
@@ -792,7 +733,7 @@ describe('Cmd+K menu-parity backfill', () => {
     const originalOpen = window.open;
     window.open = openSpy as unknown as typeof window.open;
     try {
-      await renderPalette({ bridge: null });
+      await renderPalette();
       await setQuery('github');
       fireEvent.click(screen.getByTestId('command-palette-open-github'));
       expect(openSpy).toHaveBeenCalledWith(
@@ -800,36 +741,13 @@ describe('Cmd+K menu-parity backfill', () => {
         '_blank',
         'noopener,noreferrer',
       );
-    } finally {
-      window.open = originalOpen;
-    }
-  });
-
-  test('AC1: with no prop bridge, GitHub takes the web fallback and never the ambient window.okDesktop', async () => {
-    const openSpy = vi.fn(() => null);
-    const ambientOpenExternal = vi.fn(() => Promise.resolve());
-    const originalOpen = window.open;
-    window.open = openSpy as unknown as typeof window.open;
-    (window as { okDesktop?: unknown }).okDesktop = {
-      shell: { openExternal: ambientOpenExternal },
-    };
-    try {
-      await renderPalette({ bridge: null });
-      await setQuery('github');
-      fireEvent.click(screen.getByTestId('command-palette-open-github'));
-      expect(openSpy).toHaveBeenCalledWith(
-        'https://github.com/docdru/GitQuire',
-        '_blank',
-        'noopener,noreferrer',
-      );
-      expect(ambientOpenExternal).not.toHaveBeenCalled();
     } finally {
       window.open = originalOpen;
     }
   });
 
   test('AC3: web host shows host-agnostic toggles but hides desktop-only commands', async () => {
-    await renderPalette({ bridge: null });
+    await renderPalette();
 
     await setQuery('sidebar');
     expect(screen.queryByTestId('command-palette-toggle-sidebar')).not.toBeNull();
@@ -848,7 +766,7 @@ describe('Cmd+K menu-parity backfill', () => {
 
   test('AC5: the sidebar toggle label reflects view-menu-state', async () => {
     setViewMenuState({ sidebarVisible: true });
-    await renderPalette({ bridge: createBridge() });
+    await renderPalette();
     await setQuery('sidebar');
     expect(screen.getByTestId('command-palette-toggle-sidebar').textContent).toContain(
       'Hide sidebar',
@@ -856,7 +774,7 @@ describe('Cmd+K menu-parity backfill', () => {
 
     cleanup();
     setViewMenuState({ sidebarVisible: false });
-    await renderPalette({ bridge: createBridge() });
+    await renderPalette();
     await setQuery('sidebar');
     expect(screen.getByTestId('command-palette-toggle-sidebar').textContent).toContain(
       'Show sidebar',
@@ -864,7 +782,7 @@ describe('Cmd+K menu-parity backfill', () => {
   });
 
   test('AC8: backfilled rows do not render on empty open', async () => {
-    await renderPalette({ bridge: createBridge() });
+    await renderPalette();
     expect(screen.queryByTestId('command-palette-rename')).toBeNull();
     expect(screen.queryByTestId('command-palette-toggle-sidebar')).toBeNull();
     expect(screen.queryByTestId('command-palette-check-for-updates')).toBeNull();
@@ -895,7 +813,7 @@ describe('CommandPalette ⌘K — overlay gate', () => {
   }
 
   test('closes itself on ⌘K while it is the open layer', async () => {
-    const { onOpenChange } = await renderPalette({ bridge: createBridge() });
+    const { onOpenChange } = await renderPalette();
 
     pressCommandK();
 
@@ -910,7 +828,7 @@ describe('CommandPalette ⌘K — overlay gate', () => {
     const onOpenChange = vi.fn(() => {});
     render(
       <>
-        <CommandPalette bridge={createBridge() as never} open={false} onOpenChange={onOpenChange} />
+        <CommandPalette open={false} onOpenChange={onOpenChange} />
         <Dialog open>
           <DialogContent>
             <DialogTitle>Settings</DialogTitle>
@@ -929,9 +847,7 @@ describe('CommandPalette ⌘K — overlay gate', () => {
   test('opens on ⌘K with nothing else open', async () => {
     const { CommandPalette } = await import('./CommandPalette');
     const onOpenChange = vi.fn(() => {});
-    render(
-      <CommandPalette bridge={createBridge() as never} open={false} onOpenChange={onOpenChange} />,
-    );
+    render(<CommandPalette open={false} onOpenChange={onOpenChange} />);
 
     pressCommandK();
 
@@ -941,9 +857,7 @@ describe('CommandPalette ⌘K — overlay gate', () => {
   test('opens on ⌘P with nothing else open', async () => {
     const { CommandPalette } = await import('./CommandPalette');
     const onOpenChange = vi.fn(() => {});
-    render(
-      <CommandPalette bridge={createBridge() as never} open={false} onOpenChange={onOpenChange} />,
-    );
+    render(<CommandPalette open={false} onOpenChange={onOpenChange} />);
 
     pressCommandP();
 
@@ -951,7 +865,7 @@ describe('CommandPalette ⌘K — overlay gate', () => {
   });
 
   test('closes itself on ⌘P while it is the open layer', async () => {
-    const { onOpenChange } = await renderPalette({ bridge: createBridge() });
+    const { onOpenChange } = await renderPalette();
 
     pressCommandP();
 
@@ -966,7 +880,7 @@ describe('CommandPalette ⌘K — overlay gate', () => {
     const onOpenChange = vi.fn(() => {});
     render(
       <>
-        <CommandPalette bridge={createBridge() as never} open={false} onOpenChange={onOpenChange} />
+        <CommandPalette open={false} onOpenChange={onOpenChange} />
         <Dialog open>
           <DialogContent>
             <DialogTitle>Settings</DialogTitle>

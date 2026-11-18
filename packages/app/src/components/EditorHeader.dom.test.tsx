@@ -17,7 +17,6 @@ import {
   expectVisualClassTokens,
   expectVisualClassTokensAbsent,
 } from '@/test-utils/visual-contract';
-import { mockHeaderMetrics } from './EditorHeader.layout.test-helper';
 
 vi.doMock('@lingui/react/macro', () => ({
   ...actualLinguiMacro,
@@ -88,20 +87,6 @@ vi.doMock('./HelpPopover', () => ({
   HelpPopover: () => <button type="button">Resources</button>,
 }));
 
-function setElectronHost(enabled: boolean) {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: enabled ? {} : undefined,
-  });
-}
-
-function setWindowsHost() {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: { menu: {}, platform: 'win32' },
-  });
-}
-
 const PANE_SHOWN: PaneVisibility = { open: true, onScreen: true };
 
 function publishPanes() {
@@ -127,20 +112,9 @@ async function renderMeasuredHeader() {
   return await renderHeader(<div>tabs</div>);
 }
 
-const RESERVATION_PROPERTIES = [
-  '--editor-header-leading-width',
-  '--editor-header-trailing-width',
-  '--editor-header-leading-offset',
-] as const;
-
-function reservationsOn(header: HTMLElement) {
-  return RESERVATION_PROPERTIES.map((property) => header.style.getPropertyValue(property));
-}
-
 describe('EditorHeader runtime behavior', () => {
   afterEach(() => {
     cleanup();
-    setElectronHost(false);
     activeDocName = 'docs/notes';
     sidebarState = 'expanded';
     singleFile = false;
@@ -157,7 +131,6 @@ describe('EditorHeader runtime behavior', () => {
   });
 
   test('a single-file editor card owns document identity and its information control', async () => {
-    setElectronHost(true);
     singleFile = true;
     const { EditorHeader } = await import('./EditorHeader');
     render(
@@ -174,18 +147,14 @@ describe('EditorHeader runtime behavior', () => {
     expect(
       trailing.contains(screen.getByRole('button', { name: 'Show document information' })),
     ).toBe(true);
-    expect(header.querySelector('[data-editor-header-actions]')).toBeNull();
-    expect(header.querySelector('[data-editor-header-leading-actions]')).toBeNull();
     expect(header.querySelector('[data-testid="header-pane-buttons"]')).toBeNull();
     expectVisualClassTokens(header.className, ['h-11']);
   });
 
-  test('a web project window tab row is a plain 44px row without window-drag treatment', async () => {
-    setElectronHost(false);
+  test('a project window tab row is a plain 44px row', async () => {
     sidebarState = 'collapsed';
     const header = await renderHeader();
 
-    expect(header.getAttribute('data-electron-drag')).toBeNull();
     expectVisualClassTokens(header.className, [
       'flex',
       'h-11',
@@ -193,35 +162,7 @@ describe('EditorHeader runtime behavior', () => {
       'items-center',
       'bg-background',
     ]);
-    expectVisualClassTokensAbsent(header.className, [
-      'shadow-[inset_0_-1px_0_var(--border)]',
-      'h-[var(--gq-reduced-chrome-header-height)]',
-      '[-webkit-app-region:drag]',
-      'pl-[var(--gq-titlebar-reserve-left,1rem)]',
-    ]);
-    expect(screen.queryByTestId('navigation-history-controls')).toBeNull();
-  });
-
-  test('no window kind publishes leading or trailing width reservations for the tab strip', async () => {
-    const restoreMetrics = mockHeaderMetrics({
-      header: 1_000,
-      leading: 224,
-      leadingOffset: 78,
-      trailing: 300,
-    });
-    try {
-      for (const kind of ['project', 'single-file'] as const) {
-        setElectronHost(true);
-        sidebarState = 'collapsed';
-        singleFile = kind === 'single-file';
-        const header = await renderHeader(<div>tabs</div>);
-
-        expect(reservationsOn(header), `${kind} window`).toEqual(['', '', '']);
-        cleanup();
-      }
-    } finally {
-      restoreMetrics();
-    }
+    expectVisualClassTokensAbsent(header.className, ['shadow-[inset_0_-1px_0_var(--border)]']);
   });
 
   test('tabs paint on the first render, with no header chrome to measure first', async () => {
@@ -253,37 +194,22 @@ describe('EditorHeader runtime behavior', () => {
     expectVisualClassTokensAbsent(tabHost.className, ['absolute', 'invisible']);
   });
 
-  test('a Windows project window leaves the app menu to the app header', async () => {
-    setWindowsHost();
-    const header = await renderHeader();
-
-    await act(async () => {});
-    expect(screen.queryByTestId('app-menubar')).toBeNull();
-    expect(header.querySelector('[data-editor-header-leading-actions]')).toBeNull();
-  });
   test('a project window tab row carries none of the header actions, which moved to the app header', async () => {
     gitSyncStatus = { state: 'idle', conflictCount: 2, hasRemote: true };
-    const restoreMetrics = mockHeaderMetrics({ header: 107, leading: 57, trailing: 218 });
-    try {
-      for (const state of ['expanded', 'collapsed'] as const) {
-        sidebarState = state;
-        const header = await renderMeasuredHeader();
+    for (const state of ['expanded', 'collapsed'] as const) {
+      sidebarState = state;
+      await renderMeasuredHeader();
 
-        expect(header.querySelector('[data-editor-header-actions]')).toBeNull();
-        expect(screen.queryByTestId('presence-bar')).toBeNull();
-        expect(screen.queryByRole('button', { name: /^Share/ })).toBeNull();
-        expect(screen.queryByTestId('sync-status-badge')).toBeNull();
-        expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
-        expect(screen.queryByRole('button', { name: 'Resources' })).toBeNull();
-        expect(screen.queryByTestId('beta-badge')).toBeNull();
-        expect(screen.queryByTestId('instance-badge')).toBeNull();
-        expect(screen.queryByTestId('header-overflow-actions-trigger')).toBeNull();
-        expect(syncToastsHosts.mounted).toBe(0);
-        expect(reservationsOn(header)).toEqual(['', '', '']);
-        cleanup();
-      }
-    } finally {
-      restoreMetrics();
+      expect(screen.queryByTestId('presence-bar')).toBeNull();
+      expect(screen.queryByRole('button', { name: /^Share/ })).toBeNull();
+      expect(screen.queryByTestId('sync-status-badge')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Resources' })).toBeNull();
+      expect(screen.queryByTestId('beta-badge')).toBeNull();
+      expect(screen.queryByTestId('instance-badge')).toBeNull();
+      expect(screen.queryByTestId('header-overflow-actions-trigger')).toBeNull();
+      expect(syncToastsHosts.mounted).toBe(0);
+      cleanup();
     }
   });
 

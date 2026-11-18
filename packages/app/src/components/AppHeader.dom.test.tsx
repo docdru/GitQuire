@@ -92,37 +92,6 @@ vi.mock('@/components/HeaderSearchBar', async () => {
   };
 });
 
-interface DesktopHostOptions {
-  platform?: string;
-  channel?: 'latest' | 'beta';
-  instanceLabel?: string;
-  menu?: { dispatch: (request: { kind: string }) => Promise<unknown> };
-}
-
-function setElectronHost(
-  enabled: boolean,
-  { platform, channel = 'latest', instanceLabel, menu }: DesktopHostOptions = {},
-) {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: enabled
-      ? {
-          platform,
-          instanceLabel,
-          menu,
-          config: {
-            mode: 'editor',
-            projectName: 'Field Notes',
-            projectPath: '/projects/field-notes',
-          },
-          state: { query: () => Promise.resolve({ channel }) },
-          project: { listRecent: () => Promise.resolve([]) },
-          worktree: { list: () => Promise.resolve({ ok: false, reason: 'no-git' }) },
-        }
-      : undefined,
-  });
-}
-
 const onOpenSearch = vi.fn(() => {});
 
 function HeaderProviders({ children }: { children: ReactNode }) {
@@ -303,7 +272,6 @@ function follows(earlier: Element, later: Element): boolean {
 
 afterEach(() => {
   cleanup();
-  setElectronHost(false);
   onOpenSearch.mockClear();
   searchRender.throws = false;
   shell.activeDocName = 'docs/notes';
@@ -318,7 +286,6 @@ afterEach(() => {
 describe('AppHeader', () => {
   test('a narrow single-file header folds secondary actions while keeping the selector visible', async () => {
     shell.singleFile = true;
-    setElectronHost(true, { platform: 'win32' });
     publishPanes();
     const restoreMetrics = mockHeaderMetrics(CRAMPED);
     try {
@@ -386,44 +353,8 @@ describe('AppHeader', () => {
     expectVisualClassTokens(leadingGroup().className, ['ps-2.5']);
   });
 
-  test('on Electron the pane buttons opt out of dragging and the divider beside them stays draggable', () => {
-    setElectronHost(true);
-    publishPanes();
-    renderHeader();
-
-    const header = screen.getByRole('banner');
-    for (const name of ['Agents']) {
-      const button = screen.getByRole('button', { name });
-      expect(header.contains(button)).toBe(true);
-      expect(button.tagName, `${name} must be a <button> for the header's no-drag rule`).toBe(
-        'BUTTON',
-      );
-    }
-    const divider = screen.getByTestId('header-pane-divider');
-    expect(header.contains(divider)).toBe(true);
-    for (
-      let node: HTMLElement | null = divider;
-      node && node !== header;
-      node = node.parentElement
-    ) {
-      expect(['BUTTON', 'A']).not.toContain(node.tagName);
-      expectVisualClassTokensAbsent(node.className, ['[-webkit-app-region:no-drag]']);
-    }
-  });
-
-  test('claims no drag region on a web host', () => {
-    renderHeader();
-
-    const header = screen.getByRole('banner');
-    expect(header.getAttribute('data-electron-drag')).toBeNull();
-    expectVisualClassTokensAbsent(header.className, ['[-webkit-app-region:drag]']);
-    expectVisualClassTokensAbsent(header.querySelector('[data-app-header-trailing]')?.className, [
-      'me-[var(--gq-titlebar-reserve-right,0px)]',
-    ]);
-  });
-
   describe('leading group', () => {
-    test('a web host gets search alone, with no navigation history', () => {
+    test('search sits alone in the leading group', () => {
       renderHeader();
 
       expect(leadingGroup().contains(screen.getByRole('button', { name: 'Search' }))).toBe(true);
@@ -444,23 +375,11 @@ describe('AppHeader', () => {
       expect(onOpenSearch).toHaveBeenCalledTimes(1);
     });
 
-    test('macOS leaves the app menu to the native menu bar', async () => {
-      setElectronHost(true, {
-        platform: 'darwin',
-        menu: { dispatch: () => Promise.resolve(null) },
-      });
-      renderHeader();
-
-      await screen.findByRole('button', { name: 'Search' });
-      expect(screen.queryByTestId('app-menubar')).toBeNull();
-    });
-
     test('the search button comes back once the open document changes', () => {
       resetParseHealth();
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       searchRender.throws = true;
-      setElectronHost(true);
       try {
         const rendered = renderHeader();
         expect(screen.queryByRole('button', { name: 'Search' })).toBeNull();
@@ -627,7 +546,6 @@ describe('AppHeader', () => {
     });
 
     test('a group that fits beside the leading group and the switcher icons stays inline', () => {
-      setElectronHost(true);
       const restoreMetrics = mockHeaderMetrics({
         header: 760,
         leading: 220,
@@ -641,35 +559,6 @@ describe('AppHeader', () => {
         expect(overflowTrigger()).toBeNull();
       } finally {
         restoreMetrics();
-      }
-    });
-
-    test('counts the Windows caption-button inset against the room', () => {
-      setElectronHost(true, { platform: 'win32' });
-      const realGetComputedStyle = window.getComputedStyle.bind(window);
-      const computedStyle = vi
-        .spyOn(window, 'getComputedStyle')
-        .mockImplementation((element: Element, pseudo?: string | null) => {
-          const style = realGetComputedStyle(element, pseudo);
-          if (element instanceof HTMLElement && element.hasAttribute('data-app-header-trailing')) {
-            return new Proxy(style, {
-              get: (target, property) =>
-                property === 'marginInlineEnd' ? '138px' : Reflect.get(target, property),
-            }) as CSSStyleDeclaration;
-          }
-          return style;
-        });
-      const restoreMetrics = mockHeaderMetrics({ header: 760, leading: 220, trailing: 420 });
-      try {
-        renderHeader();
-
-        expect(
-          overflowTrigger(),
-          '420px of controls plus a 138px caption-button inset does not fit in 540px',
-        ).not.toBeNull();
-      } finally {
-        restoreMetrics();
-        computedStyle.mockRestore();
       }
     });
 

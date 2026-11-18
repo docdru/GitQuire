@@ -234,21 +234,6 @@ vi.doMock('@/lib/transports/clone-transport', () => ({
 
 const { App } = await import('./App');
 
-function createBridge({ ptyAvailable = true }: { ptyAvailable?: boolean } = {}) {
-  return {
-    editor: {
-      notifyActiveTargetChanged: vi.fn(() => {}),
-    },
-    config: {
-      mode: 'editor' as const,
-      ptyAvailable,
-    },
-    state: {
-      query: () => Promise.resolve({ channel: 'latest' as const }),
-    },
-  };
-}
-
 function appMain(): HTMLElement {
   const main = document.querySelector<HTMLElement>('[data-app-main]');
   if (main == null) throw new Error('the app content wrapper is missing');
@@ -257,13 +242,7 @@ function appMain(): HTMLElement {
   return main;
 }
 
-function renderApp({ bridge = null }: { bridge?: ReturnType<typeof createBridge> | null } = {}) {
-  if (bridge) {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: bridge,
-    });
-  }
+function renderApp() {
   return render(<App />, { wrapper: TooltipProvider });
 }
 
@@ -323,10 +302,10 @@ describe('App runtime wiring', () => {
     vi.restoreAllMocks();
   });
 
-  describe('note window chrome reduction', () => {
+  describe('single-file chrome', () => {
     test('single-file windows reserve the shared header height like ordinary windows', () => {
       singleFileMode = true;
-      renderApp({ bridge: createBridge() });
+      renderApp();
 
       expect(screen.queryByTestId('file-sidebar')).toBeNull();
       expectVisualClassTokens(appMain().className, [
@@ -945,7 +924,7 @@ describe('App runtime wiring', () => {
     test('a single-file window shows the shared application header', () => {
       singleFileMode = true;
 
-      renderApp({ bridge: createBridge() });
+      renderApp();
 
       expect(screen.getByRole('banner')).not.toBeNull();
     });

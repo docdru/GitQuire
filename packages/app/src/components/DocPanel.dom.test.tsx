@@ -189,7 +189,6 @@ describe('DocPanel — card top bar', () => {
     expectVisualClassTokens(header?.getAttribute('class'), ['h-11', 'shrink-0']);
     expectVisualClassTokensAbsent(header?.getAttribute('class'), [
       'pe-9',
-      '[-webkit-app-region:drag]',
       'shadow-[inset_0_-1px_0_var(--border)]',
     ]);
     expect(header?.contains(screen.getByRole('tab', { name: 'Outline' }))).toBe(true);
