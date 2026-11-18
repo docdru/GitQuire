@@ -2198,18 +2198,18 @@ describe('startWatcher symlink handling', () => {
   });
 });
 
-describe('structural-ignore discovery', () => {
+describe('excluded folders during the start scan', () => {
   let contentDir: string;
 
   beforeEach(async () => {
-    contentDir = await mkdtemp(resolve(tmpdir(), 'ok-structural-discovery-'));
+    contentDir = await mkdtemp(resolve(tmpdir(), 'gq-excluded-scan-'));
   });
 
   afterEach(async () => {
     await rm(contentDir, { recursive: true, force: true });
   });
 
-  test('the seed walk records nested structural dirs it prunes', async () => {
+  test('the start scan skips Markdown inside node_modules and .git', async () => {
     mkdirSync(resolve(contentDir, 'packages/app/node_modules/pkg'), { recursive: true });
     mkdirSync(resolve(contentDir, 'docs/lib/.git/objects'), { recursive: true });
     mkdirSync(resolve(contentDir, 'notes'), { recursive: true });
@@ -2223,39 +2223,6 @@ describe('structural-ignore discovery', () => {
       expect([...watcher.getFileIndex().keys()]).not.toContain(
         'packages/app/node_modules/pkg/index',
       );
-      expect([...watcher.getStructuralIgnoreDirs()].sort()).toEqual([
-        'docs/lib/.git',
-        'packages/app/node_modules',
-      ]);
-    } finally {
-      await watcher.unsubscribe();
-    }
-  });
-
-  test('records a nested two-segment root, whose match is a suffix not a segment', async () => {
-    mkdirSync(resolve(contentDir, 'packages/sub/.gitquire/local/logs'), { recursive: true });
-    mkdirSync(resolve(contentDir, 'packages/sub/.gitquire/templates'), { recursive: true });
-    writeFileSync(resolve(contentDir, 'packages/sub/.gitquire/templates/note.md'), '# tmpl\n');
-
-    const filter = createContentFilter({ projectDir: contentDir, contentDir });
-    const watcher = await startWatcher(contentDir, async () => {}, filter);
-    try {
-      const discovered = [...watcher.getStructuralIgnoreDirs()];
-      expect(discovered).toContain('packages/sub/.gitquire/local');
-      expect(discovered).not.toContain('packages/sub/.gitquire');
-    } finally {
-      await watcher.unsubscribe();
-    }
-  });
-
-  test('discovery stops at a non-structural excluded directory', async () => {
-    mkdirSync(resolve(contentDir, 'vendor/lib/node_modules/pkg'), { recursive: true });
-    mkdirSync(resolve(contentDir, 'app/node_modules'), { recursive: true });
-
-    const filter = createContentFilter({ projectDir: contentDir, contentDir });
-    const watcher = await startWatcher(contentDir, async () => {}, filter);
-    try {
-      expect([...watcher.getStructuralIgnoreDirs()]).toEqual(['app/node_modules']);
     } finally {
       await watcher.unsubscribe();
     }

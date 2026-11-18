@@ -2708,7 +2708,6 @@ describe('file operation API routes', () => {
         return false;
       },
       isPathIgnored: () => false,
-      getWatcherIgnoreGlobs: () => [],
       incrementMdDir: () => {},
       decrementMdDir: () => {},
       getMdDirRefcounts: () => new Map<string, number>(),

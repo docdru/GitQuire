@@ -1,18 +1,8 @@
-import { existsSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { delimiter, resolve } from 'node:path';
-import { augmentGitSpawnPath, GqCliCommand } from '@gitquire/core';
+import { resolve } from 'node:path';
+import { GqCliCommand } from '@gitquire/core';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import { shellEscape } from './bash/shell-escape.ts';
 import { simpleGit } from './simple-git-client.ts';
-
-function isDir(dir: string): boolean {
-  try {
-    return existsSync(dir) && statSync(dir).isDirectory();
-  } catch {
-    return false;
-  }
-}
 
 export { withParentLock } from './git-mutex.ts';
 
@@ -43,27 +33,7 @@ type CredentialHelperUnsafeGitOptions = SimpleGitOptions & {
   };
 };
 
-const GIT_AUTH_ENV_KEYS = [
-  'HOME',
-  'USERPROFILE',
-  'HOMEDRIVE',
-  'HOMEPATH',
-  'APPDATA',
-  'LOCALAPPDATA',
-  'ProgramData',
-  'ALLUSERSPROFILE',
-  'SystemRoot',
-  'WINDIR',
-  'windir',
-  'ComSpec',
-  'TEMP',
-  'TMP',
-  'USERNAME',
-  'USERDOMAIN',
-  'PATHEXT',
-  'SSH_AUTH_SOCK',
-  'ELECTRON_RUN_AS_NODE',
-] as const;
+const GIT_AUTH_ENV_KEYS = ['HOME', 'TMPDIR', 'SSH_AUTH_SOCK'] as const;
 
 export function buildGitEnv(ghToken?: RelayGhToken): Record<string, string> {
   const env: Record<string, string> = {
@@ -73,13 +43,7 @@ export function buildGitEnv(ghToken?: RelayGhToken): Record<string, string> {
     GIT_MERGE_AUTOEDIT: 'no',
     GIT_OPTIONAL_LOCKS: '0',
   };
-  const path = process.env.PATH ?? process.env.Path;
-  env.PATH = augmentGitSpawnPath(path, {
-    platform: process.platform,
-    homeDir: homedir(),
-    isDir,
-    delimiter,
-  });
+  if (process.env.PATH !== undefined) env.PATH = process.env.PATH;
   for (const key of GIT_AUTH_ENV_KEYS) {
     const value = process.env[key];
     if (value !== undefined) env[key] = value;

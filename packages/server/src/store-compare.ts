@@ -9,7 +9,6 @@ export const COMPARE_READ_RETRY_DELAYS_MS: readonly number[] = [50, 200, 800];
 
 const ABSENT_CODES = new Set(['ENOENT', 'ENOTDIR']);
 const TRANSIENT_READ_CODES = new Set(['EBUSY', 'EAGAIN', 'EINTR', 'EMFILE', 'ENFILE']);
-const WIN32_TRANSIENT_READ_CODES = new Set(['EPERM', 'EACCES']);
 
 class FileChangedDuringReadError extends Error {
   readonly code = 'EAGAIN';
@@ -64,15 +63,10 @@ export interface DiskCompareInput {
   readonly candidateHash: string;
 }
 
-export function isTransientReadError(
-  err: unknown,
-  platform: NodeJS.Platform = process.platform,
-): boolean {
+export function isTransientReadError(err: unknown): boolean {
   if (err instanceof FileChangedDuringReadError) return true;
   const code = errnoCode(err);
-  if (code === undefined) return false;
-  if (TRANSIENT_READ_CODES.has(code)) return true;
-  return platform === 'win32' && WIN32_TRANSIENT_READ_CODES.has(code);
+  return code !== undefined && TRANSIENT_READ_CODES.has(code);
 }
 
 export function observationOf(stats: BigIntStats): FileObservation {
@@ -86,7 +80,6 @@ function sameFileState(a: FileObservation, b: FileObservation): boolean {
 export function compareDiskBeforeReplace(
   input: DiskCompareInput,
   read: (path: string) => ObservedFileRead = tracedReadObservedSync,
-  platform: NodeJS.Platform = process.platform,
 ): DiskCompareOutcome {
   let observed: ObservedFileRead;
   try {
@@ -94,7 +87,7 @@ export function compareDiskBeforeReplace(
   } catch (error) {
     const code = errnoCode(error);
     if (code !== undefined && ABSENT_CODES.has(code)) return { kind: 'absent' };
-    return { kind: 'unreadable', error, transient: isTransientReadError(error, platform) };
+    return { kind: 'unreadable', error, transient: isTransientReadError(error) };
   }
   const observation = observationOf(observed.before);
   if (

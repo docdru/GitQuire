@@ -37,7 +37,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
           platform: 'linux',
           url: 'https://git-scm.com/download/linux',
           options: [
-            { label: 'Install with apt', command: 'sudo apt install git', requiresAdmin: true },
+            { label: 'Install with apt', command: 'sudo apt install git' },
           ],
         };
 
@@ -115,7 +115,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
           platform: 'linux',
           url: 'https://git-scm.com/download/linux',
           options: [
-            { label: 'Install with apt', command: 'sudo apt install git', requiresAdmin: true },
+            { label: 'Install with apt', command: 'sudo apt install git' },
           ],
         };
 
@@ -186,7 +186,7 @@ describe('bootServer() preflight survives the subprocess boundary (FR6 / US-005)
             gitEnabled: true,
             idleShutdownMs: null,
             gitPreflight: () => {
-              throw new GitProbeTimeoutError('win32', guidance, { path: 'timeout', fallback: null });
+              throw new GitProbeTimeoutError('linux', guidance, { path: 'timeout', fallback: null });
             },
           });
         } catch (err) {

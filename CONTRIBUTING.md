@@ -34,6 +34,14 @@ Once a month, a maintainer runs the check:
 5. Add a comment to the `security-sync` issue ([#84](https://github.com/docdru/GitQuire/issues/84)) with the date, the last commit looked
    at and what was ported, so the next check knows where to start.
 
+## Where GitQuire runs
+
+GitQuire runs only in its Docker image: one Linux (amd64) container with the wiki in the `/data`
+volume. Server and CLI code, tests and docs for other systems (Windows, macOS, a symlinked or
+case-aliased content folder, an install on a person's own computer) are not added or kept. The web
+app runs in people's browsers on any system, so browser-side handling (such as `⌘`/`Ctrl`
+shortcuts) stays. You can still develop on a Mac or Windows machine; CI runs on Linux.
+
 ## Development setup
 
 A fresh clone builds and tests with no environment variables, except `TSRS_BINARY` on Windows on Arm (see Toolchain below):
