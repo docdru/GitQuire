@@ -33,7 +33,6 @@ export const RECOGNIZED_ENV_VARS: ReadonlyMap<string, readonly string[]> = new M
   ['GITQUIRE_BIND', ['server', 'bind']],
   ['GITQUIRE_EXTERNAL_URL', ['server', 'externalUrl']],
   ['GITQUIRE_ALLOW_EXTERNAL', ['server', 'allowExternal']],
-  ['GITQUIRE_OPEN_BROWSER', ['server', 'openBrowser']],
   ['GITQUIRE_IDLE_SHUTDOWN', ['server', 'idleShutdown']],
 ]);
 

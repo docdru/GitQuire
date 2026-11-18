@@ -38,7 +38,6 @@ import {
   resolveStartConfig,
   resolveStartConsoleLevel,
   resolveStartShellDir,
-  shouldOpenBrowser,
   shouldWarnHostOverridesMultiBind,
   startCommand,
   tryDescribeLockCollision,
@@ -1340,54 +1339,6 @@ describe('isLoopbackHost', () => {
     expect(isLoopbackHost('0.0.0.0')).toBe(false);
     expect(isLoopbackHost('::')).toBe(false);
     expect(isLoopbackHost('192.168.1.5')).toBe(false);
-  });
-});
-
-describe('shouldOpenBrowser (interactive-loopback default open)', () => {
-  const base = {
-    openBrowser: true,
-    explicitOn: false,
-    host: '127.0.0.1',
-    isTTY: true,
-    ephemeral: false,
-    only: undefined,
-    servesUi: true,
-  } as const;
-
-  test('interactive loopback start serving the UI opens by default', () => {
-    expect(shouldOpenBrowser({ ...base })).toBe(true);
-  });
-
-  test('explicit openBrowser=true (config/env) lifts the loopback-bind condition', () => {
-    expect(shouldOpenBrowser({ ...base, host: '100.64.0.7', explicitOn: true })).toBe(true);
-  });
-
-  test('explicit openBrowser=true still never opens without a TTY (container safety)', () => {
-    expect(shouldOpenBrowser({ ...base, explicitOn: true, isTTY: false })).toBe(false);
-  });
-
-  test('--no-open-browser suppresses', () => {
-    expect(shouldOpenBrowser({ ...base, openBrowser: false })).toBe(false);
-  });
-
-  test('no TTY (spawned/CI) stays quiet', () => {
-    expect(shouldOpenBrowser({ ...base, isTTY: false })).toBe(false);
-  });
-
-  test('non-loopback bind stays quiet', () => {
-    expect(shouldOpenBrowser({ ...base, host: '0.0.0.0' })).toBe(false);
-  });
-
-  test('ephemeral single-file stays quiet (owns its own open flow)', () => {
-    expect(shouldOpenBrowser({ ...base, ephemeral: true })).toBe(false);
-  });
-
-  test('--only server stays quiet', () => {
-    expect(shouldOpenBrowser({ ...base, only: 'server' })).toBe(false);
-  });
-
-  test('a start that ended up serving no shell stays quiet', () => {
-    expect(shouldOpenBrowser({ ...base, servesUi: false })).toBe(false);
   });
 });
 

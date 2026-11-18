@@ -23,7 +23,6 @@ export function productionShellLaunch(host: string, port: number): ProductionShe
       String(port),
       '--bind',
       host,
-      '--no-open-browser',
       '--mode',
       'browser',
       '--react-shell-dist-dir',

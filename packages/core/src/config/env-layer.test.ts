@@ -14,7 +14,6 @@ describe('mechanical naming rule', () => {
     expect(mechanicalEnvName(['server', 'externalUrl'])).toBe('GITQUIRE_EXTERNAL_URL');
     expect(mechanicalEnvName(['server', 'allowExternal'])).toBe('GITQUIRE_ALLOW_EXTERNAL');
     expect(mechanicalEnvName(['server', 'idleShutdown'])).toBe('GITQUIRE_IDLE_SHUTDOWN');
-    expect(mechanicalEnvName(['server', 'openBrowser'])).toBe('GITQUIRE_OPEN_BROWSER');
   });
 
   it('other sections map to OK_<SECTION>_<LEAF>', () => {
@@ -38,7 +37,6 @@ describe('recognized surface pin', () => {
         ['GITQUIRE_BIND', ['server', 'bind']],
         ['GITQUIRE_EXTERNAL_URL', ['server', 'externalUrl']],
         ['GITQUIRE_ALLOW_EXTERNAL', ['server', 'allowExternal']],
-        ['GITQUIRE_OPEN_BROWSER', ['server', 'openBrowser']],
         ['GITQUIRE_IDLE_SHUTDOWN', ['server', 'idleShutdown']],
       ]),
     );
@@ -52,7 +50,6 @@ describe('resolveEnvConfigLayer', () => {
       GITQUIRE_BIND: '127.0.0.1 100.64.0.7',
       GITQUIRE_EXTERNAL_URL: 'https://kb.example.com',
       GITQUIRE_ALLOW_EXTERNAL: '1',
-      GITQUIRE_OPEN_BROWSER: 'false',
       GITQUIRE_IDLE_SHUTDOWN: 'off',
     });
     expect(layer).toEqual({
@@ -61,11 +58,10 @@ describe('resolveEnvConfigLayer', () => {
         bind: ['127.0.0.1', '100.64.0.7'],
         externalUrl: 'https://kb.example.com',
         allowExternal: true,
-        openBrowser: false,
         idleShutdown: 'off',
       },
     });
-    expect(overrides).toHaveLength(6);
+    expect(overrides).toHaveLength(5);
     expect(diagnostics).toEqual([]);
   });
 
@@ -82,8 +78,8 @@ describe('resolveEnvConfigLayer', () => {
       server: { allowExternal: false },
     });
     expect(() => resolveEnvConfigLayer({ GITQUIRE_ALLOW_EXTERNAL: 'yes' })).toThrow(EnvVarError);
-    expect(() => resolveEnvConfigLayer({ GITQUIRE_OPEN_BROWSER: 'on' })).toThrow(
-      /GITQUIRE_OPEN_BROWSER/,
+    expect(() => resolveEnvConfigLayer({ GITQUIRE_ALLOW_EXTERNAL: 'on' })).toThrow(
+      /GITQUIRE_ALLOW_EXTERNAL/,
     );
   });
 

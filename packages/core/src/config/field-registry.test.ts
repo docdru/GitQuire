@@ -250,7 +250,6 @@ describe('ConfigSchema coverage (NR3 — every leaf has fieldRegistry metadata)'
       'server.allowExternal',
       'server.bind',
       'server.idleShutdown',
-      'server.openBrowser',
     ]);
   });
 
@@ -291,7 +290,6 @@ describe('ConfigSchema coverage (NR3 — every leaf has fieldRegistry metadata)'
       'server.allowExternal',
       'server.bind',
       'server.externalUrl',
-      'server.openBrowser',
       'server.port',
     ]);
   });

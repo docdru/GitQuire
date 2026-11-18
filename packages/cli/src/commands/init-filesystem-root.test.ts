@@ -17,7 +17,7 @@ vi.mock('@gitquire/server', async (importOriginal) => {
 
 const { FilesystemRootProjectError, initCommand, runInit } = await import('./init.ts');
 
-describe('gq init refuses the top of a drive', () => {
+describe('gq init refuses the filesystem root', () => {
   let testDir: string;
   let fakeHome: string;
   let driveRoot: string;
@@ -67,7 +67,7 @@ describe('gq init refuses the top of a drive', () => {
 
       expect(process.exitCode).toBe(64);
       const printed = stderrSpy.mock.calls.map((call) => String(call[0])).join('');
-      expect(printed).toContain('Refusing to set up a GitQuire project at the top of a drive');
+      expect(printed).toContain('Refusing to set up a GitQuire project at the filesystem root');
       expect(existsSync(join(driveRoot, GQ_DIR))).toBe(false);
     } finally {
       process.chdir(savedCwd);
