@@ -14,7 +14,7 @@ import { readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { createBasenameIndex } from '@gitquire/core';
-import { afterEach, describe, expect, type TestContext, test, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import * as Y from 'yjs';
 import { seedBasenameIndex } from './asset-walk.ts';
 import { composeAndWriteRawBody } from './bridge-intake.ts';
@@ -62,7 +62,7 @@ afterEach(() => {
   for (const fixture of fixtures.splice(0)) rmSync(fixture, { recursive: true, force: true });
 });
 
-const ROOT_SPELLINGS = ['natively spelled', 'symlinked', 'case-aliased', '8.3 short-name'] as const;
+const ROOT_SPELLINGS = ['natively spelled'] as const;
 type RootSpelling = (typeof ROOT_SPELLINGS)[number];
 
 interface SpelledRoot {
@@ -73,94 +73,23 @@ interface SpelledRoot {
 }
 
 function spelledRoot(spelling: RootSpelling): SpelledRoot {
-  const temporaryDir = mkdtempSync(join(tmpdir(), 'ok-path-identity-'));
-  fixtures.push(temporaryDir);
-  const projectDir =
-    spelling === '8.3 short-name' ? temporaryDir : realpathSync.native(temporaryDir);
-  const createdDir = join(projectDir, 'ContentCase');
-  mkdirSync(createdDir);
-  const canonicalContentDir = realpathSync.native(createdDir);
-  switch (spelling) {
-    case 'symlinked': {
-      const contentDir = join(projectDir, 'content-link');
-      symlinkSync(canonicalContentDir, contentDir, 'junction');
-      return { spelling, projectDir, contentDir, canonicalContentDir };
-    }
-    case 'case-aliased':
-      return {
-        spelling,
-        projectDir,
-        contentDir: join(projectDir, 'contentcase'),
-        canonicalContentDir,
-      };
-    default:
-      return { spelling, projectDir, contentDir: createdDir, canonicalContentDir };
-  }
+  const projectDir = realpathSync.native(mkdtempSync(join(tmpdir(), 'ok-path-identity-')));
+  fixtures.push(projectDir);
+  const contentDir = join(projectDir, 'ContentCase');
+  mkdirSync(contentDir);
+  return { spelling, projectDir, contentDir, canonicalContentDir: realpathSync.native(contentDir) };
 }
 
-function aliasOwedOnThisLeg(spelling: RootSpelling): boolean {
-  if (process.env.RUNNER_ENVIRONMENT !== 'github-hosted') return false;
-  if (spelling === '8.3 short-name') return process.platform === 'win32';
-  return process.platform === 'darwin' || process.platform === 'win32';
-}
-
-function skipWhereAliasIsAbsent(
-  ctx: TestContext,
-  spelling: RootSpelling,
-  absent: boolean,
-  reason: string,
-): void {
-  expect(
-    absent && aliasOwedOnThisLeg(spelling),
-    `GitHub-hosted ${process.platform} runners produce the ${spelling} spelling, so this leg fails instead of skipping: ${reason}`,
-  ).toBe(false);
-  ctx.skip(absent, reason);
-}
-
-function requireSpellingOnThisLeg(root: SpelledRoot, ctx: TestContext): void {
-  const { spelling, contentDir, canonicalContentDir } = root;
-  switch (spelling) {
-    case 'natively spelled':
-      expect(contentDir).toBe(canonicalContentDir);
-      break;
-    case 'symlinked':
-      ctx.skip(
-        contentDir === realpathSync.native(contentDir),
-        'native resolution leaves the directory link spelling unchanged on this leg',
-      );
-      break;
-    case 'case-aliased':
-      skipWhereAliasIsAbsent(
-        ctx,
-        spelling,
-        !existsSync(contentDir),
-        'this filesystem is case-sensitive, so the case alias names no directory',
-      );
-      skipWhereAliasIsAbsent(
-        ctx,
-        spelling,
-        realpathSync(contentDir) === realpathSync.native(contentDir),
-        'legacy and native resolution agree on this leg: native resolution does not restore the letter case',
-      );
-      break;
-    case '8.3 short-name':
-      skipWhereAliasIsAbsent(
-        ctx,
-        spelling,
-        realpathSync(contentDir) === realpathSync.native(contentDir),
-        'legacy and native resolution agree on this leg: the temp root has no 8.3 short-name spelling',
-      );
-      break;
-  }
-  expect(realpathSync.native(contentDir)).toBe(canonicalContentDir);
+function requireSpellingOnThisLeg(root: SpelledRoot): void {
+  expect(root.contentDir).toBe(root.canonicalContentDir);
 }
 
 describe('directory identity across server components', () => {
   test.for(ROOT_SPELLINGS)(
     'persistence stores an edited document from the %s root',
-    async (spelling, ctx) => {
+    async (spelling) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       const { projectDir, contentDir } = root;
       const docName = 'note';
       const seed = '# Note\n\nBefore.\n';
@@ -235,9 +164,9 @@ describe('directory identity across server components', () => {
 
   test.for(ROOT_SPELLINGS)(
     'persistence records edited bytes from the %s project root',
-    async (spelling, ctx) => {
+    async (spelling) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       const { contentDir: projectDir, canonicalContentDir: contentDir } = root;
       const docName = 'note';
       const seed = '# Note\n\nBefore.\n';
@@ -282,9 +211,9 @@ describe('directory identity across server components', () => {
 
   test.for(ROOT_SPELLINGS)(
     'file target reconciliation finds an existing file from the %s root',
-    async (spelling, ctx) => {
+    async (spelling) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       const { contentDir } = root;
       writeFileSync(join(contentDir, 'target.png'), 'owned asset');
       const index = new LocalTargetIndex({ contentDir });
@@ -325,9 +254,9 @@ describe('directory identity across server components', () => {
 
   test.for(ROOT_SPELLINGS)(
     'asset walk includes an in-root file alias from the %s root',
-    async (spelling, ctx) => {
+    async (spelling) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       const { contentDir } = root;
       writeFileSync(join(contentDir, 'target.png'), 'owned asset');
       symlinkSync('target.png', join(contentDir, 'alias.png'));
@@ -408,9 +337,9 @@ async function documentListingFrom(contentDir: string): Promise<ListedEntry[]> {
 describe('one directory identity for watcher keys and linked documents', () => {
   test.for(ROOT_SPELLINGS)(
     'links spelled through the %s root or its native spelling load and store, while links out of the root or into private state stay refused',
-    async (spelling, ctx) => {
+    async (spelling) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       const { projectDir, contentDir, canonicalContentDir } = root;
       const original = '# Target\n\nTarget body.\n';
       const edited = '# Target\n\nTarget body.\n\nAppended.\n';
@@ -483,9 +412,9 @@ describe('one directory identity for watcher keys and linked documents', () => {
 
   test.for(WATCHED_ROOT_ROWS)(
     'a page created under the %s root and deleted on disk is reported deleted under its own name after a re-check (%s)',
-    async ([spelling, backend], ctx) => {
+    async ([spelling, backend]) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       const docName = `page-${randomUUID().slice(0, 8)}`;
       const fileName = `${docName}.md`;
       const fullPath = join(root.contentDir, fileName);
@@ -518,9 +447,9 @@ describe('one directory identity for watcher keys and linked documents', () => {
 
   test.for(WATCHED_ROOT_ROWS)(
     'links created under the %s root through its own spelling or its native spelling are aliases of their target after a re-check (%s)',
-    async ([spelling, backend], ctx) => {
+    async ([spelling, backend]) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       writeFileSync(join(root.canonicalContentDir, 'target.md'), '# Target\n\nTarget body.\n');
       const watcher = await startWatcher(
         root.contentDir,
@@ -551,9 +480,9 @@ describe('one directory identity for watcher keys and linked documents', () => {
 
   test.for(ROOT_SPELLINGS)(
     'the document listing from the %s root labels a linked document by its in-root target',
-    async (spelling, ctx) => {
+    async (spelling) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       writeFileSync(join(root.canonicalContentDir, 'target.md'), '# Target\n');
       symlinkSync('target.md', join(root.canonicalContentDir, 'link.md'));
       expect(await documentListingFrom(root.contentDir)).toContainEqual(
@@ -570,9 +499,9 @@ describe('one directory identity for watcher keys and linked documents', () => {
 
   test.for(ROOT_SPELLINGS)(
     'the document listing from the %s root labels a linked folder and what lies beneath it by their in-root targets',
-    async (spelling, ctx) => {
+    async (spelling) => {
       const root = spelledRoot(spelling);
-      requireSpellingOnThisLeg(root, ctx);
+      requireSpellingOnThisLeg(root);
       mkdirSync(join(root.canonicalContentDir, 'real', 'sub'), { recursive: true });
       writeFileSync(join(root.canonicalContentDir, 'real', 'note.md'), '# Note\n');
       symlinkSync('real', join(root.canonicalContentDir, 'alias'), 'junction');

@@ -43,7 +43,7 @@ test('isolates two projects with the same basename', () => {
 test('an existing symlink spelling uses the same project namespace', () => {
   const { project, home, root } = fixture();
   const alias = join(root, 'alias');
-  symlinkSync(project, alias, process.platform === 'win32' ? 'junction' : 'dir');
+  symlinkSync(project, alias, 'dir');
 
   expect(okProjectLogsDir(alias, home)).toBe(okProjectLogsDir(project, home));
 });

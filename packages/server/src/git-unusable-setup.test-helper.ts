@@ -43,7 +43,7 @@ export interface HiddenGitFallbacks {
   on: boolean;
 }
 
-export const GIT_FALLBACK_PATHS: readonly string[] = ['/usr/bin/git', '/usr/local/bin/git'];
+const GIT_FALLBACK_PATHS: readonly string[] = ['/usr/bin/git', '/usr/local/bin/git'];
 
 export function existsSyncHidingGitFallbacks(
   actual: typeof import('node:fs').existsSync,

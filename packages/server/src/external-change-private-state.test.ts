@@ -33,37 +33,34 @@ describe('reconcile before an agent write', () => {
     rmSync(contentDir, { recursive: true, force: true });
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'leaves a loaded document unchanged when its file becomes a link into private state',
-    async () => {
-      const hp = new Hocuspocus({ quiet: true });
-      const durabilityState = new DocumentDurabilityState();
-      const base = '# Notes\n\nFirst paragraph.\n';
-      const conn = await hp.openDirectConnection('note');
-      const doc = (conn as unknown as { document: Y.Doc }).document;
-      writeFileSync(join(contentDir, 'note.md'), base);
-      durabilityState.setReconciledBase('note', base);
-      doc.transact(() => {
-        doc.getText('source').insert(0, base);
-      }, 'seed');
+  test('leaves a loaded document unchanged when its file becomes a link into private state', async () => {
+    const hp = new Hocuspocus({ quiet: true });
+    const durabilityState = new DocumentDurabilityState();
+    const base = '# Notes\n\nFirst paragraph.\n';
+    const conn = await hp.openDirectConnection('note');
+    const doc = (conn as unknown as { document: Y.Doc }).document;
+    writeFileSync(join(contentDir, 'note.md'), base);
+    durabilityState.setReconciledBase('note', base);
+    doc.transact(() => {
+      doc.getText('source').insert(0, base);
+    }, 'seed');
 
-      unlinkSync(join(contentDir, 'note.md'));
-      symlinkSync('.gitquire/local/secret.md', join(contentDir, 'note.md'));
+    unlinkSync(join(contentDir, 'note.md'));
+    symlinkSync('.gitquire/local/secret.md', join(contentDir, 'note.md'));
 
-      const result = await reconcileDiskBeforeAgentWrite(
-        durabilityState,
-        hp,
-        'note',
-        contentDir,
-        undefined,
-        undefined,
-        RECONCILE_TEST_CONFLICTS,
-        NO_SHADOW_MERGE_HISTORY,
-      );
+    const result = await reconcileDiskBeforeAgentWrite(
+      durabilityState,
+      hp,
+      'note',
+      contentDir,
+      undefined,
+      undefined,
+      RECONCILE_TEST_CONFLICTS,
+      NO_SHADOW_MERGE_HISTORY,
+    );
 
-      expect(result.reconciled).toBe(false);
-      expect(doc.getText('source').toString()).toBe(base);
-      await conn.disconnect();
-    },
-  );
+    expect(result.reconciled).toBe(false);
+    expect(doc.getText('source').toString()).toBe(base);
+    await conn.disconnect();
+  });
 });

@@ -29,7 +29,6 @@ describe('runTokenPaste', () => {
   beforeEach(() => {
     tmpDir = mkdtempSync(join(tmpdir(), 'ok-auth-token-'));
     vi.stubEnv('HOME', tmpDir);
-    vi.stubEnv('USERPROFILE', tmpDir);
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
   });
 
@@ -284,7 +283,6 @@ describe('tokenCommand', () => {
   beforeEach(() => {
     tmpDir = mkdtempSync(join(tmpdir(), 'ok-auth-token-command-'));
     vi.stubEnv('HOME', tmpDir);
-    vi.stubEnv('USERPROFILE', tmpDir);
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
   });
 

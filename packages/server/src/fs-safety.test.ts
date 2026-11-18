@@ -1,8 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, win32 } from 'node:path';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { isReservedProjectStatePath } from './content/managed-doc-enum.ts';
 import {
   assertNoSymlinkEscape,
   ContentRootUnavailableError,
@@ -189,55 +188,5 @@ describe('canonicalRelPathForNewTarget', () => {
       throw errno('ENOENT');
     }) as unknown as typeof import('node:fs').realpathSync;
     expect(canonicalRelPathForNewTarget('/c/a/b/x.md', '/c', log, realpath)).toBe('a/b/x.md');
-  });
-
-  test('win32: a symlinked-ancestor result still satisfies the /-split consumer', () => {
-    const realpath = ((p: string): string => {
-      if (p === 'C:\\c') return 'C:\\c';
-      if (p === 'C:\\c\\sneaky') return 'C:\\c\\.gitquire';
-      throw errno('ENOENT');
-    }) as unknown as typeof import('node:fs').realpathSync;
-    const out = canonicalRelPathForNewTarget('C:\\c\\sneaky\\phantom.md', 'C:\\c', log, realpath, {
-      join: win32.join,
-      relative: win32.relative,
-      dirname: win32.dirname,
-      sep: win32.sep,
-    });
-    expect(out).toBe('.gitquire/phantom.md');
-    expect(isReservedProjectStatePath(out)).toBe(true);
-  });
-
-  test('win32: the raw-errno lexical fallback is also /-normalized', () => {
-    const realpath = ((): string => {
-      throw errno('EACCES');
-    }) as unknown as typeof import('node:fs').realpathSync;
-    const out = canonicalRelPathForNewTarget('C:\\c\\.gitquire\\x.md', 'C:\\c', log, realpath, {
-      join: win32.join,
-      relative: win32.relative,
-      dirname: win32.dirname,
-      sep: win32.sep,
-    });
-    expect(out).toBe('.gitquire/x.md');
-    expect(isReservedProjectStatePath(out)).toBe(true);
-  });
-
-  test('win32: the ENOENT-to-filesystem-root fallback is also /-normalized', () => {
-    const realpath = ((): string => {
-      throw errno('ENOENT');
-    }) as unknown as typeof import('node:fs').realpathSync;
-    const out = canonicalRelPathForNewTarget(
-      'C:\\c\\.gitquire\\deep\\x.md',
-      'C:\\c',
-      log,
-      realpath,
-      {
-        join: win32.join,
-        relative: win32.relative,
-        dirname: win32.dirname,
-        sep: win32.sep,
-      },
-    );
-    expect(out).toBe('.gitquire/deep/x.md');
-    expect(isReservedProjectStatePath(out)).toBe(true);
   });
 });

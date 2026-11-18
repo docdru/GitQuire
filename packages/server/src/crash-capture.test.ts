@@ -21,7 +21,6 @@ beforeEach(async () => {
   projectDir = join(fixtureDir, 'project');
   await mkdir(projectDir);
   vi.stubEnv('HOME', join(fixtureDir, 'home'));
-  vi.stubEnv('USERPROFILE', join(fixtureDir, 'home'));
 });
 
 afterEach(async () => {
@@ -68,8 +67,7 @@ describe('writeCrashArtifacts', () => {
     expect(crashJson.pid).toBe(process.pid);
 
     const lines = readFileSync(logsPath(), 'utf-8').trim().split('\n');
-    if (process.platform !== 'win32')
-      expect(statSync(dirname(logsPath())).mode & 0o777).toBe(0o700);
+    expect(statSync(dirname(logsPath())).mode & 0o777).toBe(0o700);
     expect(lines).toHaveLength(1);
     const logLine = JSON.parse(lines[0]);
     expect(logLine.level).toBe(60);

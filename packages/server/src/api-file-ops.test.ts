@@ -898,35 +898,32 @@ describe('file operation API routes', () => {
     expect(getDocExtension('missing')).toBe('.md');
   });
 
-  test.skipIf(process.platform === 'win32')(
-    'managed rename surfaces actionable symlink escape errors',
-    async () => {
-      const root = setupTmpDir();
-      const contentDir = join(root, 'content');
-      const outside = join(root, 'outside');
-      mkdirSync(contentDir);
-      mkdirSync(outside);
-      symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
-      writeFileSync(join(contentDir, 'safe.md'), '# Safe\n', 'utf-8');
+  test('managed rename surfaces actionable symlink escape errors', async () => {
+    const root = setupTmpDir();
+    const contentDir = join(root, 'content');
+    const outside = join(root, 'outside');
+    mkdirSync(contentDir);
+    mkdirSync(outside);
+    symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
+    writeFileSync(join(contentDir, 'safe.md'), '# Safe\n', 'utf-8');
 
-      const result = await callApi(
-        contentDir,
-        '/api/rename-path',
-        'POST',
-        {
-          kind: 'file',
-          fromPath: 'safe',
-          toPath: 'evil/captured',
-        },
-        { backlinkIndex: buildBacklinkIndex(contentDir) },
-      );
+    const result = await callApi(
+      contentDir,
+      '/api/rename-path',
+      'POST',
+      {
+        kind: 'file',
+        fromPath: 'safe',
+        toPath: 'evil/captured',
+      },
+      { backlinkIndex: buildBacklinkIndex(contentDir) },
+    );
 
-      expect(result.status).toBe(400);
-      const symlinkBody = JSON.parse(result.body) as Record<string, unknown>;
-      expect(symlinkBody.type).toBe('urn:ok:error:path-escape');
-      expect(symlinkBody.title).toBe('symlink-escape: path resolves outside content directory.');
-    },
-  );
+    expect(result.status).toBe(400);
+    const symlinkBody = JSON.parse(result.body) as Record<string, unknown>;
+    expect(symlinkBody.type).toBe('urn:ok:error:path-escape');
+    expect(symlinkBody.title).toBe('symlink-escape: path resolves outside content directory.');
+  });
 
   test('renames a file and returns the old-to-new mapping', async () => {
     const dir = setupTmpDir();
@@ -1223,49 +1220,43 @@ describe('file operation API routes', () => {
     expect(status).toContain('CaseName.md -> casename.md');
   });
 
-  test.skipIf(process.platform === 'darwin' || process.platform === 'win32')(
-    'case-only file rename rejects distinct destination file on case-sensitive filesystems',
-    async () => {
-      const dir = setupTmpDir();
-      writeFileSync(join(dir, 'Notes.md'), '# Upper\n', 'utf-8');
-      writeFileSync(join(dir, 'notes.md'), '# Lower\n', 'utf-8');
+  test('case-only file rename rejects distinct destination file on case-sensitive filesystems', async () => {
+    const dir = setupTmpDir();
+    writeFileSync(join(dir, 'Notes.md'), '# Upper\n', 'utf-8');
+    writeFileSync(join(dir, 'notes.md'), '# Lower\n', 'utf-8');
 
-      const result = await callApi(
-        dir,
-        '/api/rename-path',
-        'POST',
-        { kind: 'file', fromPath: 'Notes', toPath: 'notes' },
-        { backlinkIndex: buildBacklinkIndex(dir), projectDir: dir },
-      );
+    const result = await callApi(
+      dir,
+      '/api/rename-path',
+      'POST',
+      { kind: 'file', fromPath: 'Notes', toPath: 'notes' },
+      { backlinkIndex: buildBacklinkIndex(dir), projectDir: dir },
+    );
 
-      expect(result.status).toBe(409);
-      expect(readFileSync(join(dir, 'Notes.md'), 'utf-8')).toBe('# Upper\n');
-      expect(readFileSync(join(dir, 'notes.md'), 'utf-8')).toBe('# Lower\n');
-    },
-  );
+    expect(result.status).toBe(409);
+    expect(readFileSync(join(dir, 'Notes.md'), 'utf-8')).toBe('# Upper\n');
+    expect(readFileSync(join(dir, 'notes.md'), 'utf-8')).toBe('# Lower\n');
+  });
 
-  test.skipIf(process.platform === 'darwin' || process.platform === 'win32')(
-    'case-only folder rename rejects distinct destination folder on case-sensitive filesystems',
-    async () => {
-      const dir = setupTmpDir();
-      mkdirSync(join(dir, 'Docs'), { recursive: true });
-      mkdirSync(join(dir, 'docs'), { recursive: true });
-      writeFileSync(join(dir, 'Docs/index.md'), '# Upper\n', 'utf-8');
-      writeFileSync(join(dir, 'docs/index.md'), '# Lower\n', 'utf-8');
+  test('case-only folder rename rejects distinct destination folder on case-sensitive filesystems', async () => {
+    const dir = setupTmpDir();
+    mkdirSync(join(dir, 'Docs'), { recursive: true });
+    mkdirSync(join(dir, 'docs'), { recursive: true });
+    writeFileSync(join(dir, 'Docs/index.md'), '# Upper\n', 'utf-8');
+    writeFileSync(join(dir, 'docs/index.md'), '# Lower\n', 'utf-8');
 
-      const result = await callApi(
-        dir,
-        '/api/rename-path',
-        'POST',
-        { kind: 'folder', fromPath: 'Docs', toPath: 'docs' },
-        { backlinkIndex: buildBacklinkIndex(dir), projectDir: dir },
-      );
+    const result = await callApi(
+      dir,
+      '/api/rename-path',
+      'POST',
+      { kind: 'folder', fromPath: 'Docs', toPath: 'docs' },
+      { backlinkIndex: buildBacklinkIndex(dir), projectDir: dir },
+    );
 
-      expect(result.status).toBe(409);
-      expect(readFileSync(join(dir, 'Docs/index.md'), 'utf-8')).toBe('# Upper\n');
-      expect(readFileSync(join(dir, 'docs/index.md'), 'utf-8')).toBe('# Lower\n');
-    },
-  );
+    expect(result.status).toBe(409);
+    expect(readFileSync(join(dir, 'Docs/index.md'), 'utf-8')).toBe('# Upper\n');
+    expect(readFileSync(join(dir, 'docs/index.md'), 'utf-8')).toBe('# Lower\n');
+  });
 
   test('deletes a file and reports the removed doc name', async () => {
     const dir = setupTmpDir();
@@ -1927,33 +1918,30 @@ describe('file operation API routes', () => {
     });
   });
 
-  test.skipIf(process.platform === 'win32')(
-    'asset rename rejects destination symlink escapes',
-    async () => {
-      const root = setupTmpDir();
-      const contentDir = join(root, 'content');
-      const outside = join(root, 'outside');
-      mkdirSync(join(contentDir, 'assets'), { recursive: true });
-      mkdirSync(outside);
-      symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
-      writeFileSync(join(contentDir, 'assets/source.png'), 'fake image bytes', 'utf-8');
+  test('asset rename rejects destination symlink escapes', async () => {
+    const root = setupTmpDir();
+    const contentDir = join(root, 'content');
+    const outside = join(root, 'outside');
+    mkdirSync(join(contentDir, 'assets'), { recursive: true });
+    mkdirSync(outside);
+    symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
+    writeFileSync(join(contentDir, 'assets/source.png'), 'fake image bytes', 'utf-8');
 
-      const result = await callApi(contentDir, '/api/rename-path', 'POST', {
-        kind: 'asset',
-        fromPath: 'assets/source.png',
-        toPath: 'evil/captured.png',
-      });
+    const result = await callApi(contentDir, '/api/rename-path', 'POST', {
+      kind: 'asset',
+      fromPath: 'assets/source.png',
+      toPath: 'evil/captured.png',
+    });
 
-      expect(result.status).toBe(400);
-      expect(readFileSync(join(contentDir, 'assets/source.png'), 'utf-8')).toBe('fake image bytes');
-      expect(existsSync(join(outside, 'captured.png'))).toBe(false);
-      expect(JSON.parse(result.body)).toMatchObject({
-        type: 'urn:ok:error:path-escape',
-        title: 'symlink-escape: path resolves outside content directory.',
-        status: 400,
-      });
-    },
-  );
+    expect(result.status).toBe(400);
+    expect(readFileSync(join(contentDir, 'assets/source.png'), 'utf-8')).toBe('fake image bytes');
+    expect(existsSync(join(outside, 'captured.png'))).toBe(false);
+    expect(JSON.parse(result.body)).toMatchObject({
+      type: 'urn:ok:error:path-escape',
+      title: 'symlink-escape: path resolves outside content directory.',
+      status: 400,
+    });
+  });
 
   test('asset rename maps missing backlink index to the managed-rename 503', async () => {
     const dir = setupTmpDir();
@@ -3095,51 +3083,45 @@ describe('file operation API routes', () => {
     expect(body.title).toContain('relative content paths');
   });
 
-  test.skipIf(process.platform === 'win32')(
-    'rejects delete when path resolves outside content via symlink',
-    async () => {
-      const root = setupTmpDir();
-      const contentDir = join(root, 'content');
-      const outside = join(root, 'outside');
-      mkdirSync(contentDir);
-      mkdirSync(outside);
-      const victim = join(outside, 'victim.md');
-      writeFileSync(victim, '# Victim\n', 'utf-8');
-      symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
+  test('rejects delete when path resolves outside content via symlink', async () => {
+    const root = setupTmpDir();
+    const contentDir = join(root, 'content');
+    const outside = join(root, 'outside');
+    mkdirSync(contentDir);
+    mkdirSync(outside);
+    const victim = join(outside, 'victim.md');
+    writeFileSync(victim, '# Victim\n', 'utf-8');
+    symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
 
-      const result = await callApi(contentDir, '/api/delete-path', 'POST', {
-        kind: 'file',
-        path: 'evil/victim',
-      });
+    const result = await callApi(contentDir, '/api/delete-path', 'POST', {
+      kind: 'file',
+      path: 'evil/victim',
+    });
 
-      expect(result.status).toBe(400);
-      expect((JSON.parse(result.body) as { type?: string }).type).toBe('urn:ok:error:path-escape');
-      expect(existsSync(victim)).toBe(true);
-    },
-  );
+    expect(result.status).toBe(400);
+    expect((JSON.parse(result.body) as { type?: string }).type).toBe('urn:ok:error:path-escape');
+    expect(existsSync(victim)).toBe(true);
+  });
 
-  test.skipIf(process.platform === 'win32')(
-    'rejects rename into destination that resolves outside content via symlink',
-    async () => {
-      const root = setupTmpDir();
-      const contentDir = join(root, 'content');
-      const outside = join(root, 'outside');
-      mkdirSync(contentDir);
-      mkdirSync(outside);
-      symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
-      writeFileSync(join(contentDir, 'safe.md'), '# Safe\n', 'utf-8');
+  test('rejects rename into destination that resolves outside content via symlink', async () => {
+    const root = setupTmpDir();
+    const contentDir = join(root, 'content');
+    const outside = join(root, 'outside');
+    mkdirSync(contentDir);
+    mkdirSync(outside);
+    symlinkSync(join('..', 'outside'), join(contentDir, 'evil'), 'dir');
+    writeFileSync(join(contentDir, 'safe.md'), '# Safe\n', 'utf-8');
 
-      const result = await callApi(contentDir, '/api/rename-path', 'POST', {
-        kind: 'file',
-        fromPath: 'safe',
-        toPath: 'evil/captured',
-      });
+    const result = await callApi(contentDir, '/api/rename-path', 'POST', {
+      kind: 'file',
+      fromPath: 'safe',
+      toPath: 'evil/captured',
+    });
 
-      expect(result.status).toBe(400);
-      expect(readFileSync(join(contentDir, 'safe.md'), 'utf-8')).toBe('# Safe\n');
-      expect(existsSync(join(outside, 'captured.md'))).toBe(false);
-    },
-  );
+    expect(result.status).toBe(400);
+    expect(readFileSync(join(contentDir, 'safe.md'), 'utf-8')).toBe('# Safe\n');
+    expect(existsSync(join(outside, 'captured.md'))).toBe(false);
+  });
 });
 
 describe('managed rename discovers JSX-src-only referencing documents', () => {

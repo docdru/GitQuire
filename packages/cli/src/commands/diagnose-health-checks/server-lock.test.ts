@@ -109,7 +109,7 @@ describe('server-lock check', () => {
     expect(result.remediation).toContain(
       'If the server was started on this machine from another account, run `gq stop` as that account while it is running, or `gq clean` once it has exited.',
     );
-    expect(result.remediation).toMatch(/with `(HOME|USERPROFILE)` set to that folder/);
+    expect(result.remediation).toContain('with `HOME` set to that folder');
   });
 
   test('warns on dead-pid', async () => {

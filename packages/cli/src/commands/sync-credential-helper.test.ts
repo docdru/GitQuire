@@ -165,7 +165,6 @@ describe("gq sync without a running server authenticates through OpenKnowledge's
       }
     }
     vi.stubEnv('HOME', home);
-    vi.stubEnv('USERPROFILE', home);
     vi.stubEnv('XDG_CONFIG_HOME', join(home, '.config'));
     vi.stubEnv('GIT_CONFIG_NOSYSTEM', '1');
     vi.stubEnv('GIT_CONFIG_SYSTEM', '/dev/null');

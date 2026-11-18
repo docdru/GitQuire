@@ -19,7 +19,7 @@ function turboConfig(): TurboConfig {
 const TSC = resolve(
   SUBTREE_ROOT,
   'node_modules/.bin',
-  process.platform === 'win32' ? 'tsc.cmd' : 'tsc',
+  'tsc',
 );
 
 function programFiles(): string[] {
@@ -27,7 +27,6 @@ function programFiles(): string[] {
     cwd: SUBTREE_ROOT,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
-    shell: process.platform === 'win32',
   });
   if (run.error) throw run.error;
   if (run.status !== 0) {

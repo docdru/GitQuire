@@ -123,32 +123,29 @@ describe('inspectGitRepository', () => {
     });
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'reports an unreadable common-dir pointer without falling back to the worktree git dir',
-    async () => {
-      const root = await makeTemporaryDirectory();
-      const projectRoot = join(root, 'worktree');
-      const gitDir = join(root, 'worktree-state');
-      mkdirSync(projectRoot);
-      mkdirSync(gitDir);
-      writeFileSync(join(projectRoot, '.git'), `gitdir: ${gitDir}\n`);
-      symlinkSync('commondir', join(gitDir, 'commondir'));
+  test('reports an unreadable common-dir pointer without falling back to the worktree git dir', async () => {
+    const root = await makeTemporaryDirectory();
+    const projectRoot = join(root, 'worktree');
+    const gitDir = join(root, 'worktree-state');
+    mkdirSync(projectRoot);
+    mkdirSync(gitDir);
+    writeFileSync(join(projectRoot, '.git'), `gitdir: ${gitDir}\n`);
+    symlinkSync('commondir', join(gitDir, 'commondir'));
 
-      const result = inspectGitRepository(projectRoot);
+    const result = inspectGitRepository(projectRoot);
 
-      expect(result.kind).toBe('repository');
-      if (result.kind !== 'repository') return;
-      expect(result.repository.readCommonDir().kind).toBe('unreadable');
-      expect(result.repository.readRemoteUrl('origin').kind).toBe('unreadable');
-      expect(result.repository.readRef('refs/heads/main').kind).toBe('unreadable');
+    expect(result.kind).toBe('repository');
+    if (result.kind !== 'repository') return;
+    expect(result.repository.readCommonDir().kind).toBe('unreadable');
+    expect(result.repository.readRemoteUrl('origin').kind).toBe('unreadable');
+    expect(result.repository.readRef('refs/heads/main').kind).toBe('unreadable');
 
-      const commonDir = join(root, 'common');
-      rmSync(join(gitDir, 'commondir'));
-      mkdirSync(commonDir);
-      writeFileSync(join(gitDir, 'commondir'), `${commonDir}\n`);
-      expect(result.repository.readCommonDir()).toEqual({ kind: 'resolved', path: commonDir });
-    },
-  );
+    const commonDir = join(root, 'common');
+    rmSync(join(gitDir, 'commondir'));
+    mkdirSync(commonDir);
+    writeFileSync(join(gitDir, 'commondir'), `${commonDir}\n`);
+    expect(result.repository.readCommonDir()).toEqual({ kind: 'resolved', path: commonDir });
+  });
 
   test('keeps exact-root inspection distinct from enclosing-working-tree discovery', async () => {
     const root = await makeTemporaryDirectory();
@@ -208,24 +205,21 @@ describe('inspectGitRepository', () => {
     }
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'stops at an inaccessible ancestor instead of selecting a repository above it',
-    async () => {
-      const root = await makeTemporaryDirectory();
-      const repositoryRoot = join(root, 'repository');
-      const inaccessibleAncestor = join(repositoryRoot, 'inaccessible');
-      const projectRoot = join(inaccessibleAncestor, 'project');
-      mkdirSync(join(repositoryRoot, '.git'), { recursive: true });
-      mkdirSync(projectRoot, { recursive: true });
-      symlinkSync('.git', join(inaccessibleAncestor, '.git'));
+  test('stops at an inaccessible ancestor instead of selecting a repository above it', async () => {
+    const root = await makeTemporaryDirectory();
+    const repositoryRoot = join(root, 'repository');
+    const inaccessibleAncestor = join(repositoryRoot, 'inaccessible');
+    const projectRoot = join(inaccessibleAncestor, 'project');
+    mkdirSync(join(repositoryRoot, '.git'), { recursive: true });
+    mkdirSync(projectRoot, { recursive: true });
+    symlinkSync('.git', join(inaccessibleAncestor, '.git'));
 
-      const result = discoverGitRepository(projectRoot);
+    const result = discoverGitRepository(projectRoot);
 
-      expect(result.kind).toBe('inaccessible');
-      if (result.kind !== 'inaccessible') return;
-      expect(result.gitPath).toBe(join(inaccessibleAncestor, '.git'));
-    },
-  );
+    expect(result.kind).toBe('inaccessible');
+    if (result.kind !== 'inaccessible') return;
+    expect(result.gitPath).toBe(join(inaccessibleAncestor, '.git'));
+  });
 
   test('accepts a SHA-256 object id for detached HEAD', async () => {
     const root = await makeTemporaryDirectory();

@@ -88,7 +88,6 @@ describe("share publish authenticates its github.com push only through the CLI's
     cliHelperLog = join(workspace, 'cli-helper-calls.jsonl');
     traceFile = join(workspace, 'git-trace.log');
     vi.stubEnv('HOME', home);
-    vi.stubEnv('USERPROFILE', home);
     vi.stubEnv('XDG_CONFIG_HOME', join(home, '.config'));
     vi.stubEnv('GIT_CONFIG_NOSYSTEM', '1');
     for (const variable of [

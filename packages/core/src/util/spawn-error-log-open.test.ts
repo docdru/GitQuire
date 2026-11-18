@@ -50,7 +50,7 @@ describe('openSpawnErrorLog', () => {
     attempt(path, 'nested failure\n');
 
     expect(readFileSync(path, 'utf8')).toContain('nested failure');
-    if (process.platform !== 'win32') expect(statSync(dirname(path)).mode & 0o777).toBe(0o700);
+    expect(statSync(dirname(path)).mode & 0o777).toBe(0o700);
     expect(statSync(path).mode & 0o777).toBe(0o600);
   });
 
