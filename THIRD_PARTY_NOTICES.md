@@ -640,6 +640,16 @@ prosemirror-recreate-steps
 Copyright 2018 Atypon Systems, LLC.
 ```
 
+### `@modelcontextprotocol/core@2.4.0`
+Homepage: https://modelcontextprotocol.io
+
+Copyright (c) 2024-2025 Model Context Protocol a Series of LF Projects, LLC.
+
+### `@modelcontextprotocol/server@2.4.0`
+Homepage: https://modelcontextprotocol.io
+
+Copyright (c) 2024-2025 Model Context Protocol a Series of LF Projects, LLC.
+
 ### `@mongodb-js/zstd@7.0.0`
 Homepage: https://github.com/mongodb-js/zstd
 
@@ -2041,6 +2051,11 @@ Homepage: https://github.com/Sec-ant/readable-stream
 
 Copyright (c) 2022 Ze-Zheng Wu
 
+### `@shadcn/registry@0.2.1`
+Homepage: https://ui.shadcn.com/docs/registry
+
+Copyright (c) 2023 shadcn
+
 ### `@shikijs/core@3.23.0`
 Homepage: https://github.com/shikijs/shiki#readme
 
@@ -2810,11 +2825,6 @@ Homepage: https://github.com/ljharb/call-bound#readme
 
 Copyright (c) 2024 Jordan Harband
 
-### `callsites@3.1.0`
-Homepage: https://github.com/sindresorhus/callsites
-
-Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-
 ### `camelcase@6.3.0`
 Homepage: https://github.com/sindresorhus/camelcase
 
@@ -2910,6 +2920,11 @@ Homepage: https://github.com/pacocoursey/cmdk#readme
 
 Copyright (c) 2022 Paco Coursey
 
+### `cn@0.2.6`
+Homepage: https://github.com/shadcn-ui/cn
+
+Copyright (c) 2026 shadcn
+
 ### `code-block-writer@13.0.3`
 Homepage: https://github.com/dsherret/code-block-writer#readme
 
@@ -2956,11 +2971,6 @@ Homepage: https://github.com/tj/commander.js
 Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
 
 ### `commander@6.2.1`
-Homepage: https://github.com/tj/commander.js
-
-Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
-
-### `commander@8.3.0`
 Homepage: https://github.com/tj/commander.js
 
 Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
@@ -3029,11 +3039,6 @@ Copyright (c) 2019 - present, iVis@Bilkent.
 Homepage: https://github.com/iVis-at-Bilkent/cose-base#readme
 
 Copyright (c) 2019 - present, iVis@Bilkent.
-
-### `cosmiconfig@9.0.2`
-Homepage: https://github.com/cosmiconfig/cosmiconfig#readme
-
-Copyright (c) 2015 David Clark
 
 ### `crelt@1.0.7`
 Homepage: https://code.haverbeke.berlin/marijn/crelt
@@ -3151,7 +3156,7 @@ Homepage: https://github.com/TehShrike/deepmerge
 
 Copyright (c) 2012 James Halliday, Josh Duff, and other contributors
 
-### `default-browser@5.5.0`
+### `default-browser@5.5.1`
 Homepage: https://github.com/sindresorhus/default-browser
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
@@ -3230,11 +3235,6 @@ Copyright (c) 2016-present, Jon Schlinkert.
 Homepage: https://github.com/sindresorhus/env-paths
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-
-### `error-ex@1.3.4`
-Homepage: https://github.com/qix-/node-error-ex
-
-Copyright (c) 2015 JD Ballard
 
 ### `es-define-property@1.0.1`
 Homepage: https://github.com/ljharb/es-define-property#readme
@@ -3672,11 +3672,6 @@ Homepage: https://immutable-js.com
 
 Copyright (c) 2014-present, Lee Byron and other contributors.
 
-### `import-fresh@3.3.1`
-Homepage: https://github.com/sindresorhus/import-fresh
-
-Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-
 ### `import-meta-resolve@4.2.0`
 Homepage: https://github.com/wooorm/import-meta-resolve
 
@@ -3713,11 +3708,6 @@ Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
 Homepage: https://github.com/wooorm/is-alphanumerical
 
 Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
-
-### `is-arrayish@0.2.1`
-Homepage: https://github.com/qix-/node-is-arrayish
-
-Copyright (c) 2015 JD Ballard
 
 ### `is-binary-path@2.1.0`
 Homepage: https://github.com/sindresorhus/is-binary-path
@@ -3894,20 +3884,10 @@ Homepage: https://github.com/lydell/js-tokens
 
 Copyright (c) 2014, 2015, 2016, 2017, 2018 Simon Lydell
 
-### `js-yaml@4.3.2`
-Homepage: https://github.com/nodeca/js-yaml
-
-Copyright (C) 2011-2015 by Vitaly Puzrin
-
 ### `jsesc@3.1.0`
 Homepage: https://mths.be/jsesc
 
 _(No LICENSE file in package; SPDX identifier in `package.json` is the sole declared grant.)_
-
-### `json-parse-even-better-errors@2.3.1`
-Homepage: https://github.com/npm/json-parse-even-better-errors
-
-Copyright 2017 Kat Marchán Copyright npm, Inc.
 
 ### `json-schema-traverse@1.0.0`
 Homepage: https://github.com/epoberezkin/json-schema-traverse#readme
@@ -3940,11 +3920,6 @@ Homepage: https://github.com/vasturiano/kapsule
 Copyright (c) 2017 Vasco Asturiano
 
 ### `katex@0.18.10`
-Homepage: https://katex.org
-
-Copyright (c) 2013-2020 Khan Academy and other contributors
-
-### `katex@0.16.47`
 Homepage: https://katex.org
 
 Copyright (c) 2013-2020 Khan Academy and other contributors
@@ -3993,11 +3968,6 @@ Copyright (c) 2019 Kevin Jahns <kevin.jahns@protonmail.com>.
 Homepage: https://github.com/antonk52/lilconfig
 
 Copyright (c) 2022 Anton Kastritskiy
-
-### `lines-and-columns@1.2.4`
-Homepage: https://github.com/eventualbuddha/lines-and-columns#readme
-
-Copyright (c) 2015 Brian Donovan
 
 ### `linkifyjs@4.3.3`
 Homepage: https://linkify.js.org
@@ -4554,7 +4524,7 @@ Homepage: https://github.com/slevithan/oniguruma-to-es
 
 Copyright (c) 2024-2026 Steven Levithan
 
-### `open@11.0.0`
+### `open@11.0.4`
 Homepage: https://github.com/sindresorhus/open
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
@@ -4604,20 +4574,10 @@ Homepage: https://www.papaparse.com/
 
 Copyright (c) 2015 Matthew Holt
 
-### `parent-module@1.0.1`
-Homepage: https://github.com/sindresorhus/parent-module
-
-Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-
 ### `parse-entities@4.0.2`
 Homepage: https://github.com/wooorm/parse-entities
 
 Copyright (c) Titus Wormer <mailto:tituswormer@gmail.com>
-
-### `parse-json@5.2.0`
-Homepage: https://github.com/sindresorhus/parse-json
-
-Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 
 ### `parse-ms@4.0.0`
 Homepage: https://github.com/sindresorhus/parse-ms
@@ -4685,11 +4645,6 @@ Homepage: https://github.com/nodeca/pica
 Copyright (C) 2014-2017 by Vitaly Puzrin
 
 ### `picomatch@4.0.7`
-Homepage: https://github.com/micromatch/picomatch
-
-Copyright (c) 2017-present, Jon Schlinkert.
-
-### `picomatch@4.0.5`
 Homepage: https://github.com/micromatch/picomatch
 
 Copyright (c) 2017-present, Jon Schlinkert.
@@ -4769,7 +4724,7 @@ Homepage: https://github.com/postcss/postcss-selector-parser
 
 Copyright (c) Ben Briggs <beneb.info@gmail.com> (http://beneb.info)
 
-### `powershell-utils@0.1.0`
+### `powershell-utils@0.2.1`
 Homepage: https://github.com/sindresorhus/powershell-utils
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
@@ -5130,11 +5085,6 @@ Homepage: ssh://github.com/browserify/resolve
 
 Copyright (c) 2012 James Halliday
 
-### `resolve-from@4.0.0`
-Homepage: https://github.com/sindresorhus/resolve-from
-
-Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-
 ### `restore-cursor@5.1.0`
 Homepage: https://github.com/sindresorhus/restore-cursor
 
@@ -5223,8 +5173,8 @@ Homepage: https://github.com/expressjs/serve-static
 
 Copyright (c) 2010 Sencha Inc. Copyright (c) 2011 LearnBoost Copyright (c) 2011 TJ Holowaychuk Copyright (c) 2014-2016 Douglas Christopher Wilson
 
-### `shadcn@4.13.0`
-Homepage: https://github.com/shadcn-ui/ui
+### `shadcn@4.23.0`
+Homepage: https://ui.shadcn.com
 
 Copyright (c) 2023 shadcn
 
@@ -5297,6 +5247,16 @@ Copyright (c) 2018 Terkel Gjervig Nielsen
 Homepage: https://github.com/aheckmann/sliced
 
 Copyright (c) 2012 [Aaron Heckmann](aaron.heckmann+github@gmail.com)
+
+### `smart-buffer@4.2.0`
+Homepage: https://github.com/JoshGlazebrook/smart-buffer/
+
+Copyright (c) 2013-2017 Josh Glazebrook
+
+### `socks@2.8.9`
+Homepage: https://github.com/JoshGlazebrook/socks/
+
+Copyright (c) 2013 Josh Glazebrook
 
 ### `sonic-boom@4.2.1`
 Homepage: https://github.com/pinojs/sonic-boom#readme
@@ -5530,6 +5490,11 @@ Homepage: https://github.com/Wombosvideo/tw-animate-css#readme
 
 Copyright (c) 2025 Wombosvideo
 
+### `type-fest@4.41.0`
+Homepage: https://github.com/sindresorhus/type-fest
+
+Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+
 ### `type-is@2.1.0`
 Homepage: https://github.com/jshttp/type-is
 
@@ -5725,7 +5690,7 @@ Homepage: https://github.com/websockets/ws
 
 Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com> Copyright (c) 2013 Arnout Kazemier and contributors Copyright (c) 2016 Luigi Pinca and contributors
 
-### `wsl-utils@0.3.1`
+### `wsl-utils@1.0.1`
 Homepage: https://github.com/sindresorhus/wsl-utils
 
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
@@ -5771,11 +5736,6 @@ Homepage: https://github.com/sindresorhus/yoctocolors
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 
 ### `zod@4.6.7`
-Homepage: https://zod.dev
-
-Copyright (c) 2025 Colin McDonnell
-
-### `zod@3.25.76`
 Homepage: https://zod.dev
 
 Copyright (c) 2025 Colin McDonnell
@@ -6415,8 +6375,9 @@ Copyright (c) 2015, Yeoman team
 The following packages are under licenses that do not require attribution (BlueOak-1.0.0, 0BSD, WTFPL, Unlicense, CC0-1.0). Listed for completeness and traceability.
 
 - `@excalidraw/fractional-indexing@0.18.0-abeeaeb` — CC0-1.0
+- `@isaacs/nonrecursive-glob-match@1.1.0` — BlueOak-1.0.0
 - `isexe@3.1.5` — BlueOak-1.0.0
-- `minimatch@10.2.5` — BlueOak-1.0.0
+- `minimatch@11.0.8` — BlueOak-1.0.0
 - `robust-predicates@3.0.3` — Unlicense
 - `tslib@2.8.1` — 0BSD
 
@@ -6430,17 +6391,6 @@ The data files below are licensed under CC-BY-4.0 (https://creativecommons.org/l
 Homepage: https://github.com/browserslist/caniuse-lite
 
 _(LICENSE file present but no auto-extractable copyright line; refer to the package source for canonical attribution.)_
-
----
-
-## Python Software Foundation License (Python-2.0)
-
-The packages below are licensed under the PSF License v2 (https://docs.python.org/3/license.html#psf-license). Each entry preserves its copyright notice. The license disclaims warranties and limits liability per its terms; refer to upstream for the full text.
-
-### `argparse@2.0.1`
-Homepage: https://github.com/nodeca/argparse
-
-Copyright (c) 1991 - 1995, Stichting Mathematisch Centrum Amsterdam,
 
 ---
 

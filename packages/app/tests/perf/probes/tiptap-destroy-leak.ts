@@ -36,14 +36,6 @@ export interface ConstructorBucket {
   readonly selfSizeBytes: number;
 }
 
-export interface MemlabFindings {
-  readonly available: boolean;
-  readonly reason?: string;
-  readonly hypothesizedLeakSource?: string;
-  readonly detachedDomCount?: number;
-  readonly unboundedGrowthClasses?: ReadonlyArray<string>;
-}
-
 export interface ProbeResult {
   readonly schemaVersion: typeof PROBE_SCHEMA_VERSION;
   readonly measuredAt: string;
@@ -53,7 +45,6 @@ export interface ProbeResult {
   readonly cycleHeapsMb: ReadonlyArray<number>;
   readonly leakRateMbPerCycle: number;
   readonly topRetainedConstructors: ReadonlyArray<ConstructorBucket>;
-  readonly memlabFindings: MemlabFindings;
   readonly errors: ReadonlyArray<string>;
   readonly hypothesizedFixPath: 'local' | 'fork-required' | 'undetermined';
   readonly hypothesizedFixNotes: string;
@@ -137,39 +128,6 @@ async function captureTopRetainedConstructors(
     (a, b) => b.selfSizeBytes - a.selfSizeBytes,
   );
   return sorted.slice(0, topN);
-}
-
-async function tryMemlabEnrichment(): Promise<MemlabFindings> {
-  try {
-    const memlab = (await import('memlab').catch(() => null)) as {
-      readonly findLeaks?: (args: unknown) => Promise<unknown>;
-      readonly analyze?: (args: unknown) => Promise<unknown>;
-    } | null;
-    if (memlab === null) {
-      return {
-        available: false,
-        reason: 'memlab module not loadable (devDependency missing or Puppeteer Chromium absent)',
-      };
-    }
-    if (typeof memlab.analyze !== 'function' && typeof memlab.findLeaks !== 'function') {
-      return {
-        available: false,
-        reason: 'memlab loaded but analyze/findLeaks API not present',
-      };
-    }
-    return {
-      available: true,
-      hypothesizedLeakSource:
-        'memlab loadable; run `npx memlab` separately for DetachedDOMElementAnalysis pass',
-      detachedDomCount: undefined,
-      unboundedGrowthClasses: undefined,
-    };
-  } catch (err) {
-    return {
-      available: false,
-      reason: err instanceof Error ? err.message : String(err),
-    };
-  }
 }
 
 async function waitForVisibleProseMirror(
@@ -304,7 +262,6 @@ export async function runProbe(options: ProbeOptions): Promise<ProbeResult> {
 
   const leakRateMbPerCycle = computeLeakRateMbPerCycle(cycleHeapsMb);
 
-  const memlabFindings = await tryMemlabEnrichment();
   const { path: hypothesizedFixPath, notes: hypothesizedFixNotes } =
     classifyFixPath(topRetainedConstructors);
 
@@ -317,7 +274,6 @@ export async function runProbe(options: ProbeOptions): Promise<ProbeResult> {
     cycleHeapsMb,
     leakRateMbPerCycle,
     topRetainedConstructors,
-    memlabFindings,
     errors,
     hypothesizedFixPath,
     hypothesizedFixNotes,
@@ -486,15 +442,6 @@ if (import.meta.main) {
       `  ${b.name.padEnd(40, ' ')}  count=${String(b.count).padStart(6)}  ` +
         `selfMB=${(b.selfSizeBytes / 1024 / 1024).toFixed(2)}\n`,
     );
-  }
-
-  process.stdout.write(`\n--- memlab enrichment ---\n`);
-  process.stdout.write(`  available: ${result.memlabFindings.available}\n`);
-  if (result.memlabFindings.reason) {
-    process.stdout.write(`  reason:    ${result.memlabFindings.reason}\n`);
-  }
-  if (result.memlabFindings.hypothesizedLeakSource) {
-    process.stdout.write(`  hypothesis: ${result.memlabFindings.hypothesizedLeakSource}\n`);
   }
 
   if (result.errors.length > 0) {
