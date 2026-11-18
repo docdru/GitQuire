@@ -343,7 +343,7 @@ describe('SearchSection', () => {
 
   test.each([
     ['future_error', 'Check the local credential files'],
-    ['timeout', 'Wait for the credential store operation'],
+    ['timeout', 'Wait for the other operation on the secrets file'],
     ['file_access', 'Check the local credential files'],
   ])('credential store status preserves fields for %s', async (code, message) => {
     mockProjectLocalConfig = configWithSemantic({ enabled: true });

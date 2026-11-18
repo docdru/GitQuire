@@ -736,8 +736,8 @@ msgstr "對衝突 {0} 採用傳入版本"
 msgid "Accept their deletion"
 msgstr "接受對方的刪除"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "存取已儲存的 API 金鑰逾時。請等待憑證儲存區操作完成，然後再試一次。"
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "存取權杖"

@@ -736,8 +736,8 @@ msgstr "Aceptar la versión entrante para el conflicto {0}"
 msgid "Accept their deletion"
 msgstr "Aceptar su eliminación"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "Se agotó el tiempo de acceso a la clave API guardada. Espera a que termine la operación del almacén de credenciales y vuelve a intentarlo."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "Token de acceso"

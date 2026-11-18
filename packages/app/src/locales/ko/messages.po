@@ -736,8 +736,8 @@ msgstr "충돌 {0}에 수신 버전 적용"
 msgid "Accept their deletion"
 msgstr "삭제를 수락"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "저장된 API 키에 접근하는 시간이 초과되었습니다. 자격 증명 저장소 작업이 끝날 때까지 기다린 후 다시 시도하세요."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "액세스 토큰"

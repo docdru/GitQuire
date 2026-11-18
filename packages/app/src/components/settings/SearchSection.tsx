@@ -1089,8 +1089,8 @@ function CredentialStoreError({ code }: { code?: SemanticIndexStatus['keyStoreEr
   if (code === 'lock_timeout' || code === 'timeout') {
     return (
       <Trans>
-        Access to the saved API key timed out. Wait for the credential store operation to finish,
-        then try again.
+        Access to the saved API key timed out. Wait for the other operation on the secrets file to
+        finish, then try again.
       </Trans>
     );
   }

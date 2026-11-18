@@ -87,7 +87,7 @@ GitQuire fetches and pushes changes using plain Git operations, so syncing will 
 
 <Tab>
 
-If you are logged in with the GitHub CLI, GitQuire will use those credentials for GitHub operations. If not, you can complete device authentication to generate an OAuth token. GitQuire stores this token in the keychain and reuses it for syncing, cloning, and publishing.
+If you are logged in with the GitHub CLI, GitQuire will use those credentials for GitHub operations. If not, you can complete device authentication to generate an OAuth token. GitQuire stores this token in `~/.gitquire/auth.yml` inside the container and reuses it for syncing, cloning, and publishing.
 
 Manage the connection from **Settings → Git**. **Connect GitHub** authorizes GitQuire to browse and sync your repositories; **Disconnect** clears GitQuire's GitHub token only. From a terminal, the [`gq auth`](/docs/reference/cli) subcommands manage the same credentials: `gq auth signout` matches **Disconnect**, `gq auth pat` stores a Personal Access Token when device authentication isn't an option, and `--host` targets GitHub Enterprise.
 

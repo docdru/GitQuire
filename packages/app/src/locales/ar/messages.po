@@ -736,8 +736,8 @@ msgstr "قبول النسخة الواردة للتعارض {0}"
 msgid "Accept their deletion"
 msgstr "قبول حذفهم"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "انتهت مهلة الوصول إلى مفتاح API المحفوظ. انتظر حتى تنتهي عملية مخزن بيانات الاعتماد، ثم حاول مجددًا."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "رمز الوصول"

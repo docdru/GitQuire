@@ -197,8 +197,6 @@ function isolatedCliRunner(prefix: string) {
         HOME: fakeHome,
         XDG_CONFIG_HOME: join(fakeHome, '.config'),
         PATH: `${root}:${fixtureGitEnv.PATH ?? ''}`,
-        DBUS_SESSION_BUS_ADDRESS: '',
-        XDG_RUNTIME_DIR: '',
         DO_NOT_TRACK: '1',
         LOG_LEVEL: 'info',
         GITQUIRE_CONSOLE_LEVEL: 'info',

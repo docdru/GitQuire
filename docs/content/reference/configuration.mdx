@@ -136,7 +136,7 @@ The MCP `search` tool can fuse an **embeddings-based semantic signal** into its 
 
 If the saved key cannot be read, check that `~/.gitquire/secrets.yml` is valid YAML and readable by the user GitQuire runs as, then try again. A configured `GITQUIRE_EMBEDDINGS_API_KEY` can still be used for the default OpenAI endpoint, and a keyless loopback endpoint stays usable.
 
-The container's home folder is not part of the `/data` volume, so saved keys do not survive replacing the container. On a shared server, prefer the `GITQUIRE_EMBEDDINGS_*` environment variables.
+The container's home folder is not part of the `/data` volume, so saved keys do not survive replacing the container. On a shared server, prefer setting the endpoint and key together with the `GITQUIRE_EMBEDDINGS_*` variables in [DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#search-by-meaning).
 
 ### Enable semantic search
 

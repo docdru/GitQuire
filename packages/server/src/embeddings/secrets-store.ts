@@ -35,6 +35,7 @@ const PROJECTS_FIELD = 'embeddings_projects';
 type ProjectsMap = Record<string, Record<string, string>>;
 
 const EMBEDDINGS_STORE_TIMEOUT_MS = 2000;
+const EMBEDDINGS_LOCK_WAIT_MS = 1500;
 
 export type EmbeddingsKeySource = 'project' | 'file' | 'env' | null;
 
@@ -344,7 +345,7 @@ async function withEmbeddingsLock<T>(
     } catch (error) {
       throw new EmbeddingsSecretStoreError('file_access', 'lock', error);
     }
-    const deadline = Date.now() + EMBEDDINGS_STORE_TIMEOUT_MS;
+    const deadline = Date.now() + EMBEDDINGS_LOCK_WAIT_MS;
     for (;;) {
       signal?.throwIfAborted();
       try {

@@ -732,8 +732,8 @@ msgstr "Terima versi masuk untuk konflik {0}"
 msgid "Accept their deletion"
 msgstr "Terima penghapusan mereka"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "Waktu akses ke kunci API yang disimpan habis. Tunggu operasi penyimpanan kredensial selesai, lalu coba lagi."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "Token akses"

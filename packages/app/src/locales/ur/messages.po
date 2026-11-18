@@ -736,8 +736,8 @@ msgstr "کنفلکٹ {0} کے لیے آنے والا ورژن قبول کریں"
 msgid "Accept their deletion"
 msgstr "ان کا حذف قبول کریں"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "محفوظ API کلید تک رسائی کا وقت ختم ہو گیا۔ کریڈینشل اسٹور کا عمل مکمل ہونے کا انتظار کریں، پھر دوبارہ کوشش کریں۔"
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "رسائی ٹوکن"

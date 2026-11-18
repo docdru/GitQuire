@@ -732,8 +732,8 @@ msgstr "कॉन्फ़्लिक्ट {0} के लिए आने व�
 msgid "Accept their deletion"
 msgstr "उनका विलोपन स्वीकारें"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "सहेजी गई API कुंजी तक पहुँचने का समय समाप्त हो गया। क्रेडेंशियल स्टोर का काम पूरा होने की प्रतीक्षा करें, फिर दोबारा कोशिश करें।"
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "पहुँच टोकन"
