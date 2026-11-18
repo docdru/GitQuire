@@ -31,6 +31,9 @@ msgstr ".gitquire 폴더"
 msgid "\"{0}\" is live."
 msgstr ""
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr ""
+
 msgid "\"{0}\" is ready for review."
 msgstr ""
 
@@ -40,10 +43,10 @@ msgstr ""
 msgid "\"{0}\" was discarded."
 msgstr ""
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
 msgstr ""
 
-msgid "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
 msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
@@ -524,7 +527,10 @@ msgstr "{visibleSummary}. {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, other {경고 #개}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr ""
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
 msgstr ""
 
 msgid "{words, plural, one {word} other {words}}"
@@ -2634,6 +2640,9 @@ msgstr "편집 내용이 실시간으로 적용됩니다. 밝은 테마와 어�
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "소스에서 편집한 내용이 여기에 반영됩니다. 복사하여 붙여넣을 때 내용이 어긋나지 않습니다."
+
+msgid "Edits go to:"
+msgstr ""
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "이 브랜치를 마지막으로 열었을 때부터 보관된 {fileName}의 편집 내용을 병합할 수 없어 파일의 버전이 유지되었습니다. 해당 편집 내용은 타임라인에 있습니다."

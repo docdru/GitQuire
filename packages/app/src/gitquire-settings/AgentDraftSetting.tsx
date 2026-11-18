@@ -3,6 +3,7 @@ import { useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { rememberAgentSetting } from '@/lib/gitquire/chat-edit-target';
 import { type AgentMode, fetchAgentMode, saveAgentMode } from '@/lib/gitquire/drafts-api';
 import { useDraftState } from '@/lib/gitquire/drafts-store';
 
@@ -33,7 +34,9 @@ export function AgentDraftSetting() {
     const next: AgentMode = checked ? 'draft' : 'live';
     setMode(next);
     try {
-      setMode(await saveAgentMode(next));
+      const saved = await saveAgentMode(next);
+      setMode(saved);
+      rememberAgentSetting(saved);
     } catch {
       setMode(checked ? 'live' : 'draft');
       toast.error(t`Couldn't save the setting. Try again.`);

@@ -25,23 +25,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { extractMentions } from '@/gitquire-comments/thread-ops';
-import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
   createDraft,
   type DraftSummary,
-  discardDraft,
   markReady,
   moveRecentEdits,
-  publishDraft,
   renameDraft,
   reviewDraft,
-  updateDraft,
 } from '@/lib/gitquire/drafts-api';
 import { refreshDrafts, reloadIntoView } from '@/lib/gitquire/drafts-store';
 import { DraftChangesDialog } from './DraftChangesDialog';
 import { DraftConflictsDialog } from './DraftConflictsDialog';
 import { DraftsOverviewDialog } from './DraftsOverviewDialog';
-import { failureCopy, pageLabel } from './draft-actions';
+import { discardAndLeave, failureCopy, pageLabel, publishAndLeave } from './draft-actions';
 import {
   closeDraftDialog,
   type DraftDialog,
@@ -333,31 +329,17 @@ function PublishDialog({ draft }: { draft: DraftSummary }) {
 
   async function publish() {
     setBusy(true);
-    try {
-      await publishDraft(draft.slug);
+    const outcome = await publishAndLeave(draft);
+    if (outcome.kind === 'closed') {
       closeDraftDialog();
-      toast.success(t`"${draft.title}" is live.`);
-      setTimeout(() => reloadIntoView(), 2500);
-    } catch (failure) {
-      setBusy(false);
-      if (failure instanceof GitQuireApiError && failure.code === 'conflict') {
-        try {
-          const result = await updateDraft(draft.slug);
-          if (result.kind === 'conflicts') {
-            openDraftDialog({ kind: 'conflicts', draft, files: result.files });
-            return;
-          }
-          await publishDraft(draft.slug);
-          closeDraftDialog();
-          toast.success(t`"${draft.title}" is live.`);
-          setTimeout(() => reloadIntoView(), 2500);
-        } catch (retryFailure) {
-          toast.error(t`Couldn't publish the draft.`, { description: failureCopy(retryFailure) });
-        }
-        return;
-      }
-      toast.error(t`Couldn't publish the draft.`, { description: failureCopy(failure) });
+      return;
     }
+    setBusy(false);
+    if (outcome.kind === 'conflicts') {
+      openDraftDialog({ kind: 'conflicts', draft, files: outcome.files });
+      return;
+    }
+    toast.error(t`Couldn't publish the draft.`, { description: failureCopy(outcome.failure) });
   }
 
   return (
@@ -395,14 +377,14 @@ function DiscardDialog({ draft }: { draft: DraftSummary }) {
 
   async function discard() {
     setBusy(true);
-    try {
-      await discardDraft(draft.slug);
+    const outcome = await discardAndLeave(draft);
+    if (outcome.kind === 'closed') {
       closeDraftDialog();
-      toast.success(t`"${draft.title}" was discarded.`);
-      setTimeout(() => reloadIntoView(), 2500);
-    } catch (failure) {
-      setBusy(false);
-      toast.error(t`Couldn't discard the draft.`, { description: failureCopy(failure) });
+      return;
+    }
+    setBusy(false);
+    if (outcome.kind === 'failed') {
+      toast.error(t`Couldn't discard the draft.`, { description: failureCopy(outcome.failure) });
     }
   }
 

@@ -1,9 +1,10 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
-import { Readable } from 'node:stream';
+import { Duplex, Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { SessionUser } from '../access-gate.ts';
+import { internalRequestHeaders } from '../internal-request.ts';
 import { runGitSync } from '../repo-bootstrap.ts';
 import { createDraftsHttp, type DraftsHttp } from './http.ts';
 import { plainGitRemote } from './remote.ts';
@@ -81,9 +82,11 @@ let signedIn: SessionUser | undefined;
 let agent: SessionUser | undefined;
 let draftInstance: Server;
 let draftPort: number;
+let haltGate: Promise<void> | undefined;
 
 beforeEach(async () => {
   agent = undefined;
+  haltGate = undefined;
   draftInstance = createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'text/plain', 'mcp-session-id': 'session-in-draft' });
     res.end(`draft instance saw ${req.url}`);
@@ -97,6 +100,10 @@ beforeEach(async () => {
     ensure: async (draft: Parameters<typeof prepared.ensure>[0]) => {
       await prepared.ensure(draft);
       return draftPort;
+    },
+    halt: async (slug: string) => {
+      await prepared.halt(slug);
+      await haltGate;
     },
   };
   service = createDraftService({
@@ -189,6 +196,53 @@ describe('drafts HTTP', () => {
     });
   });
 
+  it('says a draft is closing while it is being published, and turns away new editors', async () => {
+    const draft = await service.create(ALICE, 'Plan');
+    await call('/api/documents', { headers: { cookie: 'gq_view=plan' } });
+    const { promise, resolve } = Promise.withResolvers<void>();
+    haltGate = promise;
+    const publishing = service.publish(draft.slug, ALICE).catch(() => undefined);
+    await new Promise((settle) => setTimeout(settle, 20));
+    const current = await call('/api/gitquire/drafts/current', {
+      headers: { cookie: 'gq_view=plan' },
+    });
+    expect(current.json()).toMatchObject({ viewing: { slug: 'plan' }, closing: true });
+
+    const written: string[] = [];
+    const socket = new Duplex({
+      read() {},
+      write(_chunk, _encoding, done) {
+        done();
+      },
+    });
+    socket.write = ((chunk: string) => {
+      written.push(String(chunk));
+      return true;
+    }) as typeof socket.write;
+    const handled = http.handleUpgrade(
+      fakeRequest('/collab', { headers: { cookie: 'gq_view=plan', upgrade: 'websocket' } }),
+      socket,
+      Buffer.alloc(0),
+    );
+    expect(handled).toBe(true);
+    expect(written.join('')).toContain('503');
+
+    resolve();
+    await publishing;
+    const after = await call('/api/gitquire/drafts/current', {
+      headers: { cookie: 'gq_view=plan' },
+    });
+    expect(after.json()).toMatchObject({ closing: false });
+  });
+
+  it('says an open draft that nobody is closing is not closing', async () => {
+    await service.create(ALICE, 'Plan');
+    const current = await call('/api/gitquire/drafts/current', {
+      headers: { cookie: 'gq_view=plan' },
+    });
+    expect(current.json()).toMatchObject({ viewing: { slug: 'plan' }, closing: false });
+  });
+
   it('keeps the agent setting per person', async () => {
     const put = await call('/api/gitquire/drafts/agent-mode', {
       method: 'PUT',
@@ -251,6 +305,46 @@ describe('drafts HTTP', () => {
       headers: { 'mcp-session-id': 'session-in-live' },
     });
     expect(startedLive.handled).toBe(false);
+  });
+
+  it('follows the AI chat when it asks for the live wiki, even with a draft open', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    await call('/api/gitquire/drafts', { headers: { cookie: 'gq_view=plan' } });
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: { ...internalRequestHeaders(), 'x-gitquire-edits': 'live' },
+    });
+    expect(out.handled).toBe(false);
+  });
+
+  it('follows the AI chat when it asks for a draft, whatever the setting says', async () => {
+    agent = ALICE;
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: { ...internalRequestHeaders(), 'x-gitquire-edits': 'draft' },
+    });
+    expect(out.handled).toBe(true);
+    expect(service.list().some((draft) => draft.agent)).toBe(true);
+    expect(service.agentMode(ALICE.id)).toBe('live');
+  });
+
+  it('puts the AI chat into the draft its person has open when it asks for a draft', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    await call('/api/gitquire/drafts', { headers: { cookie: 'gq_view=plan' } });
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: { ...internalRequestHeaders(), 'x-gitquire-edits': 'draft' },
+    });
+    expect(out.body).toBe('draft instance saw /mcp');
+    expect(service.list().some((draft) => draft.agent)).toBe(false);
+  });
+
+  it('ignores an edit choice that does not come from GitQuire itself', async () => {
+    agent = ALICE;
+    const out = await call('/mcp', { method: 'POST', headers: { 'x-gitquire-edits': 'draft' } });
+    expect(out.handled).toBe(false);
   });
 
   it('puts a new session into the assistant draft when asked from the live wiki', async () => {

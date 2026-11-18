@@ -31,6 +31,9 @@ msgstr ".gitquire folders"
 msgid "\"{0}\" is live."
 msgstr "\"{0}\" is live."
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr "\"{0}\" is live. You are now on the live wiki."
+
 msgid "\"{0}\" is ready for review."
 msgstr "\"{0}\" is ready for review."
 
@@ -40,11 +43,11 @@ msgstr "\"{0}\" is ready for review. {1} will be notified."
 msgid "\"{0}\" was discarded."
 msgstr "\"{0}\" was discarded."
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
-msgstr "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
+msgstr "\"{0}\" was discarded. You are now on the live wiki."
 
-msgid "\"{0}\" was published. You are back on the live wiki."
-msgstr "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
+msgstr "\"{0}\" was published. You are now on the live wiki."
 
 msgid "\"{docName}\" doesn't exist."
 msgstr "\"{docName}\" doesn't exist."
@@ -524,8 +527,11 @@ msgstr "{visibleSummary}. {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, one {# warning} other {# warnings}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
-msgstr "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr "{who} discarded \"{0}\". You are now on the live wiki."
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
+msgstr "{who} published \"{0}\". You are now on the live wiki."
 
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {word} other {words}}"
@@ -2634,6 +2640,9 @@ msgstr "Edits apply live. Light or dark comes from the theme."
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "Edits at the source land here — no copy-paste drift."
+
+msgid "Edits go to:"
+msgstr "Edits go to:"
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."

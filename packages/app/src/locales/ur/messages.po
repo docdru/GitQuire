@@ -31,6 +31,9 @@ msgstr ".gitquire فولڈرز"
 msgid "\"{0}\" is live."
 msgstr ""
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr ""
+
 msgid "\"{0}\" is ready for review."
 msgstr ""
 
@@ -40,10 +43,10 @@ msgstr ""
 msgid "\"{0}\" was discarded."
 msgstr ""
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
 msgstr ""
 
-msgid "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
 msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
@@ -524,7 +527,10 @@ msgstr "{visibleSummary}۔ {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, one {# انتباہ} other {# انتباہات}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr ""
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
 msgstr ""
 
 msgid "{words, plural, one {word} other {words}}"
@@ -2634,6 +2640,9 @@ msgstr "ترامیم فوراً لاگو ہوتی ہیں۔ روشن یا تار�
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "ماخذ پر ہونے والی ترامیم یہاں پہنچتی ہیں — نقل و چسپاں کا کوئی فرق نہیں۔"
+
+msgid "Edits go to:"
+msgstr ""
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "پچھلی بار یہ برانچ کھلی ہونے کے وقت سے {fileName} میں رکھی گئی ترامیم مرج نہیں ہو سکیں، اس لیے فائل کا ورژن رہا۔ وہ ترامیم ٹائم لائن میں ہیں۔"

@@ -24,13 +24,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  type DraftSummary,
-  markDraft,
-  openView,
-  reviewState,
-  updateDraft,
-} from '@/lib/gitquire/drafts-api';
+import { leaveClosedDraft, takeLeaveNotice } from '@/lib/gitquire/draft-handover';
+import { type DraftSummary, markDraft, reviewState, updateDraft } from '@/lib/gitquire/drafts-api';
 import {
   onDraftClosed,
   refreshDrafts,
@@ -43,28 +38,15 @@ import { openDraftDialog } from './draft-dialogs-store';
 import { StatusPill } from './StatusPill';
 
 export function DraftBar() {
-  const { t } = useLingui();
   const { list, current } = useDraftState();
   const viewing = current?.viewing ?? null;
   const drift = current?.drift ?? null;
 
-  useEffect(
-    () =>
-      onDraftClosed((closed) => {
-        const who = closed.closedBy?.name ?? closed.closedBy?.login;
-        const message =
-          closed.status === 'published'
-            ? who === undefined
-              ? t`"${closed.title}" was published. You are back on the live wiki.`
-              : t`${who} published "${closed.title}". You are back on the live wiki.`
-            : t`"${closed.title}" was discarded. You are back on the live wiki.`;
-        toast.info(message, { duration: 6000 });
-        void openView(null)
-          .catch(() => undefined)
-          .then(() => setTimeout(() => reloadIntoView(), 1500));
-      }),
-    [t],
-  );
+  useEffect(() => {
+    const notice = takeLeaveNotice();
+    if (notice !== null) toast.info(notice, { duration: 6000 });
+    return onDraftClosed((closed) => void leaveClosedDraft(closed));
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;

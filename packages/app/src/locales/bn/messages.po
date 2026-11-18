@@ -31,6 +31,9 @@ msgstr ".gitquire ফোল্ডার"
 msgid "\"{0}\" is live."
 msgstr ""
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr ""
+
 msgid "\"{0}\" is ready for review."
 msgstr ""
 
@@ -40,10 +43,10 @@ msgstr ""
 msgid "\"{0}\" was discarded."
 msgstr ""
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
 msgstr ""
 
-msgid "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
 msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
@@ -524,7 +527,10 @@ msgstr "{visibleSummary}। {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, one {# সতর্কতা} other {# সতর্কতা}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr ""
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
 msgstr ""
 
 msgid "{words, plural, one {word} other {words}}"
@@ -2630,6 +2636,9 @@ msgstr "সম্পাদনাগুলি সঙ্গে সঙ্গে প
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "উৎসে করা সম্পাদনা এখানে এসে পড়ে — কপি-পেস্টের কোনো বিচ্যুতি নেই।"
+
+msgid "Edits go to:"
+msgstr ""
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "শেষবার এই ব্রাঞ্চ খোলা থাকার সময় {fileName}-এ রাখা সম্পাদনাগুলো মার্জ করা যায়নি, তাই ফাইলের সংস্করণটি রয়ে গেছে। সেই সম্পাদনাগুলো কালানুক্রমে আছে।"

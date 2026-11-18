@@ -21,6 +21,7 @@ interface Harness {
   routes: ChatRoutes;
   toolCalls: { user: string; name: string; input: Record<string, unknown> }[];
   checkedKeys: string[];
+  opened: (string | undefined)[];
 }
 
 const cleanups: (() => Promise<void> | void)[] = [];
@@ -50,7 +51,12 @@ async function harness(options: {
       options.checkKey?.(key);
     },
   };
-  const openTools: OpenWikiTools = async (user) => ({
+  const opened: Harness['opened'] = [];
+  const openTools: OpenWikiTools = async (user, _port, _signal, edits) => {
+    opened.push(edits);
+    return openedTools(user);
+  };
+  const openedTools = (user: Parameters<OpenWikiTools>[0]) => ({
     specs: [{ name: 'search', description: 'Search', inputSchema: { type: 'object' } }],
     async call(name, input) {
       toolCalls.push({ user: user.login, name, input });
@@ -88,7 +94,7 @@ async function harness(options: {
       }),
   );
   const { port } = server.address() as AddressInfo;
-  return { url: `http://127.0.0.1:${port}`, routes, toolCalls, checkedKeys };
+  return { url: `http://127.0.0.1:${port}`, routes, toolCalls, checkedKeys, opened };
 }
 
 function call(h: Harness, path: string, init: RequestInit & { user?: string } = {}) {
@@ -279,6 +285,55 @@ describe('AI chat routes', () => {
     const bobs = await (await call(h, '/api/gitquire/chat/usage', { user: 'bob' })).json();
     expect(bobs.total).toEqual({ inputTokens: 0, outputTokens: 0 });
     expect((await call(h, '/api/gitquire/chat/usage', {})).status).toBe(401);
+  });
+
+  it('sends the edits of a chat where the person chose, and keeps that choice for the chat', async () => {
+    const answer = {
+      text: 'Done.',
+      toolCalls: [],
+      usage: { inputTokens: 1, outputTokens: 1 },
+      stopReason: 'end' as const,
+    };
+    const h = await harness({ turns: [answer, answer, answer] });
+    await call(h, '/api/gitquire/chat/keys/claude', {
+      method: 'PUT',
+      user: 'alice',
+      body: JSON.stringify({ key: 'sk-ant-key-1234' }),
+    });
+    const first = await events(
+      await call(h, '/api/gitquire/chat/chats/new/messages', {
+        method: 'POST',
+        user: 'alice',
+        body: JSON.stringify({ text: 'Fix the typo', provider: 'claude', edits: 'draft' }),
+      }),
+    );
+    const id = (first[0] as { id: string }).id;
+    await events(
+      await call(h, `/api/gitquire/chat/chats/${id}/messages`, {
+        method: 'POST',
+        user: 'alice',
+        body: JSON.stringify({ text: 'And the title', provider: 'claude' }),
+      }),
+    );
+    expect(h.opened).toEqual(['draft', 'draft']);
+    const saved = await (await call(h, `/api/gitquire/chat/chats/${id}`, { user: 'alice' })).json();
+    expect(saved.chat.edits).toBe('draft');
+
+    await events(
+      await call(h, `/api/gitquire/chat/chats/${id}/messages`, {
+        method: 'POST',
+        user: 'alice',
+        body: JSON.stringify({ text: 'Now live', provider: 'claude', edits: 'live' }),
+      }),
+    );
+    expect(h.opened.at(-1)).toBe('live');
+
+    const bad = await call(h, `/api/gitquire/chat/chats/${id}/messages`, {
+      method: 'POST',
+      user: 'alice',
+      body: JSON.stringify({ text: 'x', provider: 'claude', edits: 'somewhere' }),
+    });
+    expect(bad.status).toBe(400);
   });
 
   it('streams provider errors so the person sees what to do', async () => {

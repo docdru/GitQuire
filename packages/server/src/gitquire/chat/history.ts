@@ -10,6 +10,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
+import type { EditTarget } from '../drafts/model.ts';
 import type { ChatProvider } from './models.ts';
 
 export const CHAT_RETENTION_DAYS = 90;
@@ -56,6 +57,7 @@ export interface ChatRecord {
   updatedAt: string;
   messages: ChatMessage[];
   usage: ChatUsage;
+  edits?: EditTarget;
 }
 
 interface ChatSummary {

@@ -12,10 +12,18 @@ choose **AI chat here in GitQuire**.
 The assistant uses the same wiki tools as connected AI assistants: it searches, reads pages,
 follows links and history, writes new pages and edits, renames or moves existing ones. It cannot
 delete pages, change settings, look into hidden folders such as `.gitquire` or run commands. Every change is saved as your edit and shows up live for
-everyone. While you have a [draft](./drafts.mdx) open, the assistant works in that draft and knows
-its name and branch; if **Put my AI assistant's edits into a draft** is on (Settings → Connect AI),
-its changes go into a draft for you to review first on the live wiki too. Answers appear as they are written, and each step
-shows in the chat, with a link to the page it changed. **Stop** ends the answer at once.
+everyone. Answers appear as they are written, and each step shows in the chat, with a link to the
+page it changed. **Stop** ends the answer at once.
+
+## Where the edits go
+
+When [drafts](./drafts.mdx) are on, the box under a page shows **Edits go to: Live wiki / Draft**
+next to **AI chat here in GitQuire**. **Draft** puts the chat's changes into the draft you have
+open, or, on the live wiki, into the assistant's own draft for you to review and publish.
+**Live wiki** saves them for everyone right away. The switch starts on **Draft** while you have a
+draft open, and otherwise on your **Put my AI assistant's edits into a draft** setting
+(Settings → Connect AI). Changing it applies to the current chat only; a new chat starts from the
+default again. The assistant is told where it works, so it does not ask you.
 
 ## Add your API key
 
