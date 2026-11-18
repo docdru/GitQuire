@@ -429,10 +429,8 @@ export {
   type ProcessStartToken,
   parseProcessStartToken,
   processStartToken,
-  readBootStartedAtMs,
   readProcessStart,
   recordsLockOwner,
-  registerNativeProcessStartReader,
   type UnverifiedLockHolderCause,
 } from './process-identity.ts';
 export {

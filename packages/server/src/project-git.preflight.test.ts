@@ -1,7 +1,7 @@
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../test-support/configure-git-fixture.test-helper.ts';
 import {
   __resetResolveOnPathCacheForTests,
@@ -14,6 +14,17 @@ import {
   withUnusableGitEverywhere,
 } from './git-unusable-setup.test-helper.ts';
 import { ensureProjectGit, ProjectGitInitError } from './project-git.ts';
+
+const hiddenGitFallbacks = vi.hoisted(() => ({ on: false }));
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>();
+  const { existsSyncHidingGitFallbacks } = await import('./git-unusable-setup.test-helper.ts');
+  return {
+    ...actual,
+    existsSync: existsSyncHidingGitFallbacks(actual.existsSync, hiddenGitFallbacks),
+  };
+});
 
 type SetupOutcome =
   | 'succeeded'
@@ -41,7 +52,7 @@ describe('ensureProjectGit — git-preflight at the project-setup boundary (#356
     const project = freshProjectDir();
     let outcome = 'unset';
     try {
-      await withUnusableGitEverywhere(async () => {
+      await withUnusableGitEverywhere(hiddenGitFallbacks, async () => {
         outcome = await runEnsureProjectGit(project);
       });
     } finally {

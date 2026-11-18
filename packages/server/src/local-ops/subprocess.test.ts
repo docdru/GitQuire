@@ -284,86 +284,53 @@ describe('runSubprocess — cliEnv overlay', () => {
   });
 });
 
-describe('buildOverlaidEnv — case handling across the overlay and the PATH composition', () => {
+describe('buildOverlaidEnv', () => {
   const NODE_OPTIONS_VARIANTS = { Node_Options: '--require ./hook.js', node_options: '--inspect' };
 
-  test('win32 deletion removes every inherited casing variant of the key', () => {
+  test('deletion leaves differently-cased variables intact', () => {
     expect(
-      buildOverlaidEnv(
-        { ...NODE_OPTIONS_VARIANTS },
-        { NODE_OPTIONS: undefined },
-        undefined,
-        'win32',
-      ),
-    ).toEqual({});
-  });
-
-  test('non-win32 deletion leaves differently-cased POSIX variables intact', () => {
-    expect(
-      buildOverlaidEnv(
-        { ...NODE_OPTIONS_VARIANTS },
-        { NODE_OPTIONS: undefined },
-        undefined,
-        'linux',
-      ),
+      buildOverlaidEnv({ ...NODE_OPTIONS_VARIANTS }, { NODE_OPTIONS: undefined }, undefined),
     ).toEqual(NODE_OPTIONS_VARIANTS);
   });
 
-  test('win32 assignment replaces a differently-cased inherited key instead of leaving a stale twin', () => {
+  test('assignment keeps a differently-cased variable as a distinct entry', () => {
     expect(
-      buildOverlaidEnv({ Gq_Marker: 'inherited' }, { GQ_MARKER: 'overlay' }, undefined, 'win32'),
-    ).toEqual({ GQ_MARKER: 'overlay' });
-  });
-
-  test('non-win32 assignment keeps a differently-cased POSIX variable as a distinct entry', () => {
-    expect(
-      buildOverlaidEnv({ Gq_Marker: 'inherited' }, { GQ_MARKER: 'overlay' }, undefined, 'linux'),
+      buildOverlaidEnv({ Gq_Marker: 'inherited' }, { GQ_MARKER: 'overlay' }, undefined),
     ).toEqual({ Gq_Marker: 'inherited', GQ_MARKER: 'overlay' });
   });
 
-  test('win32 extraPathDirs folds an inherited Path into one PATH entry and keeps its value', () => {
-    expect(
-      buildOverlaidEnv({ Path: 'C:\\Windows\\System32' }, undefined, ['C:\\git\\cmd'], 'win32'),
-    ).toEqual({ PATH: 'C:\\git\\cmd;C:\\Windows\\System32' });
-  });
-
-  test('non-win32 extraPathDirs reads the exact PATH and leaves a differently-cased Path alone', () => {
-    expect(
-      buildOverlaidEnv({ Path: '/decoy', PATH: '/usr/bin' }, undefined, ['/opt/one'], 'linux'),
-    ).toEqual({ Path: '/decoy', PATH: '/opt/one:/usr/bin' });
+  test('extraPathDirs reads the exact PATH and leaves a differently-cased Path alone', () => {
+    expect(buildOverlaidEnv({ Path: '/decoy', PATH: '/usr/bin' }, undefined, ['/opt/one'])).toEqual(
+      {
+        Path: '/decoy',
+        PATH: '/opt/one:/usr/bin',
+      },
+    );
   });
 
   test('extraPathDirs composes from the overlaid PATH, not the base PATH', () => {
-    expect(
-      buildOverlaidEnv({ PATH: '/base' }, { PATH: '/from/overlay' }, ['/opt/one'], 'linux'),
-    ).toEqual({ PATH: '/opt/one:/from/overlay' });
-  });
-
-  test('win32 extraPathDirs composes from an overlay PATH that folded an inherited Path away', () => {
-    expect(
-      buildOverlaidEnv({ Path: '/base' }, { PATH: '/from/overlay' }, ['/opt/one'], 'win32'),
-    ).toEqual({ PATH: '/opt/one;/from/overlay' });
+    expect(buildOverlaidEnv({ PATH: '/base' }, { PATH: '/from/overlay' }, ['/opt/one'])).toEqual({
+      PATH: '/opt/one:/from/overlay',
+    });
   });
 
   test('extraPathDirs drops empty segments, including an absent base PATH', () => {
-    expect(buildOverlaidEnv({}, undefined, ['', '/opt/only'], 'linux')).toEqual({
-      PATH: '/opt/only',
-    });
+    expect(buildOverlaidEnv({}, undefined, ['', '/opt/only'])).toEqual({ PATH: '/opt/only' });
   });
 
   test('the base environment is copied, not mutated', () => {
     const base = { PATH: '/base', Gq_Marker: 'inherited' };
-    buildOverlaidEnv(base, { GQ_MARKER: 'overlay' }, ['/opt/one'], 'win32');
+    buildOverlaidEnv(base, { GQ_MARKER: 'overlay' }, ['/opt/one']);
     expect(base).toEqual({ PATH: '/base', Gq_Marker: 'inherited' });
   });
 });
 
-describe('runSubprocess — the win32-folded environment reaches the child', () => {
+describe('runSubprocess — the environment reaches the child', () => {
   const caseVariantsCli = fixtureCli(
     `process.stdout.write(JSON.stringify(Object.fromEntries(Object.entries(process.env).filter(([k]) => k.toLowerCase() === 'gq_test_case_marker'))))`,
   );
 
-  test('win32 assignment hands the child one folded key, not a stale twin', async () => {
+  test('both inherited casings are kept, so the overlay adds rather than folds', async () => {
     const previous = process.env.Gq_Test_Case_Marker;
     process.env.Gq_Test_Case_Marker = 'inherited';
     try {
@@ -371,44 +338,20 @@ describe('runSubprocess — the win32-folded environment reaches the child', () 
       const proc = runSubprocess({
         cliArgs: caseVariantsCli,
         cliEnv: { GQ_TEST_CASE_MARKER: 'overlay' },
-        platform: 'win32',
         trailingArgs: [],
         timeoutMs: 5000,
         onLine: (line) => lines.push(line),
       });
       await proc.done;
-      expect(lines[0]?.parsed).toEqual({ GQ_TEST_CASE_MARKER: 'overlay' });
+      expect(lines[0]?.parsed).toEqual({
+        Gq_Test_Case_Marker: 'inherited',
+        GQ_TEST_CASE_MARKER: 'overlay',
+      });
     } finally {
       if (previous === undefined) delete process.env.Gq_Test_Case_Marker;
       else process.env.Gq_Test_Case_Marker = previous;
     }
   });
-
-  test.runIf(process.platform !== 'win32')(
-    'POSIX: the default platform keeps both inherited casings, so the overlay adds rather than folds',
-    async () => {
-      const previous = process.env.Gq_Test_Case_Marker;
-      process.env.Gq_Test_Case_Marker = 'inherited';
-      try {
-        const lines: { parsed: Record<string, unknown> | null }[] = [];
-        const proc = runSubprocess({
-          cliArgs: caseVariantsCli,
-          cliEnv: { GQ_TEST_CASE_MARKER: 'overlay' },
-          trailingArgs: [],
-          timeoutMs: 5000,
-          onLine: (line) => lines.push(line),
-        });
-        await proc.done;
-        expect(lines[0]?.parsed).toEqual({
-          Gq_Test_Case_Marker: 'inherited',
-          GQ_TEST_CASE_MARKER: 'overlay',
-        });
-      } finally {
-        if (previous === undefined) delete process.env.Gq_Test_Case_Marker;
-        else process.env.Gq_Test_Case_Marker = previous;
-      }
-    },
-  );
 });
 
 describe('runSubprocess — synchronous spawn failure', () => {
@@ -475,22 +418,19 @@ describe('runSubprocess — synchronous spawn failure', () => {
     expect(result.stderr).toContain('syscall=spawn');
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'POSIX: a cwd that is a file makes spawn() throw ENOTDIR synchronously',
-    async () => {
-      const proc = runSubprocess({
-        cliArgs: fixtureCli('process.exit(0)'),
-        cwd: fileURLToPath(import.meta.url),
-        trailingArgs: [],
-        timeoutMs: 5000,
-        onLine: () => {},
-      });
-      const result = await proc.done;
-      expect(result.code).toBe(-1);
-      expect(result.stderr).toMatch(/spawn ENOTDIR/);
-      expect(result.timedOut).toBe(false);
-      expect(result.cancelled).toBe(false);
-      expect(() => proc.cancel()).not.toThrow();
-    },
-  );
+  test('a cwd that is a file makes spawn() throw ENOTDIR synchronously', async () => {
+    const proc = runSubprocess({
+      cliArgs: fixtureCli('process.exit(0)'),
+      cwd: fileURLToPath(import.meta.url),
+      trailingArgs: [],
+      timeoutMs: 5000,
+      onLine: () => {},
+    });
+    const result = await proc.done;
+    expect(result.code).toBe(-1);
+    expect(result.stderr).toMatch(/spawn ENOTDIR/);
+    expect(result.timedOut).toBe(false);
+    expect(result.cancelled).toBe(false);
+    expect(() => proc.cancel()).not.toThrow();
+  });
 });
