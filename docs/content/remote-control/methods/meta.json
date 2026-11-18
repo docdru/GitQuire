@@ -2,5 +2,5 @@
   "title": "Deployment methods",
   "icon": "LuBoxes",
   "defaultOpen": true,
-  "pages": ["cli", "docker"]
+  "pages": ["docker"]
 }

@@ -1823,7 +1823,6 @@ export class SyncEngine {
       await execFileAsync('git', ['-c', 'core.autocrlf=false', 'merge', '--ff-only', incoming], {
         cwd: this.projectDir,
         env: handle.env,
-        windowsHide: true,
         timeout: FF_ONLY_TIMEOUT_MS,
       });
       return { ok: true };

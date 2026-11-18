@@ -256,42 +256,39 @@ describe('the process start a shadow lock records for its writer', () => {
   });
 });
 
-describe.skipIf(process.platform === 'win32')(
-  'acquireLock when the recorded pid is held by a process it cannot verify',
-  () => {
-    const owned: OwnedProcess[] = [];
+describe('acquireLock when the recorded pid is held by a process it cannot verify', () => {
+  const owned: OwnedProcess[] = [];
 
-    afterEach(async () => {
-      for (const holder of owned.splice(0)) await stopOwnedProcess(holder);
-    });
+  afterEach(async () => {
+    for (const holder of owned.splice(0)) await stopOwnedProcess(holder);
+  });
 
-    test('rejects a lock whose recorded process start is later than its holder started', async () => {
-      const holder = await startOwnedProcess();
-      owned.push(holder);
-      const shadowDir = resolve(tmpDir, 'shadow');
-      mkdirSync(shadowDir, { recursive: true });
-      const lock: LockMetadata = {
-        pid: holder.pid,
-        hostname: hostname(),
-        startedAt: lockWrittenByRunningProcess(holder),
-        worktreeRoot: '/previous/boot',
-        processStart: processStartTokenOffsetFromOs(holder.pid, 5),
-      };
-      writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(lock), 'utf-8');
-      const warn = vi.spyOn(getLogger('shadow-lock'), 'warn');
+  test('rejects a lock whose recorded process start is later than its holder started', async () => {
+    const holder = await startOwnedProcess();
+    owned.push(holder);
+    const shadowDir = resolve(tmpDir, 'shadow');
+    mkdirSync(shadowDir, { recursive: true });
+    const lock: LockMetadata = {
+      pid: holder.pid,
+      hostname: hostname(),
+      startedAt: lockWrittenByRunningProcess(holder),
+      worktreeRoot: '/previous/boot',
+      processStart: processStartTokenOffsetFromOs(holder.pid, 5),
+    };
+    writeFileSync(resolve(shadowDir, 'lock'), JSON.stringify(lock), 'utf-8');
+    const warn = vi.spyOn(getLogger('shadow-lock'), 'warn');
 
-      try {
-        expect(() => acquireLock(shadowDir, '/new/boot')).toThrow(/locked by another writer/);
-        expect(warn).toHaveBeenCalledWith(
-          { lockPid: holder.pid, holder: 'unverified', cause: 'process-start-mismatch' },
-          expect.stringContaining(`Could not confirm that pid=${holder.pid}`),
-        );
-      } finally {
-        warn.mockRestore();
-      }
-      const metadata: LockMetadata = JSON.parse(readFileSync(resolve(shadowDir, 'lock'), 'utf-8'));
-      expect(metadata.pid).toBe(holder.pid);
-      expect(ownedProcessHasExited(holder)).toBe(false);
-    });
-  },
-);
+    try {
+      expect(() => acquireLock(shadowDir, '/new/boot')).toThrow(/locked by another writer/);
+      expect(warn).toHaveBeenCalledWith(
+        { lockPid: holder.pid, holder: 'unverified', cause: 'process-start-mismatch' },
+        expect.stringContaining(`Could not confirm that pid=${holder.pid}`),
+      );
+    } finally {
+      warn.mockRestore();
+    }
+    const metadata: LockMetadata = JSON.parse(readFileSync(resolve(shadowDir, 'lock'), 'utf-8'));
+    expect(metadata.pid).toBe(holder.pid);
+    expect(ownedProcessHasExited(holder)).toBe(false);
+  });
+});

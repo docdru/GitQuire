@@ -1,5 +1,4 @@
 import { spawnSync } from 'node:child_process';
-import { withHiddenWindowsConsole } from '../child-process-windows-hide.ts';
 import { getLogger } from '../logger.ts';
 import { asDeclaredGitHubLogin, parseGitRemoteUrl, readOriginRemoteUrl } from './git-context.ts';
 import { redactShareSubprocessStderr } from './publish.ts';
@@ -20,11 +19,11 @@ export interface ResolveGitHubAccountOptions {
 }
 
 const defaultCredentialUrlMatchReader: CredentialUrlMatchReader = (url, cwd) => {
-  const result = spawnSync(
-    'git',
-    ['config', '--get-urlmatch', 'credential', url],
-    withHiddenWindowsConsole({ cwd, encoding: 'utf-8', timeout: 5_000 }),
-  );
+  const result = spawnSync('git', ['config', '--get-urlmatch', 'credential', url], {
+    cwd,
+    encoding: 'utf-8',
+    timeout: 5_000,
+  });
   if (result.error || result.status === null || (result.status !== 0 && result.status !== 1)) {
     log.warn(
       {

@@ -202,9 +202,7 @@ describe('FileBackend', () => {
     expect(await stat.exists()).toBe(true);
     const { statSync } = await import('node:fs');
     const mode = statSync(authFile).mode & 0o777;
-    if (process.platform !== 'win32') {
-      expect(mode).toBe(0o600);
-    }
+    expect(mode).toBe(0o600);
   });
 
   test('file contents are valid YAML with hostname keys', async () => {
@@ -299,40 +297,32 @@ describe.each(authFileWrites)('FileBackend $operation auth.yml write', ({ run })
     },
   );
 
-  test.skipIf(process.platform === 'win32')(
-    'leaves a group-readable auth.yml holding credentials at mode 0600',
-    async () => {
-      chmodSync(authFile, 0o644);
+  test('leaves a group-readable auth.yml holding credentials at mode 0600', async () => {
+    chmodSync(authFile, 0o644);
 
-      await run(new FileBackend(authFile));
+    await run(new FileBackend(authFile));
 
-      expect(await new FileBackend(authFile).get('gitlab.com')).toEqual(
-        SEEDED_ENTRIES['gitlab.com'],
-      );
-      expect((statSync(authFile).mode & 0o777).toString(8)).toBe('600');
-    },
-  );
+    expect(await new FileBackend(authFile).get('gitlab.com')).toEqual(SEEDED_ENTRIES['gitlab.com']);
+    expect((statSync(authFile).mode & 0o777).toString(8)).toBe('600');
+  });
 
-  test.skipIf(process.platform === 'win32')(
-    'puts credential bytes only into files without group or other permission bits',
-    async () => {
-      chmodSync(authFile, 0o644);
-      const writes: RecordedWrite[] = [];
-      fsSeam.writes = writes;
+  test('puts credential bytes only into files without group or other permission bits', async () => {
+    chmodSync(authFile, 0o644);
+    const writes: RecordedWrite[] = [];
+    fsSeam.writes = writes;
 
-      await run(new FileBackend(authFile));
+    await run(new FileBackend(authFile));
 
-      const holdingCredentials = writes.filter((write) =>
-        CREDENTIAL_TOKENS.some((token) => write.text.includes(token)),
-      );
-      expect(holdingCredentials.length).toBeGreaterThan(0);
-      expect(
-        holdingCredentials
-          .filter((write) => (write.mode & 0o077) !== 0)
-          .map((write) => `${basename(write.path)} mode ${write.mode.toString(8)}`),
-      ).toEqual([]);
-    },
-  );
+    const holdingCredentials = writes.filter((write) =>
+      CREDENTIAL_TOKENS.some((token) => write.text.includes(token)),
+    );
+    expect(holdingCredentials.length).toBeGreaterThan(0);
+    expect(
+      holdingCredentials
+        .filter((write) => (write.mode & 0o077) !== 0)
+        .map((write) => `${basename(write.path)} mode ${write.mode.toString(8)}`),
+    ).toEqual([]);
+  });
 });
 
 describe('createTokenStore', () => {
@@ -555,10 +545,8 @@ describe('createTokenStore fallback to FileBackend', () => {
 
     const { statSync, existsSync } = await import('node:fs');
     expect(existsSync(authFile)).toBe(true);
-    if (process.platform !== 'win32') {
-      const mode = statSync(authFile).mode & 0o777;
-      expect(mode).toBe(0o600);
-    }
+    const mode = statSync(authFile).mode & 0o777;
+    expect(mode).toBe(0o600);
   });
 
   test('FileBackend fallback round-trip works via clear()', async () => {

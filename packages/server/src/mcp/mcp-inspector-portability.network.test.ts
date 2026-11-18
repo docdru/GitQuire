@@ -137,7 +137,6 @@ async function runInspector(
       detached: process.platform !== 'win32',
       stdio: ['ignore', 'pipe', 'pipe'],
       env: inspectorEnv(stateDir),
-      windowsHide: true,
     },
   );
   const started = Date.now();

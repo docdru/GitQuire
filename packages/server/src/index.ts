@@ -82,10 +82,6 @@ export {
   SYSTEM_DOC_NAME,
 } from './cc1-broadcast.ts';
 export {
-  type HiddenWindowsConsoleOptions,
-  withHiddenWindowsConsole,
-} from './child-process-windows-hide.ts';
-export {
   type CollaborationHost,
   type CollaborationHostOptions,
   createCollaborationHost,
@@ -429,10 +425,8 @@ export {
   type ProcessStartToken,
   parseProcessStartToken,
   processStartToken,
-  readBootStartedAtMs,
   readProcessStart,
   recordsLockOwner,
-  registerNativeProcessStartReader,
   type UnverifiedLockHolderCause,
 } from './process-identity.ts';
 export {

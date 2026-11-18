@@ -15,10 +15,7 @@ import {
   ShareTargetStatusRequestSchema,
   ShareTargetStatusResponseSchema,
 } from '@gitquire/core';
-import {
-  LOCAL_OP_PIPE_STDIO_OPTIONS,
-  withHiddenWindowsConsole,
-} from '../child-process-windows-hide.ts';
+import { LOCAL_OP_PIPE_STDIO_OPTIONS } from '../child-process-options.ts';
 import { isValidBranchInfoPath } from '../git-branch-info.ts';
 import type { ConcurrencyGuard } from '../local-op-security.ts';
 import type { PinoLogger } from '../logger.ts';
@@ -343,14 +340,10 @@ export function createShareRoutes(deps: ShareRouteDeps): ApiRouteGroup {
     const invocation = okCli.spawn(args, process.env);
     if ('refused' in invocation) throw new Error(invocation.refused);
     return await new Promise<{ stdout: string; code: number | null }>((resolveSpawn, reject) => {
-      const child = spawn(
-        invocation.command,
-        invocation.args,
-        withHiddenWindowsConsole({
-          ...LOCAL_OP_PIPE_STDIO_OPTIONS,
-          env: invocation.env,
-        }),
-      );
+      const child = spawn(invocation.command, invocation.args, {
+        ...LOCAL_OP_PIPE_STDIO_OPTIONS,
+        env: invocation.env,
+      });
       let settled = false;
       const killTimer = setTimeout(() => {
         if (settled) return;

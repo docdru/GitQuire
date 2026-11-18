@@ -1,10 +1,9 @@
 import { defineConfig, type ViteUserConfig } from 'vitest/config';
+import { DurationShardSequencer } from './tests/duration-shards';
 import { appVitestConfig } from './vitest.config';
+import { INTEGRATION_INCLUDE, INTEGRATION_ONLY_EXCLUDE } from './vitest.integration-files';
 
-export const WORKER_LIFETIME_TESTS = [
-  'tests/meta/worker-server-lifetime.test.ts',
-  'tests/meta/standalone-prebuilt-worker-lifetime.test.ts',
-];
+export { WORKER_LIFETIME_TESTS } from './vitest.integration-files';
 
 // `per-session-um-perf` is held out here because it is a perf tier with its own
 // 60s-budget `test:perf:sessions` script. Bun's
@@ -16,12 +15,9 @@ export const appIntegrationVitestConfig = {
   ...appVitestConfig,
   test: {
     ...appVitestConfig.test,
-    include: ['tests/integration/**/*.test.ts?(x)', 'tests/meta/**/*.test.ts?(x)'],
-    exclude: [
-      ...appVitestConfig.test.exclude,
-      '**/per-session-um-perf.test.ts',
-      ...WORKER_LIFETIME_TESTS,
-    ],
+    include: [...INTEGRATION_INCLUDE],
+    exclude: [...appVitestConfig.test.exclude, ...INTEGRATION_ONLY_EXCLUDE],
+    sequence: { sequencer: DurationShardSequencer },
     // Per-test / per-hook budget for the CRDT convergence suite, carried over
     // from the bun `--timeout 30000`. Declared here (not only inherited) so the
     // CI test-coverage meta-guard reads it directly off this config.

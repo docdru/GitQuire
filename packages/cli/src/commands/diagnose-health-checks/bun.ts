@@ -1,5 +1,4 @@
 import { spawnSync } from 'node:child_process';
-import { withHiddenWindowsConsole } from '@gitquire/server';
 import type { CheckDefinition, CheckResult } from './types.ts';
 
 interface BunCheckDeps {
@@ -9,15 +8,11 @@ interface BunCheckDeps {
 const PROBE_TIMEOUT_MS = 5000;
 
 function defaultProbe(): { ok: boolean; version?: string; error?: string } {
-  const result = spawnSync(
-    'bun',
-    ['--version'],
-    withHiddenWindowsConsole({
-      encoding: 'utf-8',
-      timeout: PROBE_TIMEOUT_MS,
-      env: { ...process.env, LANG: 'C', LC_ALL: 'C' },
-    }),
-  );
+  const result = spawnSync('bun', ['--version'], {
+    encoding: 'utf-8',
+    timeout: PROBE_TIMEOUT_MS,
+    env: { ...process.env, LANG: 'C', LC_ALL: 'C' },
+  });
   if (result.error) return { ok: false, error: result.error.message };
   if (result.signal === 'SIGTERM') {
     return { ok: false, error: 'probe timed out' };

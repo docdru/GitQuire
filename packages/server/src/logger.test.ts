@@ -114,7 +114,6 @@ describe('Logger', () => {
       tmp = join(fixtureDir, 'project');
       mkdirSync(tmp);
       vi.stubEnv('HOME', join(fixtureDir, 'home'));
-      vi.stubEnv('USERPROFILE', join(fixtureDir, 'home'));
     });
     afterEach(() => {
       vi.unstubAllEnvs();
@@ -185,7 +184,7 @@ describe('Logger', () => {
       await logger.flushFileSink();
 
       expect(existsSync(logsDir)).toBe(true);
-      if (process.platform !== 'win32') expect(statSync(logsDir).mode & 0o777).toBe(0o700);
+      expect(statSync(logsDir).mode & 0o777).toBe(0o700);
       expect(existsSync(logsCurrentPath(tmp))).toBe(true);
     });
 

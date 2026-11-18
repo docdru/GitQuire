@@ -115,7 +115,6 @@ async function terminateTree(child: ChildProcess, graceMs: number): Promise<bool
         spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
           stdio: 'ignore',
           shell: false,
-          windowsHide: true,
         }).unref();
       } catch {
         try {

@@ -18,7 +18,6 @@ async function execForStdout(
     execFileAsync(cmd, args, {
       encoding: 'utf-8',
       timeout: timeoutMs,
-      windowsHide: true,
     });
   const { stdout } = await (lifetime ? lifetime.execFile(launch) : launch());
   return stdout;

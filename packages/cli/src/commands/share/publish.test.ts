@@ -391,7 +391,6 @@ describe('runPublishFlow (e2e against bare repo)', () => {
     const saved: Record<string, string | undefined> = {};
     const overrides: Record<string, string> = {
       HOME: emptyHome,
-      USERPROFILE: emptyHome,
       XDG_CONFIG_HOME: join(emptyHome, '.config'),
       GIT_AUTHOR_NAME: 'EnvOnly',
       GIT_AUTHOR_EMAIL: 'env-only@example.com',

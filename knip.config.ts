@@ -27,7 +27,6 @@ export default {
   ignoreBinaries: [
     'ps', // process listing — diagnose.ts, process-scan.ts
     'lsof', // open-file listing — diagnose.ts, process-scan.ts
-    'pgrep', // process lookup — process-scan.ts
     'taskkill', // Windows process-tree termination — mcp/npm-child.test-helper.ts
     'mkfifo', // named-pipe creation — file-watcher-recheck.test.ts
   ],

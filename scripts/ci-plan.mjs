@@ -49,7 +49,7 @@ export const ROWS = [
   },
 ];
 
-export const STACKED_DROPS = [DOCKER, 'app-integration'];
+export const STACKED_DROPS = [DOCKER];
 
 export function readSuites(file = SUITES_FILE) {
   return JSON.parse(readFileSync(file, 'utf8'));

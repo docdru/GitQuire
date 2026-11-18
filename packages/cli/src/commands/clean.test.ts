@@ -358,7 +358,7 @@ describe('runClean over a lock whose recorded process has exited but is unreaped
     root = undefined;
   });
 
-  test.skipIf(process.platform === 'win32')('prunes it, as a crash-stale lock', async () => {
+  test('prunes it, as a crash-stale lock', async () => {
     root = realpathSync(mkdtempSync(join(tmpdir(), 'ok-clean-defunct-')));
     const defunct = await startDefunctProcess(root, children);
     expect(defunct.state).toMatch(/^Z/);

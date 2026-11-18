@@ -24,7 +24,7 @@ export function listUncachedTestFiles(root: string): string[] {
       '--',
       ':(glob)**/*.uncached.*',
     ],
-    { cwd: root, encoding: 'utf8', env: gitCleanEnv(), windowsHide: true },
+    { cwd: root, encoding: 'utf8', env: gitCleanEnv() },
   );
   if (listed.error || listed.status !== 0) {
     throw new Error(

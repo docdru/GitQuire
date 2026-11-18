@@ -508,29 +508,26 @@ describe('readWorktreeStatus — the panel listing is trustworthy', () => {
     expect(after.mtimeNs).toBe(before.mtimeNs);
   });
 
-  test.skipIf(process.platform === 'win32')(
-    'a git that never answers is cut off by the read timeout and reports an unreadable tree',
-    async () => {
-      const project = await seededRepo();
-      const shimDir = join(dir, 'shim');
-      mkdirSync(shimDir, { recursive: true });
-      writeFileSync(join(shimDir, 'git'), '#!/bin/sh\nexec sleep 5\n');
-      chmodSync(join(shimDir, 'git'), 0o755);
-      const realPath = process.env.PATH;
-      process.env.PATH = `${shimDir}${delimiter}${realPath ?? ''}`;
+  test('a git that never answers is cut off by the read timeout and reports an unreadable tree', async () => {
+    const project = await seededRepo();
+    const shimDir = join(dir, 'shim');
+    mkdirSync(shimDir, { recursive: true });
+    writeFileSync(join(shimDir, 'git'), '#!/bin/sh\nexec sleep 5\n');
+    chmodSync(join(shimDir, 'git'), 0o755);
+    const realPath = process.env.PATH;
+    process.env.PATH = `${shimDir}${delimiter}${realPath ?? ''}`;
 
-      try {
-        const status = await readWorktreeStatus(project, () => true, undefined, {
-          timeoutMs: 250,
-        });
+    try {
+      const status = await readWorktreeStatus(project, () => true, undefined, {
+        timeoutMs: 250,
+      });
 
-        expect(status.readable).toBe(false);
-        expect(status.staged).toEqual([]);
-      } finally {
-        process.env.PATH = realPath;
-      }
-    },
-  );
+      expect(status.readable).toBe(false);
+      expect(status.staged).toEqual([]);
+    } finally {
+      process.env.PATH = realPath;
+    }
+  });
 
   test('the default read timeout stays far below the sync engine block budget', async () => {
     const project = await seededRepo();
@@ -657,77 +654,75 @@ describe('readWorktreeStatus — the panel listing is trustworthy', () => {
     }
   });
 
-  test.skipIf(process.platform === 'win32')(
-    'aborting a read that is already spawned kills the git process and stays out of the support grep',
-    async ({ onTestFinished }) => {
-      const project = await seededRepo();
-      const shimDir = join(dir, 'abort-shim');
-      mkdirSync(shimDir, { recursive: true });
-      const pidFile = join(shimDir, 'pids');
-      writeFileSync(
-        join(shimDir, 'git'),
-        `#!/bin/sh\necho $$ >> "${pidFile}"\necho ready\nexec sleep 10\n`,
-      );
-      chmodSync(join(shimDir, 'git'), 0o755);
-      const realPath = process.env.PATH;
-      process.env.PATH = `${shimDir}${delimiter}${realPath ?? ''}`;
+  test('aborting a read that is already spawned kills the git process and stays out of the support grep', async ({
+    onTestFinished,
+  }) => {
+    const project = await seededRepo();
+    const shimDir = join(dir, 'abort-shim');
+    mkdirSync(shimDir, { recursive: true });
+    const pidFile = join(shimDir, 'pids');
+    writeFileSync(
+      join(shimDir, 'git'),
+      `#!/bin/sh\necho $$ >> "${pidFile}"\necho ready\nexec sleep 10\n`,
+    );
+    chmodSync(join(shimDir, 'git'), 0o755);
+    const realPath = process.env.PATH;
+    process.env.PATH = `${shimDir}${delimiter}${realPath ?? ''}`;
 
-      const logger = getLogger('git-worktree-status');
-      const reported: Record<string, unknown>[] = [];
-      const errorSpy = vi.spyOn(logger, 'error').mockImplementation(((data: unknown) => {
-        reported.push((data ?? {}) as Record<string, unknown>);
-      }) as never);
-      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(((data: unknown) => {
-        reported.push((data ?? {}) as Record<string, unknown>);
-      }) as never);
-      gitInstanceAbortSignals.length = 0;
-      const controller = new AbortController();
-      const started = Promise.withResolvers<void>();
-      gitProcessReady.resolve = started.resolve;
-      const pending = readWorktreeStatus(project, () => true, undefined, {
-        timeoutMs: 30_000,
-        abortSignal: controller.signal,
-      }).then(
-        (value) => ({ ok: true as const, value }),
-        (err: unknown) => ({ ok: false as const, err }),
-      );
+    const logger = getLogger('git-worktree-status');
+    const reported: Record<string, unknown>[] = [];
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(((data: unknown) => {
+      reported.push((data ?? {}) as Record<string, unknown>);
+    }) as never);
+    const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(((data: unknown) => {
+      reported.push((data ?? {}) as Record<string, unknown>);
+    }) as never);
+    gitInstanceAbortSignals.length = 0;
+    const controller = new AbortController();
+    const started = Promise.withResolvers<void>();
+    gitProcessReady.resolve = started.resolve;
+    const pending = readWorktreeStatus(project, () => true, undefined, {
+      timeoutMs: 30_000,
+      abortSignal: controller.signal,
+    }).then(
+      (value) => ({ ok: true as const, value }),
+      (err: unknown) => ({ ok: false as const, err }),
+    );
 
-      onTestFinished(async () => {
-        controller.abort();
-        await pending;
-        gitProcessReady.resolve = undefined;
-        process.env.PATH = realPath;
-        errorSpy.mockRestore();
-        warnSpy.mockRestore();
-      });
-
-      await Promise.race([
-        started.promise,
-        pending.then((outcome) => {
-          throw new Error('Git read finished before helper readiness', {
-            cause: { outcome, reported },
-          });
-        }),
-      ]);
-      const spawnedPids = readSpawnedPids(pidFile);
-      expect(spawnedPids.length).toBeGreaterThan(0);
-      expect(spawnedPids.every(isProcessAlive)).toBe(true);
-      expect(controller.signal.aborted).toBe(false);
-
+    onTestFinished(async () => {
       controller.abort();
-      const settled = await Promise.race([
-        pending,
-        new Promise<'still-running'>((resolve) => setTimeout(() => resolve('still-running'), 4000)),
-      ]);
+      await pending;
+      gitProcessReady.resolve = undefined;
+      process.env.PATH = realPath;
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    });
 
-      expect(settled).not.toBe('still-running');
-      expect(settled).toMatchObject({ ok: true, value: { readable: false } });
-      expect(gitInstanceAbortSignals.some((s) => s?.aborted === true)).toBe(true);
-      expect(reported).toEqual([]);
-      expect(readSpawnedPids(pidFile).filter(isProcessAlive)).toEqual([]);
-    },
-    20_000,
-  );
+    await Promise.race([
+      started.promise,
+      pending.then((outcome) => {
+        throw new Error('Git read finished before helper readiness', {
+          cause: { outcome, reported },
+        });
+      }),
+    ]);
+    const spawnedPids = readSpawnedPids(pidFile);
+    expect(spawnedPids.length).toBeGreaterThan(0);
+    expect(spawnedPids.every(isProcessAlive)).toBe(true);
+    expect(controller.signal.aborted).toBe(false);
+
+    controller.abort();
+    const settled = await Promise.race([
+      pending,
+      new Promise<'still-running'>((resolve) => setTimeout(() => resolve('still-running'), 4000)),
+    ]);
+
+    expect(settled).not.toBe('still-running');
+    expect(settled).toMatchObject({ ok: true, value: { readable: false } });
+    expect(gitInstanceAbortSignals.some((s) => s?.aborted === true)).toBe(true);
+    expect(reported).toEqual([]);
+    expect(readSpawnedPids(pidFile).filter(isProcessAlive)).toEqual([]);
+  }, 20_000);
 
   test('a signal already aborted when the read starts never spawns git and stays quiet', async () => {
     const project = await seededRepo();

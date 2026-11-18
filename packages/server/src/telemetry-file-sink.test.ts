@@ -34,7 +34,6 @@ beforeEach(() => {
   tmp = join(fixtureRoot, 'project');
   mkdirSync(tmp);
   vi.stubEnv('HOME', join(fixtureRoot, 'home'));
-  vi.stubEnv('USERPROFILE', join(fixtureRoot, 'home'));
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -130,7 +129,7 @@ describe('FileSpanExporter', () => {
     await provider.forceFlush();
 
     expect(existsSync(telemetryDir)).toBe(true);
-    if (process.platform !== 'win32') expect(statSync(telemetryDir).mode & 0o777).toBe(0o700);
+    expect(statSync(telemetryDir).mode & 0o777).toBe(0o700);
     expect(existsSync(spansCurrentPath(tmp))).toBe(true);
 
     await provider.shutdown();
@@ -339,7 +338,7 @@ describe('RotatingAppender (shared rotation primitive)', () => {
     await expect(appender.append('after reactivation\n')).resolves.toBeUndefined();
     await appender.drain();
     expect(readFileSync(currentPath, 'utf8')).toBe('after reactivation\n');
-    if (process.platform !== 'win32') expect(statSync(namespace).mode & 0o777).toBe(0o700);
+    expect(statSync(namespace).mode & 0o777).toBe(0o700);
   });
 
   test('appends bytes, creates parent dir lazily, and rotates over cap', async () => {

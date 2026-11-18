@@ -3,10 +3,7 @@ import { existsSync, lstatSync, readdirSync } from 'node:fs';
 import { realpath } from 'node:fs/promises';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import type { Readable } from 'node:stream';
-import {
-  LOCAL_OP_PIPE_STDIO_OPTIONS,
-  withHiddenWindowsConsole,
-} from './child-process-windows-hide.ts';
+import { LOCAL_OP_PIPE_STDIO_OPTIONS } from './child-process-options.ts';
 import { isValidLockPid, type ProcessLiveness, readProcessLiveness } from './process-alive.ts';
 
 const SPAWN_TIMEOUT_MS = 2000;
@@ -15,9 +12,6 @@ const LOCK_SCAN_MAX_ENTRIES = 2000;
 const GQ_LOCK_DIR_ARG_PREFIX = '--gq-lock-dir-b64=';
 const GQ_PROJECT_PATH_ARG_PREFIX = '--gq-project-path=';
 const LISTENER_QUERY_ARGS = ['-iTCP', '-sTCP:LISTEN', '-nP'];
-const GQ_PROCESS_PGREP_QUERY =
-  'cli\\.mjs|open-knowledge|Open ?Knowledge(\\.app| Helper)|--gq-lock-dir-b64=|--gq-project-path=|(^|[ /])ok[ ]+(start|mcp|ui)([ ]|$)|packages/(cli|app)|hocuspocus|vite';
-
 const GQ_PROCESS_PATTERNS: RegExp[] = [
   /^open-knowledge-server(?:\s|$)/,
   /cli\.mjs/,
@@ -65,23 +59,6 @@ interface GqProcessEntry {
   command: string;
 }
 
-function parsePgrepOutput(output: string): GqProcessEntry[] {
-  const entries: GqProcessEntry[] = [];
-  for (const line of output.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    const spaceIdx = trimmed.indexOf(' ');
-    if (spaceIdx === -1) continue;
-    const pidStr = trimmed.slice(0, spaceIdx);
-    const command = trimmed.slice(spaceIdx + 1);
-    const pid = Number.parseInt(pidStr, 10);
-    if (!Number.isNaN(pid) && isOkProcess(command)) {
-      entries.push({ pid, command });
-    }
-  }
-  return entries;
-}
-
 interface ListingResult {
   code: number | null;
   signal: NodeJS.Signals | null;
@@ -97,20 +74,16 @@ function readCommandLines(
   onLine: (line: string) => void,
 ): Promise<ListingResult> {
   return new Promise((resolveResult, reject) => {
-    const child = spawn(
-      program,
-      args,
-      withHiddenWindowsConsole({
-        ...LOCAL_OP_PIPE_STDIO_OPTIONS,
-        timeout: SPAWN_TIMEOUT_MS,
-        env: {
-          ...process.env,
-          LC_CTYPE: process.env.LC_ALL || process.env.LC_CTYPE,
-          LC_ALL: undefined,
-          LC_MESSAGES: 'C',
-        },
-      }),
-    );
+    const child = spawn(program, args, {
+      ...LOCAL_OP_PIPE_STDIO_OPTIONS,
+      timeout: SPAWN_TIMEOUT_MS,
+      env: {
+        ...process.env,
+        LC_CTYPE: process.env.LC_ALL || process.env.LC_CTYPE,
+        LC_ALL: undefined,
+        LC_MESSAGES: 'C',
+      },
+    });
     let hasStdout = false;
     let hasStderr = false;
     let diagnostic = '';
@@ -193,39 +166,11 @@ async function readPsEntries(args: string[]): Promise<GqProcessEntry[]> {
 
 async function findOkProcessEntries(strict = false): Promise<GqProcessEntry[]> {
   const failures: string[] = [];
-  const unix = process.platform === 'darwin' || process.platform === 'linux';
-  if (!unix) {
-    const pgrepResult = spawnSync(
-      'pgrep',
-      ['-a', '-f', GQ_PROCESS_PGREP_QUERY],
-      withHiddenWindowsConsole({
-        encoding: 'utf-8',
-        timeout: SPAWN_TIMEOUT_MS,
-      }),
-    );
-
-    if (!pgrepResult.error && (pgrepResult.status === 0 || pgrepResult.status === 1)) {
-      const output = pgrepResult.stdout ?? '';
-      const entries = parsePgrepOutput(output);
-      if (entries.length > 0 || output.trim() === '') return entries;
-      failures.push('pgrep: no command rows returned');
-    } else {
-      failures.push(
-        `pgrep: ${pgrepResult.error ? describeListingError(pgrepResult.error) : `exit status ${pgrepResult.status}`}`,
-      );
-    }
-  }
-
-  const formats =
-    process.platform === 'linux'
-      ? [
-          ['-ww', '-A', '-o', 'pid,cmdline'],
-          ['-ww', '-A', '-o', 'pid,args'],
-          ['-A', '-o', 'pid,args'],
-        ]
-      : unix
-        ? [['-ww', '-A', '-o', 'pid,args']]
-        : [['-axo', 'pid,command']];
+  const formats = [
+    ['-ww', '-A', '-o', 'pid,cmdline'],
+    ['-ww', '-A', '-o', 'pid,args'],
+    ['-A', '-o', 'pid,args'],
+  ];
   for (const args of formats) {
     try {
       return await readPsEntries(args);
@@ -265,14 +210,10 @@ export function extractOkBinaryPath(command: string): string | null {
 }
 
 export function processCommand(pid: number): string | null {
-  const result = spawnSync(
-    'ps',
-    ['-p', String(pid), '-o', 'command='],
-    withHiddenWindowsConsole({
-      encoding: 'utf-8',
-      timeout: SPAWN_TIMEOUT_MS,
-    }),
-  );
+  const result = spawnSync('ps', ['-p', String(pid), '-o', 'command='], {
+    encoding: 'utf-8',
+    timeout: SPAWN_TIMEOUT_MS,
+  });
 
   if (result.error != null || !result.stdout) return null;
   return result.stdout.trim() || null;
@@ -284,14 +225,10 @@ export interface ProcessUsage {
 }
 
 export function processUsage(pid: number): ProcessUsage | null {
-  const result = spawnSync(
-    'ps',
-    ['-p', String(pid), '-o', '%cpu=,%mem='],
-    withHiddenWindowsConsole({
-      encoding: 'utf-8',
-      timeout: SPAWN_TIMEOUT_MS,
-    }),
-  );
+  const result = spawnSync('ps', ['-p', String(pid), '-o', '%cpu=,%mem='], {
+    encoding: 'utf-8',
+    timeout: SPAWN_TIMEOUT_MS,
+  });
 
   if (result.error != null || !result.stdout) return null;
   const [cpuRaw, memRaw] = result.stdout.trim().split(/\s+/);
@@ -332,20 +269,13 @@ function reportUnreadableState(
 }
 
 export function readProcessState(pid: number, options: ProcessProbeOptions = {}): ProcessState {
-  if (process.platform !== 'darwin' && process.platform !== 'linux') {
-    return { status: 'unreadable', reason: `no process-state query on ${process.platform}` };
-  }
   try {
-    const state = execFileSync(
-      'ps',
-      ['-p', String(pid), '-o', 'stat='],
-      withHiddenWindowsConsole({
-        encoding: 'utf8',
-        ...LOCAL_OP_PIPE_STDIO_OPTIONS,
-        timeout: SPAWN_TIMEOUT_MS,
-        env: { ...process.env, LC_ALL: 'C' },
-      }),
-    );
+    const state = execFileSync('ps', ['-p', String(pid), '-o', 'stat='], {
+      encoding: 'utf8',
+      ...LOCAL_OP_PIPE_STDIO_OPTIONS,
+      timeout: SPAWN_TIMEOUT_MS,
+      env: { ...process.env, LC_ALL: 'C' },
+    });
     return state.trim().startsWith('Z') ? { status: 'defunct' } : { status: 'running' };
   } catch (err: unknown) {
     if (!(err instanceof Error)) return reportUnreadableState(pid, String(err), options);
@@ -398,14 +328,10 @@ function queryPidCwds(pids: readonly number[]): {
   cwds: Map<number, string>;
   queryFailed: boolean;
 } {
-  const result = spawnSync(
-    'lsof',
-    ['-p', pids.join(','), '-a', '-d', 'cwd', '-Fn'],
-    withHiddenWindowsConsole({
-      encoding: 'utf-8',
-      timeout: SPAWN_TIMEOUT_MS,
-    }),
-  );
+  const result = spawnSync('lsof', ['-p', pids.join(','), '-a', '-d', 'cwd', '-Fn'], {
+    encoding: 'utf-8',
+    timeout: SPAWN_TIMEOUT_MS,
+  });
   if (result.error != null) {
     return {
       cwds: new Map(),

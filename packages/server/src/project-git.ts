@@ -2,7 +2,6 @@ import { execFile } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 import {
   assertGitAvailable,
   type GitDetected,
@@ -39,11 +38,7 @@ const FALLBACK_COMMIT_EMAIL = 'noreply@openknowledge.local';
 
 async function hasCommitterIdentity(gitBin: string, cwd: string): Promise<boolean> {
   try {
-    await execFileAsync(
-      gitBin,
-      ['var', 'GIT_COMMITTER_IDENT'],
-      withHiddenWindowsConsole({ cwd, encoding: 'utf-8' }),
-    );
+    await execFileAsync(gitBin, ['var', 'GIT_COMMITTER_IDENT'], { cwd, encoding: 'utf-8' });
     return true;
   } catch {
     return false;
@@ -52,11 +47,10 @@ async function hasCommitterIdentity(gitBin: string, cwd: string): Promise<boolea
 
 async function hasAnyRef(gitBin: string, cwd: string): Promise<boolean> {
   try {
-    const { stdout } = await execFileAsync(
-      gitBin,
-      ['for-each-ref', '--count=1', 'refs/'],
-      withHiddenWindowsConsole({ cwd, encoding: 'utf-8' }),
-    );
+    const { stdout } = await execFileAsync(gitBin, ['for-each-ref', '--count=1', 'refs/'], {
+      cwd,
+      encoding: 'utf-8',
+    });
     return stdout.trim().length > 0;
   } catch (err) {
     log.warn(
@@ -120,7 +114,7 @@ async function createInitialCommit(gitBin: string, cwd: string): Promise<void> {
       ];
 
   try {
-    await execFileAsync(gitBin, args, withHiddenWindowsConsole({ cwd, encoding: 'utf-8' }));
+    await execFileAsync(gitBin, args, { cwd, encoding: 'utf-8' });
     if (!identified) {
       log.info({ path: cwd }, 'created initial commit with fallback identity (git identity unset)');
     }
@@ -131,11 +125,10 @@ async function createInitialCommit(gitBin: string, cwd: string): Promise<void> {
 
 async function isInsideExistingWorkTree(gitBin: string, cwd: string): Promise<boolean> {
   try {
-    const { stdout } = await execFileAsync(
-      gitBin,
-      ['rev-parse', '--is-inside-work-tree'],
-      withHiddenWindowsConsole({ cwd, encoding: 'utf-8' }),
-    );
+    const { stdout } = await execFileAsync(gitBin, ['rev-parse', '--is-inside-work-tree'], {
+      cwd,
+      encoding: 'utf-8',
+    });
     return stdout.trim() === 'true';
   } catch {
     return false;
@@ -212,12 +205,12 @@ export async function ensureProjectGit(projectRoot: string): Promise<EnsureProje
     const { stdout: defaultBranch } = await execFileAsync(
       gitBin,
       ['config', '--default', 'main', '--get', 'init.defaultBranch'],
-      withHiddenWindowsConsole({ cwd: abs, encoding: 'utf-8' }),
+      { cwd: abs, encoding: 'utf-8' },
     );
     const result = await execFileAsync(
       gitBin,
       ['init', `--initial-branch=${defaultBranch.trim()}`, abs],
-      withHiddenWindowsConsole({ encoding: 'utf-8' }),
+      { encoding: 'utf-8' },
     );
     stderr = result.stderr ?? '';
   } catch (err) {

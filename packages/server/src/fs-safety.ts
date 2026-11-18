@@ -180,14 +180,7 @@ export function canonicalRelPathForNewTarget(
   resolvedContentDir: string,
   log: PinoLogger,
   realpath: typeof realpathSync = realpathSync,
-  p: Pick<typeof import('node:path').posix, 'join' | 'relative' | 'dirname' | 'sep'> = {
-    join,
-    relative,
-    dirname,
-    sep,
-  },
 ): string {
-  const toPosix = (s: string): string => s.split(p.sep).join('/');
   let contentRoot: string;
   try {
     contentRoot = realpath(resolvedContentDir);
@@ -199,15 +192,15 @@ export function canonicalRelPathForNewTarget(
   for (;;) {
     try {
       const canonicalAncestor = realpath(cur);
-      const canonicalFull = p.join(canonicalAncestor, p.relative(cur, fullPath));
-      return toPosix(p.relative(contentRoot, canonicalFull));
+      const canonicalFull = join(canonicalAncestor, relative(cur, fullPath));
+      return relative(contentRoot, canonicalFull);
     } catch (err) {
       if (errnoCode(err) !== 'ENOENT') {
         logCanonicalizationFault(log, cur, err);
-        return toPosix(p.relative(contentRoot, fullPath));
+        return relative(contentRoot, fullPath);
       }
-      const parent = p.dirname(cur);
-      if (parent === cur) return toPosix(p.relative(contentRoot, fullPath));
+      const parent = dirname(cur);
+      if (parent === cur) return relative(contentRoot, fullPath);
       cur = parent;
     }
   }

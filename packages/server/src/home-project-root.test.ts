@@ -88,7 +88,7 @@ describe('isFilesystemRoot', () => {
     expect(isFilesystemRoot(dir, 'win32')).toBe(true);
   });
 
-  test.skipIf(process.platform === 'win32').each(['\\\\server\\share', '\\\\server\\share\\'])(
+  test.each(['\\\\server\\share', '\\\\server\\share\\'])(
     'true for the Windows share root %s',
     (dir) => {
       expect(isFilesystemRoot(dir, 'win32')).toBe(true);
@@ -99,7 +99,7 @@ describe('isFilesystemRoot', () => {
     expect(isFilesystemRoot(dir, 'win32')).toBe(false);
   });
 
-  test.skipIf(process.platform === 'win32')('false for a folder inside a Windows share', () => {
+  test('false for a folder inside a Windows share', () => {
     expect(isFilesystemRoot('\\\\server\\share\\notes', 'win32')).toBe(false);
   });
 

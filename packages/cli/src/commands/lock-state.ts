@@ -33,7 +33,6 @@ export type LockState =
 interface InspectLockOptions {
   isAlive?: (pid: number) => boolean;
   readProcessStart?: ProcessStartReader;
-  readBootInstant?: () => number | null;
   host?: string;
   machineId?: string;
 }
@@ -82,7 +81,6 @@ export function inspectLock(
   const assessment = assessLockHolder(lock, {
     isAlive: opts.isAlive,
     readProcessStart: opts.readProcessStart,
-    readBootInstant: opts.readBootInstant,
     sameMachine: hasOwner,
   });
   switch (assessment.verdict) {
@@ -113,36 +111,26 @@ export function describeForeignOwner(lock: ProcessLockMetadata): string {
     : `records only the host ${escapeDisplayPath(lock.hostname)}, not this machine's ${hostname()}`;
 }
 
-function homeFolderVariable(platform: NodeJS.Platform): string {
-  return platform === 'win32' ? 'USERPROFILE' : 'HOME';
-}
-
 function describeMissingProcessStart(lock: ProcessLockMetadata): string {
   return lock.processStart === undefined
     ? ` This lock records no process start; a server started by this release records one, which lets \`${currentCliCommandName()} stop\` confirm it from any home folder.`
     : '';
 }
 
-export function describeOtherHomeFolderRemedy(
-  lock: ProcessLockMetadata,
-  platform: NodeJS.Platform,
-): string {
+export function describeOtherHomeFolderRemedy(lock: ProcessLockMetadata): string {
   const stop = `\`${currentCliCommandName()} stop\``;
   return (
     `If the server was started on this machine from another account, run ${stop} as that account. ` +
-    `If it was started from this account with a different home folder, run ${stop} with \`${homeFolderVariable(platform)}\` set to that folder. ` +
+    `If it was started from this account with a different home folder, run ${stop} with \`HOME\` set to that folder. ` +
     `Otherwise stop it from the machine that owns the lock.${describeMissingProcessStart(lock)}`
   );
 }
 
-function describeOtherHomeFolderCleanupRemedy(
-  lock: ProcessLockMetadata,
-  platform: NodeJS.Platform,
-): string {
+function describeOtherHomeFolderCleanupRemedy(lock: ProcessLockMetadata): string {
   const command = currentCliCommandName();
   return (
     `If the server was started on this machine from another account, run \`${command} stop\` as that account while it is running, or \`${command} clean\` once it has exited. ` +
-    `If it was started from this account with a different home folder, run the same command with \`${homeFolderVariable(platform)}\` set to that folder. ` +
+    `If it was started from this account with a different home folder, run the same command with \`HOME\` set to that folder. ` +
     `Otherwise run the same command on the machine that owns the lock.${describeMissingProcessStart(lock)}`
   );
 }
@@ -156,19 +144,17 @@ function keepTheLockUntilConfirmed(lockPath: string): string {
 
 export function describeForeignHostRemedy(
   state: Extract<LockState, { status: 'foreign-host' }>,
-  platform: NodeJS.Platform = process.platform,
 ): string {
   const { lock, lockPath } = state;
   const remedy =
     typeof lock.machineId === 'string'
-      ? describeOtherHomeFolderCleanupRemedy(lock, platform)
+      ? describeOtherHomeFolderCleanupRemedy(lock)
       : `If ${escapeDisplayPath(lock.hostname)} is another machine, stop GitQuire there; if it is an earlier name of this machine, stop GitQuire here if it is still running.`;
   return `${remedy} ${keepTheLockUntilConfirmed(lockPath)}`;
 }
 
 export function describeLockOwnershipRefusal(
   state: Extract<LockState, { status: 'foreign-host' | 'corrupt' | 'unverified-owner' }>,
-  platform: NodeJS.Platform = process.platform,
 ): string {
   const { lockPath } = state;
   if (state.status === 'unverified-owner') {
@@ -184,5 +170,5 @@ export function describeLockOwnershipRefusal(
       `Stop GitQuire wherever it was started. ${keepTheLockUntilConfirmed(lockPath)}`
     );
   }
-  return `Cannot verify shutdown: the server lock at ${lockPath} ${describeForeignOwner(state.lock)}. ${describeForeignHostRemedy(state, platform)}`;
+  return `Cannot verify shutdown: the server lock at ${lockPath} ${describeForeignOwner(state.lock)}. ${describeForeignHostRemedy(state)}`;
 }

@@ -132,7 +132,7 @@ test('preserves arbitrarily quiet active authority even when every log timestamp
 test('a held canonical authority protects logs after its aliased ephemeral project is removed', () => {
   const realParent = project('real-parent');
   const aliasParent = join(root, 'aliased-parent');
-  symlinkSync(realParent, aliasParent, process.platform === 'win32' ? 'junction' : 'dir');
+  symlinkSync(realParent, aliasParent, 'dir');
   const logicalProject = join(aliasParent, 'ephemeral-project');
   mkdirSync(logicalProject);
   const path = oldNamespace(logicalProject);
@@ -348,7 +348,7 @@ test('preserves symlinked namespaces and unknown contents rather than following 
   const aliasProject = project('alias');
   const alias = okProjectLogsDir(aliasProject, home);
   mkdirSync(join(alias, '..'), { recursive: true });
-  symlinkSync(target, alias, process.platform === 'win32' ? 'junction' : 'dir');
+  symlinkSync(target, alias, 'dir');
   const unknown = oldNamespace(project('unknown'));
   writeFileSync(join(unknown, 'not-an-ok-diagnostic.txt'), 'do not remove');
   const old = eightDaysAgo();

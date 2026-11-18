@@ -63,7 +63,6 @@ describe('detectGh', () => {
     expect(seenOptions).toMatchObject({
       encoding: 'utf-8',
       timeout: 5000,
-      windowsHide: true,
     });
     expect((seenOptions as { stdio?: unknown }).stdio).toEqual(['ignore', 'pipe', 'pipe']);
   });

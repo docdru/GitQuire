@@ -22,7 +22,6 @@ function lint(files) {
     {
       cwd: ROOT,
       encoding: 'utf8',
-      windowsHide: true,
       maxBuffer: 64 * 1024 * 1024,
     },
   );

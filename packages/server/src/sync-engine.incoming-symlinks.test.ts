@@ -305,15 +305,12 @@ describe('SyncEngine refuses incoming symlinks into private state or outside the
     expect(await expectRefusedPull(Object.keys(links))).toEqual(refused);
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'refuses a link that resolves through an untracked on-disk link named like an 8.3 short name',
-    async () => {
-      mkdirSync(join(projectDir, 'notes', 'safe'), { recursive: true });
-      symlinkSync('safe', join(projectDir, 'notes', 'LINK~1'));
-      await pushSymlinks({ 'notes/x.md': 'LINK~1/f.md' });
-      expect(await expectRefusedPull(['notes/x.md'])).toEqual(['notes/x.md']);
-    },
-  );
+  test('refuses a link that resolves through an untracked on-disk link named like an 8.3 short name', async () => {
+    mkdirSync(join(projectDir, 'notes', 'safe'), { recursive: true });
+    symlinkSync('safe', join(projectDir, 'notes', 'LINK~1'));
+    await pushSymlinks({ 'notes/x.md': 'LINK~1/f.md' });
+    expect(await expectRefusedPull(['notes/x.md'])).toEqual(['notes/x.md']);
+  });
 
   test.each([
     ['an 8.3 short name of the git dir', '../GIT~1/config', 'private-state'],
@@ -871,7 +868,7 @@ describe('SyncEngine incoming symlink edge shapes', () => {
     expect(await expectRefusedPull([])).toContain(unsafePath);
   });
 
-  test.runIf(process.platform !== 'win32' && process.getuid?.() !== 0)(
+  test.runIf(process.getuid?.() !== 0)(
     'a component the filesystem refuses to inspect pauses without disabling sync',
     async () => {
       const locked = join(projectDir, 'locked');
@@ -1057,33 +1054,27 @@ describe('SyncEngine incoming symlink edge shapes', () => {
     expect(lstatSync(join(projectDir, 'notes', 'd')).isDirectory()).toBe(true);
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'refuses an existing link through a config-dir short name when a later link on its path changes',
-    async () => {
-      mkdirSync(join(projectDir, 'OK3A7F~1'), { recursive: true });
-      writeFileSync(join(projectDir, 'OK3A7F~1', 'p.md'), '# p\n', 'utf-8');
-      mkdirSync(join(projectDir, 'notes', 'sub'), { recursive: true });
-      writeFileSync(join(projectDir, 'notes', 'sub', 'keep.md'), '# keep\n', 'utf-8');
-      symlinkSync('sub', join(projectDir, 'notes', 'c'));
-      symlinkSync('../OK3A7F~1/../notes/c/../.git/config', join(projectDir, 'notes', 'x.md'));
-      await project.add(['OK3A7F~1', 'notes']);
-      await project.commit('existing link through a short name');
-      await project.push('origin', 'HEAD:main');
-      await sister.pull('origin', 'main');
+  test('refuses an existing link through a config-dir short name when a later link on its path changes', async () => {
+    mkdirSync(join(projectDir, 'OK3A7F~1'), { recursive: true });
+    writeFileSync(join(projectDir, 'OK3A7F~1', 'p.md'), '# p\n', 'utf-8');
+    mkdirSync(join(projectDir, 'notes', 'sub'), { recursive: true });
+    writeFileSync(join(projectDir, 'notes', 'sub', 'keep.md'), '# keep\n', 'utf-8');
+    symlinkSync('sub', join(projectDir, 'notes', 'c'));
+    symlinkSync('../OK3A7F~1/../notes/c/../.git/config', join(projectDir, 'notes', 'x.md'));
+    await project.add(['OK3A7F~1', 'notes']);
+    await project.commit('existing link through a short name');
+    await project.push('origin', 'HEAD:main');
+    await sister.pull('origin', 'main');
 
-      await pushSymlinks({ 'notes/c': '../top' });
-      expect(await expectRefusedPull([])).toContain('notes/x.md');
-    },
-  );
+    await pushSymlinks({ 'notes/c': '../top' });
+    expect(await expectRefusedPull([])).toContain('notes/x.md');
+  });
 
-  test.runIf(process.platform !== 'win32')(
-    'refuses a link that leaves through an outside alias even when it lands somewhere safe inside',
-    async () => {
-      symlinkSync(join(projectDir, 'notes'), join(tmpDir, 'notes-alias'));
-      await pushSymlinks({ 'notes/z.md': '../../notes-alias/real.md' });
-      expect(await expectRefusedPull(['notes/z.md'])).toEqual(['notes/z.md']);
-    },
-  );
+  test('refuses a link that leaves through an outside alias even when it lands somewhere safe inside', async () => {
+    symlinkSync(join(projectDir, 'notes'), join(tmpDir, 'notes-alias'));
+    await pushSymlinks({ 'notes/z.md': '../../notes-alias/real.md' });
+    expect(await expectRefusedPull(['notes/z.md'])).toEqual(['notes/z.md']);
+  });
 
   test('an existing link outside the repository does not block a pull that changes links', async () => {
     mkdirSync(join(projectDir, 'notes'), { recursive: true });
@@ -1099,20 +1090,17 @@ describe('SyncEngine incoming symlink edge shapes', () => {
     expect(readlinkSync(join(projectDir, 'notes', 'other.md'))).toBe('real.md');
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'refuses an existing link through a generic short name on any pull that changes links',
-    async () => {
-      mkdirSync(join(projectDir, 'notes'), { recursive: true });
-      symlinkSync('LINK~1/f.md', join(projectDir, 'notes', 'e.md'));
-      await project.add('notes');
-      await project.commit('existing link through a short name');
-      await project.push('origin', 'HEAD:main');
-      await sister.pull('origin', 'main');
+  test('refuses an existing link through a generic short name on any pull that changes links', async () => {
+    mkdirSync(join(projectDir, 'notes'), { recursive: true });
+    symlinkSync('LINK~1/f.md', join(projectDir, 'notes', 'e.md'));
+    await project.add('notes');
+    await project.commit('existing link through a short name');
+    await project.push('origin', 'HEAD:main');
+    await sister.pull('origin', 'main');
 
-      await pushSymlinks({ 'notes/other.md': 'real.md' });
-      expect(await expectRefusedPull(['notes/other.md'])).toContain('notes/e.md');
-    },
-  );
+    await pushSymlinks({ 'notes/other.md': 'real.md' });
+    expect(await expectRefusedPull(['notes/other.md'])).toContain('notes/e.md');
+  });
 
   test('judges links that resolve through a conflicted link against the version that lands', async () => {
     for (const dir of [
@@ -1536,37 +1524,31 @@ describe('share-link branch switch', () => {
     return ranMarker;
   }
 
-  test.runIf(process.platform !== 'win32')(
-    'a post-checkout hook that fails after the switch reports the switch it made',
-    async () => {
-      await pushSymlinks({ 'notes/link.md': 'real.md' }, 'shared');
-      await sister.raw('reset', '--hard', 'HEAD~1');
-      const ranMarker = installFailingPostCheckoutHook();
+  test('a post-checkout hook that fails after the switch reports the switch it made', async () => {
+    await pushSymlinks({ 'notes/link.md': 'real.md' }, 'shared');
+    await sister.raw('reset', '--hard', 'HEAD~1');
+    const ranMarker = installFailingPostCheckoutHook();
 
-      const outcome = await runCheckoutFlow(projectDir, 'shared', { credentialConfig: [] });
+    const outcome = await runCheckoutFlow(projectDir, 'shared', { credentialConfig: [] });
 
-      expect(existsSync(ranMarker)).toBe(true);
-      expect(outcome).toEqual({ ok: true });
-      expect((await project.raw('symbolic-ref', 'HEAD')).trim()).toBe('refs/heads/shared');
-      expect(readlinkSync(join(projectDir, 'notes', 'link.md'))).toBe('real.md');
-    },
-  );
+    expect(existsSync(ranMarker)).toBe(true);
+    expect(outcome).toEqual({ ok: true });
+    expect((await project.raw('symbolic-ref', 'HEAD')).trim()).toBe('refs/heads/shared');
+    expect(readlinkSync(join(projectDir, 'notes', 'link.md'))).toBe('real.md');
+  });
 
-  test.runIf(process.platform !== 'win32')(
-    'a failed checkout of the branch HEAD is already on is not credited to a hook',
-    async () => {
-      await project.raw('checkout', '-b', 'shared');
-      const head = await headSha();
-      const ranMarker = installFailingPostCheckoutHook();
+  test('a failed checkout of the branch HEAD is already on is not credited to a hook', async () => {
+    await project.raw('checkout', '-b', 'shared');
+    const head = await headSha();
+    const ranMarker = installFailingPostCheckoutHook();
 
-      const outcome = await runCheckoutFlow(projectDir, 'shared', { credentialConfig: [] });
+    const outcome = await runCheckoutFlow(projectDir, 'shared', { credentialConfig: [] });
 
-      expect(existsSync(ranMarker)).toBe(true);
-      expect(outcome).toEqual({ ok: false, reason: 'checkout-failed' });
-      expect((await project.raw('symbolic-ref', 'HEAD')).trim()).toBe('refs/heads/shared');
-      expect(await headSha()).toBe(head);
-    },
-  );
+    expect(existsSync(ranMarker)).toBe(true);
+    expect(outcome).toEqual({ ok: false, reason: 'checkout-failed' });
+    expect((await project.raw('symbolic-ref', 'HEAD')).trim()).toBe('refs/heads/shared');
+    expect(await headSha()).toBe(head);
+  });
 
   test('judges the tree a switch lands, not what a merge of it would keep', async () => {
     await divergedTargetKeepingALinkHeadDeleted();
@@ -1619,88 +1601,76 @@ describe('incoming symlink inspection', () => {
     return (await project.revparse(['refs/remotes/origin/main'])).trim();
   }
 
-  test.runIf(process.platform !== 'win32')(
-    'below the merge-tree Git floor, a three-way pull that changes a link is refused',
-    async () => {
-      const incoming = await divergeWith(() => pushSymlinks({ 'notes/alias.md': 'real.md' }));
-      const failure = await assertIncomingSymlinksSafe(
-        gitReportingVersion('git version 2.34.1'),
-        incoming,
-        'merge',
-      ).then(
-        () => null,
-        (caught: unknown) => caught,
-      );
-      expect(failure).toBeInstanceOf(UnsafeIncomingSymlinkError);
-      expect((failure as UnsafeIncomingSymlinkError).unsafe).toEqual([
-        { path: 'notes/alias.md', reason: 'requires-newer-git' },
-      ]);
-    },
-  );
+  test('below the merge-tree Git floor, a three-way pull that changes a link is refused', async () => {
+    const incoming = await divergeWith(() => pushSymlinks({ 'notes/alias.md': 'real.md' }));
+    const failure = await assertIncomingSymlinksSafe(
+      gitReportingVersion('git version 2.34.1'),
+      incoming,
+      'merge',
+    ).then(
+      () => null,
+      (caught: unknown) => caught,
+    );
+    expect(failure).toBeInstanceOf(UnsafeIncomingSymlinkError);
+    expect((failure as UnsafeIncomingSymlinkError).unsafe).toEqual([
+      { path: 'notes/alias.md', reason: 'requires-newer-git' },
+    ]);
+  });
 
-  test.runIf(process.platform !== 'win32')(
-    'below the merge-tree Git floor, a link changed only locally does not refuse the pull',
-    async () => {
-      const blob = execFileSync('git', ['hash-object', '-w', '--stdin'], {
-        cwd: projectDir,
-        input: 'real.md',
-        encoding: 'utf-8',
-      }).trim();
-      await project.raw('update-index', '--add', '--cacheinfo', `120000,${blob},notes/mine.md`);
-      await project.commit('local link');
-      const incoming = await divergeWith(async () => {
-        writeFileSync(join(sisterDir, 'notes', 'remote.md'), '# remote\n', 'utf-8');
-        await sister.add('notes/remote.md');
-        await sister.commit('remote doc');
-        await sister.push('origin', 'HEAD:main');
-      });
-      await expect(
-        assertIncomingSymlinksSafe(gitReportingVersion('git version 2.34.1'), incoming, 'merge'),
-      ).resolves.toBeUndefined();
-    },
-  );
+  test('below the merge-tree Git floor, a link changed only locally does not refuse the pull', async () => {
+    const blob = execFileSync('git', ['hash-object', '-w', '--stdin'], {
+      cwd: projectDir,
+      input: 'real.md',
+      encoding: 'utf-8',
+    }).trim();
+    await project.raw('update-index', '--add', '--cacheinfo', `120000,${blob},notes/mine.md`);
+    await project.commit('local link');
+    const incoming = await divergeWith(async () => {
+      writeFileSync(join(sisterDir, 'notes', 'remote.md'), '# remote\n', 'utf-8');
+      await sister.add('notes/remote.md');
+      await sister.commit('remote doc');
+      await sister.push('origin', 'HEAD:main');
+    });
+    await expect(
+      assertIncomingSymlinksSafe(gitReportingVersion('git version 2.34.1'), incoming, 'merge'),
+    ).resolves.toBeUndefined();
+  });
 
-  test.runIf(process.platform !== 'win32')(
-    'an unparseable git version still checks through merge-tree',
-    async () => {
-      const incoming = await divergeWith(() => pushSymlinks({ 'notes/leak.md': '../.git/config' }));
-      const failure = await assertIncomingSymlinksSafe(
-        gitReportingVersion('git version unknown-build'),
-        incoming,
-        'merge',
-      ).then(
-        () => null,
-        (caught: unknown) => caught,
-      );
-      expect((failure as UnsafeIncomingSymlinkError).unsafe).toEqual([
-        { path: 'notes/leak.md', reason: 'private-state' },
-      ]);
-    },
-  );
+  test('an unparseable git version still checks through merge-tree', async () => {
+    const incoming = await divergeWith(() => pushSymlinks({ 'notes/leak.md': '../.git/config' }));
+    const failure = await assertIncomingSymlinksSafe(
+      gitReportingVersion('git version unknown-build'),
+      incoming,
+      'merge',
+    ).then(
+      () => null,
+      (caught: unknown) => caught,
+    );
+    expect((failure as UnsafeIncomingSymlinkError).unsafe).toEqual([
+      { path: 'notes/leak.md', reason: 'private-state' },
+    ]);
+  });
 
-  test.runIf(process.platform !== 'win32')(
-    'fails closed on a merge-tree conflict record it cannot parse',
-    async () => {
-      const binary = join(tmpDir, 'stageless-git');
-      writeFileSync(
-        binary,
-        '#!/bin/sh\nif [ "$1" = merge-tree ]; then git "$@" | perl -0pe \'s/ [123]\\t/\\t/g\'; exit 0; fi\nexec git "$@"\n',
-        'utf-8',
-      );
-      execFileSync('chmod', ['755', binary]);
-      await pushSymlinks({ 'notes/alias.md': 'real.md' });
-      await pullWithEngine();
-      rmSync(join(projectDir, 'notes', 'alias.md'));
-      symlinkSync('../.git/config', join(projectDir, 'notes', 'alias.md'));
-      await project.add('notes/alias.md');
-      await project.commit('local link');
-      const incoming = await divergeWith(() => pushSymlinks({ 'notes/alias.md': 'other.md' }));
+  test('fails closed on a merge-tree conflict record it cannot parse', async () => {
+    const binary = join(tmpDir, 'stageless-git');
+    writeFileSync(
+      binary,
+      '#!/bin/sh\nif [ "$1" = merge-tree ]; then git "$@" | perl -0pe \'s/ [123]\\t/\\t/g\'; exit 0; fi\nexec git "$@"\n',
+      'utf-8',
+    );
+    execFileSync('chmod', ['755', binary]);
+    await pushSymlinks({ 'notes/alias.md': 'real.md' });
+    await pullWithEngine();
+    rmSync(join(projectDir, 'notes', 'alias.md'));
+    symlinkSync('../.git/config', join(projectDir, 'notes', 'alias.md'));
+    await project.add('notes/alias.md');
+    await project.commit('local link');
+    const incoming = await divergeWith(() => pushSymlinks({ 'notes/alias.md': 'other.md' }));
 
-      await expect(
-        assertIncomingSymlinksSafe(simpleGit({ baseDir: projectDir, binary }), incoming, 'merge'),
-      ).rejects.toThrow('unparseable git merge-tree record while inspecting incoming symlinks');
-    },
-  );
+    await expect(
+      assertIncomingSymlinksSafe(simpleGit({ baseDir: projectDir, binary }), incoming, 'merge'),
+    ).rejects.toThrow('unparseable git merge-tree record while inspecting incoming symlinks');
+  });
 
   test('refuses to resolve an incoming ref that does not exist', async () => {
     await expect(resolveIncomingCommit(project, 'origin/missing')).rejects.toThrow(

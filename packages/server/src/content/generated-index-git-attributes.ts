@@ -50,7 +50,6 @@ function runGit(cwd: string, args: string[], input?: string): ReturnType<typeof 
     encoding: 'utf-8',
     input,
     timeout: 10_000,
-    windowsHide: true,
   });
 }
 

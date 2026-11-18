@@ -14,7 +14,7 @@ import { basename, dirname, extname, isAbsolute, join, relative, sep } from 'nod
 import { DOCUMENT_OPEN_BYTE_LIMIT, LINKABLE_ASSET_EXTENSIONS } from '@gitquire/core';
 import { filesystemIdentity, statMtime } from '@gitquire/core/server';
 import { isConfigDoc, isReservedForUserTree, isSystemDoc } from './cc1-broadcast.ts';
-import { type ContentFilter, WATCHER_STRUCTURAL_IGNORE_DIRS } from './content-filter.ts';
+import type { ContentFilter } from './content-filter.ts';
 import { isWithinContentDir } from './content-path.ts';
 import { resolveDirectoryRoot, resolveNativePath } from './directory-root.ts';
 import {
@@ -277,7 +277,6 @@ export interface WatcherHandle {
   getFolderIndex: () => ReadonlyMap<string, FolderIndexEntry>;
   getAliasMap: () => ReadonlyMap<string, string>;
   getFolderAliasIndex: () => ReadonlyMap<string, string>;
-  getStructuralIgnoreDirs: () => ReadonlySet<string>;
   mutateFileIndex: (event: DiskEvent) => void;
   pruneFileIndexNowExcluded: () => number;
   pruneFolderIndexNowExcluded: () => number;
@@ -663,49 +662,12 @@ export const lastKnownHash = new Map<string, string>();
 
 const lastKnownStat = new Map<string, string>();
 
-let intakeEpoch = 0;
-let openObservationWindows = 0;
-const intakeEpochByPath = new Map<string, number>();
-
-function noteIntakeMutation(path: string): void {
-  intakeEpoch++;
-  if (openObservationWindows > 0) intakeEpochByPath.set(path, intakeEpoch);
-}
-
-function _openObservationWindow(): number {
-  openObservationWindows++;
-  return intakeEpoch;
-}
-
-function _closeObservationWindow(): void {
-  openObservationWindows--;
-  if (openObservationWindows === 0) intakeEpochByPath.clear();
-}
-
-function changedSince(epoch: number, contentDir: string): ((path: string) => boolean) | undefined {
-  const changed = new Set<string>();
-  for (const [path, at] of intakeEpochByPath) if (at > epoch) changed.add(path);
-  if (changed.size === 0) return undefined;
-  return (path) => {
-    let current = path;
-    while (true) {
-      if (changed.has(current)) return true;
-      if (current === contentDir) return false;
-      const parent = dirname(current);
-      if (parent === current) return false;
-      current = parent;
-    }
-  };
-}
-
 export function updateLastKnownHash(filePath: string, hash: string): void {
-  noteIntakeMutation(filePath);
   lastKnownHash.set(filePath, hash);
   lastKnownStat.delete(filePath);
 }
 
 export function removeLastKnownHash(filePath: string): string | undefined {
-  noteIntakeMutation(filePath);
   const hash = lastKnownHash.get(filePath);
   lastKnownHash.delete(filePath);
   lastKnownStat.delete(filePath);
@@ -1298,7 +1260,6 @@ interface DiskObservation {
   reuse: FreshnessReuse | undefined;
   extensions: Array<{ docName: string; ext: string }>;
   preferredExtensions: Map<string, string>;
-  structuralIgnoreDirs: Set<string>;
   paths: Set<string>;
   complete: boolean;
   stopped?: () => boolean;
@@ -2305,11 +2266,7 @@ async function scanDisk(
       } else if (lst.isDirectory()) {
         const relPath = contentRelativePath(contentDir, fullPath);
         if (contentFilter) {
-          if (!relPath || contentFilter.isDirExcluded(relPath)) {
-            const structural = relPath && structuralIgnoreOccurrence(relPath);
-            if (structural) observation.structuralIgnoreDirs.add(structural);
-            continue;
-          }
+          if (!relPath || contentFilter.isDirExcluded(relPath)) continue;
         }
         upsertFolderIndexEntry(observation.folderIndex, contentDir, fullPath, lst);
         observation.paths.add(fullPath);
@@ -2426,7 +2383,6 @@ async function observeDisk(
     reuse,
     extensions: [],
     preferredExtensions: new Map(),
-    structuralIgnoreDirs: new Set(),
     paths: new Set(),
     complete: true,
     stopped,
@@ -2513,7 +2469,6 @@ function publishDiskObservation(
   folderIndex: Map<string, FolderIndexEntry>,
   aliasMap: Map<string, string>,
   folderAliasIndex: Map<string, string>,
-  structuralIgnoreDirs?: Set<string>,
   publishGeneral = true,
 ): void {
   for (const { docName, ext } of observation.extensions) {
@@ -2544,7 +2499,6 @@ function publishDiskObservation(
   for (const [alias, canonical] of inventory.folderAliasIndex) {
     folderAliasIndex.set(alias, canonical);
   }
-  for (const path of observation.structuralIgnoreDirs) structuralIgnoreDirs?.add(path);
 }
 
 function updateGeneralFileIndex(
@@ -2833,7 +2787,6 @@ async function handleRawEventsInternal(
   generalFileIndex?: GeneralFileIndex,
   aliasPaths?: Map<string, string>,
 ): Promise<void> {
-  for (const event of rawEvents) noteIntakeMutation(event.path);
   const declaredBeforeBatch: ReadonlySet<string> = new Set(removalTracker.keys());
   const safeEvents = rawEvents.filter((e) => {
     if (!eventEscapesContentDir(e.path, contentDir)) return true;
@@ -3367,13 +3320,6 @@ function _fileWatcherDropsCounter() {
   return _fwDropsCounterCache;
 }
 
-function structuralIgnoreOccurrence(relativePath: string): string | null {
-  for (const dir of WATCHER_STRUCTURAL_IGNORE_DIRS) {
-    if (relativePath === dir || relativePath.endsWith(`/${dir}`)) return relativePath;
-  }
-  return null;
-}
-
 type RecoveredAliasCandidate =
   | { kind: 'delete'; alias: string; targetPath: string }
   | {
@@ -3388,14 +3334,11 @@ function protectedGeneralNames(
   contentDir: string,
   previousGeneralFacts: ReadonlyMap<string, GeneralPathFact>,
   observedGeneralFacts: ReadonlyMap<string, GeneralPathFact>,
-  changedDuringWalk: ((path: string) => boolean) | undefined,
 ): Set<string> {
   const names = new Set<string>();
-  if (observed.unreadable.size === 0 && changedDuringWalk === undefined) return names;
-  const keepKnownAt = (name: string): boolean => {
-    const path = join(contentDir, name);
-    return isUnderUnreadable(observed, path) || changedDuringWalk?.(path) === true;
-  };
+  if (observed.unreadable.size === 0) return names;
+  const keepKnownAt = (name: string): boolean =>
+    isUnderUnreadable(observed, join(contentDir, name));
   const identities = new Set<GeneralIdentity>();
   for (const [name, fact] of previousGeneralFacts) {
     if (fact.kind !== 'unresolved' && keepKnownAt(name)) identities.add(fact.identity);
@@ -3415,12 +3358,6 @@ function protectedGeneralNames(
   return names;
 }
 
-interface HandedObservation {
-  readonly observed: DiskObservation;
-  readonly sinceEpoch: number;
-  readonly pass: number;
-}
-
 async function recoverDiskChanges(
   contentDir: string,
   contentFilter: ContentFilter | undefined,
@@ -3435,23 +3372,12 @@ async function recoverDiskChanges(
   onAfterMutation: () => void,
   getFileIndexGeneration: () => number,
   counter: DispatchCounter,
-  onRawBatch?: (absPaths: readonly string[]) => void,
   reuse?: FreshnessReuse,
-  handed?: HandedObservation,
 ): Promise<RecoveryOutcome> {
   const countingOnDiskEvent = async (event: DiskEvent): Promise<void> => {
     counter.dispatched++;
     await onDiskEvent(event);
   };
-  const knownPaths = new Set<string>();
-  for (const entry of fileIndex.values()) knownPaths.add(entry.canonicalPath);
-  for (const name of generalMemberPaths(contentDir, generalFileIndex)) {
-    knownPaths.add(join(contentDir, name));
-  }
-  for (const relativePath of folderIndex.keys()) knownPaths.add(join(contentDir, relativePath));
-  for (const path of aliasPaths.values()) knownPaths.add(path);
-  for (const alias of folderAliasIndex.keys()) knownPaths.add(join(contentDir, alias));
-
   const previousFiles = new Map(fileIndex);
   const previousGeneralFiles = new Map(generalFileIndex);
   const previousFolders = new Map(folderIndex);
@@ -3460,16 +3386,9 @@ async function recoverDiskChanges(
   const previousAliasPaths = new Map(aliasPaths);
   const previousFolderAliases = new Map(folderAliasIndex);
 
-  let observed: DiskObservation;
-  if (handed) {
-    observed = handed.observed;
-  } else {
-    contentFilter?.refreshInPlaceSkillDirs();
-    observed = await observeDisk(contentDir, contentFilter, reuse);
-  }
+  contentFilter?.refreshInPlaceSkillDirs();
+  const observed = await observeDisk(contentDir, contentFilter, reuse);
   if (!observed.complete) return { completed: false, candidates: 0 };
-  const changedDuringWalk = handed ? changedSince(handed.sinceEpoch, contentDir) : undefined;
-  const intakeOwns = (path: string): boolean => changedDuringWalk?.(path) === true;
 
   const markdownPublicMutationFor = (name: string, entry: FileIndexEntry): boolean => {
     const names = publicMutations.markdownNames;
@@ -3481,13 +3400,12 @@ async function recoverDiskChanges(
   const previousGeneralFacts = generalPathFacts(previousGeneralFiles);
   const observedGeneralFacts = generalPathFacts(observed.generalFileIndex);
   const unreadableAt = (path: string): boolean =>
-    (observed.unreadable.size > 0 && isUnderUnreadable(observed, path)) || intakeOwns(path);
+    observed.unreadable.size > 0 && isUnderUnreadable(observed, path);
   const protectedGeneral = protectedGeneralNames(
     observed,
     contentDir,
     previousGeneralFacts,
     observedGeneralFacts,
-    changedDuringWalk,
   );
 
   const rawEvents: RecoveredFileEvent[] = [];
@@ -3499,9 +3417,6 @@ async function recoverDiskChanges(
     )
       continue;
     if (current === undefined && unreadableAt(previous.canonicalPath)) continue;
-    if (intakeOwns(previous.canonicalPath) || (current && intakeOwns(current.canonicalPath))) {
-      continue;
-    }
     if (current?.canonicalPath !== previous.canonicalPath) {
       const removal: KnownDeletion = {
         type: 'delete',
@@ -3548,9 +3463,7 @@ async function recoverDiskChanges(
     const previous = previousFiles.get(docName);
     if (
       markdownPublicMutationFor(docName, current) ||
-      (previous && markdownPublicMutationFor(docName, previous)) ||
-      intakeOwns(current.canonicalPath) ||
-      (previous && intakeOwns(previous.canonicalPath))
+      (previous && markdownPublicMutationFor(docName, previous))
     )
       continue;
     if (current.canonicalPath !== previous?.canonicalPath) {
@@ -3575,19 +3488,12 @@ async function recoverDiskChanges(
     if (!observed.folderIndex.has(relativePath)) {
       if (unreadableAt(join(contentDir, relativePath))) continue;
       rawEvents.push({ type: 'delete', path: join(contentDir, relativePath), entryKind: 'folder' });
-    } else if (
-      observed.folderIndex.get(relativePath)?.canonicalPath !== previous.canonicalPath &&
-      !intakeOwns(join(contentDir, relativePath))
-    ) {
+    } else if (observed.folderIndex.get(relativePath)?.canonicalPath !== previous.canonicalPath) {
       rawEvents.push({ type: 'update', path: join(contentDir, relativePath) });
     }
   }
   for (const [relativePath, current] of observed.folderIndex) {
-    if (
-      !folderIndex.has(relativePath) &&
-      !intakeOwns(join(contentDir, relativePath)) &&
-      !intakeOwns(current.canonicalPath)
-    )
+    if (!folderIndex.has(relativePath))
       rawEvents.push({ type: 'create', path: current.canonicalPath });
   }
   for (const [alias, path] of aliasPaths) {
@@ -3661,7 +3567,7 @@ async function recoverDiskChanges(
     }
   }
   for (const [path, hash] of observed.hashes) {
-    if (publishedDuringPass(path) || intakeOwns(path)) continue;
+    if (publishedDuringPass(path)) continue;
     const current = lastKnownHash.get(path);
     if (current === undefined || current === previousHashes.get(path) || current === hash) {
       recordObservedHash(path, hash, observed.signatures.get(path));
@@ -3683,8 +3589,6 @@ async function recoverDiskChanges(
   const inventory = selectObservedInventory(observed, contentDir, contentFilter);
   for (const [name, entry] of observed.fileIndex) {
     if (markdownPublicMutationFor(name, entry)) continue;
-    const live = fileIndex.get(name);
-    if (intakeOwns(entry.canonicalPath) || (live && intakeOwns(live.canonicalPath))) continue;
     if (inventory.fileIndex.has(name)) fileIndex.set(name, entry);
     else if (fileIndex.get(name)?.canonicalPath === entry.canonicalPath) fileIndex.delete(name);
   }
@@ -3715,7 +3619,6 @@ async function recoverDiskChanges(
       folderIndex.delete(path);
   }
   for (const [path, entry] of inventory.folderIndex) {
-    if (intakeOwns(join(contentDir, path))) continue;
     const current = folderIndex.get(path);
     if (
       current === undefined ||
@@ -3733,8 +3636,6 @@ async function recoverDiskChanges(
     if (!observed.aliasMap.has(alias) && aliasMap.get(alias) === prior) aliasMap.delete(alias);
   }
   for (const [alias, canonical] of observed.aliasMap) {
-    const aliasPath = observed.aliasPaths.get(alias) ?? previousAliasPaths.get(alias);
-    if (aliasPath !== undefined && intakeOwns(aliasPath)) continue;
     const current = aliasMap.get(alias);
     if (current === undefined || current === previousAliases.get(alias))
       aliasMap.set(alias, canonical);
@@ -3744,7 +3645,6 @@ async function recoverDiskChanges(
       aliasPaths.delete(alias);
   }
   for (const [alias, path] of observed.aliasPaths) {
-    if (intakeOwns(path)) continue;
     const current = aliasPaths.get(alias);
     if (current === undefined || current === previousAliasPaths.get(alias))
       aliasPaths.set(alias, path);
@@ -3759,7 +3659,6 @@ async function recoverDiskChanges(
     }
   }
   for (const [alias, canonical] of inventory.folderAliasIndex) {
-    if (intakeOwns(join(contentDir, alias))) continue;
     const current = folderAliasIndex.get(alias);
     if (current === undefined || current === previousFolderAliases.get(alias)) {
       folderAliasIndex.set(alias, canonical);
@@ -3890,11 +3789,6 @@ async function recoverDiskChanges(
       await countingOnDiskEvent(event);
     }
   }
-  if (handed) {
-    if (deduplicated.length > 0) onRawBatch?.(deduplicated.map((event) => event.path));
-  } else {
-    onRawBatch?.([...new Set([...observed.paths, ...knownPaths])]);
-  }
   return {
     completed: true,
     candidates: deduplicated.length,
@@ -3916,7 +3810,6 @@ interface RecoveryDriverDeps {
     mutations: RecoveryPublicMutations,
     counter: DispatchCounter,
     mode: RecoveryMode,
-    handed: HandedObservation | undefined,
   ) => Promise<RecoveryOutcome>;
   setActivePublicMutations: (mutations: RecoveryPublicMutations | null) => void;
   onAfterMutation: () => void;
@@ -3929,7 +3822,7 @@ interface RecoveryHooks {
 }
 
 interface RecoveryDriver {
-  requestRecovery: (mode: RecoveryMode, handed?: HandedObservation) => Promise<RecheckResult>;
+  requestRecovery: (mode: RecoveryMode) => Promise<RecheckResult>;
   passesStarted: () => number;
 }
 
@@ -3937,18 +3830,15 @@ function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
   let recoveryRunning = false;
   let nextRecovery: Promise<RecheckResult> | undefined;
   let nextMode: RecoveryMode = 'metadata';
-  let nextHanded: HandedObservation | undefined;
   let followUpRecovery: PromiseWithResolvers<RecheckResult> | undefined;
   let passesStarted = 0;
   const closed = (): RecheckResult => ({ status: 'closed', candidates: 0, dispatched: 0 });
   const recoverOnce = async (): Promise<RecheckResult> => {
     const mode = nextMode;
-    const handed = nextHanded;
     nextRecovery = undefined;
     nextMode = 'metadata';
-    nextHanded = undefined;
     if (deps.isClosed()) return closed();
-    const pass = handed?.pass ?? ++passesStarted;
+    const pass = ++passesStarted;
     recoveryRunning = true;
     const recoveryMutations: RecoveryPublicMutations = {
       markdownNames: new Set(),
@@ -3961,7 +3851,7 @@ function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
     let result: RecheckResult = { status: 'failed', candidates: 0, dispatched: 0 };
     try {
       deps.setActivePublicMutations(recoveryMutations);
-      const outcome = await deps.recover(recoveryMutations, counter, mode, handed);
+      const outcome = await deps.recover(recoveryMutations, counter, mode);
       deps.onAfterMutation();
       if (outcome.completed) {
         if (!outcome.partial) await deps.recoveryHooks.onRecoveryComplete?.();
@@ -3973,7 +3863,7 @@ function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
           ...(outcome.partial ? { partial: true } : {}),
         };
         const finished = {
-          mode: handed ? 'timed' : mode,
+          mode,
           candidates: outcome.candidates,
           dispatched: counter.dispatched,
           partial: outcome.partial === true,
@@ -4014,16 +3904,9 @@ function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
       })
       .then(() => settled);
   };
-  const requestRecovery = (
-    mode: RecoveryMode,
-    handed?: HandedObservation,
-  ): Promise<RecheckResult> => {
+  const requestRecovery = (mode: RecoveryMode): Promise<RecheckResult> => {
     if (mode === 'full') nextMode = 'full';
-    if (nextRecovery) {
-      nextHanded = undefined;
-      return nextRecovery;
-    }
-    nextHanded = mode === 'full' ? undefined : handed;
+    if (nextRecovery) return nextRecovery;
     if (recoveryRunning) {
       followUpRecovery = Promise.withResolvers<RecheckResult>();
       nextRecovery = followUpRecovery.promise;
@@ -4040,7 +3923,7 @@ function createRecoveryDriver(deps: RecoveryDriverDeps): RecoveryDriver {
 
 interface WatcherBackendSubscription extends AsyncSubscription {
   runOrdered(work: () => Promise<void>): Promise<void>;
-  requestRecovery(mode: RecoveryMode, handed?: HandedObservation): Promise<RecheckResult>;
+  requestRecovery(mode: RecoveryMode): Promise<RecheckResult>;
   recoveryPassesStarted(): number;
   noticeRootMissing(): void;
 }
@@ -4058,7 +3941,6 @@ function startUnwatchedRecovery(
   setActivePublicMutations: (mutations: RecoveryPublicMutations | null) => void,
   onAfterMutation: () => void,
   getFileIndexGeneration: () => number,
-  onRawBatch: ((absPaths: readonly string[]) => void) | undefined,
   recoveryHooks: RecoveryHooks,
   carryOver: Set<string>,
 ): WatcherBackendSubscription {
@@ -4075,7 +3957,7 @@ function startUnwatchedRecovery(
   const { requestRecovery, passesStarted } = createRecoveryDriver({
     runOrdered,
     isClosed: () => closed,
-    recover: (recoveryMutations, counter, mode, handed) =>
+    recover: (recoveryMutations, counter, mode) =>
       recoverDiskChanges(
         contentDir,
         contentFilter,
@@ -4090,9 +3972,7 @@ function startUnwatchedRecovery(
         onAfterMutation,
         getFileIndexGeneration,
         counter,
-        onRawBatch,
-        handed ? undefined : beginFreshnessReuse(mode, fileIndex, carryOver),
-        handed,
+        beginFreshnessReuse(mode, fileIndex, carryOver),
       ),
     setActivePublicMutations,
     onAfterMutation,
@@ -4113,7 +3993,6 @@ function startUnwatchedRecovery(
 }
 
 export interface StartWatcherOptions {
-  onRawBatch?: (absPaths: readonly string[]) => void;
   onRecoveryComplete?: () => Promise<void>;
   onRecoveryPassCompleted?: (pass: number, whole: boolean) => Promise<void>;
   clock?: WatcherClock;
@@ -4160,7 +4039,7 @@ async function startWatcherWithClock(
   clock: WatcherClock,
   restoreClock: () => void,
 ): Promise<WatcherHandle> {
-  const { onRawBatch, onRecoveryComplete, onRecoveryPassCompleted } = opts;
+  const { onRecoveryComplete, onRecoveryPassCompleted } = opts;
   const recoveryHooks: RecoveryHooks = { onRecoveryComplete, onRecoveryPassCompleted };
   const contentDir = resolveDirectoryRoot(contentDirRaw, {
     root: 'content',
@@ -4189,8 +4068,6 @@ async function startWatcherWithClock(
     fileIndexGeneration++;
   };
 
-  const structuralIgnoreDirs = new Set<string>();
-
   const initialObservation = await observeDisk(contentDir, contentFilter);
   publishDiskObservation(
     initialObservation,
@@ -4200,7 +4077,6 @@ async function startWatcherWithClock(
     folderIndex,
     aliasMap,
     folderAliasIndex,
-    structuralIgnoreDirs,
   );
   for (const [alias, path] of initialObservation.aliasPaths) aliasPaths.set(alias, path);
   bumpFileIndexGeneration();
@@ -4227,7 +4103,6 @@ async function startWatcherWithClock(
     },
     bumpFileIndexGeneration,
     () => fileIndexGeneration,
-    onRawBatch,
     recoveryHooks,
     carryOver,
   );
@@ -4325,7 +4200,6 @@ async function startWatcherWithClock(
         }
         found = changed.length;
         if (changed.length === 0) return;
-        onRawBatch?.(changed.map((event) => event.path));
         await handleRawEventsInternal(
           changed,
           contentDir,
@@ -4365,16 +4239,10 @@ async function startWatcherWithClock(
     getFolderAliasIndex() {
       return folderAliasIndex;
     },
-    getStructuralIgnoreDirs() {
-      return structuralIgnoreDirs;
-    },
     mutateFileIndex(reportedEvent) {
       const event = declaredDiskEvent(reportedEvent);
       if (event.kind === 'rename') {
-        noteIntakeMutation(event.oldPath);
-        noteIntakeMutation(event.newPath);
       } else {
-        noteIntakeMutation(event.path);
       }
       if (event.kind === 'rename') {
         activePublicMutations?.markdownNames.add(event.oldDocName);
@@ -4506,7 +4374,6 @@ async function startWatcherWithClock(
     },
     pruneFileIndexNowExcluded() {
       if (!contentFilter) return 0;
-      noteIntakeMutation(contentDir);
       let pruned = 0;
       let changed = false;
       const removedGeneralPaths = new Set<string>();
@@ -4572,7 +4439,6 @@ async function startWatcherWithClock(
     },
     pruneFolderIndexNowExcluded() {
       if (!contentFilter) return 0;
-      noteIntakeMutation(contentDir);
       let pruned = 0;
       let aliasesChanged = false;
       for (const folderPath of folderIndex.keys()) {
@@ -4595,7 +4461,6 @@ async function startWatcherWithClock(
     },
     async rescanFromDisk() {
       const reseed = async () => {
-        noteIntakeMutation(contentDir);
         const mutations: GeneralMutationRecord = {
           generalNames: new Set(),
           generalEffects: new Map(),
@@ -4613,7 +4478,6 @@ async function startWatcherWithClock(
             folderIndex,
             aliasMap,
             folderAliasIndex,
-            undefined,
             false,
           );
           const previous = new Map(generalFileIndex);
@@ -4634,7 +4498,6 @@ async function startWatcherWithClock(
           );
           for (const [alias, path] of observation.aliasPaths) aliasPaths.set(alias, path);
           bumpFileIndexGeneration();
-          noteIntakeMutation(contentDir);
         } finally {
           activeReseedMutations = null;
         }

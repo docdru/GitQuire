@@ -1,4 +1,4 @@
-import { posix, win32 } from 'node:path';
+import { posix } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { escapesRoot, isWithinDir, toPosix } from './path-utils.ts';
 
@@ -20,70 +20,36 @@ describe('toPosix', () => {
 });
 
 describe('isWithinDir', () => {
-  test('a child under a Windows parent is contained (the PRD-7140 regression)', () => {
-    const contentDir = 'C:\\Users\\mike\\Documents\\kb';
-    expect(isWithinDir('C:\\Users\\mike\\Documents\\kb\\asdf', contentDir)).toBe(true);
-    expect(isWithinDir('C:\\Users\\mike\\Documents\\kb/asdf', contentDir)).toBe(true);
-    expect(isWithinDir('C:\\Users\\mike\\Documents\\kb\\research\\a.md', contentDir)).toBe(true);
+  test('a child is contained', () => {
+    expect(isWithinDir('/data/kb/research/a.md', '/data/kb')).toBe(true);
   });
 
   test('the directory itself is within itself', () => {
-    expect(isWithinDir('C:\\Users\\mike\\kb', 'C:\\Users\\mike\\kb')).toBe(true);
-    expect(isWithinDir('/Users/mike/kb', '/Users/mike/kb')).toBe(true);
+    expect(isWithinDir('/data/kb', '/data/kb')).toBe(true);
   });
 
-  test('a sibling or escaping path is rejected on both platforms', () => {
-    expect(
-      isWithinDir('C:\\Users\\mike\\Documents\\kb-other\\x', 'C:\\Users\\mike\\Documents\\kb'),
-    ).toBe(false);
-    expect(isWithinDir('C:\\Users\\mike\\Other\\x', 'C:\\Users\\mike\\Documents\\kb')).toBe(false);
-    expect(isWithinDir('/Users/mike/other/x', '/Users/mike/kb')).toBe(false);
-    expect(isWithinDir('/Users/mike/kbase/x', '/Users/mike/kb')).toBe(false);
-  });
-
-  test('POSIX containment is unchanged', () => {
-    expect(isWithinDir('/Users/mike/kb/research/a.md', '/Users/mike/kb')).toBe(true);
+  test('a sibling or escaping path is rejected', () => {
+    expect(isWithinDir('/data/other/x', '/data/kb')).toBe(false);
+    expect(isWithinDir('/data/kbase/x', '/data/kb')).toBe(false);
   });
 });
 
 describe('escapesRoot', () => {
-  test('a path on another Windows drive escapes, because win32 relative returns it absolute', () => {
-    const rel = win32.relative(
-      'C:\\Users\\mike\\AppData\\Local\\Temp\\ok-ephemeral-abc',
-      'E:\\Users\\mike\\Downloads',
-    );
-    expect(rel).toBe('E:\\Users\\mike\\Downloads');
-    expect(escapesRoot(rel, win32)).toBe(true);
-    expect(escapesRoot(toPosix(rel), win32)).toBe(true);
+  test('a parent-relative path escapes', () => {
+    expect(escapesRoot(posix.relative('/tmp/ok', '/data/Downloads'))).toBe(true);
+    expect(escapesRoot('..')).toBe(true);
   });
 
-  test('a child on the same Windows drive is contained', () => {
-    const rel = win32.relative('C:\\Users\\mike\\kb', 'C:\\Users\\mike\\kb\\hwi_828');
-    expect(escapesRoot(rel, win32)).toBe(false);
-    expect(escapesRoot('', win32)).toBe(false);
+  test('an absolute path escapes', () => {
+    expect(escapesRoot('/etc/passwd')).toBe(true);
   });
 
-  test('a parent-relative path escapes on either platform', () => {
-    expect(escapesRoot(win32.relative('C:\\Temp\\ok', 'C:\\Users\\mike\\Downloads'), win32)).toBe(
-      true,
-    );
-    expect(escapesRoot(posix.relative('/tmp/ok', '/Users/mike/Downloads'), posix)).toBe(true);
-    expect(escapesRoot('..', posix)).toBe(true);
+  test('a child and the root itself are contained', () => {
+    expect(escapesRoot('hwi_828')).toBe(false);
+    expect(escapesRoot('')).toBe(false);
   });
 
   test('a name that merely starts with two dots is contained', () => {
-    expect(escapesRoot('..notes/a.md', posix)).toBe(false);
-    expect(escapesRoot('..notes\\a.md', win32)).toBe(false);
-  });
-
-  test('a network share relative to a local drive escapes', () => {
-    const rel = win32.relative('C:\\Users\\mike\\Temp\\ok', '\\\\server\\share\\Vault');
-    expect(rel).toBe('\\\\server\\share\\Vault');
-    expect(escapesRoot(toPosix(rel), win32)).toBe(true);
-  });
-
-  test('a drive-letter name is only absolute under win32 semantics', () => {
-    expect(escapesRoot('E:/Users/mike', win32)).toBe(true);
-    expect(escapesRoot('E:/Users/mike', posix)).toBe(false);
+    expect(escapesRoot('..notes/a.md')).toBe(false);
   });
 });

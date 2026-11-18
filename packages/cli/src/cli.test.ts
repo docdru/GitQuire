@@ -37,7 +37,6 @@ test('embeddings status JSON stays parseable when the credential store rejects a
       env: {
         ...process.env,
         HOME: home,
-        USERPROFILE: home,
         NO_COLOR: '1',
         NODE_ENV: 'production',
         LOG_LEVEL: 'warn',

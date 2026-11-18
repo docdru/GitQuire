@@ -35,7 +35,6 @@ import {
   logsPreviousPath,
   spansCurrentPath,
   spansPreviousPath,
-  withHiddenWindowsConsole,
 } from '@gitquire/server';
 import { parse as parseYaml } from 'yaml';
 import { ZipFile } from 'yazl';
@@ -236,7 +235,7 @@ function defaultReadShadowHead(contentDir: string): string | null {
   const result = spawnSync(
     'git',
     ['-C', shadowDir, 'log', '--oneline', `-${SHADOW_GIT_LOG_LIMIT}`],
-    withHiddenWindowsConsole({ encoding: 'utf-8', timeout: 2000 }),
+    { encoding: 'utf-8', timeout: 2000 },
   );
   if (result.error || result.status !== 0) return null;
   return result.stdout ?? '';
@@ -259,7 +258,7 @@ function defaultReadCheckpointRefs(contentDir: string): string | null {
       `--format=${CHECKPOINT_REF_GIT_FORMAT}`,
       'refs/checkpoints/',
     ],
-    withHiddenWindowsConsole({ encoding: 'utf-8', timeout: 2000 }),
+    { encoding: 'utf-8', timeout: 2000 },
   );
   if (result.error || result.status !== 0) return null;
   return result.stdout ?? '';

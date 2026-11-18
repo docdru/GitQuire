@@ -41,7 +41,6 @@ describe('Telemetry', () => {
     tmp = join(fixtureDir, 'project');
     mkdirSync(tmp);
     vi.stubEnv('HOME', join(fixtureDir, 'home'));
-    vi.stubEnv('USERPROFILE', join(fixtureDir, 'home'));
   });
 
   afterEach(async () => {

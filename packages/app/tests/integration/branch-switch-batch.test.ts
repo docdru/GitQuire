@@ -9,7 +9,7 @@ import { getMetrics } from '../../../server/src/metrics';
 import { checkoutBranch, createTestClient, createTestServer, pollUntil } from './test-harness';
 
 const cleanups: Array<() => Promise<void> | void> = [];
-const _CAN_REVOKE_READ = process.platform !== 'win32' && process.getuid?.() !== 0;
+const _CAN_REVOKE_READ = process.getuid?.() !== 0;
 
 afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
@@ -90,20 +90,16 @@ async function openNotesTypedOnMain() {
 }
 
 describe('a git branch switch is taken in like any other outside change', () => {
-  test.runIf(process.platform !== 'win32')(
-    'unsaved typing in the block the other branch changed keeps both versions',
-    async () => {
-      const rig = await openNotesTypedOnMain();
-      const shortfallsBefore = getMetrics().branchSwitchRecheckShortfalls;
+  test('unsaved typing in the block the other branch changed keeps both versions', async () => {
+    const rig = await openNotesTypedOnMain();
+    const shortfallsBefore = getMetrics().branchSwitchRecheckShortfalls;
 
-      await rig.switchToFeature();
+    await rig.switchToFeature();
 
-      expect(rig.liveText()).toContain('Shared line on main, typed here.');
-      expect(rig.liveText()).toContain('Shared line on feature.');
-      expect(rig.liveText()).not.toContain('<<<<<<<');
-      expect(rig.lifecycleStatus()).toBeUndefined();
-      expect(getMetrics().branchSwitchRecheckShortfalls - shortfallsBefore).toBe(0);
-    },
-    60_000,
-  );
+    expect(rig.liveText()).toContain('Shared line on main, typed here.');
+    expect(rig.liveText()).toContain('Shared line on feature.');
+    expect(rig.liveText()).not.toContain('<<<<<<<');
+    expect(rig.lifecycleStatus()).toBeUndefined();
+    expect(getMetrics().branchSwitchRecheckShortfalls - shortfallsBefore).toBe(0);
+  }, 60_000);
 });

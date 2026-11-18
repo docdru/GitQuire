@@ -134,25 +134,22 @@ test('stop never signals an unverified owner even with force', async () => {
   expect(outcome.stopped).toEqual([]);
 });
 
-test.skipIf(process.platform === 'win32')(
-  'reads a live foreign-owned PID as unverified, not dead, when the state probe cannot see it',
-  () => {
-    writeFileSync(lockPath, JSON.stringify({ pid: process.pid }));
-    vi.spyOn(process, 'kill').mockImplementation(() => {
-      throw Object.assign(new Error('kill EPERM'), { code: 'EPERM' });
+test('reads a live foreign-owned PID as unverified, not dead, when the state probe cannot see it', () => {
+  writeFileSync(lockPath, JSON.stringify({ pid: process.pid }));
+  vi.spyOn(process, 'kill').mockImplementation(() => {
+    throw Object.assign(new Error('kill EPERM'), { code: 'EPERM' });
+  });
+  const binDir = installBlindPsProbe();
+  const originalPath = process.env.PATH;
+  process.env.PATH = binDir;
+  try {
+    expect(readProcessState(process.pid)).toEqual({ status: 'gone' });
+    expect(inspectLock(lockDir, 'server', { isAlive: isLockProcessRunning })).toEqual({
+      status: 'unverified-owner',
+      lockPath,
+      pid: process.pid,
     });
-    const binDir = installBlindPsProbe();
-    const originalPath = process.env.PATH;
-    process.env.PATH = binDir;
-    try {
-      expect(readProcessState(process.pid)).toEqual({ status: 'gone' });
-      expect(inspectLock(lockDir, 'server', { isAlive: isLockProcessRunning })).toEqual({
-        status: 'unverified-owner',
-        lockPath,
-        pid: process.pid,
-      });
-    } finally {
-      process.env.PATH = originalPath;
-    }
-  },
-);
+  } finally {
+    process.env.PATH = originalPath;
+  }
+});

@@ -609,7 +609,7 @@ export class LocalTargetIndex {
       if (
         canonicalRelative === '' ||
         canonicalRelative === '..' ||
-        canonicalRelative.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`) ||
+        canonicalRelative.startsWith('../') ||
         isAbsolute(canonicalRelative)
       ) {
         return false;
