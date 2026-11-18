@@ -41,7 +41,8 @@ FROM node:${NODE_VERSION}-bookworm-slim
 
 # git is a hard boot requirement: the server runs a git preflight at boot.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git ca-certificates curl \
+ && apt-get install -y --no-install-recommends git ca-certificates curl procps lsof \
+ && command -v ps && command -v lsof \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /out/gitquire.tgz /tmp/gitquire.tgz
