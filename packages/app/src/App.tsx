@@ -46,7 +46,6 @@ import {
   markCurrentHashHistoryEntry,
   readManagedHashHistoryEntry,
 } from '@/lib/doc-hash';
-import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isExplicitInitialDocumentNavigation } from '@/lib/narrow-workspace-session';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { mark, ProfilerBoundary } from '@/lib/perf';
@@ -126,15 +125,6 @@ function NavigationHandler() {
     document.addEventListener('click', revealEditorForDocumentLink);
     return () => document.removeEventListener('click', revealEditorForDocumentLink);
   }, []);
-
-  useEffect(
-    () =>
-      subscribeLocalMenuAction((action) => {
-        if (action === 'navigate-back') window.history.back();
-        if (action === 'navigate-forward') window.history.forward();
-      }),
-    [],
-  );
 
   useEffect(() => {
     if (

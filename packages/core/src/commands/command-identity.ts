@@ -93,7 +93,6 @@ export interface CommandIdentity {
   readonly labelKey?: MenuLabelKey;
   readonly keywords: readonly string[];
   readonly shortcutId?: string;
-  readonly shortcutDesktopOnly?: boolean;
   readonly stateToggle?: CommandStateToggle;
   readonly checkField?: CommandCheckField;
   readonly availability: CommandAvailabilitySpec;
@@ -187,8 +186,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     menuActionId: 'new-folder',
     labelKey: 'newFolder',
     keywords: ['create folder', 'directory'],
-    shortcutId: 'new-folder',
-    shortcutDesktopOnly: true,
     availability: {},
     palette: { group: 'commands', visibility: 'always' },
     menu: [{ section: 'file-create', order: 1, accelerator: 'CmdOrCtrl+Shift+N' }],

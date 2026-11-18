@@ -4,10 +4,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { hashFromDocName, pushHashWithoutNavigation } from '@/lib/doc-hash';
 import { matchesKeyboardShortcut, type ShortcutEventLike } from '@/lib/keyboard-shortcuts';
-import {
-  __resetLocalMenuActionBusForTests,
-  emitLocalMenuAction,
-} from '@/lib/local-menu-action-bus';
+import { __resetLocalMenuActionBusForTests } from '@/lib/local-menu-action-bus';
 import {
   __resetPaneVisibilityStoreForTests,
   type PaneVisibilityRequest,
@@ -513,22 +510,6 @@ describe('App runtime wiring', () => {
         },
       );
     });
-  });
-
-  test('navigation-history subscription cleans up before remount and invokes each action once', () => {
-    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
-    const forward = vi.spyOn(window.history, 'forward').mockImplementation(() => {});
-    renderApp();
-    cleanup();
-    renderApp();
-
-    emitLocalMenuAction('navigate-back');
-    expect(back).toHaveBeenCalledOnce();
-    expect(forward).not.toHaveBeenCalled();
-
-    emitLocalMenuAction('navigate-forward');
-    expect(back).toHaveBeenCalledOnce();
-    expect(forward).toHaveBeenCalledOnce();
   });
 
   test('history traversal reuses the preview slot instead of opening a permanent tab', async () => {

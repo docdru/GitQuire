@@ -631,10 +631,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     return (
       <CommandGroup key={group} heading={commandGroupHeading(group)}>
         {rows.map(({ cmd, label }) => {
-          const shortcut =
-            cmd.shortcutId !== undefined && cmd.shortcutDesktopOnly !== true
-              ? formatShortcut(cmd.shortcutId)
-              : null;
+          const shortcut = cmd.shortcutId !== undefined ? formatShortcut(cmd.shortcutId) : null;
           return (
             <CommandItem
               key={cmd.id}

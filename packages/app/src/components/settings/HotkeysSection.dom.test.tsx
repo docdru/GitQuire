@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import { KEYBOARD_SHORTCUTS } from '@/lib/keyboard-shortcuts';
 import { HotkeysSection } from './HotkeysSection';
@@ -24,19 +24,11 @@ afterEach(() => {
 });
 
 describe('HotkeysSection rows', () => {
-  test('omits the Report a bug shortcut', () => {
-    renderSection();
-
-    expect(screen.queryByTestId('settings-hotkey-report-bug')).toBeNull();
-  });
-
-  test('lists every shortcut that is not desktop-only, in catalogue order', () => {
+  test('lists every shortcut in the catalogue', () => {
     renderSection();
 
     expect(renderedShortcutIds().sort()).toEqual(
-      KEYBOARD_SHORTCUTS.filter((shortcut) => shortcut.desktopOnly !== true)
-        .map((shortcut) => shortcut.id)
-        .sort(),
+      KEYBOARD_SHORTCUTS.map((shortcut) => shortcut.id).sort(),
     );
     expect(renderedCategoryLabels().length).toBeGreaterThan(0);
   });

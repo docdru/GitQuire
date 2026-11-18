@@ -94,7 +94,6 @@ export interface PaletteCommand {
   group: PaletteCommandGroup;
   visibility: 'always' | 'search-only';
   shortcutId?: KeyboardShortcutId;
-  shortcutDesktopOnly?: boolean;
   checked?(ctx: PaletteCommandContext): boolean;
   available(ctx: PaletteCommandContext): boolean;
   dispatch(ctx: PaletteCommandContext): void;
@@ -286,7 +285,6 @@ function toPaletteCommand(cmd: CommandIdentity): PaletteCommand {
     group: presence.group,
     visibility: presence.visibility,
     shortcutId: cmd.shortcutId as KeyboardShortcutId | undefined,
-    shortcutDesktopOnly: cmd.shortcutDesktopOnly,
     checked: checkField ? (ctx) => ctx.viewMenuState[checkField] === true : undefined,
     available: (ctx) =>
       evaluateCommandAvailability(cmd.availability, paletteCoreContext(ctx)) &&

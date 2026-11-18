@@ -34,7 +34,7 @@ export const FIELDS_USER_PREFERENCES: FieldDef[] = [
   {
     path: ['appearance', 'preview', 'autoOpen'],
     label: msg`Open preview when agent edits`,
-    description: msg`When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.).`,
+    description: msg`When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display.`,
   },
 ];
 

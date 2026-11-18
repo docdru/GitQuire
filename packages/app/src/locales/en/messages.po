@@ -2113,9 +2113,6 @@ msgstr "Create a document from {label}"
 msgid "Create a file from the current document or folder context."
 msgstr "Create a file from the current document or folder context."
 
-msgid "Create a folder from the current document or folder context."
-msgstr "Create a folder from the current document or folder context."
-
 msgid "Create a new list item from the current list item."
 msgstr "Create a new list item from the current list item."
 
@@ -3266,9 +3263,6 @@ msgstr "Formatting"
 
 msgid "Formatting looked wrong"
 msgstr "Formatting looked wrong"
-
-msgid "Forward"
-msgstr "Forward"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "Forward-links response did not match expected shape."
@@ -4982,9 +4976,6 @@ msgstr "Off — search ranks by keyword only. No content leaves this computer."
 msgid "Offline"
 msgstr "Offline"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 
@@ -5063,9 +5054,6 @@ msgstr "Open a project first."
 msgid "Open a project to edit."
 msgstr "Open a project to edit."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "Open a single markdown file in a temporary session, without project setup."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "Open activity panel for {tooltipName}"
 
@@ -5074,9 +5062,6 @@ msgstr "Open activity panel for {tooltipName}, editing {realCurrentDoc}"
 
 msgid "Open agents"
 msgstr "Open agents"
-
-msgid "Open an existing project folder from disk."
-msgstr "Open an existing project folder from disk."
 
 msgid "Open board"
 msgstr "Open board"
@@ -5113,9 +5098,6 @@ msgstr "Open emoji picker for {keyName}"
 
 msgid "Open file"
 msgstr "Open file"
-
-msgid "Open folder"
-msgstr "Open folder"
 
 msgid "Open graph"
 msgstr "Open graph"
@@ -5158,9 +5140,6 @@ msgstr "Open the draft to review it."
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Open the insert menu in an empty or active text position."
-
-msgid "Open the Project Navigator."
-msgstr "Open the Project Navigator."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Open this document in the editor and collapse the graph."
@@ -5906,9 +5885,6 @@ msgstr "Replace the API key"
 
 msgid "Reply"
 msgstr "Reply"
-
-msgid "Report a bug"
-msgstr "Report a bug"
 
 msgid "Report an issue"
 msgstr "Report an issue"
@@ -6694,9 +6670,6 @@ msgstr "Start"
 msgid "Start a blank page, or scaffold one from a template."
 msgstr "Start a blank page, or scaffold one from a template."
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "Start a bug report with a screenshot of the screen as it looks right now."
-
 msgid "Start a comment thread on the selected text."
 msgstr "Start a comment thread on the selected text."
 
@@ -6792,9 +6765,6 @@ msgstr "Swap file sidebar and document panel"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "Switch between the visual and source editors, keeping your place."
-
-msgid "Switch project"
-msgstr "Switch project"
 
 msgid "Switch to a branch to share."
 msgstr "Switch to a branch to share."
@@ -7593,12 +7563,6 @@ msgstr "Top linked pages"
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr "Trailing backslash — line continuation isn't supported."
 
-msgid "Traverse GitQuire navigation history backward."
-msgstr "Traverse GitQuire navigation history backward."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "Traverse GitQuire navigation history forward."
-
 msgid "Tree view options"
 msgstr "Tree view options"
 
@@ -8034,8 +7998,8 @@ msgstr "What you are looking at"
 msgid "What's new"
 msgstr "What's new"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
 
 msgid "When the agent runs its scheduled work."
 msgstr "When the agent runs its scheduled work."

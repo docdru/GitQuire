@@ -253,19 +253,13 @@ describe('CommandPalette DOM behavior', () => {
     expect(region.textContent).toBe('');
   });
 
-  test('new-folder shortcut is desktop-only while new-file shortcut is always visible', async () => {
+  test('new-file shows its shortcut and new-folder has none', async () => {
     await renderPalette();
 
     expect(screen.getByTestId('command-palette-new-file').textContent).toMatch(/⌘ N|Ctrl N/);
     expect(screen.getByTestId('command-palette-new-folder').textContent).not.toMatch(
       /⇧⌘ N|Ctrl Shift N/,
     );
-  });
-
-  test('report-bug row is absent on the web host, so its desktop-only chord never shows there', async () => {
-    await renderPalette();
-
-    expect(screen.queryByTestId('command-palette-report-bug')).toBeNull();
   });
 
   test('new-file command closes the palette and opens the New Item dialog with kind file', async () => {
