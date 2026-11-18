@@ -315,7 +315,6 @@ export {
   type FrontmatterDelta,
   type PropertyChange,
 } from './frontmatter-diff.ts';
-export { augmentGitSpawnPath } from './git/git-spawn-path.ts';
 export type { WorktreeInventoryModel } from './git/worktree-inventory-model.ts';
 export type { WorktreeSelectorModel } from './git/worktree-selector-model.ts';
 export {

@@ -26,10 +26,6 @@ async function withBrokenGitDir(fn: (dir: string) => Promise<void>): Promise<voi
   }
 }
 
-function setPlatform(value: NodeJS.Platform): void {
-  Object.defineProperty(process, 'platform', { value, configurable: true });
-}
-
 export async function withBrokenBareGitOnly(fn: () => Promise<void>): Promise<void> {
   await withBrokenGitDir(async (dir) => {
     const origPath = process.env.PATH;
@@ -43,18 +39,30 @@ export async function withBrokenBareGitOnly(fn: () => Promise<void>): Promise<vo
   });
 }
 
-export async function withUnusableGitEverywhere(fn: () => Promise<void>): Promise<void> {
-  await withBrokenGitDir(async (dir) => {
-    const origPath = process.env.PATH;
-    const origPlatform = process.platform;
-    process.env.PATH = dir;
-    setPlatform(origPlatform === 'win32' ? 'linux' : 'win32');
+export interface HiddenGitFallbacks {
+  on: boolean;
+}
+
+export const GIT_FALLBACK_PATHS: readonly string[] = ['/usr/bin/git', '/usr/local/bin/git'];
+
+export function existsSyncHidingGitFallbacks(
+  actual: typeof import('node:fs').existsSync,
+  hidden: HiddenGitFallbacks,
+): typeof import('node:fs').existsSync {
+  return (path) =>
+    !(hidden.on && typeof path === 'string' && GIT_FALLBACK_PATHS.includes(path)) && actual(path);
+}
+
+export async function withUnusableGitEverywhere(
+  hidden: HiddenGitFallbacks,
+  fn: () => Promise<void>,
+): Promise<void> {
+  await withBrokenBareGitOnly(async () => {
+    hidden.on = true;
     try {
       await fn();
     } finally {
-      setPlatform(origPlatform);
-      if (origPath === undefined) delete process.env.PATH;
-      else process.env.PATH = origPath;
+      hidden.on = false;
     }
   });
 }

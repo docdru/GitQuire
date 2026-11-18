@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join, relative } from 'node:path';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -7,14 +7,12 @@ import {
   buildGuidance,
   compareSemver,
   detectGit,
-  detectLinuxFamily,
   fallbackPaths,
   type GitDetected,
   GitNotAvailableError,
   GitProbeTimeoutError,
   GitTooOldError,
   type InstallGuidance,
-  type LinuxFamily,
   MIN_GIT_VERSION,
   parseGitVersion,
   resolveOnPath,
@@ -77,171 +75,41 @@ describe('compareSemver', () => {
   });
 });
 
-describe('detectLinuxFamily', () => {
-  test('detects Ubuntu from ID', () => {
-    const osRelease = `NAME="Ubuntu"
-ID=ubuntu
-ID_LIKE=debian
-VERSION="22.04 LTS"`;
-    expect(detectLinuxFamily(osRelease)).toBe('debian');
-  });
-
-  test('detects Pop!_OS via ID_LIKE (multi-token)', () => {
-    const osRelease = `NAME="Pop!_OS"
-ID=pop
-ID_LIKE="ubuntu debian"
-VERSION="22.04 LTS"`;
-    expect(detectLinuxFamily(osRelease)).toBe('debian');
-  });
-
-  test('detects Fedora from ID', () => {
-    const osRelease = `NAME="Fedora Linux"
-ID=fedora`;
-    expect(detectLinuxFamily(osRelease)).toBe('fedora');
-  });
-
-  test('detects RHEL family via ID_LIKE', () => {
-    const osRelease = `NAME="Rocky Linux"
-ID="rocky"
-ID_LIKE="rhel centos fedora"`;
-    expect(detectLinuxFamily(osRelease)).toBe('fedora');
-  });
-
-  test('detects Arch from ID', () => {
-    const osRelease = `NAME="Arch Linux"
-ID=arch`;
-    expect(detectLinuxFamily(osRelease)).toBe('arch');
-  });
-
-  test('detects Manjaro via ID', () => {
-    const osRelease = `NAME="Manjaro Linux"
-ID=manjaro
-ID_LIKE=arch`;
-    expect(detectLinuxFamily(osRelease)).toBe('arch');
-  });
-
-  test('detects openSUSE from ID', () => {
-    const osRelease = `NAME="openSUSE Tumbleweed"
-ID=opensuse-tumbleweed
-ID_LIKE="opensuse suse"`;
-    expect(detectLinuxFamily(osRelease)).toBe('opensuse');
-  });
-
-  test('detects Alpine from ID', () => {
-    const osRelease = `NAME="Alpine Linux"
-ID=alpine`;
-    expect(detectLinuxFamily(osRelease)).toBe('alpine');
-  });
-
-  test('returns unknown for unrecognized ID', () => {
-    const osRelease = `NAME="MysteryOS"
-ID=mystery`;
-    expect(detectLinuxFamily(osRelease)).toBe('unknown');
-  });
-
-  test('returns unknown when /etc/os-release cannot be read', () => {
-    const result = detectLinuxFamily();
-    const valid: LinuxFamily[] = ['debian', 'fedora', 'arch', 'opensuse', 'alpine', 'unknown'];
-    expect(valid).toContain(result);
-  });
-
-  test('strips quotes from ID and ID_LIKE values', () => {
-    const osRelease = `ID="ubuntu"
-ID_LIKE='debian'`;
-    expect(detectLinuxFamily(osRelease)).toBe('debian');
-  });
-});
-
 describe('fallbackPaths', () => {
-  test('macOS includes Apple Silicon brew path first', () => {
-    const paths = fallbackPaths('darwin');
-    expect(paths[0]).toBe('/opt/homebrew/bin/git');
-    expect(paths).toContain('/usr/local/bin/git');
-    expect(paths).toContain('/Library/Developer/CommandLineTools/usr/bin/git');
-    expect(paths).toContain('/usr/bin/git');
-  });
-
-  test('Windows includes Program Files first', () => {
-    const paths = fallbackPaths('win32');
-    expect(paths[0]).toBe('C:\\Program Files\\Git\\cmd\\git.exe');
-    expect(paths).toContain('C:\\Program Files (x86)\\Git\\cmd\\git.exe');
-    expect(paths.some((p) => p.includes('scoop'))).toBe(true);
-  });
-
-  test('Linux includes /usr/bin first and snap', () => {
-    const paths = fallbackPaths('linux');
-    expect(paths[0]).toBe('/usr/bin/git');
-    expect(paths).toContain('/usr/local/bin/git');
-    expect(paths).toContain('/snap/bin/git');
-  });
-
-  test('unknown platforms fall through to Linux paths', () => {
-    const paths = fallbackPaths('freebsd' as NodeJS.Platform);
-    expect(paths).toContain('/usr/bin/git');
+  test('lists the Linux locations of git', () => {
+    expect(fallbackPaths()).toEqual(['/usr/bin/git', '/usr/local/bin/git']);
   });
 });
 
 describe('buildGuidance', () => {
-  test('macOS guidance always includes xcode-select as a fallback', () => {
-    const guidance = buildGuidance('darwin');
+  test('points at the image, which includes Git', () => {
+    const guidance: InstallGuidance = buildGuidance();
     expect(guidance.product).toBe('Git');
-    expect(guidance.url).toBe('https://git-scm.com/download/mac');
-    expect(guidance.options.some((o) => o.command === 'xcode-select --install')).toBe(true);
-    expect(
-      guidance.options.find((o) => o.command === 'xcode-select --install')?.requiresAdmin,
-    ).toBe(true);
-  });
-
-  test('Windows guidance always ends with manual download fallback', () => {
-    const guidance = buildGuidance('win32');
-    expect(guidance.product).toBe('Git for Windows');
-    expect(guidance.url).toBe('https://gitforwindows.org/');
-    expect(guidance.options.length).toBeGreaterThan(0);
-    expect(guidance.options[guidance.options.length - 1]?.label).toBe(
-      'Download the official installer',
-    );
-  });
-
-  test('Linux guidance carries at least one option', () => {
-    const guidance = buildGuidance('linux');
-    expect(guidance.product).toBe('Git');
-    expect(guidance.url).toBe('https://git-scm.com/download/linux');
-    expect(guidance.options.length).toBeGreaterThan(0);
-    expect(guidance.options[0]?.requiresAdmin).toBe(true);
-  });
-
-  test('options carry stable shape', () => {
-    const guidance: InstallGuidance = buildGuidance('darwin');
-    for (const opt of guidance.options) {
-      expect(typeof opt.label).toBe('string');
-      expect(typeof opt.command).toBe('string');
-      expect(typeof opt.requiresAdmin).toBe('boolean');
-      expect(opt.label.length).toBeGreaterThan(0);
-      expect(opt.command.length).toBeGreaterThan(0);
-    }
+    expect(guidance.options).toHaveLength(1);
+    expect(guidance.options[0]?.command).toBe('docker compose pull && docker compose up -d');
   });
 });
 
 describe('GitNotAvailableError', () => {
   test('carries code, platform, and guidance fields', () => {
-    const guidance = buildGuidance('darwin');
-    const err = new GitNotAvailableError('darwin', guidance);
+    const guidance = buildGuidance();
+    const err = new GitNotAvailableError('linux', guidance);
     expect(err.code).toBe('GIT_NOT_AVAILABLE');
-    expect(err.platform).toBe('darwin');
+    expect(err.platform).toBe('linux');
     expect(err.guidance).toBe(guidance);
     expect(err.name).toBe('GitNotAvailableError');
   });
 
   test('message includes product name and install URL', () => {
-    const guidance = buildGuidance('darwin');
-    const err = new GitNotAvailableError('darwin', guidance);
+    const guidance = buildGuidance();
+    const err = new GitNotAvailableError('linux', guidance);
     expect(err.message).toContain('GitQuire needs Git');
     expect(err.message).toContain(guidance.url);
-    expect(err.message).toContain('After installing');
+    expect(err.message).toContain('this container has no usable Git');
   });
 
   test('message includes every install option label + command', () => {
-    const guidance = buildGuidance('linux');
+    const guidance = buildGuidance();
     const err = new GitNotAvailableError('linux', guidance);
     for (const opt of guidance.options) {
       expect(err.message).toContain(opt.label);
@@ -249,20 +117,14 @@ describe('GitNotAvailableError', () => {
     }
   });
 
-  test('Windows variant says "Git for Windows"', () => {
-    const guidance = buildGuidance('win32');
-    const err = new GitNotAvailableError('win32', guidance);
-    expect(err.message).toContain('Git for Windows');
-  });
-
   test('forwards cause to Error options bag', () => {
     const cause = new Error('underlying');
-    const err = new GitNotAvailableError('darwin', buildGuidance('darwin'), { cause });
+    const err = new GitNotAvailableError('linux', buildGuidance(), { cause });
     expect(err.cause).toBe(cause);
   });
 
   test('passes instanceof checks for branching', () => {
-    const err = new GitNotAvailableError('darwin', buildGuidance('darwin'));
+    const err = new GitNotAvailableError('linux', buildGuidance());
     expect(err instanceof GitNotAvailableError).toBe(true);
     expect(err instanceof Error).toBe(true);
   });
@@ -270,24 +132,24 @@ describe('GitNotAvailableError', () => {
 
 describe('GitProbeTimeoutError', () => {
   test('carries a distinct code and avoids missing-Git guidance', () => {
-    const err = new GitProbeTimeoutError('win32', buildGuidance('win32'), {
+    const err = new GitProbeTimeoutError('linux', buildGuidance(), {
       path: 'timeout',
       fallback: 'timeout',
     });
     expect(err.code).toBe('GIT_PROBE_TIMEOUT');
     expect(err.name).toBe('GitProbeTimeoutError');
     expect(err.probe).toEqual({ path: 'timeout', fallback: 'timeout' });
-    expect(err.message).toContain('could not verify Git for Windows');
+    expect(err.message).toContain('could not verify Git');
     expect(err.message).not.toContain("isn't installed");
   });
 });
 
 describe('GitTooOldError', () => {
   test('carries code, platform, detected, required, and resolvedPath fields', () => {
-    const guidance = buildGuidance('darwin');
-    const err = new GitTooOldError('darwin', '2.10.0', '2.31.0', '/usr/bin/git', guidance);
+    const guidance = buildGuidance();
+    const err = new GitTooOldError('linux', '2.10.0', '2.31.0', '/usr/bin/git', guidance);
     expect(err.code).toBe('GIT_TOO_OLD');
-    expect(err.platform).toBe('darwin');
+    expect(err.platform).toBe('linux');
     expect(err.detected).toBe('2.10.0');
     expect(err.required).toBe('2.31.0');
     expect(err.resolvedPath).toBe('/usr/bin/git');
@@ -295,21 +157,15 @@ describe('GitTooOldError', () => {
   });
 
   test('message includes detected, required, and path', () => {
-    const guidance = buildGuidance('darwin');
-    const err = new GitTooOldError('darwin', '2.10.0', '2.31.0', '/usr/bin/git', guidance);
+    const guidance = buildGuidance();
+    const err = new GitTooOldError('linux', '2.10.0', '2.31.0', '/usr/bin/git', guidance);
     expect(err.message).toContain('2.10.0');
     expect(err.message).toContain('2.31.0');
     expect(err.message).toContain('/usr/bin/git');
   });
 
   test('passes instanceof checks for branching', () => {
-    const err = new GitTooOldError(
-      'darwin',
-      '2.10.0',
-      '2.31.0',
-      '/usr/bin/git',
-      buildGuidance('darwin'),
-    );
+    const err = new GitTooOldError('linux', '2.10.0', '2.31.0', '/usr/bin/git', buildGuidance());
     expect(err instanceof GitTooOldError).toBe(true);
     expect(err instanceof Error).toBe(true);
     expect(err instanceof GitNotAvailableError).toBe(false);
@@ -317,14 +173,8 @@ describe('GitTooOldError', () => {
 });
 
 describe('resolveOnPath', () => {
-  test('resolves a tool that is on PATH (cmd on Windows, sh elsewhere)', () => {
-    const target =
-      process.platform === 'win32'
-        ? 'cmd'
-        : process.platform === 'darwin' || process.platform === 'linux'
-          ? 'sh'
-          : 'sh';
-    const result = resolveOnPath(target);
+  test('resolves a tool that is on PATH', () => {
+    const result = resolveOnPath('sh');
     expect(result).not.toBeNull();
     if (result) {
       expect(result.length).toBeGreaterThan(0);
@@ -350,7 +200,7 @@ describe('resolveOnPath', () => {
     const project = mkdtempSync(join(tmpdir(), 'resolve-project-'));
     const bin = mkdtempSync(join(tmpdir(), 'resolve-bin-'));
     const name = 'ok-resolve-probe-tool';
-    const file = process.platform === 'win32' ? `${name}.cmd` : name;
+    const file = name;
     for (const dir of [project, bin]) {
       writeFileSync(join(dir, file), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
     }
@@ -366,27 +216,7 @@ describe('resolveOnPath', () => {
     }
   });
 
-  test.runIf(process.platform === 'win32')(
-    'falls back to the standard extensions when PATHEXT is empty or lists none',
-    () => {
-      const bin = mkdtempSync(join(tmpdir(), 'resolve-pathext-'));
-      const previous = process.env.PATHEXT;
-      try {
-        for (const [index, pathext] of ['', ';;', 'COM EXE'].entries()) {
-          const name = `ok-resolve-pathext-${index}`;
-          writeFileSync(join(bin, `${name}.cmd`), '@exit /b 0\r\n');
-          process.env.PATHEXT = pathext;
-          expect(resolveOnPath(name, bin), JSON.stringify(pathext)).toBe(join(bin, `${name}.cmd`));
-        }
-      } finally {
-        if (previous === undefined) delete process.env.PATHEXT;
-        else process.env.PATHEXT = previous;
-        rmSync(bin, { recursive: true, force: true });
-      }
-    },
-  );
-
-  test.skipIf(process.platform === 'win32')('skips a file that is not executable', () => {
+  test('skips a file that is not executable', () => {
     const bin = mkdtempSync(join(tmpdir(), 'resolve-noexec-'));
     try {
       writeFileSync(join(bin, 'ok-resolve-noexec'), 'x', { mode: 0o644 });
@@ -397,7 +227,7 @@ describe('resolveOnPath', () => {
   });
 
   test('accepts plain-letter command names with dots / hyphens / underscores', () => {
-    for (const name of ['git', 'brew', 'winget', 'scoop', 'choco', 'sub-command', 'cmd.v2']) {
+    for (const name of ['git', 'sub-command', 'cmd.v2']) {
       const result = resolveOnPath(name);
       expect(result === null || typeof result === 'string').toBe(true);
     }
@@ -414,18 +244,14 @@ describe('detectGit (integration)', () => {
     expect(['PATH', 'fallback']).toContain(detected.source);
   });
 
-  test('Stage 2 fallback fires when PATH has no git and a fallback candidate exists', (ctx) => {
-    ctx.skip(
-      process.platform === 'win32',
-      'the PATH override and the fallback candidates are POSIX',
-    );
+  test('Stage 2 fallback fires when PATH has no git and a fallback candidate exists', () => {
     const originalPath = process.env.PATH;
     process.env.PATH = '/nonexistent-stage2-fallback-test-xyz';
     try {
       const detected = detectGit();
       expect(detected.ok).toBe(true);
       expect(detected.source).toBe('fallback');
-      const candidates = fallbackPaths(process.platform);
+      const candidates = fallbackPaths();
       expect(candidates).toContain(detected.resolvedPath);
     } finally {
       if (originalPath === undefined) {
@@ -454,22 +280,6 @@ describe('MIN_GIT_VERSION', () => {
   });
 });
 
-describe('detectLinuxFamily fixtures', () => {
-  test('parses a fixture file written to disk via the os-release argument', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'ok-git-preflight-'));
-    const path = join(dir, 'os-release');
-    writeFileSync(
-      path,
-      `NAME="Debian GNU/Linux"
-ID=debian
-VERSION_ID="12"`,
-      'utf-8',
-    );
-    const contents = readFileSync(path, 'utf-8');
-    expect(detectLinuxFamily(contents)).toBe('debian');
-  });
-});
-
 describe('git remediation names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
@@ -478,27 +288,21 @@ describe('git remediation names the running channel CLI', () => {
 
   test('Stable keeps the gq diagnose line on both errors', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'stable');
-    const guidance = buildGuidance('darwin');
-    expect(new GitNotAvailableError('darwin', guidance).message.split('\n')).toContain(
-      verify('gq'),
-    );
+    const guidance = buildGuidance();
+    expect(new GitNotAvailableError('linux', guidance).message.split('\n')).toContain(verify('gq'));
     expect(
-      new GitTooOldError('darwin', '2.10.0', '2.31.0', '/usr/bin/git', guidance).message.split(
-        '\n',
-      ),
+      new GitTooOldError('linux', '2.10.0', '2.31.0', '/usr/bin/git', guidance).message.split('\n'),
     ).toContain(verify('gq'));
   });
 
   test('Beta names gq-beta diagnose on both errors', () => {
     vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
-    const guidance = buildGuidance('darwin');
-    expect(new GitNotAvailableError('darwin', guidance).message.split('\n')).toContain(
+    const guidance = buildGuidance();
+    expect(new GitNotAvailableError('linux', guidance).message.split('\n')).toContain(
       verify('gq-beta'),
     );
     expect(
-      new GitTooOldError('darwin', '2.10.0', '2.31.0', '/usr/bin/git', guidance).message.split(
-        '\n',
-      ),
+      new GitTooOldError('linux', '2.10.0', '2.31.0', '/usr/bin/git', guidance).message.split('\n'),
     ).toContain(verify('gq-beta'));
   });
 });

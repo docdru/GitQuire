@@ -15,9 +15,6 @@ const LOCK_SCAN_MAX_ENTRIES = 2000;
 const GQ_LOCK_DIR_ARG_PREFIX = '--gq-lock-dir-b64=';
 const GQ_PROJECT_PATH_ARG_PREFIX = '--gq-project-path=';
 const LISTENER_QUERY_ARGS = ['-iTCP', '-sTCP:LISTEN', '-nP'];
-const GQ_PROCESS_PGREP_QUERY =
-  'cli\\.mjs|open-knowledge|Open ?Knowledge(\\.app| Helper)|--gq-lock-dir-b64=|--gq-project-path=|(^|[ /])ok[ ]+(start|mcp|ui)([ ]|$)|packages/(cli|app)|hocuspocus|vite';
-
 const GQ_PROCESS_PATTERNS: RegExp[] = [
   /^open-knowledge-server(?:\s|$)/,
   /cli\.mjs/,
@@ -63,23 +60,6 @@ function extractProjectPathArg(command: string): string | null {
 interface GqProcessEntry {
   pid: number;
   command: string;
-}
-
-function parsePgrepOutput(output: string): GqProcessEntry[] {
-  const entries: GqProcessEntry[] = [];
-  for (const line of output.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    const spaceIdx = trimmed.indexOf(' ');
-    if (spaceIdx === -1) continue;
-    const pidStr = trimmed.slice(0, spaceIdx);
-    const command = trimmed.slice(spaceIdx + 1);
-    const pid = Number.parseInt(pidStr, 10);
-    if (!Number.isNaN(pid) && isOkProcess(command)) {
-      entries.push({ pid, command });
-    }
-  }
-  return entries;
 }
 
 interface ListingResult {
@@ -193,39 +173,11 @@ async function readPsEntries(args: string[]): Promise<GqProcessEntry[]> {
 
 async function findOkProcessEntries(strict = false): Promise<GqProcessEntry[]> {
   const failures: string[] = [];
-  const unix = process.platform === 'darwin' || process.platform === 'linux';
-  if (!unix) {
-    const pgrepResult = spawnSync(
-      'pgrep',
-      ['-a', '-f', GQ_PROCESS_PGREP_QUERY],
-      withHiddenWindowsConsole({
-        encoding: 'utf-8',
-        timeout: SPAWN_TIMEOUT_MS,
-      }),
-    );
-
-    if (!pgrepResult.error && (pgrepResult.status === 0 || pgrepResult.status === 1)) {
-      const output = pgrepResult.stdout ?? '';
-      const entries = parsePgrepOutput(output);
-      if (entries.length > 0 || output.trim() === '') return entries;
-      failures.push('pgrep: no command rows returned');
-    } else {
-      failures.push(
-        `pgrep: ${pgrepResult.error ? describeListingError(pgrepResult.error) : `exit status ${pgrepResult.status}`}`,
-      );
-    }
-  }
-
-  const formats =
-    process.platform === 'linux'
-      ? [
-          ['-ww', '-A', '-o', 'pid,cmdline'],
-          ['-ww', '-A', '-o', 'pid,args'],
-          ['-A', '-o', 'pid,args'],
-        ]
-      : unix
-        ? [['-ww', '-A', '-o', 'pid,args']]
-        : [['-axo', 'pid,command']];
+  const formats = [
+    ['-ww', '-A', '-o', 'pid,cmdline'],
+    ['-ww', '-A', '-o', 'pid,args'],
+    ['-A', '-o', 'pid,args'],
+  ];
   for (const args of formats) {
     try {
       return await readPsEntries(args);
@@ -332,9 +284,6 @@ function reportUnreadableState(
 }
 
 export function readProcessState(pid: number, options: ProcessProbeOptions = {}): ProcessState {
-  if (process.platform !== 'darwin' && process.platform !== 'linux') {
-    return { status: 'unreadable', reason: `no process-state query on ${process.platform}` };
-  }
   try {
     const state = execFileSync(
       'ps',

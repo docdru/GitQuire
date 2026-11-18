@@ -38,7 +38,7 @@ export function makeGitCheck(deps: GitCheckDeps = {}): CheckDefinition {
             name: 'git',
             status: 'fail',
             summary: 'git probe timed out',
-            remediation: 'Check that Git is installed and retry',
+            remediation: 'Retry; if it keeps failing, pull or rebuild the image',
             detail: err.message,
           };
         }

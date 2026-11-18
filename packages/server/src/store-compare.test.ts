@@ -110,16 +110,12 @@ describe('compareDiskBeforeReplace', () => {
   });
 
   test('a directory in the way is unreadable and not transient', () => {
-    const outcome = compareDiskBeforeReplace(
-      {
-        path: dir,
-        receiptHash: undefined,
-        baseHash: undefined,
-        candidateHash: contentHash(CANDIDATE),
-      },
-      undefined,
-      'linux',
-    );
+    const outcome = compareDiskBeforeReplace({
+      path: dir,
+      receiptHash: undefined,
+      baseHash: undefined,
+      candidateHash: contentHash(CANDIDATE),
+    });
     expect(outcome).toMatchObject({ kind: 'unreadable', transient: false });
   });
 
@@ -181,20 +177,18 @@ describe('readObservedText', () => {
 
 describe('isTransientReadError', () => {
   test.each([
-    ['EBUSY', 'linux', true],
-    ['EAGAIN', 'darwin', true],
-    ['EMFILE', 'linux', true],
-    ['EPERM', 'win32', true],
-    ['EACCES', 'win32', true],
-    ['EPERM', 'linux', false],
-    ['EACCES', 'darwin', false],
-    ['EISDIR', 'win32', false],
-  ] as const)('%s on %s is transient: %s', (code, platform, expected) => {
-    expect(isTransientReadError(errno(code), platform)).toBe(expected);
+    ['EBUSY', true],
+    ['EAGAIN', true],
+    ['EMFILE', true],
+    ['EPERM', false],
+    ['EACCES', false],
+    ['EISDIR', false],
+  ] as const)('%s is transient: %s', (code, expected) => {
+    expect(isTransientReadError(errno(code))).toBe(expected);
   });
 
   test('an error without a code is not transient', () => {
-    expect(isTransientReadError(new Error('boom'), 'win32')).toBe(false);
+    expect(isTransientReadError(new Error('boom'))).toBe(false);
   });
 });
 
