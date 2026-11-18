@@ -1,12 +1,5 @@
 [
   {
-    "suite": "core",
-    "group": "core",
-    "cache": "core",
-    "build": "pnpm exec turbo run build --filter=@gitquire/core",
-    "run": "pnpm --dir packages/core run test"
-  },
-  {
     "suite": "server 1/4",
     "group": "server",
     "cache": "server-deps",
@@ -35,36 +28,20 @@
     "run": "pnpm --dir packages/server exec vitest run --shard=4/4"
   },
   {
-    "suite": "app unit 1/4",
+    "suite": "app unit 1/2",
     "group": "app-unit",
     "cache": "app-deps",
     "playwright": "true",
     "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=1/4"
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=1/2"
   },
   {
-    "suite": "app unit 2/4",
+    "suite": "app unit 2/2",
     "group": "app-unit",
     "cache": "app-deps",
     "playwright": "true",
     "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=2/4"
-  },
-  {
-    "suite": "app unit 3/4",
-    "group": "app-unit",
-    "cache": "app-deps",
-    "playwright": "true",
-    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=3/4"
-  },
-  {
-    "suite": "app unit 4/4",
-    "group": "app-unit",
-    "cache": "app-deps",
-    "playwright": "true",
-    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=4/4"
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.config.ts --shard=2/2"
   },
   {
     "suite": "app DOM",
@@ -74,32 +51,46 @@
     "run": "pnpm --dir packages/app exec vitest run --config vitest.dom.config.ts"
   },
   {
-    "suite": "app integration, watching off 1/4",
+    "suite": "app integration 1/6",
     "group": "app-integration",
     "cache": "app-deps",
     "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=1/4"
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=1/6"
   },
   {
-    "suite": "app integration, watching off 2/4",
+    "suite": "app integration 2/6",
     "group": "app-integration",
     "cache": "app-deps",
     "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=2/4"
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=2/6"
   },
   {
-    "suite": "app integration, watching off 3/4",
+    "suite": "app integration 3/6",
     "group": "app-integration",
     "cache": "app-deps",
     "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=3/4"
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=3/6"
   },
   {
-    "suite": "app integration, watching off 4/4",
+    "suite": "app integration 4/6",
     "group": "app-integration",
     "cache": "app-deps",
     "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
-    "run": "GITQUIRE_FILE_WATCHER_BACKEND=off pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=4/4"
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=4/6"
+  },
+  {
+    "suite": "app integration 5/6",
+    "group": "app-integration",
+    "cache": "app-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=5/6"
+  },
+  {
+    "suite": "app integration 6/6",
+    "group": "app-integration",
+    "cache": "app-deps",
+    "build": "pnpm exec turbo run build --filter=@gitquire/app^...",
+    "run": "pnpm --dir packages/app exec vitest run --config vitest.integration.config.ts --shard=6/6"
   },
   {
     "suite": "cli",
@@ -116,10 +107,10 @@
     "run": "pnpm --dir docs run test"
   },
   {
-    "suite": "uncached",
+    "suite": "core and uncached",
     "group": "uncached",
     "cache": "server",
     "build": "pnpm exec turbo run build --filter=@gitquire/server...",
-    "run": "pnpm run test:uncached"
+    "run": "core=0; uncached=0; pnpm --dir packages/core run test || core=$?; pnpm run test:uncached || uncached=$?; exit $(( core || uncached ))"
   }
 ]

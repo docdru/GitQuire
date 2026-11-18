@@ -96,118 +96,107 @@ async function settledWithin<T>(promise: Promise<T>, ms: number): Promise<boolea
 }
 
 describe('agent writes during a git branch switch', () => {
-  test.runIf(process.platform !== 'win32')(
-    'a patch sent while the switch settles is held, then written to the new branch',
-    async () => {
-      const { promise: settleHeld, resolve: releaseSettle } = Promise.withResolvers<void>();
-      const settleBranchFromDisk = DerivedDocumentIndex.prototype.settleBranchFromDisk;
-      const settleSpy = vi
-        .spyOn(DerivedDocumentIndex.prototype, 'settleBranchFromDisk')
-        .mockImplementation(async function (
-          this: DerivedDocumentIndex,
-          transition: DerivedDocumentIndexBranchTransition,
-        ) {
-          await settleHeld;
-          return settleBranchFromDisk.call(this, transition);
-        });
-      cleanups.push(() => {
-        releaseSettle();
-        settleSpy.mockRestore();
+  test('a patch sent while the switch settles is held, then written to the new branch', async () => {
+    const { promise: settleHeld, resolve: releaseSettle } = Promise.withResolvers<void>();
+    const settleBranchFromDisk = DerivedDocumentIndex.prototype.settleBranchFromDisk;
+    const settleSpy = vi
+      .spyOn(DerivedDocumentIndex.prototype, 'settleBranchFromDisk')
+      .mockImplementation(async function (
+        this: DerivedDocumentIndex,
+        transition: DerivedDocumentIndexBranchTransition,
+      ) {
+        await settleHeld;
+        return settleBranchFromDisk.call(this, transition);
       });
-
-      const { contentDir, server } = await bootOnMainWithFeatureBranch();
-
-      const switched = checkoutBranch(server, 'feature');
-      await pollUntil(
-        () => settleSpy.mock.calls.length > 0,
-        20_000,
-        50,
-        'the branch switch to reach the held settle',
-      );
-      expect(server.instance.durabilityState.isBatchInProgress()).toBe(true);
-
-      const patch = post(server.port, '/api/agent-patch', {
-        docName: 'notes',
-        find: 'On feature.',
-        replace: 'Edited on feature.',
-        agentId: 'branch-switch-probe',
-      });
-      const ackedWhileSwitching = await settledWithin(patch, RESPONSE_GRACE_MS);
-
+    cleanups.push(() => {
       releaseSettle();
-      const response = await patch;
-      await switched;
-      expect(response.status).toBe(200);
-      await pollUntil(
-        () => !server.instance.durabilityState.isBatchInProgress(),
-        20_000,
-        50,
-        'the branch switch batch to end',
-      );
-      await pollUntil(
-        () => !server.instance.durabilityState.isWriteAdmissionHeld(),
-        5_000,
-        50,
-        'the branch switch to release write admission',
-      );
-      await pollUntil(
-        () => readNotes(contentDir).includes('Edited on feature.'),
-        15_000,
-        100,
-      ).catch(() => {});
+      settleSpy.mockRestore();
+    });
 
-      expect(readNotes(contentDir)).toContain('Edited on feature.');
-      expect(ackedWhileSwitching).toBe(false);
-    },
-    90_000,
-  );
+    const { contentDir, server } = await bootOnMainWithFeatureBranch();
 
-  test.runIf(process.platform !== 'win32')(
-    'a write whose deferred store is discarded by the switch is reported as kept in the open document',
-    async () => {
-      const { contentDir, server } = await bootOnMainWithFeatureBranch();
-      const durability = server.instance.durabilityState;
-      const notes = server.instance.hocuspocus.documents.get('notes');
-      if (!notes) throw new Error('notes was not loaded');
-      const source = notes.getText('source');
-      let holding = false;
-      const holdBatchOnceWritten = (): void => {
-        if (holding || !source.toString().includes('Appended before the switch.')) return;
-        holding = true;
-        durability.setBatchInProgress(true);
-        cleanups.push(durability.holdWriteAdmission());
-      };
-      source.observe(holdBatchOnceWritten);
-      cleanups.push(() => source.unobserve(holdBatchOnceWritten));
+    const switched = checkoutBranch(server, 'feature');
+    await pollUntil(
+      () => settleSpy.mock.calls.length > 0,
+      20_000,
+      50,
+      'the branch switch to reach the held settle',
+    );
+    expect(server.instance.durabilityState.isBatchInProgress()).toBe(true);
 
-      const write = post(server.port, '/api/agent-write-md', {
-        docName: 'notes',
-        markdown: 'Appended before the switch.\n',
-        position: 'append',
-        agentId: 'branch-switch-probe',
-      });
-      await pollUntil(() => durability.isBatchInProgress(), 15_000, 20, 'the write to land');
-      const ackedBeforeSwitch = await settledWithin(write, RESPONSE_GRACE_MS);
+    const patch = post(server.port, '/api/agent-patch', {
+      docName: 'notes',
+      find: 'On feature.',
+      replace: 'Edited on feature.',
+      agentId: 'branch-switch-probe',
+    });
+    const ackedWhileSwitching = await settledWithin(patch, RESPONSE_GRACE_MS);
 
-      const switched = checkoutBranch(server, 'feature');
-      const response = await write;
-      await switched;
-      await pollUntil(
-        () =>
-          !durability.isBatchInProgress() && serverText(server, 'notes').includes('On feature.'),
-        20_000,
-        50,
-        'the branch switch to finish',
-      );
+    releaseSettle();
+    const response = await patch;
+    await switched;
+    expect(response.status).toBe(200);
+    await pollUntil(
+      () => !server.instance.durabilityState.isBatchInProgress(),
+      20_000,
+      50,
+      'the branch switch batch to end',
+    );
+    await pollUntil(
+      () => !server.instance.durabilityState.isWriteAdmissionHeld(),
+      5_000,
+      50,
+      'the branch switch to release write admission',
+    );
+    await pollUntil(() => readNotes(contentDir).includes('Edited on feature.'), 15_000, 100).catch(
+      () => {},
+    );
 
-      expect(response.status).toBe(409);
-      const problem = response.body as { type?: string; detail?: string } | null;
-      expect(problem?.type).toBe('urn:ok:error:branch-switched');
-      expect(problem?.detail).toContain('do not repeat the edit');
-      expect(ackedBeforeSwitch).toBe(false);
-      expect(readNotes(contentDir)).not.toContain('Appended before the switch.');
-      expect(serverText(server, 'notes')).toContain('Appended before the switch.');
-    },
-    90_000,
-  );
+    expect(readNotes(contentDir)).toContain('Edited on feature.');
+    expect(ackedWhileSwitching).toBe(false);
+  }, 90_000);
+
+  test('a write whose deferred store is discarded by the switch is reported as kept in the open document', async () => {
+    const { contentDir, server } = await bootOnMainWithFeatureBranch();
+    const durability = server.instance.durabilityState;
+    const notes = server.instance.hocuspocus.documents.get('notes');
+    if (!notes) throw new Error('notes was not loaded');
+    const source = notes.getText('source');
+    let holding = false;
+    const holdBatchOnceWritten = (): void => {
+      if (holding || !source.toString().includes('Appended before the switch.')) return;
+      holding = true;
+      durability.setBatchInProgress(true);
+      cleanups.push(durability.holdWriteAdmission());
+    };
+    source.observe(holdBatchOnceWritten);
+    cleanups.push(() => source.unobserve(holdBatchOnceWritten));
+
+    const write = post(server.port, '/api/agent-write-md', {
+      docName: 'notes',
+      markdown: 'Appended before the switch.\n',
+      position: 'append',
+      agentId: 'branch-switch-probe',
+    });
+    await pollUntil(() => durability.isBatchInProgress(), 15_000, 20, 'the write to land');
+    const ackedBeforeSwitch = await settledWithin(write, RESPONSE_GRACE_MS);
+
+    const switched = checkoutBranch(server, 'feature');
+    const response = await write;
+    await switched;
+    await pollUntil(
+      () => !durability.isBatchInProgress() && serverText(server, 'notes').includes('On feature.'),
+      20_000,
+      50,
+      'the branch switch to finish',
+    );
+
+    expect(response.status).toBe(409);
+    const problem = response.body as { type?: string; detail?: string } | null;
+    expect(problem?.type).toBe('urn:ok:error:branch-switched');
+    expect(problem?.detail).toContain('do not repeat the edit');
+    expect(ackedBeforeSwitch).toBe(false);
+    expect(readNotes(contentDir)).not.toContain('Appended before the switch.');
+    expect(serverText(server, 'notes')).toContain('Appended before the switch.');
+  }, 90_000);
 });

@@ -206,7 +206,7 @@ test('stored-scope migration keeps the recorded identity when its path is retarg
   const recorded = canonicalProjectKey(original);
   const targetKey = canonicalProjectKey(target);
   renameSync(original, join(dir, 'renamed'));
-  symlinkSync(target, original, process.platform === 'win32' ? 'junction' : 'dir');
+  symlinkSync(target, original, 'dir');
   const endpoint = 'https://api.openai.com/v1';
   writeFileSync(
     path,

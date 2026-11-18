@@ -138,7 +138,6 @@ describe('clone honours the environment command-scope git config (GIT_CONFIG_COU
   beforeEach(() => {
     workspace = realpathSync(mkdtempSync(join(tmpdir(), 'ok-clone-envcfg-')));
     vi.stubEnv('HOME', workspace);
-    vi.stubEnv('USERPROFILE', workspace);
     vi.stubEnv('XDG_CONFIG_HOME', join(workspace, '.config'));
     vi.stubEnv('GIT_CONFIG_NOSYSTEM', '1');
     vi.stubEnv('NO_PROXY', undefined);
@@ -427,7 +426,6 @@ describe('gq clone checks symlinks before checking anything out', () => {
   beforeEach(() => {
     workspace = realpathSync(mkdtempSync(join(tmpdir(), 'ok-clone-links-')));
     vi.stubEnv('HOME', workspace);
-    vi.stubEnv('USERPROFILE', workspace);
     vi.stubEnv('XDG_CONFIG_HOME', join(workspace, '.config'));
     vi.stubEnv('GIT_CONFIG_NOSYSTEM', '1');
     vi.stubEnv('GIT_CONFIG_COUNT', '1');
@@ -525,26 +523,23 @@ describe('gq clone checks symlinks before checking anything out', () => {
     ).resolves.toBe(join(workspace, 'target'));
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'a repository whose links stay inside it is cloned and checked out',
-    async () => {
-      seedBareRepoWithLinks(join(workspace, 'o', 'r.git'), { 'notes/readme.md': '../README.md' });
-      const targetDir = join(workspace, 'target');
+  test('a repository whose links stay inside it is cloned and checked out', async () => {
+    seedBareRepoWithLinks(join(workspace, 'o', 'r.git'), { 'notes/readme.md': '../README.md' });
+    const targetDir = join(workspace, 'target');
 
-      await expect(
-        runClone(
-          'https://127.0.0.1:1/o/r.git',
-          { json: true, dir: 'target', _detectGhFn: relayTokenGh },
-          {} as never,
-          workspace,
-        ),
-      ).resolves.toBe(targetDir);
+    await expect(
+      runClone(
+        'https://127.0.0.1:1/o/r.git',
+        { json: true, dir: 'target', _detectGhFn: relayTokenGh },
+        {} as never,
+        workspace,
+      ),
+    ).resolves.toBe(targetDir);
 
-      expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).toBe('# seeded\n');
-      expect(readlinkSync(join(targetDir, 'notes', 'readme.md'))).toBe('../README.md');
-      expect(
-        execFileSync('git', ['status', '--porcelain'], { cwd: targetDir, encoding: 'utf-8' }),
-      ).toBe('');
-    },
-  );
+    expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).toBe('# seeded\n');
+    expect(readlinkSync(join(targetDir, 'notes', 'readme.md'))).toBe('../README.md');
+    expect(
+      execFileSync('git', ['status', '--porcelain'], { cwd: targetDir, encoding: 'utf-8' }),
+    ).toBe('');
+  });
 });

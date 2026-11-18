@@ -207,48 +207,45 @@ describe('generated-index git attributes', () => {
     expect(readFileSync(join(projectDir, '.gitattributes'), 'utf-8')).toBe('index.md merge=ours\n');
   });
 
-  test.skipIf(process.platform === 'win32')(
-    'refuses to follow a .gitattributes symlink',
-    async () => {
-      const { projectDir, contentDir } = makeProject();
-      const targetPath = join(projectDir, 'attributes-target');
-      writeFileSync(targetPath, '*.png binary\n', 'utf-8');
-      symlinkSync(targetPath, join(projectDir, '.gitattributes'));
-      const warn = vi
-        .spyOn(getLogger('generated-index-git-attributes'), 'warn')
-        .mockImplementation(() => {});
+  test('refuses to follow a .gitattributes symlink', async () => {
+    const { projectDir, contentDir } = makeProject();
+    const targetPath = join(projectDir, 'attributes-target');
+    writeFileSync(targetPath, '*.png binary\n', 'utf-8');
+    symlinkSync(targetPath, join(projectDir, '.gitattributes'));
+    const warn = vi
+      .spyOn(getLogger('generated-index-git-attributes'), 'warn')
+      .mockImplementation(() => {});
 
-      expect(
-        inspectGeneratedIndexGitAttributes({ projectDir, contentDir, generatedDocNames }),
-      ).toEqual({ state: 'unavailable' });
+    expect(
+      inspectGeneratedIndexGitAttributes({ projectDir, contentDir, generatedDocNames }),
+    ).toEqual({ state: 'unavailable' });
 
-      const result = await updateGeneratedIndexGitAttributes({
-        projectDir,
-        contentDir,
-        generatedDocNames,
-        enabled: true,
-      });
+    const result = await updateGeneratedIndexGitAttributes({
+      projectDir,
+      contentDir,
+      generatedDocNames,
+      enabled: true,
+    });
 
-      expect(result).toEqual({ ok: false, status: { state: 'unavailable' } });
-      expect(readFileSync(targetPath, 'utf-8')).toBe('*.png binary\n');
-      expect(warn).toHaveBeenNthCalledWith(
-        1,
-        expect.objectContaining({
-          err: expect.any(Error),
-          path: expect.stringContaining('.gitattributes'),
-        }),
-        'failed to inspect generated-index Git attributes',
-      );
-      expect(warn).toHaveBeenNthCalledWith(
-        2,
-        expect.objectContaining({
-          err: expect.any(Error),
-          path: expect.stringContaining('.gitattributes'),
-        }),
-        'failed to read generated-index Git attributes',
-      );
-    },
-  );
+    expect(result).toEqual({ ok: false, status: { state: 'unavailable' } });
+    expect(readFileSync(targetPath, 'utf-8')).toBe('*.png binary\n');
+    expect(warn).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        err: expect.any(Error),
+        path: expect.stringContaining('.gitattributes'),
+      }),
+      'failed to inspect generated-index Git attributes',
+    );
+    expect(warn).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        err: expect.any(Error),
+        path: expect.stringContaining('.gitattributes'),
+      }),
+      'failed to read generated-index Git attributes',
+    );
+  });
 
   test('rolls back its root rule when a nested attribute still overrides a generated index', async () => {
     const { projectDir, contentDir } = makeProject();

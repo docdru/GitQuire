@@ -28,7 +28,7 @@ describe('previewContent — the CLI consumer descends directory symlinks', () =
       writeFileSync(join(bulk, `f${i}.md`), '# x');
     }
     writeFileSync(join(root, 'a.md'), '# a');
-    symlinkSync(bulk, join(root, 'linked'), process.platform === 'win32' ? 'junction' : undefined);
+    symlinkSync(bulk, join(root, 'linked'));
 
     const result = previewContent({ projectDir: root, contentDir: root });
 

@@ -333,7 +333,7 @@ describe('acquireProcessLock', () => {
 });
 
 describe('a lock that cannot be removed from a read-only lock directory', () => {
-  const canRestrictWrites = process.platform !== 'win32' && process.getuid?.() !== 0;
+  const canRestrictWrites = process.getuid?.() !== 0;
 
   function writeLockInReadOnlyDir(text: string): void {
     mkdirSync(lockDir, { recursive: true });
@@ -409,7 +409,7 @@ describe('a lock that cannot be removed from a read-only lock directory', () => 
 });
 
 describe('a lock acquire cannot read', () => {
-  const canRestrictReads = process.platform !== 'win32' && process.getuid?.() !== 0;
+  const canRestrictReads = process.getuid?.() !== 0;
 
   afterEach(() => {
     if (existsSync(lockPath)) chmodSync(lockPath, 0o600);

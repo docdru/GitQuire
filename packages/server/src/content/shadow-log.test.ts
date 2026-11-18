@@ -361,7 +361,6 @@ describe('readShadowLog under a process environment carrying GIT_CONFIG_COUNT', 
     const isolatedHome = resolve(tmpDir, 'home');
     mkdirSync(isolatedHome, { recursive: true });
     vi.stubEnv('HOME', isolatedHome);
-    vi.stubEnv('USERPROFILE', isolatedHome);
     vi.stubEnv('XDG_CONFIG_HOME', resolve(isolatedHome, '.config'));
     vi.stubEnv('GIT_CONFIG_COUNT', '1');
     vi.stubEnv('GIT_CONFIG_KEY_0', 'credential.interactive');

@@ -25,7 +25,6 @@ import { getMetrics } from './metrics.ts';
 import { createManualClock } from './watcher-clock.test-helper.ts';
 
 function readCanBeRevoked(): boolean {
-  if (process.platform === 'win32') return false;
   const dir = mkdtempSync(join(tmpdir(), 'gq-revoke-probe-'));
   const probe = join(dir, 'probe');
   try {
@@ -163,35 +162,29 @@ describe('re-checking the content folder', () => {
     expect(eventsFor(events, 'delete', 'gone')).toHaveLength(1);
   });
 
-  test.runIf(process.platform !== 'win32')(
-    'a re-read of a FIFO or a link to a device returns without reading it',
-    async () => {
-      await watch();
-      const fifo = join(contentDir, 'pipe.md');
-      execFileSync('mkfifo', [fifo]);
-      const device = join(contentDir, 'zero.md');
-      symlinkSync('/dev/zero', device);
+  test('a re-read of a FIFO or a link to a device returns without reading it', async () => {
+    await watch();
+    const fifo = join(contentDir, 'pipe.md');
+    execFileSync('mkfifo', [fifo]);
+    const device = join(contentDir, 'zero.md');
+    symlinkSync('/dev/zero', device);
 
-      const result = await (handle as WatcherHandle).recheckPaths([fifo, device]);
-      expect(result).toEqual({ checked: 2, found: 0 });
-      expect(events).toHaveLength(0);
-    },
-  );
+    const result = await (handle as WatcherHandle).recheckPaths([fifo, device]);
+    expect(result).toEqual({ checked: 2, found: 0 });
+    expect(events).toHaveLength(0);
+  });
 
-  test.runIf(process.platform !== 'win32')(
-    'a re-read of a non-Markdown FIFO or a link to a device lists neither',
-    async () => {
-      await watch();
-      const fifo = join(contentDir, 'pipe.bin');
-      execFileSync('mkfifo', [fifo]);
-      const device = join(contentDir, 'zero.png');
-      symlinkSync('/dev/zero', device);
+  test('a re-read of a non-Markdown FIFO or a link to a device lists neither', async () => {
+    await watch();
+    const fifo = join(contentDir, 'pipe.bin');
+    execFileSync('mkfifo', [fifo]);
+    const device = join(contentDir, 'zero.png');
+    symlinkSync('/dev/zero', device);
 
-      const result = await (handle as WatcherHandle).recheckPaths([fifo, device]);
-      expect(result.found).toBe(0);
-      expect(events).toHaveLength(0);
-    },
-  );
+    const result = await (handle as WatcherHandle).recheckPaths([fifo, device]);
+    expect(result.found).toBe(0);
+    expect(events).toHaveLength(0);
+  });
 
   test.runIf(CAN_REVOKE_READ)(
     'a file that cannot be read does not stop a re-check from applying a change beside it',

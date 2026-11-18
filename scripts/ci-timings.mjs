@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
 
-export const COLUMNS = ['queue', 'start', 'setup', 'install', 'build', 'test', 'other', 'total'];
+const COLUMNS = ['queue', 'start', 'setup', 'install', 'build', 'test', 'other', 'total'];
 
 const SETUP_STEP =
   /^(set up job|run actions\/checkout|run pnpm\/action-setup|run actions\/setup-node|run docker\/setup-buildx-action|run \.\/\.github\/actions\/setup|restore |log in )/i;
@@ -105,7 +105,7 @@ export function formatTable(rows, { title, showRuns = false } = {}) {
   return lines.join('\n');
 }
 
-export function formatSummary(runs) {
+function formatSummary(runs) {
   const lines = [
     '| run | workflow | event | branch | wall | job minutes | jobs run | skipped |',
     '| --- | --- | --- | --- | --- | --- | --- | --- |',

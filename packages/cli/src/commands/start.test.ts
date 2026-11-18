@@ -992,7 +992,7 @@ describe('tryDescribeLockCollision', () => {
     expect(err.message).toContain('Close that session');
   });
 
-  test.runIf(process.platform !== 'win32' && process.getuid?.() !== 0)(
+  test.runIf(process.getuid?.() !== 0)(
     'a lock acquisition cannot read has its remedy as the message, without a stack',
     async () => {
       const serverModule = await import('@gitquire/server');

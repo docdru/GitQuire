@@ -48,11 +48,7 @@ describe.each(['login', 'gh-login'])('auth shutdown: %s', (channel) => {
     async (scenario) => {
       const fixture = await createControlledAuthCli();
       const binDir = mkdtempSync(join(tmpdir(), 'ok-auth-bin-'));
-      copyFileSync(
-        process.execPath,
-        join(binDir, process.platform === 'win32' ? 'gh.exe' : 'gh'),
-        constants.COPYFILE_FICLONE,
-      );
+      copyFileSync(process.execPath, join(binDir, 'gh'), constants.COPYFILE_FICLONE);
       vi.stubEnv('PATH', `${binDir}${delimiter}${process.env.PATH ?? ''}`);
       const observer = observeChildren(channel === 'login' ? fixture.cliArgs : ['gh', 'auth']);
       const controllers: AbortController[] = [];

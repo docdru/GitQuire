@@ -34,7 +34,6 @@ beforeEach(() => {
   projectDir = mkdtempSync(join(tmpdir(), 'ok-auth-command-host-'));
   home = mkdtempSync(join(tmpdir(), 'ok-auth-command-host-home-'));
   vi.stubEnv('HOME', home);
-  vi.stubEnv('USERPROFILE', home);
   execFileSync('git', ['init', '-q'], { cwd: projectDir });
   configureTestGitRepository(projectDir);
   vi.spyOn(process, 'cwd').mockReturnValue(projectDir);
