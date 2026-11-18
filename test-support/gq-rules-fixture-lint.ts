@@ -50,7 +50,7 @@ function lintOkRulesFixtures(): GqRulesFixtureLint {
   const result = spawnSync(
     process.execPath,
     [oxlintBin(), '-f', 'json', '-c', GQ_RULES_FIXTURE_CONFIG, GQ_RULES_FIXTURES],
-    { cwd: GQ_ROOT, encoding: 'utf-8', windowsHide: true, maxBuffer: 256 * 1024 * 1024 },
+    { cwd: GQ_ROOT, encoding: 'utf-8', maxBuffer: 256 * 1024 * 1024 },
   );
   const output = `stdout: ${clip(result.stdout)}\nstderr: ${clip(result.stderr)}`;
   const run = `oxlint over ${GQ_RULES_FIXTURES} with ${GQ_RULES_FIXTURE_CONFIG}`;

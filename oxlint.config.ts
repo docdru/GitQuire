@@ -83,7 +83,6 @@ export default defineConfig({
     'gq/path-conditional-map-driven-origin': 'error',
     'gq/playwright-prefer-to-have-count': 'error',
     'gq/require-utf8-multipart-parser': 'error',
-    'gq/require-windowshide-on-spawn': 'error',
     [NO_COMMENTS_RULE]: NO_COMMENTS_SEVERITY,
     'eslint/logical-assignment-operators': [
       'error',

@@ -3,10 +3,7 @@ import { existsSync, lstatSync, readdirSync } from 'node:fs';
 import { realpath } from 'node:fs/promises';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import type { Readable } from 'node:stream';
-import {
-  LOCAL_OP_PIPE_STDIO_OPTIONS,
-  withHiddenWindowsConsole,
-} from './child-process-windows-hide.ts';
+import { LOCAL_OP_PIPE_STDIO_OPTIONS } from './child-process-options.ts';
 import { isValidLockPid, type ProcessLiveness, readProcessLiveness } from './process-alive.ts';
 
 const SPAWN_TIMEOUT_MS = 2000;
@@ -77,20 +74,16 @@ function readCommandLines(
   onLine: (line: string) => void,
 ): Promise<ListingResult> {
   return new Promise((resolveResult, reject) => {
-    const child = spawn(
-      program,
-      args,
-      withHiddenWindowsConsole({
-        ...LOCAL_OP_PIPE_STDIO_OPTIONS,
-        timeout: SPAWN_TIMEOUT_MS,
-        env: {
-          ...process.env,
-          LC_CTYPE: process.env.LC_ALL || process.env.LC_CTYPE,
-          LC_ALL: undefined,
-          LC_MESSAGES: 'C',
-        },
-      }),
-    );
+    const child = spawn(program, args, {
+      ...LOCAL_OP_PIPE_STDIO_OPTIONS,
+      timeout: SPAWN_TIMEOUT_MS,
+      env: {
+        ...process.env,
+        LC_CTYPE: process.env.LC_ALL || process.env.LC_CTYPE,
+        LC_ALL: undefined,
+        LC_MESSAGES: 'C',
+      },
+    });
     let hasStdout = false;
     let hasStderr = false;
     let diagnostic = '';
@@ -217,14 +210,10 @@ export function extractOkBinaryPath(command: string): string | null {
 }
 
 export function processCommand(pid: number): string | null {
-  const result = spawnSync(
-    'ps',
-    ['-p', String(pid), '-o', 'command='],
-    withHiddenWindowsConsole({
-      encoding: 'utf-8',
-      timeout: SPAWN_TIMEOUT_MS,
-    }),
-  );
+  const result = spawnSync('ps', ['-p', String(pid), '-o', 'command='], {
+    encoding: 'utf-8',
+    timeout: SPAWN_TIMEOUT_MS,
+  });
 
   if (result.error != null || !result.stdout) return null;
   return result.stdout.trim() || null;
@@ -236,14 +225,10 @@ export interface ProcessUsage {
 }
 
 export function processUsage(pid: number): ProcessUsage | null {
-  const result = spawnSync(
-    'ps',
-    ['-p', String(pid), '-o', '%cpu=,%mem='],
-    withHiddenWindowsConsole({
-      encoding: 'utf-8',
-      timeout: SPAWN_TIMEOUT_MS,
-    }),
-  );
+  const result = spawnSync('ps', ['-p', String(pid), '-o', '%cpu=,%mem='], {
+    encoding: 'utf-8',
+    timeout: SPAWN_TIMEOUT_MS,
+  });
 
   if (result.error != null || !result.stdout) return null;
   const [cpuRaw, memRaw] = result.stdout.trim().split(/\s+/);
@@ -285,16 +270,12 @@ function reportUnreadableState(
 
 export function readProcessState(pid: number, options: ProcessProbeOptions = {}): ProcessState {
   try {
-    const state = execFileSync(
-      'ps',
-      ['-p', String(pid), '-o', 'stat='],
-      withHiddenWindowsConsole({
-        encoding: 'utf8',
-        ...LOCAL_OP_PIPE_STDIO_OPTIONS,
-        timeout: SPAWN_TIMEOUT_MS,
-        env: { ...process.env, LC_ALL: 'C' },
-      }),
-    );
+    const state = execFileSync('ps', ['-p', String(pid), '-o', 'stat='], {
+      encoding: 'utf8',
+      ...LOCAL_OP_PIPE_STDIO_OPTIONS,
+      timeout: SPAWN_TIMEOUT_MS,
+      env: { ...process.env, LC_ALL: 'C' },
+    });
     return state.trim().startsWith('Z') ? { status: 'defunct' } : { status: 'running' };
   } catch (err: unknown) {
     if (!(err instanceof Error)) return reportUnreadableState(pid, String(err), options);
@@ -347,14 +328,10 @@ function queryPidCwds(pids: readonly number[]): {
   cwds: Map<number, string>;
   queryFailed: boolean;
 } {
-  const result = spawnSync(
-    'lsof',
-    ['-p', pids.join(','), '-a', '-d', 'cwd', '-Fn'],
-    withHiddenWindowsConsole({
-      encoding: 'utf-8',
-      timeout: SPAWN_TIMEOUT_MS,
-    }),
-  );
+  const result = spawnSync('lsof', ['-p', pids.join(','), '-a', '-d', 'cwd', '-Fn'], {
+    encoding: 'utf-8',
+    timeout: SPAWN_TIMEOUT_MS,
+  });
   if (result.error != null) {
     return {
       cwds: new Map(),

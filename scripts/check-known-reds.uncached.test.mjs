@@ -1451,7 +1451,6 @@ describe('known-reds through its real invocation', () => {
   const init = spawnSync('git', ['init', '-q'], {
     cwd: root,
     env: gitCleanEnv(),
-    windowsHide: true,
     encoding: 'utf8',
   });
   if (init.status === 0) configureTestGitRepository(root);
@@ -1506,7 +1505,6 @@ describe('known-reds through its real invocation', () => {
     const run = spawnSync(process.execPath, [SCRIPT, '--json', '--root', root], {
       encoding: 'utf8',
       env: gitCleanEnv(),
-      windowsHide: true,
     });
     expect(run.status).toBe(1);
     const feed = JSON.parse(run.stdout);
@@ -1528,7 +1526,6 @@ describe('known-reds through its real invocation', () => {
       const json = spawnSync(process.execPath, [SCRIPT, '--json', '--root', root], {
         encoding: 'utf8',
         env: gitCleanEnv(),
-        windowsHide: true,
       });
       expect(JSON.parse(json.stdout).expiringSoon).toEqual(
         expect.arrayContaining([
@@ -1545,7 +1542,6 @@ describe('known-reds through its real invocation', () => {
       const listing = spawnSync(process.execPath, [SCRIPT, '--root', root], {
         encoding: 'utf8',
         env: gitCleanEnv(),
-        windowsHide: true,
       });
       expect(listing.stdout).toMatch(
         new RegExp(`Expiring within ${EXPIRY_WARNING_DAYS} days \\(\\d+\\)`),
@@ -1562,7 +1558,6 @@ describe('known-reds through its real invocation', () => {
     const run = spawnSync(process.execPath, [SCRIPT, '--root', root], {
       encoding: 'utf8',
       env: gitCleanEnv(),
-      windowsHide: true,
     });
     expect(run.status).toBe(1);
     expect(run.stdout).toContain('Known reds in open-knowledge on ');
@@ -1579,7 +1574,6 @@ describe('known-reds through its real invocation', () => {
       const run = spawnSync(process.execPath, [SCRIPT, '--root', notARepo], {
         encoding: 'utf8',
         env: { ...gitCleanEnv(), GIT_CEILING_DIRECTORIES: tmpdir() },
-        windowsHide: true,
       });
       expect(run.status).toBe(2);
       expect(run.stderr).toMatch(/^known-reds: could not run: /);
@@ -1602,7 +1596,6 @@ describe('an expired date through the real invocation', () => {
     const init = spawnSync('git', ['init', '-q'], {
       cwd: root,
       env: gitCleanEnv(),
-      windowsHide: true,
       encoding: 'utf8',
     });
     if (init.status === 0) configureTestGitRepository(root);
@@ -1619,7 +1612,6 @@ describe('an expired date through the real invocation', () => {
     return spawnSync(process.execPath, [SCRIPT, ...args, '--root', root], {
       encoding: 'utf8',
       env: gitCleanEnv(),
-      windowsHide: true,
     });
   };
 

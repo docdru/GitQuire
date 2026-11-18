@@ -23,7 +23,6 @@ type SpawnFn = (
     cwd: string;
     env: Record<string, string | undefined>;
     stdio: 'inherit';
-    windowsHide: true;
   },
 ) => ChildProcess;
 
@@ -85,8 +84,7 @@ function delay(ms: number): Promise<void> {
 
 export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
   const spawn: SpawnFn =
-    deps.spawn ??
-    ((command, args, options) => nodeSpawn(command, [...args], { ...options, windowsHide: true }));
+    deps.spawn ?? ((command, args, options) => nodeSpawn(command, [...args], options));
   const doFetch = deps.fetch ?? fetch;
   const freePort = deps.freePort ?? findFreePort;
   const idleMs = deps.idleMs ?? DEFAULT_IDLE_MS;
@@ -160,7 +158,6 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
         [INTERNAL_SECRET_ENV]: deps.internalSecret,
       },
       stdio: 'inherit',
-      windowsHide: true,
     });
     const exited = new Promise<void>((resolve) => {
       child.once('exit', () => resolve());

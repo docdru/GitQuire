@@ -90,13 +90,6 @@ export const RULE_SCOPES = {
     '!packages/md-conformance/src/class-proofs/proofs/**',
     'lint-plugins/gq-rules/__fixtures__/class-proof-registration-discipline.fixture.tsx',
   ],
-  'require-windowshide-on-spawn': [
-    'packages/server/src/**/*.ts',
-    'packages/cli/src/**/*.ts',
-    '!**/*.test.ts',
-    '!**/*.test-helper.ts',
-    'lint-plugins/gq-rules/__fixtures__/require-windowshide-on-spawn.fixture.tsx',
-  ],
   'require-utf8-multipart-parser': [
     '**/*.ts',
     '**/*.tsx',

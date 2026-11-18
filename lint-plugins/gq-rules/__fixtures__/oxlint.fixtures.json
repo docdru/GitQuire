@@ -35,7 +35,6 @@
     "gq/no-unwrapped-user-facing-string": "error",
     "gq/path-conditional-map-driven-origin": "error",
     "gq/playwright-prefer-to-have-count": "error",
-    "gq/require-utf8-multipart-parser": "error",
-    "gq/require-windowshide-on-spawn": "error"
+    "gq/require-utf8-multipart-parser": "error"
   }
 }
