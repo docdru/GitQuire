@@ -163,7 +163,6 @@
   "tests/integration/file-ops-take-in.test.ts": 1.9,
   "tests/integration/fm-collision-guard.test.ts": 2.3,
   "tests/integration/frontmatter-lint-http.test.ts": 1.9,
-  "tests/integration/fullscreen-overlay-safe-area-coverage.test.ts": 0.1,
   "tests/integration/gh-cold-after-shutdown.test.ts": 0.9,
   "tests/integration/gh-discovery-shutdown.test.ts": 1,
   "tests/integration/gh-lookup-shutdown.test.ts": 1.2,
