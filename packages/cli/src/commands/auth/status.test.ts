@@ -106,7 +106,7 @@ describe('buildStatusPayload', () => {
 
   test('surfaces the active backend when authenticated', () => {
     expect(
-      buildStatusPayload('github.com', 'keyring', {
+      buildStatusPayload('github.com', 'file', {
         authenticated: true,
         tier: 'B',
         login: 'alice',
@@ -116,7 +116,7 @@ describe('buildStatusPayload', () => {
     ).toEqual({
       type: 'status',
       host: 'github.com',
-      backend: 'keyring',
+      backend: 'file',
       authenticated: true,
       tier: 'B',
       login: 'alice',

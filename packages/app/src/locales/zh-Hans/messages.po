@@ -1882,9 +1882,6 @@ msgstr "正在复制…"
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "无法访问已保存的 API 密钥。请检查本地凭据文件，然后重试。"
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "无法访问已保存的 API 密钥。请解锁系统凭据存储或检查本地凭据文件，然后重试。"
-
 msgid "Could not complete delete"
 msgstr "无法完成删除"
 
@@ -6151,9 +6148,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "已保存为 <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "已保存的密钥发生冲突。请输入此项目和端点的替代密钥。"
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "无法加载已保存的主题。仍显示上次可用的主题列表。"
 
@@ -7248,9 +7242,6 @@ msgstr "保存的令牌缺少这个主机推送所需的权限。"
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "队友第一次打开此项目时采用的同步模式。它保存在项目的 GitQuire 设置中，因此只有当下方的配置共享设为已共享时才会传给他们。"
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "系统凭据存储不可用。此密钥保存在项目外的文件中，文件权限受到限制。"
 
 msgid "The template's filename (without `.md`)."
 msgstr "模板的文件名（不含 `.md`）。"

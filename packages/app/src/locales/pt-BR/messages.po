@@ -1878,9 +1878,6 @@ msgstr "Copiando..."
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "Não foi possível acessar a chave de API salva. Verifique os arquivos de credenciais locais e tente novamente."
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "Não foi possível acessar a chave de API salva. Desbloqueie o armazenamento de credenciais do sistema ou verifique os arquivos de credenciais locais e tente novamente."
-
 msgid "Could not complete delete"
 msgstr "Não foi possível concluir a exclusão"
 
@@ -6147,9 +6144,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Salvo como <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "As chaves salvas estão em conflito. Insira uma chave substituta para este projeto e endpoint."
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "Não foi possível carregar os temas salvos. A última lista de temas disponível continua sendo exibida."
 
@@ -7244,9 +7238,6 @@ msgstr "Faltam ao token guardado as permissões de que este host precisa para fa
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "O modo de sincronização com que os colegas começam na primeira vez que abrem este projeto. Ele fica salvo nas configurações do GitQuire do projeto, então só chega até eles quando o Compartilhamento de configuração abaixo está definido como Compartilhado."
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "O armazenamento de credenciais do sistema está indisponível. Esta chave é guardada em um arquivo com permissões restritas fora do projeto."
 
 msgid "The template's filename (without `.md`)."
 msgstr "O nome do arquivo do modelo (sem `.md`)."

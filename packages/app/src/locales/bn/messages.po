@@ -1878,9 +1878,6 @@ msgstr "কপি করা হচ্ছে…"
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "সংরক্ষিত API কী অ্যাক্সেস করা যায়নি। স্থানীয় ক্রেডেনশিয়াল ফাইল পরীক্ষা করুন, তারপর আবার চেষ্টা করুন।"
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "সংরক্ষিত API কী অ্যাক্সেস করা যায়নি। সিস্টেমের ক্রেডেনশিয়াল স্টোর আনলক করুন বা স্থানীয় ক্রেডেনশিয়াল ফাইলগুলি পরীক্ষা করুন, তারপর আবার চেষ্টা করুন।"
-
 msgid "Could not complete delete"
 msgstr "মুছে ফেলা সম্পূর্ণ করা যায়নি"
 
@@ -6147,9 +6144,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "<0>{slug}.md</0> হিসেবে সংরক্ষিত"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "সংরক্ষিত কীগুলির মধ্যে বিরোধ আছে। এর বদলে ব্যবহার করতে এই প্রকল্প ও এন্ডপয়েন্টের জন্য একটি নতুন কী দিন।"
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "সংরক্ষিত থিমগুলি লোড করা যায়নি। সর্বশেষ উপলভ্য থিমের তালিকাটি এখনও দেখানো হচ্ছে।"
 
@@ -7244,9 +7238,6 @@ msgstr "সংরক্ষিত টোকেনে সেই অনুমতি
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "সহকর্মীরা প্রথমবার এই প্রকল্প খুললে যে সিঙ্ক মোড দিয়ে শুরু করেন। এটি প্রকল্পের GitQuire সেটিংয়ে সংরক্ষিত থাকে, তাই নিচের কনফিগ ভাগাভাগি ভাগ করা-তে সেট থাকলেই কেবল এটি তাঁদের কাছে পৌঁছায়।"
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "সিস্টেমের ক্রেডেনশিয়াল স্টোর উপলব্ধ নয়। এই কী প্রকল্পের বাইরে সীমিত অনুমতিসহ একটি ফাইলে সংরক্ষিত।"
 
 msgid "The template's filename (without `.md`)."
 msgstr "টেমপ্লেটের ফাইলের নাম (`.md` ছাড়া)।"

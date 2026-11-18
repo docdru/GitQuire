@@ -420,28 +420,26 @@ describe('loadOpenAiEmbedder', () => {
     const keyStore = { resolveForProject: () => Promise.reject(new Error('store exploded')) };
     await expect(loadOpenAiEmbedder({ keyStore, projectDir, config })).rejects.toMatchObject({
       name: 'EmbeddingsCredentialStoreError',
-      code: 'native_access',
+      code: 'file_access',
     });
     process.env[EMBEDDINGS_API_KEY_ENV] = 'sk-env';
     expect(await loadOpenAiEmbedder({ keyStore, projectDir, config })).not.toBeNull();
   });
 
-  test('credential failures retain bounded diagnostics without native secret text', async () => {
-    const nativeError = Object.assign(new Error('sk-do-not-leak'), { code: 'GenericFailure' });
+  test('credential failures retain bounded diagnostics without secret text', async () => {
+    const readError = Object.assign(new Error('sk-do-not-leak'), { code: 'EACCES' });
     const error = await loadOpenAiEmbedder({
       keyStore: {
         resolveForProject: () =>
-          Promise.reject(
-            new EmbeddingsSecretStoreError('native_access', 'native_get', nativeError),
-          ),
+          Promise.reject(new EmbeddingsSecretStoreError('file_access', 'file_read', readError)),
       },
       projectDir,
       config,
     }).catch((failure: unknown) => failure);
     expect(error).toMatchObject({
       name: 'EmbeddingsCredentialStoreError',
-      code: 'native_access',
-      cause: { phase: 'native_get', name: 'Error', code: 'GenericFailure' },
+      code: 'file_access',
+      cause: { phase: 'file_read', name: 'Error', code: 'EACCES' },
     });
     expect(JSON.stringify(error)).not.toContain('sk-do-not-leak');
   });

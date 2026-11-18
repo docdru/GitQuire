@@ -1882,9 +1882,6 @@ msgstr "Copie en cours…"
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "Impossible d’accéder à la clé API enregistrée. Vérifiez les fichiers d’identifiants locaux, puis réessayez."
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "Impossible d’accéder à la clé API enregistrée. Déverrouillez le stockage des identifiants système ou vérifiez les fichiers d’identifiants locaux, puis réessayez."
-
 msgid "Could not complete delete"
 msgstr "Impossible de terminer la suppression"
 
@@ -6151,9 +6148,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Enregistré sous <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "Les clés enregistrées sont en conflit. Saisissez une clé de remplacement pour ce projet et ce point de terminaison."
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "Impossible de charger les thèmes enregistrés. La dernière liste de thèmes disponible reste affichée."
 
@@ -7248,9 +7242,6 @@ msgstr "Il manque au jeton enregistré les permissions dont cet hôte a besoin p
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "Le mode de synchronisation avec lequel vos coéquipiers démarrent la première fois qu'ils ouvrent ce projet. Il est enregistré dans les paramètres GitQuire du projet ; il ne leur parvient donc que si le Partage de la configuration ci-dessous est réglé sur Partagé."
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "Le stockage des identifiants système est indisponible. Cette clé est stockée dans un fichier aux permissions restreintes, en dehors du projet."
 
 msgid "The template's filename (without `.md`)."
 msgstr "Le nom de fichier du modèle (sans `.md`)."

@@ -287,46 +287,6 @@ describe('handleCredentialGet diagnostic logging', () => {
     });
   });
 
-  test('logs read-error at warn when the keychain read failed', async () => {
-    const store = makeStore(tmpDir);
-    const input = makeStream('protocol=https\nhost=github.com\n\n');
-    const { writable } = makeOutput();
-    const { logger, calls } = makeFakeLogger();
-
-    const code = await handleCredentialGet(input, writable, store, {
-      log: logger,
-      getDiag: () => ({ kind: 'read-error', host: 'github.com', error: 'Error: denied' }),
-    });
-
-    expect(code).toBe(1);
-    expect(calls[0]?.level).toBe('warn');
-    expect(calls[0]?.fields).toMatchObject({
-      host: 'github.com',
-      outcome: 'read-error',
-      keychainError: 'Error: denied',
-    });
-  });
-
-  test('logs corrupt-entry at warn with a bytes-free keychainError', async () => {
-    const store = makeStore(tmpDir);
-    const input = makeStream('protocol=https\nhost=github.com\n\n');
-    const { writable } = makeOutput();
-    const { logger, calls } = makeFakeLogger();
-
-    const code = await handleCredentialGet(input, writable, store, {
-      log: logger,
-      getDiag: () => ({ kind: 'corrupt-entry', host: 'github.com', error: 'corrupt-entry' }),
-    });
-
-    expect(code).toBe(1);
-    expect(calls[0]?.level).toBe('warn');
-    expect(calls[0]?.fields).toMatchObject({
-      host: 'github.com',
-      outcome: 'corrupt-entry',
-      keychainError: 'corrupt-entry',
-    });
-  });
-
   test('logs no-host at warn when the request omits a host', async () => {
     const store = makeStore(tmpDir);
     const input = makeStream('protocol=https\n\n');

@@ -39,7 +39,6 @@
     "@hono/node-server": "^2.1.6",
     "@gitquire/core": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.32.0",
-    "@napi-rs/keyring": "2.1.2",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/context-async-hooks": "^2.0.0",
     "@opentelemetry/core": "^2.0.0",

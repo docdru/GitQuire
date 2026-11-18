@@ -382,7 +382,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
             keyHint,
             keyStoreUnavailable,
             keyStoreError,
-            keyStoredInFile: keyPresent && cred.source !== 'env' && keyStore.backend === 'file',
             ready,
             capable,
             providerError,

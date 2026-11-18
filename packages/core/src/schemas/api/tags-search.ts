@@ -355,7 +355,6 @@ export const SemanticIndexStatusSchema = z
     keyPresent: z.boolean(),
     keyStoreUnavailable: z.boolean().optional(),
     keyStoreError: EmbeddingsKeyStoreErrorSchema.optional().catch(undefined),
-    keyStoredInFile: z.boolean().optional(),
     keyNotRequired: z.boolean(),
     keySource: z.enum(['project', 'file', 'env']).nullable(),
     keyHint: z.string().nullable(),
