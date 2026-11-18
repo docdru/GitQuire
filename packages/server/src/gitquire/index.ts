@@ -170,7 +170,6 @@ export function initProjectWithCli(cliArgs: readonly string[]): (dir: string) =>
     execFileSync(cliArgs[0] ?? process.execPath, [...cliArgs.slice(1), 'init', '--local-only'], {
       cwd: dir,
       stdio: 'inherit',
-      windowsHide: true,
     });
   };
 }

@@ -3,7 +3,6 @@ import { existsSync } from 'node:fs';
 import { realpath as fsRealpath } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { sleep as defaultSleep } from '@gitquire/core';
-import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 import { isSupportedDocFile } from './doc-extensions.ts';
 import { createOffCwdResolverDeps, resolveOffCwdTarget } from './off-cwd-resolver.ts';
 
@@ -81,14 +80,10 @@ export function createEnsureSingleFileSession(): (absFile: string) => Promise<bo
         GQ_SINGLE_FILE_NO_OPEN: '1',
         ELECTRON_RUN_AS_NODE: '1',
       };
-      const child = spawn(
-        process.execPath,
-        [entry, absFile],
-        withHiddenWindowsConsole({
-          ...SINGLE_FILE_SESSION_SPAWN_OPTIONS,
-          env,
-        }),
-      );
+      const child = spawn(process.execPath, [entry, absFile], {
+        ...SINGLE_FILE_SESSION_SPAWN_OPTIONS,
+        env,
+      });
       child.unref();
     },
     isServing: async (absFile) =>

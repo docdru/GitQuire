@@ -11,7 +11,6 @@ const PROBE_TIMEOUT_MS = 5000;
 const TRANSLOCATED_PREFIX = '/private/var/folders/';
 
 function defaultCodesignVerify(bundlePath: string): { ok: boolean; stderr: string } {
-  // oxlint-disable-next-line gq/require-windowshide-on-spawn -- macOS-only (codesign; never spawned on Windows or Linux)
   const r = spawnSync('codesign', ['--verify', '--deep', '--strict', bundlePath], {
     encoding: 'utf-8',
     timeout: PROBE_TIMEOUT_MS,

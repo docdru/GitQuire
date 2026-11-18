@@ -15,7 +15,6 @@ export const runGitSync: RunGit = (args, cwd, extraEnv = {}) =>
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, GIT_TERMINAL_PROMPT: '0', ...extraEnv },
-    windowsHide: true,
   });
 
 export function basicAuthHeader(token: string): string {

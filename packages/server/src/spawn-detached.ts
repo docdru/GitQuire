@@ -1,5 +1,4 @@
 import { spawn as nodeSpawn, type SpawnOptions } from 'node:child_process';
-import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 import { getLogger } from './logger.ts';
 
 const DETACHED_IGNORED_STDIO_OPTIONS: Pick<SpawnOptions, 'detached' | 'stdio' | 'shell'> = {
@@ -33,11 +32,7 @@ export function spawnDetached(
     };
     const timer = setTimeout(() => settle({ ok: false, reason: 'timeout' }), timeoutMs);
     try {
-      const child = nodeSpawn(
-        exec,
-        [...args],
-        withHiddenWindowsConsole(DETACHED_IGNORED_STDIO_OPTIONS),
-      );
+      const child = nodeSpawn(exec, [...args], DETACHED_IGNORED_STDIO_OPTIONS);
       child.once('error', (err) => {
         clearTimeout(timer);
         settle(classifySpawnError(err));

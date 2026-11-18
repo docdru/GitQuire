@@ -127,7 +127,6 @@ export function createRunCommand(
             encoding: 'utf8',
             timeout: options.timeoutMs ?? COMMAND_TIMEOUT_MS,
             maxBuffer: options.maxBuffer ?? COMMAND_MAX_BUFFER,
-            windowsHide: true,
           },
           (error: ExecFileException | null, stdout, stderr) => {
             resolvePromise({ ...describeExit(error), stdout, stderr });

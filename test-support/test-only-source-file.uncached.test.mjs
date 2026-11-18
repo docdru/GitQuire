@@ -54,7 +54,7 @@ describe('test-only source files', () => {
         '--eval',
         "import { isTestOnlySourceFile } from './test-support/test-only-source-file.mjs'; process.stdout.write(JSON.stringify([isTestOnlySourceFile('a.type-tests.ts'), isTestOnlySourceFile('a.ts')]));",
       ],
-      { cwd: ROOT, encoding: 'utf8', windowsHide: true },
+      { cwd: ROOT, encoding: 'utf8' },
     );
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(0);

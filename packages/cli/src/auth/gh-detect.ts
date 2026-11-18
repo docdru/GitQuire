@@ -25,7 +25,6 @@ const GH_EXEC_OPTIONS: ExecFileSyncOptionsWithStringEncoding = {
   encoding: 'utf-8',
   stdio: ['ignore', 'pipe', 'pipe'],
   timeout: 5000,
-  windowsHide: true,
 };
 
 export interface DetectGhOptions {

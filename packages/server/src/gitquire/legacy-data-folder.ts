@@ -82,7 +82,6 @@ function repairMovedWorktrees(projectDir: string, dataDir: string): void {
     execFileSync('git', ['worktree', 'repair', ...paths], {
       cwd: projectDir,
       stdio: 'ignore',
-      windowsHide: true,
     });
   } catch {
     return;

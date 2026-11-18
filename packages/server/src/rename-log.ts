@@ -4,7 +4,6 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathspecArgs } from '@gitquire/core';
 import { parseOkActors } from '@gitquire/core/shadow-repo-layout';
-import { withHiddenWindowsConsole } from './child-process-windows-hide.ts';
 import {
   tracedAppendFileSync,
   tracedRenameSync,
@@ -472,14 +471,10 @@ async function revListReachable(shadow: ShadowHandle, refs: string[]): Promise<s
   }
   const timeoutMs = parseGitTimeoutMs();
   return new Promise<string>((resolvePromise, rejectPromise) => {
-    const child = spawn(
-      'git',
-      ['rev-list', '--stdin'],
-      withHiddenWindowsConsole({
-        ...GIT_STDIN_STDIO_OPTIONS,
-        env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
-      }),
-    );
+    const child = spawn('git', ['rev-list', '--stdin'], {
+      ...GIT_STDIN_STDIO_OPTIONS,
+      env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
+    });
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
     child.stdout.on('data', (c: Buffer) => stdoutChunks.push(c));
@@ -536,14 +531,10 @@ export async function logSeededReachable(
   const timeoutMs = parseGitTimeoutMs();
   return new Promise<string>((resolvePromise, rejectPromise) => {
     const args = ['log', '--stdin', ...flags, ...(pathspec ? pathspecArgs([pathspec]) : [])];
-    const child = spawn(
-      'git',
-      args,
-      withHiddenWindowsConsole({
-        ...GIT_STDIN_STDIO_OPTIONS,
-        env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
-      }),
-    );
+    const child = spawn('git', args, {
+      ...GIT_STDIN_STDIO_OPTIONS,
+      env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
+    });
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
     child.stdout.on('data', (c: Buffer) => stdoutChunks.push(c));
@@ -638,14 +629,10 @@ export function batchCheckExistence(
   const timeoutMs = parseGitTimeoutMs();
 
   return new Promise<boolean[]>((resolvePromise) => {
-    const child = spawn(
-      'git',
-      ['cat-file', '--batch-check', '--buffer'],
-      withHiddenWindowsConsole({
-        ...GIT_BATCH_CHECK_STDIO_OPTIONS,
-        env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
-      }),
-    );
+    const child = spawn('git', ['cat-file', '--batch-check', '--buffer'], {
+      ...GIT_BATCH_CHECK_STDIO_OPTIONS,
+      env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
+    });
 
     const stdoutChunks: Buffer[] = [];
     child.stdout.on('data', (chunk: Buffer) => stdoutChunks.push(chunk));
@@ -720,14 +707,10 @@ export function batchResolveBlobOids(
   const timeoutMs = parseGitTimeoutMs();
 
   return new Promise<Array<string | null>>((resolvePromise) => {
-    const child = spawn(
-      'git',
-      ['cat-file', '--batch-check', '--buffer'],
-      withHiddenWindowsConsole({
-        ...GIT_BATCH_CHECK_STDIO_OPTIONS,
-        env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
-      }),
-    );
+    const child = spawn('git', ['cat-file', '--batch-check', '--buffer'], {
+      ...GIT_BATCH_CHECK_STDIO_OPTIONS,
+      env: { ...process.env, GIT_DIR: shadow.gitDir, GIT_WORK_TREE: shadow.workTree },
+    });
 
     const stdoutChunks: Buffer[] = [];
     child.stdout.on('data', (chunk: Buffer) => stdoutChunks.push(chunk));

@@ -23,7 +23,6 @@ import {
   SPAWN_ERROR_LOG,
 } from '@gitquire/core';
 import { okProjectLogsDir, okUserHomeDir } from '@gitquire/core/server';
-import { withHiddenWindowsConsole } from '@gitquire/server';
 import type { ZipFile } from 'yazl';
 import type { DesktopMetadata } from '../diagnose/bundle.ts';
 import {
@@ -141,10 +140,7 @@ function collectSysinfo(): Record<string, unknown> {
   };
 
   try {
-    const ver = execSync(
-      'sw_vers -productVersion 2>/dev/null',
-      withHiddenWindowsConsole({ encoding: 'utf8' }),
-    ).trim();
+    const ver = execSync('sw_vers -productVersion 2>/dev/null', { encoding: 'utf8' }).trim();
     info.macosVersion = ver;
   } catch {}
 

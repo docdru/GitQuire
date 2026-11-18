@@ -82,10 +82,6 @@ export {
   SYSTEM_DOC_NAME,
 } from './cc1-broadcast.ts';
 export {
-  type HiddenWindowsConsoleOptions,
-  withHiddenWindowsConsole,
-} from './child-process-windows-hide.ts';
-export {
   type CollaborationHost,
   type CollaborationHostOptions,
   createCollaborationHost,
