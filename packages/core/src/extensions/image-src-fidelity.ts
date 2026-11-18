@@ -1,6 +1,4 @@
-import { mergeAttributes } from '@tiptap/core';
 import Image from '@tiptap/extension-image';
-import { toDesktopAssetHref } from '../utils/asset-href.ts';
 import { renderInlineObjectText } from './input-rule-text.ts';
 
 export const ImageSrcFidelity = Image.extend({
@@ -15,11 +13,5 @@ export const ImageSrcFidelity = Image.extend({
       sourceUrl: { default: null, rendered: false },
       sourceUrlForm: { default: null, rendered: false },
     };
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    const attrs = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
-    if (typeof attrs.src === 'string') attrs.src = toDesktopAssetHref(attrs.src);
-    return ['img', attrs];
   },
 });

@@ -1,4 +1,3 @@
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 import type { ImgHTMLAttributes } from 'react';
 import Zoom from 'react-medium-image-zoom';
 import { LoadingImage } from '@/components/ui/loading-image';
@@ -33,7 +32,7 @@ export function BareImg(props: ImageProps) {
   const targetExistence = useImageTargetExistence(props.src);
   return (
     <LoadingImage
-      src={props.src === undefined ? undefined : toDesktopAssetHref(props.src)}
+      src={props.src}
       alt={props.alt ?? ''}
       width={coerceDimension(props.width)}
       height={coerceDimension(props.height)}

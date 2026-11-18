@@ -18,9 +18,7 @@ afterEach(() => {
 });
 
 describe('SingleFileModeProvider — browser /api/config channel', () => {
-  beforeEach(() => {
-    (window as { okDesktop?: unknown }).okDesktop = undefined;
-  });
+  beforeEach(() => {});
 
   test('resolves singleFile:true from /api/config', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(

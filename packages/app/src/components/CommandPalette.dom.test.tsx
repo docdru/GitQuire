@@ -825,7 +825,6 @@ describe('Cmd+K menu-parity backfill', () => {
       expect(ambientOpenExternal).not.toHaveBeenCalled();
     } finally {
       window.open = originalOpen;
-      delete (window as { okDesktop?: unknown }).okDesktop;
     }
   });
 

@@ -380,12 +380,10 @@ describe('AppHeader', () => {
     ]);
   });
 
-  test('reserves the macOS window buttons plus a 10px gap at its leading edge', () => {
+  test('pads its leading edge by 10px', () => {
     renderHeader();
 
-    expectVisualClassTokens(leadingGroup().className, [
-      'ps-[calc(var(--gq-titlebar-reserve-left,0px)+0.625rem)]',
-    ]);
+    expectVisualClassTokens(leadingGroup().className, ['ps-2.5']);
   });
 
   test('on Electron the pane buttons opt out of dragging and the divider beside them stays draggable', () => {

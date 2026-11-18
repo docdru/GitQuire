@@ -22,24 +22,9 @@
 }
 
 /*
- * Explicit source root for Tailwind v4 content scanning.
- *
- * packages/app's own `bun run dev` runs with CWD=packages/app, and Tailwind
- * v4 auto-detects sources via a package.json walk from there — that default
- * works for the web distribution. The `@source` below is load-bearing for
- * the desktop case only:
- *
- * When packages/desktop's `electron-vite dev` serves this CSS with
- * `root: packages/app` (electron-vite resolves its own config from the desktop
- * package and does not use the app's vite.config.ts), Vite runs with
- * CWD=packages/desktop so Tailwind's auto-detection scans packages/desktop/**
- * — which has no .tsx
- * files, so zero utility classes get emitted. The @source directive below
- * anchors the scan to packages/app/src/** (relative to this CSS file) and is
- * inert for packages/app's own dev because the same paths are already
- * auto-covered. (Pre-US-004 a second Tailwind-source directive pointed at
- * the fumadocs dist tree; removed alongside the per-component CSS-variable
- * token bridge in D-MF2 / FR-14.)
+ * Explicit source root for Tailwind v4 content scanning, anchored to
+ * packages/app/src/** relative to this file so the scan does not depend on
+ * the working directory the build runs from.
  */
 @source "./**/*.{tsx,ts,jsx,js}";
 
@@ -58,13 +43,8 @@
 
 /*
  * The HTML entries are the only place the `antialiased` body class is used,
- * and they sit outside the src glob above. Under packages/app's own
- * `bun run dev` / `vite build` they're covered by the Vite HTML entries, but
- * electron-vite dev (CWD=packages/desktop; the app's vite.config.ts is not
- * used) relies solely on these @source
- * directives — without these lines `.antialiased` is never emitted there and
- * desktop-dev text renders heavier than production. Keep in sync with the
- * classes in index.html.
+ * and they sit outside the src glob above. Keep in sync with the classes in
+ * index.html.
  */
 @source "../index.html";
 
@@ -331,9 +311,7 @@
    suppress. Stripping it at the primitive level means every Dialog/Sheet
    consumer inherits the compliant behavior with no per-call-site opt-in.
 
-   This is a sibling of — not a modification to — the electron outer-canvas
-   reduced-transparency block lower in this file, which intentionally excludes
-   dialog/tooltip surfaces (those are opaque-always there). Unlayered, so it
+   Unlayered, so it
    wins over the layered `supports-backdrop-filter:*` utility without
    `!important` (same cascade discipline as the reduced-motion block above). */
 @media (prefers-reduced-transparency: reduce) {
@@ -3744,90 +3722,6 @@ html.dark
   background-color: oklch(from var(--foreground) l c h / 0.15);
 }
 
-/*
-  Electron-mode outer-canvas alpha-aware retrofit.
-
-  Triggered by the `electron-mode` class added to <html> by the FOUC inline
-  script in index.html when `window.okDesktop` is present (preload bridge
-  runs before any inline page script). Web mode (no class) leaves the
-  outer canvas solid — visually unchanged from baseline.
-
-  Scope is narrow: ONLY the outer canvas surfaces become alpha-aware
-  so the BrowserWindow's `vibrancy: 'sidebar'` material shows through.
-  Inner editor surfaces (sidebar-inset, card, popover, dialog, tooltip-card,
-  --background) STAY OPAQUE — the visual depth cue. Vibrancy is exposed only
-  through the outer canvas; the inner main island floats opaquely above it.
-
-  The relative-color syntax `oklch(from var(--sidebar) l c h / <alpha>)`
-  reads --sidebar's cascaded value (set in :root for light, .dark for dark)
-  and produces the alpha-aware tint without duplicating OKLCH literals.
-  Single source of truth — when --sidebar moves, the alpha-aware tint moves
-  with it. No drift, no cycle (we override background-color, NOT --sidebar).
-
-  Browser support: relative-color syntax is Chromium 119+ / WebKit 16.4+ /
-  Firefox 128+. Electron 44 ships Chromium 152+ — fully supported.
-
-  prefers-reduced-transparency has its own dedicated fallback path below
-  (the @media (prefers-reduced-transparency: reduce) block) and is
-  intentionally NOT handled here.
-*/
-html.electron-mode {
-  background-color: transparent;
-  /*
-    macOS traffic-light safe-area reserve. The Electron main process places
-    the OS-drawn close/min/zoom buttons in the renderer's top-left: at
-    x=16, y=15 inside a project window's 44px AppHeader (lined up with the
-    file list's content edge), x=22, y=17 in note windows and x=22, y=24 in
-    every other window (see
-    `packages/desktop/src/main/window-chrome.ts` and `note-window.ts`). Any
-    top-row chrome or full-viewport overlay must reserve enough left padding
-    to clear that footprint. 78px = trafficLightPosition.x (22) + 3 buttons
-    × ~18px + margin. This token is the single source for that reserve:
-    AppHeader, the note and single-file windows' EditorHeader, GraphPanel,
-    and the connection and branch banners all consume it rather than
-    re-declaring the literal. The AppHeader adds 10px to it, so on darwin
-    back and forward start 12px after the window buttons at x=16, and on
-    the web the first button's icon lines up with the file list, 16px from
-    the edge. Windows and Linux re-declare it as 0px inside the AppHeader for
-    the same alignment (see the rule after the reduced-transparency block).
-    Web hosts (no `window.okDesktop`) never gain the `electron-mode` class,
-    so the variable is undefined there. Consumers MUST always supply a
-    fallback, and its value is the padding that consumer wants on the web:
-    `pl-[var(--gq-titlebar-reserve-left,1rem)]` for the ones whose base is
-    `px-4`, and `,0px` for the AppHeader, which supplies its own 10px on top
-    and so wants nothing added underneath. A bare no-fallback
-    `pl-[var(--gq-titlebar-reserve-left)]` is invalid-at-computed-value-time
-    on web and collapses `padding-left` to `0`, discarding the consumer's
-    base padding — a regression, not intended behavior. See precedent #49.
-  */
-  --gq-titlebar-reserve-left: 78px;
-}
-
-/*
-  Windows/Linux chrome (electron-platform-* classes come from the FOUC
-  script alongside electron-mode, read off `window.okDesktop.platform`).
-  No traffic lights on these platforms — collapse the left reserve back to
-  the 1rem base padding. The OS window controls instead float via Electron's
-  titleBarOverlay (Window Controls Overlay), so reserve the chrome row's edge
-  for them. Windows always places them top-right; Linux follows the desktop
-  environment's own title-bar layout, so a DE configured to put them on the
-  left gets only the 1rem base reserve and can crowd whatever sits leftmost
-  in the row. Verify on a packaged build before assuming the left edge is
-  clear there. The `titlebar-area-*` env() vars are live
-  exactly when WCO is enabled; the fallbacks make the reserve 0 on darwin,
-  web, and any WCO-less window. Consumers use the precedent-#49 fallback
-  form `mr-[var(--gq-titlebar-reserve-right,0px)]`.
-*/
-html.electron-mode.electron-platform-win32,
-html.electron-mode.electron-platform-linux {
-  --gq-titlebar-reserve-left: 1rem;
-  --gq-titlebar-reserve-right: calc(
-    100vw -
-    env(titlebar-area-x, 0px) -
-    env(titlebar-area-width, 100vw)
-  );
-}
-
 @media (hover: hover) {
   [data-app-header]
     :is([data-variant^="ghost"], [data-slot="menubar-trigger"]):not([aria-pressed="true"]):hover {
@@ -3841,71 +3735,6 @@ html.electron-mode.electron-platform-linux {
     [aria-expanded="true"]
   ) {
   background-color: var(--desk-hover);
-}
-
-html.electron-mode body {
-  background-color: oklch(from var(--desk) l c h / 0.85);
-}
-
-html.electron-mode [data-slot="sidebar-wrapper"] {
-  background-color: oklch(from var(--desk) l c h / 0.85);
-}
-
-html.electron-mode [data-app-header] {
-  background-color: oklch(from var(--desk) l c h / 0.85);
-}
-
-html.electron-mode [data-slot="sidebar-inner"] {
-  background-color: oklch(from var(--sidebar) l c h / 0.85);
-}
-
-/*
-  prefers-reduced-transparency revert.
-
-  When the user has enabled macOS System Settings → Accessibility → Display →
-  Reduce transparency, the alpha-aware outer canvas above is rolled back to
-  solid `var(--sidebar)`. Pairs with the main-side runtime path
-  (reduced-transparency-handler.ts) which calls `setVibrancy(null)` on every
-  BrowserWindow — both sides converge on solid surfaces, so the user sees
-  neither vibrancy material nor alpha-aware tints. Accessibility compliance
-  with no degraded readability.
-
-  Inner editor surfaces (sidebar-inset, card, popover, dialog, tooltip-card,
-  --background) are opaque always — the @media block has no business
-  redeclaring them. The cascade only touches what the cascade above touched.
-
-  Specificity: the un-mediaed alpha-aware rules above and these solid
-  reverts have identical (0,1,2) specificity; @media-takes-precedence is
-  what ranks them when the user-agent supports the media query. Browsers
-  without prefers-reduced-transparency (older WebKit / Gecko) ignore the
-  @media block entirely and fall through to the alpha-aware rules — same
-  result as a user who hasn't toggled the OS preference.
-*/
-@media (prefers-reduced-transparency: reduce) {
-  html.electron-mode {
-    background-color: var(--desk);
-  }
-
-  html.electron-mode body {
-    background-color: var(--desk);
-  }
-
-  html.electron-mode [data-slot="sidebar-wrapper"] {
-    background-color: var(--desk);
-  }
-
-  html.electron-mode [data-app-header] {
-    background-color: var(--desk);
-  }
-
-  html.electron-mode [data-slot="sidebar-inner"] {
-    background-color: var(--sidebar);
-  }
-}
-
-html.electron-mode.electron-platform-win32 [data-app-header],
-html.electron-mode.electron-platform-linux [data-app-header] {
-  --gq-titlebar-reserve-left: 0px;
 }
 
 html [data-editor-file-list-slot] [data-slot="sidebar-inner"] {
@@ -6485,55 +6314,6 @@ html [data-editor-file-list-slot] [data-slot="sidebar-inner"] {
    hiding it entirely. */
 .ProseMirror .ok-chunk-wrapper.node-codeBlock {
   content-visibility: visible;
-}
-
-/* Neutralize Electron `-webkit-app-region: drag` regions while a Popper-based
-   floater (Popover / DropdownMenu / ContextMenu) is open so outside-click
-   dismissal works on the macOS title-bar zone.
-
-   macOS hijacks pointer events in drag regions at the OS chrome level — the
-   DOM never sees the `pointerdown`, so Radix's document-level outside-click
-   listener cannot fire. Popper-based components render no overlay and would
-   otherwise be undismissable by clicking the chrome rows (EditorHeader,
-   EditorTabs, FileSidebar header, the wrapper-strip in `App.tsx`,
-   NavigatorApp's chrome row). Each drag-region site carries a stable
-   `data-electron-drag` attribute that this selector targets.
-
-   Dialogs used to be exempt: `DialogOverlay`'s viewport-wide
-   `[-webkit-app-region:no-drag]` suppressed every drag region beneath it. They
-   are not any more — `ElectronDragStrip` paints a `drag` band back over the
-   title bar so the window stays movable while a dialog is open, and that band
-   carries `data-electron-drag` to opt into this rule. So the list has to cover
-   floaters that open INSIDE a dialog, not just those that open from the
-   chrome. `select-content` is here for that reason: Settings renders `Select`
-   controls in its Attachments and Content-rules sections and for the language
-   field under Preferences, all inside the Settings `Dialog`.
-
-   The `menubar-*` entries are unrelated to dialogs. `AppMenubar` renders only
-   into the two chrome rows (`EditorHeader`, `NavigatorApp`), so a menubar
-   opened from a chrome row could never be dismissed by clicking that same
-   row — a gap that predates the dialog work and is fixed here because the
-   audit that found the `Select` case surfaced it. Tooltip / HoverCard are excluded
-   intentionally — they dismiss on `pointerleave`, not pointerdown, and
-   keeping drag live during a hover preserves the window-drag affordance.
-
-   `:has()` ships in Chromium 105+; Electron's bundled Chromium is well past
-   that. The `@supports` gate keeps the rule a no-op on engines without
-   `:has()` rather than risking a stylesheet-parse drop of the whole block. */
-@supports selector(:has(*)) {
-  body:has(
-      [data-slot="popover-content"][data-state="open"],
-      [data-slot="dropdown-menu-content"][data-state="open"],
-      [data-slot="dropdown-menu-sub-content"][data-state="open"],
-      [data-slot="context-menu-content"][data-state="open"],
-      [data-slot="context-menu-sub-content"][data-state="open"],
-      [data-slot="select-content"][data-state="open"],
-      [data-slot="menubar-content"][data-state="open"],
-      [data-slot="menubar-sub-content"][data-state="open"]
-    )
-    [data-electron-drag] {
-    -webkit-app-region: no-drag;
-  }
 }
 
 /* Page header — cover banner + page icon, rendered above PropertyPanel

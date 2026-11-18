@@ -69,7 +69,7 @@ export function ConnectingBanner() {
       <div
         role="alert"
         aria-live="assertive"
-        className="fixed top-[var(--gq-app-header-height,0px)] inset-x-0 z-50 bg-destructive text-background text-sm text-center py-2 px-4 pl-[var(--gq-titlebar-reserve-left,1rem)] shadow-md flex items-center justify-center gap-3 flex-wrap"
+        className="fixed top-[var(--gq-app-header-height,0px)] inset-x-0 z-50 bg-destructive text-background text-sm text-center py-2 px-4 pl-4 shadow-md flex items-center justify-center gap-3 flex-wrap"
       >
         <span>
           {isNoCollabServer ? (
@@ -113,7 +113,7 @@ export function ConnectingBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-[var(--gq-app-header-height,0px)] inset-x-0 z-50 bg-warning text-background text-sm text-center py-2 px-4 pl-[var(--gq-titlebar-reserve-left,1rem)] shadow-md"
+      className="fixed top-[var(--gq-app-header-height,0px)] inset-x-0 z-50 bg-warning text-background text-sm text-center py-2 px-4 pl-4 shadow-md"
     >
       <Trans>Connecting — waiting for collab server</Trans>
     </div>

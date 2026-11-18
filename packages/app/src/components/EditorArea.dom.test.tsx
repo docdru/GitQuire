@@ -1743,17 +1743,13 @@ describe('EditorArea editor card rows', () => {
         editor: { notifyViewMenuStateChanged: () => {} },
       },
     });
-    try {
-      render(
-        <SingleFileModeProvider>
-          <EditorArea {...rowProps} />
-        </SingleFileModeProvider>,
-      );
-      const card = document.querySelector('[data-slot="pane-card"][data-pane="editor"]');
-      expect(card?.getAttribute('data-variant')).toBe('card');
-    } finally {
-      Reflect.deleteProperty(window, 'okDesktop');
-    }
+    render(
+      <SingleFileModeProvider>
+        <EditorArea {...rowProps} />
+      </SingleFileModeProvider>,
+    );
+    const card = document.querySelector('[data-slot="pane-card"][data-pane="editor"]');
+    expect(card?.getAttribute('data-variant')).toBe('card');
   });
 
   test('a side panel drag marks only the side panel row', () => {
@@ -2034,20 +2030,16 @@ describe('EditorArea chat and side panel cards', () => {
         editor: { notifyViewMenuStateChanged: () => {} },
       },
     });
-    try {
-      render(
-        <TooltipProvider>
-          <SingleFileModeProvider>
-            <EditorArea {...cardProps} agentsVisible />
-          </SingleFileModeProvider>
-        </TooltipProvider>,
-      );
-      expect(cardOf('editor')?.getAttribute('data-variant')).toBe('card');
-      expect(cardOf('agents')?.getAttribute('data-variant')).toBe('card');
-      expect(screen.getByRole('main').contains(screen.getByTestId('workspace-tabs'))).toBe(true);
-    } finally {
-      Reflect.deleteProperty(window, 'okDesktop');
-    }
+    render(
+      <TooltipProvider>
+        <SingleFileModeProvider>
+          <EditorArea {...cardProps} agentsVisible />
+        </SingleFileModeProvider>
+      </TooltipProvider>,
+    );
+    expect(cardOf('editor')?.getAttribute('data-variant')).toBe('card');
+    expect(cardOf('agents')?.getAttribute('data-variant')).toBe('card');
+    expect(screen.getByRole('main').contains(screen.getByTestId('workspace-tabs'))).toBe(true);
   });
 
   test('inside an embedded host the cards render as in a project window while the host rules hold', () => {

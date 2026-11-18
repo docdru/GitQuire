@@ -455,7 +455,6 @@ describe('EditorPane pane visibility for the header', () => {
   afterEach(() => {
     cleanup();
     localStorage.clear();
-    delete (window as { okDesktop?: unknown }).okDesktop;
     reportedPlacements = null;
     paneExtents = { ...PANES_WITH_EXTENT };
     clearSelection();
@@ -575,7 +574,6 @@ describe('EditorPane saves and restores whether the editor is shown', () => {
   afterEach(() => {
     cleanup();
     localStorage.clear();
-    delete (window as { okDesktop?: unknown }).okDesktop;
     __resetPaneVisibilityStoreForTests();
   });
 
@@ -722,7 +720,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
 
   afterEach(() => {
     cleanup();
-    delete (window as { okDesktop?: unknown }).okDesktop;
     localStorage.clear();
     workspaceContentDir = '/tmp/project';
     workspaceKnown = true;
@@ -795,7 +792,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
   });
 
   test('on the web the first layout drawn is the one stored for the origin, and it holds when the project becomes known', async () => {
-    delete (window as { okDesktop?: unknown }).okDesktop;
     writeDockArrangement(dockArrangementStorageKey(null), chatBelow());
     workspaceKnown = false;
     const view = await renderEditorPane();
@@ -815,7 +811,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
   });
 
   test('on the web a layout change is saved under the origin’s name while the project is still unknown', async () => {
-    delete (window as { okDesktop?: unknown }).okDesktop;
     workspaceKnown = false;
     await renderEditorPane();
     act(() => changeDrawnDockTree?.(moveChatBelow));
@@ -831,7 +826,6 @@ describe('EditorPane keeps each project its own dock arrangement', () => {
 describe('EditorPane mode switch promotes the preview tab', () => {
   afterEach(() => {
     cleanup();
-    delete (window as { okDesktop?: unknown }).okDesktop;
     promotePreviewTabMock.mockClear();
     activeProvider = undefined;
     clearPendingSourceNavigationsForTest();
@@ -920,7 +914,6 @@ describe('EditorPane keeps the Agents pane and view-in-source wiring', () => {
   afterEach(() => {
     cleanup();
     localStorage.clear();
-    delete (window as { okDesktop?: unknown }).okDesktop;
     activeProvider = undefined;
     paneExtents = { ...PANES_WITH_EXTENT };
     __resetPaneVisibilityStoreForTests();

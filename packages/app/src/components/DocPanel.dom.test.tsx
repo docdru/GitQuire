@@ -181,9 +181,7 @@ describe('DocPanel — Problems badge', () => {
 });
 
 describe('DocPanel — card top bar', () => {
-  afterEach(() => {
-    Reflect.deleteProperty(window, 'okDesktop');
-  });
+  afterEach(() => {});
 
   test('the icon row is a 44px top bar with no hairline under it', () => {
     renderPanel('outline');

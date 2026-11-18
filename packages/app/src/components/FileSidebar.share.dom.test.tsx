@@ -184,7 +184,6 @@ describe('FileSidebar project-root Share', () => {
     hasRemote = true;
     lastShareInput = undefined;
     runShareActionMock.mockClear();
-    Object.defineProperty(window, 'okDesktop', { configurable: true, value: undefined });
   });
 
   afterEach(() => {

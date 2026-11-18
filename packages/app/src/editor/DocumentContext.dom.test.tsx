@@ -340,9 +340,7 @@ function HiddenEditorRevealHarness() {
 function BridgeHiddenEditorRevealHarness({ bridge }: { bridge: GqDesktopBridge }) {
   useLayoutEffect(() => {
     window.okDesktop = bridge;
-    return () => {
-      delete window.okDesktop;
-    };
+    return () => {};
   }, [bridge]);
   return <HiddenEditorRevealHarness />;
 }
@@ -360,9 +358,7 @@ function hideEditorAndRecordRequests(): PaneVisibilityRequest[] {
 function BridgeCloseActiveHarness({ bridge }: { bridge: GqDesktopBridge }) {
   useLayoutEffect(() => {
     window.okDesktop = bridge;
-    return () => {
-      delete window.okDesktop;
-    };
+    return () => {};
   }, [bridge]);
   return <CloseActiveHarness />;
 }
@@ -591,7 +587,6 @@ describe('DocumentContext tab close force contract', () => {
     __resetPaneVisibilityStoreForTests();
     mockCollabUrl = null;
     cleanup();
-    delete window.okDesktop;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();
     window.location.hash = '';
@@ -883,7 +878,6 @@ describe('DocumentContext tab close force contract', () => {
     expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
 
     cleanup();
-    delete window.okDesktop;
     window.localStorage.clear();
 
     const emptyStub = makeEditorBridgeStub();
@@ -1188,7 +1182,6 @@ describe('DocumentContext repeat-crash recovery notice', () => {
   afterEach(() => {
     cleanup();
     toast.dismiss();
-    delete window.okDesktop;
     mockCollabUrl = null;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();
@@ -1235,7 +1228,6 @@ describe('DocumentContext repeat-crash recovery notice', () => {
 describe('DocumentContext tab restore', () => {
   afterEach(() => {
     cleanup();
-    delete window.okDesktop;
     mockCollabUrl = null;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();
@@ -1448,7 +1440,6 @@ describe('DocumentContext tab restore', () => {
 describe('DocumentContext pane workspace', () => {
   afterEach(() => {
     cleanup();
-    delete window.okDesktop;
     mockCollabUrl = null;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();

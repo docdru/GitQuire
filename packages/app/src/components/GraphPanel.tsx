@@ -414,18 +414,8 @@ export function GraphPanel({
 
   return (
     <Panel className={isExpanded ? 'fixed inset-0 z-50 overflow-hidden bg-background' : undefined}>
-      <PanelHeader
-        className={cn(
-          isExpanded
-            ? 'mt-2 h-12 gap-3 py-0 pl-[var(--gq-titlebar-reserve-left,1rem)]'
-            : 'flex-wrap gap-3',
-        )}
-      >
+      <PanelHeader className={cn(isExpanded ? 'mt-2 h-12 gap-3 py-0 pl-4' : 'flex-wrap gap-3')}>
         <div
-          /**
-           * The fullscreen chrome row reserves the macOS traffic-light footprint via
-           * `--gq-titlebar-reserve-left` (precedent #49).
-           */
           data-slot="graph-title-cluster"
           className={cn('flex min-w-0 items-center gap-1.5', isExpanded && 'ml-4')}
         >

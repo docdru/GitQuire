@@ -54,7 +54,6 @@ describe('useSyncToasts — disconnect grace downgrade', () => {
     warning.mockClear();
     success.mockClear();
     dismiss.mockClear();
-    Object.defineProperty(window, 'okDesktop', { configurable: true, value: undefined });
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -110,7 +109,6 @@ describe('useSyncToasts — disconnect grace downgrade', () => {
   });
 
   test('browser mode (no bridge): honest toast is message-only, no Restart control', () => {
-    Object.defineProperty(window, 'okDesktop', { configurable: true, value: undefined });
     const { rerender } = renderHook(
       ({ s }: { s: 'synced' | 'disconnected' }) => useSyncToasts(s, 'doc.md'),
       { initialProps: { s: 'synced' as const } },
@@ -412,7 +410,6 @@ describe('useSyncToasts — the transport-up, document-unsynced claim', () => {
     warning.mockClear();
     success.mockClear();
     dismiss.mockClear();
-    Object.defineProperty(window, 'okDesktop', { configurable: true, value: undefined });
   });
   afterEach(() => {
     vi.useRealTimers();

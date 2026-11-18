@@ -1,7 +1,6 @@
 import { IMAGE_EXTENSIONS } from '@gitquire/core/constants/upload';
 import { parseWikiLink } from '@gitquire/core/extensions/wiki-link';
 import { isSafeUrl } from '@gitquire/core/markdown/safe-url';
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 
 const MAX_VALUE_LENGTH = 2048;
 
@@ -32,9 +31,7 @@ export function resolvePageIcon(raw: unknown): ResolvedPageIcon {
   if (imageKind === 'path') {
     return {
       kind: 'path',
-      value: toDesktopAssetHref(
-        `/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`,
-      ),
+      value: `/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`,
     };
   }
   return { kind: 'unsupported', value: '' };
@@ -80,9 +77,7 @@ export function resolvePageCover(raw: unknown): ResolvedPageCover {
   if (imageKind === 'path') {
     return {
       kind: 'path',
-      value: toDesktopAssetHref(
-        `/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`,
-      ),
+      value: `/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`,
     };
   }
   return { kind: 'unsupported', value: '' };

@@ -66,7 +66,6 @@ async function renderFooterWithFileList(fileList: 'open' | 'closed') {
 
 afterEach(() => {
   cleanup();
-  Object.defineProperty(window, 'okDesktop', { configurable: true, value: undefined });
 });
 
 afterAll(() => {

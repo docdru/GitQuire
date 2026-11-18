@@ -224,7 +224,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
       <div
         ref={setLeading}
         data-app-header-leading=""
-        className="flex min-w-0 items-center gap-1 justify-self-start ps-[calc(var(--gq-titlebar-reserve-left,0px)+0.625rem)] rtl:ps-[calc(var(--gq-titlebar-reserve-right,0px)+0.625rem)]"
+        className="flex min-w-0 items-center gap-1 justify-self-start ps-2.5"
       >
         {!singleFile && (
           <ErrorBoundary

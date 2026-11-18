@@ -99,7 +99,7 @@ describe('syncWikiLinkIconSlot', () => {
     expect(slot.getAttribute('data-kind')).toBe('url');
   });
 
-  test('renders a path icon as an <img> (toDesktopAssetHref-wrapped src)', () => {
+  test('renders a path icon as an <img>', () => {
     const slot = makeSlot();
     syncWikiLinkIconSlot(slot, { kind: 'path', value: '/api/asset?path=assets%2Ficon.png' });
     const img = slot.querySelector('img');

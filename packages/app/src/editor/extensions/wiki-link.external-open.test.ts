@@ -99,7 +99,6 @@ describe('WYSIWYG wiki-link external activation — web (no bridge)', () => {
     const url = 'https://example.com/web';
     const openWindow = vi.fn(() => null);
     const w = testWindow();
-    delete w.okDesktop;
     w.open = openWindow as unknown as OpenExternalWindow['open'];
 
     const { activate } = mountWithExternalWikiLink(url);

@@ -275,7 +275,6 @@ describe('App runtime wiring', () => {
   beforeEach(() => {
     cleanup();
     __resetLocalMenuActionBusForTests();
-    Reflect.deleteProperty(window, 'okDesktop');
     setHash('');
     activeTarget = null;
     pages = new Set(['reports/index']);

@@ -216,7 +216,6 @@ describe('FileTree unreachable-server restart action', () => {
   afterEach(() => {
     cleanup();
     consoleWarnSpy.mockRestore();
-    (window as unknown as { okDesktop?: unknown }).okDesktop = undefined;
   });
 
   test('omits the restart action when there is no bridge to restart through', async () => {

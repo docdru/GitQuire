@@ -35,7 +35,6 @@ async function renderFooter() {
 afterEach(() => {
   cleanup();
   branch = null;
-  Object.defineProperty(window, 'okDesktop', { configurable: true, value: undefined });
 });
 
 describe('EditorFooter checkout detail', () => {

@@ -1,5 +1,3 @@
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
-
 interface AudioProps {
   src?: string;
   controls?: boolean;
@@ -18,7 +16,7 @@ export function Audio(props: AudioProps) {
   return (
     <audio
       className="ok-audio"
-      src={props.src === undefined ? undefined : toDesktopAssetHref(props.src)}
+      src={props.src}
       title={props.title}
       controls={resolveControls(props.controls)}
       autoPlay={props.autoplay}

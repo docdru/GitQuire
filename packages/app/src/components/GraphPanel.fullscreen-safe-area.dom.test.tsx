@@ -71,7 +71,7 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Expand graph' }));
   }
 
-  test('expanded overlay reserves the macOS traffic-light footprint at runtime', async () => {
+  test('expanded overlay pads its header row', async () => {
     await renderExpandedGraphPanel();
 
     const graphView = screen.getByTestId('graph-view');
@@ -88,8 +88,7 @@ describe('GraphPanel fullscreen safe-area behavior', () => {
     const header = panel?.querySelector('[data-slot="panel-header"]');
     expectVisualClassTokens(header?.className, ['mt-2', 'h-12', 'py-0']);
 
-    expectVisualClassTokens(header?.className, ['pl-[var(--gq-titlebar-reserve-left,1rem)]']);
-    expectVisualClassTokensAbsent(header?.className, ['pl-[var(--gq-titlebar-reserve-left)]']);
+    expectVisualClassTokens(header?.className, ['pl-4']);
 
     const titleCluster = header?.querySelector('[data-slot="graph-title-cluster"]');
     expectVisualClassTokens(titleCluster?.className, ['ml-4']);

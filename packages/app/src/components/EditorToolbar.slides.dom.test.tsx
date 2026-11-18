@@ -77,7 +77,6 @@ async function renderToolbar(provider: FakeProvider | null, docName: string | nu
 afterEach(() => {
   cleanup();
   mockMergedConfig = null;
-  (window as unknown as { okDesktop?: unknown }).okDesktop = undefined;
   vi.restoreAllMocks();
 });
 

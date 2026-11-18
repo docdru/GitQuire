@@ -43,7 +43,6 @@ describe('viewer error pane — "Open file" handoff', () => {
   afterEach(() => {
     cleanup();
     globalThis.fetch = originalFetch;
-    delete (window as unknown as { okDesktop?: unknown }).okDesktop;
   });
 
   test('413 offers the handoff, and it is not an anchor into /api/*', async () => {

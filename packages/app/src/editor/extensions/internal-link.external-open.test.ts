@@ -34,8 +34,6 @@ const liveEditors = new Set<Editor>();
 afterEach(() => {
   for (const editor of liveEditors) editor.destroy();
   liveEditors.clear();
-  const w = testWindow();
-  delete w.okDesktop;
 });
 
 function mountWithExternalLink(url: string): {
@@ -77,7 +75,6 @@ describe('WYSIWYG external-link activation — web (no bridge)', () => {
     const url = 'https://example.com/web';
     const openWindow = vi.fn(() => null);
     const w = testWindow();
-    delete w.okDesktop;
     w.open = openWindow as unknown as OpenExternalWindow['open'];
 
     const { activate } = mountWithExternalLink(url);
