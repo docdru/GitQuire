@@ -1,5 +1,4 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import type {
   ReportBundleLevel as CoreReportBundleLevel,
@@ -11,7 +10,6 @@ import {
   type BundleExtraFile,
   type BundleLogger,
   collectBugReportLedgerFiles,
-  collectShipItLogFiles,
   collectStandardBundle,
   collectUserLogFiles,
   okBugReportsDir,
@@ -23,15 +21,6 @@ import {
   defaultReadDesktopEnv,
   writeBundle,
 } from './diagnose/bundle.ts';
-import {
-  collectDiagnosticReports,
-  type DiagnosticReportCollection,
-} from './diagnose/diagnostic-reports.ts';
-import {
-  collectOsTerminationEvidence,
-  type OsTerminationEvidence,
-  type OsTerminationEvidenceDeps,
-} from './diagnose/os-termination-evidence.ts';
 import { defaultReadLanguage, type LanguageMetadata } from './report-language.ts';
 import { isObject } from './utils/is-object.ts';
 
@@ -46,9 +35,6 @@ export interface CollectReportBundleOptions {
   outputPath: string;
   extraFiles?: BundleExtraFile[];
   userLogsDir?: string;
-  cachesDir?: string;
-  diagnosticReportsDir?: string;
-  osTerminationEvidenceDeps?: OsTerminationEvidenceDeps;
   bugReportsDir?: string;
   logger?: BundleLogger;
   readDesktopEnv?: () => DesktopMetadata | null;
@@ -85,8 +71,6 @@ async function collectFullBundle(
   projectDir: string,
   readDesktopEnv: () => DesktopMetadata | null,
   readLanguage: () => LanguageMetadata,
-  diagnosticReports: DiagnosticReportCollection,
-  osTerminationEvidence: OsTerminationEvidence,
 ): Promise<ReportBundleResult> {
   const projectSlug = resolveProjectSlug(projectDir, opts.logger);
   const collected = await collectBundle({
@@ -96,13 +80,11 @@ async function collectFullBundle(
     scrubSecrets: opts.redact,
     note: opts.note,
     extraFiles: opts.extraFiles,
-    userLogFiles: [
-      ...collectUserLogFiles(projectSlug, opts.userLogsDir ?? join(okUserHomeDir(), 'logs')),
-      ...collectShipItLogFiles(opts.cachesDir ?? join(homedir(), 'Library', 'Caches')),
-    ],
+    userLogFiles: collectUserLogFiles(
+      projectSlug,
+      opts.userLogsDir ?? join(okUserHomeDir(), 'logs'),
+    ),
     userStateFiles: collectBugReportLedgerFiles(opts.bugReportsDir ?? okBugReportsDir()),
-    diagnosticReports,
-    osTerminationEvidence,
     deps: { readDesktopEnv, readLanguage, logger: opts.logger },
   });
   try {
@@ -132,20 +114,8 @@ export async function collectReportBundle(
   const { projectDir } = opts;
   const readDesktopEnv = opts.readDesktopEnv ?? defaultReadDesktopEnv;
   const readLanguage = opts.readLanguage ?? defaultReadLanguage;
-  const resolveDiagnosticReports = (): DiagnosticReportCollection =>
-    collectDiagnosticReports(
-      opts.diagnosticReportsDir ?? join(homedir(), 'Library', 'Logs', 'DiagnosticReports'),
-      new Date(),
-    );
   if (opts.level === 'full' && projectDir !== undefined) {
-    return collectFullBundle(
-      opts,
-      projectDir,
-      readDesktopEnv,
-      readLanguage,
-      resolveDiagnosticReports(),
-      await collectOsTerminationEvidence(opts.osTerminationEvidenceDeps),
-    );
+    return collectFullBundle(opts, projectDir, readDesktopEnv, readLanguage);
   }
   const { zipPath, summary } = await collectStandardBundle({
     projectDir,
@@ -153,13 +123,7 @@ export async function collectReportBundle(
     revealDocNames: opts.level === 'full',
     outputPath: opts.outputPath,
     userLogsDir: opts.userLogsDir,
-    shipItLogFiles: collectShipItLogFiles(opts.cachesDir ?? join(homedir(), 'Library', 'Caches')),
     bugReportLedgerFiles: collectBugReportLedgerFiles(opts.bugReportsDir ?? okBugReportsDir()),
-    diagnosticReports: opts.level === 'full' ? resolveDiagnosticReports() : undefined,
-    osTerminationEvidence:
-      opts.level === 'full'
-        ? await collectOsTerminationEvidence(opts.osTerminationEvidenceDeps)
-        : undefined,
     logger: opts.logger,
     note: opts.note,
     extraFiles: opts.extraFiles,

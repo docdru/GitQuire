@@ -7,7 +7,6 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
-  utimesSync,
   writeFileSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
@@ -17,10 +16,8 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
   type BundleLogger,
   collectBugReportLedgerFiles,
-  collectShipItLogFiles,
   collectStandardBundle,
   collectUserLogFiles,
-  DESKTOP_BUNDLE_ID,
   defaultBugReportZipPath,
   MAX_BUNDLED_LEDGER_REPORTS,
   okBugReportsDir,
@@ -153,38 +150,6 @@ describe('collectStandardBundle — relocated project diagnostics', () => {
         expect(summary.redactions.some((audit) => audit.file === path)).toBe(true);
       }
     }
-  });
-});
-
-describe('collectStandardBundle — diagnostic-report staging count', () => {
-  test('counts what reached the zip, not what the sweep selected', async () => {
-    const projectDir = makeProjectDir();
-    const reportsDir = makeTmpDir();
-    const present = join(reportsDir, 'OpenKnowledge-present.ips');
-    writeFileSync(
-      present,
-      `${JSON.stringify({ name: 'OpenKnowledge' })}\n{"procName":"OpenKnowledge"}\n`,
-    );
-    const outputPath = join(makeTmpDir(), 'report.zip');
-
-    const { zipPath } = await collectStandardBundle({
-      projectDir,
-      redact: true,
-      outputPath,
-      diagnosticReports: {
-        files: [present, join(reportsDir, 'OpenKnowledge-vanished.ips')],
-        outcome: 'collected',
-        foreignIgnored: 0,
-        unparseable: 0,
-        droppedOverCap: 0,
-        windowDays: 7,
-      },
-    });
-
-    expect(listZipEntries(zipPath)).toContain('diagnostic-reports/OpenKnowledge-present.ips');
-    expect(readZipEntry(zipPath, 'state/diagnostic-reports-status.txt')).toBe(
-      '1 collected (7d; 0 other-process report(s) ignored; 0 unparseable; 1 vanished before staging)\n',
-    );
   });
 });
 
@@ -566,213 +531,6 @@ describe('collectUserLogFiles — shared collector', () => {
       .sort();
 
     expect(names).toEqual(['cli.2026-08-05.log', 'desktop.2026-08-05.log']);
-  });
-});
-
-describe('collectShipItLogFiles — Squirrel.Mac install logs', () => {
-  test('collects the desktop app ShipIt logs', () => {
-    const cachesDir = makeTmpDir();
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`, 'Installation failed\n');
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stdout.log`, '');
-
-    const names = collectShipItLogFiles(cachesDir)
-      .map((f) => basename(f))
-      .sort();
-
-    expect(names).toEqual(['ShipIt_stderr.log', 'ShipIt_stdout.log']);
-  });
-
-  test('never harvests another application ShipIt logs', () => {
-    const cachesDir = makeTmpDir();
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`, 'ours\n');
-    writeAt(cachesDir, 'com.tinyspeck.slackmacgap.ShipIt/ShipIt_stderr.log', 'theirs\n');
-    writeAt(cachesDir, 'com.anthropic.claudefordesktop.ShipIt/ShipIt_stderr.log', 'theirs\n');
-
-    const bodies = collectShipItLogFiles(cachesDir).map((f) => readFileSync(f, 'utf8'));
-
-    expect(bodies).toEqual(['ours\n']);
-  });
-
-  test('ignores sub-bundle ShipIt directories that would collide when staged', () => {
-    const cachesDir = makeTmpDir();
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`, 'app\n');
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.server.ShipIt/ShipIt_stderr.log`, 'server\n');
-
-    const bodies = collectShipItLogFiles(cachesDir).map((f) => readFileSync(f, 'utf8'));
-
-    expect(bodies).toEqual(['app\n']);
-  });
-
-  test('returns empty when the caches directory does not exist', () => {
-    expect(collectShipItLogFiles(join(makeTmpDir(), 'absent'))).toEqual([]);
-  });
-
-  test('collects the numeric-suffixed logs Squirrel falls back to', () => {
-    const cachesDir = makeTmpDir();
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`, 'stale root-owned\n');
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log.1`, 'the live run\n');
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stdout.log.2`, 'stdout fallback\n');
-
-    const names = collectShipItLogFiles(cachesDir)
-      .map((f) => basename(f))
-      .sort();
-
-    expect(names).toEqual(['ShipIt_stderr.log', 'ShipIt_stderr.log.1', 'ShipIt_stdout.log.2']);
-  });
-
-  test('keeps the newest fallback logs when Squirrel has left more than four', () => {
-    const cachesDir = makeTmpDir();
-    const names = ['', '.1', '.2', '.3', '.4', '.5'].map((suffix) => `ShipIt_stderr.log${suffix}`);
-    names.forEach((name, index) => {
-      writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/${name}`, `run ${index}\n`);
-      const at = new Date(Date.UTC(2026, 9, 1 + index));
-      utimesSync(join(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt`, name), at, at);
-    });
-
-    const collected = collectShipItLogFiles(cachesDir)
-      .map((f) => basename(f))
-      .sort();
-
-    expect(collected).toEqual([
-      'ShipIt_stderr.log.2',
-      'ShipIt_stderr.log.3',
-      'ShipIt_stderr.log.4',
-      'ShipIt_stderr.log.5',
-    ]);
-  });
-
-  test('orders fallback logs by when they were written, not by suffix', () => {
-    const cachesDir = makeTmpDir();
-    const writtenOldestFirst = ['.1', '.2', '.3', '.4', '.5', ''];
-    writtenOldestFirst.forEach((suffix, index) => {
-      const name = `ShipIt_stderr.log${suffix}`;
-      writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/${name}`, `run ${index}\n`);
-      const at = new Date(Date.UTC(2026, 9, 1 + index));
-      utimesSync(join(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt`, name), at, at);
-    });
-
-    const collected = collectShipItLogFiles(cachesDir)
-      .map((f) => basename(f))
-      .sort();
-
-    expect(collected).toEqual([
-      'ShipIt_stderr.log',
-      'ShipIt_stderr.log.3',
-      'ShipIt_stderr.log.4',
-      'ShipIt_stderr.log.5',
-    ]);
-  });
-
-  test('ignores neighbours that merely start with a ShipIt log name', () => {
-    const cachesDir = makeTmpDir();
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log.1`, 'ours\n');
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log.bak`, 'theirs\n');
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipItState.plist`, 'theirs\n');
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.logging`, 'theirs\n');
-
-    const bodies = collectShipItLogFiles(cachesDir).map((f) => readFileSync(f, 'utf8'));
-
-    expect(bodies).toEqual(['ours\n']);
-  });
-
-  test('bounds how many fallback logs one stream contributes', () => {
-    const cachesDir = makeTmpDir();
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`, 'base\n');
-    for (let i = 1; i <= 12; i++) {
-      writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log.${i}`, `n${i}\n`);
-    }
-
-    const names = collectShipItLogFiles(cachesDir).map((f) => basename(f));
-
-    expect(names).toEqual([
-      'ShipIt_stderr.log.12',
-      'ShipIt_stderr.log.11',
-      'ShipIt_stderr.log.10',
-      'ShipIt_stderr.log.9',
-    ]);
-  });
-
-  test('stages the ShipIt log into the bundle under logs/', async () => {
-    const userLogsDir = makeTmpDir();
-    const cachesDir = makeTmpDir();
-    writeFileSync(join(userLogsDir, 'desktop.2026-08-05.log'), DESKTOP_LOG_LINE);
-    writeAt(
-      cachesDir,
-      `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`,
-      'ShipIt[1:2] Installation completed successfully\n',
-    );
-    const outputPath = join(makeTmpDir(), 'report.zip');
-
-    const { zipPath } = await collectStandardBundle({
-      projectDir: makeProjectDir('bundle-proj'),
-      redact: true,
-      outputPath,
-      userLogsDir,
-      shipItLogFiles: collectShipItLogFiles(cachesDir),
-    });
-
-    expect(listZipEntries(zipPath)).toContain('logs/ShipIt_stderr.log');
-  });
-
-  test('discloses the ShipIt log in its own paragraph, not the daily user-wide list', async () => {
-    const userLogsDir = makeTmpDir();
-    const cachesDir = makeTmpDir();
-    writeFileSync(join(userLogsDir, 'cli.2026-08-05.log'), CLI_LOG_MATCHING_SLUG);
-    writeFileSync(join(userLogsDir, 'desktop.2026-08-05.log'), DESKTOP_LOG_LINE);
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`, 'swap\n');
-    const outputPath = join(makeTmpDir(), 'report.zip');
-
-    const { zipPath } = await collectStandardBundle({
-      projectDir: makeProjectDir('bundle-proj'),
-      redact: true,
-      outputPath,
-      userLogsDir,
-      shipItLogFiles: collectShipItLogFiles(cachesDir),
-    });
-
-    const readme = readZipEntry(zipPath, 'README.md');
-    const privacy = readme.slice(readme.indexOf('## Privacy'));
-    const scopeNote = privacy.slice(
-      privacy.indexOf('Scope: some collected logs'),
-      privacy.indexOf('Installer logs:'),
-    );
-    expect(scopeNote).toContain('- logs/desktop.2026-08-05.log');
-    expect(scopeNote).not.toContain('ShipIt');
-
-    expect(privacy).toContain('macOS update helper');
-    expect(privacy.match(/^- logs\/ShipIt_stderr\.log$/gm)).toHaveLength(1);
-  });
-
-  test('discloses the installer log in an unscoped bundle too', async () => {
-    const cachesDir = makeTmpDir();
-    writeAt(cachesDir, `${DESKTOP_BUNDLE_ID}.ShipIt/ShipIt_stderr.log`, 'swap\n');
-    const outputPath = join(makeTmpDir(), 'report.zip');
-
-    const { zipPath } = await collectStandardBundle({
-      redact: true,
-      outputPath,
-      userLogsDir: makeTmpDir(),
-      shipItLogFiles: collectShipItLogFiles(cachesDir),
-    });
-
-    const readme = readZipEntry(zipPath, 'README.md');
-    expect(readme).toContain('Project: (unscoped)');
-    expect(readme).toContain('macOS update helper');
-    expect(readme).toContain('- logs/ShipIt_stderr.log');
-  });
-
-  test('omits the installer disclosure when no ShipIt log was collected', async () => {
-    const outputPath = join(makeTmpDir(), 'report.zip');
-
-    const { zipPath } = await collectStandardBundle({
-      projectDir: makeProjectDir('bundle-proj'),
-      redact: true,
-      outputPath,
-      userLogsDir: makeTmpDir(),
-      shipItLogFiles: collectShipItLogFiles(join(makeTmpDir(), 'absent')),
-    });
-
-    expect(readZipEntry(zipPath, 'README.md')).not.toContain('macOS update helper');
   });
 });
 

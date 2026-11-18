@@ -775,12 +775,6 @@
   "packages/cli/src/commands/diagnose-bundle.test.ts": {
     "open-knowledge": 6
   },
-  "packages/cli/src/commands/diagnose-health-checks/macos-codesig.test.ts": {
-    "open-knowledge": 8
-  },
-  "packages/cli/src/commands/diagnose-health-checks/macos-codesig.ts": {
-    "open-knowledge": 2
-  },
   "packages/cli/src/commands/diagnose.ts": {
     "open-knowledge": 1
   },
@@ -792,9 +786,6 @@
   },
   "packages/cli/src/commands/ps.ts": {
     "open-knowledge": 2
-  },
-  "packages/cli/src/commands/self-spawn.test.ts": {
-    "open-knowledge": 13
   },
   "packages/cli/src/commands/share/publish.test.ts": {
     "open-knowledge": 2
@@ -820,18 +811,6 @@
   "packages/cli/src/diagnose/bundle.test.ts": {
     "open-knowledge": 4,
     "ok-env": 1
-  },
-  "packages/cli/src/diagnose/diagnostic-reports.test.ts": {
-    "open-knowledge": 88
-  },
-  "packages/cli/src/diagnose/diagnostic-reports.ts": {
-    "open-knowledge": 1
-  },
-  "packages/cli/src/diagnose/os-termination-evidence.test.ts": {
-    "open-knowledge": 37
-  },
-  "packages/cli/src/diagnose/os-termination-evidence.ts": {
-    "open-knowledge": 5
   },
   "packages/cli/src/diagnose/staging-coverage.test.ts": {
     "open-knowledge": 3
@@ -859,9 +838,6 @@
   },
   "packages/cli/src/ui/banner.test.ts": {
     "open-knowledge": 15
-  },
-  "packages/cli/src/utils/open-target.test.ts": {
-    "open-knowledge": 12
   },
   "packages/cli/tests/e2e/cli-linux-e2e.ts": {
     "open-knowledge": 1

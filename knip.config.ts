@@ -28,7 +28,6 @@ export default {
     'ps', // process listing — diagnose.ts, process-scan.ts
     'lsof', // open-file listing — diagnose.ts, process-scan.ts
     'taskkill', // Windows process-tree termination — mcp/npm-child.test-helper.ts
-    'sw_vers', // macOS version query — bug-report.ts
     'mkfifo', // named-pipe creation — file-watcher-recheck.test.ts
   ],
   ignoreIssues: {

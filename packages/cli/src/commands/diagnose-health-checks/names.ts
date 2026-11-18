@@ -6,7 +6,6 @@ export const CHECK_NAMES = [
   'server-lock',
   'shadow-repo',
   'shadow-health',
-  'macos-codesig',
 ] as const;
 
 export type CheckName = (typeof CHECK_NAMES)[number];
