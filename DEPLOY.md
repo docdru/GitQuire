@@ -1,6 +1,8 @@
 # Deploying GitQuire
 
 GitQuire ships as one Docker image, `ghcr.io/docdru/gitquire`, with all state in a `/data` volume.
+The image is the only supported way to run it: there is no install for running GitQuire directly on
+macOS, Windows or a Linux host.
 This page covers running it, GitHub sign-in, repository sync, email and chat notifications, and AI
 agent access. For what GitQuire does, see the [README](./README.md).
 

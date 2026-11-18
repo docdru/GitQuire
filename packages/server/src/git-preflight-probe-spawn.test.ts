@@ -66,9 +66,8 @@ describe('detectGit probe reasons with a stubbed spawn', () => {
     expect(thrown).toBeInstanceOf(GitProbeTimeoutError);
   });
 
-  test('a timed-out fallback probe is not reported as GitNotAvailableError', (ctx) => {
-    const [candidate] = fallbackPaths(process.platform);
-    ctx.skip(candidate === undefined, 'this platform has no fallback git candidates');
+  test('a timed-out fallback probe is not reported as GitNotAvailableError', () => {
+    const [candidate] = fallbackPaths();
     existsSyncMock.mockImplementation((path: unknown) => path === candidate);
     spawnSyncMock.mockImplementation((command: string) =>
       command === 'git' ? spawnError('ENOENT') : timedOut(),
@@ -83,14 +82,8 @@ describe('detectGit probe reasons with a stubbed spawn', () => {
     expect(thrown).not.toBeInstanceOf(GitNotAvailableError);
   });
 
-  test('timeout evidence survives a later fallback failure', (ctx) => {
-    const candidates = fallbackPaths(process.platform);
-    const first = candidates[0];
-    const second = candidates[1];
-    ctx.skip(
-      first === undefined || second === undefined,
-      'this platform has too few fallback candidates',
-    );
+  test('timeout evidence survives a later fallback failure', () => {
+    const [first, second] = fallbackPaths();
     existsSyncMock.mockImplementation((path: unknown) => path === first || path === second);
     spawnSyncMock.mockImplementation((command: string) => {
       if (command === 'git') return spawnError('ENOENT');
@@ -109,9 +102,8 @@ describe('detectGit probe reasons with a stubbed spawn', () => {
     });
   });
 
-  test('a failing fallback candidate records its own reason', (ctx) => {
-    const [candidate] = fallbackPaths(process.platform);
-    ctx.skip(candidate === undefined, 'this platform has no fallback git candidates');
+  test('a failing fallback candidate records its own reason', () => {
+    const [candidate] = fallbackPaths();
     existsSyncMock.mockImplementation((path: unknown) => path === candidate);
     spawnSyncMock.mockImplementation((command: string) =>
       command === 'git' ? spawnError('ENOENT') : exited(1, ''),

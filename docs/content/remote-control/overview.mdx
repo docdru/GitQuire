@@ -9,23 +9,12 @@ The setup has four parts: run the server, make it reachable, add access control,
 
 ## Run the server
 
-GitQuire runs as a server from its [Docker image](/docs/gitquire/run-with-docker). The `gq` CLI,
-built from a checkout, can also run a server:
-
-- [**Docker**](/docs/remote-control/methods/docker)
-- [**CLI**](/docs/remote-control/methods/cli)
+GitQuire runs only from its [Docker image](/docs/remote-control/methods/docker), as one Linux
+container with the wiki in a `/data` volume. It is not run directly on a computer or a VM without Docker.
 
 ## Make the server reachable
 
-Choose the instructions that match where your server runs:
-
-| Your setup | What to follow |
-| --- | --- |
-| Desktop or CLI on your computer | [Connect the computer through a private network or tunnel](/docs/remote-control/methods/cli#your-laptop-behind-a-tunnel). If Desktop already runs the project, skip the CLI installation step. The networking settings are the same. |
-| CLI on an always-on machine | [Set up a server you manage](/docs/remote-control/methods/cli#a-server-you-manage). |
-| Docker | [Deploy the container](/docs/remote-control/methods/docker). |
-
-Each method provides an HTTPS URL and the required configuration. See the [configuration reference](/docs/reference/configuration) for all available settings.
+[Deploy the container](/docs/remote-control/methods/docker) behind a reverse proxy or a tunnel. It provides an HTTPS URL and the required configuration. See the [configuration reference](/docs/reference/configuration) for all available settings.
 
 ## Add access control
 

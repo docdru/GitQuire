@@ -368,180 +368,6 @@ describe('ContentFilter', () => {
     });
   });
 
-  describe('getWatcherIgnoreGlobs', () => {
-    test('retains ordinary user watcher bounds while stripping managed-content blockers', () => {
-      writeFileSync(join(projectDir, '.gitignore'), 'dist/\ntmp/\n# comment\n!keep\n');
-      writeFileSync(join(projectDir, '.okignore'), 'drafts/\n!important.md\n');
-
-      const filter = createContentFilter({ projectDir, contentDir: projectDir });
-
-      const globs = filter.getWatcherIgnoreGlobs();
-      expect(globs).toContain('dist/');
-      expect(globs).toContain('tmp/');
-      expect(globs).toContain('drafts/');
-      expect(globs).not.toContain('!keep');
-      expect(globs).not.toContain('!important.md');
-      expect(globs).not.toContain('# comment');
-    });
-
-    test('retains ordinary user watcher bounds in the async factory', async () => {
-      writeFileSync(join(projectDir, '.gitignore'), 'target/\nsecrets/\n');
-
-      const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
-
-      expect(filter.getWatcherIgnoreGlobs()).toEqual(
-        expect.arrayContaining(['target/', 'secrets/']),
-      );
-    });
-
-    test('injects structural watcher bounds when no ignore files exist', () => {
-      const filter = createContentFilter({ projectDir, contentDir: projectDir });
-      const globs = filter.getWatcherIgnoreGlobs();
-      for (const structural of [
-        '.git',
-        '**/.git/**',
-        'node_modules',
-        '**/node_modules/**',
-        '.gitquire/local',
-        '**/.gitquire/local/**',
-        '.gitquire/worktrees',
-        '**/.gitquire/worktrees/**',
-      ]) {
-        expect(globs).toContain(structural);
-      }
-      expect(globs.some((glob) => glob === '.gitquire' || glob === '.gitquire/**')).toBe(false);
-      expect(globs.some((glob) => glob.startsWith('.claude'))).toBe(false);
-    });
-
-    test('drops blanket .gitquire globs so the OS watcher can reach .gitquire/skills (skills-as-content)', () => {
-      execFileSync('git', ['init', '-q'], { cwd: projectDir });
-      configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
-      writeFileSync(join(projectDir, '.gitignore'), 'dist/\n.gitquire\nnode_modules/\n');
-
-      const globs = createContentFilter({
-        projectDir,
-        contentDir: projectDir,
-      }).getWatcherIgnoreGlobs();
-
-      expect(globs).not.toContain('.gitquire');
-      expect(globs).not.toContain('.gitquire/');
-      expect(globs).toContain('dist/');
-      expect(globs).toContain('node_modules/');
-    });
-
-    function assertCarveChildrenExcludeStripped(filter: ContentFilter) {
-      const globs = filter.getWatcherIgnoreGlobs();
-      expect(globs).not.toContain('**/.gitquire/*');
-      expect(globs).not.toContain('!**/.gitquire/skills/');
-      expect(globs).toContain('dist/');
-    }
-
-    test('drops the children-exclude the skills-sharing carve writes (sync)', () => {
-      execFileSync('git', ['init', '-q'], { cwd: projectDir });
-      configureTestGitRepository(projectDir);
-      writeFileSync(
-        join(projectDir, '.git', 'info', 'exclude'),
-        '**/.gitquire/*\n!**/.gitquire/skills/\n',
-      );
-      writeFileSync(join(projectDir, '.gitignore'), 'dist/\n');
-      const filter = createContentFilter({ projectDir, contentDir: projectDir });
-      assertCarveChildrenExcludeStripped(filter);
-    });
-    test('drops the children-exclude the skills-sharing carve writes (async)', async () => {
-      execFileSync('git', ['init', '-q'], { cwd: projectDir });
-      configureTestGitRepository(projectDir);
-      writeFileSync(
-        join(projectDir, '.git', 'info', 'exclude'),
-        '**/.gitquire/*\n!**/.gitquire/skills/\n',
-      );
-      writeFileSync(join(projectDir, '.gitignore'), 'dist/\n');
-      const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
-      assertCarveChildrenExcludeStripped(filter);
-    });
-
-    function assertInPlaceSkillWatcherAdmission(filter: ContentFilter) {
-      expect(filter.isExcluded('.claude/skills/demo/SKILL.md')).toBe(false);
-      const globs = filter.getWatcherIgnoreGlobs();
-      expect(globs).not.toContain('.claude/*');
-      for (const editorRoot of ['.claude', '.cursor', '.codex', '.agents', '.opencode', '.pi']) {
-        expect(globs.some((glob) => glob === editorRoot || glob.startsWith(`${editorRoot}/`))).toBe(
-          false,
-        );
-      }
-    }
-
-    test('strips an editor-host blocker for an admitted in-place skill (sync)', () => {
-      mkdirSync(join(projectDir, '.claude', 'skills', 'demo'), { recursive: true });
-      writeFileSync(join(projectDir, '.claude', 'skills', 'demo', 'SKILL.md'), '# Demo\n');
-      writeFileSync(join(projectDir, '.gitignore'), '.claude/*\n!.claude/skills/\n');
-      const filter = createContentFilter({
-        projectDir,
-        contentDir: projectDir,
-        inPlaceSkillDirs: new Set(['.claude/skills/demo']),
-      });
-      assertInPlaceSkillWatcherAdmission(filter);
-    });
-
-    test('strips an editor-host blocker for an admitted in-place skill (async)', async () => {
-      mkdirSync(join(projectDir, '.claude', 'skills', 'demo'), { recursive: true });
-      writeFileSync(join(projectDir, '.claude', 'skills', 'demo', 'SKILL.md'), '# Demo\n');
-      writeFileSync(join(projectDir, '.gitignore'), '.claude/*\n!.claude/skills/\n');
-      const filter = await createContentFilterAsync({
-        projectDir,
-        contentDir: projectDir,
-        inPlaceSkillDirs: new Set(['.claude/skills/demo']),
-      });
-      assertInPlaceSkillWatcherAdmission(filter);
-    });
-
-    function assertShareableOkLeavesUnblocked(filter: ContentFilter) {
-      const globs = filter.getWatcherIgnoreGlobs();
-      for (const blocker of [
-        'docs/.gitquire/templates/',
-        'packages/app/.gitquire/templates/',
-        '.*',
-        '.gitquire/**/*',
-        '**/.gitquire/**/*',
-        '.gitquire/templates/',
-        '.gitquire/local/../templates',
-        'node_modules/../docs',
-      ]) {
-        expect(globs, blocker).not.toContain(blocker);
-      }
-      expect(globs.filter((glob) => glob === '.gitquire/local')).toHaveLength(1);
-      expect(globs.filter((glob) => glob === '.gitquire/local/**')).toHaveLength(1);
-      expect(globs).toContain('**/.gitquire/local/**');
-      expect(globs).toContain('.gitquire/worktrees/**');
-      expect(globs).toContain('**/.gitquire/worktrees/**');
-      expect(globs).toContain('dist/');
-      expect(globs).toContain('node_modules/**');
-    }
-
-    test('watcher globs never block the shareable .gitquire leaves; .gitquire/local stays pruned (sync)', () => {
-      writeFileSync(
-        join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/**\ndocs/.gitquire/templates/\npackages/app/.gitquire/templates/\n.*\n.gitquire\n.gitquire/**\n.gitquire/**/*\n**/.gitquire\n**/.gitquire/**\n**/.gitquire/**/*\n.gitquire/*\n**/.gitquire/*\n.gitquire/templates/\n.gitquire/local\n.gitquire/local/**\n.gitquire/local/../templates\nnode_modules/../docs\n',
-      );
-      execFileSync('git', ['init', '-q'], { cwd: projectDir });
-      configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
-      const filter = createContentFilter({ projectDir, contentDir: projectDir });
-      assertShareableOkLeavesUnblocked(filter);
-    });
-    test('watcher globs never block the shareable .gitquire leaves; .gitquire/local stays pruned (async)', async () => {
-      writeFileSync(
-        join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/**\ndocs/.gitquire/templates/\npackages/app/.gitquire/templates/\n.*\n.gitquire\n.gitquire/**\n.gitquire/**/*\n**/.gitquire\n**/.gitquire/**\n**/.gitquire/**/*\n.gitquire/*\n**/.gitquire/*\n.gitquire/templates/\n.gitquire/local\n.gitquire/local/**\n.gitquire/local/../templates\nnode_modules/../docs\n',
-      );
-      execFileSync('git', ['init', '-q'], { cwd: projectDir });
-      configureTestGitRepository(projectDir);
-      writeFileSync(join(projectDir, '.git', 'info', 'exclude'), '.gitquire/\n');
-      const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
-      assertShareableOkLeavesUnblocked(filter);
-    });
-  });
-
   describe('dot-dir scope symmetry', () => {
     test('admits user-tracked markdown in non-built-in dot dirs and rejects built-in/internal dirs', () => {
       mkdirSync(join(projectDir, '.cursor', 'skills', 'open-knowledge'), { recursive: true });
@@ -875,33 +701,6 @@ describe('ContentFilter', () => {
         singleDocRelPath: 'notes.md',
       });
       assertSingleFileScope(filter);
-    });
-
-    function assertGlobStripSet(filter: ContentFilter) {
-      const globs = filter.getWatcherIgnoreGlobs();
-      for (const blanket of ['.gitquire', '.gitquire/**', '**/.gitquire', '**/.gitquire/**']) {
-        expect(globs, blanket).not.toContain(blanket);
-      }
-      expect(globs).toContain('.gitquire/local');
-      expect(globs).toContain('dist/');
-      expect(globs).toContain('node_modules/');
-    }
-
-    test('watcher glob strip drops blanket .gitquire, keeps the rest (sync)', () => {
-      writeFileSync(
-        join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/\n.gitquire\n.gitquire/**\n**/.gitquire\n**/.gitquire/**\n.gitquire/local\n',
-      );
-      const filter = createContentFilter({ projectDir, contentDir: projectDir });
-      assertGlobStripSet(filter);
-    });
-    test('watcher glob strip drops blanket .gitquire, keeps the rest (async)', async () => {
-      writeFileSync(
-        join(projectDir, '.gitignore'),
-        'dist/\nnode_modules/\n.gitquire\n.gitquire/**\n**/.gitquire\n**/.gitquire/**\n.gitquire/local\n',
-      );
-      const filter = await createContentFilterAsync({ projectDir, contentDir: projectDir });
-      assertGlobStripSet(filter);
     });
   });
 
@@ -2185,19 +1984,17 @@ describe('ContentFilter', () => {
       expect(filter.isExcluded('drafts/foo.md')).toBe(false);
     });
 
-    test('refreshes watcher globs when patterns change', async () => {
+    test('applies the new patterns when they change', async () => {
       writeFileSync(join(projectDir, '.okignore'), 'drafts/\ndist/\n');
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
-      expect(filter.getWatcherIgnoreGlobs()).toContain('dist/');
-      expect(filter.getWatcherIgnoreGlobs()).toContain('drafts/');
+      expect(filter.isExcluded('dist/x.md')).toBe(true);
+      expect(filter.isExcluded('drafts/x.md')).toBe(true);
 
-      writeFileSync(join(projectDir, '.okignore'), 'archive/\nnode_modules/\n');
+      writeFileSync(join(projectDir, '.okignore'), 'archive/\n');
       await filter.rebuildIgnorePatterns();
 
-      const globs = filter.getWatcherIgnoreGlobs();
-      expect(globs).toContain('node_modules/');
-      expect(globs).not.toContain('dist/');
-      expect(globs).toContain('archive/');
+      expect(filter.isExcluded('drafts/x.md')).toBe(false);
+      expect(filter.isExcluded('archive/x.md')).toBe(true);
     });
 
     test('refreshes sibling-asset dirCount against new exclusions', async () => {
@@ -2239,8 +2036,8 @@ describe('ContentFilter', () => {
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error('unreachable');
       expect(result.patternCount).toBe(2);
-      expect(filter.getWatcherIgnoreGlobs()).toContain('drafts/');
-      expect(filter.getWatcherIgnoreGlobs()).toContain('scratch/');
+      expect(filter.isExcluded('drafts/x.md')).toBe(true);
+      expect(filter.isExcluded('scratch/x.md')).toBe(true);
     });
 
     test('counts nested ignore files correctly', async () => {
@@ -2320,7 +2117,7 @@ describe('ContentFilter', () => {
       }
     });
 
-    test('rolls back state on error (ig + watcherGlobs + dirCount)', async () => {
+    test('rolls back state on error (ig + dirCount)', async () => {
       writeFileSync(join(projectDir, '.okignore'), 'drafts/\ndist/\n');
       mkdirSync(join(projectDir, 'docs'));
       writeFileSync(join(projectDir, 'docs', 'guide.md'), '# Guide');
@@ -2328,7 +2125,6 @@ describe('ContentFilter', () => {
       const filter = createContentFilter({ projectDir, contentDir: projectDir });
       expect(filter.isExcluded('drafts/x.md')).toBe(true);
       expect(filter.isExcluded('docs/screenshot.png')).toBe(false);
-      expect(filter.getWatcherIgnoreGlobs()).toContain('dist/');
 
       const sampleProto = Object.getPrototypeOf(ignore());
       const addSpy = vi.spyOn(sampleProto, 'add').mockImplementationOnce(() => {
@@ -2349,8 +2145,6 @@ describe('ContentFilter', () => {
             respectOkignore: true,
           }),
         ).toBe(true);
-        expect(filter.getWatcherIgnoreGlobs()).toContain('dist/');
-        expect(filter.getWatcherIgnoreGlobs()).not.toContain('node_modules/');
         expect(filter.isExcluded('docs/screenshot.png')).toBe(false);
       } finally {
         addSpy.mockRestore();

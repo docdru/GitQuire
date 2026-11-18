@@ -153,7 +153,8 @@ docker run --rm -p 8080:8080 \
 # then open http://localhost:8080
 ```
 
-This runs GitQuire locally without sign-in or sync, which is fine for a look around but not for a
+GitQuire runs only in this Docker image (one Linux container, the wiki in the `/data` volume); it is
+not installed directly on a computer. The command above runs it without sign-in or sync, which is fine for a look around but not for a
 shared server. **[DEPLOY.md](./DEPLOY.md)** covers setting up the GitHub App, sign-in, repository
 sync, email and chat notifications, and AI agent access.
 
