@@ -133,7 +133,6 @@ import {
   resolveFileTreeSelectionAction,
 } from '@/components/file-tree-selection';
 import { GQ_FILE_TREE_READONLY_UNSAFE_CSS } from '@/components/file-tree-shared';
-import { selectTrashConfirmCopy, trashTargetDisplayName } from '@/components/file-tree-trash-copy';
 import {
   classifyEmptyTree,
   type DocumentEntry,
@@ -2997,25 +2996,6 @@ export function FileTree({ ref }: { ref?: Ref<FileTreeHandle | null> }) {
         {deleteRequest && primaryDeleteTarget && (
           <DeleteConfirmationDialog
             {...(() => {
-              const copy = selectTrashConfirmCopy('web', deleteRequest.targets, undefined);
-              if (copy) {
-                return {
-                  customTitle: copy.title,
-                  customDescription: '',
-                  customDetail: copy.detail,
-                  customConfirmLabel: copy.confirmLabel,
-                  customConfirmLabelBusy: copy.confirmLabelBusy,
-                  children: copy.listedTargets ? (
-                    <ul className="flex flex-col gap-1 font-mono text-foreground text-xs">
-                      {copy.listedTargets.map((target) => (
-                        <li key={`${target.kind}:${target.path}`} data-testid="delete-target-row">
-                          {trashTargetDisplayName(target)}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null,
-                };
-              }
               const targetCount = deleteRequest.targets.length;
               const folderName = primaryDeleteTarget.name;
               return {

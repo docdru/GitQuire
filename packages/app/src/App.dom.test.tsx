@@ -4,10 +4,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { hashFromDocName, pushHashWithoutNavigation } from '@/lib/doc-hash';
 import { matchesKeyboardShortcut, type ShortcutEventLike } from '@/lib/keyboard-shortcuts';
-import {
-  __resetLocalMenuActionBusForTests,
-  emitLocalMenuAction,
-} from '@/lib/local-menu-action-bus';
+import { __resetLocalMenuActionBusForTests } from '@/lib/local-menu-action-bus';
 import {
   __resetPaneVisibilityStoreForTests,
   type PaneVisibilityRequest,
@@ -41,7 +38,6 @@ let assetPaths = new Set<string>();
 let filePaths = new Set<string>();
 let openTabs: string[] = [];
 let loading = false;
-let singleFileMode = false;
 let tabSessionLoaded = true;
 let mergedConfig: { editor: { previewTabs: boolean } } | null = null;
 let fetchApiConfigMock = vi.fn(() =>
@@ -51,7 +47,6 @@ let fetchApiConfigMock = vi.fn(() =>
       collabUrl: null,
       previewUrl: null,
       port: 0,
-      singleFile: false,
     },
   }),
 );
@@ -154,13 +149,6 @@ vi.doMock('@/lib/use-server-keepalive', () => ({
   useServerKeepalive: () => {},
 }));
 
-vi.doMock('@/lib/single-file-mode', () => ({
-  SingleFileModeProvider: ({ children }: { children: ReactNode }) => (
-    <div data-testid="single-file-mode-provider">{children}</div>
-  ),
-  useSingleFileMode: () => singleFileMode,
-}));
-
 vi.doMock('@/components/ConnectingBanner', () => ({
   ConnectingBanner: () => <div data-testid="connecting-banner" />,
 }));
@@ -234,21 +222,6 @@ vi.doMock('@/lib/transports/clone-transport', () => ({
 
 const { App } = await import('./App');
 
-function createBridge({ ptyAvailable = true }: { ptyAvailable?: boolean } = {}) {
-  return {
-    editor: {
-      notifyActiveTargetChanged: vi.fn(() => {}),
-    },
-    config: {
-      mode: 'editor' as const,
-      ptyAvailable,
-    },
-    state: {
-      query: () => Promise.resolve({ channel: 'latest' as const }),
-    },
-  };
-}
-
 function appMain(): HTMLElement {
   const main = document.querySelector<HTMLElement>('[data-app-main]');
   if (main == null) throw new Error('the app content wrapper is missing');
@@ -257,13 +230,7 @@ function appMain(): HTMLElement {
   return main;
 }
 
-function renderApp({ bridge = null }: { bridge?: ReturnType<typeof createBridge> | null } = {}) {
-  if (bridge) {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: bridge,
-    });
-  }
+function renderApp() {
   return render(<App />, { wrapper: TooltipProvider });
 }
 
@@ -275,7 +242,6 @@ describe('App runtime wiring', () => {
   beforeEach(() => {
     cleanup();
     __resetLocalMenuActionBusForTests();
-    Reflect.deleteProperty(window, 'okDesktop');
     setHash('');
     activeTarget = null;
     pages = new Set(['reports/index']);
@@ -287,7 +253,6 @@ describe('App runtime wiring', () => {
     filePaths = new Set();
     openTabs = [];
     loading = false;
-    singleFileMode = false;
     tabSessionLoaded = true;
     mergedConfig = null;
     fetchApiConfigMock = vi.fn(() =>
@@ -297,7 +262,6 @@ describe('App runtime wiring', () => {
           collabUrl: null,
           previewUrl: null,
           port: 0,
-          singleFile: false,
         },
       }),
     );
@@ -322,19 +286,6 @@ describe('App runtime wiring', () => {
     cleanup();
     __resetLocalMenuActionBusForTests();
     vi.restoreAllMocks();
-  });
-
-  describe('note window chrome reduction', () => {
-    test('single-file windows reserve the shared header height like ordinary windows', () => {
-      singleFileMode = true;
-      renderApp({ bridge: createBridge() });
-
-      expect(screen.queryByTestId('file-sidebar')).toBeNull();
-      expectVisualClassTokens(appMain().className, [
-        'h-[calc(100vh-var(--gq-app-header-height,0px))]',
-      ]);
-      expectVisualClassTokensAbsent(appMain().className, ['h-screen']);
-    });
   });
 
   test('imports and mounts the app shell providers and core surfaces', () => {
@@ -535,22 +486,6 @@ describe('App runtime wiring', () => {
         },
       );
     });
-  });
-
-  test('navigation-history subscription cleans up before remount and invokes each action once', () => {
-    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
-    const forward = vi.spyOn(window.history, 'forward').mockImplementation(() => {});
-    renderApp();
-    cleanup();
-    renderApp();
-
-    emitLocalMenuAction('navigate-back');
-    expect(back).toHaveBeenCalledOnce();
-    expect(forward).not.toHaveBeenCalled();
-
-    emitLocalMenuAction('navigate-forward');
-    expect(back).toHaveBeenCalledOnce();
-    expect(forward).toHaveBeenCalledOnce();
   });
 
   test('history traversal reuses the preview slot instead of opening a permanent tab', async () => {
@@ -941,14 +876,6 @@ describe('App runtime wiring', () => {
         'h-[calc(100vh-var(--gq-app-header-height,0px))]',
       ]);
       expectVisualClassTokensAbsent(appMain().className, ['overflow-hidden', 'rounded-e-xl']);
-    });
-
-    test('a single-file window shows the shared application header', () => {
-      singleFileMode = true;
-
-      renderApp({ bridge: createBridge() });
-
-      expect(screen.getByRole('banner')).not.toBeNull();
     });
 
     test('its search button opens the command palette', () => {

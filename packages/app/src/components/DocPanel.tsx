@@ -18,7 +18,6 @@ import { useDocumentContext } from '@/editor/DocumentContext';
 import { useDocLintConfig } from '@/editor/lint-config-client';
 import { useDocDiagnostics } from '@/editor/useDocDiagnostics';
 import { useDocLinkFindings } from '@/editor/validation-audit-client';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { cn } from '@/lib/utils';
 import { type DocProblemCounts, patchDocValidationSource } from '@/lib/validation-store';
 
@@ -31,8 +30,6 @@ export const TABS: { id: PanelTab; icon: typeof ListTree }[] = [
   { id: 'timeline', icon: Clock },
   { id: 'problems', icon: AlertTriangle },
 ];
-
-const SINGLE_FILE_TABS: readonly PanelTab[] = ['outline', 'problems'];
 
 function countsOf(diagnostics: readonly { severity: string }[]): DocProblemCounts {
   let errorCount = 0;
@@ -95,7 +92,6 @@ export function DocPanel({
   onDestinationRequested,
 }: DocPanelProps) {
   const { t } = useLingui();
-  const isElectronHost = false;
   const { activeProvider, activeDocName } = useDocumentContext();
   const { data: lintConfig } = useDocLintConfig(docName);
   const lintProvider = activeDocName === docName ? activeProvider : null;
@@ -121,10 +117,8 @@ export function DocPanel({
       applyLintFixes(lintProvider, collectFixes(lintDiagnostics), docName);
     }
   };
-  const singleFile = useSingleFileMode();
-  const tabs = singleFile ? TABS.filter((tab) => SINGLE_FILE_TABS.includes(tab.id)) : TABS;
-  const effectiveTab: PanelTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'outline';
-  const showTabStrip = mode === 'doc' && tabs.length > 1;
+  const effectiveTab: PanelTab = activeTab;
+  const showTabStrip = mode === 'doc';
   useEffect(() => {
     setDocPanelOnScreen(!isCollapsed);
     return () => {
@@ -136,24 +130,21 @@ export function DocPanel({
       {showTabStrip ? (
         <div
           data-doc-panel-header=""
-          data-electron-drag={isElectronHost ? '' : undefined}
           className={cn(
             PANE_CARD_TOP_BAR_CLASS,
             'flex flex-row items-center justify-center gap-3 px-2',
-            isElectronHost && '[-webkit-app-region:drag]',
           )}
         >
           <ToggleGroup
             type="single"
             variant="outline"
             value={effectiveTab}
-            className={cn(isElectronHost && '[-webkit-app-region:no-drag]')}
             onValueChange={(value: PanelTab) => {
               if (value) onActiveTabChange(value);
             }}
             aria-label={t`Document panels`}
           >
-            {tabs.map(({ id, icon: Icon }) => {
+            {TABS.map(({ id, icon: Icon }) => {
               const label = tabLabel(id);
               const showBadge = id === 'problems' && diagnostics.length > 0;
               return (

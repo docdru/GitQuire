@@ -164,8 +164,6 @@ function FileSidebarInner() {
   const [treeCreationCleared, setTreeCreationCleared] = useState(false);
   const initialCreateDir = treeCreationCleared ? '' : baseCreateDir;
 
-  const isElectronHost = false;
-
   const { state: sidebarState, toggleSidebar, setOpen, cover, dismissCover } = useSidebar();
   const isEmbedded = useIsEmbedded();
 
@@ -516,15 +514,12 @@ function FileSidebarInner() {
                         {projectName}
                       </span>
                     </CollapsibleTrigger>
-                    {/* biome-ignore lint/a11y/useSemanticElements: same call as ui/button-group — a toolbar cluster is not a form-control set, so the semantic alternative would impose form-field semantics and chrome. */}
+                    {/* biome-ignore lint/a11y/useSemanticElements: a toolbar cluster is not a form-control set, so the semantic alternative would impose form-field semantics and chrome. */}
                     <div
                       role="group"
                       aria-label={t`Files toolbar`}
                       data-testid="sidebar-toolbar"
-                      className={cn(
-                        'flex items-center gap-0.5',
-                        isElectronHost && '[&>*]:[-webkit-app-region:no-drag]',
-                      )}
+                      className={cn('flex items-center gap-0.5')}
                     >
                       <DropdownMenu>
                         <ToolbarDropdownTrigger icon={ListCollapse} label={t`Tree view options`} />
@@ -647,7 +642,6 @@ function FileSidebarInner() {
                         icon={FolderPlus}
                         label={t`New folder`}
                         onClick={() => tree?.startCreating('folder', initialCreateDir)}
-                        shortcutId={isElectronHost ? 'new-folder' : undefined}
                       />
                     </div>
                   </SidebarGroupLabel>

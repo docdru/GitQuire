@@ -63,7 +63,7 @@ describe('Dialog runtime class contracts', () => {
     }
   });
 
-  test('overlay carries drag opt-out, fade motion, and reduced-motion opt-in', async () => {
+  test('overlay carries fade motion and reduced-motion opt-in', async () => {
     await renderDialogContent();
 
     const overlay = document.querySelector('[data-slot="dialog-overlay"]');
@@ -75,12 +75,11 @@ describe('Dialog runtime class contracts', () => {
       'data-open:fade-in-0',
       'data-closed:animate-out',
       'data-closed:fade-out-0',
-      '[-webkit-app-region:no-drag]',
       ...A11Y_OPT_IN,
     ]);
   });
 
-  test('content is centered, drag-safe, and uses zoom/fade motion without slides', async () => {
+  test('content is centered and uses zoom/fade motion without slides', async () => {
     await renderDialogContent();
 
     const content = document.querySelector('[data-slot="dialog-content"]');
@@ -99,7 +98,6 @@ describe('Dialog runtime class contracts', () => {
       'data-closed:animate-out',
       'data-closed:fade-out-0',
       'data-closed:zoom-out-95',
-      '[-webkit-app-region:no-drag]',
       ...A11Y_OPT_IN,
     ]);
     expectVisualClassTokensAbsent(className, ['slide-in-from']);
@@ -118,16 +116,15 @@ describe('Dialog runtime class contracts', () => {
   });
 });
 
-describe('Dialog window-drag band', () => {
+describe('Dialog height clamp', () => {
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
   });
 
-  test('renders no drag strip and no extra clearance off the desktop host', async () => {
+  test('clamps the content height to the viewport', async () => {
     await renderDialogContent();
 
-    expect(screen.queryByTestId('dialog-drag-strip')).toBeNull();
     expectVisualClassTokens(
       document.querySelector('[data-slot="dialog-content"]')?.getAttribute('class'),
       ['max-h-[calc(100dvh-2rem)]'],
@@ -135,7 +132,6 @@ describe('Dialog window-drag band', () => {
   });
 
   test('a caller max-h still wins over the clearance clamp', async () => {
-    vi.stubGlobal('okDesktop', {});
     const { Dialog, DialogContent, DialogTitle } = await import('./dialog');
 
     render(

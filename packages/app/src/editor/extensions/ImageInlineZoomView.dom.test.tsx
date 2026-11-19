@@ -99,7 +99,7 @@ describe('ImageInlineZoomView — inline-image lightbox wrap', () => {
     expect(img?.getAttribute('alt')).toBe('');
   });
 
-  test('src passes through unchanged when `toDesktopAssetHref` is a no-op (server-absolute URL — non-desktop runtime)', () => {
+  test('a server-absolute src passes through unchanged', () => {
     render(<ImageInlineZoomView {...makeNode({ src: '/assets/pic.png', alt: '' })} />);
     const img = document.querySelector('img');
     expect(img?.getAttribute('src')).toContain('/assets/pic.png');

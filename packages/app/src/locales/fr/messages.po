@@ -274,15 +274,6 @@ msgstr "{count, plural, one {# participant inter-documents de plus} many {# part
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {# participant de plus} many {# participants de plus} other {# participants de plus}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {Voulez-vous vraiment supprimer le dossier suivant et son contenu ?} many {Voulez-vous vraiment supprimer les # dossiers suivants et leur contenu ?} other {Voulez-vous vraiment supprimer les # dossiers suivants et leur contenu ?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {Voulez-vous vraiment supprimer le fichier suivant ?} many {Voulez-vous vraiment supprimer les # fichiers suivants ?} other {Voulez-vous vraiment supprimer les # fichiers suivants ?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {Voulez-vous vraiment supprimer le fichier/dossier suivant et son contenu ?} many {Voulez-vous vraiment supprimer les # fichiers/dossiers suivants et leur contenu ?} other {Voulez-vous vraiment supprimer les # fichiers/dossiers suivants et leur contenu ?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Corrige immédiatement le # problème qui a une correction automatique connue.} many {Corrige immédiatement les # problèmes qui ont une correction automatique connue.} other {Corrige immédiatement les # problèmes qui ont une correction automatique connue.}}"
 
@@ -1060,12 +1051,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Voulez-vous vraiment convertir ce fichier en modèle ? Le fichier d'origine sera supprimé. Cette action est irréversible."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "Voulez-vous vraiment supprimer « {name} » et son contenu ?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "Voulez-vous vraiment supprimer « {name} » ?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "Voulez-vous vraiment supprimer {folderName}/ et tous les fichiers qu'il contient ? Cette action est irréversible."
 
@@ -1074,12 +1059,6 @@ msgstr "Voulez-vous vraiment supprimer {itemName} ? Cette action est irréversib
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "Voulez-vous vraiment supprimer les {targetCount} éléments sélectionnés ? Les dossiers et tous les fichiers qu'ils contiennent seront supprimés. Cette action est irréversible."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "Voulez-vous vraiment supprimer l'élément sélectionné ?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "Voulez-vous vraiment supprimer les éléments sélectionnés ?"
 
 msgid "Ask"
 msgstr "Demander"
@@ -1587,12 +1566,6 @@ msgstr "Fermer le nouvel onglet"
 
 msgid "Close others"
 msgstr "Fermer les autres"
-
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Fermez cet aperçu, puis ouvrez le dossier pour envoyer des fichiers"
-
-msgid "Close window"
-msgstr "Fermer la fenêtre"
 
 msgid "Clusters"
 msgstr "Groupes"
@@ -2139,9 +2112,6 @@ msgstr "Créer un document à partir de {label}"
 
 msgid "Create a file from the current document or folder context."
 msgstr "Crée un fichier à partir du document ou du dossier courant."
-
-msgid "Create a folder from the current document or folder context."
-msgstr "Crée un dossier à partir du document ou du dossier courant."
 
 msgid "Create a new list item from the current list item."
 msgstr "Crée un nouvel élément de liste à partir de l'élément courant."
@@ -3296,9 +3266,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "La mise en forme semblait incorrecte"
-
-msgid "Forward"
-msgstr "Suivant"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "La réponse des liens sortants ne correspond pas à la forme attendue."
@@ -4484,9 +4451,6 @@ msgstr "Déplacer vers un nouveau volet à gauche"
 msgid "Move to new pane right"
 msgstr "Déplacer vers un nouveau volet à droite"
 
-msgid "Move to Recycle Bin"
-msgstr "Mettre à la Corbeille"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Va au diagnostic de vérification CodeMirror suivant."
 
@@ -4498,9 +4462,6 @@ msgstr "Va au résultat de recherche suivant dans l'éditeur visuel."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Va au résultat de recherche précédent dans l'éditeur visuel."
-
-msgid "Move to Trash"
-msgstr "Mettre à la corbeille"
 
 msgid "Move up"
 msgstr "Monter"
@@ -4525,9 +4486,6 @@ msgstr "modèle déplacé"
 
 msgid "Moved up."
 msgstr "Déplacé vers le haut."
-
-msgid "Moving"
-msgstr "Déplacement"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Visionneuse PDF multipage avec barre d'outils (miniatures, navigation, zoom)."
@@ -4567,9 +4525,6 @@ msgstr "Aller à {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Navigation et suggestions"
-
-msgid "Navigation history"
-msgstr "Historique de navigation"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Erreur dans le .okignore imbriqué de {path}"
@@ -5024,9 +4979,6 @@ msgstr "Désactivé — la recherche classe uniquement par mots-clés. Aucun con
 msgid "Offline"
 msgstr "Hors ligne"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "Activé — survoler un lien externe envoie son URL au site de destination pour récupérer un aperçu, et survoler une référence GitHub dans une conversation avec un agent la demande à GitHub."
 
@@ -5105,9 +5057,6 @@ msgstr "Ouvrez d'abord un projet."
 msgid "Open a project to edit."
 msgstr "Ouvrez un projet pour le modifier."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "Ouvre un seul fichier markdown dans une session temporaire, sans configurer de projet."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "Ouvrir le panneau d'activité de {tooltipName}"
 
@@ -5116,9 +5065,6 @@ msgstr "Ouvrir le panneau d'activité de {tooltipName}, qui modifie {realCurrent
 
 msgid "Open agents"
 msgstr "Ouvrir les agents"
-
-msgid "Open an existing project folder from disk."
-msgstr "Ouvrez un dossier de projet existant depuis le disque."
 
 msgid "Open board"
 msgstr "Ouvrir le tableau"
@@ -5155,9 +5101,6 @@ msgstr "Ouvrir le sélecteur d'émojis de {keyName}"
 
 msgid "Open file"
 msgstr "Ouvrir le fichier"
-
-msgid "Open folder"
-msgstr "Ouvrir le dossier"
 
 msgid "Open graph"
 msgstr "Ouvrir le graphe"
@@ -5200,9 +5143,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Ouvre le menu d'insertion à une position de texte vide ou active."
-
-msgid "Open the Project Navigator."
-msgstr "Ouvre le Navigateur de projets."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Ouvre ce document dans l'éditeur et réduit le graphe."
@@ -5948,9 +5888,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "Signaler un bug"
 
 msgid "Report an issue"
 msgstr ""
@@ -6733,9 +6670,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "Démarre un rapport de bug avec une capture d'écran de ce qui est affiché à cet instant."
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6831,9 +6765,6 @@ msgstr "Intervertir la barre latérale des fichiers et le panneau du document"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "Bascule entre l'éditeur visuel et l'éditeur de source, en conservant votre position."
-
-msgid "Switch project"
-msgstr "Changer de projet"
 
 msgid "Switch to a branch to share."
 msgstr "Passez sur une branche pour partager."
@@ -7345,9 +7276,6 @@ msgstr "Ce document est déjà actif dans l'éditeur. Utilisez Ouvrir pour rédu
 msgid "This document is missing required properties"
 msgstr "Il manque des propriétés obligatoires à ce document"
 
-msgid "This document was deleted"
-msgstr "Ce document a été supprimé"
-
 msgid "This draft"
 msgstr ""
 
@@ -7631,12 +7559,6 @@ msgstr "Pages les plus liées"
 
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
-
-msgid "Traverse GitQuire navigation history backward."
-msgstr "Recule dans l'historique de navigation de GitQuire."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "Avance dans l'historique de navigation de GitQuire."
 
 msgid "Tree view options"
 msgstr "Options de la vue arborescente"
@@ -8073,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "Nouveautés"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "Une fois activé, l'agent ouvre ou actualise l'aperçu après chaque modification. Désactivez si vous gérez votre propre fenêtre d'aperçu (OK Desktop, un onglet de navigateur sur un autre écran, etc.)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "Quand l'agent effectue son travail planifié."
@@ -8171,12 +8093,6 @@ msgstr "Vous pouvez joindre jusqu'à {MAX_ATTACHMENTS} images."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "Vous pourrez changer cela plus tard dans <0>Paramètres → Synchronisation</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "Vous pouvez restaurer ce fichier depuis la Corbeille."
-
-msgid "You can restore this file from the Trash."
-msgstr "Vous pouvez restaurer ce fichier depuis la corbeille."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "Vous avez annulé le chargement de « {docName} »."

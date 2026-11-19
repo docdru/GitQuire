@@ -46,7 +46,6 @@ export interface ClientRemovalReconciliationPorts {
   clearActiveTargetForRemoval(docName: string): void;
   navigateToDocument(docName: string): void;
   navigateHome(): void;
-  showDocumentDeletedState?(docName: string): boolean;
 }
 
 function uniqueDocNames(docNames: readonly string[]): string[] {
@@ -102,7 +101,7 @@ export function createClientRemovalReconciler(
       await ports.closeAndClear(docName);
       ports.removeDocumentTab(docName);
       ports.clearActiveTargetForRemoval(docName);
-      if (wasActive && ports.showDocumentDeletedState?.(docName) !== true) ports.navigateHome();
+      if (wasActive) ports.navigateHome();
     },
   };
 }

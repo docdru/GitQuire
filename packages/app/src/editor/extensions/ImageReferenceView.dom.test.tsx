@@ -85,23 +85,14 @@ describe('ImageReferenceView', () => {
   afterEach(cleanup);
 
   test('normalizes a local definition href against the configured document on initial render', async () => {
-    const desktopWindow = window as typeof window & {
-      okDesktop?: { config: { apiOrigin: string } };
-    };
-    desktopWindow.okDesktop = { config: { apiOrigin: 'http://localhost:53351' } };
+    render(<Host content={referenceImageDoc()} />);
 
-    try {
-      render(<Host content={referenceImageDoc()} />);
-
-      await waitFor(() => {
-        expect(
-          document
-            .querySelector<HTMLImageElement>('span[data-image-reference-view] img')
-            ?.getAttribute('src'),
-        ).toBe('http://localhost:53351/assets/working.png');
-      });
-    } finally {
-      delete desktopWindow.okDesktop;
-    }
+    await waitFor(() => {
+      expect(
+        document
+          .querySelector<HTMLImageElement>('span[data-image-reference-view] img')
+          ?.getAttribute('src'),
+      ).toBe('/assets/working.png');
+    });
   });
 });

@@ -569,12 +569,6 @@
       "types": "./dist/util-doc-name.d.mts",
       "default": "./dist/util-doc-name.mjs"
     },
-    "./utils/asset-href": {
-      "@gitquire/source": "./src/utils/asset-href.ts",
-      "development": "./src/utils/asset-href.ts",
-      "types": "./dist/utils-asset-href.d.mts",
-      "default": "./dist/utils-asset-href.mjs"
-    },
     "./utils/chunked-insert": {
       "@gitquire/source": "./src/utils/chunked-insert.ts",
       "development": "./src/utils/chunked-insert.ts",

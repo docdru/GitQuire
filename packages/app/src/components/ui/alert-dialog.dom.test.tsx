@@ -243,31 +243,21 @@ describe('AlertDialog footer choices', () => {
 });
 
 describe('AlertDialog surface classes', () => {
-  test('overlay opts out of the OS drag region and of animation under reduced motion', () => {
+  test('overlay opts out of animation under reduced motion', () => {
     renderAlert();
 
     const overlay = document.querySelector('[data-slot="alert-dialog-overlay"]');
 
-    expectVisualClassTokens(overlay?.getAttribute('class'), [
-      '[-webkit-app-region:no-drag]',
-      ...A11Y_OPT_IN,
-    ]);
+    expectVisualClassTokens(overlay?.getAttribute('class'), [...A11Y_OPT_IN]);
   });
 
-  test('content opts out of the OS drag region and of animation under reduced motion', () => {
+  test('content opts out of animation under reduced motion', () => {
     renderAlert();
 
     expectVisualClassTokens(screen.getByRole('alertdialog').getAttribute('class'), [
-      '[-webkit-app-region:no-drag]',
       'max-h-[calc(100dvh-2rem)]',
       ...A11Y_OPT_IN,
     ]);
-  });
-
-  test('renders no drag strip off the desktop host', () => {
-    renderAlert();
-
-    expect(screen.queryByTestId('alert-dialog-drag-strip')).toBeNull();
   });
 
   test('caller className composes with the base classes rather than replacing them', () => {
@@ -283,7 +273,7 @@ describe('AlertDialog surface classes', () => {
 
     expectVisualClassTokens(screen.getByRole('alertdialog').getAttribute('class'), [
       'sm:max-w-md',
-      '[-webkit-app-region:no-drag]',
+      'max-h-[calc(100dvh-2rem)]',
     ]);
   });
 });

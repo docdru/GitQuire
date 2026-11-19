@@ -274,15 +274,6 @@ msgstr "{count, plural, other {# peserta lagi dari dokumen lain}}"
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, other {# peserta lagi}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, other {Yakin ingin menghapus # folder berikut beserta isinya?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, other {Yakin ingin menghapus # berkas berikut?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, other {Yakin ingin menghapus # berkas/folder berikut beserta isinya?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {Langsung memperbaiki # masalah yang punya perbaikan otomatis yang diketahui.}}"
 
@@ -1056,12 +1047,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Yakin ingin mengubah berkas ini menjadi templat? Berkas aslinya akan dihapus. Tindakan ini tidak bisa dibatalkan."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "Yakin ingin menghapus \"{name}\" beserta isinya?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "Yakin ingin menghapus \"{name}\"?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "Yakin ingin menghapus {folderName}/ dan semua berkas di dalamnya? Tindakan ini tidak bisa dibatalkan."
 
@@ -1070,12 +1055,6 @@ msgstr "Yakin ingin menghapus {itemName}? Tindakan ini tidak bisa dibatalkan."
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "Yakin ingin menghapus {targetCount} item terpilih? Folder dan semua berkas di dalamnya akan dihapus. Tindakan ini tidak bisa dibatalkan."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "Yakin ingin menghapus item yang dipilih?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "Yakin ingin menghapus item yang dipilih?"
 
 msgid "Ask"
 msgstr "Tanya"
@@ -1583,12 +1562,6 @@ msgstr "Tutup tab baru"
 
 msgid "Close others"
 msgstr "Tutup yang lain"
-
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Tutup pratinjau ini, lalu buka folder untuk mengunggah file"
-
-msgid "Close window"
-msgstr "Tutup jendela"
 
 msgid "Clusters"
 msgstr "Klaster"
@@ -2135,9 +2108,6 @@ msgstr "Buat dokumen dari {label}"
 
 msgid "Create a file from the current document or folder context."
 msgstr "Membuat berkas dari konteks dokumen atau folder saat ini."
-
-msgid "Create a folder from the current document or folder context."
-msgstr "Membuat folder dari konteks dokumen atau folder saat ini."
 
 msgid "Create a new list item from the current list item."
 msgstr "Membuat item daftar baru dari item daftar saat ini."
@@ -3292,9 +3262,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "Format terlihat salah"
-
-msgid "Forward"
-msgstr "Maju"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "Respons tautan keluar tidak sesuai bentuk yang diharapkan."
@@ -4480,9 +4447,6 @@ msgstr "Pindahkan ke panel baru di kiri"
 msgid "Move to new pane right"
 msgstr "Pindahkan ke panel baru di kanan"
 
-msgid "Move to Recycle Bin"
-msgstr "Pindahkan ke Recycle Bin"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Pergi ke diagnostik lint CodeMirror berikutnya."
 
@@ -4494,9 +4458,6 @@ msgstr "Pergi ke hasil pencarian penyunting visual berikutnya."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Pergi ke hasil pencarian penyunting visual sebelumnya."
-
-msgid "Move to Trash"
-msgstr "Pindahkan ke Tempat Sampah"
 
 msgid "Move up"
 msgstr "Naikkan"
@@ -4521,9 +4482,6 @@ msgstr "templat dipindahkan"
 
 msgid "Moved up."
 msgstr "Dipindahkan ke atas."
-
-msgid "Moving"
-msgstr "Memindahkan"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Penampil PDF multi-halaman dengan kendali bilah alat (gambar mini, navigasi halaman, zoom)."
@@ -4563,9 +4521,6 @@ msgstr "Pergi ke {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Navigasi dan saran"
-
-msgid "Navigation history"
-msgstr "Riwayat navigasi"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Galat .okignore bersarang di {path}"
@@ -5020,9 +4975,6 @@ msgstr "Mati — pencarian hanya memeringkat berdasarkan kata kunci. Tidak ada k
 msgid "Offline"
 msgstr "Luring"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "Aktif — mengarahkan kursor ke tautan eksternal mengirim URL-nya ke situs tujuan untuk mengambil pratinjau, dan mengarahkan kursor ke referensi GitHub di chat agen memintanya dari GitHub."
 
@@ -5101,9 +5053,6 @@ msgstr "Buka proyek terlebih dahulu."
 msgid "Open a project to edit."
 msgstr "Buka sebuah proyek untuk menyunting."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "Membuka satu berkas markdown dalam sesi sementara, tanpa penyiapan proyek."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "Buka panel aktivitas untuk {tooltipName}"
 
@@ -5112,9 +5061,6 @@ msgstr "Buka panel aktivitas untuk {tooltipName}, yang sedang menyunting {realCu
 
 msgid "Open agents"
 msgstr "Buka agen"
-
-msgid "Open an existing project folder from disk."
-msgstr "Membuka folder proyek yang sudah ada dari disk."
 
 msgid "Open board"
 msgstr "Buka papan"
@@ -5151,9 +5097,6 @@ msgstr "Buka pemilih emoji untuk {keyName}"
 
 msgid "Open file"
 msgstr "Buka berkas"
-
-msgid "Open folder"
-msgstr "Buka folder"
 
 msgid "Open graph"
 msgstr "Buka graf"
@@ -5196,9 +5139,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Membuka menu sisip pada posisi teks yang kosong atau aktif."
-
-msgid "Open the Project Navigator."
-msgstr "Membuka Navigator Proyek."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Membuka dokumen ini di penyunting dan menciutkan graf."
@@ -5944,9 +5884,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "Laporkan bug"
 
 msgid "Report an issue"
 msgstr ""
@@ -6729,9 +6666,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "Memulai laporan bug dengan tangkapan layar persis seperti tampilannya saat ini."
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6827,9 +6761,6 @@ msgstr "Tukar posisi bilah sisi berkas dan panel dokumen"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "Beralih antara penyunting visual dan sumber, tanpa kehilangan posisi Anda."
-
-msgid "Switch project"
-msgstr "Ganti proyek"
 
 msgid "Switch to a branch to share."
 msgstr "Beralih ke sebuah cabang untuk berbagi."
@@ -7341,9 +7272,6 @@ msgstr "Dokumen ini sudah aktif di penyunting. Gunakan Buka untuk menciutkan gra
 msgid "This document is missing required properties"
 msgstr "Dokumen ini kehilangan properti yang wajib"
 
-msgid "This document was deleted"
-msgstr "Dokumen ini telah dihapus"
-
 msgid "This draft"
 msgstr ""
 
@@ -7627,12 +7555,6 @@ msgstr "Halaman paling banyak ditaut"
 
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
-
-msgid "Traverse GitQuire navigation history backward."
-msgstr "Menyusuri riwayat navigasi GitQuire ke belakang."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "Menyusuri riwayat navigasi GitQuire ke depan."
 
 msgid "Tree view options"
 msgstr "Opsi tampilan pohon"
@@ -8069,8 +7991,8 @@ msgstr ""
 msgid "What's new"
 msgstr "Yang baru"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "Ketika aktif, agennya membuka atau menyegarkan pratinjau setelah setiap suntingan. Nonaktifkan jika Anda mengelola jendela pratinjau Anda sendiri (OK Desktop, tab peramban di layar lain, dsb.)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "Kapan agennya menjalankan pekerjaan terjadwalnya."
@@ -8167,12 +8089,6 @@ msgstr "Anda bisa melampirkan hingga {MAX_ATTACHMENTS} gambar."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "Anda bisa mengubah ini nanti di <0>Pengaturan → Sinkronisasi</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "Anda dapat memulihkan berkas ini dari Recycle Bin."
-
-msgid "You can restore this file from the Trash."
-msgstr "Anda dapat memulihkan berkas ini dari Tempat Sampah."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "Anda membatalkan pemuatan \"{docName}\"."

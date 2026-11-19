@@ -177,7 +177,7 @@ describe('SettingsDialogBody preferences runtime', () => {
     expect(screen.getByText('Open preview when agent edits')).toBeDefined();
     expect(
       screen.getByText(
-        'When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.).',
+        'When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display.',
       ),
     ).toBeDefined();
     const previewField = container.querySelector('[data-field="appearance.preview.autoOpen"]');

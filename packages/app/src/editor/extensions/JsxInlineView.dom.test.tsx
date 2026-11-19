@@ -370,33 +370,24 @@ describe('JsxInlineView', () => {
   );
 
   test('normalizes a local inline img src against its document before rendering', async () => {
-    const desktopWindow = window as typeof window & {
-      okDesktop?: { config: { apiOrigin: string } };
-    };
-    desktopWindow.okDesktop = { config: { apiOrigin: 'http://localhost:53351' } };
+    mountEditor(
+      docWithInline({
+        componentName: 'img',
+        sourceRaw: '<img src="assets/space image.png" alt="Working self-closing HTML image" />',
+        props: {
+          src: 'assets/space image.png',
+          alt: 'Working self-closing HTML image',
+        },
+      }),
+    );
 
-    try {
-      mountEditor(
-        docWithInline({
-          componentName: 'img',
-          sourceRaw: '<img src="assets/space image.png" alt="Working self-closing HTML image" />',
-          props: {
-            src: 'assets/space image.png',
-            alt: 'Working self-closing HTML image',
-          },
-        }),
-      );
-
-      await waitFor(() => {
-        expect(
-          document
-            .querySelector<HTMLImageElement>('img[alt="Working self-closing HTML image"]')
-            ?.getAttribute('src'),
-        ).toBe('http://localhost:53351/assets/space image.png');
-      });
-    } finally {
-      delete desktopWindow.okDesktop;
-    }
+    await waitFor(() => {
+      expect(
+        document
+          .querySelector<HTMLImageElement>('img[alt="Working self-closing HTML image"]')
+          ?.getAttribute('src'),
+      ).toBe('/assets/space image.png');
+    });
   });
 
   test('a registered componentName renders the descriptor widget', async () => {

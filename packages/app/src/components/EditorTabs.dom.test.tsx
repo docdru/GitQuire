@@ -384,10 +384,6 @@ function resetState() {
   ]) {
     fn.mockClear();
   }
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: undefined,
-  });
   window.location.hash = '';
 }
 
@@ -662,7 +658,6 @@ describe('EditorTabs runtime behavior', () => {
     const sortableTabs = [...container.querySelectorAll<HTMLElement>('[data-editor-tab-sortable]')];
 
     expect(root.getAttribute('data-editor-pane-tabs')).toBe('pane-a');
-    expect(container.querySelector('[data-electron-drag]')).toBeNull();
     expectVisualClassTokens(root.className, ['overflow-hidden']);
     expect(scrollStrip).toBeTruthy();
     expectVisualClassTokens(scrollStrip?.className, [
@@ -741,8 +736,6 @@ describe('EditorTabs runtime behavior', () => {
     expectVisualClassTokensAbsent(assetLabel?.children[0]?.className, ['truncate', 'flex-1']);
 
     expectVisualClassTokens(newTabButton.className, ['shrink-0']);
-    expectVisualClassTokensAbsent(root.className, ['[-webkit-app-region:no-drag]']);
-    expectVisualClassTokensAbsent(wrapper.className, ['[-webkit-app-region:no-drag]']);
   });
 
   test('does not scroll outer layout when a unified-header tab strip mounts', async () => {

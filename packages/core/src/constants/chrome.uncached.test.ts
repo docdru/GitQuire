@@ -63,7 +63,6 @@ describe('chrome.ts drift-check', () => {
     expect(body).toContain(`SIDEBAR_BG_DARK = '${tokens.darkSidebar}'`);
     expect(body).toContain(`CANVAS_BG_DARK = '${tokens.darkCanvas}'`);
     expect(body).toContain('export const APP_HEADER_HEIGHT_PX = 44;');
-    expect(body).toContain('export const REDUCED_CHROME_HEADER_HEIGHT_PX = 48;');
   });
 
   test('the checked-in chrome.ts is exactly what the generator renders', () => {

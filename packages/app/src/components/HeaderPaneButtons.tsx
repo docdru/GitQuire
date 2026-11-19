@@ -135,7 +135,7 @@ export function HeaderPaneButtons() {
         data-testid="header-pane-divider"
         className="mx-1 h-4 data-vertical:self-center forced-colors:border-l"
       />
-      {/* biome-ignore lint/a11y/useSemanticElements: a cluster of pane toggles is not a form-control set; <fieldset> would impose form chrome, and ButtonGroup squares the pressed tint. */}
+      {/* biome-ignore lint/a11y/useSemanticElements: a cluster of pane toggles is not a form-control set; <fieldset> would impose form chrome. */}
       <div
         role="group"
         aria-label={t`Panels`}

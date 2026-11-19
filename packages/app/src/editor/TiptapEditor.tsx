@@ -46,10 +46,8 @@ import { TouchEditToolbar } from '@/gitquire-mobile/TouchEditToolbar';
 import { GitQuirePeopleMentions } from '@/gitquire-people/people-mention';
 import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
 import { anchorFromHash } from '@/lib/doc-hash';
-import { claimNoteWindowInitialFocus } from '@/lib/note-window-focus';
 import { mark } from '@/lib/perf';
 import { wrapExtensionsWithTiming } from '@/lib/perf/cold-mount-instrumentation';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { useIdentity } from '../presence/identity';
 import { registerEditor, unregisterEditor } from './active-editor';
 import { changedRangeIsOnScreen } from './agent-follow-scroll';
@@ -73,7 +71,7 @@ import { EditorContent } from './EditorContent';
 import { isUserIntentOrigin } from './extensions/autonomous-fragment-edit.ts';
 import { createBareHtmlImageDecoration } from './extensions/bare-html-image-decoration';
 import { setEditorDocName } from './extensions/doc-context.ts';
-import { setEditorSingleFileMode, setEditorSourceMode } from './extensions/editor-mode-context.ts';
+import { setEditorSourceMode } from './extensions/editor-mode-context.ts';
 import { FrozenTableHeaders } from './extensions/frozen-table-headers.ts';
 import { MarkdownLintDecorations } from './extensions/markdown-lint-decorations.ts';
 import { scopeExtensionsToDocument, sharedExtensions } from './extensions/shared.ts';
@@ -553,7 +551,6 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
 }) => {
   const editorPaneOnScreen = useEditorPaneOnScreen();
   const portalSlotRef = useRef<HTMLDivElement | null>(null);
-  const singleFile = useSingleFileMode();
   const [editorContentRevision, setEditorContentRevision] = useState(0);
   useLayoutEffect(() => {
     const slot = portalSlotRef.current;
@@ -722,21 +719,6 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
       editor.off('transaction', onTransaction);
     };
   }, [editor, provider]);
-
-  useEffect(() => {
-    const focusIfClaimed = () => {
-      if (editor.isDestroyed || !getEditorView(editor)) return;
-      if (claimNoteWindowInitialFocus()) editor.commands.focus();
-    };
-    if (getEditorView(editor)) {
-      focusIfClaimed();
-    } else {
-      editor.on('create', focusIfClaimed);
-    }
-    return () => {
-      editor.off('create', focusIfClaimed);
-    };
-  }, [editor]);
 
   useEffect(() => {
     let fired = false;
@@ -1250,11 +1232,6 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
       setEditorSourceMode(editor, false);
     };
   }, [editor, isSourceMode]);
-
-  useLayoutEffect(() => {
-    setEditorSingleFileMode(editor, singleFile);
-    return () => setEditorSingleFileMode(editor, false);
-  }, [editor, singleFile]);
 
   return (
     <div

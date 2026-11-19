@@ -10,8 +10,6 @@ const HEADINGS_WITHOUT_BLANK_LINES =
   '# Title\nIntro para.\n\n## Section A\nBody A.\n\n## Section B\nBody B.\n';
 let contentDir: string;
 let server: BootedServer;
-let ephemeralDir: string;
-let ephemeralServer: BootedServer;
 
 beforeAll(async () => {
   contentDir = mkdtempSync(resolve(tmpdir(), 'ok-agent-blank-line-'));
@@ -23,24 +21,15 @@ beforeAll(async () => {
     resolve(contentDir, '.gitquire', 'config.yml'),
     '\ncontentRules:\n  enabled: true\n  markdownlint:\n    enabled: true\n',
   );
-
-  ephemeralDir = mkdtempSync(resolve(tmpdir(), 'ok-agent-blank-line-ephemeral-'));
-  writeFileSync(resolve(ephemeralDir, 'note.md'), HEADINGS_WITHOUT_BLANK_LINES, 'utf-8');
-  ephemeralServer = await bootCompositionRig(ephemeralDir, {
-    ephemeral: true,
-    singleDocRelPath: 'note.md',
-  });
-  await ephemeralServer.ready;
 }, 60_000);
 
 afterAll(async () => {
-  await Promise.allSettled([server?.destroy(), ephemeralServer?.destroy()]);
+  await Promise.allSettled([server?.destroy()]);
   await rm(contentDir, { recursive: true, force: true });
-  await rm(ephemeralDir, { recursive: true, force: true });
 });
 
-function post(path: string, body: Record<string, unknown>, target: BootedServer = server) {
-  return fetch(`http://127.0.0.1:${target.port}${path}`, {
+function post(path: string, body: Record<string, unknown>) {
+  return fetch(`http://127.0.0.1:${server.port}${path}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ agentName: 'blank-line-agent', clientName: 'test', ...body }),
@@ -65,22 +54,6 @@ test('agent patch that only inserts a blank line below a heading reaches disk', 
   });
   expect(res.status).toBe(200);
   expect(readFileSync(resolve(contentDir, 'edit-target.md'), 'utf-8')).toBe(
-    '# Title\nIntro para.\n\n## Section A\n\nBody A.\n\n## Section B\nBody B.\n',
-  );
-});
-
-test('agent patch on an ephemeral single-file doc reaches disk with the blank line', async () => {
-  const res = await post(
-    '/api/agent-patch',
-    {
-      docName: 'note',
-      find: '## Section A\nBody A.',
-      replace: '## Section A\n\nBody A.',
-    },
-    ephemeralServer,
-  );
-  expect(res.status).toBe(200);
-  expect(readFileSync(resolve(ephemeralDir, 'note.md'), 'utf-8')).toBe(
     '# Title\nIntro para.\n\n## Section A\n\nBody A.\n\n## Section B\nBody B.\n',
   );
 });

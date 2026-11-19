@@ -286,7 +286,6 @@ export function GraphPanel({
     pagesBySlug,
     pagesByBasename,
   } = usePageList();
-  const isElectronHost = false;
   const [isExpanded, setIsExpanded] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState<FullscreenGraphMode>('explore');
   const [orphanMode, setOrphanMode] = useState<OrphanMode>('both');
@@ -415,20 +414,8 @@ export function GraphPanel({
 
   return (
     <Panel className={isExpanded ? 'fixed inset-0 z-50 overflow-hidden bg-background' : undefined}>
-      <PanelHeader
-        data-electron-drag={isExpanded && isElectronHost ? '' : undefined}
-        className={cn(
-          isExpanded
-            ? 'mt-2 h-12 gap-3 py-0 pl-[var(--gq-titlebar-reserve-left,1rem)]'
-            : 'flex-wrap gap-3',
-          isExpanded && isElectronHost && '[-webkit-app-region:drag]',
-        )}
-      >
+      <PanelHeader className={cn(isExpanded ? 'mt-2 h-12 gap-3 py-0 pl-4' : 'flex-wrap gap-3')}>
         <div
-          /**
-           * The fullscreen chrome row reserves the macOS traffic-light footprint via
-           * `--gq-titlebar-reserve-left` (precedent #49).
-           */
           data-slot="graph-title-cluster"
           className={cn('flex min-w-0 items-center gap-1.5', isExpanded && 'ml-4')}
         >
@@ -446,13 +433,7 @@ export function GraphPanel({
             </div>
           ) : null}
         </div>
-        <div
-          data-slot="graph-controls"
-          className={cn(
-            'ml-auto flex items-center gap-2',
-            isExpanded && isElectronHost && '[&>*]:[-webkit-app-region:no-drag]',
-          )}
-        >
+        <div data-slot="graph-controls" className={cn('ml-auto flex items-center gap-2')}>
           {isExpanded ? (
             <ToggleGroup
               type="single"

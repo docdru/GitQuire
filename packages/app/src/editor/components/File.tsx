@@ -1,4 +1,3 @@
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 import { FileUp } from 'lucide-react';
 
 interface FileProps {
@@ -33,7 +32,7 @@ export function basenameFromUrl(src: string | undefined): string {
 export function File(props: FileProps) {
   const displayName = props.name?.trim() || basenameFromUrl(props.src) || 'Untitled file';
   const sizeText = props.size?.trim() ? props.size : null;
-  const href = props.src ? toDesktopAssetHref(props.src) : undefined;
+  const href = props.src || undefined;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();

@@ -274,15 +274,6 @@ msgstr "{count, plural, one {# more cross-doc participant} other {# more cross-d
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {# more participant} other {# more participants}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 
@@ -1060,12 +1051,6 @@ msgstr "Approved by {approvers}"
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "Are you sure you want to delete \"{name}\" and its contents?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "Are you sure you want to delete \"{name}\"?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 
@@ -1074,12 +1059,6 @@ msgstr "Are you sure you want to delete {itemName}? This action cannot be undone
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "Are you sure you want to delete the selected item?"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "Are you sure you want to delete the selected items?"
 
 msgid "Ask"
 msgstr "Ask"
@@ -1587,12 +1566,6 @@ msgstr "Close new tab"
 
 msgid "Close others"
 msgstr "Close others"
-
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Close this preview, then open the folder to upload files"
-
-msgid "Close window"
-msgstr "Close window"
 
 msgid "Clusters"
 msgstr "Clusters"
@@ -2139,9 +2112,6 @@ msgstr "Create a document from {label}"
 
 msgid "Create a file from the current document or folder context."
 msgstr "Create a file from the current document or folder context."
-
-msgid "Create a folder from the current document or folder context."
-msgstr "Create a folder from the current document or folder context."
 
 msgid "Create a new list item from the current list item."
 msgstr "Create a new list item from the current list item."
@@ -3296,9 +3266,6 @@ msgstr "Formatting"
 
 msgid "Formatting looked wrong"
 msgstr "Formatting looked wrong"
-
-msgid "Forward"
-msgstr "Forward"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "Forward-links response did not match expected shape."
@@ -4484,9 +4451,6 @@ msgstr "Move to new pane left"
 msgid "Move to new pane right"
 msgstr "Move to new pane right"
 
-msgid "Move to Recycle Bin"
-msgstr "Move to Recycle Bin"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "Move to the next CodeMirror lint diagnostic."
 
@@ -4498,9 +4462,6 @@ msgstr "Move to the next visual-editor find result."
 
 msgid "Move to the previous visual-editor find result."
 msgstr "Move to the previous visual-editor find result."
-
-msgid "Move to Trash"
-msgstr "Move to Trash"
 
 msgid "Move up"
 msgstr "Move up"
@@ -4525,9 +4486,6 @@ msgstr "moved template"
 
 msgid "Moved up."
 msgstr "Moved up."
-
-msgid "Moving"
-msgstr "Moving"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
@@ -4567,9 +4525,6 @@ msgstr "Navigate to {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "Navigation and suggestions"
-
-msgid "Navigation history"
-msgstr "Navigation history"
 
 msgid "Nested .okignore error in {path}"
 msgstr "Nested .okignore error in {path}"
@@ -5024,9 +4979,6 @@ msgstr "Off — search ranks by keyword only. No content leaves this computer."
 msgid "Offline"
 msgstr "Offline"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 
@@ -5105,9 +5057,6 @@ msgstr "Open a project first."
 msgid "Open a project to edit."
 msgstr "Open a project to edit."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "Open a single markdown file in a temporary session, without project setup."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "Open activity panel for {tooltipName}"
 
@@ -5116,9 +5065,6 @@ msgstr "Open activity panel for {tooltipName}, editing {realCurrentDoc}"
 
 msgid "Open agents"
 msgstr "Open agents"
-
-msgid "Open an existing project folder from disk."
-msgstr "Open an existing project folder from disk."
 
 msgid "Open board"
 msgstr "Open board"
@@ -5155,9 +5101,6 @@ msgstr "Open emoji picker for {keyName}"
 
 msgid "Open file"
 msgstr "Open file"
-
-msgid "Open folder"
-msgstr "Open folder"
 
 msgid "Open graph"
 msgstr "Open graph"
@@ -5200,9 +5143,6 @@ msgstr "Open the draft to review it."
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Open the insert menu in an empty or active text position."
-
-msgid "Open the Project Navigator."
-msgstr "Open the Project Navigator."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Open this document in the editor and collapse the graph."
@@ -5948,9 +5888,6 @@ msgstr "Replace the API key"
 
 msgid "Reply"
 msgstr "Reply"
-
-msgid "Report a bug"
-msgstr "Report a bug"
 
 msgid "Report an issue"
 msgstr "Report an issue"
@@ -6733,9 +6670,6 @@ msgstr "Start"
 msgid "Start a blank page, or scaffold one from a template."
 msgstr "Start a blank page, or scaffold one from a template."
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "Start a bug report with a screenshot of the screen as it looks right now."
-
 msgid "Start a comment thread on the selected text."
 msgstr "Start a comment thread on the selected text."
 
@@ -6831,9 +6765,6 @@ msgstr "Swap file sidebar and document panel"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "Switch between the visual and source editors, keeping your place."
-
-msgid "Switch project"
-msgstr "Switch project"
 
 msgid "Switch to a branch to share."
 msgstr "Switch to a branch to share."
@@ -7345,9 +7276,6 @@ msgstr "This document is already active in the editor. Use Open to collapse the 
 msgid "This document is missing required properties"
 msgstr "This document is missing required properties"
 
-msgid "This document was deleted"
-msgstr "This document was deleted"
-
 msgid "This draft"
 msgstr "This draft"
 
@@ -7631,12 +7559,6 @@ msgstr "Top linked pages"
 
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr "Trailing backslash — line continuation isn't supported."
-
-msgid "Traverse GitQuire navigation history backward."
-msgstr "Traverse GitQuire navigation history backward."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "Traverse GitQuire navigation history forward."
 
 msgid "Tree view options"
 msgstr "Tree view options"
@@ -8073,8 +7995,8 @@ msgstr "What you are looking at"
 msgid "What's new"
 msgstr "What's new"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
 
 msgid "When the agent runs its scheduled work."
 msgstr "When the agent runs its scheduled work."
@@ -8171,12 +8093,6 @@ msgstr "You can attach up to {MAX_ATTACHMENTS} images."
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "You can change this later in <0>Settings → Sync</0>."
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "You can restore this file from the Recycle Bin."
-
-msgid "You can restore this file from the Trash."
-msgstr "You can restore this file from the Trash."
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "You cancelled loading \"{docName}\"."

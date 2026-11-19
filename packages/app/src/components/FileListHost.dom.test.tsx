@@ -31,9 +31,9 @@ function EditorCardSlot() {
   return <div data-testid="file-list-slot" ref={setSlot} />;
 }
 
-function Shell({ enabled = true, cardMounted = true }) {
+function Shell({ cardMounted = true }) {
   return (
-    <FileListHostProvider enabled={enabled} fileList={<CountingFileList />}>
+    <FileListHostProvider fileList={<CountingFileList />}>
       {cardMounted ? <EditorCardSlot /> : <div data-testid="skeleton" />}
     </FileListHostProvider>
   );
@@ -71,18 +71,10 @@ test('mounts the file list before any slot exists, so its listeners run from the
   expect(screen.queryByTestId('file-list')).toBeNull();
 });
 
-test('renders no file list and no slot when the window has none', () => {
-  render(<Shell enabled={false} />);
-
-  expect(screen.queryByTestId('file-list-slot')).toBeNull();
-  expect(screen.queryByTestId('file-list')).toBeNull();
-  expect(fileListMounts).toBe(0);
-});
-
 test('moving to a new slot carries the same file list element across', () => {
   function TwoSlots({ second }: { second: boolean }) {
     return (
-      <FileListHostProvider enabled fileList={<CountingFileList />}>
+      <FileListHostProvider fileList={<CountingFileList />}>
         {second ? (
           <section data-testid="second">
             <EditorCardSlot />

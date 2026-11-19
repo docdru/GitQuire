@@ -1,4 +1,3 @@
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 import { isLoomUrl, parseLoomUrl } from '@gitquire/core/utils/loom-embed';
 import { isVimeoUrl } from '@gitquire/core/utils/vimeo-embed';
 import { type ParsedYouTubeUrl, parseYouTubeUrl } from '@gitquire/core/utils/youtube-embed';
@@ -147,7 +146,7 @@ export function Video(props: VideoProps) {
           muted={props.muted === true}
           autoplay={props.autoplay === true}
           alwaysLoadIframe={eagerIframe}
-          thumbnail={props.poster !== undefined ? toDesktopAssetHref(props.poster) : undefined}
+          thumbnail={props.poster}
           aspectWidth={explicitAspect ? Number(props.width) : undefined}
           aspectHeight={explicitAspect ? Number(props.height) : undefined}
           style={buildYouTubeLiteStyle(props)}
@@ -158,14 +157,14 @@ export function Video(props: VideoProps) {
   return (
     <video
       className="ok-video"
-      src={props.src === undefined ? undefined : toDesktopAssetHref(props.src)}
+      src={props.src}
       title={props.title}
       controls={resolveControls(props.controls)}
       autoPlay={props.autoplay}
       muted={props.muted}
       loop={props.loop}
       playsInline={props.playsinline}
-      poster={props.poster === undefined ? undefined : toDesktopAssetHref(props.poster)}
+      poster={props.poster}
       preload={props.preload}
       width={props.width}
       height={props.height}

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { makeCaptureRes, makeSyntheticReq, rawRequest } from '../composition-rig.test-helper.ts';
+import { rawRequest } from '../composition-rig.test-helper.ts';
 import { buildIngressPolicy } from '../ingress-policy.ts';
 import { loggerFactory } from '../logger.ts';
 import { listenOnLoopback } from '../loopback-rig-test-helpers.ts';
@@ -105,9 +105,8 @@ describe('native content fallback ownership and middleware failures', () => {
     expect(legacy).not.toHaveBeenCalled();
   });
 
-  test('forwarded admission precedes content execution and ephemeral Host admission precedes a content miss', async () => {
+  test('forwarded admission precedes content execution', async () => {
     const { port, legacy } = await start({
-      ephemeral: true,
       contentAssetMiddleware: (_req, res) => {
         res.end('content reached');
       },
@@ -117,32 +116,8 @@ describe('native content fallback ownership and middleware failures', () => {
     });
     expect(forwarded.status).toBe(403);
     expect(forwarded.body).toContain('Proxied request refused');
-    const host = await rawRequest(port, '/route', { headers: { Host: 'evil.example' } });
-    expect(host.status).toBe(403);
-    expect(host.body).toContain('Host header not allowed');
     expect(legacy).not.toHaveBeenCalled();
   });
-});
-
-test('ephemeral peer refusal precedes Host admission and content execution', () => {
-  const content = vi.fn();
-  const shell = vi.fn();
-  const dispatch = createContentDispatch({
-    ephemeral: true,
-    ingressPolicy: buildIngressPolicy({}),
-    log: loggerFactory.getLogger('content-peer-test'),
-    contentAssetMiddleware: content,
-    reactShellMiddleware: shell,
-  });
-  const { res, captured } = makeCaptureRes();
-  dispatch(
-    makeSyntheticReq({ url: '/document.png', remoteAddress: '203.0.113.7', host: 'evil.example' }),
-    res,
-  );
-  expect(captured.status).toBe(403);
-  expect(JSON.parse(captured.body).type).toBe('urn:ok:error:loopback-required');
-  expect(content).not.toHaveBeenCalled();
-  expect(shell).not.toHaveBeenCalled();
 });
 
 describe('the no-web-UI hint names the running channel CLI', () => {

@@ -1,10 +1,9 @@
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { type ReactNode, useLayoutEffect, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';
-import type { GqDesktopBridge } from '@/lib/desktop-bridge-types';
 import { emitLocalMenuAction } from '@/lib/local-menu-action-bus';
 import {
   __resetPaneVisibilityStoreForTests,
@@ -39,7 +38,6 @@ const { DocumentProvider, useDocumentContext } = await import('./DocumentContext
 const PINNED_TAB_ID = docTabId('Pinned');
 const OTHER_TAB_ID = docTabId('Other');
 const THIRD_TAB_ID = docTabId('Third');
-const PREVIEW_TAB_ID = docTabId('Preview');
 const LICENSE_TAB_ID = assetTabId('LICENSE');
 const originalFetch = globalThis.fetch;
 
@@ -174,68 +172,10 @@ function seedCloseFallbackPaneSession(leftPinned = false) {
 
 type MenuActionLike = 'close-active-tab-or-window' | 'new-doc';
 
-interface EditorBridgeStub {
-  bridge: GqDesktopBridge;
-  fire(action: MenuActionLike): void;
-}
-
-interface DeferredSessionBridgeStub {
-  bridge: GqDesktopBridge;
-  resolveSession(): void;
-}
-
-function makeEditorBridgeStub(
-  sessionState = persistedTabSession([], [], null, null),
-): EditorBridgeStub {
-  const bridge = {
-    config: {
-      mode: 'editor',
-      collabUrl: '',
-      apiOrigin: '',
-      projectPath: '',
-      projectName: 'Test Project',
-    },
-    onMenuAction: () => () => {},
-    project: {
-      getSessionState: async () => sessionState,
-      setSessionState: async () => undefined,
-    },
-  } as unknown as GqDesktopBridge;
-
+function menuActions(): { fire(action: MenuActionLike): void } {
   return {
-    bridge,
     fire: (action) => {
       act(() => emitLocalMenuAction(action));
-    },
-  };
-}
-
-function makeDeferredSessionBridgeStub(
-  state: ReturnType<typeof persistedTabSession>,
-): DeferredSessionBridgeStub {
-  let resolveSession: (() => void) | null = null;
-  const sessionLoaded = new Promise<typeof state>((resolve) => {
-    resolveSession = () => resolve(state);
-  });
-  const bridge = {
-    config: {
-      mode: 'editor',
-      collabUrl: '',
-      apiOrigin: '',
-      projectPath: '',
-      projectName: 'Test Project',
-    },
-    onMenuAction: () => () => {},
-    project: {
-      getSessionState: async () => sessionLoaded,
-      setSessionState: async () => undefined,
-    },
-  } as unknown as GqDesktopBridge;
-
-  return {
-    bridge,
-    resolveSession: () => {
-      resolveSession?.();
     },
   };
 }
@@ -337,16 +277,6 @@ function HiddenEditorRevealHarness() {
   );
 }
 
-function BridgeHiddenEditorRevealHarness({ bridge }: { bridge: GqDesktopBridge }) {
-  useLayoutEffect(() => {
-    window.okDesktop = bridge;
-    return () => {
-      delete window.okDesktop;
-    };
-  }, [bridge]);
-  return <HiddenEditorRevealHarness />;
-}
-
 function hideEditorAndRecordRequests(): PaneVisibilityRequest[] {
   const requests: PaneVisibilityRequest[] = [];
   paneVisibilityStore.subscribeRequests((request) => requests.push(request));
@@ -355,40 +285,6 @@ function hideEditorAndRecordRequests(): PaneVisibilityRequest[] {
     agents: null,
   });
   return requests;
-}
-
-function BridgeCloseActiveHarness({ bridge }: { bridge: GqDesktopBridge }) {
-  useLayoutEffect(() => {
-    window.okDesktop = bridge;
-    return () => {
-      delete window.okDesktop;
-    };
-  }, [bridge]);
-  return <CloseActiveHarness />;
-}
-
-function OpenPreviewDuringRestoreHarness() {
-  const ctx = useDocumentContext();
-  return (
-    <>
-      <span data-testid="open-tabs">{ctx.openTabs.join('|')}</span>
-      <span data-testid="preview-tab">
-        {[...ctx.previewTabIdsByPane.values()].map((tabId) => tabId ?? '').join('|')}
-      </span>
-      <span data-testid="session-loaded">{String(ctx.tabSessionLoaded)}</span>
-      <button
-        type="button"
-        onClick={() =>
-          ctx.openTarget(
-            { kind: 'doc', target: 'Preview', docName: 'Preview' },
-            { disposition: 'preview', consumeActiveNewTab: true },
-          )
-        }
-      >
-        Open preview
-      </button>
-    </>
-  );
 }
 
 function PaneWorkspaceHarness() {
@@ -591,7 +487,6 @@ describe('DocumentContext tab close force contract', () => {
     __resetPaneVisibilityStoreForTests();
     mockCollabUrl = null;
     cleanup();
-    delete window.okDesktop;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();
     window.location.hash = '';
@@ -822,15 +717,8 @@ describe('DocumentContext tab close force contract', () => {
 
   test('with the editor hidden, Close Tab asks it to show first', async () => {
     seedActiveOtherTabSession();
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [PINNED_TAB_ID, OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-05-13T00:00:00.000Z').toISOString(),
-      ),
-    );
-    render(<BridgeCloseActiveHarness bridge={stub.bridge} />, { wrapper: ProviderHarness });
+    const stub = menuActions();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
     await new Promise((r) => setTimeout(r, 0));
     const requests = hideEditorAndRecordRequests();
 
@@ -842,15 +730,7 @@ describe('DocumentContext tab close force contract', () => {
 
   test('clearing the target over restored tabs leaves a hidden editor hidden', async () => {
     seedActiveOtherTabSession();
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [PINNED_TAB_ID, OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-05-13T00:00:00.000Z').toISOString(),
-      ),
-    );
-    render(<BridgeHiddenEditorRevealHarness bridge={stub.bridge} />, { wrapper: ProviderHarness });
+    render(<HiddenEditorRevealHarness />, { wrapper: ProviderHarness });
     await new Promise((r) => setTimeout(r, 0));
     expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
     const requests = hideEditorAndRecordRequests();
@@ -860,19 +740,12 @@ describe('DocumentContext tab close force contract', () => {
     expect(requests).toEqual([]);
   });
 
-  test('desktop close-active-tab-or-window action closes tabs before closing the editor window', async () => {
+  test('the close-active-tab-or-window action closes tabs before closing the window', async () => {
     seedActiveOtherTabSession();
     const closeSpy = vi.spyOn(window, 'close').mockImplementation(() => {});
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [PINNED_TAB_ID, OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-05-13T00:00:00.000Z').toISOString(),
-      ),
-    );
+    const stub = menuActions();
 
-    render(<BridgeCloseActiveHarness bridge={stub.bridge} />, { wrapper: ProviderHarness });
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
     await new Promise((r) => setTimeout(r, 0));
 
     expect(screen.getByTestId('open-tabs').textContent).toBe(`${PINNED_TAB_ID}|${OTHER_TAB_ID}`);
@@ -883,11 +756,10 @@ describe('DocumentContext tab close force contract', () => {
     expect(screen.getByTestId('open-tabs').textContent).toBe(PINNED_TAB_ID);
 
     cleanup();
-    delete window.okDesktop;
     window.localStorage.clear();
 
-    const emptyStub = makeEditorBridgeStub();
-    render(<BridgeCloseActiveHarness bridge={emptyStub.bridge} />, { wrapper: ProviderHarness });
+    const emptyStub = menuActions();
+    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
     await new Promise((r) => setTimeout(r, 0));
 
     emptyStub.fire('close-active-tab-or-window');
@@ -1188,7 +1060,6 @@ describe('DocumentContext repeat-crash recovery notice', () => {
   afterEach(() => {
     cleanup();
     toast.dismiss();
-    delete window.okDesktop;
     mockCollabUrl = null;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();
@@ -1207,18 +1078,9 @@ describe('DocumentContext repeat-crash recovery notice', () => {
     );
   }
 
-  test('tells the user the last document could not be restored when a repeat crash suppresses the bridge session', async () => {
+  test('tells the user the last document could not be restored when a repeat crash suppresses the session', async () => {
     mockCollabUrl = 'ws://localhost:1/collab';
     globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-07-28T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
     recordAppShellCrashTrip(new Error('same crash'));
     recordAppShellCrashTrip(new Error('same crash'));
 
@@ -1235,7 +1097,6 @@ describe('DocumentContext repeat-crash recovery notice', () => {
 describe('DocumentContext tab restore', () => {
   afterEach(() => {
     cleanup();
-    delete window.okDesktop;
     mockCollabUrl = null;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();
@@ -1262,62 +1123,6 @@ describe('DocumentContext tab restore', () => {
     render(<CloseActiveHarness />, { wrapper: ProviderHarness });
 
     expect(screen.getByTestId('active-tab').textContent).toBe(OTHER_TAB_ID);
-  });
-
-  test('a suppressed recovery leaves the stored session intact while the workspace is empty', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
-    const setSessionState = vi.fn(async () => undefined);
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-07-28T00:00:00.000Z').toISOString(),
-      ),
-    );
-    stub.bridge.project.setSessionState = setSessionState as never;
-    window.okDesktop = stub.bridge;
-    recordAppShellCrashTrip(new Error('same crash'));
-    recordAppShellCrashTrip(new Error('same crash'));
-
-    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
-    });
-    expect(setSessionState).not.toHaveBeenCalled();
-  });
-
-  test('opening a tab after a suppressed bridge recovery does not overwrite the stored session', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
-    const setSessionState = vi.fn(async () => undefined);
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [PINNED_TAB_ID, OTHER_TAB_ID],
-        [PINNED_TAB_ID],
-        OTHER_TAB_ID,
-        new Date('2026-07-28T00:00:00.000Z').toISOString(),
-      ),
-    );
-    stub.bridge.project.setSessionState = setSessionState as never;
-    window.okDesktop = stub.bridge;
-    recordAppShellCrashTrip(new Error('same crash'));
-    recordAppShellCrashTrip(new Error('same crash'));
-
-    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
-    });
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Open existing third' }));
-
-    await waitFor(() => {
-      expect(screen.getByTestId('pane-tabs').textContent).toContain(THIRD_TAB_ID);
-    });
-    expect(setSessionState).not.toHaveBeenCalled();
   });
 
   test('opening a tab after a suppressed web recovery does not overwrite the stored session', async () => {
@@ -1347,29 +1152,6 @@ describe('DocumentContext tab restore', () => {
     expect(parsed.panes[0].pinnedTabIds).toEqual([PINNED_TAB_ID]);
   });
 
-  test('suppresses the desktop bridge session restore after a repeat app-shell crash', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => new Promise(() => {})) as never;
-    const stub = makeEditorBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-07-28T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-    recordAppShellCrashTrip(new Error('same crash'));
-    recordAppShellCrashTrip(new Error('same crash'));
-
-    render(<PaneWorkspaceHarness />, { wrapper: ProviderHarness });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
-    });
-    expect(screen.getByTestId('active-pane-tab').textContent).toBe('');
-  });
-
   test('restores an extension-qualified mdx tab over an ambiguous extensionless hash', async () => {
     mockCollabUrl = 'ws://localhost:1/collab';
     globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
@@ -1383,72 +1165,11 @@ describe('DocumentContext tab restore', () => {
     });
     expect(window.location.hash).toBe('#/foo.mdx');
   });
-
-  test('keeps a preview marker when a sidebar preview opens before session restore resolves', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
-    const stub = makeDeferredSessionBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-06-07T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-    window.location.hash = '#/Other';
-
-    render(<OpenPreviewDuringRestoreHarness />, { wrapper: ProviderHarness });
-
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Open preview' }));
-    expect(screen.getByTestId('preview-tab').textContent).toBe(PREVIEW_TAB_ID);
-
-    act(() => {
-      stub.resolveSession();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('session-loaded').textContent).toBe('true');
-      expect(screen.getByTestId('preview-tab').textContent).toBe(PREVIEW_TAB_ID);
-    });
-  });
-
-  test('keeps a new tab active when session restore resolves afterward', async () => {
-    mockCollabUrl = 'ws://localhost:1/collab';
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error('unexpected fetch'))) as never;
-    const stub = makeDeferredSessionBridgeStub(
-      persistedTabSession(
-        [OTHER_TAB_ID],
-        [],
-        OTHER_TAB_ID,
-        new Date('2026-06-07T00:00:00.000Z').toISOString(),
-      ),
-    );
-    window.okDesktop = stub.bridge;
-    window.location.hash = '#/Other';
-
-    render(<CloseActiveHarness />, { wrapper: ProviderHarness });
-
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Open new' }));
-    expect(screen.getByTestId('active-new-tab').textContent).toBe('new-tab:1');
-
-    act(() => {
-      stub.resolveSession();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('active-new-tab').textContent).toBe('new-tab:1');
-      expect(screen.getByTestId('active-tab').textContent).toBe('');
-    });
-  });
 });
 
 describe('DocumentContext pane workspace', () => {
   afterEach(() => {
     cleanup();
-    delete window.okDesktop;
     mockCollabUrl = null;
     globalThis.fetch = originalFetch;
     window.localStorage.clear();

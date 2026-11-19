@@ -274,15 +274,6 @@ msgstr "{count, plural, one {# مزید کراس دستاویز شریک} other 
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, one {# مزید شریک} other {# مزید شرکاء}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, one {کیا آپ واقعی درج ذیل # فولڈر اور اس کا مواد حذف کرنا چاہتے ہیں؟} other {کیا آپ واقعی درج ذیل # فولڈرز اور ان کا مواد حذف کرنا چاہتے ہیں؟}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, one {کیا آپ واقعی درج ذیل # فائل حذف کرنا چاہتے ہیں؟} other {کیا آپ واقعی درج ذیل # فائلیں حذف کرنا چاہتے ہیں؟}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, one {کیا آپ واقعی درج ذیل # فائل/فولڈر اور اس کا مواد حذف کرنا چاہتے ہیں؟} other {کیا آپ واقعی درج ذیل # فائلیں/فولڈرز اور ان کا مواد حذف کرنا چاہتے ہیں؟}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, one {فوری طور پر وہ # مسئلہ حل کرتا ہے جس کا معلوم خودکار حل موجود ہے۔} other {فوری طور پر وہ # مسائل حل کرتا ہے جن کا معلوم خودکار حل موجود ہے۔}}"
 
@@ -1060,12 +1051,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "کیا آپ واقعی اس فائل کو ٹیمپلیٹ میں تبدیل کرنا چاہتے ہیں؟ اصل فائل حذف ہو جائے گی۔ یہ عمل واپس نہیں لیا جا سکتا۔"
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "کیا آپ واقعی \"{name}\" اور اس کے تمام مواد کو حذف کرنا چاہتے ہیں؟"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "کیا آپ واقعی \"{name}\" کو حذف کرنا چاہتے ہیں؟"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "کیا آپ واقعی {folderName}/ اور اس کے اندر کی تمام فائلیں حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں لیا جا سکتا۔"
 
@@ -1074,12 +1059,6 @@ msgstr "کیا آپ واقعی {itemName} حذف کرنا چاہتے ہیں؟ ی
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "کیا آپ واقعی {targetCount} منتخب آئٹمز حذف کرنا چاہتے ہیں؟ فولڈرز اور ان کے اندر کی تمام فائلیں حذف ہو جائیں گی۔ یہ عمل واپس نہیں لیا جا سکتا۔"
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "کیا آپ واقعی منتخب آئٹم حذف کرنا چاہتے ہیں؟"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "کیا آپ واقعی منتخب آئٹمز حذف کرنا چاہتے ہیں؟"
 
 msgid "Ask"
 msgstr "پوچھیں"
@@ -1587,12 +1566,6 @@ msgstr "نیا ٹیب بند کریں"
 
 msgid "Close others"
 msgstr "باقی بند کریں"
-
-msgid "Close this preview, then open the folder to upload files"
-msgstr "یہ پیش نظارہ بند کریں، پھر فائلیں اپ لوڈ کرنے کے لیے فولڈر کھولیں"
-
-msgid "Close window"
-msgstr "ونڈو بند کریں"
 
 msgid "Clusters"
 msgstr "کلسٹرز"
@@ -2139,9 +2112,6 @@ msgstr "{label} سے دستاویز بنائیں"
 
 msgid "Create a file from the current document or folder context."
 msgstr "موجودہ دستاویز یا فولڈر کے سیاق سے فائل بنائیں۔"
-
-msgid "Create a folder from the current document or folder context."
-msgstr "موجودہ دستاویز یا فولڈر کے سیاق سے فولڈر بنائیں۔"
 
 msgid "Create a new list item from the current list item."
 msgstr "موجودہ فہرست آئٹم سے نیا فہرست آئٹم بنائیں۔"
@@ -3296,9 +3266,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "فارمیٹنگ غلط لگی"
-
-msgid "Forward"
-msgstr "آگے"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "باہر جانے والے لنکس کا جواب متوقع ساخت سے میل نہیں کھایا۔"
@@ -4484,9 +4451,6 @@ msgstr "بائیں جانب نئے پین میں منتقل کریں"
 msgid "Move to new pane right"
 msgstr "دائیں جانب نئے پین میں منتقل کریں"
 
-msgid "Move to Recycle Bin"
-msgstr "ری سائیکل بن میں منتقل کریں"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "CodeMirror کی اگلی لِنٹ تشخیص پر جائیں۔"
 
@@ -4498,9 +4462,6 @@ msgstr "بصری ایڈیٹر کے اگلے تلاش نتیجے پر جائیں�
 
 msgid "Move to the previous visual-editor find result."
 msgstr "بصری ایڈیٹر کے پچھلے تلاش نتیجے پر جائیں۔"
-
-msgid "Move to Trash"
-msgstr "ردی میں منتقل کریں"
 
 msgid "Move up"
 msgstr "اوپر لے جائیں"
@@ -4525,9 +4486,6 @@ msgstr "ٹیمپلیٹ منتقل کیا"
 
 msgid "Moved up."
 msgstr "اوپر منتقل کر دیا گیا۔"
-
-msgid "Moving"
-msgstr "منتقل کیا جا رہا ہے"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "ٹول بار کنٹرولز کے ساتھ کثیر صفحاتی PDF دیکھنے والا (تھمب نیلز، صفحہ نیویگیشن، زوم)۔"
@@ -4567,9 +4525,6 @@ msgstr "{docName} پر جائیں"
 
 msgid "Navigation and suggestions"
 msgstr "نیویگیشن اور تجاویز"
-
-msgid "Navigation history"
-msgstr "نیویگیشن کی تاریخ"
 
 msgid "Nested .okignore error in {path}"
 msgstr "{path} میں نیسٹڈ .okignore کی خرابی"
@@ -5024,9 +4979,6 @@ msgstr "بند — تلاش صرف کلیدی الفاظ سے درجہ بندی 
 msgid "Offline"
 msgstr "آف لائن"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "فعال — بیرونی لنک پر ماؤس لے جانے سے اس کا URL پیش منظر لانے کے لیے منزل کی سائٹ کو بھیجا جاتا ہے، اور ایجنٹ چیٹ میں کسی GitHub حوالے پر ماؤس لے جانے سے GitHub سے پوچھا جاتا ہے۔"
 
@@ -5105,9 +5057,6 @@ msgstr "پہلے کوئی پروجیکٹ کھولیں۔"
 msgid "Open a project to edit."
 msgstr "ترمیم کے لیے کوئی پروجیکٹ کھولیں۔"
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "ایک اکیلی Markdown فائل عارضی سیشن میں کھولیں، پروجیکٹ کی ترتیب کے بغیر۔"
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "{tooltipName} کے لیے سرگرمی کا پینل کھولیں"
 
@@ -5116,9 +5065,6 @@ msgstr "{tooltipName} کے لیے سرگرمی کا پینل کھولیں، {rea
 
 msgid "Open agents"
 msgstr "ایجنٹس کھولیں"
-
-msgid "Open an existing project folder from disk."
-msgstr "ڈسک سے موجودہ پروجیکٹ کا فولڈر کھولیں۔"
 
 msgid "Open board"
 msgstr "بورڈ کھولیں"
@@ -5155,9 +5101,6 @@ msgstr "{keyName} کے لیے ایموجی منتخب کنندہ کھولیں"
 
 msgid "Open file"
 msgstr "فائل کھولیں"
-
-msgid "Open folder"
-msgstr "فولڈر کھولیں"
 
 msgid "Open graph"
 msgstr "گراف کھولیں"
@@ -5200,9 +5143,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "خالی یا فعال متن کی جگہ پر داخل کرنے کا مینو کھولیں۔"
-
-msgid "Open the Project Navigator."
-msgstr "پروجیکٹ نیویگیٹر کھولیں۔"
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "یہ دستاویز ایڈیٹر میں کھولیں اور گراف سکیڑ دیں۔"
@@ -5948,9 +5888,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "بگ رپورٹ کریں"
 
 msgid "Report an issue"
 msgstr ""
@@ -6733,9 +6670,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "اسکرین اس وقت جیسی دکھ رہی ہے اس کا اسکرین شاٹ لے کر بگ رپورٹ شروع کریں۔"
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6831,9 +6765,6 @@ msgstr "فائل سائیڈ بار اور دستاویز کے پینل کی جگ
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "اپنی جگہ برقرار رکھتے ہوئے بصری اور سورس ایڈیٹر کے درمیان بدلیں۔"
-
-msgid "Switch project"
-msgstr "پروجیکٹ بدلیں"
 
 msgid "Switch to a branch to share."
 msgstr "شیئر کرنے کے لیے کسی برانچ پر جائیں۔"
@@ -7345,9 +7276,6 @@ msgstr "یہ دستاویز ایڈیٹر میں پہلے ہی فعال ہے۔ گ
 msgid "This document is missing required properties"
 msgstr "اس دستاویز میں مطلوبہ خصوصیات غائب ہیں"
 
-msgid "This document was deleted"
-msgstr "یہ دستاویز حذف کر دی گئی تھی"
-
 msgid "This draft"
 msgstr ""
 
@@ -7631,12 +7559,6 @@ msgstr "سب سے زیادہ لنک شدہ صفحات"
 
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
-
-msgid "Traverse GitQuire navigation history backward."
-msgstr "GitQuire کی نیویگیشن تاریخ میں پیچھے جائیں۔"
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "GitQuire کی نیویگیشن تاریخ میں آگے جائیں۔"
 
 msgid "Tree view options"
 msgstr "ٹری منظر کے آپشنز"
@@ -8073,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "نیا کیا ہے"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "فعال ہونے پر، ایجنٹ ہر ترمیم کے بعد پیش منظر کھولتا یا تازہ کرتا ہے۔ اگر آپ اپنی پیش منظر ونڈو خود سنبھالتے ہیں تو اسے بند کر دیں (OK Desktop، کسی اور ڈسپلے پر براؤزر ٹیب، وغیرہ)۔"
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "ایجنٹ اپنا طے شدہ کام کب چلاتا ہے۔"
@@ -8171,12 +8093,6 @@ msgstr "آپ زیادہ سے زیادہ {MAX_ATTACHMENTS} تصاویر منسل�
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "آپ اسے بعد میں <0>ترتیبات ← مطابقت پذیری</0> میں بدل سکتے ہیں۔"
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "آپ اس فائل کو ری سائیکل بن سے بحال کر سکتے ہیں۔"
-
-msgid "You can restore this file from the Trash."
-msgstr "آپ اس فائل کو ردی سے بحال کر سکتے ہیں۔"
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "آپ نے «{docName}» کا لوڈ ہونا منسوخ کر دیا۔"

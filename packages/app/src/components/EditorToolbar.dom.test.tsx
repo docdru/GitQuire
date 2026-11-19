@@ -43,7 +43,6 @@ function missing(property: string): LintDiagnostic {
 describe('EditorToolbar runtime layout', () => {
   afterEach(() => {
     cleanup();
-    Reflect.deleteProperty(window, 'okDesktop');
   });
 
   async function renderToolbar(

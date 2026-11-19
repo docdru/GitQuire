@@ -274,15 +274,6 @@ msgstr "{count, plural, other {另有 # 位跨文档参与者}}"
 msgid "{count, plural, one {# more participant} other {# more participants}}"
 msgstr "{count, plural, other {另有 # 位参与者}}"
 
-msgid "{count, plural, one {Are you sure you want to delete the following # directory and its contents?} other {Are you sure you want to delete the following # directories and their contents?}}"
-msgstr "{count, plural, other {确定要删除以下 # 个文件夹及其内容吗？}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file?} other {Are you sure you want to delete the following # files?}}"
-msgstr "{count, plural, other {确定要删除以下 # 个文件吗？}}"
-
-msgid "{count, plural, one {Are you sure you want to delete the following # file/directory and its contents?} other {Are you sure you want to delete the following # files/directories and their contents?}}"
-msgstr "{count, plural, other {确定要删除以下 # 个文件/文件夹及其内容吗？}}"
-
 msgid "{count, plural, one {Instantly fixes the # problem that has a known automatic fix.} other {Instantly fixes the # problems that have a known automatic fix.}}"
 msgstr "{count, plural, other {立即修复有已知自动修复方案的 # 个问题。}}"
 
@@ -1060,12 +1051,6 @@ msgstr ""
 msgid "Are you sure you want to convert this file into a template? The original file will be deleted. This action cannot be undone."
 msgstr "确定要把这个文件转换成模板吗？原文件会被删除。此操作无法撤销。"
 
-msgid "Are you sure you want to delete \"{name}\" and its contents?"
-msgstr "确定要删除“{name}”及其内容吗?"
-
-msgid "Are you sure you want to delete \"{name}\"?"
-msgstr "确定要删除“{name}”吗?"
-
 msgid "Are you sure you want to delete {folderName}/ and all files inside? This action cannot be undone."
 msgstr "确定要删除 {folderName}/ 及其中的所有文件吗？此操作无法撤销。"
 
@@ -1074,12 +1059,6 @@ msgstr "确定要删除 {itemName} 吗？此操作无法撤销。"
 
 msgid "Are you sure you want to delete {targetCount} selected items? Folders and all files inside them will be deleted. This action cannot be undone."
 msgstr "确定要删除选中的 {targetCount} 个项目吗？文件夹及其中的所有文件都会被删除。此操作无法撤销。"
-
-msgid "Are you sure you want to delete the selected item?"
-msgstr "确定要删除所选项目吗？"
-
-msgid "Are you sure you want to delete the selected items?"
-msgstr "确定要删除所选项目吗？"
 
 msgid "Ask"
 msgstr "询问"
@@ -1587,12 +1566,6 @@ msgstr "关闭新标签页"
 
 msgid "Close others"
 msgstr "关闭其他"
-
-msgid "Close this preview, then open the folder to upload files"
-msgstr "关闭此预览，然后打开文件夹以上传文件"
-
-msgid "Close window"
-msgstr "关闭窗口"
 
 msgid "Clusters"
 msgstr "聚类"
@@ -2139,9 +2112,6 @@ msgstr "用 {label} 创建文档"
 
 msgid "Create a file from the current document or folder context."
 msgstr "基于当前文档或文件夹创建一个文件。"
-
-msgid "Create a folder from the current document or folder context."
-msgstr "基于当前文档或文件夹创建一个文件夹。"
 
 msgid "Create a new list item from the current list item."
 msgstr "基于当前列表项创建一个新的列表项。"
@@ -3296,9 +3266,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "排版看起来不对"
-
-msgid "Forward"
-msgstr "前进"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "出链响应的结构与预期不符。"
@@ -4484,9 +4451,6 @@ msgstr "移动到左侧新窗格"
 msgid "Move to new pane right"
 msgstr "移动到右侧新窗格"
 
-msgid "Move to Recycle Bin"
-msgstr "移到回收站"
-
 msgid "Move to the next CodeMirror lint diagnostic."
 msgstr "跳到 CodeMirror 的下一条检查诊断。"
 
@@ -4498,9 +4462,6 @@ msgstr "跳到可视化编辑器的下一个查找结果。"
 
 msgid "Move to the previous visual-editor find result."
 msgstr "跳到可视化编辑器的上一个查找结果。"
-
-msgid "Move to Trash"
-msgstr "移到废纸篓"
 
 msgid "Move up"
 msgstr "上移"
@@ -4525,9 +4486,6 @@ msgstr "已移动模板"
 
 msgid "Moved up."
 msgstr "已上移。"
-
-msgid "Moving"
-msgstr "正在移动"
 
 msgid "Multi-page PDF viewer with toolbar controls (thumbnails, page nav, zoom)."
 msgstr "多页 PDF 查看器，带工具栏控件（缩略图、翻页、缩放）。"
@@ -4567,9 +4525,6 @@ msgstr "跳转到 {docName}"
 
 msgid "Navigation and suggestions"
 msgstr "导航与建议"
-
-msgid "Navigation history"
-msgstr "导航历史"
 
 msgid "Nested .okignore error in {path}"
 msgstr "{path} 中嵌套的 .okignore 有错误"
@@ -5024,9 +4979,6 @@ msgstr "关闭——搜索仅按关键词排序。不会有任何内容离开这
 msgid "Offline"
 msgstr "离线"
 
-msgid "OK Desktop"
-msgstr "OK 桌面版"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "开启——把鼠标悬停在外部链接上时，会把它的 URL 发送到目标站点以获取预览；在智能体对话中悬停在 GitHub 引用上时，会向 GitHub 查询。"
 
@@ -5105,9 +5057,6 @@ msgstr "请先打开一个项目。"
 msgid "Open a project to edit."
 msgstr "请打开一个项目以进行编辑。"
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "在临时会话中打开单个 markdown 文件，无需设置项目。"
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "打开 {tooltipName} 的活动面板"
 
@@ -5116,9 +5065,6 @@ msgstr "打开 {tooltipName} 的活动面板，它正在编辑 {realCurrentDoc}"
 
 msgid "Open agents"
 msgstr "打开智能体"
-
-msgid "Open an existing project folder from disk."
-msgstr "从磁盘打开一个已有的项目文件夹。"
 
 msgid "Open board"
 msgstr "打开画板"
@@ -5155,9 +5101,6 @@ msgstr "打开 {keyName} 的表情符号选择器"
 
 msgid "Open file"
 msgstr "打开文件"
-
-msgid "Open folder"
-msgstr "打开文件夹"
 
 msgid "Open graph"
 msgstr "打开关系图"
@@ -5200,9 +5143,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "在空白或活动的文本位置打开插入菜单。"
-
-msgid "Open the Project Navigator."
-msgstr "打开项目导航器。"
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "在编辑器中打开这个文档并折叠关系图。"
@@ -5948,9 +5888,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "报告问题"
 
 msgid "Report an issue"
 msgstr ""
@@ -6733,9 +6670,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "发起一份错误报告，并附上此刻画面的截图。"
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6831,9 +6765,6 @@ msgstr "交换文件侧边栏与文档面板的位置"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "在可视化编辑器和源码编辑器之间切换，并保持当前位置。"
-
-msgid "Switch project"
-msgstr "切换项目"
 
 msgid "Switch to a branch to share."
 msgstr "请切换到某个分支后再共享。"
@@ -7345,9 +7276,6 @@ msgstr "这个文档已经在编辑器中打开了。请用「打开」来折叠
 msgid "This document is missing required properties"
 msgstr "这个文档缺少必需的属性"
 
-msgid "This document was deleted"
-msgstr "此文档已被删除"
-
 msgid "This draft"
 msgstr ""
 
@@ -7631,12 +7559,6 @@ msgstr "被链接最多的页面"
 
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
-
-msgid "Traverse GitQuire navigation history backward."
-msgstr "在 GitQuire 的导航历史中后退。"
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "在 GitQuire 的导航历史中前进。"
 
 msgid "Tree view options"
 msgstr "树状视图选项"
@@ -8073,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "新功能"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "开启后，智能体每次编辑后都会打开或刷新预览。如果你自己管理预览窗口（OK 桌面版、另一块显示器上的浏览器标签页等），可以关闭它。"
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "智能体执行定时任务的时间。"
@@ -8171,12 +8093,6 @@ msgstr "你最多可以附加 {MAX_ATTACHMENTS} 张图片。"
 
 msgid "You can change this later in <0>Settings → Sync</0>."
 msgstr "之后可以在<0>「设置 → 同步」</0>中更改。"
-
-msgid "You can restore this file from the Recycle Bin."
-msgstr "你可以从回收站中恢复此文件。"
-
-msgid "You can restore this file from the Trash."
-msgstr "你可以从废纸篓中恢复此文件。"
 
 msgid "You cancelled loading \"{docName}\"."
 msgstr "你取消了“{docName}”的加载。"

@@ -1,4 +1,3 @@
-import type { GqBugReportCreateResult } from '@gitquire/core';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -38,54 +37,6 @@ function MaybeThrow({ label }: { label: string }) {
   return <span data-testid="payload">{label}</span>;
 }
 
-type CreateRequest = { level: 'standard' | 'full'; note?: string };
-
-function installBugReportBridge(mode: 'editor' | 'navigator' = 'editor'): CreateRequest[] {
-  const createCalls: CreateRequest[] = [];
-  const bridge = {
-    config: { mode },
-    bugReport: {
-      create: (request: CreateRequest) => {
-        createCalls.push(request);
-        const result: GqBugReportCreateResult = {
-          ok: true,
-          zipPath: '/tmp/report.zip',
-          zipSizeBytes: 1024,
-          summary: {
-            level: request.level,
-            systemWide: mode === 'navigator',
-            projectSlug: undefined,
-            files: [],
-            redactions: [],
-            redactedLineCount: 0,
-            generatedAt: '2026-07-10T00:00:00.000Z',
-          },
-        };
-        return Promise.resolve(result);
-      },
-      send: () => Promise.resolve({ ok: true as const, reference: 'OK-TEST01' }),
-    },
-    shell: {
-      showItemInFolder: () => Promise.resolve(),
-      openExternal: () => Promise.resolve(),
-    },
-  };
-  for (const host of [window, globalThis] as unknown as Array<Record<string, unknown>>) {
-    Object.defineProperty(host, 'okDesktop', { configurable: true, writable: true, value: bridge });
-  }
-  return createCalls;
-}
-
-function clearBugReportBridge() {
-  for (const host of [window, globalThis] as unknown as Array<Record<string, unknown>>) {
-    Object.defineProperty(host, 'okDesktop', {
-      configurable: true,
-      writable: true,
-      value: undefined,
-    });
-  }
-}
-
 describe('AppErrorBoundary', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
@@ -99,7 +50,6 @@ describe('AppErrorBoundary', () => {
 
   afterEach(() => {
     cleanup();
-    clearBugReportBridge();
     resetTabSessionRestoreSuppression();
     consumeHashNavigationSuppression();
     consoleErrorSpy.mockRestore();
@@ -141,7 +91,6 @@ describe('AppErrorBoundary', () => {
 
   test('Try again resets the boundary and re-renders the shell', async () => {
     shouldThrow = true;
-    installBugReportBridge();
     render(
       <AppErrorBoundary>
         <MaybeThrow label="shell" />
@@ -186,7 +135,6 @@ describe('AppErrorBoundary', () => {
 
   test('does not intercept errors the per-document boundary already handles', () => {
     shouldThrow = true;
-    installBugReportBridge();
     render(
       <AppErrorBoundary>
         <DocumentErrorBoundary activeDocName="alpha.md" onRecycle={vi.fn(() => {})}>
@@ -200,9 +148,8 @@ describe('AppErrorBoundary', () => {
     expect(screen.queryByRole('heading', { name: 'Something went wrong' })).toBeNull();
   });
 
-  test('the report action is absent without the desktop bridge', () => {
+  test('offers no report action', () => {
     shouldThrow = true;
-    clearBugReportBridge();
     render(
       <AppErrorBoundary>
         <MaybeThrow label="shell" />

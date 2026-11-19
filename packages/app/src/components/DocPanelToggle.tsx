@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button.tsx';
 import { Kbd } from '@/components/ui/kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatShortcut, formatShortcutLabel } from '@/lib/keyboard-shortcuts';
-import { isNoteWindow } from '@/lib/note-window-mode';
 import { physicalSide } from '@/lib/sidebar-side-store';
 import { useDocumentDirection } from '@/lib/use-document-direction';
 import { cn } from '@/lib/utils';
@@ -28,8 +27,6 @@ export function DocPanelToggle({
   const direction = useDocumentDirection();
   const panelShortcut = formatShortcut('toggle-document-panel');
   const panelShortcutLabel = formatShortcutLabel('toggle-document-panel');
-  const isElectronHost = false;
-  if (isNoteWindow()) return null;
   return (
     <Tooltip>
       <Button
@@ -44,11 +41,7 @@ export function DocPanelToggle({
             ? t`Show panel (${panelShortcutLabel})`
             : t`Hide panel (${panelShortcutLabel})`
         }
-        className={cn(
-          'shrink-0 text-muted-foreground',
-          isElectronHost && '[-webkit-app-region:no-drag]',
-          className,
-        )}
+        className={cn('shrink-0 text-muted-foreground', className)}
         asChild
       >
         <TooltipTrigger>

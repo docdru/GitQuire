@@ -1,6 +1,6 @@
 import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { EDITOR_TOOLBAR_HEIGHT, editorToolbarOverlapPx } from '@/lib/editor-toolbar-overlap';
+import { EDITOR_TOOLBAR_HEIGHT } from '@/lib/editor-toolbar-overlap';
 
 export const TOOLBAR_HEIGHT = EDITOR_TOOLBAR_HEIGHT;
 
@@ -41,7 +41,7 @@ export function computeFreezeRange(
 ): FreezeRange | null {
   const maxShift = tableHeight - headerHeight;
   if (maxShift <= 0) return null;
-  const startOffset = scrollTop + tableTop - (containerTop + editorToolbarOverlapPx());
+  const startOffset = scrollTop + tableTop - (containerTop + EDITOR_TOOLBAR_HEIGHT);
   return { startOffset, endOffset: startOffset + maxShift, maxShift };
 }
 
@@ -249,7 +249,7 @@ function wrapperTimeline(wrapper: HTMLElement, scrollEl: HTMLElement): ViewTimel
     timeline = new ViewTimelineImpl({
       subject: wrapper,
       axis: 'block',
-      inset: [CSS.px(editorToolbarOverlapPx()), CSS.px(0)],
+      inset: [CSS.px(EDITOR_TOOLBAR_HEIGHT), CSS.px(0)],
     });
   } catch (error) {
     viewTimelinesUsable = false;
@@ -290,7 +290,7 @@ function computeAndApplyFrozenHeaders(
 ): boolean {
   const containerTop = scrollEl.getBoundingClientRect().top;
   const scrollTop = scrollEl.scrollTop;
-  const scrollportHeight = scrollEl.clientHeight - editorToolbarOverlapPx();
+  const scrollportHeight = scrollEl.clientHeight - EDITOR_TOOLBAR_HEIGHT;
   const measured: MeasuredHeader[] = [];
   let followsScrollEvents = false;
   for (const table of editorDom.querySelectorAll<HTMLTableElement>('.tableWrapper > table')) {
@@ -339,7 +339,7 @@ function computeAndApplyFrozenHeaders(
       headerHeight,
     );
     const shift = range ? Math.max(0, Math.min(scrollTop - range.startOffset, range.maxShift)) : 0;
-    if (shift <= 0 || tableRect.bottom <= containerTop + editorToolbarOverlapPx()) {
+    if (shift <= 0 || tableRect.bottom <= containerTop + EDITOR_TOOLBAR_HEIGHT) {
       resetHeaderCells(firstRow);
       continue;
     }

@@ -516,7 +516,6 @@ vi.doMock('@/lib/use-settings-route', () => ({
 const { EditorArea: DockedEditorArea } = await import('./EditorArea');
 const { SidebarProvider } = await import('@/components/ui/sidebar');
 const { TooltipProvider } = await import('@/components/ui/tooltip');
-const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
 const { emitLocalMenuAction } = await import('@/lib/local-menu-action-bus');
 const { requestDocPanelTab } = await import('./doc-panel-events');
 
@@ -1735,27 +1734,6 @@ describe('EditorArea editor card rows', () => {
     expect(document.querySelector('[data-editor-inner-panels]')?.firstElementChild).toBe(inner);
   });
 
-  test('a single-file window renders the normal editor card', () => {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: {
-        config: { singleFile: true },
-        editor: { notifyViewMenuStateChanged: () => {} },
-      },
-    });
-    try {
-      render(
-        <SingleFileModeProvider>
-          <EditorArea {...rowProps} />
-        </SingleFileModeProvider>,
-      );
-      const card = document.querySelector('[data-slot="pane-card"][data-pane="editor"]');
-      expect(card?.getAttribute('data-variant')).toBe('card');
-    } finally {
-      Reflect.deleteProperty(window, 'okDesktop');
-    }
-  });
-
   test('a side panel drag marks only the side panel row', () => {
     setViewportWidth(1400);
     docCtx = DOC_LIVE_CTX;
@@ -2024,30 +2002,6 @@ describe('EditorArea chat and side panel cards', () => {
     const header = document.querySelector('[data-editor-area-header]');
     expect(header?.contains(screen.getByTestId('workspace-tabs'))).toBe(true);
     expect(document.querySelector('[data-doc-panel-toggle]')).toBeNull();
-  });
-
-  test('a single-file window renders every normal card', () => {
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: {
-        config: { singleFile: true },
-        editor: { notifyViewMenuStateChanged: () => {} },
-      },
-    });
-    try {
-      render(
-        <TooltipProvider>
-          <SingleFileModeProvider>
-            <EditorArea {...cardProps} agentsVisible />
-          </SingleFileModeProvider>
-        </TooltipProvider>,
-      );
-      expect(cardOf('editor')?.getAttribute('data-variant')).toBe('card');
-      expect(cardOf('agents')?.getAttribute('data-variant')).toBe('card');
-      expect(screen.getByRole('main').contains(screen.getByTestId('workspace-tabs'))).toBe(true);
-    } finally {
-      Reflect.deleteProperty(window, 'okDesktop');
-    }
   });
 
   test('inside an embedded host the cards render as in a project window while the host rules hold', () => {

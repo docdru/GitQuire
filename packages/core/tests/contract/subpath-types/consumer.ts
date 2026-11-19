@@ -567,7 +567,6 @@ export type {
   isHiddenDocName,
   isProjectSkillBundlePath,
 } from '@gitquire/core/util/doc-name';
-export type { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 export type {
   ChunkedInsertError,
   chunkedYTextInsert,

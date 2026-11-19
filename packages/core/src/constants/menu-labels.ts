@@ -2,8 +2,6 @@ export const MENU_LABELS = {
   newFile: 'New file',
   newFolder: 'New folder',
   newFromTemplate: 'New from template',
-  openFolder: 'Open folder',
-  openFile: 'Open file',
   duplicate: 'Duplicate',
   rename: 'Rename',
   copyPath: 'Copy path',
@@ -14,13 +12,11 @@ export const MENU_LABELS = {
   showOnlyMarkdownFiles: 'Show only markdown files',
   expandAll: 'Expand all',
   collapseAll: 'Collapse all',
-  moveToTrash: 'Move to Trash',
   copyFullPath: 'Copy full path',
   openOnGithub: 'GitQuire on GitHub',
   openDocs: 'Documentation',
   joinDiscord: 'Report an issue on GitHub',
   sendFeedback: 'Send feedback',
-  switchProject: 'Switch project',
   settings: 'Settings',
   openGraph: 'Open graph',
   blobRun: 'Blob Run',
@@ -32,8 +28,6 @@ export const MENU_LABELS = {
   swapEditorSidebars: 'Swap file sidebar and document panel',
   chatHistoryMoveLeft: 'Move chat history to the left',
   chatHistoryMoveRight: 'Move chat history to the right',
-  back: 'Back',
-  forward: 'Forward',
   editorShow: 'Show Editor',
   editorHide: 'Hide Editor',
   agentPanelShow: 'Show Agents',
@@ -49,21 +43,6 @@ export const MENU_LABELS = {
 } as const satisfies Record<string, string>;
 
 export type MenuLabelKey = keyof typeof MENU_LABELS;
-
-export const PLATFORM_MENU_LABELS: Partial<
-  Record<MenuLabelKey, Partial<Record<'win32' | 'linux', string>>>
-> = {
-  moveToTrash: { win32: 'Move to Recycle Bin' },
-};
-
-export function menuLabelForPlatform(key: MenuLabelKey, platform: string): string {
-  const overrides = PLATFORM_MENU_LABELS[key];
-  if (overrides && (platform === 'win32' || platform === 'linux')) {
-    const override = overrides[platform];
-    if (override !== undefined) return override;
-  }
-  return MENU_LABELS[key];
-}
 
 export const OPEN_KNOWLEDGE_GITHUB_URL = 'https://github.com/docdru/GitQuire';
 export const OPEN_KNOWLEDGE_DOCS_URL = 'https://docdru.github.io/GitQuire/docs';

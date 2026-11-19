@@ -35,15 +35,9 @@ import {
 import { useDocumentContext } from '@/editor/DocumentContext';
 import type { EditorPaneState, PaneSide } from '@/editor/editor-panes';
 import { openSidebarDropPayload } from '@/editor/sidebar-drop';
-import {
-  getNoteWindowDeletedDoc,
-  subscribeNoteWindowDeleted,
-} from '@/lib/note-window-deleted-store';
-import { isNoteWindow } from '@/lib/note-window-mode';
 import { paneVisibilityStore } from '@/lib/pane-visibility-store';
 import { hasSidebarDragType, parseSidebarDragPayload } from '@/lib/sidebar-drag';
 import { useFileSidebarSide } from '@/lib/sidebar-side-store';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { cn } from '@/lib/utils';
 import { EditorTabs } from './EditorTabs';
 import {
@@ -56,7 +50,6 @@ import {
   TAB_SELECTED_SURFACE_CLASS,
 } from './editor-tabs-chrome';
 import { FileListToggle } from './FileListToggle';
-import { NoteWindowDeletedState } from './NoteWindowDeletedState';
 
 const MIN_EDITOR_PANE_WIDTH = 300;
 
@@ -383,14 +376,7 @@ export function EditorWorkspace({
     splitTab,
     visibleTabIdsByPane,
   } = useDocumentContext();
-  const singleFile = useSingleFileMode();
-  const singleDocumentSurface = singleFile || isNoteWindow();
   const fileSidebarSide = useFileSidebarSide();
-  const deletedDocName = useSyncExternalStore(
-    subscribeNoteWindowDeleted,
-    getNoteWindowDeletedDoc,
-    () => null,
-  );
   const [drag, setDrag] = useState<EditorTabDragData | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{
     index: number;
@@ -436,8 +422,7 @@ export function EditorWorkspace({
   );
   const narrowForPanes = (width: number) =>
     width > 0 && width < panes.length * MIN_EDITOR_PANE_WIDTH + panes.length - 1;
-  const projected =
-    !singleDocumentSurface && panes.length > 1 && (exclusive || narrowForPanes(workspaceWidth));
+  const projected = panes.length > 1 && (exclusive || narrowForPanes(workspaceWidth));
   const canvasStyle = {
     '--editor-workspace-min-width':
       projected || panes.length === 1
@@ -789,42 +774,6 @@ export function EditorWorkspace({
       </div>
     </div>
   );
-
-  if (singleDocumentSurface) {
-    const pane = panes.find((candidate) => candidate.id === focusedPaneId) ?? panes[0];
-    if (deletedDocName !== null) {
-      return (
-        <>
-          {renderHeader(null)}
-          <div data-editor-workspace="" className="relative min-h-0 flex-1 overflow-hidden">
-            <NoteWindowDeletedState docName={deletedDocName} />
-          </div>
-        </>
-      );
-    }
-    return (
-      <>
-        {renderHeader(null)}
-        <div data-editor-workspace="" className="relative min-h-0 flex-1 overflow-hidden">
-          {pane ? (
-            <WorkspacePane
-              drag={null}
-              isFocused
-              label={paneLabel(pane.id)}
-              onActivityMount={registerActivityMount}
-              pane={pane}
-              renderPane={renderPane}
-              showDropTargets={false}
-            />
-          ) : null}
-          <div ref={setParkingHost} data-editor-activity-parking="" className="hidden" inert />
-          {parkingHost !== null
-            ? renderActivityPool?.({ activityHosts, parkingHost, visibleDocNames })
-            : null}
-        </div>
-      </>
-    );
-  }
 
   return (
     <DndContext

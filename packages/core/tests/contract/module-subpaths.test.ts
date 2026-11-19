@@ -87,7 +87,6 @@ import * as typesPrincipalSubpath from '@gitquire/core/types/principal';
 import * as typesTimelineSubpath from '@gitquire/core/types/timeline';
 import * as utilAtomicYamlWriteSubpath from '@gitquire/core/util/atomic-yaml-write';
 import * as utilDocNameSubpath from '@gitquire/core/util/doc-name';
-import * as utilsAssetHrefSubpath from '@gitquire/core/utils/asset-href';
 import * as utilsChunkedInsertSubpath from '@gitquire/core/utils/chunked-insert';
 import * as utilsCodeFenceTrackerSubpath from '@gitquire/core/utils/code-fence-tracker';
 import * as utilsEmbedUrlRewriteSubpath from '@gitquire/core/utils/embed-url-rewrite';
@@ -206,7 +205,6 @@ const MODULE_SUBPATHS: Record<string, object> = {
   './types/principal': typesPrincipalSubpath,
   './types/timeline': typesTimelineSubpath,
   './util/doc-name': utilDocNameSubpath,
-  './utils/asset-href': utilsAssetHrefSubpath,
   './utils/chunked-insert': utilsChunkedInsertSubpath,
   './utils/code-fence-tracker': utilsCodeFenceTrackerSubpath,
   './utils/embed-url-rewrite': utilsEmbedUrlRewriteSubpath,

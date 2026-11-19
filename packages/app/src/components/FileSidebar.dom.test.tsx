@@ -116,28 +116,10 @@ const treeCalls = {
   startCreatingFromTemplate: vi.fn((_parentDir: string) => {}),
 };
 const projectLocalPatch = vi.fn((_patch: unknown) => projectPatchResult);
-const showItemInFolderMock = vi.fn((_path: string) => Promise.resolve());
-const notifyViewMenuStateChangedMock = vi.fn((_snapshot: unknown) => {});
 
 function setFolderState(next: FolderState) {
   folderState = next;
   for (const listener of treeListeners) listener();
-}
-
-function installBridge() {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: {
-      platform: 'darwin',
-      editor: {
-        notifyViewMenuStateChanged: notifyViewMenuStateChangedMock,
-      },
-      shell: {
-        showItemInFolder: showItemInFolderMock,
-      },
-      onMenuAction: () => () => {},
-    },
-  });
 }
 
 import * as actualLinguiMacro from '@lingui/react/macro';
@@ -426,15 +408,9 @@ describe('FileSidebar runtime behavior', () => {
       treeCalls.startCreating,
       treeCalls.startCreatingFromTemplate,
       projectLocalPatch,
-      showItemInFolderMock,
-      notifyViewMenuStateChangedMock,
     ]) {
       fn.mockClear();
     }
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: undefined,
-    });
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: {
@@ -445,20 +421,11 @@ describe('FileSidebar runtime behavior', () => {
 
   afterEach(() => {
     cleanup();
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: undefined,
-    });
   });
 
-  for (const host of [
-    { label: 'on the web', electron: false, state: 'expanded' },
-    { label: 'in an expanded Electron window', electron: true, state: 'expanded' },
-    { label: 'in a collapsed Electron window', electron: true, state: 'collapsed' },
-  ] as const) {
-    test(`${host.label} the file list has no top bar, and the project row is its first row`, async () => {
-      if (host.electron) installBridge();
-      sidebarState = host.state;
+  for (const state of ['expanded', 'collapsed'] as const) {
+    test(`${state}, the file list has no top bar, and the project row is its first row`, async () => {
+      sidebarState = state;
       const { container } = await renderSidebar();
 
       expect(screen.queryByTestId('sidebar-header')).toBeNull();
@@ -477,8 +444,6 @@ describe('FileSidebar runtime behavior', () => {
       expect(projectRow.contains(screen.getByTestId('sidebar-toolbar'))).toBe(true);
       expectVisualClassTokens(projectRow.className, ['h-11']);
       expect(screen.queryByRole('button', { name: /^Search/ })).toBeNull();
-      expect(screen.queryByTestId('navigation-history-controls')).toBeNull();
-      expect(screen.queryByTestId('sidebar-traffic-light-reserve')).toBeNull();
       expect(screen.queryByText('Project switcher')).toBeNull();
     });
   }
@@ -618,7 +583,6 @@ describe('FileSidebar runtime behavior', () => {
 
   test('toolbar and empty-space menu hide "New from template" when no templates exist', async () => {
     hasTemplates = false;
-    installBridge();
     await renderSidebar();
     await waitFor(() => expect(treeListeners.size).toBe(1));
 

@@ -54,7 +54,7 @@ describe('GET/PUT /api/folder-config', () => {
   let tmpDir: string;
   let contentDir: string;
 
-  function buildExt(extra?: { ephemeral?: boolean }) {
+  function buildExt(extra?: Record<string, never>) {
     return createApiExtension({
       hocuspocus: {} as Parameters<typeof createApiExtension>[0]['hocuspocus'],
       sessionManager: {} as Parameters<typeof createApiExtension>[0]['sessionManager'],
@@ -668,16 +668,6 @@ describe('GET/PUT /api/folder-config', () => {
     const captured = await dispatch(ext, '/api/folder-config', 'PUT', { path: 'plain' });
     expect(captured.status).toBe(200);
     expect(JSON.parse(captured.body).applied).toEqual([]);
-  });
-
-  test('PUT refuses in single-file mode with the dedicated URN', async () => {
-    const ext = buildExt({ ephemeral: true });
-    const captured = await dispatch(ext, '/api/folder-config', 'PUT', {
-      path: 'plain',
-      frontmatter: { a: 1 },
-    });
-    expect(captured.status).toBe(403);
-    expect(JSON.parse(captured.body).type).toBe('urn:ok:error:single-file-mode');
   });
 
   test('PUT rejects a non-string summary before writing anything', async () => {

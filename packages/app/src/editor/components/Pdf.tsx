@@ -1,4 +1,3 @@
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 import { parsePdfAnchor } from '@gitquire/core/utils/pdf-anchor';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { Check, ChevronDown, PanelLeft, ZoomIn, ZoomOut } from 'lucide-react';
@@ -88,7 +87,7 @@ export function Pdf(props: PdfProps) {
       setLoading(false);
       return;
     }
-    const docUrl = toDesktopAssetHref(props.src);
+    const docUrl = props.src;
     let cancelled = false;
     let loadingTask: PdfLoadingTask | null = null;
     setLoading(true);

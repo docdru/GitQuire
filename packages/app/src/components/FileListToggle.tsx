@@ -12,26 +12,20 @@ export function FileListToggle({ side = 'start' }: { readonly side?: 'start' | '
   const { t } = useLingui();
   const direction = useDocumentDirection();
   const { state } = useSidebar();
-  const isElectronHost = false;
 
   return (
     <div
       data-file-list-toggle=""
-      data-electron-drag={isElectronHost ? '' : undefined}
       className={cn(
         'flex h-full shrink-0 items-center gap-1',
         side === 'start' ? 'pe-1' : 'flex-row-reverse ps-1',
-        isElectronHost && '[-webkit-app-region:drag]',
       )}
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <SidebarTrigger
             side={physicalSide(side, direction)}
-            className={cn(
-              'shrink-0 text-muted-foreground',
-              isElectronHost && '[-webkit-app-region:no-drag]',
-            )}
+            className={cn('shrink-0 text-muted-foreground')}
           />
         </TooltipTrigger>
         <TooltipContent side="bottom">

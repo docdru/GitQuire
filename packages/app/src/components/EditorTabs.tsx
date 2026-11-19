@@ -725,7 +725,6 @@ export function EditorTabs({
     };
   }, []);
 
-  const isElectronHost = false;
   const newTabIdSet = new Set(newTabIds);
 
   function closeVisibleTabs(tabIds: readonly string[]) {
@@ -900,19 +899,15 @@ export function EditorTabs({
   return (
     <div
       data-editor-pane-tabs={resolvedPaneId}
-      data-electron-drag={isElectronHost ? '' : undefined}
       className={cn(
         'flex h-11 w-full min-w-0 touch-manipulation items-center overflow-hidden ps-2',
-        isElectronHost && '[-webkit-app-region:drag]',
       )}
     >
       {leading}
       <div
         data-editor-tab-overflow-root=""
-        data-electron-drag={isElectronHost ? '' : undefined}
         className={cn(
           'group/tab-overflow relative flex min-w-0 flex-1 self-stretch items-center gap-px overflow-hidden',
-          isElectronHost && '[-webkit-app-region:drag]',
         )}
       >
         <span
@@ -927,7 +922,6 @@ export function EditorTabs({
           <div
             className={cn(
               'relative h-full w-fit max-w-[calc(100%-1.75rem)] min-w-0 flex-none self-center',
-              isElectronHost && '[-webkit-app-region:no-drag]',
             )}
           >
             <div
@@ -1235,7 +1229,7 @@ export function EditorTabs({
               variant="ghost"
               aria-label={t`New tab`}
               data-testid="editor-new-tab-button"
-              className={cn('shrink-0', isElectronHost && '[-webkit-app-region:no-drag]')}
+              className="shrink-0"
               onClick={openNewTab}
             >
               <PlusIcon aria-hidden="true" />

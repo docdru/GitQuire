@@ -478,10 +478,10 @@ describe('mountMcpAndApi content-asset middleware', () => {
   });
 });
 
-describe('mountMcpAndApi ephemeral content-asset gate', () => {
+describe('mountMcpAndApi content-asset gate', () => {
   const tmpDirs: string[] = [];
 
-  async function startAssets(ephemeral: boolean): Promise<{ port: number }> {
+  async function startAssets(): Promise<{ port: number }> {
     const contentDir = mkdtempSync(join(tmpdir(), 'ok-mcp-mount-gate-'));
     tmpDirs.push(contentDir);
     writeFileSync(
@@ -494,7 +494,6 @@ describe('mountMcpAndApi ephemeral content-asset gate', () => {
       nativeApi: undefined,
       hocuspocus,
       log,
-      ephemeral,
       contentAssetMiddleware: createAssetServeMiddleware({
         contentDir,
         contentFilter: { isPathIgnored: () => false },
@@ -510,21 +509,14 @@ describe('mountMcpAndApi ephemeral content-asset gate', () => {
     return { port };
   }
 
-  test('ephemeral: a loopback request with a localhost Host still serves the asset', async () => {
-    const { port } = await startAssets(true);
+  test('a loopback request with a localhost Host serves the asset', async () => {
+    const { port } = await startAssets();
     const res = await getWithHost(port, '/secret.png', `localhost:${port}`);
     expect(res.status).toBe(200);
   });
 
-  test('ephemeral: a rebound Host header is rejected with 403 host-not-allowed', async () => {
-    const { port } = await startAssets(true);
-    const res = await getWithHost(port, '/secret.png', 'evil.example.com');
-    expect(res.status).toBe(403);
-    expect((JSON.parse(res.body) as { type?: string }).type).toBe('urn:ok:error:host-not-allowed');
-  });
-
-  test('non-ephemeral (project mode): a rebound Host is refused by the content-serve gate', async () => {
-    const { port } = await startAssets(false);
+  test('a rebound Host is refused by the content-serve gate', async () => {
+    const { port } = await startAssets();
     const res = await getWithHost(port, '/secret.png', 'evil.example.com');
     expect(res.status).toBe(403);
     expect((JSON.parse(res.body) as { type?: string }).type).toBe('urn:ok:error:host-not-allowed');

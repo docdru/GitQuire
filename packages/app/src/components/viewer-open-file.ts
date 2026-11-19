@@ -1,5 +1,4 @@
 import { ASSET_EXTENSIONS } from '@gitquire/core/constants/upload';
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 
 export interface ViewerOpenFileTarget {
   readonly projectRelPath: string;
@@ -29,6 +28,6 @@ export function resolveViewerOpenFile({
     projectRelPath: assetPath,
     ext,
     title: fileName,
-    url: toDesktopAssetHref(`${endpoint}?path=${encodeURIComponent(assetPath)}`),
+    url: `${endpoint}?path=${encodeURIComponent(assetPath)}`,
   };
 }

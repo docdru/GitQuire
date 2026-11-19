@@ -4,7 +4,7 @@ import type { Editor } from '@tiptap/core';
 import type { Node as PmNode } from '@tiptap/pm/model';
 import type { EditorView as ProseMirrorView } from '@tiptap/pm/view';
 import type * as Y from 'yjs';
-import { editorToolbarOverlapPx } from '@/lib/editor-toolbar-overlap';
+import { EDITOR_TOOLBAR_HEIGHT } from '@/lib/editor-toolbar-overlap';
 import { getEditorForDoc } from './active-editor';
 import { visibleEditorScrollContainer } from './editor-cache';
 import { getMarkdownSourceViewForDoc } from './full-page-cm-views';
@@ -186,7 +186,7 @@ function findScrollContainer(): HTMLElement | null {
 function topmostVisiblePos(view: ProseMirrorView, container: HTMLElement): number | null {
   const rect = container.getBoundingClientRect();
   const x = rect.left + rect.width / 2;
-  const toolbarOverlap = editorToolbarOverlapPx();
+  const toolbarOverlap = EDITOR_TOOLBAR_HEIGHT;
   for (const dy of [toolbarOverlap + 1, toolbarOverlap + 12, toolbarOverlap + 40]) {
     const found = view.posAtCoords({ left: x, top: rect.top + dy });
     if (found) return found.pos;
@@ -197,7 +197,7 @@ function topmostVisiblePos(view: ProseMirrorView, container: HTMLElement): numbe
 function topmostVisibleSourceOffset(view: EditorView, container: HTMLElement): number | null {
   const rect = container.getBoundingClientRect();
   const x = rect.left + rect.width / 2;
-  const toolbarOverlap = editorToolbarOverlapPx();
+  const toolbarOverlap = EDITOR_TOOLBAR_HEIGHT;
   for (const dy of [toolbarOverlap + 1, toolbarOverlap + 12, toolbarOverlap + 40]) {
     const pos = view.posAtCoords({ x, y: rect.top + dy });
     if (pos !== null) return pos;
@@ -303,7 +303,7 @@ export function startSourceLanding(params: {
       grade: target.confidence,
       landedMode: 'source',
       transition,
-      toolbarOffset: editorToolbarOverlapPx(),
+      toolbarOffset: EDITOR_TOOLBAR_HEIGHT,
       onOutcome: isJump
         ? (outcome) => {
             if (outcome.status === 'landed') {
@@ -354,7 +354,7 @@ export function startWysiwygLanding(params: {
     grade: target.confidence,
     landedMode: 'wysiwyg',
     transition,
-    toolbarOffset: editorToolbarOverlapPx(),
+    toolbarOffset: EDITOR_TOOLBAR_HEIGHT,
     onDiscardQueuedTarget: () => clearPendingWysiwygNavigation(docName),
   });
 }

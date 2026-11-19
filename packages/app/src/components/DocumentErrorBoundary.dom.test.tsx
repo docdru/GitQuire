@@ -37,32 +37,18 @@ function MaybeThrow({ label }: { label: string }) {
   return <span data-testid="payload">{label}</span>;
 }
 
-const restartServer = vi.fn(async () => ({ ok: true as const }));
-
-function clearBugReportBridge() {
-  for (const host of [window, globalThis] as unknown as Array<Record<string, unknown>>) {
-    Object.defineProperty(host, 'okDesktop', {
-      configurable: true,
-      writable: true,
-      value: undefined,
-    });
-  }
-}
-
 describe('DocumentErrorBoundary (Tier-3 mount)', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     shouldThrow = false;
-    restartServer.mockClear();
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
     cleanup();
-    clearBugReportBridge();
     consoleErrorSpy.mockRestore();
     consoleWarnSpy.mockRestore();
   });
@@ -190,9 +176,8 @@ describe('DocumentErrorBoundary (Tier-3 mount)', () => {
     invalidateSpy.mockRestore();
   });
 
-  test('the report action is absent without the desktop bridge', () => {
+  test('offers no report action', () => {
     shouldThrow = true;
-    clearBugReportBridge();
     render(
       <DocumentErrorBoundary activeDocName="alpha.md" onRecycle={vi.fn(() => {})}>
         <MaybeThrow label="alpha" />

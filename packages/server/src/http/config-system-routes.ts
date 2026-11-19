@@ -48,7 +48,6 @@ import { successResponse } from './success-response.ts';
 export interface ConfigSystemRouteDeps {
   contentDir: string;
   projectDir: string | undefined;
-  ephemeral: boolean;
   log: PinoLogger;
   ready: Promise<void> | undefined;
   serverInstanceId: string;
@@ -76,7 +75,6 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
   const {
     contentDir,
     projectDir,
-    ephemeral,
     log,
     ready,
     serverInstanceId,
@@ -267,7 +265,7 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
       try {
         const collabUrl = collabUrlFromRequestHeaders(req.headers);
         const port = lockDir ? (readServerLock(lockDir)?.port ?? 0) : 0;
-        const payload = { collabUrl, previewUrl: null, port, singleFile: ephemeral };
+        const payload = { collabUrl, previewUrl: null, port };
         if (req.method === 'HEAD') {
           res.setHeader('Content-Type', 'application/json');
           res.setHeader('Cache-Control', 'no-store');

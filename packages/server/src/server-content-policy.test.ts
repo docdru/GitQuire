@@ -59,25 +59,6 @@ test('removing a nested marker never expands a captured epoch', () => {
   expect(() => assertServerContentPath(scope, join(root, 'own.md'))).not.toThrow();
 });
 
-test.each(['build', 'vendor', 'node_modules', '.cache'])(
-  'marked projects inside %s are excluded even when ingestion skips that directory',
-  (directory) => {
-    const child = join(root, directory, 'nested');
-    mkdirSync(join(child, '.gitquire'), { recursive: true });
-    writeFileSync(join(child, '.gitquire', 'config.yml'), '');
-    expect(snapshotServerContentScope(root)).toMatchObject({ kind: 'tree', excluded: [child] });
-  },
-);
-
-test('a preview admits only its exact physical file, not sibling docs or folders', () => {
-  writeFileSync(join(root, 'one.md'), '# One\n');
-  symlinkSync(join(root, 'one.md'), join(root, 'alias.md'), 'file');
-  const scope = snapshotServerContentScope(root, 'one.md');
-  expect(() => assertServerContentPath(scope, join(root, 'alias.md'))).not.toThrow();
-  expect(() => assertServerContentPath(scope, join(root, 'two.md'))).toThrow(/does not own/i);
-  expect(() => assertServerContentSubtree(scope, root)).toThrow(/does not own/i);
-});
-
 test('missing paths retain their suffix when canonicalized through an existing alias', () => {
   mkdirSync(join(root, 'real'));
   symlinkSync(join(root, 'real'), join(root, 'alias'), 'junction');

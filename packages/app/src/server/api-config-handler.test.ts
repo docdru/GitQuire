@@ -13,15 +13,7 @@ describe('computeDevApiConfigResponse', () => {
       collabUrl: 'ws://localhost:5173/collab',
       previewUrl: null,
       port: 5173,
-      singleFile: false,
     });
-  });
-
-  test('singleFile flag rides the dev response when an ephemeral session is active', () => {
-    const res = computeDevApiConfigResponse('GET', 5173, true);
-    expect(res).not.toBeNull();
-    if (!res) return;
-    expect(JSON.parse(res.body).singleFile).toBe(true);
   });
 
   test('GET with port=0 (pre-listen) returns collabUrl=null', () => {

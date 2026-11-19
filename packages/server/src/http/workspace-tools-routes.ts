@@ -62,7 +62,6 @@ export interface WorkspaceToolsRouteDeps {
   projectDir: string | undefined;
   homeDirOverride: string | undefined;
   savedThemeLockTimeoutMs: number | undefined;
-  ephemeral: boolean | undefined;
   log: PinoLogger;
   searchService: SearchService;
   linkPreviewFetch: GuardedFetch | undefined;
@@ -98,7 +97,6 @@ export function createWorkspaceToolsRoutes(deps: WorkspaceToolsRouteDeps): ApiRo
     projectDir,
     homeDirOverride,
     savedThemeLockTimeoutMs,
-    ephemeral,
     log,
     searchService,
     linkPreviewFetch,
@@ -449,9 +447,12 @@ export function createWorkspaceToolsRoutes(deps: WorkspaceToolsRouteDeps): ApiRo
   );
 
   const LINK_PREVIEW_HANDLER = 'link-preview';
-  const linkPreviewCacheDir = ephemeral
-    ? null
-    : resolve(projectDir ?? contentDir, '.gitquire', 'local', 'link-previews');
+  const linkPreviewCacheDir = resolve(
+    projectDir ?? contentDir,
+    '.gitquire',
+    'local',
+    'link-previews',
+  );
   const linkPreviewCache = new LinkPreviewCache({ cacheDir: linkPreviewCacheDir });
   let linkPreviewCacheInit: Promise<void> | null = null;
   const ensureLinkPreviewCacheReady = (): Promise<void> => {
