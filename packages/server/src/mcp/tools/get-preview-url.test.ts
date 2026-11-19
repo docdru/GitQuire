@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { AutoStartDisabledError } from '../../autostart.ts';
 import { resolveLockDir } from '../../config/paths.ts';
 import { type Config, ConfigSchema } from '../../config/schema.ts';
-import type { OffCwdResolverDeps } from '../../off-cwd-resolver.ts';
 import { markServerLockDraining } from '../../server-lock.ts';
 import { register } from './get-preview-url.ts';
 import { bindTestServerLock, bindTestUiServerLock } from './preview-url-test-helpers.ts';
@@ -46,16 +45,12 @@ type ToolHandler = (args: {
   document?: string;
   folder?: string;
   skill?: { name: string; scope?: 'project' | 'global' };
-  file?: string;
   cwd?: string;
 }) => Promise<ToolResult>;
 
 interface EnsureDeps {
   serverUrl?: (cwd?: string) => Promise<string | undefined>;
   uiBindWait?: { timeoutMs?: number; pollIntervalMs?: number };
-  offCwdResolverDeps?: OffCwdResolverDeps;
-  ensureSingleFileSession?: (absFile: string) => Promise<boolean>;
-  resolveUserAutoOpen?: () => boolean;
   isHostedAgent?: boolean;
 }
 
@@ -454,171 +449,6 @@ describe('preview_url tool — error path', () => {
   });
 });
 
-function mockOffCwdDeps(
-  candidates: Array<{ contentDir: string; baseUrl: string; alive?: boolean }>,
-): OffCwdResolverDeps {
-  const cands = candidates.map((c) => ({
-    lockDir: `${c.contentDir}/.gitquire/local`,
-    contentDir: c.contentDir,
-    baseUrl: c.baseUrl,
-    alive: c.alive ?? true,
-  }));
-  return {
-    discover: async () => cands.map((c) => c.lockDir),
-    inspect: async (d) => cands.find((c) => c.lockDir === d) ?? null,
-    realpath: async (p) => p,
-  };
-}
-
-describe('preview_url tool — file branch (out-of-project)', () => {
-  test('resolves a loose file to the session whose contentDir contains it', async () => {
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: mockOffCwdDeps([
-        { contentDir: '/loose', baseUrl: 'http://localhost:6001' },
-      ]),
-      resolveUserAutoOpen: () => true,
-    });
-    const result = await handler({ file: '/loose/notes.md' });
-    expect(result.isError).toBeUndefined();
-    expect(result.structuredContent?.running).toBe(true);
-    expect(result.structuredContent?.baseUrl).toBe('http://localhost:6001');
-    expect(result.structuredContent?.url).toBe('http://localhost:6001/#/notes');
-    expect(result.structuredContent?.autoOpen).toBe(true);
-  });
-
-  test('no session for the file → running:false with an ok-open hint', async () => {
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: mockOffCwdDeps([]),
-    });
-    const result = await handler({ file: '/loose/notes.md' });
-    expect(result.isError).toBeUndefined();
-    expect(result.structuredContent?.running).toBe(false);
-    expect(result.structuredContent?.url).toBeNull();
-    expect(result.content[0]?.text).toContain('gq open /loose/notes.md');
-  });
-
-  test('file is mutually exclusive with document', async () => {
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: mockOffCwdDeps([]),
-    });
-    const result = await handler({ file: '/loose/notes.md', document: 'specs/foo' });
-    expect(result.isError).toBe(true);
-    expect(result.content[0]?.text).toContain('mutually exclusive');
-  });
-});
-
-describe('preview_url tool — file branch boot-on-demand', () => {
-  test('boots a session when none serves the file yet, then resolves its URL', async () => {
-    let candidate: { contentDir: string; baseUrl: string } | null = null;
-    const liveDeps: OffCwdResolverDeps = {
-      discover: async () => (candidate ? [`${candidate.contentDir}/.gitquire/local`] : []),
-      inspect: async () =>
-        candidate
-          ? {
-              lockDir: `${candidate.contentDir}/.gitquire/local`,
-              contentDir: candidate.contentDir,
-              baseUrl: candidate.baseUrl,
-              alive: true,
-            }
-          : null,
-      realpath: async (p) => p,
-    };
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: liveDeps,
-      ensureSingleFileSession: async () => {
-        candidate = { contentDir: '/loose', baseUrl: 'http://localhost:6010' };
-        return true;
-      },
-    });
-    const result = await handler({ file: '/loose/new.md' });
-    expect(result.structuredContent?.running).toBe(true);
-    expect(result.structuredContent?.url).toBe('http://localhost:6010/#/new');
-  });
-
-  test('boot-on-demand that never registers → running:false + ok-open hint', async () => {
-    const empty: OffCwdResolverDeps = {
-      discover: async () => [],
-      inspect: async () => null,
-      realpath: async (p) => p,
-    };
-    let called = false;
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: empty,
-      ensureSingleFileSession: async () => {
-        called = true;
-        return false;
-      },
-    });
-    const result = await handler({ file: '/loose/x.md' });
-    expect(called).toBe(true);
-    expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('gq open');
-  });
-
-  test('no ensureSingleFileSession dep (no spawn authority) → hint, no boot', async () => {
-    const empty: OffCwdResolverDeps = {
-      discover: async () => [],
-      inspect: async () => null,
-      realpath: async (p) => p,
-    };
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: empty,
-    });
-    const result = await handler({ file: '/loose/y.md' });
-    expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('gq open');
-  });
-  test('ensureSingleFileSession rejection → running:false + hint (not a tool error)', async () => {
-    const empty: OffCwdResolverDeps = {
-      discover: async () => [],
-      inspect: async () => null,
-      realpath: async (p) => p,
-    };
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: empty,
-      ensureSingleFileSession: async () => {
-        throw new Error('spawn boom');
-      },
-    });
-    const result = await handler({ file: '/loose/z.md' });
-    expect(result.isError).toBeUndefined();
-    expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('gq open');
-  });
-  test('relative file path is rejected (must be absolute)', async () => {
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG);
-    const result = await handler({ file: 'notes.md' });
-    expect(result.isError).toBe(true);
-    expect(result.content[0]?.text).toContain('absolute');
-  });
-  test('boot reports success but the session is not discoverable → falls back to the hint', async () => {
-    const empty: OffCwdResolverDeps = {
-      discover: async () => [],
-      inspect: async () => null,
-      realpath: async (p) => p,
-    };
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: empty,
-      ensureSingleFileSession: async () => true,
-    });
-    const result = await handler({ file: '/loose/gone.md' });
-    expect(result.isError).toBeUndefined();
-    expect(result.structuredContent?.running).toBe(false);
-    expect(result.content[0]?.text).toContain('gq open');
-  });
-  test('file branch honors a user-scoped autoOpen=false preference', async () => {
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: mockOffCwdDeps([
-        { contentDir: '/loose', baseUrl: 'http://127.0.0.1:6020' },
-      ]),
-      resolveUserAutoOpen: () => false,
-    });
-    const result = await handler({ file: '/loose/notes.md' });
-    expect(result.structuredContent?.running).toBe(true);
-    expect(result.structuredContent?.autoOpen).toBe(false);
-  });
-});
-
 describe('preview_url tool — names the running channel command', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -649,20 +479,6 @@ describe('preview_url tool — names the running channel command', () => {
     bindTestServerLock(cwd, 4321, ['http', 'ws']);
     const result = await captureRegistration(cwd)({ document: 'specs/foo/SPEC' });
     expect(result.content[0]?.text).toContain('Restart it with plain `gq-beta start`');
-  });
-
-  test('a Beta loose file without a session says gq-beta open', async () => {
-    vi.stubEnv('GITQUIRE_CHANNEL', 'beta');
-    const empty: OffCwdResolverDeps = {
-      discover: async () => [],
-      inspect: async () => null,
-      realpath: async (p) => p,
-    };
-    const handler = captureRegistration(temporaryProject('ok-pv-'), BASE_CONFIG, {
-      offCwdResolverDeps: empty,
-    });
-    const result = await handler({ file: '/loose/y.md' });
-    expect(result.content[0]?.text).toContain('`gq-beta open /loose/y.md` starts one');
   });
 
   test('Stable hints stay byte-identical', async () => {

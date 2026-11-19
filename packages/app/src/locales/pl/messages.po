@@ -1561,9 +1561,6 @@ msgstr "Zamknij nową kartę"
 msgid "Close others"
 msgstr "Zamknij pozostałe"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Zamknij ten podgląd, a następnie otwórz folder, aby przesłać pliki"
-
 msgid "Clusters"
 msgstr "Klastry"
 

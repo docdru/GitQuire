@@ -151,8 +151,6 @@ export interface BootServerOptions
     | 'detectGhAccounts'
     | 'tokenStore'
     | 'embeddingsKeyStore'
-    | 'singleDocRelPath'
-    | 'ephemeral'
     | 'configHomedirOverride'
     | 'watcherClock'
   > {
@@ -437,8 +435,6 @@ async function bootServerInner(
     detectGhAccounts: opts.detectGhAccounts,
     tokenStore: opts.tokenStore,
     embeddingsKeyStore: opts.embeddingsKeyStore,
-    singleDocRelPath: opts.singleDocRelPath,
-    ephemeral: opts.ephemeral,
     configHomedirOverride: opts.configHomedirOverride,
     watcherClock: opts.watcherClock,
   });
@@ -470,16 +466,14 @@ async function bootServerInner(
   })();
   let boundPort = opts.port ?? 0;
   const internalBaseUrl = (): string => `http://${mcpHost}:${boundPort}`;
-  const mcpHttpHandler = opts.ephemeral
-    ? undefined
-    : createMcpHttpHandler({
-        contentDir: opts.contentDir,
-        projectDir: opts.projectDir ?? opts.contentDir,
-        config: opts.config,
-        getServerUrl: () => internalBaseUrl(),
-        localApi: serverInstance.localApi,
-        log,
-      });
+  const mcpHttpHandler = createMcpHttpHandler({
+    contentDir: opts.contentDir,
+    projectDir: opts.projectDir ?? opts.contentDir,
+    config: opts.config,
+    getServerUrl: () => internalBaseUrl(),
+    localApi: serverInstance.localApi,
+    log,
+  });
 
   const httpServer = createHttpServer();
   httpServer.headersTimeout = 30_000;
@@ -538,7 +532,6 @@ async function bootServerInner(
     keepaliveGraceMs: opts.keepaliveGraceMs,
     contentAssetMiddleware,
     reactShellMiddleware,
-    ephemeral: opts.ephemeral,
   });
 
   let destroy: BootedServer['destroy'] = async () => {

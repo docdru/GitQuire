@@ -54,7 +54,7 @@ test('keeps the selected serving port owned until the app rig binds', async () =
     return originalClose.call(this, callback);
   };
 
-  const server = await createTestServer({ ephemeral: true });
+  const server = await createTestServer();
   Server.prototype.close = originalClose;
   const releasedAddressedPortDuringSetup = injected;
   await server.cleanup();

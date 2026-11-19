@@ -1561,9 +1561,6 @@ msgstr "إغلاق التبويب الجديد"
 msgid "Close others"
 msgstr "إغلاق الأخرى"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "أغلق هذه المعاينة، ثم افتح المجلد لرفع الملفات"
-
 msgid "Clusters"
 msgstr "التجمعات"
 

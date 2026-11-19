@@ -1557,9 +1557,6 @@ msgstr "Tutup tab baru"
 msgid "Close others"
 msgstr "Tutup yang lain"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Tutup pratinjau ini, lalu buka folder untuk mengunggah file"
-
 msgid "Clusters"
 msgstr "Klaster"
 

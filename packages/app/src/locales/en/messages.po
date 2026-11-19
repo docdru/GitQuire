@@ -1561,9 +1561,6 @@ msgstr "Close new tab"
 msgid "Close others"
 msgstr "Close others"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Close this preview, then open the folder to upload files"
-
 msgid "Clusters"
 msgstr "Clusters"
 

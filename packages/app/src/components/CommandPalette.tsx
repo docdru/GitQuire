@@ -93,7 +93,6 @@ import { emitLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { revealEditor } from '@/lib/reveal-editor';
 import { physicalSide, useChatHistorySide } from '@/lib/sidebar-side-store';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { useDocumentDirection } from '@/lib/use-document-direction';
 import { cn } from '@/lib/utils.ts';
 import { useViewMenuState } from '@/lib/view-menu-state-store';
@@ -245,7 +244,6 @@ export function computeVisibleSearchResults({
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const { t } = useLingui();
-  const singleFile = useSingleFileMode();
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const trimmedDeferredQuery = deferredQuery.trim();
@@ -585,7 +583,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     openExternalUrlViaHost(url);
   };
   const paletteCtx: PaletteCommandContext = {
-    singleFile,
     activeDocName,
     contextualTargetKind: projectContextualTargetKind(activeTarget),
     viewMenuState,

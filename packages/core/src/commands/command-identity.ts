@@ -6,7 +6,6 @@ export type ContextualTargetKind = 'doc' | 'folder' | 'asset' | 'project' | 'non
 
 export interface CommandAvailabilitySpec {
   readonly requiresTargetKinds?: readonly ContextualTargetKind[];
-  readonly singleFileHidden?: boolean;
   readonly requiresCanExpandAll?: boolean;
   readonly requiresCanCollapseAll?: boolean;
   readonly requiresActiveDoc?: boolean;
@@ -14,7 +13,6 @@ export interface CommandAvailabilitySpec {
 
 export interface CommandContext {
   readonly activeTargetKind: ContextualTargetKind;
-  readonly singleFile: boolean;
   readonly canExpandAll: boolean;
   readonly canCollapseAll: boolean;
   readonly hasActiveDoc: boolean;
@@ -24,7 +22,6 @@ export function evaluateCommandAvailability(
   spec: CommandAvailabilitySpec,
   ctx: CommandContext,
 ): boolean {
-  if (spec.singleFileHidden && ctx.singleFile) return false;
   if (spec.requiresCanExpandAll && !ctx.canExpandAll) return false;
   if (spec.requiresCanCollapseAll && !ctx.canCollapseAll) return false;
   if (spec.requiresActiveDoc && !ctx.hasActiveDoc) return false;
@@ -209,7 +206,7 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     labelKey: 'settings',
     keywords: ['preferences config', 'open'],
     shortcutId: 'settings',
-    availability: { singleFileHidden: true },
+    availability: {},
     palette: { group: 'project', visibility: 'always' },
     menu: [
       {
@@ -242,7 +239,7 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     menuActionId: 'new-from-template',
     labelKey: 'newFromTemplate',
     keywords: ['template', 'create', 'new'],
-    availability: { singleFileHidden: true },
+    availability: {},
     palette: { group: 'file', visibility: 'search-only' },
     menu: [{ section: 'file-create', order: 2, ellipsis: true }],
   },
@@ -294,7 +291,7 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
       'right',
       'position',
     ],
-    availability: { singleFileHidden: true },
+    availability: {},
     palette: { group: 'view', visibility: 'search-only' },
   },
   {
@@ -342,7 +339,7 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
       stateField: 'editorVisible',
       defaultVisible: true,
     },
-    availability: { singleFileHidden: true },
+    availability: {},
     palette: { group: 'view', visibility: 'search-only' },
     menu: [{ section: 'view-panels', order: 2 }],
   },

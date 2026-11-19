@@ -68,7 +68,6 @@ export function projectContextualTargetKind(
 }
 
 export interface PaletteCommandContext {
-  singleFile: boolean;
   activeDocName: string | null;
   contextualTargetKind: ContextualTargetKind;
   viewMenuState: ViewMenuState;
@@ -240,7 +239,6 @@ const STATE_AVAILABILITY: Readonly<
 function paletteCoreContext(ctx: PaletteCommandContext): CommandContext {
   return {
     activeTargetKind: ctx.contextualTargetKind,
-    singleFile: ctx.singleFile,
     canExpandAll: ctx.viewMenuState.canExpandAll !== false,
     canCollapseAll: ctx.viewMenuState.canCollapseAll !== false,
     hasActiveDoc: ctx.activeDocName !== null,

@@ -57,7 +57,6 @@ import {
   paneVisibilityStore,
 } from '@/lib/pane-visibility-store';
 import { revealEditorBeforeActing } from '@/lib/reveal-editor';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { useWorkspace } from '@/lib/use-workspace';
 import { setViewMenuState } from '@/lib/view-menu-state-store';
 import { AuthModal } from './AuthModal';
@@ -327,7 +326,6 @@ export function EditorPane() {
   const gitquireFeatures = useGitQuireFeatures();
   const chatPane = agentsPaneIsChat(gitquireFeatures);
   const agentsAvailable = chatPane;
-  const singleFile = useSingleFileMode();
   const workspace = useWorkspace();
   const belowMainBreakpoint = useSyncExternalStore(
     subscribeNarrowWorkspace,
@@ -345,10 +343,8 @@ export function EditorPane() {
   const initialExclusiveRef = useRef(exclusive);
   const layoutRestoreFocusHoldRef = useRef(false);
   const wasExclusiveRef = useRef(exclusive);
-  const editorToggleable = !singleFile;
   const [editorShown, setEditorShown] = useState(() => loadBoolPref(WEB_EDITOR_VISIBLE_KEY, true));
   const editorChosenSinceMountRef = useRef(false);
-  const editorVisible = !editorToggleable || editorShown;
   const narrowSessionKey =
     workspace === null ? null : narrowWorkspaceSessionKey(workspace.contentDir, 'web');
   useEffect(() => {
@@ -364,12 +360,12 @@ export function EditorPane() {
           lastInteractedPaneRef.current = stored.lastInteracted;
           narrowRecentPanesRef.current = stored.recent;
           narrowHiddenPanesRef.current = new Set(stored.hidden);
-          setNarrowSelection(singleFile && stored.selected === null ? 'editor' : stored.selected);
+          setNarrowSelection(stored.selected);
         }
       }
     }
     setReadyNarrowSessionKey(narrowSessionKey);
-  }, [narrowSessionKey, singleFile]);
+  }, [narrowSessionKey]);
   useEffect(() => {
     persistNarrowSessionForState(
       {
@@ -438,7 +434,7 @@ export function EditorPane() {
     }
     wasExclusiveRef.current = exclusive;
   }, [exclusive, agentsVisible]);
-  const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : editorVisible;
+  const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : editorShown;
   const effectiveAgentsVisible = exclusive ? narrowSelection === 'agents' : agentsVisible;
   const [placements, setPlacements] = useState<SessionPlacements>({
     agents: { container: null, isShowing: false },
@@ -490,10 +486,6 @@ export function EditorPane() {
     };
   }, [exclusive, selectPane]);
 
-  useEffect(() => {
-    if (exclusive && singleFile && narrowSelection === null) selectPane('editor');
-  }, [exclusive, singleFile, narrowSelection, selectPane]);
-
   const publishPaneVisibility = usePaneExtentPublisher({
     editorAreaRef,
     editorVisible: effectiveEditorVisible,
@@ -513,7 +505,6 @@ export function EditorPane() {
       }
       switch (pane) {
         case 'editor':
-          if (!editorToggleable) return;
           applyPaneRequest(pane, open);
           editorChosenSinceMountRef.current = true;
           setEditorShown(open);
@@ -526,7 +517,7 @@ export function EditorPane() {
           return assertNeverPaneId(pane);
       }
     });
-  }, [agentsAvailable, editorToggleable, exclusive, applyPaneRequest]);
+  }, [agentsAvailable, exclusive, applyPaneRequest]);
 
   const { projectConfig, projectLocalConfig, projectLocalSynced, projectSynced } =
     useConfigContext();
@@ -557,7 +548,6 @@ export function EditorPane() {
   }, [activeDocName]);
 
   const toggleEditorEvent = useEffectEvent(() => {
-    if (!editorToggleable) return;
     if (exclusive) {
       if (effectiveEditorVisible) hidePane('editor');
       else selectPane('editor');
@@ -596,9 +586,8 @@ export function EditorPane() {
   }, [agentsAvailable]);
 
   useEffect(() => {
-    if (!editorToggleable) return;
     saveBoolPref(WEB_EDITOR_VISIBLE_KEY, editorShown, true);
-  }, [editorToggleable, editorShown]);
+  }, [editorShown]);
 
   useEffect(() => {
     setViewMenuState({

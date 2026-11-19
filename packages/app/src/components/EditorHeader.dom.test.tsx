@@ -29,7 +29,6 @@ vi.doMock('@lingui/react/macro', () => ({
 
 let activeDocName: string | null = 'docs/notes';
 let sidebarState: 'expanded' | 'collapsed' = 'expanded';
-let singleFile = false;
 let gitSyncStatus: Partial<GitSyncStatus> | null = null;
 const syncToastsHookCalls: unknown[][] = [];
 const syncToastsHosts = { mounted: 0 };
@@ -39,10 +38,6 @@ vi.doMock('@/editor/DocumentContext', () => ({
   useDocumentContext: () => ({
     activeDocName,
   }),
-}));
-
-vi.doMock('@/lib/single-file-mode', () => ({
-  useSingleFileMode: () => singleFile,
 }));
 
 vi.doMock('@/components/ui/sidebar', () => ({
@@ -117,7 +112,6 @@ describe('EditorHeader runtime behavior', () => {
     cleanup();
     activeDocName = 'docs/notes';
     sidebarState = 'expanded';
-    singleFile = false;
     gitSyncStatus = null;
     syncToastsHookCalls.length = 0;
     syncToastsHosts.mounted = 0;
@@ -128,27 +122,6 @@ describe('EditorHeader runtime behavior', () => {
   test('exports the EditorHeader component', async () => {
     const mod = await import('./EditorHeader');
     expect(typeof mod.EditorHeader).toBe('function');
-  });
-
-  test('a single-file editor card owns document identity and its information control', async () => {
-    singleFile = true;
-    const { EditorHeader } = await import('./EditorHeader');
-    render(
-      <TooltipProvider delayDuration={0}>
-        <EditorHeader trailing={<button type="button">Show document information</button>} />
-      </TooltipProvider>,
-    );
-
-    const header = document.querySelector('[data-editor-header]') as HTMLElement;
-    const tabs = header.querySelector('[data-editor-header-tabs]') as HTMLElement;
-    const trailing = header.querySelector('[data-editor-header-trailing]') as HTMLElement;
-    expect(tabs.textContent).toContain('docs');
-    expect(tabs.textContent).toContain('notes');
-    expect(
-      trailing.contains(screen.getByRole('button', { name: 'Show document information' })),
-    ).toBe(true);
-    expect(header.querySelector('[data-testid="header-pane-buttons"]')).toBeNull();
-    expectVisualClassTokens(header.className, ['h-11']);
   });
 
   test('a project window tab row is a plain 44px row', async () => {
@@ -216,11 +189,6 @@ describe('EditorHeader runtime behavior', () => {
   test('document card headers leave sync status to the shared header', async () => {
     gitSyncStatus = { state: 'idle', conflictCount: 0, hasRemote: true };
 
-    await renderHeader();
-    expect(gitSyncStatusReads.count).toBe(0);
-
-    cleanup();
-    singleFile = true;
     await renderHeader();
     expect(gitSyncStatusReads.count).toBe(0);
   });

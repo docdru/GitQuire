@@ -1216,7 +1216,6 @@ interface ApiExtensionBaseOptions {
   assertContentSubtree?: (path: string) => void;
   getGeneratedIndexSettingsStatus?: () => GeneratedIndexSettingsStatus;
   setGeneratedIndexEnabled?: (enabled: boolean) => Promise<GeneratedIndexSettingsStatus>;
-  ephemeral?: boolean;
   serverInstanceId: string;
   getFileIndex: () => ReadonlyMap<string, FileIndexEntry>;
   getAttachmentFolderPath?: () => string;
@@ -1733,7 +1732,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     getLinterBaseConfig,
     getLinkAdvisoryPolicy,
     getProjectConfigEpoch,
-    ephemeral = false,
     linkPreviewFetch,
     getLinkPreviewsEnabled,
     resolveGitHubToken,
@@ -4537,7 +4535,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   const runApiPipeline = createApiRequestPipeline({
     log,
     policy: ingressPolicy,
-    ephemeral,
     table: apiRouteTable,
     dispatchMutation,
   });
@@ -4563,7 +4560,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   const configSystemRoutes = createConfigSystemRoutes({
     contentDir,
     projectDir,
-    ephemeral,
     log,
     ready,
     serverInstanceId,
@@ -4638,7 +4634,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     projectDir,
     homeDirOverride,
     savedThemeLockTimeoutMs,
-    ephemeral,
     log,
     searchService,
     linkPreviewFetch,
@@ -4740,7 +4735,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
   const folderTemplateRoutes = createFolderTemplateRoutes({
     contentDir,
     projectDir,
-    ephemeral,
     log,
     hocuspocus,
     sessionManager,
@@ -4870,7 +4864,6 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     createApiRequestPipeline({
       log,
       policy: ingressPolicy,
-      ephemeral,
       table: group.table,
       dispatchMutation,
     }),

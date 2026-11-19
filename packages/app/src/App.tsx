@@ -50,7 +50,6 @@ import { isExplicitInitialDocumentNavigation } from '@/lib/narrow-workspace-sess
 import { isOverlayLayerOpen } from '@/lib/overlay-layers';
 import { mark, ProfilerBoundary } from '@/lib/perf';
 import { revealEditor } from '@/lib/reveal-editor';
-import { SingleFileModeProvider, useSingleFileMode } from '@/lib/single-file-mode';
 import { consumeHashNavigationSuppression } from '@/lib/tab-session-restore-suppression';
 import { useServerKeepalive } from '@/lib/use-server-keepalive';
 import { isSettingsHashOpen, isSettingsShortcut, openSettings } from '@/lib/use-settings-route';
@@ -417,9 +416,7 @@ export function App() {
           <ConflictsProvider>
             <DocNoticesProvider>
               <PreviewTabsSettingsBridge>
-                <SingleFileModeProvider>
-                  <AppBody />
-                </SingleFileModeProvider>
+                <AppBody />
               </PreviewTabsSettingsBridge>
             </DocNoticesProvider>
           </ConflictsProvider>
@@ -431,7 +428,6 @@ export function App() {
 
 function AppBody() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const singleFile = useSingleFileMode();
   const appHeaderStyle: CSSProperties = {
     '--gq-app-header-height': APP_HEADER_HEIGHT,
   } as CSSProperties;
@@ -445,11 +441,11 @@ function AppBody() {
         <ValidationFreshness />
         <NavigationHandler />
         <NewItemShortcutHandler />
-        {!singleFile && <SettingsShortcutHandler />}
+        <SettingsShortcutHandler />
         <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
         <AppHeader onOpenSearch={() => setCommandPaletteOpen(true)} />
         <SidebarProvider className="h-[calc(100vh-var(--gq-app-header-height,0px))] min-h-[calc(100svh-var(--gq-app-header-height,0px))]">
-          <FileListHostProvider enabled={!singleFile} fileList={<FileSidebar />}>
+          <FileListHostProvider fileList={<FileSidebar />}>
             <div
               data-app-main=""
               className="relative flex w-full flex-1 flex-col ps-2 pe-2 pb-2 h-[calc(100vh-var(--gq-app-header-height,0px))]"
@@ -458,7 +454,7 @@ function AppBody() {
             </div>
           </FileListHostProvider>
         </SidebarProvider>
-        {!singleFile ? <DraftBar /> : null}
+        <DraftBar />
       </PageListProvider>
     </div>
   );

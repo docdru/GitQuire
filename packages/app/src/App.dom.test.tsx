@@ -38,7 +38,6 @@ let assetPaths = new Set<string>();
 let filePaths = new Set<string>();
 let openTabs: string[] = [];
 let loading = false;
-let singleFileMode = false;
 let tabSessionLoaded = true;
 let mergedConfig: { editor: { previewTabs: boolean } } | null = null;
 let fetchApiConfigMock = vi.fn(() =>
@@ -48,7 +47,6 @@ let fetchApiConfigMock = vi.fn(() =>
       collabUrl: null,
       previewUrl: null,
       port: 0,
-      singleFile: false,
     },
   }),
 );
@@ -149,13 +147,6 @@ vi.doMock('@/lib/api-config', () => ({
 
 vi.doMock('@/lib/use-server-keepalive', () => ({
   useServerKeepalive: () => {},
-}));
-
-vi.doMock('@/lib/single-file-mode', () => ({
-  SingleFileModeProvider: ({ children }: { children: ReactNode }) => (
-    <div data-testid="single-file-mode-provider">{children}</div>
-  ),
-  useSingleFileMode: () => singleFileMode,
 }));
 
 vi.doMock('@/components/ConnectingBanner', () => ({
@@ -262,7 +253,6 @@ describe('App runtime wiring', () => {
     filePaths = new Set();
     openTabs = [];
     loading = false;
-    singleFileMode = false;
     tabSessionLoaded = true;
     mergedConfig = null;
     fetchApiConfigMock = vi.fn(() =>
@@ -272,7 +262,6 @@ describe('App runtime wiring', () => {
           collabUrl: null,
           previewUrl: null,
           port: 0,
-          singleFile: false,
         },
       }),
     );
@@ -297,19 +286,6 @@ describe('App runtime wiring', () => {
     cleanup();
     __resetLocalMenuActionBusForTests();
     vi.restoreAllMocks();
-  });
-
-  describe('single-file chrome', () => {
-    test('single-file windows reserve the shared header height like ordinary windows', () => {
-      singleFileMode = true;
-      renderApp();
-
-      expect(screen.queryByTestId('file-sidebar')).toBeNull();
-      expectVisualClassTokens(appMain().className, [
-        'h-[calc(100vh-var(--gq-app-header-height,0px))]',
-      ]);
-      expectVisualClassTokensAbsent(appMain().className, ['h-screen']);
-    });
   });
 
   test('imports and mounts the app shell providers and core surfaces', () => {
@@ -900,14 +876,6 @@ describe('App runtime wiring', () => {
         'h-[calc(100vh-var(--gq-app-header-height,0px))]',
       ]);
       expectVisualClassTokensAbsent(appMain().className, ['overflow-hidden', 'rounded-e-xl']);
-    });
-
-    test('a single-file window shows the shared application header', () => {
-      singleFileMode = true;
-
-      renderApp();
-
-      expect(screen.getByRole('banner')).not.toBeNull();
     });
 
     test('its search button opens the command palette', () => {

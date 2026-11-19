@@ -20,15 +20,10 @@ import {
 
 const searchRender = vi.hoisted(() => ({ throws: false }));
 const shell = vi.hoisted(() => ({
-  singleFile: false,
   activeDocName: 'docs/notes' as string | null,
   activeTarget: { kind: 'doc' } as unknown,
   syncStatus: null as Partial<GitSyncStatus> | null,
   syncToastHosts: 0,
-}));
-
-vi.mock('@/lib/single-file-mode', () => ({
-  useSingleFileMode: () => shell.singleFile,
 }));
 
 vi.mock('@/editor/DocumentContext', () => ({
@@ -278,33 +273,11 @@ afterEach(() => {
   shell.activeTarget = { kind: 'doc' };
   shell.syncStatus = null;
   shell.syncToastHosts = 0;
-  shell.singleFile = false;
   __resetPaneVisibilityStoreForTests();
   vi.unstubAllGlobals();
 });
 
 describe('AppHeader', () => {
-  test('a narrow single-file header folds secondary actions while keeping the selector visible', async () => {
-    shell.singleFile = true;
-    publishPanes();
-    const restoreMetrics = mockHeaderMetrics(CRAMPED);
-    try {
-      renderHeader();
-      const trailing = trailingGroup();
-      const trigger = screen.getByTestId('header-overflow-actions-trigger');
-      const selector = screen.getByRole('group', { name: 'Panels' });
-      expect(trailing.contains(selector)).toBe(true);
-      expect(follows(trigger, selector)).toBe(true);
-      const panel = await openOverflowPanel();
-      expect(panel.contains(screen.getByRole('button', { name: 'Resources' }))).toBe(true);
-      expect(panel.querySelector('[data-testid="presence-bar"]')).not.toBeNull();
-      expect(panel.querySelector('[data-testid="sync-status-badge"]')).not.toBeNull();
-      expect(panel.contains(selector)).toBe(false);
-    } finally {
-      restoreMetrics();
-    }
-  });
-
   test('exposes a single banner landmark with an accessible name', () => {
     renderHeader();
 

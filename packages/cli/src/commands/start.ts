@@ -1,8 +1,6 @@
 import { existsSync as fsExistsSync, realpathSync } from 'node:fs';
-import { rm } from 'node:fs/promises';
 import type { Server as HttpServer } from 'node:http';
-import { tmpdir } from 'node:os';
-import { basename, dirname, resolve as pathResolve } from 'node:path';
+import { basename, resolve as pathResolve } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import {
   applyConfigOverlay,
@@ -10,22 +8,18 @@ import {
   DEFAULT_SERVER_HOST,
   type EnvConfigLayer,
   EnvVarError,
-  GQ_DIR,
   IDLE_SHUTDOWN_DURATION_RE,
   idleShutdownToMs,
   resolveEnvConfigLayer,
   resolveServerRuntimeConfig,
   type ServerRuntimeConfig,
 } from '@gitquire/core';
-import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import {
   type BootedServer,
   type Config,
-  EPHEMERAL_PROJECT_DIR_PREFIX,
   isProjectRoot,
   lockAdvertisesUi,
   type PinoLogger,
-  prepareSingleFileOpen,
   type ServerExitDetail,
   type ServerExitReason,
 } from '@gitquire/server';
@@ -138,76 +132,6 @@ export class GqDirMissingError extends Error {
   }
 }
 
-export class EphemeralProjectDirNotThrowawayError extends Error {
-  readonly projectDir: string;
-  constructor(projectDir: string) {
-    super(
-      `--project-dir must be a throwaway ${EPHEMERAL_PROJECT_DIR_PREFIX}* directory under the OS temp dir. ` +
-        `Refusing to write ephemeral session state into ${projectDir}. ` +
-        `Omit --project-dir to let ${currentCliCommandName()} start create (and clean up) its own.`,
-    );
-    this.name = 'EphemeralProjectDirNotThrowawayError';
-    this.projectDir = projectDir;
-  }
-}
-
-export function isReapableEphemeralProjectDir(
-  dir: string,
-  deps: { tmpdirFn?: () => string; realpathFn?: (path: string) => string } = {},
-): boolean {
-  const tmpdirFn = deps.tmpdirFn ?? tmpdir;
-  const realpathFn = deps.realpathFn ?? realpathSync;
-  const canonical = (path: string): string | null => {
-    try {
-      return realpathFn(path);
-    } catch (err) {
-      return (err as NodeJS.ErrnoException).code === 'ENOENT' ? pathResolve(path) : null;
-    }
-  };
-  const literal = pathResolve(dir);
-  let target: string | null;
-  try {
-    target = realpathFn(literal);
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      const parent = canonical(dirname(literal));
-      target = parent === null ? null : pathResolve(parent, basename(literal));
-    } else {
-      target = null;
-    }
-  }
-  if (target === null) return false;
-  const tmpRoot = canonical(tmpdirFn());
-  if (tmpRoot === null) return false;
-  return dirname(target) === tmpRoot && basename(target).startsWith(EPHEMERAL_PROJECT_DIR_PREFIX);
-}
-
-export function withEphemeralTempDirReap(
-  handler: () => Promise<void>,
-  projectDir: string,
-  rmFn: (dir: string) => Promise<void> = (dir) => rm(dir, { recursive: true, force: true }),
-): () => Promise<void> {
-  return async () => {
-    try {
-      await handler();
-    } finally {
-      if (isReapableEphemeralProjectDir(projectDir)) {
-        try {
-          await rmFn(projectDir);
-        } catch (err) {
-          process.stderr.write(
-            `[start] ephemeral temp dir reap failed for ${projectDir}: ${err instanceof Error ? err.message : String(err)}\n`,
-          );
-        }
-      } else {
-        process.stderr.write(
-          `[start] leaving ${projectDir} in place: only ${EPHEMERAL_PROJECT_DIR_PREFIX}* dirs under the OS temp dir are removed on ephemeral teardown\n`,
-        );
-      }
-    }
-  };
-}
-
 export function withIdleShutdownProcessExit(
   handler: () => Promise<void>,
   deps: {
@@ -274,8 +198,6 @@ interface BootStartServerOptions {
   log?: PinoLogger;
   serveContentAssets?: boolean;
   reactShellDistDir?: string;
-  singleFile?: string;
-  projectDir?: string;
 }
 
 export interface BootedStartServer {
@@ -295,70 +217,17 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
     opts.idleThresholdMs === undefined ? DEFAULT_IDLE_THRESHOLD_MS : opts.idleThresholdMs;
 
   const { existsSync, mkdirSync } = await import('node:fs');
-  const { basename, dirname, resolve } = await import('node:path');
-  const {
-    bootServer,
-    createEphemeralProjectDir,
-    getLogger,
-    resolveContentDir,
-    resolveLockDir,
-    seedEphemeralProjectDir,
-    waitForServerLockDrain,
-  } = await import('@gitquire/server');
+  const { bootServer, getLogger, resolveContentDir, resolveLockDir, waitForServerLockDrain } =
+    await import('@gitquire/server');
 
   const log = opts.log ?? getLogger('start');
 
-  const ephemeral = opts.singleFile !== undefined;
-  const ephemeralFile = ephemeral
-    ? prepareSingleFileOpen(opts.singleFile as string).canonicalFilePath
-    : undefined;
-  const ephemeralContentDir = ephemeralFile ? dirname(ephemeralFile) : undefined;
-  const ephemeralDocRelPath = ephemeralFile ? basename(ephemeralFile) : undefined;
-
-  let ephemeralProjectDir: string | undefined;
-  let ownsEphemeralProjectDir = false;
-  if (ephemeralContentDir !== undefined) {
-    if (opts.projectDir !== undefined) {
-      ephemeralProjectDir = opts.projectDir;
-      if (!isReapableEphemeralProjectDir(ephemeralProjectDir)) {
-        throw new EphemeralProjectDirNotThrowawayError(ephemeralProjectDir);
-      }
-      if (!existsSync(resolve(ephemeralProjectDir, GQ_DIR, 'config.yml'))) {
-        seedEphemeralProjectDir(ephemeralProjectDir, ephemeralContentDir);
-      }
-    } else {
-      ephemeralProjectDir = createEphemeralProjectDir(ephemeralContentDir);
-      ownsEphemeralProjectDir = true;
-    }
-  }
-  const reapOwnedEphemeralDir = async (): Promise<void> => {
-    if (!ownsEphemeralProjectDir || ephemeralProjectDir === undefined) return;
-    if (!isReapableEphemeralProjectDir(ephemeralProjectDir)) {
-      log.warn(
-        { ephemeralProjectDir },
-        '[start] refusing to reap self-provisioned ephemeral dir: no longer resolves to an ok-ephemeral-* temp dir',
-      );
-      return;
-    }
-    try {
-      await rm(ephemeralProjectDir, { recursive: true, force: true });
-    } catch (err) {
-      log.warn(
-        { err, ephemeralProjectDir },
-        '[start] failed to reap self-provisioned ephemeral temp dir',
-      );
-    }
-  };
-  const reapDirOnIdle = ephemeralProjectDir;
-
-  if (!ephemeral) {
-    if (!skipAutoInit && !isProjectRoot(cwd)) {
-      throw new GqDirMissingError(cwd);
-    }
+  if (!skipAutoInit && !isProjectRoot(cwd)) {
+    throw new GqDirMissingError(cwd);
   }
 
-  const contentDir = ephemeralContentDir ?? resolveContentDir(config, cwd);
-  if (!ephemeral && !existsSync(contentDir)) {
+  const contentDir = resolveContentDir(config, cwd);
+  if (!existsSync(contentDir)) {
     mkdirSync(contentDir, { recursive: true });
     log.info({ contentDir }, 'Created content directory');
   }
@@ -366,88 +235,54 @@ export async function bootStartServer(opts: BootStartServerOptions): Promise<Boo
   const tokenStore = makeLazyProbeTokenStore();
   const embeddingsKeyStore = makeLazyEmbeddingsKeyStore();
 
-  let booted: BootedServer;
-  try {
-    {
-      const drainLockDir = resolveLockDir(ephemeralProjectDir ?? cwd);
-      const drainWaitStartedAt = Date.now();
-      const drainOutcome = await waitForServerLockDrain(drainLockDir);
-      if (drainOutcome !== 'no-drain') {
-        log.info(
-          {
-            event: 'start-waited-for-draining-predecessor',
-            outcome: drainOutcome,
-            waitedMs: Date.now() - drainWaitStartedAt,
-            drainLockDir,
-          },
-          drainOutcome === 'released'
-            ? '[start] predecessor server finished draining — proceeding'
-            : '[start] predecessor server still draining after wait — proceeding to collide',
-        );
-      }
+  {
+    const drainLockDir = resolveLockDir(cwd);
+    const drainWaitStartedAt = Date.now();
+    const drainOutcome = await waitForServerLockDrain(drainLockDir);
+    if (drainOutcome !== 'no-drain') {
+      log.info(
+        {
+          event: 'start-waited-for-draining-predecessor',
+          outcome: drainOutcome,
+          waitedMs: Date.now() - drainWaitStartedAt,
+          drainLockDir,
+        },
+        drainOutcome === 'released'
+          ? '[start] predecessor server finished draining — proceeding'
+          : '[start] predecessor server still draining after wait — proceeding to collide',
+      );
     }
-
-    booted = await bootServer({
-      config,
-      contentDir,
-      projectDir: ephemeralProjectDir ?? cwd,
-      contentRoot: ephemeral ? undefined : config.content.dir,
-      port: opts.port,
-      host,
-      quiet: false,
-      detectGh,
-      detectGhAccounts,
-      tokenStore,
-      embeddingsKeyStore,
-      ...(ephemeral
-        ? {
-            ephemeral: true as const,
-            singleDocRelPath: ephemeralDocRelPath,
-            gitEnabled: false as const,
-            gitPreflight: () => ({
-              ok: true as const,
-              version: '0.0.0',
-              resolvedPath: 'git',
-              source: 'PATH' as const,
-            }),
-          }
-        : {}),
-      localOpCliArgs: [process.execPath, process.argv[1]],
-      idleShutdownMs: idleThresholdMs,
-      ...(opts.serverRuntime !== undefined ? { serverRuntime: opts.serverRuntime } : {}),
-      ...(opts.bind !== undefined ? { bind: opts.bind } : {}),
-      skipAutoInit: true,
-      idleShutdownHandler: (destroyServer) => {
-        const handler = destroyServer;
-        const reaped =
-          reapDirOnIdle !== undefined ? withEphemeralTempDirReap(handler, reapDirOnIdle) : handler;
-        return withIdleShutdownProcessExit(reaped, { log, exit: opts.idleExit });
-      },
-      log,
-      ...(opts.serveContentAssets !== undefined
-        ? { serveContentAssets: opts.serveContentAssets }
-        : {}),
-      ...(opts.reactShellDistDir ? { reactShellDistDir: opts.reactShellDistDir } : {}),
-    });
-  } catch (err) {
-    await reapOwnedEphemeralDir();
-    throw err;
   }
 
-  const innerDestroy = booted.destroy;
-  const destroy = ownsEphemeralProjectDir
-    ? async (...args: Parameters<typeof innerDestroy>): Promise<void> => {
-        try {
-          await innerDestroy(...args);
-        } finally {
-          await reapOwnedEphemeralDir();
-        }
-      }
-    : innerDestroy;
+  const booted: BootedServer = await bootServer({
+    config,
+    contentDir,
+    projectDir: cwd,
+    contentRoot: config.content.dir,
+    port: opts.port,
+    host,
+    quiet: false,
+    detectGh,
+    detectGhAccounts,
+    tokenStore,
+    embeddingsKeyStore,
+    localOpCliArgs: [process.execPath, process.argv[1]],
+    idleShutdownMs: idleThresholdMs,
+    ...(opts.serverRuntime !== undefined ? { serverRuntime: opts.serverRuntime } : {}),
+    ...(opts.bind !== undefined ? { bind: opts.bind } : {}),
+    skipAutoInit: true,
+    idleShutdownHandler: (destroyServer) =>
+      withIdleShutdownProcessExit(destroyServer, { log, exit: opts.idleExit }),
+    log,
+    ...(opts.serveContentAssets !== undefined
+      ? { serveContentAssets: opts.serveContentAssets }
+      : {}),
+    ...(opts.reactShellDistDir ? { reactShellDistDir: opts.reactShellDistDir } : {}),
+  });
 
   return {
     httpServer: booted.httpServer,
-    destroy,
+    destroy: booted.destroy,
     lockDir: booted.lockDir,
     contentDir,
     port: booted.port,
@@ -464,22 +299,7 @@ interface StartCommandOptions {
   idleShutdown?: string;
   serveContentAssets?: boolean;
   reactShellDistDir?: string;
-  singleFile?: string;
-  projectDir?: string;
   externalUrl?: string;
-}
-
-export function resolveStartConfig(
-  config: Config,
-  singleFile: string | undefined,
-  readUserConfig: () => Config = () =>
-    readConfigSafely({
-      absPath: resolveConfigPath('user', process.cwd()),
-      sideline: false,
-      warn: () => {},
-    }).value,
-): Config {
-  return singleFile !== undefined ? readUserConfig() : config;
 }
 
 export function resolveStartConsoleLevel(env: {
@@ -501,8 +321,7 @@ export function formatShutdownNotice(signal: NodeJS.Signals): string[] {
   return lines;
 }
 
-export async function runStartCommand(configArg: Config, opts: StartCommandOptions): Promise<void> {
-  const config = resolveStartConfig(configArg, opts.singleFile);
+export async function runStartCommand(config: Config, opts: StartCommandOptions): Promise<void> {
   const startConsoleLevel = resolveStartConsoleLevel(process.env);
   if (startConsoleLevel !== null) process.env.GITQUIRE_CONSOLE_LEVEL = startConsoleLevel;
 
@@ -613,16 +432,9 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
       ...(reactShellDistDir ? { reactShellDistDir } : {}),
       idleThresholdMs: idleShutdownToMs(opts.idleShutdown ?? runtime.idleShutdown),
       serverRuntime: runtime,
-      ...(opts.singleFile ? { singleFile: opts.singleFile } : {}),
-      ...(opts.projectDir ? { projectDir: opts.projectDir } : {}),
     });
   } catch (err) {
     if (err instanceof GqDirMissingError) {
-      console.error(error(err.message));
-      process.exit(1);
-    }
-
-    if (err instanceof EphemeralProjectDirNotThrowawayError) {
       console.error(error(err.message));
       process.exit(1);
     }
@@ -643,15 +455,6 @@ export async function runStartCommand(configArg: Config, opts: StartCommandOptio
     ) {
       console.error(error(err.message));
       process.exit(78);
-    }
-
-    if (
-      err instanceof serverModule.SingleFileNotFoundError ||
-      err instanceof serverModule.SingleFileNotAFileError ||
-      err instanceof serverModule.SingleFileNotMarkdownError
-    ) {
-      console.error(error(err.message));
-      process.exit(1);
     }
 
     if (
@@ -892,18 +695,6 @@ export function startCommand(getConfig: () => Config): Command {
       'Serve content assets from this server (now the default; kept for compatibility)',
     )
     .option('--react-shell-dist-dir <path>', 'Serve React shell from <path>')
-    .addOption(
-      new Option(
-        '--single-file <path>',
-        'No-project ephemeral single-file mode: scope the server to one markdown file (git + MCP off)',
-      ).hideHelp(),
-    )
-    .addOption(
-      new Option(
-        '--project-dir <dir>',
-        'Throwaway project root for --single-file (where ephemeral .gitquire/ state lives)',
-      ).hideHelp(),
-    )
     .option(
       '--external-url <url>',
       'Canonical external origin clients dial (sets server.externalUrl for this run) — its host joins the Host/Origin allowlists (CORS + external-Host admission). External exposure additionally requires consent (GITQUIRE_ALLOW_EXTERNAL=1 or server.allowExternal).',
@@ -923,11 +714,6 @@ export function startCommand(getConfig: () => Config): Command {
         process.stderr.write(
           "error: '--mode app' opened the desktop app, which GitQuire does not ship; run 'gq start' to serve the web editor\n",
         );
-        process.exit(2);
-      }
-
-      if (opts.projectDir !== undefined && opts.singleFile === undefined) {
-        process.stderr.write("error: option '--project-dir' requires '--single-file'\n");
         process.exit(2);
       }
 

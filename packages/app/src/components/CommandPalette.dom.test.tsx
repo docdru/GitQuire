@@ -182,24 +182,12 @@ vi.doMock('@/components/command-palette-tag-search', () => ({
   fetchDocsForTag: vi.fn(() => Promise.resolve([])),
 }));
 
-async function renderPalette({
-  docName = 'docs/active',
-  withSingleFileModeProvider = false,
-}: {
-  docName?: string | null;
-  withSingleFileModeProvider?: boolean;
-} = {}) {
+async function renderPalette({ docName = 'docs/active' }: { docName?: string | null } = {}) {
   activeDocName = docName;
   activeTarget = docName ? { kind: 'doc', docName } : null;
   const onOpenChange = vi.fn(() => {});
   const { CommandPalette } = await import('./CommandPalette');
-  const palette = <CommandPalette open={true} onOpenChange={onOpenChange} />;
-  if (withSingleFileModeProvider) {
-    const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
-    render(<SingleFileModeProvider>{palette}</SingleFileModeProvider>);
-  } else {
-    render(palette);
-  }
+  render(<CommandPalette open={true} onOpenChange={onOpenChange} />);
   await waitFor(() => expect(screen.getByRole('dialog')).not.toBeNull());
   return { onOpenChange };
 }

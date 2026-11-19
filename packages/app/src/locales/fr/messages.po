@@ -1561,9 +1561,6 @@ msgstr "Fermer le nouvel onglet"
 msgid "Close others"
 msgstr "Fermer les autres"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Fermez cet aperçu, puis ouvrez le dossier pour envoyer des fichiers"
-
 msgid "Clusters"
 msgstr "Groupes"
 

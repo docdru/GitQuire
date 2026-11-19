@@ -45,7 +45,7 @@ describe('content filter when the project and its content sit on different volum
   });
 
   function seedDownloads(): { projectDir: string; contentDir: string } {
-    const projectDir = join(projectVolume, 'ok-ephemeral-abc123');
+    const projectDir = join(projectVolume, 'project');
     const contentDir = join(contentVolume, 'Downloads');
     mkdirSync(projectDir, { recursive: true });
     mkdirSync(join(contentDir, 'hwi_828'), { recursive: true });
@@ -73,20 +73,4 @@ describe('content filter when the project and its content sit on different volum
       expect(filter.isPathIgnored('hwi_828/note.md')).toBe(false);
     },
   );
-
-  test.each([
-    ['sync', createContentFilter],
-    ['async', createContentFilterAsync],
-  ] as const)('%s factory opens a single file on another volume', async (_factory, create) => {
-    const { projectDir, contentDir } = seedDownloads();
-
-    const building = Promise.resolve().then(() =>
-      create({ projectDir, contentDir, singleDocRelPath: 'satellite_p1-10.md' }),
-    );
-    await expect(building).resolves.toBeDefined();
-    const filter = await building;
-
-    expect(filter.isExcluded('satellite_p1-10.md')).toBe(false);
-    expect(filter.isExcluded('hwi_828/note.md')).toBe(true);
-  });
 });

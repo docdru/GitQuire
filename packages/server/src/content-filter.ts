@@ -330,10 +330,6 @@ export function isSecretBearingFile(relativePath: string): boolean {
   return false;
 }
 
-function isSingleDocAncestorDir(relativeDir: string, singleDocRelPath: string): boolean {
-  return singleDocRelPath === relativeDir || singleDocRelPath.startsWith(`${relativeDir}/`);
-}
-
 /**
  * Consulted by both `isExcluded` and `isDirExcluded` so a walker pruning directories and a caller
  * classifying a single path agree (precedent #55).
@@ -341,13 +337,11 @@ function isSingleDocAncestorDir(relativeDir: string, singleDocRelPath: string): 
 function createDescendantProjectGate(
   projectDir: string,
   contentDir: string,
-  singleDocRelPath: string | undefined,
   isContentScopeExcluded?: (absolutePath: string) => boolean,
 ): {
   isInside: (relativePath: string, syncScope?: { pathBase: 'content' | 'project' }) => boolean;
   reset: () => void;
 } {
-  const enabled = singleDocRelPath === undefined;
   const cache = new Map<string, boolean>();
 
   function isRoot(absoluteDir: string): boolean {
@@ -365,7 +359,7 @@ function createDescendantProjectGate(
 
   return {
     isInside(relativePath: string, syncScope?: { pathBase: 'content' | 'project' }): boolean {
-      if (!enabled || relativePath === '') return false;
+      if (relativePath === '') return false;
       const base = syncScope?.pathBase === 'project' ? projectDir : contentDir;
       if (isContentScopeExcluded?.(resolve(base, relativePath))) return true;
       let prefix = base;
@@ -522,7 +516,6 @@ export interface ContentFilterOptions {
   projectDir: string;
   contentDir: string;
   isContentScopeExcluded?: (absolutePath: string) => boolean;
-  singleDocRelPath?: string;
   attachmentFolderPath?: string;
   inPlaceSkillDirs?: ReadonlySet<string>;
   skillRootPaths?: ReadonlySet<string>;
@@ -604,7 +597,7 @@ function createSkillRescanReporter(): { failed(err: unknown): void; succeeded():
 }
 
 export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
-  const { projectDir, contentDir, onAfterRebuild, singleDocRelPath } = opts;
+  const { projectDir, contentDir, onAfterRebuild } = opts;
   let inPlaceSkillDirs: ReadonlySet<string> = opts.inPlaceSkillDirs ?? new Set();
   const skillRescan = createSkillRescanReporter();
   let configuredAttachmentFolder = attachmentFolderShape(
@@ -614,7 +607,6 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
   const descendantProjects = createDescendantProjectGate(
     projectDir,
     contentDir,
-    singleDocRelPath,
     opts.isContentScopeExcluded,
   );
 
@@ -740,7 +732,6 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
   }
 
   const refreshDirCount = (): void => {
-    if (singleDocRelPath !== undefined) return;
     populateDirCount(contentDir, '', isIgnored, dirCount);
   };
 
@@ -785,14 +776,12 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
         (isSkillContentFile(relativePath) ||
           (isInPlaceSkillFile(relativePath, inPlaceSkillDirs) && !isIgnored(relativePath)))
       ) {
-        if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
         if (isSupportedDocFile(relativePath)) return false;
         const ext = extname(relativePath).slice(1).toLowerCase();
         return !LINKABLE_ASSET_EXTENSIONS.has(ext);
       }
 
       if (!opts?.bypassFilters && isTemplateContentFile(relativePath)) {
-        if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
         return false;
       }
 
@@ -802,15 +791,12 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
         isShareableOkArtifact(syncProjectRelPath(relativePath, opts.syncScope)) &&
         !isIgnored(relativePath, opts.syncScope)
       ) {
-        if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
         return false;
       }
 
       if (pathHasAlwaysSkipSegment(relativePath, opts?.showOk)) return true;
 
       if (isAlwaysSkipFile(relativePath)) return true;
-
-      if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
 
       if (opts?.bypassFilters) {
         return opts.respectOkignore === true && isOkIgnored(relativePath);
@@ -852,9 +838,6 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
       )
         return false;
       if (pathHasAlwaysSkipSegment(relativePath, opts?.showOk)) return true;
-      if (singleDocRelPath !== undefined) {
-        return !isSingleDocAncestorDir(relativePath, singleDocRelPath);
-      }
       if (opts?.bypassFilters) {
         return (
           opts.respectOkignore === true &&
@@ -979,9 +962,7 @@ export function createContentFilter(opts: ContentFilterOptions): ContentFilter {
           try {
             const counts = buildPatternState();
             dirCount.clear();
-            if (singleDocRelPath === undefined) {
-              await populateDirCountYielding(contentDir, isIgnored, dirCount);
-            }
+            await populateDirCountYielding(contentDir, isIgnored, dirCount);
 
             const durationMs = Date.now() - startedAt;
             span.setAttributes({
@@ -1260,7 +1241,7 @@ async function initContentDirStateAsync(
 }
 
 export async function createContentFilterAsync(opts: ContentFilterOptions): Promise<ContentFilter> {
-  const { projectDir, contentDir, onAfterRebuild, singleDocRelPath } = opts;
+  const { projectDir, contentDir, onAfterRebuild } = opts;
   let inPlaceSkillDirs: ReadonlySet<string> = opts.inPlaceSkillDirs ?? new Set();
   const skillRescan = createSkillRescanReporter();
   let configuredAttachmentFolder = attachmentFolderShape(
@@ -1270,7 +1251,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
   const descendantProjects = createDescendantProjectGate(
     projectDir,
     contentDir,
-    singleDocRelPath,
     opts.isContentScopeExcluded,
   );
 
@@ -1284,7 +1264,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
   const dirCount = new Map<string, number>();
 
   const refreshDirCount = (): void => {
-    if (singleDocRelPath !== undefined) return;
     populateDirCount(contentDir, '', isIgnored, dirCount);
   };
 
@@ -1371,18 +1350,16 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
     }
 
     const newDirCount = new Map<string, number>();
-    if (singleDocRelPath === undefined) {
-      await initContentDirStateAsync(
-        contentDir,
-        '',
-        projectDir,
-        newIg,
-        newOkignoreIg,
-        contentRelPrefix,
-        contentOutsideProject,
-        newDirCount,
-      );
-    }
+    await initContentDirStateAsync(
+      contentDir,
+      '',
+      projectDir,
+      newIg,
+      newOkignoreIg,
+      contentRelPrefix,
+      contentOutsideProject,
+      newDirCount,
+    );
 
     ig = newIg;
     okignoreIg = newOkignoreIg;
@@ -1416,13 +1393,11 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
         (isSkillContentFile(relativePath) ||
           (isInPlaceSkillFile(relativePath, inPlaceSkillDirs) && !isIgnored(relativePath)))
       ) {
-        if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
         if (isSupportedDocFile(relativePath)) return false;
         const skillExt = extname(relativePath).slice(1).toLowerCase();
         return !LINKABLE_ASSET_EXTENSIONS.has(skillExt);
       }
       if (!opts?.bypassFilters && isTemplateContentFile(relativePath)) {
-        if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
         return false;
       }
       if (
@@ -1431,12 +1406,10 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
         isShareableOkArtifact(syncProjectRelPath(relativePath, opts.syncScope)) &&
         !isIgnored(relativePath, opts.syncScope)
       ) {
-        if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
         return false;
       }
       if (pathHasAlwaysSkipSegment(relativePath, opts?.showOk)) return true;
       if (isAlwaysSkipFile(relativePath)) return true;
-      if (singleDocRelPath !== undefined) return relativePath !== singleDocRelPath;
       if (opts?.bypassFilters) {
         return opts.respectOkignore === true && isOkIgnored(relativePath);
       }
@@ -1472,9 +1445,6 @@ export async function createContentFilterAsync(opts: ContentFilterOptions): Prom
       )
         return false;
       if (pathHasAlwaysSkipSegment(relativePath, opts?.showOk)) return true;
-      if (singleDocRelPath !== undefined) {
-        return !isSingleDocAncestorDir(relativePath, singleDocRelPath);
-      }
       if (opts?.bypassFilters) {
         return (
           opts.respectOkignore === true &&

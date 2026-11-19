@@ -2,7 +2,6 @@ import type { DocNoticeWire } from '@gitquire/core/schemas/api';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { DocNoticesProvider } from '@/hooks/use-doc-notices';
-import { SingleFileModeProvider } from '@/lib/single-file-mode';
 import { SettingsConfigNotices } from './SettingsConfigNotices';
 
 const AT = '2026-10-20T12:00:00.000Z';
@@ -60,11 +59,9 @@ const onDismissFocus = vi.fn();
 
 function renderSettingsNotices() {
   return render(
-    <SingleFileModeProvider>
-      <DocNoticesProvider>
-        <SettingsConfigNotices onDismissFocus={onDismissFocus} />
-      </DocNoticesProvider>
-    </SingleFileModeProvider>,
+    <DocNoticesProvider>
+      <SettingsConfigNotices onDismissFocus={onDismissFocus} />
+    </DocNoticesProvider>,
   );
 }
 
