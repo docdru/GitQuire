@@ -736,8 +736,8 @@ msgstr "Accept incoming version for conflict {0}"
 msgid "Accept their deletion"
 msgstr "Accept their deletion"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
 
 msgid "Access token"
 msgstr "Access token"
@@ -1881,9 +1881,6 @@ msgstr "Copying..."
 
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "Could not access the saved API key. Check the local credential files, then try again."
-
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
 
 msgid "Could not complete delete"
 msgstr "Could not complete delete"
@@ -6151,9 +6148,6 @@ msgstr "Saved as {saved}."
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Saved as <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "Saved themes couldn’t load. The last available theme list is still shown."
 
@@ -7248,9 +7242,6 @@ msgstr "The stored token is missing the permissions this host needs to push."
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
 
 msgid "The template's filename (without `.md`)."
 msgstr "The template's filename (without `.md`)."

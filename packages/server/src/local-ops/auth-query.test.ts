@@ -277,7 +277,7 @@ describe('runAuthReposSubprocess', () => {
     const result = await runAuthReposSubprocess({
       cli: okCli(
         fixtureCli(`
-        process.stderr.write('[auth] token storage: OS keychain\\nNot logged in to github.com\\n');
+        process.stderr.write('Not logged in to github.com\\n');
         process.exit(1);
       `),
       ),
@@ -291,10 +291,7 @@ describe('runAuthReposSubprocess', () => {
 
   test.each([
     ['a bare signed-out sentence', 'Not logged in to github.com\\n'],
-    [
-      'a file-backend storage banner ahead of the signed-out sentence',
-      '[auth] token storage: file (~/.gitquire/auth.yml) — OS keychain unavailable: keyring init failed\\nNot logged in to github.com\\n',
-    ],
+    ['a signed-out sentence with surrounding blank lines', '\\nNot logged in to github.com\\n\\n'],
   ])('still flags %s as unauthenticated', async (_label, stderr) => {
     const result = await runAuthReposSubprocess({
       cli: okCli(
@@ -315,7 +312,7 @@ describe('runAuthReposSubprocess', () => {
     const result = await runAuthReposSubprocess({
       cli: okCli(
         fixtureCli(`
-        process.stderr.write('[auth] token storage: file (~/.gitquire/auth.yml) — OS keychain unavailable: keyring init failed\\n[auth] Failed to parse ~/.gitquire/auth.yml: bad indentation at line 2. Starting with empty credentials.\\nNot logged in to github.com\\n');
+        process.stderr.write('[auth] Failed to parse ~/.gitquire/auth.yml: bad indentation at line 2. Starting with empty credentials.\\nNot logged in to github.com\\n');
         process.exit(1);
       `),
       ),

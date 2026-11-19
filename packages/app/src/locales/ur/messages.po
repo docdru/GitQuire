@@ -736,8 +736,8 @@ msgstr "کنفلکٹ {0} کے لیے آنے والا ورژن قبول کریں"
 msgid "Accept their deletion"
 msgstr "ان کا حذف قبول کریں"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "محفوظ API کلید تک رسائی کا وقت ختم ہو گیا۔ کریڈینشل اسٹور کا عمل مکمل ہونے کا انتظار کریں، پھر دوبارہ کوشش کریں۔"
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "رسائی ٹوکن"
@@ -1881,9 +1881,6 @@ msgstr "نقل کیا جا رہا ہے..."
 
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "محفوظ API کلید تک رسائی نہیں ہو سکی۔ مقامی کریڈینشل فائلیں چیک کریں، پھر دوبارہ کوشش کریں۔"
-
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "محفوظ API کلید تک رسائی نہیں ہو سکی۔ سسٹم کا کریڈینشل اسٹور ان لاک کریں یا مقامی کریڈینشل فائلیں چیک کریں، پھر دوبارہ کوشش کریں۔"
 
 msgid "Could not complete delete"
 msgstr "حذف مکمل نہیں ہو سکا"
@@ -6151,9 +6148,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "<0>{slug}.md</0> کے نام سے محفوظ ہوا"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "محفوظ کلیدوں میں تضاد ہے۔ اس پروجیکٹ اور اینڈ پوائنٹ کے لیے متبادل کلید درج کریں۔"
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "محفوظ شدہ تھیمز لوڈ نہیں ہو سکیں۔ آخری دستیاب تھیم فہرست اب بھی دکھائی جا رہی ہے۔"
 
@@ -7248,9 +7242,6 @@ msgstr "محفوظ ٹوکن میں وہ اجازتیں نہیں ہیں جو اس
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "وہ مطابقت پذیری موڈ جس سے ساتھی اس پروجیکٹ کو پہلی بار کھولنے پر شروع کرتے ہیں۔ یہ پروجیکٹ کی GitQuire ترتیبات میں محفوظ ہوتا ہے، اس لیے یہ ان تک صرف تب پہنچتا ہے جب نیچے کنفیگ کا اشتراک مشترک پر سیٹ ہو۔"
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "سسٹم کا کریڈینشل اسٹور دستیاب نہیں ہے۔ یہ کلید پروجیکٹ سے باہر محدود اجازتوں والی فائل میں محفوظ ہے۔"
 
 msgid "The template's filename (without `.md`)."
 msgstr "ٹیمپلیٹ کی فائل کا نام (`.md` کے بغیر)۔"

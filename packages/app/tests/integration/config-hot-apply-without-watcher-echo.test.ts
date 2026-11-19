@@ -2,27 +2,6 @@ import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
-import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
-
-const keyring = vi.hoisted(() => new Map<string, string>());
-vi.mock('@napi-rs/keyring', () => ({
-  AsyncEntry: class {
-    private readonly id: string;
-    constructor(service: string, account: string) {
-      this.id = JSON.stringify([service, account]);
-    }
-    async getPassword() {
-      return keyring.get(this.id) ?? null;
-    }
-    async setPassword(value: string) {
-      keyring.set(this.id, value);
-    }
-    async deletePassword() {
-      return keyring.delete(this.id);
-    }
-  },
-}));
-
 import {
   bindConfigDoc,
   CONFIG_DOC_NAME_PROJECT,
@@ -30,6 +9,7 @@ import {
   type ConfigBinding,
 } from '@gitquire/core';
 import { HocuspocusProvider } from '@hocuspocus/provider';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 import {
   createSyncWiredTestServer,

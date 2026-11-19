@@ -87,7 +87,7 @@ GitQuire fetches and pushes changes using plain Git operations, so syncing will 
 
 <Tab>
 
-If you are logged in with the GitHub CLI, GitQuire will use those credentials for GitHub operations. If not, you can complete device authentication to generate an OAuth token. GitQuire stores this token in the keychain and reuses it for syncing, cloning, and publishing.
+If you are logged in with the GitHub CLI, GitQuire will use those credentials for GitHub operations. If not, you can complete device authentication to generate an OAuth token. GitQuire stores this token in `~/.gitquire/auth.yml` inside the container and reuses it for syncing, cloning, and publishing.
 
 Manage the connection from **Settings → Git**. **Connect GitHub** authorizes GitQuire to browse and sync your repositories; **Disconnect** clears GitQuire's GitHub token only. From a terminal, the [`gq auth`](/docs/reference/cli) subcommands manage the same credentials: `gq auth signout` matches **Disconnect**, `gq auth pat` stores a Personal Access Token when device authentication isn't an option, and `--host` targets GitHub Enterprise.
 
@@ -111,7 +111,7 @@ By default sync runs with whatever credentials `git` has access to. If your remo
 gq auth token --host <hostname> --username <username>
 ```
 
-This command asks for the token and stores it in your operating system's credential store. The host is matched without regard to case, and `:443` is the same as no port. Once set, GitQuire's sync uses this username and token, ahead of any credential git has saved for that host, in every project whose `https:` remote is on that host. That holds while GitQuire is running (the desktop app or `gq start`); `gq sync`, `gq pull` and `gq push` with no server running keep using git's own credentials. The same configuration is available from **Settings → Git → Other Git hosts**. To remove a token, run `gq auth signout --host <hostname>`.
+This command asks for the token and stores it in `~/.gitquire/auth.yml` (mode `0600`) inside the container. That folder is not part of the `/data` volume, so the token does not survive replacing the container. The host is matched without regard to case, and `:443` is the same as no port. Once set, GitQuire's sync uses this username and token, ahead of any credential git has saved for that host, in every project whose `https:` remote is on that host. That holds while GitQuire is running (`gq start`); `gq sync`, `gq pull` and `gq push` with no server running keep using git's own credentials. The same configuration is available from **Settings → Git → Other Git hosts**. To remove a token, run `gq auth signout --host <hostname>`.
 
 </Tab>
 

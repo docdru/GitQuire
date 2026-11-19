@@ -1,17 +1,14 @@
 import type { Readable, Writable } from 'node:stream';
 import { gitCredentialHostKey } from '@gitquire/core/constants/github';
 import type { Logger as PinoLoggerInstance } from 'pino';
-import type { TokenStore, TokenStoreDiagnostics } from '../../auth/token-store.ts';
-
-type KeychainReadInfo = Parameters<NonNullable<TokenStoreDiagnostics['onKeychainRead']>>[0];
+import type { TokenStore } from '../../auth/token-store.ts';
 
 export interface CredentialGetLogContext {
   log?: PinoLoggerInstance;
-  getDiag?: () => KeychainReadInfo | undefined;
 }
 
 export interface GitCredentialGetContext {
-  getTokenStore: (diag?: TokenStoreDiagnostics) => Promise<TokenStore>;
+  getTokenStore: () => Promise<TokenStore>;
   log?: PinoLoggerInstance;
 }
 
@@ -20,21 +17,8 @@ export async function getGitCredential({
   log,
 }: GitCredentialGetContext): Promise<number> {
   try {
-    let lastKeychainRead: KeychainReadInfo | undefined;
-    const store = await getTokenStore({
-      onKeychainRead: (info) => {
-        lastKeychainRead = info;
-      },
-      onBackendSelected: (info) => {
-        if (info.backend === 'file' && info.reason) {
-          log?.warn({ backend: 'file', reason: info.reason }, '[auth] token storage fallback');
-        }
-      },
-    });
-    return await handleCredentialGet(process.stdin, process.stdout, store, {
-      log,
-      getDiag: () => lastKeychainRead,
-    });
+    const store = await getTokenStore();
+    return await handleCredentialGet(process.stdin, process.stdout, store, { log });
   } catch (err) {
     log?.error({ err }, '[auth] git-credential get: unexpected error');
     return 1;
@@ -87,15 +71,9 @@ export async function handleCredentialGet(
   }
 
   const entry = (await tokenStore.get(key)) ?? (key === host ? null : await tokenStore.get(host));
-  const diag = ctx?.getDiag?.();
-  const outcome = entry != null ? 'found' : (diag?.kind ?? 'absent');
+  const outcome = entry != null ? 'found' : 'absent';
   if (ctx?.log) {
-    const fields = {
-      host,
-      outcome,
-      backend: tokenStore.backend,
-      ...(diag?.error ? { keychainError: diag.error } : {}),
-    };
+    const fields = { host, outcome, backend: tokenStore.backend };
     if (outcome === 'found') ctx.log.debug(fields, '[auth] git-credential get');
     else ctx.log.warn(fields, '[auth] git-credential get');
   }

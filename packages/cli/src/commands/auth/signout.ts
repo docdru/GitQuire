@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { authFileDisplayPath, clearTokenFromAllBackends } from '../../auth/token-store.ts';
+import { authFileDisplayPath, clearStoredToken } from '../../auth/token-store.ts';
 import { resolveSignoutHost } from './validate-host.ts';
 
 interface SignoutOptions {
@@ -8,20 +8,13 @@ interface SignoutOptions {
 
 async function runSignout(opts: SignoutOptions): Promise<void> {
   const { host } = opts;
-  const { touched } = await clearTokenFromAllBackends(host);
-
-  if (touched.length === 0) {
+  if (!(await clearStoredToken(host))) {
     process.stderr.write(`Not signed in to ${host}\n`);
     return;
   }
 
   process.stderr.write(`✓ Signed out from ${host}\n`);
-  if (touched.includes('keychain')) {
-    process.stderr.write(`  cleared from OS keychain\n`);
-  }
-  if (touched.includes('file')) {
-    process.stderr.write(`  cleared from ${authFileDisplayPath()}\n`);
-  }
+  process.stderr.write(`  cleared from ${authFileDisplayPath()}\n`);
 }
 
 export function signoutCommand(): Command {

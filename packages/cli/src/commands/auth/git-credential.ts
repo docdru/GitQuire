@@ -1,7 +1,7 @@
 import { flushFileLogger } from '@gitquire/server';
 import { Command } from 'commander';
 import type { Logger as PinoLoggerInstance } from 'pino';
-import type { TokenStore, TokenStoreDiagnostics } from '../../auth/token-store.ts';
+import type { TokenStore } from '../../auth/token-store.ts';
 import { getGitCredential } from './git-credential-get.ts';
 import {
   GIT_CREDENTIAL_OPERATIONS,
@@ -16,7 +16,7 @@ const OPERATION_DESCRIPTIONS: Record<GitCredentialOperation, string> = {
 };
 
 export function gitCredentialCommand(
-  getTokenStore: (diag?: TokenStoreDiagnostics) => Promise<TokenStore>,
+  getTokenStore: () => Promise<TokenStore>,
   getLog?: () => PinoLoggerInstance | undefined,
 ): Command {
   const cmd = new Command('git-credential');

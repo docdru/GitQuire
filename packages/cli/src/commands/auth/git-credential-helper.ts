@@ -6,7 +6,7 @@ import { getGitCredential } from './git-credential-get.ts';
 export async function runGitCredentialGet(): Promise<number> {
   const log = initCliLogger({ command: 'auth', cwd: process.cwd() });
   const exitCode = await getGitCredential({
-    getTokenStore: (diag) => createTokenStore(undefined, diag),
+    getTokenStore: () => createTokenStore(),
     log,
   });
   await flushFileLogger(log);

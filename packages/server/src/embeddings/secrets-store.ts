@@ -11,11 +11,8 @@ import {
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import {
-  currentDesktopProduct,
-  DEFAULT_EMBEDDINGS_BASE_URL,
-  GQ_USER_HOME_SECRETS_FILE,
-} from '@gitquire/core';
+import { DatabaseSync } from 'node:sqlite';
+import { DEFAULT_EMBEDDINGS_BASE_URL, GQ_USER_HOME_SECRETS_FILE } from '@gitquire/core';
 import { okUserHomeDir } from '@gitquire/core/server';
 import { parse as yamlParse, stringify as yamlStringify } from 'yaml';
 import {
@@ -27,11 +24,6 @@ import {
 import { sleepSyncMs } from '../sleep-sync.ts';
 import { EmbeddingsSecretStoreError } from './credential-errors.ts';
 import { normalizeProviderId } from './embedder.ts';
-import {
-  createKeychainEmbeddingsStore,
-  type EmbeddingsNativeStore,
-  withEmbeddingsLock,
-} from './keychain-embeddings-store.ts';
 
 const DEFAULT_ENDPOINT_ID = normalizeProviderId(DEFAULT_EMBEDDINGS_BASE_URL);
 
@@ -42,20 +34,8 @@ const LEGACY_KEY_FIELD = 'embeddings';
 const PROJECTS_FIELD = 'embeddings_projects';
 type ProjectsMap = Record<string, Record<string, string>>;
 
-export { EmbeddingsSecretStoreError } from './credential-errors.ts';
-
-export const EMBEDDINGS_STORE_TIMEOUT_MS = 2000;
-
-export function isUnavailableLinuxKeyring(error: unknown, platform: NodeJS.Platform): boolean {
-  if (platform !== 'linux' || !(error instanceof Error) || error.name !== 'Error') return false;
-  if ((error as Error & { code?: unknown }).code !== 'GenericFailure') return false;
-  return (
-    error.message ===
-      'Platform failure: DBus error: Using X11 for dbus-daemon autolaunch was disabled at compile time, set your DBUS_SESSION_BUS_ADDRESS instead' ||
-    error.message ===
-      'Platform failure: DBus error: The name org.freedesktop.secrets was not provided by any .service files'
-  );
-}
+const EMBEDDINGS_STORE_TIMEOUT_MS = 2000;
+const EMBEDDINGS_LOCK_WAIT_MS = 1500;
 
 export type EmbeddingsKeySource = 'project' | 'file' | 'env' | null;
 
@@ -94,16 +74,12 @@ export interface EmbeddingsKeyReader {
 }
 
 export interface EmbeddingsSecretStore extends EmbeddingsKeyReader {
-  readonly backend: 'file' | 'keyring';
+  readonly backend: 'file';
   setForProject(projectDir: string, baseUrl: string, key: string): Promise<void>;
   clearForProject(projectDir: string, baseUrl: string): Promise<boolean>;
   clearAllForProject(projectDir: string): Promise<boolean>;
   listProjects(): Promise<EmbeddingsProjectListing[]>;
-  clearAll(): Promise<{ touched: Array<'file' | 'keychain'> }>;
-}
-
-export interface EmbeddingsMigrationStore extends EmbeddingsSecretStore {
-  migrateStoredProject(projectKey: string, endpoint: string): Promise<boolean>;
+  clearAll(): Promise<{ touched: Array<'file'> }>;
 }
 
 function keyHint(key: string | null): string | null {
@@ -113,7 +89,7 @@ function keyHint(key: string | null): string | null {
 const LOCK_TIMEOUT_MS = 2000;
 const LOCK_STALE_MS = 10_000;
 
-export class FileEmbeddingsBackend implements EmbeddingsMigrationStore {
+export class FileEmbeddingsBackend implements EmbeddingsSecretStore {
   readonly backend = 'file' as const;
   private readonly secretsFile: string;
 
@@ -346,144 +322,84 @@ export class FileEmbeddingsBackend implements EmbeddingsMigrationStore {
     }));
     return Promise.resolve(listing);
   }
+}
 
-  migrateStoredProject(): Promise<boolean> {
-    return Promise.resolve(false);
+async function withEmbeddingsLock<T>(
+  secretsFile: string,
+  fn: () => Promise<T>,
+  signal?: AbortSignal,
+): Promise<T> {
+  signal?.throwIfAborted();
+  const lockPath = `${secretsFile}.embeddings-lock.sqlite`;
+  let db: DatabaseSync;
+  try {
+    tracedMkdirSync(dirname(secretsFile), { recursive: true, mode: 0o700 });
+    db = new DatabaseSync(lockPath);
+  } catch (error) {
+    throw new EmbeddingsSecretStoreError('file_access', 'lock', error);
+  }
+  try {
+    try {
+      chmodSync(lockPath, 0o600);
+      db.exec('PRAGMA busy_timeout = 0');
+    } catch (error) {
+      throw new EmbeddingsSecretStoreError('file_access', 'lock', error);
+    }
+    const deadline = Date.now() + EMBEDDINGS_LOCK_WAIT_MS;
+    for (;;) {
+      signal?.throwIfAborted();
+      try {
+        db.exec('BEGIN EXCLUSIVE');
+        break;
+      } catch (error) {
+        if ((error as { errcode?: number }).errcode !== 5)
+          throw new EmbeddingsSecretStoreError('file_access', 'lock', error);
+        if (Date.now() >= deadline)
+          throw new EmbeddingsSecretStoreError('lock_timeout', 'lock', error);
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+    }
+    try {
+      signal?.throwIfAborted();
+      return await fn();
+    } finally {
+      db.exec('ROLLBACK');
+    }
+  } finally {
+    db.close();
   }
 }
 
-export function createEmbeddingsSecretStore(
-  secretsFile?: string,
-  native?: EmbeddingsNativeStore,
-  initialize?: () => Promise<EmbeddingsNativeStore | null>,
-): EmbeddingsMigrationStore {
+export function createEmbeddingsSecretStore(secretsFile?: string): EmbeddingsSecretStore {
   const path = secretsFile ?? secretsFilePath();
-  let backend: 'file' | 'keyring' = 'keyring';
-  let loading: Promise<EmbeddingsNativeStore | null> | undefined;
-  const load = () => {
-    if (loading) return loading;
-    const attempt = (async () => {
-      if (native) return native;
-      if (initialize) {
-        try {
-          return await initialize();
-        } catch (error) {
-          if (error instanceof EmbeddingsSecretStoreError) throw error;
-          throw new EmbeddingsSecretStoreError('native_access', 'initialize', error);
-        }
-      }
-      let AsyncEntry: typeof import('@napi-rs/keyring').AsyncEntry;
-      try {
-        ({ AsyncEntry } = await import('@napi-rs/keyring'));
-      } catch (error) {
-        if (error instanceof EmbeddingsSecretStoreError) throw error;
-        throw new EmbeddingsSecretStoreError('native_access', 'load', error);
-      }
-      const service = `${currentDesktopProduct().keyringService}-embeddings`;
-      const entry = (account: string) =>
-        new AsyncEntry(service, account, { linux: { store: 'secret-service' } });
-      try {
-        entry('__probe__');
-      } catch (error) {
-        if (isUnavailableLinuxKeyring(error, process.platform)) return null;
-        if (error instanceof EmbeddingsSecretStoreError) throw error;
-        throw new EmbeddingsSecretStoreError('native_access', 'initialize', error);
-      }
-      return {
-        get: async (account) => (await entry(account).getPassword()) ?? null,
-        set: (account, key) => entry(account).setPassword(key),
-        clear: async (account) => {
-          await entry(account).deletePassword();
-        },
-      } satisfies EmbeddingsNativeStore;
-    })();
-    loading = attempt;
-    void attempt.then(
-      (value) => {
-        if (value === null && loading === attempt) loading = undefined;
-      },
-      () => {
-        if (loading === attempt) loading = undefined;
-      },
-    );
-    return attempt;
-  };
-  async function run<T>(fn: (store: EmbeddingsMigrationStore) => Promise<T>): Promise<T> {
+  async function run<T>(fn: (store: FileEmbeddingsBackend) => Promise<T>): Promise<T> {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const operation = (async () => {
-      const store = await load();
-      controller.signal.throwIfAborted();
-      if (!store) {
-        return withEmbeddingsLock(
-          path,
-          async () => {
-            controller.signal.throwIfAborted();
-            if (
-              existsSync(`${path}.embeddings-index`) ||
-              existsSync(`${path}.embeddings-index.required`)
-            )
-              throw new EmbeddingsSecretStoreError('native_access', 'initialize');
-            const file = new FileEmbeddingsBackend(path);
-            try {
-              file.read(true);
-            } catch (error) {
-              if (error instanceof EmbeddingsSecretStoreError) throw error;
-              throw new EmbeddingsSecretStoreError('file_access', 'file_read', error);
-            }
-            backend = 'file';
-            try {
-              return await fn(file);
-            } catch (error) {
-              if (error instanceof EmbeddingsSecretStoreError) throw error;
-              throw new EmbeddingsSecretStoreError('file_access', 'file_write', error);
-            }
-          },
-          controller.signal,
-        );
-      }
-      backend = 'keyring';
-      const guarded: EmbeddingsNativeStore = {
-        async get(account) {
-          controller.signal.throwIfAborted();
-          let value: string | null;
-          try {
-            value = await store.get(account);
-          } catch (error) {
-            if (error instanceof EmbeddingsSecretStoreError) throw error;
-            throw new EmbeddingsSecretStoreError('native_access', 'native_get', error);
-          }
-          controller.signal.throwIfAborted();
-          return value;
-        },
-        async set(account, key) {
-          controller.signal.throwIfAborted();
-          try {
-            await store.set(account, key);
-          } catch (error) {
-            if (error instanceof EmbeddingsSecretStoreError) throw error;
-            throw new EmbeddingsSecretStoreError('native_access', 'native_set', error);
-          }
-          controller.signal.throwIfAborted();
-        },
-        async clear(account) {
-          controller.signal.throwIfAborted();
-          try {
-            await store.clear(account);
-          } catch (error) {
-            if (error instanceof EmbeddingsSecretStoreError) throw error;
-            throw new EmbeddingsSecretStoreError('native_access', 'native_clear', error);
-          }
-          controller.signal.throwIfAborted();
-        },
-      };
-      return fn(createKeychainEmbeddingsStore(path, guarded, controller.signal));
-    })();
+    const operation = withEmbeddingsLock(
+      path,
+      async () => {
+        controller.signal.throwIfAborted();
+        const file = new FileEmbeddingsBackend(path);
+        try {
+          file.read(true);
+        } catch (error) {
+          if (error instanceof EmbeddingsSecretStoreError) throw error;
+          throw new EmbeddingsSecretStoreError('file_access', 'file_read', error);
+        }
+        try {
+          return await fn(file);
+        } catch (error) {
+          if (error instanceof EmbeddingsSecretStoreError) throw error;
+          throw new EmbeddingsSecretStoreError('file_access', 'file_write', error);
+        }
+      },
+      controller.signal,
+    );
     try {
       return await Promise.race([
         operation.catch((error: unknown) => {
           if (error instanceof EmbeddingsSecretStoreError) throw error;
-          throw new EmbeddingsSecretStoreError('native_access', 'operation', error);
+          throw new EmbeddingsSecretStoreError('file_access', 'operation', error);
         }),
         new Promise<never>((_, reject) => {
           timer = setTimeout(() => {
@@ -497,44 +413,24 @@ export function createEmbeddingsSecretStore(
     }
   }
   return {
-    get backend() {
-      return backend;
-    },
-    async resolveForProject(project, endpoint) {
-      return run((store) => store.resolveForProject(project, endpoint));
-    },
-    async describeForProject(project, endpoint) {
-      return run((store) => store.describeForProject(project, endpoint));
-    },
-    async getLegacyKey() {
-      return run((store) => store.getLegacyKey());
-    },
-    async setForProject(project, endpoint, key) {
-      return run((store) => store.setForProject(project, endpoint, key));
-    },
-    async clearForProject(project, endpoint) {
-      return run((store) => store.clearForProject(project, endpoint));
-    },
-    async clearAllForProject(project) {
-      return run((store) => store.clearAllForProject(project));
-    },
-    async listProjects() {
-      return run((store) => store.listProjects());
-    },
-    async migrateStoredProject(projectKey, endpoint) {
-      return run((store) => store.migrateStoredProject(projectKey, endpoint));
-    },
-    async clearAll() {
-      return run((store) => store.clearAll());
-    },
+    backend: 'file',
+    resolveForProject: (project, endpoint) =>
+      run((store) => store.resolveForProject(project, endpoint)),
+    describeForProject: (project, endpoint) =>
+      run((store) => store.describeForProject(project, endpoint)),
+    getLegacyKey: () => run((store) => store.getLegacyKey()),
+    setForProject: (project, endpoint, key) =>
+      run((store) => store.setForProject(project, endpoint, key)),
+    clearForProject: (project, endpoint) =>
+      run((store) => store.clearForProject(project, endpoint)),
+    clearAllForProject: (project) => run((store) => store.clearAllForProject(project)),
+    listProjects: () => run((store) => store.listProjects()),
+    clearAll: () => run((store) => store.clearAll()),
   };
 }
 
-export function makeLazyEmbeddingsKeyStore(
-  secretsFile?: string,
-  native?: EmbeddingsNativeStore,
-): EmbeddingsKeyReader {
-  return createEmbeddingsSecretStore(secretsFile, native);
+export function makeLazyEmbeddingsKeyStore(secretsFile?: string): EmbeddingsKeyReader {
+  return createEmbeddingsSecretStore(secretsFile);
 }
 
 export async function describeStoredEmbeddingsKey(
@@ -547,6 +443,6 @@ export async function describeStoredEmbeddingsKey(
 
 export async function clearAllEmbeddingsKeys(
   secretsFile?: string,
-): Promise<{ touched: Array<'file' | 'keychain'> }> {
+): Promise<{ touched: Array<'file'> }> {
   return createEmbeddingsSecretStore(secretsFile).clearAll();
 }

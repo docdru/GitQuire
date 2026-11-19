@@ -736,8 +736,8 @@ msgstr "Aceptar la versión entrante para el conflicto {0}"
 msgid "Accept their deletion"
 msgstr "Aceptar su eliminación"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "Se agotó el tiempo de acceso a la clave API guardada. Espera a que termine la operación del almacén de credenciales y vuelve a intentarlo."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "Token de acceso"
@@ -1881,9 +1881,6 @@ msgstr "Copiando..."
 
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "No se pudo acceder a la clave API guardada. Revisa los archivos de credenciales locales y vuelve a intentarlo."
-
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "No se pudo acceder a la clave API guardada. Desbloquea el almacén de credenciales del sistema o revisa los archivos de credenciales locales y vuelve a intentarlo."
 
 msgid "Could not complete delete"
 msgstr "No se pudo completar la eliminación"
@@ -6151,9 +6148,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Guardado como <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "Las claves guardadas entran en conflicto. Introduce una clave de reemplazo para este proyecto y endpoint."
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "No se pudieron cargar los temas guardados. Se sigue mostrando la última lista de temas disponible."
 
@@ -7248,9 +7242,6 @@ msgstr "Al token guardado le faltan los permisos que este host necesita para hac
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "El modo de sincronización con el que empiezan tus compañeros la primera vez que abren este proyecto. Se guarda en los ajustes de GitQuire del proyecto, así que solo les llega cuando Compartir configuración, más abajo, está en Compartido."
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "El almacén de credenciales del sistema no está disponible. Esta clave se guarda en un archivo con permisos restringidos fuera del proyecto."
 
 msgid "The template's filename (without `.md`)."
 msgstr "El nombre de archivo de la plantilla (sin `.md`)."

@@ -344,7 +344,7 @@ export interface ResolvedEmbeddingsCredential {
 
 export class EmbeddingsCredentialStoreError extends EmbeddingsSecretStoreError {
   constructor(
-    code: EmbeddingsSecretStoreError['code'] = 'native_access',
+    code: EmbeddingsSecretStoreError['code'] = 'file_access',
     diagnostic?: EmbeddingsSecretStoreError['cause'],
   ) {
     super(code, diagnostic?.phase, diagnostic);
@@ -366,7 +366,7 @@ export async function resolveEmbeddingsCredential(
         const failure =
           error instanceof EmbeddingsSecretStoreError
             ? error
-            : new EmbeddingsSecretStoreError('native_access', 'native_get', error);
+            : new EmbeddingsSecretStoreError('file_access', 'file_read', error);
         failureCode = failure.code;
         failureDiagnostic = failure.cause;
         log.warn(

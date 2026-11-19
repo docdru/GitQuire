@@ -31,7 +31,7 @@ import {
 function credentialStoreError(error: unknown): EmbeddingsSecretStoreError {
   return error instanceof EmbeddingsSecretStoreError
     ? error
-    : new EmbeddingsSecretStoreError('native_access');
+    : new EmbeddingsSecretStoreError('file_access');
 }
 
 function credentialFailureMessage(error: unknown): string {
@@ -62,7 +62,6 @@ async function resolveKeyPresence(
   present: boolean;
   notRequired: boolean;
   source: 'project' | 'file' | 'env' | null;
-  storage: 'keyring' | 'file' | null;
   error: EmbeddingsSecretStoreError | null;
 }> {
   const store = createEmbeddingsSecretStore();
@@ -70,14 +69,13 @@ async function resolveKeyPresence(
     credentialStoreError,
   );
   if (cred instanceof EmbeddingsSecretStoreError) {
-    return { present: false, notRequired: false, source: null, storage: null, error: cred };
+    return { present: false, notRequired: false, source: null, error: cred };
   }
   if (cred.apiKey) {
     return {
       present: true,
       notRequired: false,
       source: cred.source as 'project' | 'file' | 'env',
-      storage: cred.source === 'env' ? null : store.backend,
       error: null,
     };
   }
@@ -85,7 +83,6 @@ async function resolveKeyPresence(
     present: false,
     notRequired: cred.keyless,
     source: null,
-    storage: null,
     error: null,
   };
 }
@@ -157,9 +154,8 @@ function setKeyCommand(): Command {
       }
       process.stderr.write(
         `✓ Embeddings API key stored for ${baseUrl}\n` +
-          `  (${store.backend === 'keyring' ? 'OS credential store' : `file fallback: ${okUserHomeDisplayPath(GQ_USER_HOME_SECRETS_FILE)}, 0600`}; never in the project).\n` +
-          `  Enable semantic search with \`${currentCliCommandName()} embeddings enable\`, or in\n` +
-          '  OK Desktop → Settings → This project → Search.\n',
+          `  (${okUserHomeDisplayPath(GQ_USER_HOME_SECRETS_FILE)}, 0600; never in the project).\n` +
+          `  Enable semantic search with \`${currentCliCommandName()} embeddings enable\`.\n`,
       );
     });
 }
@@ -213,56 +209,6 @@ function listCommand(): Command {
         }
       }
       process.stdout.write(`${lines.join('\n')}\n`);
-    });
-}
-
-function migrateKeysCommand(): Command {
-  return new Command('migrate-keys')
-    .description('Move all saved embeddings keys into the OS credential store')
-    .action(async () => {
-      const store = createEmbeddingsSecretStore();
-      let verified = 0;
-      let failed = 0;
-      const requireNative = () => {
-        if (store.backend !== 'file') return true;
-        process.stderr.write(
-          'No OS credential store is available. Existing keys remain in the restricted file fallback.\n',
-        );
-        process.exitCode = 1;
-        return false;
-      };
-      const report = (label: string, error: unknown) => {
-        failed += 1;
-        process.stderr.write(`${label}: ${credentialFailureMessage(error)}\n`);
-      };
-      const legacy = await store.getLegacyKey().catch(credentialStoreError);
-      if (!requireNative()) return;
-      if (legacy instanceof EmbeddingsSecretStoreError) report('Shared OpenAI key', legacy);
-      else if (legacy !== null) verified += 1;
-      const projects = await store.listProjects().catch(credentialStoreError);
-      if (!requireNative()) return;
-      if (projects instanceof EmbeddingsSecretStoreError) report('Project key inventory', projects);
-      else {
-        for (const { projectKey, endpoints } of projects) {
-          for (const { endpoint } of endpoints) {
-            try {
-              if (await store.migrateStoredProject(projectKey, endpoint)) verified += 1;
-              else {
-                failed += 1;
-                process.stderr.write(
-                  `${JSON.stringify(projectKey)} / ${JSON.stringify(endpoint)}: Stored scope was not verified; the key may be absent or secure storage unavailable.\n`,
-                );
-              }
-            } catch (error) {
-              report(`${JSON.stringify(projectKey)} / ${JSON.stringify(endpoint)}`, error);
-            }
-          }
-        }
-      }
-      process.stdout.write(
-        `Credential scopes verified: ${verified}. Requiring attention: ${failed}.\n`,
-      );
-      if (failed) process.exitCode = 1;
     });
 }
 
@@ -427,7 +373,6 @@ function statusCommand(): Command {
         present: hasKey,
         notRequired: keyNotRequired,
         source: keySource,
-        storage: keyStorage,
         error: keyError,
       } = await resolveKeyPresence(projectDir, cfg.baseUrl);
       const keyUnavailable = keyError !== null;
@@ -481,9 +426,7 @@ function statusCommand(): Command {
       const storedLocation =
         keySource === 'env'
           ? `environment (${EMBEDDINGS_API_KEY_ENV})`
-          : keyStorage === 'file'
-            ? `file fallback: ${okUserHomeDisplayPath(GQ_USER_HOME_SECRETS_FILE)}`
-            : 'OS credential store';
+          : `file: ${okUserHomeDisplayPath(GQ_USER_HOME_SECRETS_FILE)}`;
       const keyLabel = keyUnavailable
         ? 'unavailable (saved key presence is unknown)'
         : hasKey
@@ -544,6 +487,5 @@ export function embeddingsCommand(): Command {
     .addCommand(toggleEnabledCommand('enable', true))
     .addCommand(toggleEnabledCommand('disable', false))
     .addCommand(listCommand())
-    .addCommand(migrateKeysCommand())
     .addCommand(statusCommand());
 }

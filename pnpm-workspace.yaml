@@ -13,10 +13,6 @@ engineStrict: true
 # lockfile document, which single-document dependency scanners cannot read.
 pmOnFail: ignore
 
-# Flat-root hoist for the native addons the CLI bundle keeps external.
-publicHoistPattern:
-  - '@napi-rs/keyring*'
-
 # Supply-chain cooldown (admission-time): refuse npm versions published less
 # than 3 days ago, to dodge freshly-published malware. Unit = MINUTES
 # (4320 = 3 days). Own-org packages (@gitquire/*) are exempt. This replaces the

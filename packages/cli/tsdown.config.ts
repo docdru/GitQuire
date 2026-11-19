@@ -10,10 +10,6 @@ import { defineConfig } from 'tsdown';
 // `jsonc-parser` specifier straight to that ESM entry before bundling.
 const jsoncParserEsmEntry = createRequire(import.meta.url).resolve('jsonc-parser/lib/esm/main.js');
 
-// Native addons stay external in EVERY build — they ship .node binaries
-// resolved at runtime.
-const nativeAddonNeverBundle = ['@napi-rs/keyring'];
-
 // tsdown defaults to externalizing entries in `dependencies`, but the
 // desktop install ships no node_modules/ next to dist/cli.mjs, so bare
 // specifiers crash on resolve. Force-inline every pure-JS runtime dep in the
@@ -139,7 +135,6 @@ export default defineConfig([
     plugins: sharedPlugins,
     inputOptions: sharedInputOptions,
     deps: {
-      neverBundle: nativeAddonNeverBundle,
       alwaysBundle: alwaysBundlePureJsDeps,
     },
   },
@@ -159,7 +154,7 @@ export default defineConfig([
     plugins: sharedPlugins,
     inputOptions: sharedInputOptions,
     deps: {
-      neverBundle: [...nativeAddonNeverBundle, 'yjs'],
+      neverBundle: ['yjs'],
       alwaysBundle: alwaysBundlePureJsDeps.filter((re) => !re.test('yjs')),
     },
   },
