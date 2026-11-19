@@ -31,6 +31,9 @@ msgstr "Dossiers .gitquire"
 msgid "\"{0}\" is live."
 msgstr ""
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr ""
+
 msgid "\"{0}\" is ready for review."
 msgstr ""
 
@@ -40,10 +43,10 @@ msgstr ""
 msgid "\"{0}\" was discarded."
 msgstr ""
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
 msgstr ""
 
-msgid "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
 msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
@@ -515,7 +518,10 @@ msgstr "{visibleSummary}. {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, one {# avertissement} many {# avertissements} other {# avertissements}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr ""
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
 msgstr ""
 
 msgid "{words, plural, one {word} other {words}}"
@@ -727,8 +733,8 @@ msgstr "Accepter la version entrante pour le conflit {0}"
 msgid "Accept their deletion"
 msgstr "Accepter leur suppression"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "Le délai d’accès à la clé API enregistrée a expiré. Attendez la fin de l’opération du stockage des identifiants, puis réessayez."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "Jeton d'accès"
@@ -1855,9 +1861,6 @@ msgstr "Copie en cours…"
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "Impossible d’accéder à la clé API enregistrée. Vérifiez les fichiers d’identifiants locaux, puis réessayez."
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "Impossible d’accéder à la clé API enregistrée. Déverrouillez le stockage des identifiants système ou vérifiez les fichiers d’identifiants locaux, puis réessayez."
-
 msgid "Could not complete delete"
 msgstr "Impossible de terminer la suppression"
 
@@ -2604,6 +2607,9 @@ msgstr "Les modifications s’appliquent immédiatement. Le thème détermine le
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "Les modifications faites à la source arrivent ici — aucune dérive due au copier-coller."
+
+msgid "Edits go to:"
+msgstr ""
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "Les modifications de {fileName} conservées depuis la dernière ouverture de cette branche n'ont pas pu être fusionnées, donc la version du fichier a été conservée. Ces modifications se trouvent dans la chronologie."
@@ -6088,9 +6094,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Enregistré sous <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "Les clés enregistrées sont en conflit. Saisissez une clé de remplacement pour ce projet et ce point de terminaison."
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "Impossible de charger les thèmes enregistrés. La dernière liste de thèmes disponible reste affichée."
 
@@ -7179,9 +7182,6 @@ msgstr "Il manque au jeton enregistré les permissions dont cet hôte a besoin p
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "Le mode de synchronisation avec lequel vos coéquipiers démarrent la première fois qu'ils ouvrent ce projet. Il est enregistré dans les paramètres GitQuire du projet ; il ne leur parvient donc que si le Partage de la configuration ci-dessous est réglé sur Partagé."
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "Le stockage des identifiants système est indisponible. Cette clé est stockée dans un fichier aux permissions restreintes, en dehors du projet."
 
 msgid "The template's filename (without `.md`)."
 msgstr "Le nom de fichier du modèle (sans `.md`)."

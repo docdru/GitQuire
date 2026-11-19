@@ -41,8 +41,11 @@ What you are looking at is remembered per browser, so other tabs in the same bro
 The menu also lists all open drafts, and **All drafts…** shows them grouped by status, with recently
 published and discarded ones.
 
-If someone publishes or discards the draft you are looking at, you are told and taken back to the live
-wiki.
+When you publish, discard or leave a draft you are looking at, you go straight back to the live wiki.
+If someone else publishes or discards it while you are in it, you get one notice ("… published
+"Plan". You are now on the live wiki.") and are taken back at once. Closing a draft stops its editor
+process, but GitQuire knows that stop is planned and shows no "Connection lost" warning for it; a
+real connection loss still shows the warning.
 
 ## When the live wiki changes meanwhile
 
@@ -61,7 +64,9 @@ draft's name and branch, and its `workspace` tool reports them.
 
 In **Settings → Connect AI**, turn on **Put my AI assistant's edits into a draft** to keep it out of
 the live wiki as well: when you are on the live wiki, it then works in its own draft named
-"Claude's changes for …", which you review and publish like any other.
+"Claude's changes for …", which you review and publish like any other. Each change an assistant
+makes ends with a line saying whether it went into a draft (and which) or into the live wiki. The
+[AI chat](./ai-chat.mdx) has its own **Edits go to** switch for each chat.
 
 ## How it works
 

@@ -6,7 +6,6 @@ import {
 } from './subprocess.ts';
 
 const SIGNED_OUT_SENTENCE = /^not logged in to /i;
-const BENIGN_TOKEN_STORAGE_BANNER = /^\[auth\] token storage: /;
 
 function isSignedOutOnlyStderr(stderr: string): boolean {
   const lines = stderr
@@ -15,7 +14,7 @@ function isSignedOutOnlyStderr(stderr: string): boolean {
     .filter((line) => line.length > 0);
   return (
     lines.some((line) => SIGNED_OUT_SENTENCE.test(line)) &&
-    lines.every((line) => SIGNED_OUT_SENTENCE.test(line) || BENIGN_TOKEN_STORAGE_BANNER.test(line))
+    lines.every((line) => SIGNED_OUT_SENTENCE.test(line))
   );
 }
 

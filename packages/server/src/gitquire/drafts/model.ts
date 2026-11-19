@@ -1,5 +1,6 @@
 export const DRAFT_BRANCH_PREFIX = 'draft/';
 export const VIEW_COOKIE = 'gq_view';
+export const EDITS_HEADER = 'x-gitquire-edits';
 const MAX_DRAFT_TITLE = 120;
 const MAX_SLUG = 48;
 
@@ -158,4 +159,10 @@ export function parseNameStatus(output: string): ChangedPage[] {
 export function isPagePath(path: string): boolean {
   if (path === '' || path.includes('\\') || path.includes('\0')) return false;
   return !path.split('/').some((segment) => segment === '' || segment.startsWith('.'));
+}
+
+export type EditTarget = 'live' | 'draft';
+
+export function isEditTarget(value: unknown): value is EditTarget {
+  return value === 'live' || value === 'draft';
 }

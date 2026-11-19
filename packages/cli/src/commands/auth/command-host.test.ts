@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import password from '@inquirer/password';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { configureTestGitRepository } from '../../../../../test-support/configure-git-fixture.test-helper.ts';
-import { clearTokenFromAllBackends, FileBackend } from '../../auth/token-store.ts';
+import { clearStoredToken, FileBackend } from '../../auth/token-store.ts';
 import { shareNameCheckCommand } from '../share/name-check.ts';
 import { shareOwnersCommand } from '../share/owners.ts';
 import { patCommand } from './pat.ts';
@@ -16,7 +16,7 @@ vi.mock('@inquirer/password', () => ({ default: vi.fn() }));
 vi.mock('../../auth/gh-detect.ts', () => ({ detectGh: () => ({ available: false }) }));
 vi.mock('../../auth/token-store.ts', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../auth/token-store.ts')>()),
-  clearTokenFromAllBackends: vi.fn().mockResolvedValue({ touched: ['file'] }),
+  clearStoredToken: vi.fn().mockResolvedValue(true),
 }));
 
 let projectDir: string;
@@ -50,7 +50,7 @@ afterEach(() => {
 
 test('explicit signout removes a legacy credential even without a provider declaration', async () => {
   await signoutCommand().parseAsync(['--host', 'legacy.example.com'], { from: 'user' });
-  expect(clearTokenFromAllBackends).toHaveBeenCalledWith('legacy.example.com');
+  expect(clearStoredToken).toHaveBeenCalledWith('legacy.example.com');
 });
 
 test('implicit signout names gq-beta auth signout on Beta', async () => {
@@ -79,7 +79,7 @@ test('implicit signout refuses a generic origin without clearing another credent
     throw new Error('exit');
   });
   await expect(signoutCommand().parseAsync([], { from: 'user' })).rejects.toThrow('exit');
-  expect(clearTokenFromAllBackends).not.toHaveBeenCalled();
+  expect(clearStoredToken).not.toHaveBeenCalled();
   const message = vi
     .mocked(process.stderr.write)
     .mock.calls.map(([text]) => text)
@@ -99,7 +99,7 @@ test.each(['/tmp/local-repository.git', 'file:///tmp/local-repository.git'])(
       throw new Error('exit');
     });
     await expect(signoutCommand().parseAsync([], { from: 'user' })).rejects.toThrow('exit');
-    expect(clearTokenFromAllBackends).not.toHaveBeenCalled();
+    expect(clearStoredToken).not.toHaveBeenCalled();
     const message = vi
       .mocked(process.stderr.write)
       .mock.calls.map(([text]) => text)
@@ -345,7 +345,7 @@ test('implicit signout on an origin deeper than owner/repo names the host in the
 
 test('explicit signout of a non-GitHub host clears the key git asks for', async () => {
   await signoutCommand().parseAsync(['--host', 'Git.Corp.example:443'], { from: 'user' });
-  expect(clearTokenFromAllBackends).toHaveBeenCalledWith('git.corp.example');
+  expect(clearStoredToken).toHaveBeenCalledWith('git.corp.example');
 });
 
 test('implicit signout on a ported origin names the host with its port', async () => {
@@ -361,7 +361,7 @@ test('implicit signout on a ported origin names the host with its port', async (
     .mock.calls.map((c) => String(c[0]))
     .join('');
   expect(written).toContain('gq auth signout --host git.corp.example:8443');
-  expect(clearTokenFromAllBackends).not.toHaveBeenCalled();
+  expect(clearStoredToken).not.toHaveBeenCalled();
 });
 
 test.each(['owners', 'name-check'])(

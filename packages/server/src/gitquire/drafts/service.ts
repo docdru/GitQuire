@@ -113,6 +113,7 @@ export interface DraftService {
   summary: (draft: DraftRecord) => DraftSummary;
   get: (slug: string) => DraftRecord | undefined;
   requireOpen: (slug: string) => DraftRecord;
+  isClosing: (slug: string) => boolean;
   create: (
     user: SessionUser,
     title: string,
@@ -153,6 +154,16 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
   const now = deps.now ?? (() => new Date());
   const { store, instances, remote, runGit } = deps;
   const pageCache = new Map<string, { at: number; pages: ChangedPage[] }>();
+  const closing = new Set<string>();
+
+  async function whileClosing<T>(slug: string, work: () => Promise<T>): Promise<T> {
+    closing.add(slug);
+    try {
+      return await work();
+    } finally {
+      closing.delete(slug);
+    }
+  }
 
   function stamp(): string {
     return now().toISOString();
@@ -391,36 +402,43 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
   async function publish(slug: string, user: SessionUser): Promise<DraftRecord> {
     return instances.exclusive(slug, async () => {
       const draft = requireOpen(slug);
-      const who = identityOf(user);
-      await saveAndPush(draft, who);
-      const result = await remote.publish(draft, draft.title, who);
-      if (!result.ok) {
-        throw new DraftError(
-          409,
-          'conflict',
-          'The live wiki changed in the same places. Update the draft first, then publish.',
-        );
-      }
-      deps.log.info(
-        { draft: slug, by: user.login, sha: result.sha },
-        '[gitquire-drafts] published',
-      );
-      const closed = await close(draft, 'published', personOf(user));
-      deps.onPublished?.();
-      return closed;
+      return whileClosing(slug, () => publishOpen(draft, user));
     });
+  }
+
+  async function publishOpen(draft: DraftRecord, user: SessionUser): Promise<DraftRecord> {
+    const slug = draft.slug;
+    const who = identityOf(user);
+    await saveAndPush(draft, who);
+    const result = await remote.publish(draft, draft.title, who);
+    if (!result.ok) {
+      throw new DraftError(
+        409,
+        'conflict',
+        'The live wiki changed in the same places. Update the draft first, then publish.',
+      );
+    }
+    deps.log.info({ draft: slug, by: user.login, sha: result.sha }, '[gitquire-drafts] published');
+    const closed = await close(draft, 'published', personOf(user));
+    deps.onPublished?.();
+    return closed;
   }
 
   async function discard(slug: string, user: SessionUser): Promise<DraftRecord> {
     return instances.exclusive(slug, async () => {
       const draft = requireOpen(slug);
-      try {
-        await remote.close(draft);
-      } catch (err) {
-        deps.log.warn({ err, draft: slug }, '[gitquire-drafts] could not delete the draft branch');
-      }
-      deps.log.info({ draft: slug, by: user.login }, '[gitquire-drafts] discarded');
-      return close(draft, 'discarded', personOf(user));
+      return whileClosing(slug, async () => {
+        try {
+          await remote.close(draft);
+        } catch (err) {
+          deps.log.warn(
+            { err, draft: slug },
+            '[gitquire-drafts] could not delete the draft branch',
+          );
+        }
+        deps.log.info({ draft: slug, by: user.login }, '[gitquire-drafts] discarded');
+        return close(draft, 'discarded', personOf(user));
+      });
     });
   }
 
@@ -564,6 +582,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
     summary,
     get: (slug) => store.get(slug),
     requireOpen,
+    isClosing: (slug) => closing.has(slug),
     create,
     rename,
     changes,

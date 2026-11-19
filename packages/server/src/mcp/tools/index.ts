@@ -1,3 +1,4 @@
+import { reportEditDestination } from '../../gitquire/edit-destination.ts';
 import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
 import type { AgentIdentity } from '../agent-identity.ts';
 import { getCurrentMcpLogger, type McpLogger } from '../logger.ts';
@@ -35,7 +36,7 @@ interface RegisterAllToolsOptions {
 
 export function registerAllTools(server: ServerInstance, opts: RegisterAllToolsOptions): void {
   const log = opts.logger;
-  const registrationServer = createLoggedServer(server, {
+  const registrationServer = createLoggedServer(reportEditDestination(server), {
     logger: opts.logger,
     identityRef: opts.identityRef,
   });

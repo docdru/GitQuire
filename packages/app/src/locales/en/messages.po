@@ -31,6 +31,9 @@ msgstr ".gitquire folders"
 msgid "\"{0}\" is live."
 msgstr "\"{0}\" is live."
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr "\"{0}\" is live. You are now on the live wiki."
+
 msgid "\"{0}\" is ready for review."
 msgstr "\"{0}\" is ready for review."
 
@@ -40,11 +43,11 @@ msgstr "\"{0}\" is ready for review. {1} will be notified."
 msgid "\"{0}\" was discarded."
 msgstr "\"{0}\" was discarded."
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
-msgstr "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
+msgstr "\"{0}\" was discarded. You are now on the live wiki."
 
-msgid "\"{0}\" was published. You are back on the live wiki."
-msgstr "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
+msgstr "\"{0}\" was published. You are now on the live wiki."
 
 msgid "\"{docName}\" doesn't exist."
 msgstr "\"{docName}\" doesn't exist."
@@ -515,8 +518,11 @@ msgstr "{visibleSummary}. {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, one {# warning} other {# warnings}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
-msgstr "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr "{who} discarded \"{0}\". You are now on the live wiki."
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
+msgstr "{who} published \"{0}\". You are now on the live wiki."
 
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {word} other {words}}"
@@ -727,8 +733,8 @@ msgstr "Accept incoming version for conflict {0}"
 msgid "Accept their deletion"
 msgstr "Accept their deletion"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
 
 msgid "Access token"
 msgstr "Access token"
@@ -1855,9 +1861,6 @@ msgstr "Copying..."
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "Could not access the saved API key. Check the local credential files, then try again."
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-
 msgid "Could not complete delete"
 msgstr "Could not complete delete"
 
@@ -2604,6 +2607,9 @@ msgstr "Edits apply live. Light or dark comes from the theme."
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "Edits at the source land here — no copy-paste drift."
+
+msgid "Edits go to:"
+msgstr "Edits go to:"
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
@@ -6088,9 +6094,6 @@ msgstr "Saved as {saved}."
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "Saved as <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "Saved themes couldn’t load. The last available theme list is still shown."
 
@@ -7179,9 +7182,6 @@ msgstr "The stored token is missing the permissions this host needs to push."
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
 
 msgid "The template's filename (without `.md`)."
 msgstr "The template's filename (without `.md`)."

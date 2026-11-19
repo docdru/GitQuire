@@ -21,9 +21,8 @@ export function describeAuthFailure(err: unknown, host: string): AuthFailure {
       kind: 'tls',
       message:
         `Could not verify the TLS certificate for ${host}. If this is a GitHub ` +
-        `Enterprise Server with a self-signed or internal-CA certificate, add its ` +
-        `CA to your system trust store (macOS Keychain, Windows certificate store, ` +
-        `or your distro's ca-certificates).`,
+        `Enterprise Server with a self-signed or internal-CA certificate, mount its ` +
+        `CA certificate into the container and set NODE_EXTRA_CA_CERTS to its path.`,
     };
   }
   const status = (err as { status?: unknown } | undefined)?.status;

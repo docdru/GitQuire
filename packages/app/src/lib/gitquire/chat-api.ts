@@ -58,6 +58,7 @@ export type ChatMessage =
 export interface ChatRecord extends ChatSummary {
   messages: ChatMessage[];
   usage: { inputTokens: number; outputTokens: number };
+  edits?: 'live' | 'draft';
 }
 
 type ChatStopReason = 'end' | 'step-limit' | 'max-tokens' | 'context-full' | 'aborted' | 'error';
@@ -192,6 +193,7 @@ export async function sendChatMessage(
     provider: ChatProvider;
     model: string;
     page?: string | null;
+    edits?: 'live' | 'draft';
     signal?: AbortSignal;
   },
   onEvent: (event: ChatEvent) => void,
@@ -205,6 +207,7 @@ export async function sendChatMessage(
       provider: options.provider,
       model: options.model,
       ...(options.page ? { page: options.page } : {}),
+      ...(options.edits === undefined ? {} : { edits: options.edits }),
     }),
     signal: options.signal,
   });

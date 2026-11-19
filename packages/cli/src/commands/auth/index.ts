@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import type { Logger as PinoLoggerInstance } from 'pino';
-import { createTokenStore, type TokenStoreDiagnostics } from '../../auth/token-store.ts';
+import { createTokenStore } from '../../auth/token-store.ts';
 import { gitCredentialCommand } from './git-credential.ts';
 import { loginCommand } from './login.ts';
 import { patCommand } from './pat.ts';
@@ -13,7 +13,7 @@ export function authCommand(getLog?: () => PinoLoggerInstance | undefined): Comm
   const cmd = new Command('auth');
   cmd.description('Git host authentication management');
 
-  const getTokenStore = (diag?: TokenStoreDiagnostics) => createTokenStore(undefined, diag);
+  const getTokenStore = () => createTokenStore();
 
   cmd.addCommand(loginCommand(getTokenStore));
   cmd.addCommand(statusCommand(getTokenStore));

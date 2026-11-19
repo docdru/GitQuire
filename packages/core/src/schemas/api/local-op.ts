@@ -90,14 +90,7 @@ export type LocalOpEmbeddingsMutationSuccess = z.infer<
   typeof LocalOpEmbeddingsMutationSuccessSchema
 >;
 
-export const EmbeddingsKeyStoreErrorSchema = z.enum([
-  'index_invalid',
-  'migration_conflict',
-  'native_access',
-  'lock_timeout',
-  'file_access',
-  'timeout',
-]);
+export const EmbeddingsKeyStoreErrorSchema = z.enum(['lock_timeout', 'file_access', 'timeout']);
 
 export const EmbeddingsTestFailureReasonSchema = z.enum([
   'no_key',

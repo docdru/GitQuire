@@ -31,6 +31,9 @@ msgstr ".gitquire 資料夾"
 msgid "\"{0}\" is live."
 msgstr ""
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr ""
+
 msgid "\"{0}\" is ready for review."
 msgstr ""
 
@@ -40,10 +43,10 @@ msgstr ""
 msgid "\"{0}\" was discarded."
 msgstr ""
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
 msgstr ""
 
-msgid "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
 msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
@@ -515,7 +518,10 @@ msgstr "{visibleSummary}。{0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, other {# 個警告}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr ""
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
 msgstr ""
 
 msgid "{words, plural, one {word} other {words}}"
@@ -727,8 +733,8 @@ msgstr "對衝突 {0} 採用傳入版本"
 msgid "Accept their deletion"
 msgstr "接受對方的刪除"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "存取已儲存的 API 金鑰逾時。請等待憑證儲存區操作完成，然後再試一次。"
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "存取權杖"
@@ -1855,9 +1861,6 @@ msgstr "正在複製…"
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "無法存取已儲存的 API 金鑰。請檢查本機憑證檔案，然後再試一次。"
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "無法存取已儲存的 API 金鑰。請解鎖系統憑證儲存區或檢查本機憑證檔案，然後再試一次。"
-
 msgid "Could not complete delete"
 msgstr "無法完成刪除"
 
@@ -2604,6 +2607,9 @@ msgstr "編輯會即時套用。淺色或深色由主題決定。"
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "在來源處的編輯會同步到這裡——不會因為複製貼上而產生偏差。"
+
+msgid "Edits go to:"
+msgstr ""
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "{fileName} 中上次開啟此分支時保留的編輯無法合併，因此保留了檔案中的版本。這些編輯在時間軸中。"
@@ -6088,9 +6094,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "已儲存為 <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "已儲存的金鑰發生衝突。請輸入此專案和端點的替代金鑰。"
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "無法載入已儲存的主題。仍顯示上次可用的主題清單。"
 
@@ -7179,9 +7182,6 @@ msgstr "儲存的權杖缺少這個主機推送所需的權限。"
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "隊友第一次開啟此專案時採用的同步模式。它保存在專案的 GitQuire 設定中，因此只有當下方的設定分享設為已分享時才會傳給他們。"
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "系統憑證儲存區無法使用。此金鑰儲存在專案之外的檔案中，檔案權限受到限制。"
 
 msgid "The template's filename (without `.md`)."
 msgstr "範本的檔案名稱（不含 `.md`）。"

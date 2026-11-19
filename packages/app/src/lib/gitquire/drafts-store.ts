@@ -84,6 +84,10 @@ function snapshot(): DraftState {
   return state;
 }
 
+export function draftSnapshot(): DraftState {
+  return state;
+}
+
 export function useDraftState(): DraftState {
   return useSyncExternalStore(subscribe, snapshot, () => EMPTY);
 }

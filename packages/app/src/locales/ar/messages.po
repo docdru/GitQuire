@@ -31,6 +31,9 @@ msgstr "مجلدات .gitquire"
 msgid "\"{0}\" is live."
 msgstr ""
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr ""
+
 msgid "\"{0}\" is ready for review."
 msgstr ""
 
@@ -40,10 +43,10 @@ msgstr ""
 msgid "\"{0}\" was discarded."
 msgstr ""
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
 msgstr ""
 
-msgid "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
 msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
@@ -515,7 +518,10 @@ msgstr "{visibleSummary}. {0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, zero {# تحذير} one {تحذير واحد} two {تحذيران} few {# تحذيرات} many {# تحذيرًا} other {# تحذير}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr ""
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
 msgstr ""
 
 msgid "{words, plural, one {word} other {words}}"
@@ -727,8 +733,8 @@ msgstr "قبول النسخة الواردة للتعارض {0}"
 msgid "Accept their deletion"
 msgstr "قبول حذفهم"
 
-msgid "Access to the saved API key timed out. Wait for the credential store operation to finish, then try again."
-msgstr "انتهت مهلة الوصول إلى مفتاح API المحفوظ. انتظر حتى تنتهي عملية مخزن بيانات الاعتماد، ثم حاول مجددًا."
+msgid "Access to the saved API key timed out. Wait for the other operation on the secrets file to finish, then try again."
+msgstr ""
 
 msgid "Access token"
 msgstr "رمز الوصول"
@@ -1855,9 +1861,6 @@ msgstr "يجري النسخ..."
 msgid "Could not access the saved API key. Check the local credential files, then try again."
 msgstr "تعذّر الوصول إلى مفتاح API المحفوظ. تحقق من ملفات بيانات الاعتماد المحلية، ثم حاول مجددًا."
 
-msgid "Could not access the saved API key. Unlock your system credential store or check the local credential files, then try again."
-msgstr "تعذّر الوصول إلى مفتاح API المحفوظ. افتح مخزن بيانات اعتماد النظام أو تحقق من ملفات بيانات الاعتماد المحلية، ثم حاول مرة أخرى."
-
 msgid "Could not complete delete"
 msgstr "تعذّر إتمام الحذف"
 
@@ -2604,6 +2607,9 @@ msgstr "تُطبّق التعديلات مباشرة. تحدد السمة الو
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "تصل التعديلات من المصدر إلى هنا — بلا انحراف نسخ ولصق."
+
+msgid "Edits go to:"
+msgstr ""
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "تعذّر دمج التعديلات على {fileName} المحفوظة منذ آخر مرة كان فيها هذا الفرع مفتوحًا، لذا بقيت نسخة الملف. هذه التعديلات موجودة في الخط الزمني."
@@ -6088,9 +6094,6 @@ msgstr ""
 msgid "Saved as <0>{slug}.md</0>"
 msgstr "حُفظ باسم <0>{slug}.md</0>"
 
-msgid "Saved keys conflict. Enter a replacement key for this project and endpoint to use instead."
-msgstr "تتعارض المفاتيح المحفوظة. أدخل مفتاحًا بديلاً لهذا المشروع ونقطة الاتصال لاستخدامه بدلاً منها."
-
 msgid "Saved themes couldn’t load. The last available theme list is still shown."
 msgstr "تعذّر تحميل السمات المحفوظة. ما تزال آخر قائمة سمات متاحة معروضة."
 
@@ -7179,9 +7182,6 @@ msgstr "ينقص الرمز المخزّن الصلاحيات التي يحتا�
 
 msgid "The sync mode teammates start with the first time they open this project. It's saved in the project's GitQuire settings, so it only reaches them when Config sharing below is set to Shared."
 msgstr "وضع المزامنة الذي يبدأ به زملاؤك عند فتح هذا المشروع لأول مرة. يُحفظ في إعدادات GitQuire الخاصة بالمشروع، لذا لا يصل إليهم إلا عندما تكون مشاركة الإعدادات أدناه مضبوطة على مشترك."
-
-msgid "The system credential store is unavailable. This key is stored in a file with restricted permissions outside the project."
-msgstr "مخزن بيانات اعتماد النظام غير متاح. يُخزَّن هذا المفتاح في ملف ذي أذونات مقيّدة خارج المشروع."
 
 msgid "The template's filename (without `.md`)."
 msgstr "اسم ملف القالب (بدون `.md`)."

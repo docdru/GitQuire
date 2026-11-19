@@ -310,9 +310,7 @@ export function SearchSection({ transport }: { transport?: EmbeddingsKeyTranspor
         endpointHost={endpointHost}
         keyPresent={keyPresent}
         keyStoreUnavailable={status?.keyStoreUnavailable === true}
-        keyStoreConflict={status?.keyStoreError === 'migration_conflict'}
         keyStoreError={status?.keyStoreError}
-        keyStoredInFile={status?.keyStoredInFile === true && !status.keyStoreUnavailable}
         keyHint={keyHint}
         keySource={keySource}
         keyNotRequired={keyNotRequired}
@@ -698,9 +696,7 @@ interface EmbeddingsKeyFieldProps {
   endpointHost: string;
   keyPresent: boolean;
   keyStoreUnavailable: boolean;
-  keyStoreConflict: boolean;
   keyStoreError?: SemanticIndexStatus['keyStoreError'];
-  keyStoredInFile: boolean;
   keyHint: string | null;
   keySource: 'project' | 'file' | 'env' | null;
   keyNotRequired: boolean;
@@ -713,9 +709,7 @@ function EmbeddingsKeyField({
   endpointHost,
   keyPresent,
   keyStoreUnavailable,
-  keyStoreConflict,
   keyStoreError,
-  keyStoredInFile,
   keyHint,
   keySource,
   keyNotRequired,
@@ -773,7 +767,7 @@ function EmbeddingsKeyField({
         </p>
       </div>
 
-      {keyStoreUnavailable && !keyStoreConflict ? (
+      {keyStoreUnavailable ? (
         <p className="text-1sm text-foreground" data-testid="settings-search-key-unavailable">
           <CredentialStoreError code={keyStoreError} />
         </p>
@@ -789,23 +783,6 @@ function EmbeddingsKeyField({
         </p>
       ) : (
         <>
-          {keyStoreConflict ? (
-            <p className="text-1sm text-foreground">
-              <CredentialStoreError code={keyStoreError} />
-            </p>
-          ) : null}
-          {keyPresent && keyStoredInFile ? (
-            <p
-              role="status"
-              className="text-1sm text-foreground"
-              data-testid="settings-search-key-file-fallback"
-            >
-              <Trans>
-                The system credential store is unavailable. This key is stored in a file with
-                restricted permissions outside the project.
-              </Trans>
-            </p>
-          ) : null}
           {keyPresent ? (
             <div
               className="flex items-center justify-between gap-3"
@@ -1109,32 +1086,17 @@ function TestConnectionFailure({
 }
 
 function CredentialStoreError({ code }: { code?: SemanticIndexStatus['keyStoreError'] }) {
-  if (code === 'migration_conflict') {
-    return (
-      <Trans>
-        Saved keys conflict. Enter a replacement key for this project and endpoint to use instead.
-      </Trans>
-    );
-  }
   if (code === 'lock_timeout' || code === 'timeout') {
     return (
       <Trans>
-        Access to the saved API key timed out. Wait for the credential store operation to finish,
-        then try again.
-      </Trans>
-    );
-  }
-  if (code === 'index_invalid' || code === 'file_access') {
-    return (
-      <Trans>
-        Could not access the saved API key. Check the local credential files, then try again.
+        Access to the saved API key timed out. Wait for the other operation on the secrets file to
+        finish, then try again.
       </Trans>
     );
   }
   return (
     <Trans>
-      Could not access the saved API key. Unlock your system credential store or check the local
-      credential files, then try again.
+      Could not access the saved API key. Check the local credential files, then try again.
     </Trans>
   );
 }

@@ -9,7 +9,6 @@ const cliPkg = JSON.parse(readFileSync(resolve(cliRoot, 'package.json'), 'utf8')
   dependencies: Record<string, string>;
 };
 const declaredDeps = Object.keys(cliPkg.dependencies).sort();
-const nativeDeps = ['@napi-rs/keyring'];
 const fileTypeClosure = [
   '@borewit/text-codec',
   '@tokenizer/inflate',
@@ -63,36 +62,25 @@ describe('tsdown alwaysBundle covers every cli runtime dep', () => {
     expect(buildFor('index').entry).not.toHaveProperty('cli');
   });
 
-  test.each([
-    ...new Set([
-      ...declaredDeps.filter((dep) => !nativeDeps.includes(dep)),
-      ...fileTypeClosure,
-      ...serverInlinedClosure,
-    ]),
-  ])('bundles %s in the standalone build and non-yjs library closure', (dep) => {
-    for (const entry of dep === 'yjs' ? ['cli'] : ['cli', 'index']) {
-      const config = buildFor(entry);
-      const diagnostic = bundleDiagnostic(dep, entry);
-      expect(matchesBundleRule(config.deps?.alwaysBundle, dep), diagnostic).toBe(true);
-      expect(matchesBundleRule(config.deps?.alwaysBundle, `${dep}/subpath`), diagnostic).toBe(true);
-      for (const unrelated of [`${dep}-unrelated`, `x-${dep}`]) {
-        expect(
-          matchesBundleRule(config.deps?.alwaysBundle, unrelated),
-          `Anchor the ${dep} alwaysBundle rule to the package root or a subpath. ${diagnostic}`,
-        ).toBe(false);
+  test.each([...new Set([...declaredDeps, ...fileTypeClosure, ...serverInlinedClosure])])(
+    'bundles %s in the standalone build and non-yjs library closure',
+    (dep) => {
+      for (const entry of dep === 'yjs' ? ['cli'] : ['cli', 'index']) {
+        const config = buildFor(entry);
+        const diagnostic = bundleDiagnostic(dep, entry);
+        expect(matchesBundleRule(config.deps?.alwaysBundle, dep), diagnostic).toBe(true);
+        expect(matchesBundleRule(config.deps?.alwaysBundle, `${dep}/subpath`), diagnostic).toBe(
+          true,
+        );
+        for (const unrelated of [`${dep}-unrelated`, `x-${dep}`]) {
+          expect(
+            matchesBundleRule(config.deps?.alwaysBundle, unrelated),
+            `Anchor the ${dep} alwaysBundle rule to the package root or a subpath. ${diagnostic}`,
+          ).toBe(false);
+        }
       }
-    }
-  });
-
-  test.each(['cli', 'index'])('%s keeps native addons external', (entry) => {
-    const config = buildFor(entry);
-    expect(config.deps?.neverBundle).toEqual(expect.arrayContaining(nativeDeps));
-    for (const dep of nativeDeps)
-      expect(
-        matchesBundleRule(config.deps?.alwaysBundle, dep),
-        `${entry} must not inline native addon ${dep}`,
-      ).toBe(false);
-  });
+    },
+  );
 });
 
 describe('yjs split-bundling policy', () => {

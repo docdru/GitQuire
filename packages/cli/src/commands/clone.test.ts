@@ -421,7 +421,7 @@ describe('handleCloneFailure', () => {
     expect(c.stderr.join('')).not.toContain('gq auth login');
   });
 
-  test('non-403 auth failure does not resolve the principal (skips keyring init)', async () => {
+  test('non-403 auth failure does not resolve the principal', async () => {
     const c = collectors();
     let called = false;
     await handleCloneFailure({

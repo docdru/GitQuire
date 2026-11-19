@@ -197,8 +197,6 @@ function isolatedCliRunner(prefix: string) {
         HOME: fakeHome,
         XDG_CONFIG_HOME: join(fakeHome, '.config'),
         PATH: `${root}:${fixtureGitEnv.PATH ?? ''}`,
-        DBUS_SESSION_BUS_ADDRESS: '',
-        XDG_RUNTIME_DIR: '',
         DO_NOT_TRACK: '1',
         LOG_LEVEL: 'info',
         GITQUIRE_CONSOLE_LEVEL: 'info',
@@ -414,11 +412,10 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
     expect(reachable, 'server port never accepted a TCP connection').toBe(true);
   }, 70_000);
 
-  test('6. keyring resolves without hanging and `gq auth status` names the backend', () => {
-    const headlessEnv = { DBUS_SESSION_BUS_ADDRESS: '', XDG_RUNTIME_DIR: '' };
-    const r = runOk(['auth', 'status', '--json'], { timeoutMs: 15_000, env: headlessEnv });
+  test('6. `gq auth status` names the file backend', () => {
+    const r = runOk(['auth', 'status', '--json'], { timeoutMs: 15_000 });
 
-    expect(r.signal, `gq auth status hung (keyring D-Bus trap?). stderr:\n${r.stderr}`).toBeNull();
+    expect(r.signal, `gq auth status hung. stderr:\n${r.stderr}`).toBeNull();
 
     const line = r.stdout.trim().split('\n').filter(Boolean).pop() ?? '{}';
     let payload: { backend?: string };
@@ -429,7 +426,7 @@ describe(`CLI Linux e2e (${SUT_MODE} SUT)`, () => {
         `Failed to parse JSON from \`gq auth status --json\`.\nLast stdout line: ${line}\nFull stdout:\n${r.stdout}\nstderr:\n${r.stderr}`,
       );
     }
-    expect(['keyring', 'file']).toContain(payload.backend);
+    expect(payload.backend).toBe('file');
   });
 
   test('7. shutdown releases the server lock', async () => {

@@ -40,6 +40,7 @@ import { TiptapEditor } from '@/editor/TiptapEditor';
 import type { EditorModeValue } from '@/editor/use-editor-mode';
 import { useDocConflict } from '@/hooks/use-conflicts';
 import { ParkingActivity } from '@/lib/activity-park';
+import { useDraftHandover } from '@/lib/gitquire/draft-handover';
 import { mark, ProfilerBoundary } from '@/lib/perf';
 import { readNumericOverride } from '@/lib/perf/env-override';
 import { cn } from '@/lib/utils';
@@ -737,7 +738,9 @@ function ActivityEntry({
   onRecycle,
   serverRestartRecovery,
 }: ActivityEntryProps) {
-  const recoveryView = getServerRestartRecoveryView(entry.docName, serverRestartRecovery);
+  const handover = useDraftHandover();
+  const recoveryView =
+    handover === 'none' ? getServerRestartRecoveryView(entry.docName, serverRestartRecovery) : null;
 
   const conflict = useDocConflict(entry.docName);
   const isMermaid = isMermaidDocFile(entry.docName);

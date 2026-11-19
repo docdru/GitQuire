@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
+import { isEditTarget } from '../drafts/model.ts';
 import { type ChatEvent, runChatTurn, systemPrompt } from './agent.ts';
 import {
   CHAT_RETENTION_DAYS,
@@ -209,6 +210,10 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       typeof body.page === 'string' && body.page.trim() !== '' && body.page.length <= MAX_PAGE_CHARS
         ? body.page.trim()
         : undefined;
+    if (body.edits !== undefined && !isEditTarget(body.edits)) {
+      throw new ChatHttpError(400, 'invalid-edits', 'Choose "live" or "draft".');
+    }
+    const edits = body.edits;
     const provider = providerFrom(body.provider);
     const model = resolveModel(provider, body.model);
     const apiKey = deps.keys.get(user.id, provider);
@@ -229,6 +234,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       chat.provider = provider;
       chat.model = model;
     }
+    if (edits !== undefined) chat.edits = edits;
     if (running.has(user.id)) {
       throw new ChatHttpError(409, 'busy', 'Wait for the current answer, or stop it first.');
     }
@@ -277,7 +283,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       emit({ type: 'chat', id: chat.id, title: chat.title, provider, model });
       let tools: Awaited<ReturnType<OpenWikiTools>>;
       try {
-        tools = await deps.openTools(user, port, controller.signal);
+        tools = await deps.openTools(user, port, controller.signal, chat.edits);
       } catch (err) {
         deps.log.warn({ err }, '[gitquire-chat] could not open the wiki tools');
         emit({
@@ -348,7 +354,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
     }
     const port = req.socket.localPort;
     if (port === undefined) throw new ChatHttpError(503, 'tools-unavailable', 'Try again.');
-    const tools = await deps.openTools(user, port);
+    const tools = await deps.openTools(user, port, undefined, chat.edits);
     try {
       const written = await tools.call('write', {
         document: { path, content: chatTranscript(chat, user) },
