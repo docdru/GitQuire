@@ -1,8 +1,7 @@
 import type { BigIntStats, Dirent } from 'node:fs';
-import { readdirSync } from 'node:fs';
 import { lstat, readdir, realpath, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
-import { ASSET_EXTENSIONS, type BasenameIndex, LINKABLE_ASSET_EXTENSIONS } from '@gitquire/core';
+import { type BasenameIndex, LINKABLE_ASSET_EXTENSIONS } from '@gitquire/core';
 import { filesystemIdentity } from '@gitquire/core/server';
 import type { ContentFilter } from './content-filter.ts';
 import { resolveDirectoryRoot } from './directory-root.ts';
@@ -26,26 +25,6 @@ interface SeedOptions {
 function errnoCode(err: unknown): string | undefined {
   const code = (err as NodeJS.ErrnoException | null)?.code;
   return typeof code === 'string' ? code : undefined;
-}
-
-export function seedSingleDirBasenameIndex(opts: {
-  contentDir: string;
-  basenameIndex: BasenameIndex;
-  onSkip?(reason: SeedSkipReason, code: string | undefined, path: string): void;
-}): void {
-  let entries: Dirent[];
-  try {
-    entries = readdirSync(opts.contentDir, { withFileTypes: true }) as Dirent[];
-  } catch (err) {
-    const code = errnoCode(err);
-    if (code !== 'ENOENT') opts.onSkip?.('read-failed', code, opts.contentDir);
-    return;
-  }
-  for (const entry of entries) {
-    if (!entry.isFile()) continue;
-    if (!isSupportedAssetFile(entry.name, ASSET_EXTENSIONS)) continue;
-    opts.basenameIndex.add(entry.name);
-  }
 }
 
 export async function seedBasenameIndex(opts: SeedOptions): Promise<void> {

@@ -8,7 +8,6 @@ function buildGroup() {
   return createFolderTemplateRoutes({
     contentDir: '/nonexistent-content',
     projectDir: undefined,
-    ephemeral: true,
     log: loggerFactory.getLogger('test'),
     hocuspocus: {} as Hocuspocus,
     sessionManager: {} as AgentSessionManager,

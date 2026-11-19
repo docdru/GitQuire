@@ -40,7 +40,6 @@ export interface MountMcpAndApiOptions {
   keepaliveGraceMs?: number;
   contentAssetMiddleware?: (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
   reactShellMiddleware?: (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
-  ephemeral?: boolean;
   health?: HealthProvider;
   nativeApi: NativeApiHandle | undefined;
   ingressPolicy?: IngressPolicy;
@@ -64,7 +63,6 @@ export function mountMcpAndApi(opts: MountMcpAndApiOptions): MountMcpAndApiHandl
     maintenanceCoordinator,
     contentAssetMiddleware,
     reactShellMiddleware,
-    ephemeral,
   } = opts;
   const ingressPolicy = opts.ingressPolicy ?? buildIngressPolicy({});
 
@@ -129,7 +127,6 @@ export function mountMcpAndApi(opts: MountMcpAndApiOptions): MountMcpAndApiHandl
     contentDispatch: createContentDispatch({
       contentAssetMiddleware,
       reactShellMiddleware,
-      ephemeral,
       ingressPolicy,
       log,
     }),
