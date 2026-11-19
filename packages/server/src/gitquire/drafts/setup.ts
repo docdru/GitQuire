@@ -2,6 +2,7 @@ import { appendFileSync, copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import type { IncomingMessage } from 'node:http';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
+import { markDraftsAvailable } from '../edit-destination.ts';
 import type { GitHubAppConfig } from '../github-app.ts';
 import type { GitHubDraftsClient } from '../github-pulls.ts';
 import { internalRequestHeaders, internalSecret } from '../internal-request.ts';
@@ -189,6 +190,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     service.followRemote().catch(() => undefined);
   }, FOLLOW_REMOTE_MS);
   follow.unref();
+  markDraftsAvailable();
   deps.log.info({ remote: remote.kind }, '[gitquire-drafts] drafts are on');
   return {
     http,

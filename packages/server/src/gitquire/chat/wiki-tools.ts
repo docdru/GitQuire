@@ -1,6 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER, type SessionUser } from '../access-gate.ts';
+import { EDITS_HEADER, type EditTarget } from '../drafts/model.ts';
 import { internalRequestHeaders } from '../internal-request.ts';
 import type { ToolSpec } from './providers.ts';
 
@@ -42,6 +43,7 @@ export type OpenWikiTools = (
   user: SessionUser,
   port: number,
   signal?: AbortSignal,
+  edits?: EditTarget,
 ) => Promise<WikiTools>;
 
 export function refusedArguments(name: string, input: Record<string, unknown>): string | undefined {
@@ -97,12 +99,13 @@ export function createLoopbackWikiTools(options: {
   clientName: string;
   version: string;
 }): OpenWikiTools {
-  return async (user, port, signal) => {
+  return async (user, port, signal, edits) => {
     const transport = new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/mcp`), {
       requestInit: {
         headers: {
           ...internalRequestHeaders(),
           [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(user),
+          ...(edits === undefined ? {} : { [EDITS_HEADER]: edits }),
         },
       },
     });

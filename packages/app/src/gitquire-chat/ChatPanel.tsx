@@ -71,6 +71,7 @@ import {
   type ToolActivity,
   toolActivity,
 } from '@/lib/gitquire/chat-api';
+import { chooseChatEdits, useChatEdits } from '@/lib/gitquire/chat-edit-target';
 import { onChatRequest, takeChatRequest } from '@/lib/gitquire/chat-requests';
 import { useCurrentDocName } from '@/lib/gitquire/use-current-doc';
 import { openAiChatSettings } from '@/lib/use-settings-route';
@@ -333,6 +334,7 @@ function SaveAsPageDialog({
 export function ChatPanel() {
   const { t } = useLingui();
   const currentDoc = useCurrentDocName();
+  const chatEdits = useChatEdits();
   const [overview, setOverview] = useState<ChatOverview | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -391,6 +393,7 @@ export function ChatPanel() {
     if (sending) return;
     setChatId(null);
     setTitle(null);
+    chooseChatEdits(null);
     setItems([]);
     setUsage({ input: 0, output: 0 });
     inputRef.current?.focus();
@@ -402,6 +405,7 @@ export function ChatPanel() {
       const { chat, suggestedPath: path } = await fetchChat(id);
       setChatId(chat.id);
       setTitle(chat.title);
+      chooseChatEdits(chat.edits ?? null);
       setItems(itemsFromMessages(chat.messages));
       setUsage({ input: chat.usage.inputTokens, output: chat.usage.outputTokens });
       setSuggestedPath(path);
@@ -540,6 +544,7 @@ export function ChatPanel() {
         provider: selection.provider,
         model: selection.model,
         page: currentDoc,
+        ...(chatEdits.available ? { edits: chatEdits.value } : {}),
         signal: controller.signal,
       },
       handleEvent,

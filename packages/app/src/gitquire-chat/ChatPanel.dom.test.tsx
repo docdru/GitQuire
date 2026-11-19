@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { ChatOverview } from '@/lib/gitquire/chat-api';
 import { queueChatRequest } from '@/lib/gitquire/chat-requests';
@@ -159,6 +160,50 @@ describe('ChatPanel', () => {
       provider: 'claude',
       model: 'claude-sonnet-5-5',
       page: 'notes/plan',
+    });
+  });
+
+  test('sends where the edits of this chat go when drafts are on', async () => {
+    const stream = [
+      { type: 'chat', id: 'abcdefghijklmnop', title: 'Fix', provider: 'claude', model: 'm' },
+      { type: 'text', text: 'Done.' },
+      { type: 'done', stopped: 'end' },
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n');
+    stubFetch((url) => {
+      if (url === '/api/gitquire/chat') return json(overview({ claude: true }));
+      if (url === '/api/gitquire/chat/chats') return json({ chats: [] });
+      if (url.endsWith('/api/gitquire/drafts')) {
+        return json({ enabled: true, me: 'alice', viewing: null, drafts: [] });
+      }
+      if (url.endsWith('/api/gitquire/drafts/current')) {
+        return json({ viewing: null, drift: null, closing: false, closed: null });
+      }
+      if (url.endsWith('/api/gitquire/drafts/agent-mode')) return json({ mode: 'draft' });
+      if (url === '/api/gitquire/chat/chats/new/messages') {
+        return new Response(`${stream}\n`, {
+          headers: { 'content-type': 'application/x-ndjson' },
+        });
+      }
+      return undefined;
+    });
+    render(<ChatPanel />);
+    await waitFor(() =>
+      expect(requests.some((request) => request.url.endsWith('/drafts/agent-mode'))).toBe(true),
+    );
+    await act(async () => {
+      await new Promise((settle) => setTimeout(settle, 20));
+    });
+    const input = await screen.findByRole('textbox', { name: 'Message' });
+    fireEvent.change(input, { target: { value: 'Fix the typo' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await screen.findByText('Done.');
+
+    const sent = requests.find((request) => request.url.endsWith('/messages'));
+    expect(JSON.parse(String(sent?.init?.body))).toMatchObject({
+      text: 'Fix the typo',
+      edits: 'draft',
     });
   });
 

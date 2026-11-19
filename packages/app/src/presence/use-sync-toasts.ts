@@ -2,6 +2,7 @@ import { useLingui } from '@lingui/react/macro';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { FORCE_SYNC_INTERVAL_MS } from '@/editor/provider-pool';
+import { noteConnected, noteDisconnected, useDraftHandover } from '@/lib/gitquire/draft-handover';
 import type { SyncStatus } from './use-sync-status';
 
 const TOAST_ID = 'sync-status';
@@ -15,6 +16,7 @@ type CatchupClaim = 'idle' | 'armed' | 'asserted' | 'dismissed';
 
 export function useSyncToasts(status: SyncStatus, activeDocName: string | null) {
   const { t } = useLingui();
+  const handover = useDraftHandover();
   const hasConnectedRef = useRef(false);
   const wasDisconnectedRef = useRef(false);
   const downgradeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -58,6 +60,23 @@ export function useSyncToasts(status: SyncStatus, activeDocName: string | null) 
 
     if (status === 'synced') {
       hasConnectedRef.current = true;
+    }
+    if (status === 'connected' || status === 'synced') noteConnected();
+
+    const plannedStop =
+      handover !== 'none' ||
+      (status === 'disconnected' && hasConnectedRef.current && activeDocName !== null
+        ? noteDisconnected()
+        : false);
+    if (plannedStop) {
+      clearDowngradeTimer();
+      clearCatchupTimer();
+      if (outageEpisodeRef.current) toast.dismiss(TOAST_ID);
+      endOutageEpisode();
+      wasDisconnectedRef.current = false;
+      downgradedRef.current = false;
+      disconnectedSinceRef.current = null;
+      return;
     }
 
     if (!activeDocName) {
@@ -151,5 +170,5 @@ export function useSyncToasts(status: SyncStatus, activeDocName: string | null) 
       endOutageEpisode();
       toast.success(t`Reconnected`, { id: TOAST_ID, duration: 3000, ...NO_TOAST_HANDLERS });
     }
-  }, [status, activeDocName, t]);
+  }, [status, activeDocName, t, handover]);
 }

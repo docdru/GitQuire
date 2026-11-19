@@ -3,12 +3,15 @@ import type { Duplex } from 'node:stream';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER } from '../access-gate.ts';
 import { pathOf, redirect, sendJson } from '../http-util.ts';
-import { internalRequestHeaders } from '../internal-request.ts';
+import { internalRequestHeaders, isInternalRequest } from '../internal-request.ts';
 import { isSameOrigin } from '../routes.ts';
 import type { DraftInstances } from './instances.ts';
 import {
   cleanTitle,
   type DraftRecord,
+  EDITS_HEADER,
+  type EditTarget,
+  isEditTarget,
   isOpen,
   isSlug,
   readCookie,
@@ -199,6 +202,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
         sendJson(res, 200, {
           viewing: null,
           drift: null,
+          closing: false,
           closed: {
             slug: viewing,
             title: gone?.title ?? viewing,
@@ -211,6 +215,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       sendJson(res, 200, {
         viewing: draft === undefined ? null : service.summary(draft),
         drift: draft === undefined ? null : service.drift(draft.slug),
+        closing: draft === undefined ? false : service.isClosing(draft.slug),
         closed: null,
       });
       return;
@@ -333,24 +338,36 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     sendJson(res, 503, { error: 'draft-unavailable', message });
   }
 
+  function chosenTarget(req: IncomingMessage): EditTarget | undefined {
+    const value = req.headers[EDITS_HEADER];
+    return isInternalRequest(req) && isEditTarget(value) ? value : undefined;
+  }
+
   function agentTarget(
     owner: SessionUser,
     session: string | undefined,
+    chosen: EditTarget | undefined,
   ): Promise<DraftRecord> | undefined {
     if (session !== undefined) {
       const stuck = openDraft(sticky.get(session));
       return stuck === undefined ? undefined : Promise.resolve(stuck);
     }
+    if (chosen === 'live') return undefined;
     const viewed = openDraft(lastView.get(owner.id) ?? undefined);
     if (viewed !== undefined) return Promise.resolve(viewed);
-    return service.agentMode(owner.id) === 'draft' ? service.agentDraft(owner) : undefined;
+    const mode = chosen ?? service.agentMode(owner.id);
+    return mode === 'draft' ? service.agentDraft(owner) : undefined;
   }
 
   function routeAgent(req: IncomingMessage, res: ServerResponse): boolean {
     const owner = deps.agentOwner(req);
     if (owner === undefined) return false;
     const session = req.headers[MCP_SESSION_HEADER];
-    const target = agentTarget(owner, typeof session === 'string' ? session : undefined);
+    const target = agentTarget(
+      owner,
+      typeof session === 'string' ? session : undefined,
+      chosenTarget(req),
+    );
     if (target === undefined) return false;
     target
       .then(async (draft) => {
@@ -431,6 +448,13 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     const draft = openDraft(slug);
     if (draft === undefined) {
       socket.write('HTTP/1.1 409 Conflict\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return true;
+    }
+    if (service.isClosing(draft.slug)) {
+      socket.write(
+        'HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\nContent-Length: 0\r\n\r\n',
+      );
       socket.destroy();
       return true;
     }

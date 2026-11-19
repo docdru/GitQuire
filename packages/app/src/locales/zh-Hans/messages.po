@@ -31,6 +31,9 @@ msgstr ".gitquire 文件夹"
 msgid "\"{0}\" is live."
 msgstr ""
 
+msgid "\"{0}\" is live. You are now on the live wiki."
+msgstr ""
+
 msgid "\"{0}\" is ready for review."
 msgstr ""
 
@@ -40,10 +43,10 @@ msgstr ""
 msgid "\"{0}\" was discarded."
 msgstr ""
 
-msgid "\"{0}\" was discarded. You are back on the live wiki."
+msgid "\"{0}\" was discarded. You are now on the live wiki."
 msgstr ""
 
-msgid "\"{0}\" was published. You are back on the live wiki."
+msgid "\"{0}\" was published. You are now on the live wiki."
 msgstr ""
 
 msgid "\"{docName}\" doesn't exist."
@@ -524,7 +527,10 @@ msgstr "{visibleSummary}。{0}"
 msgid "{warningCount, plural, one {# warning} other {# warnings}}"
 msgstr "{warningCount, plural, other {# 个警告}}"
 
-msgid "{who} published \"{0}\". You are back on the live wiki."
+msgid "{who} discarded \"{0}\". You are now on the live wiki."
+msgstr ""
+
+msgid "{who} published \"{0}\". You are now on the live wiki."
 msgstr ""
 
 msgid "{words, plural, one {word} other {words}}"
@@ -2631,6 +2637,9 @@ msgstr "编辑会实时生效。浅色或深色由主题决定。"
 
 msgid "Edits at the source land here — no copy-paste drift."
 msgstr "在来源处的编辑会同步到这里——不会因复制粘贴而产生偏差。"
+
+msgid "Edits go to:"
+msgstr ""
 
 msgid "Edits to {fileName} kept from the last time this branch was open could not be merged, so the file's version stayed. Those edits are in the timeline."
 msgstr "{fileName} 中上次打开此分支时保留的编辑无法合并，因此保留了文件中的版本。这些编辑在时间线中。"

@@ -69,6 +69,7 @@ export interface ClosedDraft {
 export interface CurrentDraft {
   viewing: DraftSummary | null;
   drift: LiveDrift | null;
+  closing?: boolean;
   closed: ClosedDraft | null;
 }
 
