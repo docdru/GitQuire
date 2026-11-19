@@ -168,10 +168,6 @@ vi.doMock('@/editor/DocumentContext', () => ({
   }),
 }));
 
-vi.doMock('@/lib/single-file-mode', () => ({
-  useSingleFileMode: () => false,
-}));
-
 vi.doMock('./EditorTabs', () => ({
   EditorTabs: ({
     dropIndicatorIndex,

@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { subscribeToDocPanelTabRequests } from '@/components/doc-panel-events';
 import { DocNoticesProvider } from '@/hooks/use-doc-notices';
 import { emitDocumentsChanged } from '@/lib/documents-events';
-import { SingleFileModeProvider } from '@/lib/single-file-mode';
 import { DocChangeNotice } from './DocChangeNotice';
 
 const AT = '2026-10-20T12:00:00.000Z';
@@ -76,13 +75,11 @@ afterEach(() => {
 
 function renderNotice(docName: string, timelineAvailable = true) {
   return render(
-    <SingleFileModeProvider>
-      <DocNoticesProvider>
-        <div data-editor-region="" tabIndex={-1} data-testid="editor-region">
-          <DocChangeNotice docName={docName} timelineAvailable={timelineAvailable} />
-        </div>
-      </DocNoticesProvider>
-    </SingleFileModeProvider>,
+    <DocNoticesProvider>
+      <div data-editor-region="" tabIndex={-1} data-testid="editor-region">
+        <DocChangeNotice docName={docName} timelineAvailable={timelineAvailable} />
+      </div>
+    </DocNoticesProvider>,
   );
 }
 

@@ -6,13 +6,8 @@ afterEach(() => {
 });
 
 describe('channel CLI copy', () => {
-  test('names Stable without a desktop bridge', () => {
+  test('names the gq command and the ~/.gitquire home', () => {
     expect(okCliCommandName()).toBe('gq');
     expect(okUserHomeLabel('secrets.yml')).toBe('~/.gitquire/secrets.yml');
-  });
-
-  test('falls back to Stable for a command no channel owns', () => {
-    vi.stubGlobal('window', { okDesktop: { cliCommandName: 'rm -rf' } });
-    expect(okCliCommandName()).toBe('gq');
   });
 });

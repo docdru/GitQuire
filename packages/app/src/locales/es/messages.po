@@ -1561,9 +1561,6 @@ msgstr "Cerrar pestaña nueva"
 msgid "Close others"
 msgstr "Cerrar las demás"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Cierra esta vista previa y abre la carpeta para subir archivos"
-
 msgid "Clusters"
 msgstr "Grupos"
 
@@ -2112,9 +2109,6 @@ msgstr "Crear un documento a partir de {label}"
 
 msgid "Create a file from the current document or folder context."
 msgstr "Crea un archivo a partir del documento o la carpeta actuales."
-
-msgid "Create a folder from the current document or folder context."
-msgstr "Crea una carpeta a partir del documento o la carpeta actuales."
 
 msgid "Create a new list item from the current list item."
 msgstr "Crea un elemento de lista nuevo a partir del elemento actual."
@@ -3266,9 +3260,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "El formato se veía mal"
-
-msgid "Forward"
-msgstr "Adelante"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "La respuesta de enlaces salientes no tenía la forma esperada."
@@ -4982,9 +4973,6 @@ msgstr "Desactivada: la búsqueda ordena solo por palabras clave. No sale ningú
 msgid "Offline"
 msgstr "Sin conexión"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "Activada: al pasar el cursor por un enlace externo se envía su URL al sitio de destino para obtener una vista previa, y al pasar el cursor por una referencia de GitHub en el chat de un agente se le pide a GitHub."
 
@@ -5063,9 +5051,6 @@ msgstr "Abre primero un proyecto."
 msgid "Open a project to edit."
 msgstr "Abre un proyecto para editarlo."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "Abre un único archivo markdown en una sesión temporal, sin configurar ningún proyecto."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "Abrir el panel de actividad de {tooltipName}"
 
@@ -5074,9 +5059,6 @@ msgstr "Abrir el panel de actividad de {tooltipName}, que está editando {realCu
 
 msgid "Open agents"
 msgstr "Abrir agentes"
-
-msgid "Open an existing project folder from disk."
-msgstr "Abre desde el disco una carpeta de proyecto existente."
 
 msgid "Open board"
 msgstr "Abrir la pizarra"
@@ -5113,9 +5095,6 @@ msgstr "Abrir el selector de emojis de {keyName}"
 
 msgid "Open file"
 msgstr "Abrir archivo"
-
-msgid "Open folder"
-msgstr "Abrir carpeta"
 
 msgid "Open graph"
 msgstr "Abrir el grafo"
@@ -5158,9 +5137,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Abre el menú de inserción en una posición de texto vacía o activa."
-
-msgid "Open the Project Navigator."
-msgstr "Abre el Navegador de proyectos."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Abre este documento en el editor y contrae el grafo."
@@ -5906,9 +5882,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "Informar de un error"
 
 msgid "Report an issue"
 msgstr ""
@@ -6694,9 +6667,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "Inicia un informe de error con una captura de pantalla tal como se ve ahora mismo."
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6792,9 +6762,6 @@ msgstr "Intercambiar la barra lateral de archivos y el panel del documento"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "Cambia entre el editor visual y el de código sin perder tu sitio."
-
-msgid "Switch project"
-msgstr "Cambiar de proyecto"
 
 msgid "Switch to a branch to share."
 msgstr "Cambia a una rama para compartir."
@@ -7593,12 +7560,6 @@ msgstr "Páginas más enlazadas"
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
 
-msgid "Traverse GitQuire navigation history backward."
-msgstr "Retrocede por el historial de navegación de GitQuire."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "Avanza por el historial de navegación de GitQuire."
-
 msgid "Tree view options"
 msgstr "Opciones de la vista de árbol"
 
@@ -8034,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "Novedades"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "Cuando está activado, el agente abre o actualiza la vista previa después de cada edición. Desactívalo si gestionas tu propia ventana de vista previa (OK Desktop, una pestaña del navegador en otra pantalla, etc.)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "Cuándo ejecuta el agente su trabajo programado."

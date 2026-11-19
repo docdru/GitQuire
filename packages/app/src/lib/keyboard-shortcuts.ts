@@ -55,7 +55,6 @@ export interface KeyboardShortcutDefinition {
   description: MessageDescriptor;
   scope: MessageDescriptor;
   bindings: ShortcutBinding[];
-  desktopOnly?: boolean;
 }
 
 type ShortcutTargetLike =
@@ -133,14 +132,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     ],
   },
   {
-    id: 'new-folder',
-    category: 'general',
-    title: msg`New folder`,
-    description: msg`Create a folder from the current document or folder context.`,
-    scope: msg`OK Desktop`,
-    bindings: [{ mac: '⇧⌘ N', windowsLinux: 'Ctrl Shift N' }],
-  },
-  {
     id: 'toggle-files-sidebar',
     category: 'general',
     title: msg`Show or hide Files`,
@@ -195,31 +186,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
         match: { key: 'l', mod: true },
       },
     ],
-  },
-  {
-    id: 'report-bug',
-    category: 'general',
-    title: msg`Report a bug`,
-    description: msg`Start a bug report with a screenshot of the screen as it looks right now.`,
-    scope: msg`OK Desktop`,
-    desktopOnly: true,
-    bindings: [{ mac: '⇧⌘ D', windowsLinux: 'Ctrl Shift D' }],
-  },
-  {
-    id: 'navigate-back',
-    category: 'navigation',
-    title: msg`Back`,
-    description: msg`Traverse GitQuire navigation history backward.`,
-    scope: msg`OK Desktop`,
-    bindings: [{ mac: '⌘ [', windowsLinux: 'Alt ←' }],
-  },
-  {
-    id: 'navigate-forward',
-    category: 'navigation',
-    title: msg`Forward`,
-    description: msg`Traverse GitQuire navigation history forward.`,
-    scope: msg`OK Desktop`,
-    bindings: [{ mac: '⌘ ]', windowsLinux: 'Alt →' }],
   },
   {
     id: 'tab-new',
@@ -292,30 +258,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
         match: { key: 't', mod: true, shiftKey: true },
       },
     ],
-  },
-  {
-    id: 'open-folder',
-    category: 'workspace',
-    title: msg`Open folder`,
-    description: msg`Open an existing project folder from disk.`,
-    scope: msg`OK Desktop`,
-    bindings: [{ mac: '⌘ O', windowsLinux: 'Ctrl O' }],
-  },
-  {
-    id: 'open-file',
-    category: 'workspace',
-    title: msg`Open file`,
-    description: msg`Open a single markdown file in a temporary session, without project setup.`,
-    scope: msg`OK Desktop`,
-    bindings: [{ mac: '⇧⌘ O', windowsLinux: 'Ctrl Shift O' }],
-  },
-  {
-    id: 'switch-project',
-    category: 'workspace',
-    title: msg`Switch project`,
-    description: msg`Open the Project Navigator.`,
-    scope: msg`OK Desktop`,
-    bindings: [{ mac: '⇧⌘ P', windowsLinux: 'Ctrl Shift P' }],
   },
   {
     id: 'file-tree-copy',

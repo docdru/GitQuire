@@ -1,14 +1,7 @@
-import { isAbsolute } from 'node:path';
 import { currentCliCommandName } from '@gitquire/core';
-import { readConfigSafely, resolveConfigPath } from '@gitquire/core/server';
 import { z } from 'zod';
 import { AutoStartDisabledError } from '../../autostart.ts';
 import { resolveLockDir } from '../../config/paths.ts';
-import {
-  createOffCwdResolverDeps,
-  type OffCwdResolverDeps,
-  resolveOffCwdTarget,
-} from '../../off-cwd-resolver.ts';
 import { isProcessAlive } from '../../process-alive.ts';
 import { lockAdvertisesUi, readServerLock } from '../../server-lock.ts';
 import {
@@ -28,8 +21,8 @@ import {
 } from './shared.ts';
 
 const DESCRIPTION = [
-  "Get the full browser URL for this project or a document/folder, or an absolute markdown file outside the project. Opening is demand: auto-starts OK under the normal GITQUIRE_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the GitQuire CLI's ps/status.",
-  'Choose one: document (extension-less), folder (trailing-slash route), or file (absolute .md/.mdx in a loose-file/worktree session). file ignores cwd; other targets use current project. Omit targets for UI root.',
+  "Get the full browser URL for this project or a document/folder. Opening is demand: auto-starts OK under the normal GITQUIRE_MCP_AUTOSTART gate and waits briefly for UI; cold calls can take seconds. Other tools return route-only previewUrl paths; use this tool for an openable URL, never guess ports or hunt via the GitQuire CLI's ps/status.",
+  'Choose one: document (extension-less) or folder (trailing-slash route), both in the current project. Omit targets for UI root.',
   "When YOUR host opens URLs, navigate its embedded browser to url; Claude Code Desktop uses preview_start({url}) then navigate({url}). Only a stdio host without a browser tool should open the URL in the system browser. A CLI without a browser can use the GitQuire CLI's open <doc> for OK Desktop. This tool forces browser access even when Desktop is installed.",
   "INSIDE OK's terminal/agent panel, use returned okOpenCommand instead; never paste url in the answer. If no UI is reachable, returns url:null, baseUrl:null, running:false, autoOpen plus state-specific recovery text (autostart disabled, no spawn authority or UI timeout). Follow it.",
 ].join('\n');
@@ -40,9 +33,6 @@ interface GetPreviewUrlDeps {
   isHostedAgent?: boolean;
   serverUrl?: ServerUrlOrResolver;
   uiBindWait?: { timeoutMs?: number; pollIntervalMs?: number };
-  offCwdResolverDeps?: OffCwdResolverDeps;
-  ensureSingleFileSession?: (absFile: string) => Promise<boolean>;
-  resolveUserAutoOpen?: () => boolean;
 }
 
 const UI_BIND_WAIT_TIMEOUT_MS = 3000;
@@ -61,12 +51,6 @@ const InputSchema = {
     .optional()
     .describe(
       'Folder path to resolve a folder-route preview URL for (e.g. "specs/foo"); returns the `…/#/<folder>/` route. Mutually exclusive with `document`.',
-    ),
-  file: z
-    .string()
-    .optional()
-    .describe(
-      'Absolute path to a single markdown file to open, including one OUTSIDE any Open Knowledge project. Resolves to the running single-file (or worktree) session whose content directory contains it and returns that session’s `url`. Mutually exclusive with `document` / `folder`. When `file` is set, `cwd` is ignored.',
     ),
   cwd: z.string().optional().describe(ROUTED_CWD_DESCRIPTION),
 } as const;
@@ -108,26 +92,6 @@ function noServerMessage(): string {
   return `No GitQuire server is running for this project. Start it with \`${currentCliCommandName()} start\` (also starts the preview UI), or open the project in OK Electron.`;
 }
 const AUTOSTART_DISABLED_NOTE = ' Auto-start is disabled (GITQUIRE_MCP_AUTOSTART=0).';
-function readUserAutoOpen(): boolean {
-  try {
-    const cfg = readConfigSafely({
-      absPath: resolveConfigPath('user', process.cwd()),
-      sideline: false,
-      warn: () => {},
-    });
-    return cfg.value.appearance?.preview?.autoOpen ?? true;
-  } catch (err) {
-    process.stderr.write(
-      `[preview-url] readUserAutoOpen failed: ${err instanceof Error ? err.message : String(err)}\n`,
-    );
-    return true;
-  }
-}
-
-function noSingleFileSessionMessage(file: string): string {
-  return `No Open Knowledge session is serving ${file} yet. On a host with a terminal, \`${currentCliCommandName()} open ${file}\` starts one; otherwise open ${file} in the OK Desktop app. Then retry.`;
-}
-
 function serverExplicitlyLacksUi(lockDir: string): boolean {
   try {
     const lock = readServerLock(lockDir);
@@ -170,58 +134,17 @@ export function register(server: ServerInstance, deps: GetPreviewUrlDeps): void 
         idempotentHint: true,
       },
     },
-    async (args: { document?: string; folder?: string; file?: string; cwd?: string }) => {
-      if ([args.document, args.folder, args.file].filter((t) => t != null).length > 1) {
+    async (args: { document?: string; folder?: string; cwd?: string }) => {
+      if ([args.document, args.folder].filter((t) => t != null).length > 1) {
         return {
           isError: true,
           content: [
             {
               type: 'text' as const,
-              text: 'Error: document, folder, and file are mutually exclusive — pass at most one.',
+              text: 'Error: document and folder are mutually exclusive — pass at most one.',
             },
           ],
         };
-      }
-
-      if (args.file) {
-        if (!isAbsolute(args.file)) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: 'text' as const,
-                text: 'Error: file must be an absolute path (a loose file outside a project has no cwd to anchor a relative path).',
-              },
-            ],
-          };
-        }
-        const fileAutoOpen = (deps.resolveUserAutoOpen ?? readUserAutoOpen)();
-        const resolverDeps = deps.offCwdResolverDeps ?? createOffCwdResolverDeps();
-        let hit = await resolveOffCwdTarget(args.file, resolverDeps);
-        if (hit === null && deps.ensureSingleFileSession) {
-          const booted = await deps.ensureSingleFileSession(args.file).catch((err) => {
-            process.stderr.write(
-              `[preview-url] ensureSingleFileSession failed for ${args.file}: ${err instanceof Error ? err.message : String(err)}\n`,
-            );
-            return false;
-          });
-          if (booted) hit = await resolveOffCwdTarget(args.file, resolverDeps);
-        }
-        if (hit !== null) {
-          const url = `${hit.baseUrl}/#/${encodeDocName(hit.docName)}`;
-          return textPlusStructured(`Preview URL: ${url}`, {
-            url,
-            baseUrl: hit.baseUrl,
-            running: true,
-            autoOpen: fileAutoOpen,
-          });
-        }
-        return textPlusStructured(noSingleFileSessionMessage(args.file), {
-          url: null,
-          baseUrl: null,
-          running: false,
-          autoOpen: fileAutoOpen,
-        });
       }
 
       const context = await resolveProjectConfigContext(deps.resolveCwd, deps.config, args.cwd);

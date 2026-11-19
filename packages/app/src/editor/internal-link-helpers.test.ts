@@ -180,17 +180,17 @@ describe('navigateToMarkdownTarget — external routing', () => {
     });
   });
 
-  function stubWindow(overrides: { okDesktop?: unknown; open?: unknown }): void {
+  function stubWindow(overrides: { open?: unknown }): void {
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
-      value: { location: { hash: '' }, open: overrides.open, okDesktop: overrides.okDesktop },
+      value: { location: { hash: '' }, open: overrides.open },
       writable: true,
     });
   }
 
-  it('web (no bridge): falls back to window.open with the new-tab + noopener features', () => {
+  it('opens the link with window.open in a new tab with noopener', () => {
     const openWindow = vi.fn(() => null);
-    stubWindow({ okDesktop: undefined, open: openWindow });
+    stubWindow({ open: openWindow });
 
     navigateToMarkdownTarget({ kind: 'external', url: 'https://example.com/web' });
 
@@ -202,14 +202,12 @@ describe('navigateToMarkdownTarget — external routing', () => {
     );
   });
 
-  it('unsafe scheme is refused: neither the bridge nor window.open fires', () => {
-    const openExternal = vi.fn(async (_url: string) => {});
+  it('unsafe scheme is refused: window.open does not fire', () => {
     const openWindow = vi.fn(() => null);
-    stubWindow({ okDesktop: { shell: { openExternal } }, open: openWindow });
+    stubWindow({ open: openWindow });
 
     navigateToMarkdownTarget({ kind: 'external', url: 'javascript:alert(1)' });
 
-    expect(openExternal).not.toHaveBeenCalled();
     expect(openWindow).not.toHaveBeenCalled();
   });
 });

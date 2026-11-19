@@ -580,18 +580,6 @@ export {
 } from './share/github-account.ts';
 export { redactShareSubprocessStderr } from './share/publish.ts';
 export { GIT_ALLOWED_ENVIRONMENT, simpleGit } from './simple-git-client.ts';
-export {
-  createEphemeralProjectDir,
-  EPHEMERAL_PROJECT_DIR_PREFIX,
-  type PrepareSingleFileOpenOptions,
-  prepareSingleFileOpen,
-  SingleFileNotAFileError,
-  SingleFileNotFoundError,
-  SingleFileNotMarkdownError,
-  type SingleFileOpenPlan,
-  SingleFileProjectOverrideError,
-  seedEphemeralProjectDir,
-} from './single-file-open.ts';
 export { type SpawnDetachedOutcome, spawnDetached } from './spawn-detached.ts';
 export {
   assertCompatibleStateManifest,

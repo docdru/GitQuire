@@ -131,7 +131,6 @@ async function withLoadedDocuments(
       quiet: true,
       gitEnabled: false,
       idleShutdownMs: null,
-      ephemeral: true,
     });
     await booted.ready;
     const destroyBoot = booted.destroy.bind(booted);

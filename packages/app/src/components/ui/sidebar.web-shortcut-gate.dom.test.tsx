@@ -16,24 +16,18 @@ function pressSidebarShortcut() {
   });
 }
 
-function setOkDesktop(value: unknown) {
-  (window as { okDesktop?: unknown }).okDesktop = value;
-}
-
-describe('SidebarProvider web-mode ⌥⌘S shortcut — Electron gate', () => {
+describe('SidebarProvider ⌥⌘S shortcut', () => {
   beforeEach(() => {
     window.innerWidth = 1400;
-    setOkDesktop(undefined);
     window.localStorage.removeItem(SIDEBAR_PINS_KEY);
   });
 
   afterEach(() => {
     cleanup();
-    setOkDesktop(undefined);
     window.localStorage.removeItem(SIDEBAR_PINS_KEY);
   });
 
-  test('web host (no window.okDesktop): ⌥⌘S toggles the sidebar', () => {
+  test('⌥⌘S toggles the sidebar', () => {
     render(
       <SidebarProvider>
         <StateProbe />
@@ -46,7 +40,7 @@ describe('SidebarProvider web-mode ⌥⌘S shortcut — Electron gate', () => {
     expect(screen.getByTestId('sidebar-state').textContent).toBe('collapsed');
   });
 
-  test('web host: ⌥⌘S does NOT toggle while an overlay owns the keyboard', async () => {
+  test('⌥⌘S does NOT toggle while an overlay owns the keyboard', async () => {
     const { Dialog, DialogContent, DialogDescription, DialogTitle } = await import(
       '@/components/ui/dialog'
     );
@@ -69,7 +63,7 @@ describe('SidebarProvider web-mode ⌥⌘S shortcut — Electron gate', () => {
     expect(screen.getByTestId('sidebar-state').textContent).toBe('expanded');
   });
 
-  test('web host (Win/Linux modifier): Ctrl+Alt+S also toggles the sidebar', () => {
+  test('Ctrl+Alt+S also toggles the sidebar', () => {
     render(
       <SidebarProvider>
         <StateProbe />

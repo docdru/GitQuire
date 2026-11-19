@@ -51,10 +51,7 @@ describe('useServerKeepalive (Tier-3 mount)', () => {
   test('starts a single presence-invisible keepalive on mount (non-desktop)', async () => {
     const fake = makeFakeKeepalive();
     render(
-      <HookProbe
-        collabUrl="ws://localhost:5173/collab"
-        options={{ startKeepalive: fake.start, isElectronHost: () => false }}
-      />,
+      <HookProbe collabUrl="ws://localhost:5173/collab" options={{ startKeepalive: fake.start }} />,
     );
 
     await waitFor(
@@ -75,12 +72,7 @@ describe('useServerKeepalive (Tier-3 mount)', () => {
 
   test('resolver yields undefined while collabUrl is unresolved (primitive backs off)', async () => {
     const fake = makeFakeKeepalive();
-    render(
-      <HookProbe
-        collabUrl={null}
-        options={{ startKeepalive: fake.start, isElectronHost: () => false }}
-      />,
-    );
+    render(<HookProbe collabUrl={null} options={{ startKeepalive: fake.start }} />);
 
     await waitFor(
       () => {
@@ -93,7 +85,7 @@ describe('useServerKeepalive (Tier-3 mount)', () => {
 
   test('does not restart on collabUrl change — resolver reads the latest value', async () => {
     const fake = makeFakeKeepalive();
-    const options = { startKeepalive: fake.start, isElectronHost: () => false };
+    const options = { startKeepalive: fake.start };
     const { rerender } = render(
       <HookProbe collabUrl="ws://localhost:1111/collab" options={options} />,
     );
@@ -118,10 +110,7 @@ describe('useServerKeepalive (Tier-3 mount)', () => {
   test('closes the keepalive on unmount', async () => {
     const fake = makeFakeKeepalive();
     const { unmount } = render(
-      <HookProbe
-        collabUrl="ws://localhost:5173/collab"
-        options={{ startKeepalive: fake.start, isElectronHost: () => false }}
-      />,
+      <HookProbe collabUrl="ws://localhost:5173/collab" options={{ startKeepalive: fake.start }} />,
     );
 
     await waitFor(

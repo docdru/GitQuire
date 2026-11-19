@@ -36,16 +36,6 @@ function makeFetchMock() {
   });
 }
 
-const restartServer = vi.fn(async () => ({ ok: true as const }));
-
-function installBridge() {
-  (window as unknown as { okDesktop?: unknown }).okDesktop = {
-    platform: 'darwin',
-    config: { projectPath: '/tmp/ok', collabUrl: 'ws://127.0.0.1:5200/collab' },
-    restartServer,
-  };
-}
-
 class StubItem {
   expanded = false;
   selected = false;
@@ -208,7 +198,6 @@ describe('FileTree unreachable-server restart action', () => {
     listingFails = false;
     listingStatus = 200;
     listingDocuments = [];
-    restartServer.mockClear();
     globalThis.fetch = makeFetchMock() as unknown as typeof fetch;
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
@@ -218,7 +207,7 @@ describe('FileTree unreachable-server restart action', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  test('omits the restart action when there is no bridge to restart through', async () => {
+  test('omits the restart action when the server cannot be reached', async () => {
     listingFails = true;
     render(<FileTree />);
 
@@ -228,7 +217,6 @@ describe('FileTree unreachable-server restart action', () => {
   });
 
   test('omits the restart action when the server answered with an error', async () => {
-    installBridge();
     listingStatus = 500;
     render(<FileTree />);
 

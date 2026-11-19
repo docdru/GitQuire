@@ -18,10 +18,7 @@ afterAll(() => {
   restoreDomGlobals = null;
 });
 
-type OpenExternalBridge = { shell?: { openExternal?: (url: string) => Promise<void> } };
-
 interface OpenExternalWindow {
-  okDesktop?: OpenExternalBridge;
   open: (url?: string, target?: string, features?: string) => unknown;
 }
 

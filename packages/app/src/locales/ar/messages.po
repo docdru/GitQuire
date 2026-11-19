@@ -1561,9 +1561,6 @@ msgstr "إغلاق التبويب الجديد"
 msgid "Close others"
 msgstr "إغلاق الأخرى"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "أغلق هذه المعاينة، ثم افتح المجلد لرفع الملفات"
-
 msgid "Clusters"
 msgstr "التجمعات"
 
@@ -2112,9 +2109,6 @@ msgstr "إنشاء مستند من {label}"
 
 msgid "Create a file from the current document or folder context."
 msgstr "أنشئ ملفًا من سياق المستند أو المجلد الحالي."
-
-msgid "Create a folder from the current document or folder context."
-msgstr "أنشئ مجلدًا من سياق المستند أو المجلد الحالي."
 
 msgid "Create a new list item from the current list item."
 msgstr "أنشئ عنصر قائمة جديدًا من عنصر القائمة الحالي."
@@ -3266,9 +3260,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "بدا التنسيق خاطئًا"
-
-msgid "Forward"
-msgstr "للأمام"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "لم تطابق استجابة الروابط الصادرة الشكل المتوقع."
@@ -4982,9 +4973,6 @@ msgstr "معطّل — يرتّب البحث بالكلمات المفتاحية
 msgid "Offline"
 msgstr "غير متصل"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "مفعّل — تمرير المؤشر فوق رابط خارجي يرسل رابطه إلى الموقع الوجهة لجلب معاينة، وتمرير المؤشر فوق مرجع GitHub في محادثة مع وكيل يطلبه من GitHub."
 
@@ -5063,9 +5051,6 @@ msgstr "افتح مشروعًا أولًا."
 msgid "Open a project to edit."
 msgstr "افتح مشروعًا للتحرير."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "افتح ملف Markdown واحدًا في جلسة مؤقتة، بلا إعداد مشروع."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "فتح لوحة النشاط لـ {tooltipName}"
 
@@ -5074,9 +5059,6 @@ msgstr "فتح لوحة النشاط لـ {tooltipName}، يحرّر {realCurren
 
 msgid "Open agents"
 msgstr "فتح الوكلاء"
-
-msgid "Open an existing project folder from disk."
-msgstr "افتح مجلد مشروع موجودًا من القرص."
 
 msgid "Open board"
 msgstr "فتح اللوحة"
@@ -5113,9 +5095,6 @@ msgstr "فتح منتقي الرموز التعبيرية لـ {keyName}"
 
 msgid "Open file"
 msgstr "فتح ملف"
-
-msgid "Open folder"
-msgstr "فتح مجلد"
 
 msgid "Open graph"
 msgstr "فتح الرسم البياني"
@@ -5158,9 +5137,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "افتح قائمة الإدراج في موضع نصي فارغ أو نشط."
-
-msgid "Open the Project Navigator."
-msgstr "افتح متصفح المشاريع."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "افتح هذا المستند في المحرر واطوِ الرسم البياني."
@@ -5906,9 +5882,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "الإبلاغ عن علة"
 
 msgid "Report an issue"
 msgstr ""
@@ -6694,9 +6667,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "ابدأ تقرير علة مع لقطة شاشة كما تبدو في هذه اللحظة."
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6792,9 +6762,6 @@ msgstr "تبديل موضعي الشريط الجانبي للملفات ولو�
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "بدّل بين المحرر المرئي ومحرر المصدر مع الاحتفاظ بموضعك."
-
-msgid "Switch project"
-msgstr "تبديل المشروع"
 
 msgid "Switch to a branch to share."
 msgstr "انتقل إلى أحد الفروع للمشاركة."
@@ -7593,12 +7560,6 @@ msgstr "أكثر الصفحات ارتباطًا"
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
 
-msgid "Traverse GitQuire navigation history backward."
-msgstr "تنقّل في سجل تنقّل GitQuire إلى الخلف."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "تنقّل في سجل تنقّل GitQuire إلى الأمام."
-
 msgid "Tree view options"
 msgstr "خيارات عرض الشجرة"
 
@@ -8034,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "ما الجديد"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "عند التفعيل، يفتح الوكيل المعاينة أو يحدّثها بعد كل تعديل. عطّله إن كنت تدير نافذة معاينتك بنفسك (OK Desktop، أو تبويب متصفح على شاشة أخرى، وما إلى ذلك)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "متى ينفّذ الوكيل عمله المجدول."

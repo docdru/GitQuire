@@ -5,9 +5,9 @@ const CHROME_UA =
 const CURSOR_PANE_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/1.7.33 Chrome/138.0.7204.251 Electron/37.7.0 Safari/537.36';
 
-async function loadInSurface(env: { userAgent: string; okDesktop?: object }) {
+async function loadInSurface(env: { userAgent: string }) {
   vi.stubGlobal('navigator', { userAgent: env.userAgent });
-  vi.stubGlobal('window', env.okDesktop === undefined ? {} : { okDesktop: env.okDesktop });
+  vi.stubGlobal('window', {});
   vi.resetModules();
   return import('./client-version.ts');
 }

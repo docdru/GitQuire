@@ -6,13 +6,6 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { __resetPaneVisibilityStoreForTests } from '@/lib/pane-visibility-store';
 import type { ResolvedNavigationTarget } from './navigation-targets';
 
-type MenuAction =
-  NonNullable<typeof window.okDesktop> extends { onMenuAction: (cb: infer C) => unknown }
-    ? C extends (action: infer A) => unknown
-      ? A
-      : never
-    : never;
-
 function PassThrough({ children }: { children?: ReactNode }) {
   return <>{children}</>;
 }
@@ -58,9 +51,7 @@ const ACTIVE_TARGET = {
 } satisfies ResolvedNavigationTarget;
 let activeTarget: ResolvedNavigationTarget | null = ACTIVE_TARGET;
 
-const notifyViewMenuStateChangedMock = vi.fn(() => {});
 const toggleSidebarMock = vi.fn(() => {});
-const showItemInFolderMock = vi.fn((_path: string) => Promise.resolve());
 const treeCalls = {
   collapseAll: vi.fn(() => {}),
   expandAll: vi.fn(() => {}),
@@ -72,7 +63,6 @@ const projectLocalBindingStub = { patch: projectLocalPatch };
 const DEFAULT_MERGED_CONFIG = { appearance: { sidebar: { showHiddenFiles: false } } };
 let mergedConfig: { appearance?: { sidebar?: Record<string, boolean> } } = DEFAULT_MERGED_CONFIG;
 let projectLocalSynced = true;
-let menuActionCallback: ((action: MenuAction) => void) | null = null;
 
 vi.doMock('@/lib/perf', () => ({
   ProfilerBoundary: PassThrough,
@@ -170,15 +160,12 @@ function renderSidebar() {
 
 describe('FileSidebar menu-action runtime routing', () => {
   beforeEach(() => {
-    menuActionCallback = null;
     activeTarget = ACTIVE_TARGET;
     mergedConfig = DEFAULT_MERGED_CONFIG;
     projectLocalSynced = true;
     if (typeof localStorage !== 'undefined') localStorage.clear();
     for (const fn of [
-      notifyViewMenuStateChangedMock,
       toggleSidebarMock,
-      showItemInFolderMock,
       toastInfoMock,
       toastErrorMock,
       projectLocalPatch,
@@ -195,33 +182,11 @@ describe('FileSidebar menu-action runtime routing', () => {
         writeText: vi.fn(() => Promise.resolve()),
       },
     });
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: {
-        platform: 'darwin',
-        editor: {
-          notifyViewMenuStateChanged: notifyViewMenuStateChangedMock,
-        },
-        shell: {
-          showItemInFolder: showItemInFolderMock,
-        },
-        onMenuAction: (callback: (action: MenuAction) => void) => {
-          menuActionCallback = callback;
-          return () => {
-            if (menuActionCallback === callback) menuActionCallback = null;
-          };
-        },
-      },
-    });
   });
 
   afterEach(() => {
     cleanup();
     __resetPaneVisibilityStoreForTests();
-    Object.defineProperty(window, 'okDesktop', {
-      configurable: true,
-      value: undefined,
-    });
   });
 
   test('a real tree-options checkbox stays in roving focus, refuses Enter, and keeps focus when ready', async () => {

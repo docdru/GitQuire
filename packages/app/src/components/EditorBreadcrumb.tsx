@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 
 interface EditorBreadcrumbProps {
   docName: string | null;
-  includeCurrentPage?: boolean;
   className?: string;
 }
 
@@ -26,21 +25,14 @@ type BreadcrumbNode =
   | { kind: 'segment'; value: string; key: string }
   | { kind: 'ellipsis'; hidden: readonly string[] };
 
-export function EditorBreadcrumb({
-  docName,
-  includeCurrentPage = false,
-  className,
-}: EditorBreadcrumbProps) {
+export function EditorBreadcrumb({ docName, className }: EditorBreadcrumbProps) {
   if (!docName) return null;
   const template = parseTemplateContentDocName(docName);
   const folderSegments = template
     ? template.folder.split('/').filter(Boolean)
     : tabParts(docName, '').prefix.replace(/\/$/, '').split('/').filter(Boolean);
-  const segments = includeCurrentPage
-    ? [...folderSegments, tabParts(docName, '').label]
-    : folderSegments;
+  const segments = folderSegments;
   if (segments.length === 0) return null;
-  const currentPageKey = includeCurrentPage ? segments.join('/') : null;
 
   const segmentNode = (value: string, absoluteIndex: number): BreadcrumbNode => ({
     kind: 'segment',
@@ -61,15 +53,9 @@ export function EditorBreadcrumb({
 
   return (
     <Breadcrumb className={cn('flex min-w-0 items-center', className)}>
-      <BreadcrumbList
-        className={cn(
-          'min-w-0 flex-nowrap gap-1 overflow-hidden text-muted-foreground/70',
-          includeCurrentPage ? 'text-sm' : 'text-xs',
-        )}
-      >
+      <BreadcrumbList className="min-w-0 flex-nowrap gap-1 overflow-hidden text-muted-foreground/70 text-xs">
         {nodes.map((node, index) => {
           const key = node.kind === 'segment' ? node.key : 'ellipsis';
-          const isCurrentPage = node.kind === 'segment' && node.key === currentPageKey;
           return (
             <Fragment key={key}>
               {index > 0 && (
@@ -91,11 +77,8 @@ export function EditorBreadcrumb({
               ) : (
                 <BreadcrumbItem className="min-w-0">
                   <BreadcrumbPage
-                    current={isCurrentPage}
-                    className={cn(
-                      'min-w-0 truncate font-normal',
-                      isCurrentPage ? 'font-medium text-foreground' : 'text-muted-foreground/70',
-                    )}
+                    current={false}
+                    className="min-w-0 truncate font-normal text-muted-foreground/70"
                     title={node.value}
                   >
                     <UserText>{node.value}</UserText>

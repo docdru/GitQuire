@@ -9,7 +9,6 @@ import { bootCompositionRig, parseProblem, rawRequest } from './composition-rig.
 let tmpRoot: string;
 let contentDir: string;
 let server: BootedServer;
-let ephemeral: BootedServer;
 
 beforeAll(async () => {
   tmpRoot = await mkdtemp(resolve(tmpdir(), 'ok-document-native-'));
@@ -24,18 +23,10 @@ beforeAll(async () => {
   writeFileSync(resolve(contentDir, 'dist', 'generated.md'), '# Generated\n', 'utf-8');
   server = await bootCompositionRig(contentDir);
   await server.ready;
-
-  const ephemeralDir = mkdtempSync(resolve(tmpRoot, 'ephemeral-'));
-  writeFileSync(resolve(ephemeralDir, 'note.md'), '# note\n', 'utf-8');
-  ephemeral = await bootCompositionRig(ephemeralDir, {
-    ephemeral: true,
-    singleDocRelPath: 'note.md',
-  });
-  await ephemeral.ready;
 }, 60_000);
 
 afterAll(async () => {
-  await Promise.allSettled([server?.destroy(), ephemeral?.destroy()]);
+  await Promise.allSettled([server?.destroy()]);
   await rm(tmpRoot, { recursive: true, force: true });
 });
 
@@ -189,18 +180,5 @@ describe('document/pages group over the composed listener — served natively', 
     });
     expect(res.status).toBe(403);
     expect(parseProblem(res.body).type).toBe('urn:ok:error:host-not-allowed');
-  });
-
-  test('ephemeral mode Host-gates the ported reads too', async () => {
-    const refused = await rawRequest(ephemeral.port, '/api/documents', {
-      headers: { Host: 'evil.example' },
-    });
-    expect(refused.status).toBe(403);
-    expect(parseProblem(refused.body).type).toBe('urn:ok:error:host-not-allowed');
-
-    const allowed = await rawRequest(ephemeral.port, '/api/documents', {
-      headers: { Host: 'localhost' },
-    });
-    expect(allowed.status).toBe(200);
   });
 });

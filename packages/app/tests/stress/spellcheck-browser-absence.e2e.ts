@@ -7,12 +7,6 @@ const TOGGLE_RESULT_ID = 'settings-search-result-subsection:preferences:spellche
 
 const LANGUAGES_RESULT_ID = 'settings-search-result-subsection:preferences:spellcheck-languages';
 
-async function expectBrowserHost(page: Page): Promise<void> {
-  expect(
-    await page.evaluate(() => (window as { okDesktop?: unknown }).okDesktop === undefined),
-  ).toBe(true);
-}
-
 async function openUserPreferences(page: Page): Promise<void> {
   await page.goto('/#settings');
   await expect(page.getByTestId('settings-dialog')).toBeVisible({ timeout: 10_000 });
@@ -29,7 +23,6 @@ test.describe('Spelling settings — browser host', () => {
     page,
   }) => {
     await openUserPreferences(page);
-    await expectBrowserHost(page);
 
     await expect(page.getByTestId('settings-spelling')).toHaveCount(0);
     await expect(page.getByTestId('settings-spellcheck-row')).toHaveCount(0);
@@ -49,7 +42,6 @@ test.describe('Spelling settings — browser host', () => {
   }) => {
     await page.goto('/#settings');
     await expect(page.getByTestId('settings-dialog')).toBeVisible({ timeout: 10_000 });
-    await expectBrowserHost(page);
 
     await page.getByTestId('settings-search-input').fill('Hotkeys');
     await expect(page.getByTestId('settings-search-result-section:hotkeys')).toBeVisible({
@@ -67,7 +59,6 @@ test.describe('Spelling settings — browser host', () => {
     await api.createPage(`${docName}.md`);
     await page.goto(`/#/${docName}`);
     await page.waitForSelector(EDITOR);
-    await expectBrowserHost(page);
 
     const editable = page.locator(EDITOR).first();
     expect(await editable.getAttribute('spellcheck')).toBeNull();

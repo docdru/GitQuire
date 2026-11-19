@@ -28,7 +28,6 @@ import {
   buildFolderShareInput,
   type ShareTargetInput,
 } from '@/lib/share/run-share-action';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { cn } from '@/lib/utils';
 import { PresenceBar } from '@/presence/PresenceBar';
 import { SyncToastHost } from '@/presence/SyncToastHost';
@@ -86,7 +85,6 @@ interface AppHeaderProps {
 
 export function AppHeader({ onOpenSearch }: AppHeaderProps) {
   const { t } = useLingui();
-  const singleFile = useSingleFileMode();
   const { activeDocName, activeTarget, activeProvider, systemProvider } = useDocumentContext();
   const presence = usePresence(activeProvider, systemProvider, activeDocName);
   const [publishOpen, setPublishOpen] = useState(false);
@@ -101,16 +99,14 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
   const overflowTriggerRef = useRef<HTMLButtonElement>(null);
   const overflowFocusRemovedRef = useRef(false);
 
-  const shareInput: ShareTargetInput | null = singleFile
-    ? null
-    : (() => {
-        if (activeTarget?.kind === 'folder') return buildFolderShareInput(activeTarget.folderPath);
-        if (activeDocName) {
-          return buildDocShareInput(activeDocName);
-        }
-        if (!activeTarget && !activeDocName) return buildFolderShareInput('');
-        return null;
-      })();
+  const shareInput: ShareTargetInput | null = (() => {
+    if (activeTarget?.kind === 'folder') return buildFolderShareInput(activeTarget.folderPath);
+    if (activeDocName) {
+      return buildDocShareInput(activeDocName);
+    }
+    if (!activeTarget && !activeDocName) return buildFolderShareInput('');
+    return null;
+  })();
   const { status: gitSyncStatus } = useGitSyncStatusDetailed();
   const paneButtonSet = useHeaderPaneButtonSet();
   const trailingContentSignature = [
@@ -129,9 +125,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
     signature: trailingContentSignature,
     deferRemeasure: overflowOpen,
     slack: HEADER_OVERFLOW_SLACK_PX,
-    measureTrailingWidth: (elements) =>
-      elements.trailing.offsetWidth +
-      (Number.parseFloat(getComputedStyle(elements.trailing).marginInlineEnd) || 0),
+    measureTrailingWidth: (elements) => elements.trailing.offsetWidth,
     measureAvailableWidth: (elements, latchedTrailingWidth) => {
       const headerWidth = elements.header.offsetWidth;
       const badgesWidth = leadingBadgesWidth(elements.leading);
@@ -189,13 +183,11 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
   const renderTrailingActions = (onClickWhenNoRemote: ShareButtonProps['onClickWhenNoRemote']) => (
     <>
       <PresenceBar {...presence} />
-      {!singleFile && (
-        <ShareButton
-          input={shareInput}
-          onClickWhenNoRemote={onClickWhenNoRemote}
-          triggerRef={shareButtonRef}
-        />
-      )}
+      <ShareButton
+        input={shareInput}
+        onClickWhenNoRemote={onClickWhenNoRemote}
+        triggerRef={shareButtonRef}
+      />
       <SyncStatusBadge
         onSignIn={
           PERSONAL_GIT_CREDENTIALS_ENABLED ? () => authPromptStore.request('auth') : undefined
@@ -204,7 +196,7 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
           PERSONAL_GIT_CREDENTIALS_ENABLED ? () => authPromptStore.request('identity') : undefined
         }
       />
-      {!singleFile && <SettingsButton />}
+      <SettingsButton />
       <HelpPopover />
     </>
   );
@@ -226,30 +218,24 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         data-app-header-leading=""
         className="flex min-w-0 items-center gap-1 justify-self-start ps-2.5"
       >
-        {!singleFile && (
-          <ErrorBoundary
-            fallbackRender={() => null}
-            onError={onPillRenderError}
-            resetKeys={[activeDocName]}
-          >
-            <HeaderSearchBar onClick={onOpenSearch} />
-          </ErrorBoundary>
-        )}
+        <ErrorBoundary
+          fallbackRender={() => null}
+          onError={onPillRenderError}
+          resetKeys={[activeDocName]}
+        >
+          <HeaderSearchBar onClick={onOpenSearch} />
+        </ErrorBoundary>
       </div>
       <div
         ref={setCentre}
         data-app-header-center=""
         className="flex min-w-0 items-center justify-center"
       >
-        {singleFile ? null : (
-          <>
-            <WebProjectName />
-            <DraftMenu />
-            <MentionInbox />
-            <GitQuireBrokenLinks />
-            <GitQuireViews />
-          </>
-        )}
+        <WebProjectName />
+        <DraftMenu />
+        <MentionInbox />
+        <GitQuireBrokenLinks />
+        <GitQuireViews />
       </div>
       <div
         ref={setTrailing}
@@ -277,13 +263,11 @@ export function AppHeader({ onOpenSearch }: AppHeaderProps) {
         )}
         <HeaderPaneButtons />
         <SyncToastHost />
-        {!singleFile && (
-          <PublishToGitHubDialog
-            open={publishOpen}
-            onOpenChange={setPublishOpen}
-            returnFocus={() => (shareButtonRef.current ?? overflowTriggerRef.current)?.focus()}
-          />
-        )}
+        <PublishToGitHubDialog
+          open={publishOpen}
+          onOpenChange={setPublishOpen}
+          returnFocus={() => (shareButtonRef.current ?? overflowTriggerRef.current)?.focus()}
+        />
       </div>
     </header>
   );

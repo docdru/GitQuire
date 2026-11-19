@@ -68,7 +68,6 @@ export function projectContextualTargetKind(
 }
 
 export interface PaletteCommandContext {
-  singleFile: boolean;
   activeDocName: string | null;
   contextualTargetKind: ContextualTargetKind;
   viewMenuState: ViewMenuState;
@@ -94,7 +93,6 @@ export interface PaletteCommand {
   group: PaletteCommandGroup;
   visibility: 'always' | 'search-only';
   shortcutId?: KeyboardShortcutId;
-  shortcutDesktopOnly?: boolean;
   checked?(ctx: PaletteCommandContext): boolean;
   available(ctx: PaletteCommandContext): boolean;
   dispatch(ctx: PaletteCommandContext): void;
@@ -241,7 +239,6 @@ const STATE_AVAILABILITY: Readonly<
 function paletteCoreContext(ctx: PaletteCommandContext): CommandContext {
   return {
     activeTargetKind: ctx.contextualTargetKind,
-    singleFile: ctx.singleFile,
     canExpandAll: ctx.viewMenuState.canExpandAll !== false,
     canCollapseAll: ctx.viewMenuState.canCollapseAll !== false,
     hasActiveDoc: ctx.activeDocName !== null,
@@ -286,7 +283,6 @@ function toPaletteCommand(cmd: CommandIdentity): PaletteCommand {
     group: presence.group,
     visibility: presence.visibility,
     shortcutId: cmd.shortcutId as KeyboardShortcutId | undefined,
-    shortcutDesktopOnly: cmd.shortcutDesktopOnly,
     checked: checkField ? (ctx) => ctx.viewMenuState[checkField] === true : undefined,
     available: (ctx) =>
       evaluateCommandAvailability(cmd.availability, paletteCoreContext(ctx)) &&

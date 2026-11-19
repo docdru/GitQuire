@@ -33,10 +33,9 @@ function makeFakeConsole() {
   return obj;
 }
 
-function makeFakeWindow(opts: { okDesktop?: unknown; fetchImpl?: typeof fetch } = {}) {
+function makeFakeWindow(opts: { fetchImpl?: typeof fetch } = {}) {
   const listeners = new Map<string, (event: Event) => void>();
   return {
-    okDesktop: opts.okDesktop,
     fetch: (opts.fetchImpl ??
       (() => Promise.resolve(new Response(null, { status: 200 })))) as typeof fetch,
     addEventListener(type: string, listener: (event: Event) => void) {

@@ -38,9 +38,6 @@ vi.doMock('@lingui/react/macro', () => ({
   useLingui: () => ({ t: renderLinguiTemplate }),
 }));
 
-let singleFileValue = false;
-vi.doMock('@/lib/single-file-mode', () => ({ useSingleFileMode: () => singleFileValue }));
-
 let diagnosticsValue: Array<{ severity: string }> = [];
 let activeProviderValue: unknown = null;
 vi.doMock('@/editor/DocumentContext', () => ({
@@ -96,7 +93,6 @@ function renderPanel(activeTab: Tab) {
 
 afterEach(() => {
   cleanup();
-  singleFileValue = false;
   diagnosticsValue = [];
   activeProviderValue = null;
   lastProblemsProps = null;
@@ -104,18 +100,9 @@ afterEach(() => {
 });
 
 describe('DocPanel — tab gating', () => {
-  test('project mode renders the full tab strip (outline + links + graph + timeline + problems)', () => {
-    singleFileValue = false;
+  test('renders the full tab strip (outline + links + graph + timeline + problems)', () => {
     renderPanel('outline');
     expect(screen.getAllByRole('tab')).toHaveLength(5);
-    expect(screen.getByTestId('outline-panel')).toBeTruthy();
-  });
-
-  test('single-file mode keeps Outline + Problems', () => {
-    singleFileValue = true;
-    renderPanel('graph');
-    expect(screen.getAllByRole('tab')).toHaveLength(2);
-    expect(screen.getByRole('tab', { name: /problems/i })).toBeTruthy();
     expect(screen.getByTestId('outline-panel')).toBeTruthy();
   });
 
@@ -189,7 +176,6 @@ describe('DocPanel — card top bar', () => {
     expectVisualClassTokens(header?.getAttribute('class'), ['h-11', 'shrink-0']);
     expectVisualClassTokensAbsent(header?.getAttribute('class'), [
       'pe-9',
-      '[-webkit-app-region:drag]',
       'shadow-[inset_0_-1px_0_var(--border)]',
     ]);
     expect(header?.contains(screen.getByRole('tab', { name: 'Outline' }))).toBe(true);

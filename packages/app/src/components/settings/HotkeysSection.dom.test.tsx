@@ -1,13 +1,7 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import { KEYBOARD_SHORTCUTS } from '@/lib/keyboard-shortcuts';
 import { HotkeysSection } from './HotkeysSection';
-
-function setDesktopHost(present: boolean): void {
-  (globalThis as unknown as { window: { okDesktop?: unknown } }).window.okDesktop = present
-    ? {}
-    : undefined;
-}
 
 function renderedShortcutIds(): string[] {
   return Array.from(document.querySelectorAll('[data-testid^="settings-hotkey-"]')).map((row) =>
@@ -21,53 +15,21 @@ function renderedCategoryLabels(): string[] {
   );
 }
 
-function renderUnderHost(desktop: boolean): void {
-  setDesktopHost(desktop);
+function renderSection(): void {
   render(<HotkeysSection />);
 }
 
 afterEach(() => {
   cleanup();
-  setDesktopHost(false);
 });
 
-describe('HotkeysSection host awareness', () => {
-  test('omits the Report a bug shortcut on the web host', () => {
-    renderUnderHost(false);
+describe('HotkeysSection rows', () => {
+  test('lists every shortcut in the catalogue', () => {
+    renderSection();
 
-    expect(screen.queryByTestId('settings-hotkey-report-bug')).toBeNull();
-  });
-
-  test('keeps every other row on web, including the OK Desktop-scoped ones', () => {
-    renderUnderHost(false);
-
-    for (const id of ['new-folder', 'navigate-back']) {
-      expect(screen.queryByTestId(`settings-hotkey-${id}`)).not.toBeNull();
-    }
-  });
-
-  test('the web list is the desktop list minus exactly the desktop-only rows', () => {
-    renderUnderHost(true);
-    const desktopIds = renderedShortcutIds();
-    cleanup();
-    renderUnderHost(false);
-    const webIds = renderedShortcutIds();
-
-    const declaredDesktopOnly = new Set(
-      KEYBOARD_SHORTCUTS.filter((shortcut) => shortcut.desktopOnly === true).map(
-        (shortcut) => shortcut.id,
-      ),
+    expect(renderedShortcutIds().sort()).toEqual(
+      KEYBOARD_SHORTCUTS.map((shortcut) => shortcut.id).sort(),
     );
-    expect(declaredDesktopOnly.size).toBeGreaterThan(0);
-    expect(webIds).toEqual(desktopIds.filter((id) => !declaredDesktopOnly.has(id)));
-  });
-
-  test('renders the same categories in the same order on both hosts', () => {
-    renderUnderHost(true);
-    const desktopCategories = renderedCategoryLabels();
-    cleanup();
-    renderUnderHost(false);
-
-    expect(renderedCategoryLabels()).toEqual(desktopCategories);
+    expect(renderedCategoryLabels().length).toBeGreaterThan(0);
   });
 });

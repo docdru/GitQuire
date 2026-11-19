@@ -1557,9 +1557,6 @@ msgstr "Tutup tab baru"
 msgid "Close others"
 msgstr "Tutup yang lain"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "Tutup pratinjau ini, lalu buka folder untuk mengunggah file"
-
 msgid "Clusters"
 msgstr "Klaster"
 
@@ -2108,9 +2105,6 @@ msgstr "Buat dokumen dari {label}"
 
 msgid "Create a file from the current document or folder context."
 msgstr "Membuat berkas dari konteks dokumen atau folder saat ini."
-
-msgid "Create a folder from the current document or folder context."
-msgstr "Membuat folder dari konteks dokumen atau folder saat ini."
 
 msgid "Create a new list item from the current list item."
 msgstr "Membuat item daftar baru dari item daftar saat ini."
@@ -3262,9 +3256,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "Format terlihat salah"
-
-msgid "Forward"
-msgstr "Maju"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "Respons tautan keluar tidak sesuai bentuk yang diharapkan."
@@ -4978,9 +4969,6 @@ msgstr "Mati — pencarian hanya memeringkat berdasarkan kata kunci. Tidak ada k
 msgid "Offline"
 msgstr "Luring"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "Aktif — mengarahkan kursor ke tautan eksternal mengirim URL-nya ke situs tujuan untuk mengambil pratinjau, dan mengarahkan kursor ke referensi GitHub di chat agen memintanya dari GitHub."
 
@@ -5059,9 +5047,6 @@ msgstr "Buka proyek terlebih dahulu."
 msgid "Open a project to edit."
 msgstr "Buka sebuah proyek untuk menyunting."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "Membuka satu berkas markdown dalam sesi sementara, tanpa penyiapan proyek."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "Buka panel aktivitas untuk {tooltipName}"
 
@@ -5070,9 +5055,6 @@ msgstr "Buka panel aktivitas untuk {tooltipName}, yang sedang menyunting {realCu
 
 msgid "Open agents"
 msgstr "Buka agen"
-
-msgid "Open an existing project folder from disk."
-msgstr "Membuka folder proyek yang sudah ada dari disk."
 
 msgid "Open board"
 msgstr "Buka papan"
@@ -5109,9 +5091,6 @@ msgstr "Buka pemilih emoji untuk {keyName}"
 
 msgid "Open file"
 msgstr "Buka berkas"
-
-msgid "Open folder"
-msgstr "Buka folder"
 
 msgid "Open graph"
 msgstr "Buka graf"
@@ -5154,9 +5133,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Membuka menu sisip pada posisi teks yang kosong atau aktif."
-
-msgid "Open the Project Navigator."
-msgstr "Membuka Navigator Proyek."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Membuka dokumen ini di penyunting dan menciutkan graf."
@@ -5902,9 +5878,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "Laporkan bug"
 
 msgid "Report an issue"
 msgstr ""
@@ -6690,9 +6663,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "Memulai laporan bug dengan tangkapan layar persis seperti tampilannya saat ini."
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6788,9 +6758,6 @@ msgstr "Tukar posisi bilah sisi berkas dan panel dokumen"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "Beralih antara penyunting visual dan sumber, tanpa kehilangan posisi Anda."
-
-msgid "Switch project"
-msgstr "Ganti proyek"
 
 msgid "Switch to a branch to share."
 msgstr "Beralih ke sebuah cabang untuk berbagi."
@@ -7589,12 +7556,6 @@ msgstr "Halaman paling banyak ditaut"
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
 
-msgid "Traverse GitQuire navigation history backward."
-msgstr "Menyusuri riwayat navigasi GitQuire ke belakang."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "Menyusuri riwayat navigasi GitQuire ke depan."
-
 msgid "Tree view options"
 msgstr "Opsi tampilan pohon"
 
@@ -8030,8 +7991,8 @@ msgstr ""
 msgid "What's new"
 msgstr "Yang baru"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "Ketika aktif, agennya membuka atau menyegarkan pratinjau setelah setiap suntingan. Nonaktifkan jika Anda mengelola jendela pratinjau Anda sendiri (OK Desktop, tab peramban di layar lain, dsb.)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "Kapan agennya menjalankan pekerjaan terjadwalnya."

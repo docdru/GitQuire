@@ -13,19 +13,16 @@ function createFileListHostElement(): HTMLElement | null {
 }
 
 export function FileListHostProvider({
-  enabled,
   fileList,
   children,
 }: {
-  readonly enabled: boolean;
   readonly fileList: ReactNode;
   readonly children: ReactNode;
 }) {
   const [host] = useState(createFileListHostElement);
-  const activeHost = enabled ? host : null;
   return (
-    <FileListHostContext value={activeHost}>
-      {activeHost != null ? createPortal(fileList, activeHost) : null}
+    <FileListHostContext value={host}>
+      {host != null ? createPortal(fileList, host) : null}
       {children}
     </FileListHostContext>
   );

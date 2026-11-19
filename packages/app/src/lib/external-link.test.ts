@@ -1,34 +1,20 @@
 import { describe, expect, test, vi } from 'vitest';
 import { openExternalUrl } from './external-link.ts';
 
-describe('openExternalUrl — web host (no bridge)', () => {
+describe('openExternalUrl', () => {
   test('falls back to window.open with the new-tab + noopener features', () => {
     const openWindow = vi.fn(() => null);
-    openExternalUrl('https://example.com', { okDesktop: undefined, openWindow });
-    expect(openWindow).toHaveBeenCalledTimes(1);
-    expect(openWindow).toHaveBeenCalledWith('https://example.com', '_blank', 'noopener,noreferrer');
-  });
-
-  test('falls back to window.open when the bridge has no openExternal', () => {
-    const openWindow = vi.fn(() => null);
-    openExternalUrl('https://example.com', { okDesktop: { shell: {} }, openWindow });
+    openExternalUrl('https://example.com', { openWindow });
     expect(openWindow).toHaveBeenCalledTimes(1);
     expect(openWindow).toHaveBeenCalledWith('https://example.com', '_blank', 'noopener,noreferrer');
   });
 });
 
 describe('openExternalUrl — structural scheme gate (internal)', () => {
-  test('an unsafe scheme is refused on the web path — never reaches window.open', () => {
+  test('an unsafe scheme is refused — never reaches window.open', () => {
     const openWindow = vi.fn(() => null);
     // biome-ignore lint/suspicious/noExplicitAny: exercising the security gate with a hostile scheme
-    openExternalUrl('javascript:alert(1)' as any, { okDesktop: undefined, openWindow });
+    openExternalUrl('javascript:alert(1)' as any, { openWindow });
     expect(openWindow).not.toHaveBeenCalled();
-  });
-
-  test('an unsafe scheme is refused on the desktop path — never reaches the bridge', () => {
-    const openExternal = vi.fn(() => Promise.resolve());
-    // biome-ignore lint/suspicious/noExplicitAny: exercising the security gate with a hostile scheme
-    openExternalUrl('javascript:alert(1)' as any, { okDesktop: { shell: { openExternal } } });
-    expect(openExternal).not.toHaveBeenCalled();
   });
 });

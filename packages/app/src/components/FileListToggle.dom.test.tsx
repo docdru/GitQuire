@@ -6,7 +6,6 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { formatShortcut, formatShortcutLabel } from '@/lib/keyboard-shortcuts';
-import { expectVisualClassTokensAbsent } from '@/test-utils/visual-contract';
 
 vi.doMock('@lingui/react/macro', () => ({
   ...actualLinguiMacro,
@@ -16,13 +15,6 @@ vi.doMock('@lingui/react/macro', () => ({
       strings.reduce((acc, part, index) => `${acc}${part}${values[index] ?? ''}`, ''),
   }),
 }));
-
-function setElectronHost(enabled: boolean) {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: enabled ? {} : undefined,
-  });
-}
 
 async function renderToggle(initiallyOpen: boolean) {
   const { FileListToggle } = await import('./FileListToggle');
@@ -46,7 +38,6 @@ function toggleButton() {
 describe('FileListToggle', () => {
   afterEach(() => {
     cleanup();
-    setElectronHost(false);
   });
 
   test('its tooltip says what the next press does and shows the shortcut as a keycap', async () => {
@@ -92,15 +83,6 @@ describe('FileListToggle', () => {
     expect(toggleButton().getAttribute('aria-expanded')).toBe('false');
     await user.click(toggleButton());
     expect(toggleButton().getAttribute('aria-expanded')).toBe('true');
-  });
-
-  test('on the web the toggle carries no window-drag treatment', async () => {
-    const { container } = await renderToggle(true);
-    const zone = container.querySelector('[data-file-list-toggle]') as HTMLElement;
-
-    expect(zone.getAttribute('data-electron-drag')).toBeNull();
-    expectVisualClassTokensAbsent(zone.className, ['[-webkit-app-region:drag]']);
-    expectVisualClassTokensAbsent(toggleButton().className, ['[-webkit-app-region:no-drag]']);
   });
 
   test('a divider separates the toggle from whatever follows it', async () => {

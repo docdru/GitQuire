@@ -29,21 +29,6 @@ interface ApiRouteResolution {
   dispatch?: ((req: IncomingMessage, res: ServerResponse) => Promise<void>) | undefined;
 }
 
-const PREVIEW_DOCUMENT_MUTATIONS = new Set([
-  '/api/agent-write',
-  '/api/agent-write-md',
-  '/api/agent-patch',
-  '/api/agent-undo',
-  '/api/agent-write-batch',
-  '/api/client-logs',
-  '/api/frontmatter-patch',
-  '/api/save-version',
-  '/api/rollback',
-  '/api/lint/fix',
-  '/api/folder-config',
-  '/api/template',
-]);
-
 export interface ApiRouteTable {
   resolve(pathname: string): ApiRouteResolution | null;
   isMutating(pathname: string): boolean;
@@ -126,7 +111,6 @@ export function createApiRouteGroup<R extends ApiRouteRecord>(
 export interface ApiPipelineOptions {
   log: PinoLogger;
   policy?: IngressPolicy;
-  ephemeral?: boolean;
   table: ApiRouteTable;
   dispatchMutation?: (operation: () => Promise<void>, pathname: string) => Promise<void>;
 }
@@ -146,7 +130,7 @@ function httpDurationHist(): ReturnType<ReturnType<typeof getMeter>['createHisto
 }
 
 export function createApiRequestPipeline(opts: ApiPipelineOptions): ApiRequestPipeline {
-  const { log, ephemeral, table } = opts;
+  const { log, table } = opts;
   const policy = opts.policy ?? buildIngressPolicy({});
   const isAllowedWorkspaceHostHeader = (host: string | undefined): boolean =>
     isHostAdmitted(host, policy);
@@ -254,23 +238,6 @@ export function createApiRequestPipeline(opts: ApiPipelineOptions): ApiRequestPi
     }
 
     if (table.isMutating(url)) {
-      if (
-        ephemeral &&
-        resolution.dispatch !== undefined &&
-        (method === 'POST' || method === 'PUT' || method === 'DELETE') &&
-        !PREVIEW_DOCUMENT_MUTATIONS.has(url)
-      ) {
-        errorResponse(
-          response,
-          403,
-          'urn:ok:error:single-file-mode',
-          'Single-file previews cannot manage project files.',
-          {
-            handler: 'api-preview-content-scope',
-          },
-        );
-        return true;
-      }
       const peerAddress = request.socket?.remoteAddress;
       if (peerAddress !== undefined && !isPeerAdmitted(peerAddress, policy)) {
         errorResponse(response, 403, 'urn:ok:error:loopback-required', 'Loopback required.', {
@@ -288,7 +255,7 @@ export function createApiRequestPipeline(opts: ApiPipelineOptions): ApiRequestPi
     }
 
     if (url.startsWith('/api/')) {
-      const gateHandler = ephemeral ? 'api-ephemeral-gate' : 'api-read-gate';
+      const gateHandler = 'api-read-gate';
       const peerAddress = request.socket?.remoteAddress;
       if (peerAddress !== undefined && !isPeerAdmitted(peerAddress, policy)) {
         errorResponse(response, 403, 'urn:ok:error:loopback-required', 'Loopback required.', {

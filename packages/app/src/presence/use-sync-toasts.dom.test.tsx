@@ -20,16 +20,6 @@ import { SYNC_CATCHUP_GRACE_MS, useSyncToasts } from './use-sync-toasts';
 
 const messages = (spy: typeof warning): string[] => spy.mock.calls.map((c) => String(c[0]));
 
-function setBridge(singleFile: boolean) {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: {
-      config: { singleFile, projectPath: '/tmp/p' },
-      restartServer: vi.fn(async () => ({ ok: true })),
-    },
-  });
-}
-
 const lastWarning = () => warning.mock.calls.at(-1) as [string, { action?: unknown }] | undefined;
 
 type Phase = 'connecting' | 'connected' | 'synced' | 'disconnected';
@@ -93,7 +83,6 @@ describe('useSyncToasts — disconnect grace downgrade', () => {
   });
 
   test('disconnected → connected → synced shows Reconnected with no false "server stopped" and no premature dismiss', () => {
-    setBridge(false);
     const { rerender } = renderHook(
       ({ s }: { s: 'synced' | 'connected' | 'disconnected' }) => useSyncToasts(s, 'doc.md'),
       { initialProps: { s: 'synced' as const } },
