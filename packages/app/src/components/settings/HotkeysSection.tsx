@@ -43,9 +43,7 @@ export function HotkeysSection() {
 
       <div className="space-y-6" data-testid="settings-hotkeys-list">
         {SHORTCUT_CATEGORY_ORDER.map((category) => {
-          const shortcuts = KEYBOARD_SHORTCUTS.filter(
-            (shortcut) => shortcut.category === category && shortcut.desktopOnly !== true,
-          );
+          const shortcuts = KEYBOARD_SHORTCUTS.filter((shortcut) => shortcut.category === category);
           if (shortcuts.length === 0) return null;
 
           return (

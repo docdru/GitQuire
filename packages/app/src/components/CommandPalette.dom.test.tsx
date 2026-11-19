@@ -182,24 +182,12 @@ vi.doMock('@/components/command-palette-tag-search', () => ({
   fetchDocsForTag: vi.fn(() => Promise.resolve([])),
 }));
 
-async function renderPalette({
-  docName = 'docs/active',
-  withSingleFileModeProvider = false,
-}: {
-  docName?: string | null;
-  withSingleFileModeProvider?: boolean;
-} = {}) {
+async function renderPalette({ docName = 'docs/active' }: { docName?: string | null } = {}) {
   activeDocName = docName;
   activeTarget = docName ? { kind: 'doc', docName } : null;
   const onOpenChange = vi.fn(() => {});
   const { CommandPalette } = await import('./CommandPalette');
-  const palette = <CommandPalette open={true} onOpenChange={onOpenChange} />;
-  if (withSingleFileModeProvider) {
-    const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
-    render(<SingleFileModeProvider>{palette}</SingleFileModeProvider>);
-  } else {
-    render(palette);
-  }
+  render(<CommandPalette open={true} onOpenChange={onOpenChange} />);
   await waitFor(() => expect(screen.getByRole('dialog')).not.toBeNull());
   return { onOpenChange };
 }
@@ -253,19 +241,13 @@ describe('CommandPalette DOM behavior', () => {
     expect(region.textContent).toBe('');
   });
 
-  test('new-folder shortcut is desktop-only while new-file shortcut is always visible', async () => {
+  test('new-file shows its shortcut and new-folder has none', async () => {
     await renderPalette();
 
     expect(screen.getByTestId('command-palette-new-file').textContent).toMatch(/⌘ N|Ctrl N/);
     expect(screen.getByTestId('command-palette-new-folder').textContent).not.toMatch(
       /⇧⌘ N|Ctrl Shift N/,
     );
-  });
-
-  test('report-bug row is absent on the web host, so its desktop-only chord never shows there', async () => {
-    await renderPalette();
-
-    expect(screen.queryByTestId('command-palette-report-bug')).toBeNull();
   });
 
   test('new-file command closes the palette and opens the New Item dialog with kind file', async () => {

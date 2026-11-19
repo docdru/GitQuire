@@ -1,7 +1,6 @@
 import { ProblemDetailsSchema, UploadAssetSuccessSchema } from '@gitquire/core/schemas/api';
 import { HttpResponseParseError } from '../http-client.ts';
 import { getCurrentDocName } from './current-doc-name.ts';
-import { singleFileUploadMessage } from './upload-admission.ts';
 import {
   attachmentFolderRefusalMessage,
   reportUploadFailure,
@@ -19,7 +18,6 @@ const UPLOAD_ENDPOINT = '/api/upload';
 interface UploadFileDeps {
   fetch?: typeof fetch;
   docName?: string | null;
-  singleFile?: boolean;
 }
 
 export async function uploadFile(
@@ -28,7 +26,6 @@ export async function uploadFile(
   accept: readonly string[],
   deps: UploadFileDeps = {},
 ): Promise<UploadFileResult> {
-  if (deps.singleFile) throw new UploadFailedError(singleFileUploadMessage(), 'single-file-mode');
   const fetchImpl = deps.fetch ?? globalThis.fetch;
   const sizeAtPick = file.size;
 

@@ -126,14 +126,10 @@ vi.doMock('@/lib/api-config', () => ({
   fetchApiConfig: () =>
     Promise.resolve({
       status: 'ok' as const,
-      config: { collabUrl: null, previewUrl: null, port: 0, singleFile: false },
+      config: { collabUrl: null, previewUrl: null, port: 0 },
     }),
 }));
 vi.doMock('@/lib/use-server-keepalive', () => ({ useServerKeepalive: () => {} }));
-vi.doMock('@/lib/single-file-mode', () => ({
-  SingleFileModeProvider: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  useSingleFileMode: () => false,
-}));
 vi.doMock('@/components/ConnectingBanner', () => ({ ConnectingBanner: () => null }));
 vi.doMock('@/components/SystemDocSubscriber', () => ({ SystemDocSubscriber: () => null }));
 vi.doMock('@/editor/EditorLifecycleFlush', () => ({ EditorLifecycleFlush: () => null }));

@@ -31,41 +31,6 @@ describe('keyboard shortcut registry', () => {
       'Control Shift Left Bracket or Control Shift Right Bracket',
     );
     expect(formatShortcutLabel('tab-next', 'mac')).toBe('Control Tab');
-    expect(formatShortcutLabel('navigate-back', 'mac')).toBe('Command Left Bracket');
-    expect(formatShortcutLabel('navigate-back', 'windowsLinux')).toBe('Alt Left Arrow');
-    expect(formatShortcutLabel('navigate-forward', 'mac')).toBe('Command Right Bracket');
-    expect(formatShortcutLabel('navigate-forward', 'windowsLinux')).toBe('Alt Right Arrow');
-  });
-
-  test('navigation-history accelerators are native-only and never renderer-matched', () => {
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, key: '[' },
-        'navigate-back',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, altKey: true, key: 'ArrowLeft' },
-        'navigate-back',
-        'windowsLinux',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, key: ']' },
-        'navigate-forward',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, altKey: true, key: 'ArrowRight' },
-        'navigate-forward',
-        'windowsLinux',
-      ),
-    ).toBe(false);
   });
 
   test('matches settings shortcut exactly and excludes Alt combinations', () => {
@@ -150,23 +115,6 @@ describe('keyboard shortcut registry', () => {
         { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'N', code: 'KeyN' },
         'new-item',
         'mac',
-      ),
-    ).toBe(false);
-  });
-
-  test('new folder shortcut is desktop-only and not handled by renderer matching', () => {
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'N', code: 'KeyN' },
-        'new-folder',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, shiftKey: true, key: 'N', code: 'KeyN' },
-        'new-folder',
-        'windowsLinux',
       ),
     ).toBe(false);
   });
@@ -530,48 +478,6 @@ describe('keyboard shortcut registry', () => {
         expect(matchesKeyboardShortcut(winEvent, id, 'windowsLinux')).toBe(id === chord.id);
       }
     }
-  });
-
-  test('formats the report-bug shortcut as Shift+Cmd / Ctrl+Shift + D', () => {
-    expect(formatShortcut('report-bug', 'mac')).toBe('⇧⌘ D');
-    expect(formatShortcut('report-bug', 'windowsLinux')).toBe('Ctrl Shift D');
-  });
-
-  test('registers report-bug under the General shortcut-help category', () => {
-    const byId = new Map(KEYBOARD_SHORTCUTS.map((shortcut) => [shortcut.id, shortcut]));
-    expect(byId.get('report-bug')?.category).toBe('general');
-  });
-
-  test('the report-bug chord is display-only and matches no shortcut in the registry', () => {
-    const binding = KEYBOARD_SHORTCUTS.find((shortcut) => shortcut.id === 'report-bug')
-      ?.bindings[0];
-    const letter = binding?.mac.trim().slice(-1).toLowerCase();
-    expect(letter).toMatch(/^[a-z]$/);
-    expect(binding?.windowsLinux.trim().slice(-1).toLowerCase()).toBe(letter);
-    const code = `Key${letter?.toUpperCase()}`;
-    const macEvent = {
-      metaKey: true,
-      ctrlKey: false,
-      altKey: false,
-      shiftKey: true,
-      key: letter as string,
-      code,
-    };
-    const winEvent = {
-      metaKey: false,
-      ctrlKey: true,
-      altKey: false,
-      shiftKey: true,
-      key: letter as string,
-      code,
-    };
-    const claimedBy: string[] = [];
-    for (const shortcut of KEYBOARD_SHORTCUTS) {
-      const id = shortcut.id as KeyboardShortcutId;
-      if (matchesKeyboardShortcut(macEvent, id, 'mac')) claimedBy.push(`mac:${id}`);
-      if (matchesKeyboardShortcut(winEvent, id, 'windowsLinux')) claimedBy.push(`win:${id}`);
-    }
-    expect(claimedBy).toEqual([]);
   });
 
   test('the mode toggle requires its Alt modifier so it never steals Cmd+M', () => {

@@ -65,7 +65,7 @@ import { AgentPresenceBroadcaster } from './agent-presence.ts';
 import { AgentSessionManager } from './agent-sessions.ts';
 import { createApiExtension, isSafeDocName } from './api-extension.ts';
 import { assetReferencesChanged } from './asset-references.ts';
-import { seedBasenameIndex, seedSingleDirBasenameIndex } from './asset-walk.ts';
+import { seedBasenameIndex } from './asset-walk.ts';
 import {
   HocuspocusAuthRejection,
   type HocuspocusAuthRejectionReason,
@@ -138,7 +138,6 @@ import {
   docNameToRelativePath,
   getDocExtension,
   isRegisteredMarkdownDocName,
-  stripDocExtension,
 } from './doc-extensions.ts';
 import { runDocLineageGuard } from './doc-lineage-guard.ts';
 import { DocNoticeLedger, type NoticeFile } from './doc-notices.ts';
@@ -296,7 +295,6 @@ import {
   assertCapturedServerContentPath,
   assertServerContentPath,
   assertServerContentSubtree,
-  ContentScopeAdmissionError,
   canonicalContentPath,
   contentScopedAtomicFs,
   ServerMutationShuttingDownError,
@@ -444,8 +442,6 @@ export interface ServerOptions {
   pushIntervalSeconds?: number;
   embeddingsKeyStore?: EmbeddingsKeyStore | null;
   embedderLoader?: (input: LoadOpenAiEmbedderInput) => Promise<Embedder | null>;
-  singleDocRelPath?: string;
-  ephemeral?: boolean;
   watcherClock?: WatcherClock;
   mergeHistoryWriter?: MergeHistoryWriter;
   generatedIndexTestHooks?: {
@@ -633,8 +629,6 @@ export function createServer(options: ServerOptions): ServerInstance {
     localOpCliArgs,
     authStreamHeartbeatMs,
     skipStateManifestCheck = false,
-    singleDocRelPath,
-    ephemeral = false,
   } = options;
   const canonicalContentDir = resolveDirectoryRoot(contentDir, {
     root: 'content',
@@ -1403,7 +1397,7 @@ export function createServer(options: ServerOptions): ServerInstance {
   const serverInstanceId = randomUUID();
   let authorityRetired = false;
   let documentAdmissionClosed = false;
-  let authorityScope = snapshotServerContentScope(contentDir, singleDocRelPath);
+  let authorityScope = snapshotServerContentScope(contentDir);
   const assertContentPath = (path: string): void => {
     if (authorityRetired) throw new ServerMutationShuttingDownError(false);
     assertServerContentPath(authorityScope, path);
@@ -2416,7 +2410,6 @@ export function createServer(options: ServerOptions): ServerInstance {
           return true;
         }
       },
-      singleDocRelPath,
       attachmentFolderPath: initialAttachmentFolderPath,
       onAfterRebuild: () => {
         void derivedDocumentIndex.refreshContentScope().catch((err) => {
@@ -2504,7 +2497,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       commitDebounceMs,
       wipRef,
       shadowRef,
-      ephemeral,
       contentRoot,
       derivedDocumentIndex,
       configHomedirOverride,
@@ -2601,20 +2593,7 @@ export function createServer(options: ServerOptions): ServerInstance {
     const openDirect = hocuspocus.openDirectConnection.bind(hocuspocus);
     function assertDocumentProjectScope(documentName: string): void {
       if (documentAdmissionClosed) throw new ServerMutationShuttingDownError(false);
-      if (isReservedForUserTree(documentName)) {
-        if (
-          singleDocRelPath !== undefined &&
-          documentName !== SYSTEM_DOC_NAME &&
-          !isConfigDoc(documentName)
-        )
-          throw new ContentScopeAdmissionError();
-        return;
-      }
-      if (
-        singleDocRelPath !== undefined &&
-        canonicalDocName(documentName) !== canonicalDocName(stripDocExtension(singleDocRelPath))
-      )
-        throw new ContentScopeAdmissionError();
+      if (isReservedForUserTree(documentName)) return;
       if (authorityRetired) throw new ServerMutationShuttingDownError(false);
       assertCapturedServerContentPath(authorityScope, safeContentPath(documentName, contentDir));
     }
@@ -2639,53 +2618,50 @@ export function createServer(options: ServerOptions): ServerInstance {
     );
     installServerWorkloadGauges();
 
-    if (!ephemeral) {
-      stalenessWatchdog = createPersistenceStalenessWatchdog({
-        getLoadedDocuments: () => hp.documents,
-        lifecycleOf: (document, documentName) => conflicts.lifecycleOf(document, documentName),
-        forceStore: (document, documentName) => persistence.forceStore(document, documentName),
-        isHeldSaveDue: (documentName) => persistence.isHeldSaveDue(documentName),
-        retryHeldSave: (document, documentName) =>
-          persistence.retryHeldSave(document, documentName),
-        getBase: (documentName) => durabilityState.getReconciledBase(documentName),
-        isBatchActive: () => durabilityState.isBatchInProgress(),
-        hasInFlight: (documentName) => durabilityState.inFlightFlushCount(documentName) > 0,
-        readDiskBytes: (documentName) => {
-          const requestedPath = safeContentPath(documentName, contentDir);
-          let canonical: string;
-          let size: number;
-          try {
-            canonical = realpathSync(requestedPath);
-            size = statSync(canonical).size;
-          } catch (err) {
-            const code = errnoCode(err);
-            if (code === 'ENOENT') return null;
-            if (code === 'ELOOP') {
-              throw new StructuralDiskReadError(`symlink cycle at content path: ${documentName}`);
-            }
-            throw err;
+    stalenessWatchdog = createPersistenceStalenessWatchdog({
+      getLoadedDocuments: () => hp.documents,
+      lifecycleOf: (document, documentName) => conflicts.lifecycleOf(document, documentName),
+      forceStore: (document, documentName) => persistence.forceStore(document, documentName),
+      isHeldSaveDue: (documentName) => persistence.isHeldSaveDue(documentName),
+      retryHeldSave: (document, documentName) => persistence.retryHeldSave(document, documentName),
+      getBase: (documentName) => durabilityState.getReconciledBase(documentName),
+      isBatchActive: () => durabilityState.isBatchInProgress(),
+      hasInFlight: (documentName) => durabilityState.inFlightFlushCount(documentName) > 0,
+      readDiskBytes: (documentName) => {
+        const requestedPath = safeContentPath(documentName, contentDir);
+        let canonical: string;
+        let size: number;
+        try {
+          canonical = realpathSync(requestedPath);
+          size = statSync(canonical).size;
+        } catch (err) {
+          const code = errnoCode(err);
+          if (code === 'ENOENT') return null;
+          if (code === 'ELOOP') {
+            throw new StructuralDiskReadError(`symlink cycle at content path: ${documentName}`);
           }
-          if (canonicalContentPathIsRefused(requestedPath, canonical, contentDir)) {
-            throw new StructuralDiskReadError(
-              `symlink-escape: ${requestedPath} resolves outside the content dir or into private state`,
-            );
-          }
-          if (size > DOCUMENT_OPEN_BYTE_LIMIT) {
-            throw new StructuralDiskReadError(
-              `document exceeds the open byte limit: ${documentName}`,
-            );
-          }
-          try {
-            return readFileSync(canonical, 'utf-8');
-          } catch (err) {
-            if (errnoCode(err) === 'ENOENT') return null;
-            throw err;
-          }
-        },
-        graceMs: options.stalenessGraceMs,
-        sweepIntervalMs: options.stalenessSweepIntervalMs,
-      });
-    }
+          throw err;
+        }
+        if (canonicalContentPathIsRefused(requestedPath, canonical, contentDir)) {
+          throw new StructuralDiskReadError(
+            `symlink-escape: ${requestedPath} resolves outside the content dir or into private state`,
+          );
+        }
+        if (size > DOCUMENT_OPEN_BYTE_LIMIT) {
+          throw new StructuralDiskReadError(
+            `document exceeds the open byte limit: ${documentName}`,
+          );
+        }
+        try {
+          return readFileSync(canonical, 'utf-8');
+        } catch (err) {
+          if (errnoCode(err) === 'ENOENT') return null;
+          throw err;
+        }
+      },
+      graceMs: options.stalenessGraceMs,
+      sweepIntervalMs: options.stalenessSweepIntervalMs,
+    });
 
     defaultShouldUnloadDocument = hocuspocus.shouldUnloadDocument.bind(hocuspocus);
     hocuspocus.shouldUnloadDocument = (document) => {
@@ -3057,7 +3033,6 @@ export function createServer(options: ServerOptions): ServerInstance {
       getConfigDiagnostics: readConfigDiagnostics,
       embeddingsSecretsFile: secretsFilePath(configHomedirOverride),
       readSemanticProviderConfig: readSemanticSearchConfig,
-      ephemeral,
       onReferencedAssetsCacheInvalidator: (invalidate) => {
         invalidateReferencedAssetsCache = invalidate;
       },
@@ -5638,9 +5613,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       degraded.push('cc1-push');
     }
 
-    const configDocNamesToBind = ephemeral ? [] : CONFIG_DOC_NAMES;
-
-    for (const configDocName of configDocNamesToBind) {
+    for (const configDocName of CONFIG_DOC_NAMES) {
       try {
         const connection = await hocuspocus.openDirectConnection(configDocName);
         configDocConnections.set(configDocName, connection);
@@ -5658,7 +5631,7 @@ export function createServer(options: ServerOptions): ServerInstance {
       [CONFIG_DOC_NAME_PROJECT_LOCAL, resolveConfigPath('project-local', projectDir)],
       [CONFIG_DOC_NAME_USER, resolveConfigPath('user', projectDir, configHomedirOverride)],
     ]);
-    for (const configDocName of configDocNamesToBind) {
+    for (const configDocName of CONFIG_DOC_NAMES) {
       const absPath = configPathByDoc.get(configDocName);
       if (!absPath) continue;
       try {
@@ -5735,61 +5708,61 @@ export function createServer(options: ServerOptions): ServerInstance {
         : [okignorePath, gitignorePath];
       const ignoreLog = log;
       ignoreLog.info(
-        { okignorePath, gitignorePath, gitInfoExcludePath, ephemeral },
+        { okignorePath, gitignorePath, gitInfoExcludePath },
         '[ignore-watcher] starting multi-path watcher for .okignore + .gitignore (+ .git/info/exclude when present)',
       );
-      const ignoreCleanup = ephemeral
-        ? null
-        : await startMultiPathConfigFileWatcher(ignorePaths, (changedPath, content) =>
-            (async () => {
-              if (changedPath === okignorePath) {
-                try {
-                  const document = hocuspocus.documents.get(CONFIG_DOC_NAME_OKIGNORE) ?? null;
-                  const outcome = await applyExternalConfigChange(
-                    document,
-                    CONFIG_DOC_NAME_OKIGNORE,
-                    content,
-                    persistence.configPersistenceCtx,
-                  );
-                  ignoreLog.info(
-                    { docName: CONFIG_DOC_NAME_OKIGNORE, outcome },
-                    '[ignore-watcher] applyExternalConfigChange outcome',
-                  );
-                } catch (err) {
-                  ignoreLog.error(
-                    { err, changedPath: relative(projectDir, changedPath) },
-                    '[ignore-watcher] applyExternalConfigChange failed; rebuild proceeds independently',
-                  );
-                }
-              }
-
-              const result = await contentFilter.rebuildIgnorePatterns();
-              if (result.ok) {
+      const ignoreCleanup = await startMultiPathConfigFileWatcher(
+        ignorePaths,
+        (changedPath, content) =>
+          (async () => {
+            if (changedPath === okignorePath) {
+              try {
+                const document = hocuspocus.documents.get(CONFIG_DOC_NAME_OKIGNORE) ?? null;
+                const outcome = await applyExternalConfigChange(
+                  document,
+                  CONFIG_DOC_NAME_OKIGNORE,
+                  content,
+                  persistence.configPersistenceCtx,
+                );
                 ignoreLog.info(
-                  {
-                    changedPath: relative(projectDir, changedPath),
-                    patternCount: result.patternCount,
-                    nestedFileCount: result.nestedFileCount,
-                    durationMs: result.durationMs,
-                  },
-                  '[ignore-watcher] rebuild succeeded — broadcasting files channel',
+                  { docName: CONFIG_DOC_NAME_OKIGNORE, outcome },
+                  '[ignore-watcher] applyExternalConfigChange outcome',
                 );
-                cc1Broadcaster?.signal('files');
-              } else {
-                const projectRelPath = relative(projectDir, changedPath) || '.';
-                ignoreLog.warn(
-                  { changedPath: projectRelPath, error: result.error.message },
-                  '[ignore-watcher] rebuild failed — emitting config-ignore-nested-error',
+              } catch (err) {
+                ignoreLog.error(
+                  { err, changedPath: relative(projectDir, changedPath) },
+                  '[ignore-watcher] applyExternalConfigChange failed; rebuild proceeds independently',
                 );
-                cc1Broadcaster?.emitConfigIgnoreNestedError(projectRelPath, result.error.message);
               }
-            })().catch((err) => {
-              ignoreLog.error(
-                { err, changedPath: relative(projectDir, changedPath) || '.' },
-                '[ignore-watcher] handler threw',
+            }
+
+            const result = await contentFilter.rebuildIgnorePatterns();
+            if (result.ok) {
+              ignoreLog.info(
+                {
+                  changedPath: relative(projectDir, changedPath),
+                  patternCount: result.patternCount,
+                  nestedFileCount: result.nestedFileCount,
+                  durationMs: result.durationMs,
+                },
+                '[ignore-watcher] rebuild succeeded — broadcasting files channel',
               );
-            }),
-          );
+              cc1Broadcaster?.signal('files');
+            } else {
+              const projectRelPath = relative(projectDir, changedPath) || '.';
+              ignoreLog.warn(
+                { changedPath: projectRelPath, error: result.error.message },
+                '[ignore-watcher] rebuild failed — emitting config-ignore-nested-error',
+              );
+              cc1Broadcaster?.emitConfigIgnoreNestedError(projectRelPath, result.error.message);
+            }
+          })().catch((err) => {
+            ignoreLog.error(
+              { err, changedPath: relative(projectDir, changedPath) || '.' },
+              '[ignore-watcher] handler threw',
+            );
+          }),
+      );
       if (ignoreCleanup) {
         configFileWatcherCleanups.push({ docName: '__ignore-files__', cleanup: ignoreCleanup });
         configFileWatcherResyncs.set(CONFIG_DOC_NAME_OKIGNORE, ignoreCleanup.resync);
@@ -5875,32 +5848,18 @@ export function createServer(options: ServerOptions): ServerInstance {
         if (derivedIndexSettlement.tagIndexDegraded) degraded.push('tag-index');
         let seedSkipCount = 0;
         try {
-          if (singleDocRelPath !== undefined) {
-            seedSingleDirBasenameIndex({
-              contentDir,
-              basenameIndex,
-              onSkip: (reason, code, path) => {
-                seedSkipCount++;
-                log.warn(
-                  { reason, code, path },
-                  `[basename-index] skipped entry during single-file seed (${reason}${code ? ` ${code}` : ''})`,
-                );
-              },
-            });
-          } else {
-            await seedBasenameIndex({
-              contentDir,
-              contentFilter,
-              basenameIndex,
-              onSkip: (reason, code, path) => {
-                seedSkipCount++;
-                log.warn(
-                  { reason, code, path },
-                  `[basename-index] skipped entry during seed (${reason}${code ? ` ${code}` : ''})`,
-                );
-              },
-            });
-          }
+          await seedBasenameIndex({
+            contentDir,
+            contentFilter,
+            basenameIndex,
+            onSkip: (reason, code, path) => {
+              seedSkipCount++;
+              log.warn(
+                { reason, code, path },
+                `[basename-index] skipped entry during seed (${reason}${code ? ` ${code}` : ''})`,
+              );
+            },
+          });
           if (seedSkipCount > 0) {
             log.warn(
               { count: seedSkipCount },

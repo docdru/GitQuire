@@ -94,7 +94,6 @@ function buildConfigSystemRoutes(overrides: Partial<ConfigSystemRouteDeps> = {})
   return createConfigSystemRoutes({
     contentDir: '/tmp/ok-config-system-unit',
     projectDir: undefined,
-    ephemeral: false,
     log: noopLog,
     ready: undefined,
     serverInstanceId: 'test-instance',

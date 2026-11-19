@@ -6,7 +6,7 @@ import { CopyPlus, ExternalLink, FileUp, Hash, Link2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { setPendingLinkEdit } from '../extensions/link-edit-autoopen';
 import { findMarkIdAt } from '../extensions/mark-identity';
-import { admitAssetUpload, uploadAndInsert } from '../image-upload/index.ts';
+import { uploadAndInsert } from '../image-upload/index.ts';
 import { getInteractionLayer } from '../interaction-layer-host';
 import { resolveIcon } from '../registry/icons.ts';
 import { getDescriptor, getRegisteredDescriptors } from '../registry/index.ts';
@@ -490,7 +490,6 @@ export function getComponentItems(): SlashCommandItem[] {
 }
 
 function openFilePickerAndUpload({ editor }: SlashCommandContext): void {
-  if (!admitAssetUpload(editor)) return;
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '*/*';

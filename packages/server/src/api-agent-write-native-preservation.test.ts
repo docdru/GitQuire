@@ -35,23 +35,17 @@ const AGENT_INTEGRATIONS_APPLY = '/api/agent-integrations/apply';
 let root: string;
 let enabled: BootedServer;
 let disabled: BootedServer;
-let ephemeral: BootedServer;
 
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'ok-agent-native-preservation-'));
-  for (const name of ['enabled', 'disabled', 'ephemeral']) mkdirSync(join(root, name));
-  writeFileSync(join(root, 'ephemeral', 'note.md'), '# Note\n');
+  for (const name of ['enabled', 'disabled']) mkdirSync(join(root, name));
   enabled = await bootCompositionRig(join(root, 'enabled'), { enableTestRoutes: true });
   disabled = await bootCompositionRig(join(root, 'disabled'));
-  ephemeral = await bootCompositionRig(join(root, 'ephemeral'), {
-    ephemeral: true,
-    singleDocRelPath: 'note.md',
-  });
-  await Promise.all([enabled.ready, disabled.ready, ephemeral.ready]);
+  await Promise.all([enabled.ready, disabled.ready]);
 }, 60_000);
 
 afterAll(async () => {
-  await Promise.allSettled([enabled?.destroy(), disabled?.destroy(), ephemeral?.destroy()]);
+  await Promise.allSettled([enabled?.destroy(), disabled?.destroy()]);
   rmSync(root, { recursive: true, force: true });
 });
 
@@ -142,7 +136,7 @@ test('methods, preflight, HEAD and request IDs retain the transport contracts', 
   }
 });
 
-test('disabled test routes retain unknown-path admission, in ephemeral servers', async () => {
+test('disabled test routes retain unknown-path admission', async () => {
   for (const path of TEST_PATHS) {
     const unknown = await rawRequest(disabled.port, path, { method: 'POST', body: '{' });
     expect(unknown.status, unknown.body).toBe(404);
@@ -154,17 +148,6 @@ test('disabled test routes retain unknown-path admission, in ephemeral servers',
     });
     expect(rejected.status).toBe(403);
     expect(parseProblem(rejected.body).type).toBe('urn:ok:error:invalid-origin');
-    const restricted = await rawRequest(ephemeral.port, path, { method: 'POST', body: '{' });
-    expect(restricted.status, restricted.body).toBe(404);
-  }
-  for (const path of WRITES) {
-    const response = await rawRequest(ephemeral.port, path, { method: 'POST', body: '{' });
-    expect(response.status, `${path}: ${response.body}`).toBe(415);
-    expect(parseProblem(response.body).type, path).toBe('urn:ok:error:unsupported-media-type');
-  }
-  for (const path of READS) {
-    const response = await rawRequest(ephemeral.port, path);
-    expect(response.status, `${path}: ${response.body}`).toBe(400);
   }
 });
 

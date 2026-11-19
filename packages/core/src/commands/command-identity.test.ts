@@ -10,7 +10,6 @@ import {
 function ctx(overrides: Partial<CommandContext> = {}): CommandContext {
   return {
     activeTargetKind: 'doc',
-    singleFile: false,
     canExpandAll: true,
     canCollapseAll: true,
     hasActiveDoc: true,
@@ -41,10 +40,7 @@ describe('evaluateCommandAvailability', () => {
     expect(evaluateCommandAvailability(spec, ctx({ activeTargetKind: 'none' }))).toBe(false);
   });
 
-  test('singleFileHidden, expand/collapse, activeDoc, installSkill gates', () => {
-    expect(evaluateCommandAvailability({ singleFileHidden: true }, ctx({ singleFile: true }))).toBe(
-      false,
-    );
+  test('expand/collapse and activeDoc gates', () => {
     expect(
       evaluateCommandAvailability({ requiresCanExpandAll: true }, ctx({ canExpandAll: false })),
     ).toBe(false);

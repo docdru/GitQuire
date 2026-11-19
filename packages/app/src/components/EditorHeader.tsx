@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react';
-import { useDocumentContext } from '@/editor/DocumentContext';
-import { useSingleFileMode } from '@/lib/single-file-mode';
 import { cn } from '@/lib/utils';
-import { EditorBreadcrumb } from './EditorBreadcrumb';
 
 interface EditorHeaderProps {
   children?: ReactNode;
@@ -13,9 +10,6 @@ interface EditorHeaderProps {
 const TRAILING_WIDTH_CLASS = '@[15rem]/editor-header:[--editor-header-trailing-width:2rem]';
 
 export function EditorHeader({ children, leading, trailing }: EditorHeaderProps) {
-  const singleFile = useSingleFileMode();
-  const { activeDocName } = useDocumentContext();
-
   return (
     <header
       data-editor-header=""
@@ -37,13 +31,7 @@ export function EditorHeader({ children, leading, trailing }: EditorHeaderProps)
             {leading}
           </div>
         )}
-        {singleFile ? (
-          <div className="flex min-w-0 items-center px-3">
-            <EditorBreadcrumb docName={activeDocName} includeCurrentPage />
-          </div>
-        ) : (
-          children
-        )}
+        {children}
       </div>
 
       {trailing == null ? null : (

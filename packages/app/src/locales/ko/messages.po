@@ -1561,9 +1561,6 @@ msgstr "새 탭 닫기"
 msgid "Close others"
 msgstr "다른 항목 닫기"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "이 미리보기를 닫고 폴더를 열어 파일을 업로드하세요"
-
 msgid "Clusters"
 msgstr "클러스터"
 
@@ -2112,9 +2109,6 @@ msgstr "{label}에서 문서 만들기"
 
 msgid "Create a file from the current document or folder context."
 msgstr "현재 문서 또는 폴더를 기준으로 파일을 만듭니다."
-
-msgid "Create a folder from the current document or folder context."
-msgstr "현재 문서 또는 폴더를 기준으로 폴더를 만듭니다."
 
 msgid "Create a new list item from the current list item."
 msgstr "현재 목록 항목에서 새 목록 항목을 만듭니다."
@@ -3266,9 +3260,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "서식이 잘못 표시됨"
-
-msgid "Forward"
-msgstr "앞으로"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "포워드 링크 응답 형식이 예상과 일치하지 않습니다."
@@ -4982,9 +4973,6 @@ msgstr "꺼짐, 검색은 키워드로만 순위를 매깁니다. 이 컴퓨터 
 msgid "Offline"
 msgstr "오프라인"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "켜짐, 외부 링크 위에 마우스를 올리면 미리보기를 가져오기 위해 URL을 대상 사이트로 전송하고, 에이전트 채팅의 GitHub 참조 위에 마우스를 올리면 GitHub에 요청합니다."
 
@@ -5063,9 +5051,6 @@ msgstr "먼저 프로젝트를 여세요."
 msgid "Open a project to edit."
 msgstr "편집할 프로젝트를 엽니다."
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "프로젝트 설정 없이 임시 세션에서 Markdown 파일 하나를 엽니다."
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "{tooltipName} 활동 패널 열기"
 
@@ -5074,9 +5059,6 @@ msgstr "{tooltipName} 활동 패널 열기, {realCurrentDoc} 편집 중"
 
 msgid "Open agents"
 msgstr "에이전트 열기"
-
-msgid "Open an existing project folder from disk."
-msgstr "디스크에서 기존 프로젝트 폴더를 엽니다."
 
 msgid "Open board"
 msgstr "보드 열기"
@@ -5113,9 +5095,6 @@ msgstr "{keyName} 이모지 선택기 열기"
 
 msgid "Open file"
 msgstr "파일 열기"
-
-msgid "Open folder"
-msgstr "폴더 열기"
 
 msgid "Open graph"
 msgstr "그래프 열기"
@@ -5158,9 +5137,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "비어 있거나 활성화된 텍스트 위치에서 삽입 메뉴를 엽니다."
-
-msgid "Open the Project Navigator."
-msgstr "프로젝트 탐색기를 엽니다."
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "이 문서를 편집기에서 열고 그래프를 접습니다."
@@ -5906,9 +5882,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "버그 신고"
 
 msgid "Report an issue"
 msgstr ""
@@ -6694,9 +6667,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "지금 화면에 보이는 그대로의 스크린샷과 함께 버그 신고를 시작합니다."
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6792,9 +6762,6 @@ msgstr "파일 사이드바와 문서 패널 위치 바꾸기"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "현재 위치를 유지하면서 비주얼 편집기와 소스 편집기 사이를 전환합니다."
-
-msgid "Switch project"
-msgstr "프로젝트 전환"
 
 msgid "Switch to a branch to share."
 msgstr "공유하려면 브랜치로 전환하세요."
@@ -7593,12 +7560,6 @@ msgstr "링크가 가장 많은 페이지"
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
 
-msgid "Traverse GitQuire navigation history backward."
-msgstr "GitQuire 탐색 기록을 뒤로 이동합니다."
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "GitQuire 탐색 기록을 앞으로 이동합니다."
-
 msgid "Tree view options"
 msgstr "트리 보기 옵션"
 
@@ -8034,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "새로운 기능"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "사용하도록 설정하면 에이전트가 편집할 때마다 미리보기를 엽니다. 자체 미리보기 창을 관리하는 경우 사용하지 않도록 설정하세요(OK Desktop, 다른 디스플레이의 브라우저 탭 등)."
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "에이전트가 예약된 작업을 실행할 때"

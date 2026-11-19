@@ -1561,9 +1561,6 @@ msgstr "نیا ٹیب بند کریں"
 msgid "Close others"
 msgstr "باقی بند کریں"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "یہ پیش نظارہ بند کریں، پھر فائلیں اپ لوڈ کرنے کے لیے فولڈر کھولیں"
-
 msgid "Clusters"
 msgstr "کلسٹرز"
 
@@ -2112,9 +2109,6 @@ msgstr "{label} سے دستاویز بنائیں"
 
 msgid "Create a file from the current document or folder context."
 msgstr "موجودہ دستاویز یا فولڈر کے سیاق سے فائل بنائیں۔"
-
-msgid "Create a folder from the current document or folder context."
-msgstr "موجودہ دستاویز یا فولڈر کے سیاق سے فولڈر بنائیں۔"
 
 msgid "Create a new list item from the current list item."
 msgstr "موجودہ فہرست آئٹم سے نیا فہرست آئٹم بنائیں۔"
@@ -3266,9 +3260,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "فارمیٹنگ غلط لگی"
-
-msgid "Forward"
-msgstr "آگے"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "باہر جانے والے لنکس کا جواب متوقع ساخت سے میل نہیں کھایا۔"
@@ -4982,9 +4973,6 @@ msgstr "بند — تلاش صرف کلیدی الفاظ سے درجہ بندی 
 msgid "Offline"
 msgstr "آف لائن"
 
-msgid "OK Desktop"
-msgstr "OK Desktop"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "فعال — بیرونی لنک پر ماؤس لے جانے سے اس کا URL پیش منظر لانے کے لیے منزل کی سائٹ کو بھیجا جاتا ہے، اور ایجنٹ چیٹ میں کسی GitHub حوالے پر ماؤس لے جانے سے GitHub سے پوچھا جاتا ہے۔"
 
@@ -5063,9 +5051,6 @@ msgstr "پہلے کوئی پروجیکٹ کھولیں۔"
 msgid "Open a project to edit."
 msgstr "ترمیم کے لیے کوئی پروجیکٹ کھولیں۔"
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "ایک اکیلی Markdown فائل عارضی سیشن میں کھولیں، پروجیکٹ کی ترتیب کے بغیر۔"
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "{tooltipName} کے لیے سرگرمی کا پینل کھولیں"
 
@@ -5074,9 +5059,6 @@ msgstr "{tooltipName} کے لیے سرگرمی کا پینل کھولیں، {rea
 
 msgid "Open agents"
 msgstr "ایجنٹس کھولیں"
-
-msgid "Open an existing project folder from disk."
-msgstr "ڈسک سے موجودہ پروجیکٹ کا فولڈر کھولیں۔"
 
 msgid "Open board"
 msgstr "بورڈ کھولیں"
@@ -5113,9 +5095,6 @@ msgstr "{keyName} کے لیے ایموجی منتخب کنندہ کھولیں"
 
 msgid "Open file"
 msgstr "فائل کھولیں"
-
-msgid "Open folder"
-msgstr "فولڈر کھولیں"
 
 msgid "Open graph"
 msgstr "گراف کھولیں"
@@ -5158,9 +5137,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "خالی یا فعال متن کی جگہ پر داخل کرنے کا مینو کھولیں۔"
-
-msgid "Open the Project Navigator."
-msgstr "پروجیکٹ نیویگیٹر کھولیں۔"
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "یہ دستاویز ایڈیٹر میں کھولیں اور گراف سکیڑ دیں۔"
@@ -5906,9 +5882,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "بگ رپورٹ کریں"
 
 msgid "Report an issue"
 msgstr ""
@@ -6694,9 +6667,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "اسکرین اس وقت جیسی دکھ رہی ہے اس کا اسکرین شاٹ لے کر بگ رپورٹ شروع کریں۔"
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6792,9 +6762,6 @@ msgstr "فائل سائیڈ بار اور دستاویز کے پینل کی جگ
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "اپنی جگہ برقرار رکھتے ہوئے بصری اور سورس ایڈیٹر کے درمیان بدلیں۔"
-
-msgid "Switch project"
-msgstr "پروجیکٹ بدلیں"
 
 msgid "Switch to a branch to share."
 msgstr "شیئر کرنے کے لیے کسی برانچ پر جائیں۔"
@@ -7593,12 +7560,6 @@ msgstr "سب سے زیادہ لنک شدہ صفحات"
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
 
-msgid "Traverse GitQuire navigation history backward."
-msgstr "GitQuire کی نیویگیشن تاریخ میں پیچھے جائیں۔"
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "GitQuire کی نیویگیشن تاریخ میں آگے جائیں۔"
-
 msgid "Tree view options"
 msgstr "ٹری منظر کے آپشنز"
 
@@ -8034,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "نیا کیا ہے"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "فعال ہونے پر، ایجنٹ ہر ترمیم کے بعد پیش منظر کھولتا یا تازہ کرتا ہے۔ اگر آپ اپنی پیش منظر ونڈو خود سنبھالتے ہیں تو اسے بند کر دیں (OK Desktop، کسی اور ڈسپلے پر براؤزر ٹیب، وغیرہ)۔"
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "ایجنٹ اپنا طے شدہ کام کب چلاتا ہے۔"
