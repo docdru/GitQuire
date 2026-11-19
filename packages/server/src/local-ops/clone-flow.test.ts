@@ -11,10 +11,8 @@ import {
   validateCloneInputs,
 } from './clone-flow.ts';
 
-const okCli = (
-  cliArgs: readonly string[],
-  cliEnv?: Readonly<Record<string, string | undefined>>,
-): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+const okCli = (cliArgs: readonly string[]): GqCliCommand =>
+  GqCliCommand.resolve({ host: { cliArgs }, env: {} });
 
 const HOME_PATH = join(homedir(), 'open-knowledge-test-clone');
 
@@ -342,23 +340,6 @@ describe('runCloneSubprocess', () => {
     setTimeout(() => ctrl.cancel(), 50);
     await ctrl.done;
     expect(events).toEqual([]);
-  });
-
-  test('forwards cliEnv through to the spawned CLI', async () => {
-    const events: RawCloneEvent[] = [];
-    const ctrl = runCloneSubprocess({
-      cli: okCli(
-        fixtureCli(`
-        console.log(JSON.stringify({type:'complete', dir: process.env.GITQUIRE_CLONE_ENV_MARKER || 'unset'}));
-      `),
-        { GITQUIRE_CLONE_ENV_MARKER: '/tmp/marker-from-cli-env' },
-      ),
-      url: 'https://github.com/octocat/hello.git',
-      dir: '/tmp/cloned-repo',
-      onEvent: (e) => events.push(e),
-    });
-    await ctrl.done;
-    expect(events).toEqual([{ type: 'complete', dir: '/tmp/marker-from-cli-env' }]);
   });
 
   test('handles a chunked stream that splits a JSON line across writes', async () => {
