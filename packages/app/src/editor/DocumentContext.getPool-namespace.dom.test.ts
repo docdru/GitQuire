@@ -7,7 +7,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete window.okDesktop;
   window.localStorage.clear();
 });
 

@@ -104,7 +104,6 @@ vi.doMock('@/lib/config-provider', () => ({
 
 const { SettingsDialogShell } = await import('./SettingsDialogShell');
 const { DocNoticesProvider } = await import('@/hooks/use-doc-notices');
-const { SingleFileModeProvider } = await import('@/lib/single-file-mode');
 
 const SENTINEL_USER_BINDING = {
   current: () => ({}) as never,
@@ -399,11 +398,9 @@ describe('a settings file notice inside the Settings dialog', () => {
 
   function renderWithNotices(onOpenChange: (open: boolean) => void) {
     return render(
-      <SingleFileModeProvider>
-        <DocNoticesProvider>
-          <SettingsDialogShell open onOpenChange={onOpenChange} />
-        </DocNoticesProvider>
-      </SingleFileModeProvider>,
+      <DocNoticesProvider>
+        <SettingsDialogShell open onOpenChange={onOpenChange} />
+      </DocNoticesProvider>,
     );
   }
 

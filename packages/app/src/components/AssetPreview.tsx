@@ -1,5 +1,4 @@
 import type { InlineAssetMediaKind } from '@gitquire/core/constants/upload';
-import { toDesktopAssetHref } from '@gitquire/core/utils/asset-href';
 import { Trans } from '@lingui/react/macro';
 import { useState } from 'react';
 import { MermaidFileViewer } from '@/components/MermaidFileViewer';
@@ -16,7 +15,7 @@ interface AssetPreviewProps {
 }
 
 function assetUrl(assetPath: string): string {
-  return toDesktopAssetHref(`/api/asset?path=${encodeURIComponent(assetPath)}`);
+  return `/api/asset?path=${encodeURIComponent(assetPath)}`;
 }
 
 function assetTextUrl(assetPath: string): string {

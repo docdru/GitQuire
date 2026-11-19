@@ -316,7 +316,7 @@ describe('bootServer git-preflight', () => {
     expect(entries).toHaveLength(0);
   });
 
-  test('gitEnabled:false skips the preflight entirely (no-project ephemeral single-file shape)', async () => {
+  test('gitEnabled:false skips the preflight entirely', async () => {
     const projectDir = await mkdtemp(resolve(tmpDir, 'state-'));
     seedOkScaffold(projectDir);
 

@@ -95,7 +95,6 @@ const entry = {
   'types-timeline': 'src/types/timeline.ts',
   'util-atomic-yaml-write': 'src/util/atomic-yaml-write.ts',
   'util-doc-name': 'src/util/doc-name.ts',
-  'utils-asset-href': 'src/utils/asset-href.ts',
   'utils-chunked-insert': 'src/utils/chunked-insert.ts',
   'utils-code-fence-tracker': 'src/utils/code-fence-tracker.ts',
   'utils-embed-url-rewrite': 'src/utils/embed-url-rewrite.ts',

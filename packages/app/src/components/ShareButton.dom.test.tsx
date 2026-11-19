@@ -43,7 +43,6 @@ describe('ShareButton', () => {
 
   beforeEach(() => {
     if (typeof window !== 'undefined') window.location.hash = '';
-    Reflect.deleteProperty(globalThis, 'okDesktop');
     Object.defineProperty(globalThis.navigator, 'clipboard', {
       configurable: true,
       value: undefined,

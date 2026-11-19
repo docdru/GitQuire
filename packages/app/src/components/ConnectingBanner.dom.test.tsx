@@ -29,7 +29,6 @@ afterEach(() => {
   vi.useRealTimers();
   collabTerminal = true;
   collabLastError = null;
-  (window as unknown as { okDesktop?: unknown }).okDesktop = undefined;
 });
 
 describe('ConnectingBanner placement', () => {

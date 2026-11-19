@@ -99,9 +99,7 @@ export interface CreateTestServerOptions {
   localOpCliArgs?: string[];
   authStreamHeartbeatMs?: number;
   configHomedirOverride?: string;
-  ephemeral?: boolean;
   projectDir?: string;
-  singleDocRelPath?: string;
   mdManager?: MarkdownManager;
   markdownlintEnabled?: boolean;
   seedProjectConfigYml?: string;
@@ -114,13 +112,10 @@ export interface CreateTestServerOptions {
 }
 
 export async function createTestServer(options: CreateTestServerOptions = {}): Promise<TestServer> {
-  const ephemeral = options.ephemeral ?? false;
-
   const contentDir =
     options.contentDir !== undefined
       ? realpathSync(options.contentDir)
       : realpathSync(mkdtempSync(join(tmpdir(), 'ok-test-')));
-  const createdProjectDir = ephemeral && options.projectDir === undefined;
   let ownedHomeDir: string | null = null;
   let projectDir: string | undefined;
   let port: number;
@@ -135,13 +130,9 @@ export async function createTestServer(options: CreateTestServerOptions = {}): P
       mkdirSync(join(ownedHomeDir, '.claude', 'skills'), { recursive: true });
     }
 
-    projectDir = options.projectDir
-      ? realpathSync(options.projectDir)
-      : ephemeral
-        ? realpathSync(mkdtempSync(join(tmpdir(), 'ok-ephemeral-test-')))
-        : contentDir;
+    projectDir = options.projectDir ? realpathSync(options.projectDir) : contentDir;
 
-    if (!ephemeral) {
+    {
       if (options.contentDir === undefined) {
         writeFileSync(join(contentDir, 'test-doc.md'), '', 'utf-8');
       }
@@ -176,7 +167,7 @@ export async function createTestServer(options: CreateTestServerOptions = {}): P
       maxDebounce: options.maxDebounce ?? 1000,
       stalenessGraceMs: options.stalenessGraceMs,
       stalenessSweepIntervalMs: options.stalenessSweepIntervalMs,
-      gitEnabled: ephemeral ? false : (options.gitEnabled ?? false),
+      gitEnabled: options.gitEnabled ?? false,
       commitDebounceMs: options.commitDebounceMs ?? 200,
       contentRoot: options.gitEnabled === true ? '.' : undefined,
       enableTestRoutes: true,
@@ -189,29 +180,25 @@ export async function createTestServer(options: CreateTestServerOptions = {}): P
       agentSessionOptions: options.agentSessionOptions,
       watcherClock: options.watcherClock,
       mergeHistoryWriter: options.mergeHistoryWriter,
-      ...(ephemeral ? { ephemeral: true, singleDocRelPath: options.singleDocRelPath } : {}),
       skipStateManifestCheck: true,
     });
   } catch (error) {
     removeAllStrictDuringTeardown(
       ...(options.contentDir === undefined ? [contentDir] : []),
       ...(ownedHomeDir !== null ? [ownedHomeDir] : []),
-      ...(createdProjectDir && projectDir !== undefined ? [projectDir] : []),
     );
     throw error;
   }
 
   await srv.ready;
 
-  const mcpHttpHandler = ephemeral
-    ? undefined
-    : createMcpHttpHandler({
-        contentDir,
-        projectDir: contentDir,
-        config: ConfigSchema.parse({}),
-        getServerUrl: () => `http://127.0.0.1:${port}`,
-        localApi: srv.localApi,
-      });
+  const mcpHttpHandler = createMcpHttpHandler({
+    contentDir,
+    projectDir: contentDir,
+    config: ConfigSchema.parse({}),
+    getServerUrl: () => `http://127.0.0.1:${port}`,
+    localApi: srv.localApi,
+  });
 
   const httpServer = createHttpServer();
   const mount = mountMcpAndApi({
@@ -241,15 +228,11 @@ export async function createTestServer(options: CreateTestServerOptions = {}): P
       await srv.destroy();
       mount.wss.close();
       await new Promise<void>((resolve) => httpServer.close(() => resolve()));
-      await runTeardownPhases(
-        () => {
-          if (createdProjectDir) removeAllStrictDuringTeardown(projectDir);
-        },
-        () =>
-          removeAllDuringTeardown(
-            ...(options.keepContentDir ? [] : [contentDir]),
-            ...(ownedHomeDir !== null ? [ownedHomeDir] : []),
-          ),
+      await runTeardownPhases(() =>
+        removeAllDuringTeardown(
+          ...(options.keepContentDir ? [] : [contentDir]),
+          ...(ownedHomeDir !== null ? [ownedHomeDir] : []),
+        ),
       );
     },
   };

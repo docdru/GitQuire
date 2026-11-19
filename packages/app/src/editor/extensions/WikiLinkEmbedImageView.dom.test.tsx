@@ -47,7 +47,6 @@ function WikiImageHost() {
 describe('WikiLinkEmbedImageView', () => {
   afterEach(() => {
     cleanup();
-    delete (window as typeof window & { okDesktop?: unknown }).okDesktop;
   });
 
   test('a wiki image embed load failure uses the shared image placeholder', () => {
@@ -58,20 +57,6 @@ describe('WikiLinkEmbedImageView', () => {
     expect(slot.getAttribute('data-image-error-kind')).toBe('undisplayable');
     expect(slot.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe(
       "Image couldn't be displayed: Broken wiki image",
-    );
-  });
-
-  test('the shared leaf keeps the Electron asset-origin rewrite', () => {
-    const windowWithDesktop = window as typeof window & {
-      okDesktop?: { config: { apiOrigin: string } };
-    };
-    windowWithDesktop.okDesktop = {
-      config: { apiOrigin: 'http://127.0.0.1:54321' },
-    };
-
-    render(<WikiLinkEmbedImageView src="/attachments/photo.png" alt="Photo" />);
-    expect(document.querySelector('img')?.getAttribute('src')).toBe(
-      'http://127.0.0.1:54321/attachments/photo.png',
     );
   });
 

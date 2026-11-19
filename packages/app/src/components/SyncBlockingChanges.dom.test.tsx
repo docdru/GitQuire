@@ -44,7 +44,6 @@ describe('SyncBlockingChanges', () => {
 
   afterEach(() => {
     cleanup();
-    delete (window as { okDesktop?: unknown }).okDesktop;
   });
 
   test('lists every blocking path rather than naming a few in a sentence', async () => {

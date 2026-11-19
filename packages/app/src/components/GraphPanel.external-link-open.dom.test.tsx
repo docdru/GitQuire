@@ -67,7 +67,6 @@ describe('GraphPanel — external "Open link" routes to the OS browser', () => {
   afterEach(() => {
     cleanup();
     window.open = originalOpen;
-    delete (window as unknown as { okDesktop?: unknown }).okDesktop;
     graphHarness.select = undefined;
   });
 

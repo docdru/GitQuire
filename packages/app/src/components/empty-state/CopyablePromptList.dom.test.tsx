@@ -14,7 +14,6 @@ const { CopyablePromptList } = await import('./CopyablePromptList');
 
 describe('CopyablePromptList', () => {
   beforeEach(() => {
-    Reflect.deleteProperty(globalThis, 'okDesktop');
     Object.defineProperty(globalThis.navigator, 'clipboard', {
       configurable: true,
       value: undefined,

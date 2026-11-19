@@ -1,11 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { currentCliCommandName } from '@gitquire/core';
-import {
-  HOST_NOT_ADMITTED_REMEDIATION,
-  type IngressPolicy,
-  isHostAdmitted,
-  isPeerAdmitted,
-} from '../ingress-policy.ts';
+import type { IngressPolicy } from '../ingress-policy.ts';
 import type { PinoLogger } from '../logger.ts';
 import { errorResponse } from './error-response.ts';
 import { admitRequestSurface } from './http-app.ts';
@@ -15,7 +10,6 @@ type ServingMiddleware = (req: IncomingMessage, res: ServerResponse, next: () =>
 export interface ContentDispatchOptions {
   contentAssetMiddleware?: ServingMiddleware;
   reactShellMiddleware?: ServingMiddleware;
-  ephemeral?: boolean;
   ingressPolicy: IngressPolicy;
   log: PinoLogger;
 }
@@ -23,7 +17,6 @@ export interface ContentDispatchOptions {
 export function createContentDispatch({
   contentAssetMiddleware,
   reactShellMiddleware,
-  ephemeral,
   ingressPolicy,
   log,
 }: ContentDispatchOptions): (req: IncomingMessage, res: ServerResponse) => void {
@@ -59,21 +52,6 @@ export function createContentDispatch({
       }
     };
     const runContent = (onMiss: () => void): void => {
-      if (ephemeral === true && contentAssetMiddleware !== undefined) {
-        if (!isPeerAdmitted(req.socket.remoteAddress, ingressPolicy)) {
-          errorResponse(res, 403, 'urn:ok:error:loopback-required', 'Loopback required.', {
-            handler: 'content-asset-gate',
-          });
-          return;
-        }
-        if (!isHostAdmitted(req.headers.host, ingressPolicy)) {
-          errorResponse(res, 403, 'urn:ok:error:host-not-allowed', 'Host header not allowed.', {
-            handler: 'content-asset-gate',
-            detail: HOST_NOT_ADMITTED_REMEDIATION,
-          });
-          return;
-        }
-      }
       runMiddleware(contentAssetMiddleware, 'content-asset', onMiss);
     };
     const runShell = (onMiss: () => void): void =>

@@ -9,7 +9,6 @@ function buildGroup() {
     projectDir: undefined,
     homeDirOverride: '/nonexistent-home',
     savedThemeLockTimeoutMs: undefined,
-    ephemeral: true,
     log: loggerFactory.getLogger('test'),
     searchService: {} as SearchService,
     linkPreviewFetch: undefined,

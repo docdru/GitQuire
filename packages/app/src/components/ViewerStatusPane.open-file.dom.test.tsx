@@ -13,16 +13,6 @@ function mockFetchStatus(status: number): typeof globalThis.fetch {
     } as Response)) as typeof globalThis.fetch;
 }
 
-type OpenAssetSpy = ReturnType<typeof vi.fn>;
-
-function installDesktopBridge(): OpenAssetSpy {
-  const openAsset = vi.fn(async (_: string) => ({ ok: true }) as const);
-  (window as unknown as { okDesktop: unknown }).okDesktop = {
-    shell: { openAsset, revealAsset: vi.fn(async (_: string) => ({ ok: true }) as const) },
-  };
-  return openAsset;
-}
-
 async function findErrorPane(container: HTMLElement, attr: string): Promise<void> {
   await waitFor(() => {
     expect(container.querySelector(`[${attr}-state="error"]`)).not.toBeNull();
@@ -43,11 +33,9 @@ describe('viewer error pane — "Open file" handoff', () => {
   afterEach(() => {
     cleanup();
     globalThis.fetch = originalFetch;
-    delete (window as unknown as { okDesktop?: unknown }).okDesktop;
   });
 
   test('413 offers the handoff, and it is not an anchor into /api/*', async () => {
-    installDesktopBridge();
     const { container } = render(
       <TextViewer
         src="/api/asset-text?path=logs/huge.csv"
@@ -64,7 +52,7 @@ describe('viewer error pane — "Open file" handoff', () => {
     expect(control?.closest('a')).toBeNull();
   });
 
-  test('web host (no desktop bridge) opens a new tab instead of navigating', async () => {
+  test('opens a new tab instead of navigating', async () => {
     const openSpy = vi.fn(() => null);
     const originalOpen = window.open;
     window.open = openSpy as unknown as typeof window.open;
@@ -93,7 +81,6 @@ describe('viewer error pane — "Open file" handoff', () => {
   });
 
   test('404 renders no handoff — the file does not exist', async () => {
-    installDesktopBridge();
     globalThis.fetch = mockFetchStatus(404);
     const { container } = render(
       <TextViewer
@@ -110,7 +97,6 @@ describe('viewer error pane — "Open file" handoff', () => {
   });
 
   test('415 (binary) keeps the handoff — a real file is on disk', async () => {
-    installDesktopBridge();
     globalThis.fetch = mockFetchStatus(415);
     const { container } = render(
       <TextViewer
@@ -126,7 +112,6 @@ describe('viewer error pane — "Open file" handoff', () => {
   });
 
   test('a transport failure keeps the handoff - nothing refuted the file', async () => {
-    installDesktopBridge();
     globalThis.fetch = (() =>
       Promise.reject(new Error('Network error'))) as typeof globalThis.fetch;
     const { container } = render(
@@ -143,7 +128,6 @@ describe('viewer error pane — "Open file" handoff', () => {
   });
 
   test('loader-backed sources (skill bundles) never offer the handoff', async () => {
-    installDesktopBridge();
     const { container } = render(
       <TextViewer
         loadText={async () => ({ ok: false, status: 413 })}

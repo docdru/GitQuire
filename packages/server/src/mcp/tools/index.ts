@@ -1,4 +1,3 @@
-import { createEnsureSingleFileSession } from '../../ensure-single-file-session.ts';
 import type { LocalApiDispatch } from '../../http/local-api-dispatch.ts';
 import type { AgentIdentity } from '../agent-identity.ts';
 import { getCurrentMcpLogger, type McpLogger } from '../logger.ts';
@@ -150,7 +149,6 @@ export function registerAllTools(server: ServerInstance, opts: RegisterAllToolsO
     resolveCwd: named('preview_url'),
     serverUrl: opts.serverUrl,
     isHostedAgent: opts.isHostedAgent,
-    ...(opts.serverUrl ? { ensureSingleFileSession: createEnsureSingleFileSession() } : {}),
   });
 
   registerShareLink(registrationServer, {

@@ -35,13 +35,6 @@ vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
   return new Response(null, { status: 404 });
 });
 
-function installDesktopBridge() {
-  Object.defineProperty(window, 'okDesktop', {
-    configurable: true,
-    value: { config: { projectName: 'Field Notes', projectPath: '/projects/field-notes' } },
-  });
-}
-
 const STATS: DocumentStats = { words: 10, chars: 50, tokens: 12 };
 
 async function renderFooter(composerBadge?: { onReopen: () => void } | null) {
@@ -66,7 +59,6 @@ async function renderFooterWithFileList(fileList: 'open' | 'closed') {
 
 afterEach(() => {
   cleanup();
-  Object.defineProperty(window, 'okDesktop', { configurable: true, value: undefined });
 });
 
 afterAll(() => {
@@ -74,15 +66,9 @@ afterAll(() => {
 });
 
 describe('EditorFooter identity row', () => {
-  test.each([
-    { host: 'desktop', fileList: 'open' },
-    { host: 'desktop', fileList: 'closed' },
-    { host: 'web', fileList: 'open' },
-    { host: 'web', fileList: 'closed' },
-  ] as const)(
-    'shows the current branch and no project name on $host with the file list $fileList',
-    async ({ host, fileList }) => {
-      if (host === 'desktop') installDesktopBridge();
+  test.each([{ fileList: 'open' }, { fileList: 'closed' }] as const)(
+    'shows the current branch and no project name with the file list $fileList',
+    async ({ fileList }) => {
       await renderFooterWithFileList(fileList);
 
       const branch = await screen.findByTestId('editor-footer-branch');
@@ -92,8 +78,7 @@ describe('EditorFooter identity row', () => {
     },
   );
 
-  test('shows the current branch with no file list in the tree at all, which is what note and single-file windows get', async () => {
-    installDesktopBridge();
+  test('shows the current branch with no file list in the tree at all', async () => {
     await renderFooter();
 
     const branch = await screen.findByTestId('editor-footer-branch');

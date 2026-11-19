@@ -30,7 +30,7 @@ interface NativeRig {
   close: () => Promise<void>;
 }
 
-async function bootNativeRig(opts: { ephemeral?: boolean } = {}): Promise<NativeRig> {
+async function bootNativeRig(): Promise<NativeRig> {
   const legacyCalls: string[] = [];
   const dispatched: string[] = [];
   const table: ApiRouteTable = {
@@ -88,7 +88,6 @@ async function bootNativeRig(opts: { ephemeral?: boolean } = {}): Promise<Native
     ],
     dispatch: createApiRequestPipeline({
       log: fakeLog,
-      ephemeral: opts.ephemeral,
       table,
     }),
   };
@@ -307,42 +306,6 @@ describe('natively-mounted /api routes run the shared admission pipeline', () =>
         headers: { Host: 'localhost' },
       });
       expect(allowed.status).toBe(200);
-    } finally {
-      await rig.close();
-    }
-  });
-
-  test('ephemeral mode Host-gates EVERY native /api route, including reads', async () => {
-    const rig = await bootNativeRig({ ephemeral: true });
-    try {
-      const refused = await rawRequest(rig.port, '/api/native-ping', {
-        headers: { Host: 'evil.example' },
-      });
-      expect(refused.status).toBe(403);
-      expect(parseProblem(refused.body).type).toBe('urn:ok:error:host-not-allowed');
-
-      const allowed = await rawRequest(rig.port, '/api/native-ping', {
-        headers: { Host: 'localhost' },
-      });
-      expect(allowed.status).toBe(200);
-    } finally {
-      await rig.close();
-    }
-  });
-
-  test('previews reject project mutations while retaining document edits and reads', async () => {
-    const rig = await bootNativeRig({ ephemeral: true });
-    try {
-      const blocked = await rawRequest(rig.port, '/api/native-mutating', { method: 'POST' });
-      expect(blocked.status).toBe(403);
-      expect(parseProblem(blocked.body).title).toBe(
-        'Single-file previews cannot manage project files.',
-      );
-      const edit = await rawRequest(rig.port, '/api/agent-write-md', { method: 'POST' });
-      expect(edit.status).toBe(200);
-      const read = await rawRequest(rig.port, '/api/native-ping');
-      expect(read.status).toBe(200);
-      expect(rig.dispatched).toEqual(['POST /api/agent-write-md', 'GET /api/native-ping']);
     } finally {
       await rig.close();
     }

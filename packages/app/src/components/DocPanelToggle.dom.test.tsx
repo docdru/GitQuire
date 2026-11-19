@@ -18,7 +18,6 @@ function renderToggle(isPanelCollapsed = false) {
 describe('DocPanelToggle', () => {
   afterEach(() => {
     cleanup();
-    Reflect.deleteProperty(window, 'okDesktop');
   });
 
   test('renders the document-panel shortcut as a Kbd keycap', async () => {

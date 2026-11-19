@@ -1561,9 +1561,6 @@ msgstr "關閉新分頁"
 msgid "Close others"
 msgstr "關閉其他"
 
-msgid "Close this preview, then open the folder to upload files"
-msgstr "關閉此預覽，然後開啟資料夾以上傳檔案"
-
 msgid "Clusters"
 msgstr "叢集"
 
@@ -2112,9 +2109,6 @@ msgstr "用 {label} 建立文件"
 
 msgid "Create a file from the current document or folder context."
 msgstr "依目前的文件或資料夾情境建立一個檔案。"
-
-msgid "Create a folder from the current document or folder context."
-msgstr "依目前的文件或資料夾情境建立一個資料夾。"
 
 msgid "Create a new list item from the current list item."
 msgstr "從目前的清單項目建立一個新的清單項目。"
@@ -3266,9 +3260,6 @@ msgstr ""
 
 msgid "Formatting looked wrong"
 msgstr "排版看起來不對"
-
-msgid "Forward"
-msgstr "前進"
 
 msgid "Forward-links response did not match expected shape."
 msgstr "外連連結回應的結構與預期不符。"
@@ -4982,9 +4973,6 @@ msgstr "關閉——搜尋只按關鍵字排序。不會有任何內容離開這
 msgid "Offline"
 msgstr "離線"
 
-msgid "OK Desktop"
-msgstr "OK 桌面版"
-
 msgid "On — hovering an external link sends its URL to the destination site to fetch a preview, and hovering a GitHub reference in an agent chat asks GitHub for it."
 msgstr "開啟——把游標停在外部連結上時，會把它的 URL 送到目標網站以取得預覽；在智慧代理對話中停在 GitHub 參照上時，會向 GitHub 查詢。"
 
@@ -5063,9 +5051,6 @@ msgstr "請先開啟一個專案。"
 msgid "Open a project to edit."
 msgstr "請開啟一個專案才能編輯。"
 
-msgid "Open a single markdown file in a temporary session, without project setup."
-msgstr "在暫時的工作階段中開啟單一 markdown 檔案，不必設定專案。"
-
 msgid "Open activity panel for {tooltipName}"
 msgstr "開啟 {tooltipName} 的活動面板"
 
@@ -5074,9 +5059,6 @@ msgstr "開啟 {tooltipName} 的活動面板，它正在編輯 {realCurrentDoc}"
 
 msgid "Open agents"
 msgstr "開啟智慧代理"
-
-msgid "Open an existing project folder from disk."
-msgstr "從磁碟開啟一個既有的專案資料夾。"
 
 msgid "Open board"
 msgstr "開啟畫板"
@@ -5113,9 +5095,6 @@ msgstr "開啟 {keyName} 的表情符號選擇器"
 
 msgid "Open file"
 msgstr "開啟檔案"
-
-msgid "Open folder"
-msgstr "開啟資料夾"
 
 msgid "Open graph"
 msgstr "開啟關係圖"
@@ -5158,9 +5137,6 @@ msgstr ""
 
 msgid "Open the insert menu in an empty or active text position."
 msgstr "在空白或作用中的文字位置開啟插入選單。"
-
-msgid "Open the Project Navigator."
-msgstr "開啟專案導覽器。"
 
 msgid "Open this document in the editor and collapse the graph."
 msgstr "在編輯器中開啟這份文件並摺疊關係圖。"
@@ -5906,9 +5882,6 @@ msgstr ""
 
 msgid "Reply"
 msgstr ""
-
-msgid "Report a bug"
-msgstr "回報問題"
 
 msgid "Report an issue"
 msgstr ""
@@ -6694,9 +6667,6 @@ msgstr ""
 msgid "Start a blank page, or scaffold one from a template."
 msgstr ""
 
-msgid "Start a bug report with a screenshot of the screen as it looks right now."
-msgstr "發起一份錯誤回報，並附上此刻畫面的螢幕擷圖。"
-
 msgid "Start a comment thread on the selected text."
 msgstr ""
 
@@ -6792,9 +6762,6 @@ msgstr "交換檔案側邊欄與文件面板的位置"
 
 msgid "Switch between the visual and source editors, keeping your place."
 msgstr "在視覺化編輯器和原始碼編輯器之間切換，並保持目前的位置。"
-
-msgid "Switch project"
-msgstr "切換專案"
 
 msgid "Switch to a branch to share."
 msgstr "請切換到某個分支後再分享。"
@@ -7593,12 +7560,6 @@ msgstr "被連結最多的頁面"
 msgid "Trailing backslash — line continuation isn't supported."
 msgstr ""
 
-msgid "Traverse GitQuire navigation history backward."
-msgstr "在 GitQuire 的導覽記錄中往回走。"
-
-msgid "Traverse GitQuire navigation history forward."
-msgstr "在 GitQuire 的導覽記錄中往前走。"
-
 msgid "Tree view options"
 msgstr "樹狀檢視選項"
 
@@ -8034,8 +7995,8 @@ msgstr ""
 msgid "What's new"
 msgstr "新功能"
 
-msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window (OK Desktop, a browser tab on another display, etc.)."
-msgstr "開啟之後，代理每次編輯完都會開啟或重新整理預覽。如果你自己管理預覽視窗（OK 桌面版、另一台螢幕上的瀏覽器分頁等），可以把它關掉。"
+msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
 
 msgid "When the agent runs its scheduled work."
 msgstr "代理執行排程工作的時間。"
