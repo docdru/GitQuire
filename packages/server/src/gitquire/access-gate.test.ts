@@ -245,6 +245,8 @@ describe('isPublicAsset', () => {
     expect(isPublicAsset('/icons/gitquire-192.png', 'GET')).toBe(true);
     expect(isPublicAsset('/favicon.svg', 'HEAD')).toBe(true);
     expect(isPublicAsset('/favicon.ico', 'GET')).toBe(true);
+    expect(isPublicAsset('/apple-touch-icon.png', 'GET')).toBe(true);
+    expect(isPublicAsset('/apple-touch-icon-precomposed.png', 'GET')).toBe(true);
     expect(isPublicAsset('/icons/../api/config', 'GET')).toBe(false);
     expect(isPublicAsset('/manifest.webmanifest', 'POST')).toBe(false);
     expect(isPublicAsset('/api/documents', 'GET')).toBe(false);

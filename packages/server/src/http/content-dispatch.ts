@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { currentCliCommandName } from '@gitquire/core';
+import { isAppIconPath } from '../gitquire/app-icons.ts';
 import type { IngressPolicy } from '../ingress-policy.ts';
 import type { PinoLogger } from '../logger.ts';
 import { errorResponse } from './error-response.ts';
@@ -70,7 +71,9 @@ export function createContentDispatch({
 
     if (
       reactShellMiddleware !== undefined &&
-      (url?.startsWith('/assets/') || url?.startsWith('/excalidraw-assets/'))
+      (url?.startsWith('/assets/') ||
+        url?.startsWith('/excalidraw-assets/') ||
+        (url !== undefined && isAppIconPath(url)))
     ) {
       runShell(() => runContent(notFound));
       return;

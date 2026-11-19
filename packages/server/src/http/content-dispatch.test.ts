@@ -120,6 +120,53 @@ describe('native content fallback ownership and middleware failures', () => {
   });
 });
 
+describe('app icons come from the web UI before wiki content', () => {
+  test.each([
+    '/icons/gitquire-192.png',
+    '/icons/gitquire-maskable-512.png',
+    '/apple-touch-icon.png',
+    '/favicon.ico',
+    '/favicon.svg',
+    '/manifest.webmanifest',
+  ])('%s is served by the shell even when content would answer 404', async (path) => {
+    const { port } = await start({
+      contentAssetMiddleware: (_req, res) => {
+        res.writeHead(404);
+        res.end();
+      },
+      reactShellMiddleware: (_req, res) => {
+        res.end('shell icon');
+      },
+    });
+    const response = await rawRequest(port, path);
+    expect(response.status).toBe(200);
+    expect(response.body).toBe('shell icon');
+  });
+
+  test('a wiki file under icons/ still serves when the shell has no such file', async () => {
+    const { port } = await start({
+      contentAssetMiddleware: (_req, res) => {
+        res.end('wiki icon');
+      },
+      reactShellMiddleware: (_req, _res, next) => next(),
+    });
+    expect((await rawRequest(port, '/icons/team-logo.png')).body).toBe('wiki icon');
+  });
+
+  test('other images keep going to wiki content first', async () => {
+    const { port } = await start({
+      contentAssetMiddleware: (_req, res) => {
+        res.end('wiki image');
+      },
+      reactShellMiddleware: (_req, res) => {
+        res.end('shell');
+      },
+    });
+    expect((await rawRequest(port, '/images/diagram.png')).body).toBe('wiki image');
+    expect((await rawRequest(port, '/icons/nested/logo.png')).body).toBe('wiki image');
+  });
+});
+
 describe('the no-web-UI hint names the running channel CLI', () => {
   afterEach(() => vi.unstubAllEnvs());
 
