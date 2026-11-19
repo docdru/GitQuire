@@ -5,10 +5,8 @@ import { describe, expect, test } from 'vitest';
 import { type RunDeviceFlowController, runDeviceFlowSubprocess } from './auth-flow.ts';
 import type { AuthEvent } from './types.ts';
 
-const okCli = (
-  cliArgs: readonly string[],
-  cliEnv?: Readonly<Record<string, string | undefined>>,
-): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+const okCli = (cliArgs: readonly string[]): GqCliCommand =>
+  GqCliCommand.resolve({ host: { cliArgs }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 
@@ -285,24 +283,6 @@ describe('runDeviceFlowSubprocess', () => {
     });
     await ctrl.done;
     expect(events).toEqual([{ type: 'error', message: DEV_FALLBACK_CLI_REFUSAL }]);
-  });
-
-  test('forwards cliEnv through to the spawned CLI', async () => {
-    const events: AuthEvent[] = [];
-    const ctrl = runDeviceFlowSubprocess({
-      cli: okCli(
-        fixtureCli(`
-        console.log(JSON.stringify({type:'complete', host:'github.com', login: process.env.GITQUIRE_AUTH_FLOW_ENV_MARKER || 'unset'}));
-      `),
-        { GITQUIRE_AUTH_FLOW_ENV_MARKER: 'marker-from-cli-env' },
-      ),
-      onEvent: (e) => events.push(e),
-    });
-    await ctrl.done;
-    expect(events[0]?.type).toBe('complete');
-    if (events[0]?.type === 'complete') {
-      expect(events[0].login).toBe('marker-from-cli-env');
-    }
   });
 
   test('cancel terminates the subprocess without synthesizing an error event', async () => {

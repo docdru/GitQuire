@@ -25,10 +25,8 @@ vi.mock('node:fs', async (importOriginal) => {
   };
 });
 
-const okCli = (
-  cliArgs: readonly string[],
-  cliEnv?: Readonly<Record<string, string | undefined>>,
-): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+const okCli = (cliArgs: readonly string[]): GqCliCommand =>
+  GqCliCommand.resolve({ host: { cliArgs }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 const RAW_GIT_FAILURE_CLI = fixtureCli(

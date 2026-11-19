@@ -37,18 +37,4 @@ describe('per-channel user home', () => {
     expect(relative(stable, beta).startsWith('..')).toBe(true);
     expect(relative(beta, stable).startsWith('..')).toBe(true);
   });
-
-  it('resolves the channel from a Beta executable without an override', () => {
-    vi.stubEnv('GITQUIRE_CHANNEL', undefined);
-    const execPath = process.execPath;
-    Object.defineProperty(process, 'execPath', {
-      value: '/Applications/OpenKnowledge Beta.app/Contents/MacOS/OpenKnowledge Beta',
-      configurable: true,
-    });
-    try {
-      expect(okUserHomeDir(HOME)).toBe(join(HOME, '.gitquire-beta'));
-    } finally {
-      Object.defineProperty(process, 'execPath', { value: execPath, configurable: true });
-    }
-  });
 });

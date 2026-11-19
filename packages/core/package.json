@@ -53,12 +53,6 @@
       "types": "./dist/keepalive.d.mts",
       "default": "./dist/keepalive.mjs"
     },
-    "./helper-bundle": {
-      "@gitquire/source": "./src/helper-bundle.ts",
-      "development": "./src/helper-bundle.ts",
-      "types": "./dist/helper-bundle.d.mts",
-      "default": "./dist/helper-bundle.mjs"
-    },
     "./acp/thread-protocol": {
       "@gitquire/source": "./src/acp/thread-protocol.ts",
       "development": "./src/acp/thread-protocol.ts",

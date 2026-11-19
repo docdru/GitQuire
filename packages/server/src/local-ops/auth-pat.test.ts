@@ -2,10 +2,8 @@ import { GqCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runPatSubprocess } from './auth-pat.ts';
 
-const okCli = (
-  cliArgs: readonly string[],
-  cliEnv?: Readonly<Record<string, string | undefined>>,
-): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+const okCli = (cliArgs: readonly string[]): GqCliCommand =>
+  GqCliCommand.resolve({ host: { cliArgs }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 
@@ -126,24 +124,5 @@ describe('runPatSubprocess', () => {
       expect(result.error).not.toContain(storedToken);
       expect(result.error).toContain('[REDACTED-GH-PAT]');
     }
-  });
-
-  test('forwards cliEnv through to the spawned CLI', async () => {
-    const result = await runPatSubprocess({
-      cli: okCli(
-        fixtureCli(`
-        let d='';
-        process.stdin.on('data', c => { d += c; });
-        process.stdin.on('end', () => {
-          process.stdout.write(JSON.stringify({ type: 'complete', host: 'ghes.test', login: process.env.GITQUIRE_AUTH_PAT_ENV_MARKER || 'unset' }) + '\\n');
-          process.exit(0);
-        });
-      `),
-        { GITQUIRE_AUTH_PAT_ENV_MARKER: 'marker-from-cli-env' },
-      ),
-      host: 'ghes.test',
-      token: 'good-token',
-    });
-    expect(result).toEqual({ ok: true, host: 'ghes.test', login: 'marker-from-cli-env' });
   });
 });

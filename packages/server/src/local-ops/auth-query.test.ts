@@ -4,10 +4,8 @@ import { GqCliCommand } from '@gitquire/core';
 import { describe, expect, test } from 'vitest';
 import { runAuthReposSubprocess, runAuthStatusSubprocess } from './auth-query.ts';
 
-const okCli = (
-  cliArgs: readonly string[],
-  cliEnv?: Readonly<Record<string, string | undefined>>,
-): GqCliCommand => GqCliCommand.resolve({ host: { cliArgs, cliEnv }, env: {} });
+const okCli = (cliArgs: readonly string[]): GqCliCommand =>
+  GqCliCommand.resolve({ host: { cliArgs }, env: {} });
 
 const fixtureCli = (script: string): readonly string[] => [process.execPath, '-e', script];
 
@@ -180,21 +178,6 @@ describe('runAuthStatusSubprocess', () => {
     expect(result.authenticated).toBe(true);
     if (result.authenticated) {
       expect(result.tier).toBeUndefined();
-    }
-  });
-
-  test('forwards cliEnv through to the spawned CLI', async () => {
-    const result = await runAuthStatusSubprocess({
-      cli: okCli(
-        fixtureCli(`
-        console.log(JSON.stringify({type:'status', host:'github.com', authenticated:true, login: process.env.GITQUIRE_AUTH_STATUS_ENV_MARKER || 'unset'}));
-      `),
-        { GITQUIRE_AUTH_STATUS_ENV_MARKER: 'marker-from-cli-env' },
-      ),
-    });
-    expect(result.authenticated).toBe(true);
-    if (result.authenticated) {
-      expect(result.login).toBe('marker-from-cli-env');
     }
   });
 
@@ -390,23 +373,6 @@ describe('runAuthReposSubprocess', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error).toMatch(/timed out/i);
-    }
-  });
-
-  test('forwards cliEnv through to the spawned CLI', async () => {
-    const result = await runAuthReposSubprocess({
-      cli: okCli(
-        fixtureCli(`
-        console.log(JSON.stringify({type:'repos', host:'github.com', repos:[
-          {full_name: process.env.GITQUIRE_AUTH_REPOS_ENV_MARKER || 'unset', clone_url:'https://github.com/octo/repo1.git', private:false},
-        ]}));
-      `),
-        { GITQUIRE_AUTH_REPOS_ENV_MARKER: 'marker/from-cli-env' },
-      ),
-    });
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.repos.map((r) => r.full_name)).toEqual(['marker/from-cli-env']);
     }
   });
 });

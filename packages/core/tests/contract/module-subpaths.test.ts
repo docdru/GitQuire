@@ -115,7 +115,6 @@ const PRE_EXISTING_KEYS = [
   './git-repository',
   './server',
   './keepalive',
-  './helper-bundle',
   './acp/thread-protocol',
   './desktop-bridge',
 ];
