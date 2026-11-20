@@ -30,12 +30,13 @@ describe('version-constants', () => {
     expect(readRuntimeVersion()).toBe(stamped.version);
   });
 
-  test('a source checkout carries the unknown placeholder, which clients read as indeterminate', async () => {
+  test('a source checkout carries a release version, or the unknown placeholder before the first release', async () => {
     const actualFs = await vi.importActual<typeof import('node:fs')>('node:fs');
     const committed = JSON.parse(
       actualFs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
     ) as { version: string };
-    expect(committed.version).toBe(CLIENT_RUNTIME_VERSION_FALLBACK);
+    expect(committed.version).toMatch(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?$/);
+    expect(CLIENT_RUNTIME_VERSION_FALLBACK).toMatch(/^0\.0\.0-/);
   });
 
   test('readRuntimeVersion reads a stamped version and falls back when the file is missing or unversioned', () => {
