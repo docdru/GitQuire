@@ -230,6 +230,14 @@ async function p2(browser) {
   await signIn(page, A);
   await signIn(page, B);
   await openPage(page, A, 'index');
+  const onlyA = await apiCall(page, '/api/create-page', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: 'only-in-a.md' }),
+  });
+  record('P2', null, `create page only-in-a in A -> ${onlyA.status}`);
+  await openPage(page, A, 'only-in-a');
+  await openPage(page, A, 'index');
+  const syncA = await apiCall(page, '/api/sync/status');
+  record('P3', null, `sync status of A: ${syncA.status} ${syncA.body.slice(0, 600)}`);
   await new Promise((r) => setTimeout(r, 3000));
   const offlineText = `Offline in A ${Date.now()}`;
   await ctx.setOffline(true);
@@ -243,12 +251,12 @@ async function p2(browser) {
   const inBDisk = disk('gq-b', 'index.md').includes(offlineText);
   const inBEditor = (await editor(pageB).innerText()).includes(offlineText);
   record('P2', !inBDisk && !inBEditor, `offline edit of A after switching to B: in B's file ${inBDisk}, in B's editor ${inBEditor}`);
+  const bShowsA = (await pageB.locator('body').innerText()).includes('only-in-a');
+  record('P2', !bShowsA, `B's window shows A's page only-in-a (as a tab or anywhere): ${bShowsA}`);
   const tabsKey = (await pageB.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('ok-editor-tabs')))) ?? [];
   for (const key of tabsKey) {
     record('P2', null, `${key} after visiting A then B: ${(await pageB.evaluate((k) => localStorage.getItem(k), key))?.slice(0, 400)}`);
   }
-  const syncA = await apiCall(pageB, `${A}/api/sync/status`);
-  record('P3', null, `sync status of A: ${syncA.status} ${syncA.body.slice(0, 500)}`);
   const storage = await pageB.evaluate(async () => ({
     local: Object.keys(localStorage),
     session: Object.keys(sessionStorage),

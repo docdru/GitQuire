@@ -56,6 +56,23 @@ const SHIM = (prefix) => `<script src="${prefix}__gq_proto_shim.js"></script>`;
 const HOST_AUTHORIZE = process.env.PROXY_HOST_AUTHORIZE ?? 'http://127.0.0.1:3000/login/oauth/authorize';
 const ADD_SCOPE = process.env.PROXY_OAUTH_SCOPE ?? '';
 
+function wikiSuffix(prefix) {
+  return `__${prefix.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}`;
+}
+
+function cookiesFor(header, prefix) {
+  if (!header) return header;
+  const mine = wikiSuffix(prefix);
+  const all = header.split(/;\s*/).filter(Boolean);
+  const kept = [];
+  for (const pair of all) {
+    const name = pair.split('=')[0];
+    if (name.endsWith(mine)) kept.push(pair.replace(`${mine}=`, '='));
+    else if (!/__w_/.test(name) && name !== WIKI_COOKIE) kept.push(pair);
+  }
+  return kept.join('; ');
+}
+
 function rewriteHeaders(headers, target, req) {
   const out = { ...headers };
   const loc = out.location;
@@ -82,9 +99,11 @@ function rewriteHeaders(headers, target, req) {
   if (Array.isArray(cookies) && signInStart) {
     note('sign-in-cookie-kept-at-root', req, cookies.map((c) => c.split('=')[0]).join(','));
   } else if (Array.isArray(cookies)) {
-    out['set-cookie'] = cookies.map((c) =>
-      /;\s*path=/i.test(c) ? c.replace(/;\s*path=[^;]*/i, `; Path=${target.prefix}`) : `${c}; Path=${target.prefix}`,
-    );
+    const suffix = wikiSuffix(target.prefix);
+    out['set-cookie'] = cookies.map((c) => {
+      const renamed = c.replace(/^([^=]+)=/, (_, name) => `${name}${suffix}=`);
+      return /;\s*path=/i.test(renamed) ? renamed.replace(/;\s*path=[^;]*/i, '; Path=/') : `${renamed}; Path=/`;
+    });
   }
   const wikiCookie = `${WIKI_COOKIE}=${encodeURIComponent(target.prefix)}; Path=/; HttpOnly; SameSite=Lax`;
   out['set-cookie'] = [...(out['set-cookie'] ?? []), wikiCookie];
@@ -105,6 +124,7 @@ const server = http.createServer((req, res) => {
   }
   if (target.how !== 'prefix') note(target.how, req);
   const headers = { ...req.headers, 'x-forwarded-prefix': target.prefix.slice(0, -1) };
+  if (headers.cookie) headers.cookie = cookiesFor(headers.cookie, target.prefix);
   if (headers.referer) {
     try {
       const r = new URL(headers.referer);
@@ -156,6 +176,7 @@ server.on('upgrade', (req, socket, head) => {
     for (let i = 0; i < req.rawHeaders.length; i += 2) {
       const name = req.rawHeaders[i];
       let value = req.rawHeaders[i + 1];
+      if (name.toLowerCase() === 'cookie') value = cookiesFor(value, target.prefix);
       lines.push(`${name}: ${value}`);
     }
     lines.push(`X-Forwarded-Prefix: ${target.prefix.slice(0, -1)}`);
