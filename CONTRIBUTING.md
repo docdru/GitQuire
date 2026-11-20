@@ -233,7 +233,12 @@ file first into the lightest shard) from `packages/app/tests/integration-duratio
 missing from that table counts as the median. When a shard gets noticeably slower than the
 others, refresh the table from a full run with `node scripts/ci-integration-durations.mjs <run-id>`.
 
-**Stacked pull requests** (base branch other than `main`) run the same selection without Docker,
+**The `wikis-hosts` branch** is treated like `main` while it exists: pushes to it and pull
+requests against it run everything, Docker included, and a push publishes
+`ghcr.io/docdru/gitquire:wikis-hosts` (never `latest`). Its plan is `plans/wikis-and-hosts.md`.
+This paragraph and that handling are removed when the branch is merged into `main`.
+
+**Stacked pull requests** (base branch other than `main` or `wikis-hosts`) run the same selection without Docker,
 unless they have the `full-ci` label. When such a pull request is
 retargeted to `main`, `.github/workflows/ci-rerun.yml` starts a full run on its branch; adding the
 `full-ci` label does the same. A stacked pull request is ready when its reduced set is green; it
