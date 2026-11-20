@@ -5,6 +5,7 @@ import type { PinoLogger } from '../logger.ts';
 import type { AccessVerdict } from './agent-access.ts';
 import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
 import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
+import { isAppIconPath } from './app-icons.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
 import {
   bearerToken,
@@ -141,12 +142,9 @@ export function principalFromUser(user: SessionUser): GitQuirePrincipal {
   };
 }
 
-const PUBLIC_ASSET_PATHS = new Set(['/manifest.webmanifest', '/favicon.svg', '/favicon.ico']);
-const PUBLIC_ICON_RE = /^\/icons\/[a-z0-9-]+\.(?:png|svg)$/;
-
 export function isPublicAsset(path: string, method: string | undefined): boolean {
   if (method !== 'GET' && method !== 'HEAD') return false;
-  return PUBLIC_ASSET_PATHS.has(path) || PUBLIC_ICON_RE.test(path);
+  return isAppIconPath(path);
 }
 
 const IN_APP_AGENT_PREFIXES = ['/api/acp/', '/api/agent-integrations/', '/collab/thread'];
