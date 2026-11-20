@@ -90,13 +90,18 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     id: 'command-palette',
     category: 'general',
     title: msg`Command palette`,
-    description: msg`Search files, commands, projects, and AI handoff actions. Adds a link instead when text is selected in the visual editor.`,
+    description: msg`Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette.`,
     scope: msg`Global`,
     bindings: [
       {
         mac: '⌘ K',
         windowsLinux: 'Ctrl K',
         match: { key: 'k', mod: true },
+      },
+      {
+        mac: '⌥⌘ P',
+        windowsLinux: 'Ctrl Alt P',
+        match: { code: 'KeyP', anyMod: true, altKey: true, allowExtraModifiers: true },
       },
     ],
   },

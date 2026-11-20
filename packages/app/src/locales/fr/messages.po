@@ -6121,7 +6121,7 @@ msgstr "Rechercher un émoji"
 msgid "Search failed."
 msgstr "La recherche a échoué."
 
-msgid "Search files, commands, projects, and AI handoff actions. Adds a link instead when text is selected in the visual editor."
+msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
 msgstr ""
 
 msgid "Search files, folders, and commands for the current workspace."

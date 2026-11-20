@@ -831,6 +831,24 @@ describe('CommandPalette ⌘K — overlay gate', () => {
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
+  test('opens on ⌥⌘P with nothing else open', async () => {
+    const { CommandPalette } = await import('./CommandPalette');
+    const onOpenChange = vi.fn(() => {});
+    render(<CommandPalette open={false} onOpenChange={onOpenChange} />);
+
+    fireEvent.keyDown(document.body, { key: 'π', code: 'KeyP', metaKey: true, altKey: true });
+
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+  });
+
+  test('closes itself on ⌥⌘P while it is the open layer', async () => {
+    const { onOpenChange } = await renderPalette();
+
+    fireEvent.keyDown(document.body, { key: 'π', code: 'KeyP', metaKey: true, altKey: true });
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
   test('leaves ⌘P to the browser so a page can be printed', async () => {
     const { CommandPalette } = await import('./CommandPalette');
     const onOpenChange = vi.fn(() => {});

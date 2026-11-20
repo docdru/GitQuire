@@ -292,6 +292,24 @@ describe('keyboard shortcut registry', () => {
     expect(matchesKeyboardShortcut(exactCmdK, 'command-palette', 'mac')).toBe(true);
   });
 
+  test('opens the command palette on the Alt+P chord, which add-link never claims', () => {
+    const macChord = { metaKey: true, ctrlKey: false, altKey: true, key: 'π', code: 'KeyP' };
+    expect(matchesKeyboardShortcut(macChord, 'command-palette', 'mac')).toBe(true);
+    expect(matchesKeyboardShortcut(macChord, 'add-link', 'mac')).toBe(false);
+
+    const otherChord = { metaKey: false, ctrlKey: true, altKey: true, key: 'p', code: 'KeyP' };
+    expect(matchesKeyboardShortcut(otherChord, 'command-palette', 'windowsLinux')).toBe(true);
+    expect(matchesKeyboardShortcut(otherChord, 'add-link', 'windowsLinux')).toBe(false);
+
+    expect(
+      matchesKeyboardShortcut(
+        { metaKey: false, ctrlKey: false, altKey: true, key: 'π', code: 'KeyP' },
+        'command-palette',
+        'mac',
+      ),
+    ).toBe(false);
+  });
+
   test('leaves Cmd/Ctrl+P to the browser for printing', () => {
     expect(
       matchesKeyboardShortcut(
