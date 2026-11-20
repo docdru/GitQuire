@@ -199,16 +199,17 @@ def setup():
     return version, team_id
 
 
-def f1():
+def f1(scope="read:user", app_name="GitQuire", user="bob"):
     status, app, _ = call("POST", "/user/applications/oauth2", {
-        "name": "GitQuire", "redirect_uris": [CALLBACK], "confidential_client": True,
+        "name": app_name, "redirect_uris": [CALLBACK], "confidential_client": True,
     }, auth=ADMIN)
     if status != 201:
         record("F1", False, f"create OAuth application -> {status} {app}")
         return None
     client_id, secret = app["client_id"], app["client_secret"]
-    op = web_login("bob")
-    status, page, headers = authorize(op, client_id, "read:user", "s1")
+    record("F1", None, f"--- scope {scope!r}, person {user}")
+    op = web_login(user)
+    status, page, headers = authorize(op, client_id, scope, "s1")
     location = headers.get("Location", "")
     if status == 200:
         grant = next((f for f in forms_of(page) if "grant" in f["action"]), None)
@@ -232,18 +233,18 @@ def f1():
         return None
     for scheme in ("token", "Bearer"):
         s, me, _ = call("GET", "/user", headers={"Authorization": f"{scheme} {token}"})
-        record("F1", s == 200 and isinstance(me, dict) and me.get("login") == "bob",
+        record("F1", s == 200 and isinstance(me, dict) and me.get("login") == user,
                f"GET /api/v1/user with '{scheme}' -> {s}, fields id/login/full_name/avatar_url/email present: "
                f"{all(k in me for k in ('id', 'login', 'full_name', 'avatar_url', 'email')) if isinstance(me, dict) else False}")
     s, repo, _ = call("GET", "/repos/team/wiki", headers={"Authorization": f"Bearer {token}"})
     perms = repo.get("permissions") if isinstance(repo, dict) else None
     record("F1", s == 200 and perms and perms.get("push") is True,
-           f"GET /repos/team/wiki as bob (write collaborator) -> {s}, permissions {perms}")
+           f"GET /repos/team/wiki as {user} -> {s}, permissions {perms}")
     s, created, _ = call("POST", "/user/repos", {"name": "made-with-signin-token", "private": True},
                          headers={"Authorization": f"Bearer {token}"})
-    record("F1", None, f"sign-in token asked for read:user; creating a repo with it -> {s} "
+    record("F1", None, f"sign-in token asked for {scope}; creating a repo with it -> {s} "
            f"({'token is NOT limited' if s == 201 else 'token is limited'})")
-    status, page, headers = authorize(op, client_id, "read:user", "s2")
+    status, page, headers = authorize(op, client_id, scope, "s2")
     code2, state2 = code_from(headers.get("Location", ""))
     record("F1", status in (302, 303) and bool(code2),
            f"second authorize for an approved application -> {status}, silent redirect with code: {bool(code2)}")
@@ -433,6 +434,11 @@ def f5():
         s2, _, _ = call("POST", "/repos/team/wiki/pulls", {"head": "main", "base": "main", "title": "x"}, token=token)
         s3, _, _ = call("GET", "/repos/team/wiki/pulls?state=all", token=token)
         s4, _, _ = call("GET", "/repos/team/wiki-b", token=token)
+        s5, c5, _ = call("GET", "/repos/team/wiki-b/contents/README.md", token=token)
+        s6, _, _ = call("POST", "/repos/team/wiki-b/pulls", {"head": "main", "base": "main", "title": "x"}, token=token)
+        s7, _, _ = call("GET", "/repos/team/wiki/collaborators/bob/permission", auth=("gitquire-bot", PASSWORD))
+        record("F5", None, f"limited token on the OTHER repo: GET repo -> {s4}, GET file contents -> {s5}, create pull request -> {s6}; "
+               f"the same permission check with the bot's password (unlimited) -> {s7}")
         record("F5", s1 == 200 and s3 == 200 and s4 in (403, 404),
                f"limited token: permission check -> {s1}, pull request create (same branch, expect 422) -> {s2}, list pulls -> {s3}, other repo -> {s4}")
     finally:
@@ -451,11 +457,12 @@ def f7(token):
     s, body, _ = call("POST", "/markdown", {"Text": page, "Mode": "gfm", "Context": "team/wiki", "Wiki": False}, auth=ADMIN)
     out = body if isinstance(body, str) else str(body)
     checks = {
-        "footnote mark": "footnote" in out and "c-7f3a" in out,
+        "footnote mark": 'href="#fn:user-content-c-7f3a"' in out,
         "footnote thread text": "Where do these come from" in out,
         "thread list kept as list": "<li>" in out and "@alice" in out,
         "mermaid block marked": "mermaid" in out,
-        "inline math marked": "math" in out and "a^2" in out,
+        "inline math marked": "language-math" in out and "a^2" in out,
+        "block math source kept": "\\int_0^1 x\\,dx" in out,
         "task checkbox": 'type="checkbox"' in out,
         "wiki link": "Meeting notes" in out,
     }
@@ -468,7 +475,9 @@ def f7(token):
 def main():
     version, team_id = setup()
     print(f"Forgejo version {version}")
-    f1()
+    f1("read:user", "GitQuire user only")
+    f1("read:user read:repository", "GitQuire repo read")
+    f1("read:user read:repository", "GitQuire repo read, team member", "carol")
     tmp = tempfile.mkdtemp()
     try:
         s, body = make_token("gitquire-bot", "f2", ["write:repository", "read:user"])
