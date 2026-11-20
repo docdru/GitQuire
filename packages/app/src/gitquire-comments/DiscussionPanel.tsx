@@ -1,7 +1,7 @@
 import { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
-import { Check, MessagesSquare, Pencil, Trash2, X } from 'lucide-react';
+import { Check, Pencil, Trash2, X } from 'lucide-react';
 import {
   type ReactNode,
   useEffect,
@@ -13,12 +13,20 @@ import {
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { editorOverlayHost } from '@/editor/editor-overlay-host';
+import {
+  Panel,
+  PanelBody,
+  PanelCount,
+  PanelEmpty,
+  PanelHeader,
+  PanelTitle,
+} from '@/components/ui/panel';
 import { MentionTextarea } from '@/gitquire-people/MentionTextarea';
 import { knownLogins, usePeople } from '@/lib/gitquire/people';
 import { cn } from '@/lib/utils';
 
 import { findQuoteRange } from './anchor-search';
+import { registerCommentEditor, useCommentEditor } from './comment-editors';
 import { type PlacedThread, placeThreads, readThreads } from './editor-threads';
 import { type TextRange, useFloatingAnchor } from './floating-anchor';
 import {
@@ -41,24 +49,17 @@ import { writeAndTrack } from './thread-sync';
 import {
   clearDraft,
   clearReveal,
-  closeDiscussions,
   currentAuthor,
-  openDiscussions,
   setActiveThread,
-  showThreadInList,
+  showThreadInPane,
   useDiscussionUi,
 } from './ui-store';
 
 const QUOTE_CLASS = 'line-clamp-2 border-s-2 ps-2 text-start text-muted-foreground text-xs';
-const PANEL_CLASS =
-  'fixed end-0 top-12 bottom-0 z-40 flex w-full flex-col border-s bg-background shadow-lg sm:w-96';
-const TOGGLE_CLASS =
-  'absolute end-4 bottom-[calc(max(1rem,var(--ask-composer-clearance,0px)+0.75rem)+var(--conflict-footer-height,0px))] z-30 gap-1.5 shadow-md';
 const CARD_CLASS =
   'fixed z-50 flex w-[min(24rem,calc(100vw-1rem))] flex-col gap-3 overflow-y-auto rounded-lg border bg-background p-3 shadow-lg';
-const NARROW_QUERY = '(max-width: 639px)';
 const KEEP_CARD_OPEN_SELECTOR =
-  '[data-discussion-card], [data-discussion-id], [data-gitquire-comment-mark], [data-testid="discussion-panel"], [data-testid="discussion-toggle"], [data-testid="discussion-bubble-button"], [data-testid="touch-edit-toolbar"], [data-sonner-toaster]';
+  '[data-discussion-card], [data-discussion-id], [data-gitquire-comment-mark], [data-comments-panel], [data-testid="discussion-bubble-button"], [data-testid="touch-edit-toolbar"], [data-sonner-toaster]';
 
 const EMPTY: Thread[] = [];
 
@@ -411,36 +412,10 @@ function AnchoredCard({
   );
 }
 
-function isNarrowScreen(): boolean {
-  return typeof window.matchMedia === 'function' && window.matchMedia(NARROW_QUERY).matches;
-}
-
-export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: string }) {
-  const { t } = useLingui();
-  const ui = useDiscussionUi();
-  const threads = useThreads(editor);
+function useMe(needed: boolean): Author | null {
   const [me, setMe] = useState<Author | null>(null);
-  const [draftBody, setDraftBody] = useState('');
-  const [overlayHost, setOverlayHost] = useState<HTMLElement | null>(null);
-
-  const hostProbe = useRef<HTMLSpanElement>(null);
-
-  useLayoutEffect(() => {
-    setOverlayHost(editorOverlayHost(hostProbe.current));
-  }, []);
-
-  const forThisDoc = ui.docName === docName;
-  const isOpen = ui.open && forThisDoc;
-  const draft = forThisDoc ? ui.draft : null;
-  const activeThreadId = forThisDoc ? ui.activeThreadId : null;
-  const openCount = threads.length;
-  const placed = placeThreads(editor.state.doc, [...threads].sort(compareThreads));
-  const activePlaced = placed.find((p) => p.thread.id === activeThreadId) ?? null;
-  const activeRange = activePlaced?.range ?? null;
-  const needsIdentity = isOpen || draft !== null || activePlaced !== null;
-
   useEffect(() => {
-    if (!needsIdentity || me !== null) return;
+    if (!needed || me !== null) return;
     let live = true;
     currentAuthor().then((author) => {
       if (live) setMe(author);
@@ -448,13 +423,12 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     return () => {
       live = false;
     };
-  }, [needsIdentity, me]);
+  }, [needed, me]);
+  return me;
+}
 
-  useEffect(() => {
-    if (activePlaced !== null && activePlaced.range === null && !isOpen) {
-      showThreadInList(docName, activePlaced.thread.id);
-    }
-  }, [activePlaced, isOpen, docName]);
+function useThreadActions(editor: Editor) {
+  const { t } = useLingui();
 
   function run(change: ThreadChange): Promise<void> {
     return applyChange(editor, change).catch((err: unknown) => {
@@ -462,6 +436,58 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       throw err;
     });
   }
+
+  return {
+    replyTo(threadId: string, body: string): Promise<void> {
+      return run((current, ctx) => addReply(current, threadId, body, ctx));
+    },
+    resolve(threadId: string): void {
+      run((current) => setResolved(current, threadId, true))
+        .then(() => setActiveThread(null))
+        .catch(ignore);
+    },
+    remove(threadId: string, commentId: string): void {
+      run((current, ctx) => deleteComment(current, threadId, commentId, ctx.author)).catch(ignore);
+    },
+    edit(threadId: string, commentId: string, body: string): Promise<void> {
+      return run((current, ctx) => {
+        const next = editComment(current, threadId, commentId, body, ctx);
+        if (!hasCommentBody(next, threadId, commentId, body)) {
+          throw new Error('The comment is no longer there to edit.');
+        }
+        return next;
+      });
+    },
+  };
+}
+
+function placedThreads(editor: Editor, threads: Thread[]): PlacedThread[] {
+  return placeThreads(editor.state.doc, [...threads].sort(compareThreads));
+}
+
+export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: string }) {
+  const { t } = useLingui();
+  const ui = useDiscussionUi();
+  const threads = useThreads(editor);
+  const actions = useThreadActions(editor);
+  const [draftBody, setDraftBody] = useState('');
+
+  useEffect(() => registerCommentEditor(docName, editor), [docName, editor]);
+
+  const forThisDoc = ui.docName === docName;
+  const draft = forThisDoc ? ui.draft : null;
+  const activeThreadId = forThisDoc ? ui.activeThreadId : null;
+  const activePlaced =
+    activeThreadId === null
+      ? null
+      : (placedThreads(editor, threads).find((p) => p.thread.id === activeThreadId) ?? null);
+  const activeRange = activePlaced?.range ?? null;
+  const me = useMe(draft !== null || activePlaced !== null);
+  const orphanThreadId = activePlaced !== null && activeRange === null ? activePlaced.thread.id : null;
+
+  useEffect(() => {
+    if (orphanThreadId !== null) showThreadInPane(docName, orphanThreadId);
+  }, [orphanThreadId, docName]);
 
   const revealThreadId = forThisDoc ? ui.revealThreadId : null;
   const revealReady =
@@ -500,55 +526,6 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   function cancelDraft() {
     setDraftBody('');
     clearDraft();
-  }
-
-  function replyTo(threadId: string, body: string): Promise<void> {
-    return run((current, ctx) => addReply(current, threadId, body, ctx));
-  }
-
-  function resolve(threadId: string) {
-    run((current) => setResolved(current, threadId, true))
-      .then(() => setActiveThread(null))
-      .catch(ignore);
-  }
-
-  function remove(threadId: string, commentId: string) {
-    run((current, ctx) => deleteComment(current, threadId, commentId, ctx.author)).catch(ignore);
-  }
-
-  function edit(threadId: string, commentId: string, body: string): Promise<void> {
-    return run((current, ctx) => {
-      const next = editComment(current, threadId, commentId, body, ctx);
-      if (!hasCommentBody(next, threadId, commentId, body)) {
-        throw new Error('The comment is no longer there to edit.');
-      }
-      return next;
-    });
-  }
-
-  function select(p: PlacedThread) {
-    setActiveThread(p.thread.id);
-    if (p.range === null || editor.isDestroyed) return;
-    if (isNarrowScreen()) closeDiscussions();
-    editor.chain().setTextSelection(p.range).scrollIntoView().run();
-  }
-
-  function threadCard(p: PlacedThread, inList: boolean) {
-    const active = activeThreadId === p.thread.id;
-    return (
-      <ThreadCard
-        placed={p}
-        active={active}
-        expanded={inList ? active && p.range === null : true}
-        framed={inList}
-        me={me}
-        onSelect={() => select(p)}
-        onReply={(body) => replyTo(p.thread.id, body)}
-        onResolve={() => resolve(p.thread.id)}
-        onDelete={(commentId) => remove(p.thread.id, commentId)}
-        onEdit={(commentId, body) => edit(p.thread.id, commentId, body)}
-      />
-    );
   }
 
   const draftCard = draft !== null && (
@@ -598,63 +575,134 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       onClose={() => setActiveThread(null)}
       onDismiss={() => setActiveThread(null)}
     >
-      <div className="me-6">{threadCard(activePlaced, false)}</div>
-    </AnchoredCard>
-  );
-
-  const list = isOpen ? (
-    <aside className={PANEL_CLASS} aria-label={t`Comments`} data-testid="discussion-panel">
-      <header className="flex items-center gap-2 border-b px-4 py-2">
-        <MessagesSquare aria-hidden="true" className="size-4" />
-        <h2 className="font-medium text-sm">{t`Comments`}</h2>
-        <span className="text-muted-foreground text-xs">{openCount}</span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="ms-auto"
-          onClick={closeDiscussions}
-          aria-label={t`Close comments`}
-        >
-          <X aria-hidden="true" />
-        </Button>
-      </header>
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
-        {placed.length === 0 && (
-          <p className="text-muted-foreground text-sm">
-            {t`Select text and choose Comment to start a thread. Comments are saved in the page.`}
-          </p>
-        )}
-        <ul className="flex flex-col gap-3">
-          {placed.map((p) => (
-            <li key={p.thread.id}>{threadCard(p, true)}</li>
-          ))}
-        </ul>
+      <div className="me-6">
+        <ThreadCard
+          placed={activePlaced}
+          active
+          expanded
+          framed={false}
+          me={me}
+          onSelect={() => {
+            editor.chain().setTextSelection(activeRange).scrollIntoView().run();
+          }}
+          onReply={(body) => actions.replyTo(activePlaced.thread.id, body)}
+          onResolve={() => actions.resolve(activePlaced.thread.id)}
+          onDelete={(commentId) => actions.remove(activePlaced.thread.id, commentId)}
+          onEdit={(commentId, body) => actions.edit(activePlaced.thread.id, commentId, body)}
+        />
       </div>
-    </aside>
-  ) : (
-    openCount > 0 && (
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className={TOGGLE_CLASS}
-        onClick={() => openDiscussions(docName)}
-        data-testid="discussion-toggle"
-      >
-        <MessagesSquare aria-hidden="true" />
-        {t`Comments`}
-        <span className="rounded-full bg-warning/20 px-1.5 text-xs tabular-nums">{openCount}</span>
-      </Button>
-    )
+    </AnchoredCard>
   );
 
   return (
     <>
-      <span ref={hostProbe} hidden />
-      {list && overlayHost !== null && createPortal(list, isOpen ? document.body : overlayHost)}
       {draftCard}
       {threadPopover}
     </>
+  );
+}
+
+export function useOpenThreadCount(docName: string): number {
+  const editor = useCommentEditor(docName);
+  return useSyncExternalStore(
+    (onChange) => {
+      if (editor === null) return ignore;
+      editor.on('transaction', onChange);
+      return () => {
+        editor.off('transaction', onChange);
+      };
+    },
+    () => (editor === null || editor.isDestroyed ? 0 : readThreads(editor.state.doc).length),
+    () => 0,
+  );
+}
+
+function CommentList({
+  editor,
+  docName,
+  onNavigated,
+}: {
+  editor: Editor;
+  docName: string;
+  onNavigated?: (target?: HTMLElement) => void;
+}) {
+  const { t } = useLingui();
+  const ui = useDiscussionUi();
+  const threads = useThreads(editor);
+  const actions = useThreadActions(editor);
+  const me = useMe(true);
+  const placed = placedThreads(editor, threads);
+  const activeThreadId = ui.docName === docName ? ui.activeThreadId : null;
+
+  function select(p: PlacedThread) {
+    if (p.range === null || editor.isDestroyed) {
+      setActiveThread(p.thread.id);
+      return;
+    }
+    editor.chain().setTextSelection(p.range).scrollIntoView().run();
+    showThreadInPane(docName, p.thread.id);
+    onNavigated?.(editor.view.dom);
+  }
+
+  if (placed.length === 0) {
+    return (
+      <PanelEmpty className="px-2">
+        {t`Select text and choose Comment to start a thread. Comments are saved in the page.`}
+      </PanelEmpty>
+    );
+  }
+
+  return (
+    <ul className="flex flex-col gap-3" aria-label={t`Comment threads`}>
+      {placed.map((p) => {
+        const active = activeThreadId === p.thread.id;
+        return (
+          <li key={p.thread.id}>
+            <ThreadCard
+              placed={p}
+              active={active}
+              expanded={active && p.range === null}
+              me={me}
+              onSelect={() => select(p)}
+              onReply={(body) => actions.replyTo(p.thread.id, body)}
+              onResolve={() => actions.resolve(p.thread.id)}
+              onDelete={(commentId) => actions.remove(p.thread.id, commentId)}
+              onEdit={(commentId, body) => actions.edit(p.thread.id, commentId, body)}
+            />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function CommentsPanel({
+  docName,
+  onNavigated,
+}: {
+  docName: string;
+  onNavigated?: (target?: HTMLElement) => void;
+}) {
+  const { t } = useLingui();
+  const editor = useCommentEditor(docName);
+  const count = useOpenThreadCount(docName);
+  return (
+    <Panel data-comments-panel="">
+      <PanelHeader>
+        <div className="flex min-w-0 items-center gap-2">
+          <PanelTitle>{t`Comments`}</PanelTitle>
+          {editor !== null && <PanelCount>{count}</PanelCount>}
+        </div>
+      </PanelHeader>
+      <PanelBody className="px-3 py-2">
+        {editor === null ? (
+          <PanelEmpty className="px-2">
+            {t`Comments are shown when the page is open in the editor.`}
+          </PanelEmpty>
+        ) : (
+          <CommentList editor={editor} docName={docName} onNavigated={onNavigated} />
+        )}
+      </PanelBody>
+    </Panel>
   );
 }
