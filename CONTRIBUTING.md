@@ -224,6 +224,28 @@ in Docker shows up only then.
 when the plan skipped jobs. `node scripts/ci-timings.mjs <run-id>...` prints how long each job
 queued, set up, installed, built and tested.
 
+## Making a release
+
+A release is one merged pull request that changes the version.
+
+1. On a branch from `main`, run `node scripts/release-version.mjs 0.3.1`. It writes the version to the
+   four packages, the docs package and `THIRD_PARTY_NOTICES.md`, and refuses a version that is not
+   newer than the current one. A pre-release is written as `0.4.0-rc.1`.
+2. Commit as `Release 0.3.1`, open a pull request and merge it when `ci-ok` is green.
+3. The run on `main` builds and smoke-tests the image as for every commit. Its `release` job then
+   sees a version without a tag and
+   - tags the tested image as `0.3.1` and `0.3` (a pre-release gets only its own tag),
+   - creates the Git tag `v0.3.1` and a GitHub release with generated notes.
+
+Nothing is released while the packages carry `0.0.0-unknown`, or when the version's tag already
+exists. If the run on `main` is cancelled by a later push, the next run makes the release from its
+own commit.
+
+Choosing the number, while the version starts with `0.`: raise the middle number when an upgrade
+needs a manual step (a renamed setting, a changed file format) and say so at the top of the release
+notes; raise the last number otherwise. Edit the generated notes on GitHub after the release when
+they need an upgrade note.
+
 ## License
 
 By contributing, you agree that your work is licensed under the

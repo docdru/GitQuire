@@ -135,7 +135,7 @@ jobs:
     if: needs.plan.outputs.docker == 'true'
     uses: ./.github/workflows/docker.yml
     permissions:
-      contents: read
+      contents: write
       packages: write
 
   ci-ok:
