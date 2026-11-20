@@ -192,8 +192,14 @@ you leave a P0 or P1 as it is.
 - What the reviewer looks for is in `.github/ai-review.toml`, and so is the Mistral model it uses
   (`model`). The action reads that file from the pull request's base branch, so a change to it
   takes effect after it is merged.
-- The workflow pins the action to the commit of its release v1.1.0. To upgrade, replace the commit
+- The workflow pins the action to the commit of its release v1.2.0. To upgrade, replace the commit
   with the one of the new release tag and update the version in this line.
+- Besides the diff, the changed files and the reference docs, the reviewer gets related files
+  (`[related]` in the config): the tests of the changed files, the files that import them and the
+  files they import (one step, relative imports only), and the names of neighbouring files. For
+  that the action downloads the pull request's head as an archive and reads it in memory; nothing
+  is run. A file that defines a contract other code must honour can be sent whenever a given path
+  changes, with a `[[related.rules]]` entry.
 - The workflow uses plain `pull_request`, never `pull_request_target`, and the action reads the
   pull request through the GitHub API without checking out or running any of it. Pull requests
   from forks and from bots are skipped, so they cannot spend API credit or reach the secret.
@@ -233,7 +239,12 @@ file first into the lightest shard) from `packages/app/tests/integration-duratio
 missing from that table counts as the median. When a shard gets noticeably slower than the
 others, refresh the table from a full run with `node scripts/ci-integration-durations.mjs <run-id>`.
 
-**Stacked pull requests** (base branch other than `main`) run the same selection without Docker,
+**The `wikis-hosts` branch** is treated like `main` while it exists: pushes to it and pull
+requests against it run everything, Docker included, and a push publishes
+`ghcr.io/docdru/gitquire:wikis-hosts` (never `latest`). Its plan is `plans/wikis-and-hosts.md`.
+This paragraph and that handling are removed when the branch is merged into `main`.
+
+**Stacked pull requests** (base branch other than `main` or `wikis-hosts`) run the same selection without Docker,
 unless they have the `full-ci` label. When such a pull request is
 retargeted to `main`, `.github/workflows/ci-rerun.yml` starts a full run on its branch; adding the
 `full-ci` label does the same. A stacked pull request is ready when its reduced set is green; it

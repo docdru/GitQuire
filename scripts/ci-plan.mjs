@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 export const SUITES_FILE = fileURLToPath(new URL('../.github/ci-suites.json', import.meta.url));
 export const FULL_CI_LABEL = 'full-ci';
 export const DOCKER = 'docker';
+export const FULL_RUN_BASES = ['wikis-hosts'];
 
 export const FULL_FILES = ['pnpm-lock.yaml', 'package.json', 'turbo.json', 'tsconfig.json'];
 export const FULL_PREFIXES = [
@@ -65,10 +66,11 @@ export function classify(path) {
   return { full: true, unclassified: true };
 }
 
-function fullReason({ event, ref, labels, changedPaths }) {
+function fullReason({ event, ref, baseRef, labels, changedPaths }) {
   if (event === 'push') return `push to ${ref || 'main'}`;
   if (event !== 'pull_request') return event;
   if (labels.includes(FULL_CI_LABEL)) return `label ${FULL_CI_LABEL}`;
+  if (FULL_RUN_BASES.includes(baseRef)) return `pull request against ${baseRef}`;
   if (changedPaths.length === 0) return 'no changed paths found';
   const triggers = changedPaths.filter((path) => classify(path).full);
   if (triggers.length === 0) return null;
@@ -111,7 +113,7 @@ export function plan({
   suites = readSuites(),
 }) {
   const allGroups = new Set([...suites.map((suite) => suite.group), DOCKER]);
-  const reason = fullReason({ event, ref, labels, changedPaths });
+  const reason = fullReason({ event, ref, baseRef, labels, changedPaths });
   const full = reason !== null;
   let groups;
   let summary;
@@ -132,6 +134,7 @@ export function plan({
     event === 'pull_request' &&
     baseRef !== '' &&
     baseRef !== defaultBranch &&
+    !FULL_RUN_BASES.includes(baseRef) &&
     !labels.includes(FULL_CI_LABEL);
   if (stacked) {
     for (const group of STACKED_DROPS) groups.delete(group);
