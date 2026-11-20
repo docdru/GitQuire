@@ -1552,6 +1552,9 @@ msgstr "全部關閉"
 msgid "Close all unpinned"
 msgstr "關閉所有未釘選的"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1647,6 +1650,9 @@ msgstr "對選取內容加上註解"
 
 msgid "Comment on this selection"
 msgstr "為選取內容新增註解"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "註解"
@@ -4552,6 +4558,9 @@ msgstr "來自遠端的新變更會自動出現在你的副本裡。"
 
 msgid "New chat"
 msgstr "新對話"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

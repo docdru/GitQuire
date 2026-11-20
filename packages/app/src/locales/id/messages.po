@@ -1548,6 +1548,9 @@ msgstr "Tutup semua"
 msgid "Close all unpinned"
 msgstr "Tutup semua yang tidak disematkan"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1643,6 +1646,9 @@ msgstr "Komentari pilihan"
 
 msgid "Comment on this selection"
 msgstr "Komentari pilihan ini"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "Komentar"
@@ -4548,6 +4554,9 @@ msgstr "Perubahan baru dari remote Anda muncul di salinan Anda secara otomatis."
 
 msgid "New chat"
 msgstr "Obrolan baru"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

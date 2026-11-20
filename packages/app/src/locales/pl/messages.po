@@ -1552,6 +1552,9 @@ msgstr "Zamknij wszystkie"
 msgid "Close all unpinned"
 msgstr "Zamknij wszystkie nieprzypięte"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1647,6 +1650,9 @@ msgstr "Skomentuj zaznaczenie"
 
 msgid "Comment on this selection"
 msgstr "Skomentuj to zaznaczenie"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "Komentarze"
@@ -4552,6 +4558,9 @@ msgstr "Nowe zmiany z twojego zdalnego repozytorium pojawiają się w twojej kop
 
 msgid "New chat"
 msgstr "Nowy czat"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

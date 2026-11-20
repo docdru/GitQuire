@@ -1552,6 +1552,9 @@ msgstr "Close all"
 msgid "Close all unpinned"
 msgstr "Close all unpinned"
 
+msgid "Close comment"
+msgstr "Close comment"
+
 msgid "Close comments"
 msgstr "Close comments"
 
@@ -1647,6 +1650,9 @@ msgstr "Comment on selection"
 
 msgid "Comment on this selection"
 msgstr "Comment on this selection"
+
+msgid "Comment thread"
+msgstr "Comment thread"
 
 msgid "Comments"
 msgstr "Comments"
@@ -4552,6 +4558,9 @@ msgstr "New changes from your remote appear in your copy automatically."
 
 msgid "New chat"
 msgstr "New chat"
+
+msgid "New comment"
+msgstr "New comment"
 
 msgid "New draft"
 msgstr "New draft"

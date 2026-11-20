@@ -1552,6 +1552,9 @@ msgstr "إغلاق الكل"
 msgid "Close all unpinned"
 msgstr "إغلاق كل غير المثبّت"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1647,6 +1650,9 @@ msgstr "تعليق على التحديد"
 
 msgid "Comment on this selection"
 msgstr "التعليق على هذا التحديد"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "التعليقات"
@@ -4552,6 +4558,9 @@ msgstr "تظهر التغييرات الجديدة من مستودعك البع�
 
 msgid "New chat"
 msgstr "محادثة جديدة"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

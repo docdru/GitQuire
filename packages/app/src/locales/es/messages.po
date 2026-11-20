@@ -1552,6 +1552,9 @@ msgstr "Cerrar todo"
 msgid "Close all unpinned"
 msgstr "Cerrar todas las no fijadas"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1647,6 +1650,9 @@ msgstr "Comentar la selección"
 
 msgid "Comment on this selection"
 msgstr "Comentar esta selección"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "Comentarios"
@@ -4552,6 +4558,9 @@ msgstr "Los cambios nuevos de tu remoto aparecen en tu copia automáticamente."
 
 msgid "New chat"
 msgstr "Nuevo chat"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

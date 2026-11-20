@@ -2,7 +2,15 @@ import { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
 import { Check, MessagesSquare, Pencil, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { MentionTextarea } from '@/gitquire-people/MentionTextarea';
@@ -11,6 +19,7 @@ import { cn } from '@/lib/utils';
 
 import { findQuoteRange } from './anchor-search';
 import { type PlacedThread, placeThreads, readThreads } from './editor-threads';
+import { type TextRange, useFloatingAnchor } from './floating-anchor';
 import {
   type Author,
   addReply,
@@ -35,12 +44,18 @@ import {
   currentAuthor,
   openDiscussions,
   setActiveThread,
+  showThreadInList,
   useDiscussionUi,
 } from './ui-store';
 
 const QUOTE_CLASS = 'line-clamp-2 border-s-2 ps-2 text-start text-muted-foreground text-xs';
 const PANEL_CLASS =
   'fixed end-0 top-12 bottom-0 z-40 flex w-full flex-col border-s bg-background shadow-lg sm:w-96';
+const CARD_CLASS =
+  'fixed z-50 flex w-[min(24rem,calc(100vw-1rem))] flex-col gap-3 overflow-y-auto rounded-lg border bg-background p-3 shadow-lg';
+const NARROW_QUERY = '(max-width: 639px)';
+const KEEP_CARD_OPEN_SELECTOR =
+  '[data-discussion-card], [data-discussion-id], [data-gitquire-comment-mark], [data-testid="discussion-panel"], [data-testid="discussion-toggle"], [data-testid="discussion-bubble-button"], [data-testid="touch-edit-toolbar"], [data-sonner-toaster]';
 
 const EMPTY: Thread[] = [];
 
@@ -230,6 +245,8 @@ function CommentRow({
 function ThreadCard({
   placed,
   active,
+  expanded,
+  framed = true,
   me,
   onSelect,
   onReply,
@@ -239,6 +256,8 @@ function ThreadCard({
 }: {
   placed: PlacedThread;
   active: boolean;
+  expanded: boolean;
+  framed?: boolean;
   me: Author | null;
   onSelect: () => void;
   onReply: (body: string) => Promise<void>;
@@ -263,10 +282,11 @@ function ThreadCard({
   }
 
   return (
-    <li
+    <div
       className={cn(
-        'flex flex-col gap-3 rounded-lg border p-3',
-        active && 'border-warning shadow-sm',
+        'flex flex-col gap-3',
+        framed && 'rounded-lg border p-3',
+        framed && active && 'border-warning shadow-sm',
       )}
       data-discussion-thread={thread.id}
     >
@@ -292,7 +312,7 @@ function ThreadCard({
           />
         ))}
       </div>
-      {active && (
+      {expanded && (
         <div className="flex flex-col gap-2">
           <MentionTextarea
             rows={2}
@@ -315,8 +335,81 @@ function ThreadCard({
           </div>
         </div>
       )}
-    </li>
+    </div>
   );
+}
+
+function AnchoredCard({
+  editor,
+  range,
+  label,
+  onClose,
+  onDismiss,
+  children,
+}: {
+  editor: Editor;
+  range: TextRange;
+  label: string;
+  onClose: () => void;
+  onDismiss: () => void;
+  children: ReactNode;
+}) {
+  const { t } = useLingui();
+  const card = useRef<HTMLElement>(null);
+  const dismiss = useRef(onDismiss);
+  useLayoutEffect(() => {
+    dismiss.current = onDismiss;
+  });
+  useFloatingAnchor(editor, range, card);
+
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(KEEP_CARD_OPEN_SELECTOR) !== null) return;
+      dismiss.current();
+    };
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      const target = event.target;
+      if (!(target instanceof Node) || card.current?.contains(target) !== true) return;
+      event.preventDefault();
+      dismiss.current();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, []);
+
+  return createPortal(
+    <section
+      ref={card}
+      className={CARD_CLASS}
+      style={{ left: 0, top: 0, visibility: 'hidden' }}
+      aria-label={label}
+      data-discussion-card=""
+      data-testid="discussion-card"
+    >
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        className="absolute end-2 top-2"
+        onClick={onClose}
+        aria-label={t`Close comment`}
+      >
+        <X aria-hidden="true" />
+      </Button>
+      {children}
+    </section>,
+    document.body,
+  );
+}
+
+function isNarrowScreen(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia(NARROW_QUERY).matches;
 }
 
 export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: string }) {
@@ -326,11 +419,18 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   const [me, setMe] = useState<Author | null>(null);
   const [draftBody, setDraftBody] = useState('');
 
-  const isOpen = ui.open && ui.docName === docName;
+  const forThisDoc = ui.docName === docName;
+  const isOpen = ui.open && forThisDoc;
+  const draft = forThisDoc ? ui.draft : null;
+  const activeThreadId = forThisDoc ? ui.activeThreadId : null;
   const openCount = threads.length;
+  const placed = placeThreads(editor.state.doc, [...threads].sort(compareThreads));
+  const activePlaced = placed.find((p) => p.thread.id === activeThreadId) ?? null;
+  const activeRange = activePlaced?.range ?? null;
+  const needsIdentity = isOpen || draft !== null || activePlaced !== null;
 
   useEffect(() => {
-    if (!isOpen || me !== null) return;
+    if (!needsIdentity || me !== null) return;
     let live = true;
     currentAuthor().then((author) => {
       if (live) setMe(author);
@@ -338,7 +438,13 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     return () => {
       live = false;
     };
-  }, [isOpen, me]);
+  }, [needsIdentity, me]);
+
+  useEffect(() => {
+    if (activePlaced !== null && activePlaced.range === null && !isOpen) {
+      showThreadInList(docName, activePlaced.thread.id);
+    }
+  }, [activePlaced, isOpen, docName]);
 
   function run(change: ThreadChange): Promise<void> {
     return applyChange(editor, change).catch((err: unknown) => {
@@ -347,7 +453,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     });
   }
 
-  const revealThreadId = isOpen ? ui.revealThreadId : null;
+  const revealThreadId = forThisDoc ? ui.revealThreadId : null;
   const revealReady =
     revealThreadId !== null && threads.some((thread) => thread.id === revealThreadId);
 
@@ -360,7 +466,6 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   }, [editor, revealReady, revealThreadId, threads]);
 
   async function createFromDraft() {
-    const draft = ui.draft;
     const body = draftBody.trim();
     if (draft === null || body === '') return;
     let ctx: OpContext;
@@ -382,12 +487,19 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     setActiveThread(created.thread.id);
   }
 
+  function cancelDraft() {
+    setDraftBody('');
+    clearDraft();
+  }
+
   function replyTo(threadId: string, body: string): Promise<void> {
     return run((current, ctx) => addReply(current, threadId, body, ctx));
   }
 
   function resolve(threadId: string) {
-    run((current) => setResolved(current, threadId, true)).catch(ignore);
+    run((current) => setResolved(current, threadId, true))
+      .then(() => setActiveThread(null))
+      .catch(ignore);
   }
 
   function remove(threadId: string, commentId: string) {
@@ -404,34 +516,83 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     });
   }
 
-  function select(placed: PlacedThread) {
-    setActiveThread(placed.thread.id);
-    if (placed.range === null || editor.isDestroyed) return;
-    editor.chain().setTextSelection(placed.range).scrollIntoView().run();
+  function select(p: PlacedThread) {
+    setActiveThread(p.thread.id);
+    if (p.range === null || editor.isDestroyed) return;
+    if (isNarrowScreen()) closeDiscussions();
+    editor.chain().setTextSelection(p.range).scrollIntoView().run();
   }
 
-  if (!isOpen) {
-    if (openCount === 0) return null;
+  function threadCard(p: PlacedThread, inList: boolean) {
+    const active = activeThreadId === p.thread.id;
     return (
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="fixed end-4 bottom-4 z-40 gap-1.5 shadow-md"
-        onClick={() => openDiscussions(docName)}
-        data-testid="discussion-toggle"
-      >
-        <MessagesSquare aria-hidden="true" />
-        {t`Comments`}
-        <span className="rounded-full bg-warning/20 px-1.5 text-xs tabular-nums">{openCount}</span>
-      </Button>
+      <ThreadCard
+        placed={p}
+        active={active}
+        expanded={inList ? active && p.range === null : true}
+        framed={inList}
+        me={me}
+        onSelect={() => select(p)}
+        onReply={(body) => replyTo(p.thread.id, body)}
+        onResolve={() => resolve(p.thread.id)}
+        onDelete={(commentId) => remove(p.thread.id, commentId)}
+        onEdit={(commentId, body) => edit(p.thread.id, commentId, body)}
+      />
     );
   }
 
-  const placed = placeThreads(editor.state.doc, [...threads].sort(compareThreads));
-  const visible = placed;
+  const draftCard = draft !== null && (
+    <AnchoredCard
+      editor={editor}
+      range={draft}
+      label={t`New comment`}
+      onClose={cancelDraft}
+      onDismiss={() => {
+        if (draftBody.trim() === '') cancelDraft();
+      }}
+    >
+      <p className={cn(QUOTE_CLASS, 'me-6 border-info')}>{draft.anchor.exact}</p>
+      <MentionTextarea
+        rows={3}
+        value={draftBody}
+        placeholder={t`Add a comment. Type @ to mention someone.`}
+        aria-label={t`Comment`}
+        autoFocus
+        onValueChange={setDraftBody}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void createFromDraft();
+        }}
+      />
+      <div className="flex justify-end gap-2">
+        <Button type="button" size="sm" variant="ghost" onClick={cancelDraft}>
+          {t`Cancel`}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          disabled={draftBody.trim() === ''}
+          onClick={() => void createFromDraft()}
+        >
+          {t`Comment`}
+        </Button>
+      </div>
+    </AnchoredCard>
+  );
 
-  return (
+  const threadPopover = draft === null && activePlaced !== null && activeRange !== null && (
+    <AnchoredCard
+      key={activePlaced.thread.id}
+      editor={editor}
+      range={activeRange}
+      label={t`Comment thread`}
+      onClose={() => setActiveThread(null)}
+      onDismiss={() => setActiveThread(null)}
+    >
+      <div className="me-6">{threadCard(activePlaced, false)}</div>
+    </AnchoredCard>
+  );
+
+  const list = isOpen ? (
     <aside className={PANEL_CLASS} aria-label={t`Comments`} data-testid="discussion-panel">
       <header className="flex items-center gap-2 border-b px-4 py-2">
         <MessagesSquare aria-hidden="true" className="size-4" />
@@ -449,56 +610,40 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
         </Button>
       </header>
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
-        {ui.draft !== null && (
-          <div className="flex flex-col gap-2 rounded-lg border border-info/40 p-3">
-            <p className={cn(QUOTE_CLASS, 'border-info')}>{ui.draft.anchor.exact}</p>
-            <MentionTextarea
-              rows={3}
-              value={draftBody}
-              placeholder={t`Add a comment. Type @ to mention someone.`}
-              aria-label={t`Comment`}
-              autoFocus
-              onValueChange={setDraftBody}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void createFromDraft();
-              }}
-            />
-            <div className="flex justify-end gap-2">
-              <Button type="button" size="sm" variant="ghost" onClick={clearDraft}>
-                {t`Cancel`}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                disabled={draftBody.trim() === ''}
-                onClick={() => void createFromDraft()}
-              >
-                {t`Comment`}
-              </Button>
-            </div>
-          </div>
-        )}
-        {visible.length === 0 && ui.draft === null && (
+        {placed.length === 0 && (
           <p className="text-muted-foreground text-sm">
             {t`Select text and choose Comment to start a thread. Comments are saved in the page.`}
           </p>
         )}
         <ul className="flex flex-col gap-3">
-          {visible.map((p) => (
-            <ThreadCard
-              key={p.thread.id}
-              placed={p}
-              active={ui.activeThreadId === p.thread.id}
-              me={me}
-              onSelect={() => select(p)}
-              onReply={(body) => replyTo(p.thread.id, body)}
-              onResolve={() => resolve(p.thread.id)}
-              onDelete={(commentId) => remove(p.thread.id, commentId)}
-              onEdit={(commentId, body) => edit(p.thread.id, commentId, body)}
-            />
+          {placed.map((p) => (
+            <li key={p.thread.id}>{threadCard(p, true)}</li>
           ))}
         </ul>
       </div>
     </aside>
+  ) : (
+    openCount > 0 && (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="fixed end-4 bottom-4 z-40 gap-1.5 shadow-md"
+        onClick={() => openDiscussions(docName)}
+        data-testid="discussion-toggle"
+      >
+        <MessagesSquare aria-hidden="true" />
+        {t`Comments`}
+        <span className="rounded-full bg-warning/20 px-1.5 text-xs tabular-nums">{openCount}</span>
+      </Button>
+    )
+  );
+
+  return (
+    <>
+      {list}
+      {draftCard}
+      {threadPopover}
+    </>
   );
 }

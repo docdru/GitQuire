@@ -1548,6 +1548,9 @@ msgstr "सभी बंद करें"
 msgid "Close all unpinned"
 msgstr "सभी अनपिन किए हुए बंद करें"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1643,6 +1646,9 @@ msgstr "चयन पर टिप्पणी"
 
 msgid "Comment on this selection"
 msgstr "इस चयन पर टिप्पणी करें"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "टिप्पणियाँ"
@@ -4548,6 +4554,9 @@ msgstr "आपके रिमोट के नए बदलाव आपकी 
 
 msgid "New chat"
 msgstr "नई चैट"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

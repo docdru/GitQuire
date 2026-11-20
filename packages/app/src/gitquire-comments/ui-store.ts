@@ -36,14 +36,36 @@ export function useDiscussionUi(): DiscussionUiState {
   return useSyncExternalStore(subscribeDiscussionUi, getDiscussionUi, getDiscussionUi);
 }
 
+function listOpenFor(docName: string): boolean {
+  return state.open && state.docName === docName;
+}
+
+function draftFor(docName: string): DiscussionUiState['draft'] {
+  return state.docName === docName ? state.draft : null;
+}
+
 export function openDiscussions(docName: string, activeThreadId: string | null = null): void {
-  const draft = state.docName === docName ? state.draft : null;
-  emit({ docName, open: true, activeThreadId, revealThreadId: null, draft });
+  emit({
+    docName,
+    open: activeThreadId === null ? true : listOpenFor(docName),
+    activeThreadId,
+    revealThreadId: null,
+    draft: activeThreadId === null ? draftFor(docName) : null,
+  });
+}
+
+export function showThreadInList(docName: string, activeThreadId: string): void {
+  emit({ docName, open: true, activeThreadId, revealThreadId: null, draft: null });
 }
 
 export function revealDiscussion(docName: string, threadId: string): void {
-  const draft = state.docName === docName ? state.draft : null;
-  emit({ docName, open: true, activeThreadId: threadId, revealThreadId: threadId, draft });
+  emit({
+    docName,
+    open: listOpenFor(docName),
+    activeThreadId: threadId,
+    revealThreadId: threadId,
+    draft: null,
+  });
 }
 
 export function clearReveal(): void {
@@ -51,17 +73,11 @@ export function clearReveal(): void {
 }
 
 export function closeDiscussions(): void {
-  emit({
-    docName: state.docName,
-    open: false,
-    activeThreadId: null,
-    revealThreadId: null,
-    draft: null,
-  });
+  emit({ ...state, open: false });
 }
 
 export function startDraft(docName: string, draft: NonNullable<DiscussionUiState['draft']>): void {
-  emit({ docName, open: true, activeThreadId: null, revealThreadId: null, draft });
+  emit({ docName, open: listOpenFor(docName), activeThreadId: null, revealThreadId: null, draft });
 }
 
 export function clearDraft(): void {
@@ -69,7 +85,7 @@ export function clearDraft(): void {
 }
 
 export function setActiveThread(activeThreadId: string | null): void {
-  emit({ ...state, activeThreadId });
+  emit({ ...state, activeThreadId, draft: activeThreadId === null ? state.draft : null });
 }
 
 interface MeResponse {
