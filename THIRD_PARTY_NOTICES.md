@@ -6434,9 +6434,9 @@ The following packages are patched in this repository via pnpm's `patchedDepende
 
 The generator did not auto-categorize the following packages. Each requires individual review before next-release ship.
 
-- `@gitquire/app@0.0.0-unknown` — GPL-3.0-or-later
-- `@gitquire/core@0.0.0-unknown` — GPL-3.0-or-later
-- `@gitquire/server@0.0.0-unknown` — GPL-3.0-or-later
+- `@gitquire/app@0.1.0` — GPL-3.0-or-later
+- `@gitquire/core@0.1.0` — GPL-3.0-or-later
+- `@gitquire/server@0.1.0` — GPL-3.0-or-later
 
 ---
 
