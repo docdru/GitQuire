@@ -161,3 +161,47 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.listen(port, '127.0.0.1', () => console.log(`front proxy on ${port}: ${JSON.stringify(wikis)}`));
+
+const shimPort = Number(process.env.HOST_SHIM_PORT ?? 0);
+const hostPort = Number(process.env.HOST_PORT ?? 3000);
+if (shimPort) {
+  http
+    .createServer((req, res) => {
+      const chunks = [];
+      req.on('data', (c) => chunks.push(c));
+      req.on('end', () => {
+        let body = Buffer.concat(chunks);
+        const headers = { ...req.headers, host: `127.0.0.1:${hostPort}` };
+        if (req.method === 'POST' && req.url?.startsWith('/login/oauth/access_token')) {
+          const type = String(req.headers['content-type'] ?? '');
+          if (type.includes('json')) {
+            const parsed = JSON.parse(body.toString('utf8') || '{}');
+            if (!parsed.grant_type) {
+              parsed.grant_type = 'authorization_code';
+              note('host-exchange-patched', req, 'grant_type=authorization_code');
+            }
+            body = Buffer.from(JSON.stringify(parsed));
+          }
+          headers['content-length'] = String(body.length);
+        }
+        const up = http.request({ host: '127.0.0.1', port: hostPort, method: req.method, path: req.url, headers }, (r) => {
+          const out = { ...r.headers };
+          if (req.url?.startsWith('/login/oauth/access_token')) {
+            const parts = [];
+            r.on('data', (c) => parts.push(c));
+            r.on('end', () => {
+              const text = Buffer.concat(parts).toString('utf8');
+              note('host-exchange-answer', req, `${r.statusCode} ${text.includes('access_token') ? 'token issued' : text.slice(0, 200)}`);
+              res.writeHead(r.statusCode ?? 502, out).end(text);
+            });
+            return;
+          }
+          res.writeHead(r.statusCode ?? 502, out);
+          r.pipe(res);
+        });
+        up.on('error', () => res.writeHead(502).end());
+        up.end(body);
+      });
+    })
+    .listen(shimPort, '127.0.0.1', () => console.log(`host shim on ${shimPort} -> ${hostPort}`));
+}

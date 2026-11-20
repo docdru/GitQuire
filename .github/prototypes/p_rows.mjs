@@ -47,13 +47,14 @@ async function signIn(page, wikiUrl) {
   await page.goto(`${wikiUrl}/`);
   await page.waitForLoadState('domcontentloaded');
   const steps = [page.url()];
-  if (page.url().startsWith('http://127.0.0.1:3000/user/login')) {
+  const at = (path) => /^http:\/\/127\.0\.0\.1:(3000|9001)\//.test(page.url()) && new URL(page.url()).pathname === path;
+  if (at('/user/login')) {
     await page.fill('#user_name', 'bob');
     await page.fill('#password', PASSWORD);
     await Promise.all([page.waitForNavigation(), page.locator('form.ui.form button.primary, button.ui.primary.button').first().click()]);
     steps.push(page.url());
   }
-  if (page.url().startsWith('http://127.0.0.1:3000/login/oauth/authorize')) {
+  if (at('/login/oauth/authorize')) {
     const grant = page.locator('#authorize-app, button[name="granted"][value="true"]').first();
     await Promise.all([page.waitForNavigation(), grant.click()]);
     steps.push(page.url());

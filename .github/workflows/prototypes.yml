@@ -124,7 +124,7 @@ jobs:
               -e GITHUB_APP_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITHUB_APP_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
               -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
               -e GITQUIRE_REPO="team/$repo" \
-              -e GITQUIRE_GITHUB_WEB_URL=http://127.0.0.1:3000 \
+              -e GITQUIRE_GITHUB_WEB_URL=http://127.0.0.1:9001 \
               -e GITQUIRE_GITHUB_API_URL=http://127.0.0.1:3000/api/v1 \
               gitquire:ci >/dev/null
             for i in $(seq 1 120); do
@@ -137,7 +137,7 @@ jobs:
 
       - name: Front proxy
         run: |
-          PROXY_OAUTH_SCOPE='read:user read:repository' PROXY_WIKIS='{"/w/team/wiki/":8101,"/w/team/wiki-b/":8102}' nohup node .github/prototypes/front-proxy.mjs > /tmp/proxy.out 2>&1 &
+          HOST_SHIM_PORT=9001 PROXY_HOST_AUTHORIZE=http://127.0.0.1:9001/login/oauth/authorize PROXY_OAUTH_SCOPE='read:user read:repository' PROXY_WIKIS='{"/w/team/wiki/":8101,"/w/team/wiki-b/":8102}' nohup node .github/prototypes/front-proxy.mjs > /tmp/proxy.out 2>&1 &
           sleep 1
           cat /tmp/proxy.out
           curl -s -o /dev/null -w 'GET /w/team/wiki/ -> %{http_code} %{redirect_url}\n' -H 'Accept: text/html' "$PROXY_URL/w/team/wiki/"
