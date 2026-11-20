@@ -35,6 +35,7 @@ import { cn } from '@/lib/utils';
 import { docNameToRelativePath } from '@/lib/workspace-paths';
 
 const HEIGHT_RESERVE_PX = 56;
+const CARD_BOTTOM_GAP_PX = 8;
 const SELECTED_TOGGLE_CLASS =
   'text-xs data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90';
 const MAX_INPUT_HEIGHT_PX = 200;
@@ -76,7 +77,11 @@ export function GitQuireAskClaude({
     if (folderMode || dismissed) return;
     const card = cardRef.current;
     if (card === null) return;
-    const apply = () => publishAskComposerHeight(card.offsetHeight + HEIGHT_RESERVE_PX);
+    const apply = () =>
+      publishAskComposerHeight(
+        card.offsetHeight + HEIGHT_RESERVE_PX,
+        card.offsetHeight + CARD_BOTTOM_GAP_PX,
+      );
     apply();
     const observer = new ResizeObserver(apply);
     observer.observe(card);
