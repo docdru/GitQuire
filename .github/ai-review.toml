@@ -1,0 +1,69 @@
+model = "mistral-large-2512"
+
+project = """
+'GitQuire', a self-hosted collaborative Markdown wiki stored in Git (TypeScript
+monorepo with pnpm: packages/app is the React and Tiptap editor, packages/server
+the collaboration and sync server, packages/core shared logic, packages/cli the
+`gq` command). It runs only as one Linux Docker container with the wiki in the
+/data volume. People sign in with their Git host account and may use a wiki only
+if they can write to its repository."""
+
+instructions = """
+AGENTS.md and CONTRIBUTING.md hold the binding project rules: apply them. The
+repository forbids code comments apart from the short allowlist in AGENTS.md;
+report a new prose comment as a finding, and never ask for one to be added.
+GitQuire's own code lives in packages/*/src/gitquire/, packages/app/src/lib/gitquire/
+and packages/app/src/gitquire-*. Code, tests or docs that only matter outside the
+Docker image (Windows, macOS, a person's own computer) do not belong here.
+Known sensitive areas: sign-in and the session cookie (access-gate.ts), agent
+tokens and the /mcp connector sign-in, the Git host token and how it reaches
+Git, drafts and their child processes, sync and the hand-over of pulled changes
+to open pages, comment threads stored as footnotes, and anything that decides
+which person or which path a request may reach."""
+
+reference_docs = [
+  { path = "AGENTS.md", role = "binding project rules for contributors and agents", max_chars = 40_000 },
+  { path = "CONTRIBUTING.md", role = "pull request rules, naming rules and what CI runs", max_chars = 60_000 },
+  { path = "DEPLOY.md", role = "operator documentation: settings and environment variables", max_chars = 80_000 },
+]
+
+generated_files = [
+  "pnpm-lock.yaml",
+  "THIRD_PARTY_NOTICES.md",
+  "scripts/old-names-baseline.json",
+  "packages/app/tests/integration-durations.json",
+  "packages/core/schema-snapshot.json",
+  "packages/core/src/schema-snapshot.json",
+]
+generated_suffixes = [".po"]
+
+[[sections]]
+key = "security"
+title = "🔒 Security and access"
+security = true
+checklist = """
+a request that reaches pages, files, live editing, drafts or assistant tools
+without the access check; trust in a header, cookie or path the caller controls;
+path traversal out of the content folder or into .gitquire/local; tokens, keys
+or secrets written to logs, the wiki repository or the browser; a child process
+that inherits more environment than it needs; shell or Git arguments built from
+user input; GitHub Actions with wider permissions than needed or not pinned."""
+
+[[sections]]
+key = "correctness"
+title = "🧪 Correctness and tests"
+checklist = """
+logic errors and unhandled edge cases; behaviour changes without a test; bug
+fixes without a regression test; removed, skipped or weakened tests; an edit
+that can lose or overwrite a person's unsaved or unpushed work; a failing step
+that is retried or silenced instead of fixed."""
+
+[[sections]]
+key = "rules"
+title = "📐 Project rules and docs"
+reference = true
+checklist = """
+does the change follow AGENTS.md and CONTRIBUTING.md (no code comments, GitQuire
+names, user-facing text through Lingui, one topic per pull request, Docker
+only)? Does a new or changed setting or environment variable appear in
+DEPLOY.md, and does DEPLOY.md still describe what the code does?"""

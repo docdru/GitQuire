@@ -180,6 +180,23 @@ lockfile it produces.
   `scripts/old-names-baseline.json`. If one is needed on purpose (compatibility, history), run
   `node scripts/check-old-names.mjs --update` and say why in the pull request.
 
+### AI review
+
+`.github/workflows/ai-review.yml` runs the [`docdru/ai-review`](https://github.com/docdru/ai-review)
+action on every pull request that is not a draft, comes from a branch in this repository and was
+opened by someone with write access. It posts one comment with findings from P0 (blocker) to P3
+(minor) and updates it on every push. The review is advisory: it is not a required check and is
+not part of `ci-ok`. Check each finding before acting on it, and answer in the pull request when
+you leave a P0 or P1 as it is.
+
+- What the reviewer looks for is in `.github/ai-review.toml`. The action reads that file from the
+  pull request's base branch, so a change to it takes effect after it is merged.
+- The workflow uses plain `pull_request`, never `pull_request_target`, and the action reads the
+  pull request through the GitHub API without checking out or running any of it. Pull requests
+  from forks and from bots are skipped, so they cannot spend API credit or reach the secret.
+- It needs the repository secret `MISTRAL_API_KEY`. Without it the job fails; nothing else does.
+- Pull requests with more than 50 changed files get a "review skipped" comment.
+
 ## What CI runs
 
 `.github/workflows/checks.yml` starts with a `plan` job (`scripts/ci-plan.mjs`) that picks the
