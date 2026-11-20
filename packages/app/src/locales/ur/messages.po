@@ -1552,6 +1552,9 @@ msgstr "سب بند کریں"
 msgid "Close all unpinned"
 msgstr "تمام غیر پن شدہ بند کریں"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1647,6 +1650,9 @@ msgstr "انتخاب پر تبصرہ"
 
 msgid "Comment on this selection"
 msgstr "اس انتخاب پر تبصرہ کریں"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "تبصرے"
@@ -4552,6 +4558,9 @@ msgstr "آپ کے ریموٹ کی نئی تبدیلیاں خودکار طور پ
 
 msgid "New chat"
 msgstr "نئی گفتگو"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

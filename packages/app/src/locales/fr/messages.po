@@ -1552,6 +1552,9 @@ msgstr "Tout fermer"
 msgid "Close all unpinned"
 msgstr "Fermer tous les onglets non épinglés"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1647,6 +1650,9 @@ msgstr "Commenter la sélection"
 
 msgid "Comment on this selection"
 msgstr "Commenter cette sélection"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "Commentaires"
@@ -4552,6 +4558,9 @@ msgstr "Les nouvelles modifications de votre dépôt distant apparaissent automa
 
 msgid "New chat"
 msgstr "Nouvelle discussion"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

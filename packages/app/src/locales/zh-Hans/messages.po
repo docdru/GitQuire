@@ -1552,6 +1552,9 @@ msgstr "全部关闭"
 msgid "Close all unpinned"
 msgstr "关闭所有未固定的"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1647,6 +1650,9 @@ msgstr "对所选内容发表评论"
 
 msgid "Comment on this selection"
 msgstr "对选中内容添加评论"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "评论"
@@ -4552,6 +4558,9 @@ msgstr "来自远程的新改动会自动出现在你的副本中。"
 
 msgid "New chat"
 msgstr "新建对话"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""

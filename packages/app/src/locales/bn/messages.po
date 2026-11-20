@@ -1548,6 +1548,9 @@ msgstr "সব বন্ধ করুন"
 msgid "Close all unpinned"
 msgstr "সব আনপিন করা বন্ধ করুন"
 
+msgid "Close comment"
+msgstr ""
+
 msgid "Close comments"
 msgstr ""
 
@@ -1643,6 +1646,9 @@ msgstr "নির্বাচনের উপর মন্তব্য"
 
 msgid "Comment on this selection"
 msgstr "এই নির্বাচিত অংশে মন্তব্য করুন"
+
+msgid "Comment thread"
+msgstr ""
 
 msgid "Comments"
 msgstr "মন্তব্য"
@@ -4548,6 +4554,9 @@ msgstr "আপনার রিমোটের নতুন পরিবর্ত
 
 msgid "New chat"
 msgstr "নতুন আলাপ"
+
+msgid "New comment"
+msgstr ""
 
 msgid "New draft"
 msgstr ""
