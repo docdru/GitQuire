@@ -483,7 +483,8 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       : (placedThreads(editor, threads).find((p) => p.thread.id === activeThreadId) ?? null);
   const activeRange = activePlaced?.range ?? null;
   const me = useMe(draft !== null || activePlaced !== null);
-  const orphanThreadId = activePlaced !== null && activeRange === null ? activePlaced.thread.id : null;
+  const orphanThreadId =
+    activePlaced !== null && activeRange === null ? activePlaced.thread.id : null;
 
   useEffect(() => {
     if (orphanThreadId !== null) showThreadInPane(docName, orphanThreadId);
