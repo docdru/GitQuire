@@ -40,7 +40,7 @@ function route(req) {
   return null;
 }
 
-const SHIM = (prefix) => `<script>(()=>{const P=${JSON.stringify(prefix.slice(0, -1))};window.__gqProtoShim=P;
+const SHIM_BODY = (prefix) => `(()=>{const P=${JSON.stringify(prefix.slice(0, -1))};window.__gqProtoShim=P;
 const fix=(u)=>{try{if(typeof u!=='string')return u;if(u.startsWith('/')&&!u.startsWith('//')&&!u.startsWith(P+'/'))return P+u;
 const x=new URL(u,location.href);if(x.host===location.host&&!x.pathname.startsWith(P+'/')){x.pathname=P+x.pathname;return x.toString();}}catch{}return u;};
 const of=window.fetch.bind(window);window.fetch=(i,o)=>{if(typeof i==='string'||i instanceof URL)return of(fix(String(i)),o);
@@ -50,7 +50,8 @@ Object.assign(window.WebSocket,{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3});
 const OE=window.EventSource;if(OE){window.EventSource=function(u,c){return new OE(fix(String(u)),c);};window.EventSource.prototype=OE.prototype;}
 const oo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u,...r){return oo.call(this,m,fix(String(u)),...r);};
 const osb=navigator.sendBeacon?.bind(navigator);if(osb)navigator.sendBeacon=(u,d)=>osb(fix(String(u)),d);
-})();</script>`;
+})();`;
+const SHIM = (prefix) => `<script src="${prefix}__gq_proto_shim.js"></script>`;
 
 const HOST_AUTHORIZE = process.env.PROXY_HOST_AUTHORIZE ?? 'http://127.0.0.1:3000/login/oauth/authorize';
 const ADD_SCOPE = process.env.PROXY_OAUTH_SCOPE ?? '';
@@ -91,6 +92,11 @@ function rewriteHeaders(headers, target, req) {
 }
 
 const server = http.createServer((req, res) => {
+  const shimPrefix = prefixes.find((p) => req.url === `${p}__gq_proto_shim.js`);
+  if (shimPrefix) {
+    res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }).end(SHIM_BODY(shimPrefix));
+    return;
+  }
   const target = route(req);
   if (!target) {
     note('escaped', req);
