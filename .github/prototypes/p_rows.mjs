@@ -17,41 +17,42 @@ function record(row, passed, detail) {
 
 function disk(container, path) {
   try {
-    return execFileSync('docker', ['exec', container, 'cat', `/data/${path}`], { encoding: 'utf8' });
+    return execFileSync('docker', ['exec', container, 'cat', `/data/${path}`], {
+      encoding: 'utf8',
+    });
   } catch {
     return '';
   }
 }
 
-function sh(container, script) {
-  try {
-    return execFileSync('docker', ['exec', container, 'sh', '-c', script], { encoding: 'utf8' }).trim();
-  } catch (err) {
-    return `error: ${String(err.stderr ?? err).trim().slice(-200)}`;
-  }
-}
-
 function escapeLog(since = 0) {
   try {
-    return readFileSync(escapes, 'utf8').split('\n').filter(Boolean).slice(since).map((l) => JSON.parse(l));
+    return readFileSync(escapes, 'utf8')
+      .split('\n')
+      .filter(Boolean)
+      .slice(since)
+      .map((l) => JSON.parse(l));
   } catch {
     return [];
   }
 }
 
 const editor = (page) => page.locator('.ProseMirror:not(.composer-prosemirror)').first();
-const sidebarItem = (page, name) =>
-  page.locator('[data-slot="sidebar-container"]').getByRole('treeitem', { name, exact: true });
 
 async function signIn(page, wikiUrl) {
   await page.goto(`${wikiUrl}/`);
   await page.waitForLoadState('domcontentloaded');
   const steps = [page.url()];
-  const at = (path) => /^http:\/\/127\.0\.0\.1:(3000|9001)\//.test(page.url()) && new URL(page.url()).pathname === path;
+  const at = (path) =>
+    /^http:\/\/127\.0\.0\.1:(3000|9001)\//.test(page.url()) &&
+    new URL(page.url()).pathname === path;
   if (at('/user/login')) {
     await page.fill('#user_name', 'bob');
     await page.fill('#password', PASSWORD);
-    await Promise.all([page.waitForNavigation(), page.locator('form.ui.form button.primary, button.ui.primary.button').first().click()]);
+    await Promise.all([
+      page.waitForNavigation(),
+      page.locator('form.ui.form button.primary, button.ui.primary.button').first().click(),
+    ]);
     steps.push(page.url());
   }
   if (at('/login/oauth/authorize')) {
@@ -113,14 +114,25 @@ async function p1(browser) {
     return { ctx, page, signedIn: false };
   }
   const landed = page.url().startsWith(`${A}/`);
-  const diag = await page.evaluate(() => ({ shim: window.__gqProtoShim ?? null, head: document.documentElement.outerHTML.slice(0, 300) }));
+  const diag = await page.evaluate(() => ({
+    shim: window.__gqProtoShim ?? null,
+    head: document.documentElement.outerHTML.slice(0, 300),
+  }));
   record('P1', null, `diagnostics: shim ${diag.shim}; page starts ${JSON.stringify(diag.head)}`);
   record('P1', null, `first requests: ${JSON.stringify(seen.slice(0, 25))}`);
-  record('P1', landed, `sign-in steps ${JSON.stringify(steps)}; landed under the wiki prefix: ${landed}`);
+  record(
+    'P1',
+    landed,
+    `sign-in steps ${JSON.stringify(steps)}; landed under the wiki prefix: ${landed}`,
+  );
   const me = await apiCall(page, '/auth/me');
   const cookieList = (await ctx.cookies()).map((c) => [c.name, c.path]);
   record('P1', null, `all cookies after sign-in: ${JSON.stringify(cookieList)}`);
-  record('P1', me.status === 200 && me.body.includes('bob'), `GET /auth/me through the prefix -> ${me.status} ${me.body.slice(0, 160)}`);
+  record(
+    'P1',
+    me.status === 200 && me.body.includes('bob'),
+    `GET /auth/me through the prefix -> ${me.status} ${me.body.slice(0, 160)}`,
+  );
   try {
     await openPage(page, A, 'index');
     record('P1', true, 'page index opens in the editor under the prefix');
@@ -145,7 +157,11 @@ async function p1(browser) {
   try {
     src = JSON.parse(upload.body).src ?? JSON.parse(upload.body).data?.src ?? null;
   } catch {}
-  record('P1', upload.status === 200 && Boolean(src), `upload an image -> ${upload.status}, src ${src}`);
+  record(
+    'P1',
+    upload.status === 200 && Boolean(src),
+    `upload an image -> ${upload.status}, src ${src}`,
+  );
   if (src) {
     const pagePath = 'index.md';
     const current = disk('gq-a', pagePath);
@@ -153,19 +169,39 @@ async function p1(browser) {
       input: `${current.trimEnd()}\n\n![dot](${src})\n`,
     });
     const reread = await apiCall(page, '/api/documents/reread', { method: 'POST' });
-    record('P1', null, `wrote the image reference into index.md and asked to re-read -> ${reread.status}`);
+    record(
+      'P1',
+      null,
+      `wrote the image reference into index.md and asked to re-read -> ${reread.status}`,
+    );
     await page.reload();
     await editor(page).waitFor({ state: 'visible' });
     const loaded = await poll(async () => {
-      const sizes = await editor(page).locator('img').evaluateAll((imgs) => imgs.map((i) => [i.getAttribute('src'), i.currentSrc, i.naturalWidth]));
+      const sizes = await editor(page)
+        .locator('img')
+        .evaluateAll((imgs) =>
+          imgs.map((i) => [i.getAttribute('src'), i.currentSrc, i.naturalWidth]),
+        );
       return sizes.length > 0 && sizes.every(([, , w]) => w > 0) ? sizes : null;
     }, 30_000);
-    const all = await editor(page).locator('img').evaluateAll((imgs) => imgs.map((i) => [i.getAttribute('src'), i.currentSrc, i.naturalWidth]));
+    const all = await editor(page)
+      .locator('img')
+      .evaluateAll((imgs) =>
+        imgs.map((i) => [i.getAttribute('src'), i.currentSrc, i.naturalWidth]),
+      );
     for (const [, url] of all) {
       const viaProxy = await page.request.get(url).catch((e) => ({ status: () => String(e) }));
-      const direct = await page.request.get(url.replace('127.0.0.1:9000', '127.0.0.1:8101')).catch((e) => ({ status: () => String(e) }));
-      const prefixed = await page.request.get(url.replace('127.0.0.1:9000/', '127.0.0.1:9000/w/team/wiki/')).catch((e) => ({ status: () => String(e) }));
-      record('P1', null, `image ${url}: through the catch-all -> ${viaProxy.status()}, with the prefix -> ${prefixed.status()}, straight to the wiki's process -> ${direct.status()}`);
+      const direct = await page.request
+        .get(url.replace('127.0.0.1:9000', '127.0.0.1:8101'))
+        .catch((e) => ({ status: () => String(e) }));
+      const prefixed = await page.request
+        .get(url.replace('127.0.0.1:9000/', '127.0.0.1:9000/w/team/wiki/'))
+        .catch((e) => ({ status: () => String(e) }));
+      record(
+        'P1',
+        null,
+        `image ${url}: through the catch-all -> ${viaProxy.status()}, with the prefix -> ${prefixed.status()}, straight to the wiki's process -> ${direct.status()}`,
+      );
     }
     record('P1', Boolean(loaded), `uploaded image in the editor: ${JSON.stringify(all)}`);
   }
@@ -175,9 +211,15 @@ async function p1(browser) {
   try {
     await openPage(other, A, 'index');
     await typeAtEnd(page, sentinel);
-    const live = await poll(async () => ((await editor(other).innerText()).includes(sentinel) ? true : null), 20_000);
+    const live = await poll(
+      async () => ((await editor(other).innerText()).includes(sentinel) ? true : null),
+      20_000,
+    );
     record('P1', Boolean(live), `second tab sees the typed text live: ${Boolean(live)}`);
-    const saved = await poll(async () => (disk('gq-a', 'index.md').includes(sentinel) ? true : null), 30_000);
+    const saved = await poll(
+      async () => (disk('gq-a', 'index.md').includes(sentinel) ? true : null),
+      30_000,
+    );
     record('P1', Boolean(saved), `typed text reached /data/index.md: ${Boolean(saved)}`);
   } catch (err) {
     record('P1', false, `live editing: ${String(err).slice(0, 200)}`);
@@ -193,21 +235,37 @@ async function p1(browser) {
   try {
     slug = JSON.parse(created.body).draft?.slug ?? null;
   } catch {}
-  record('P1', created.status === 201 && Boolean(slug), `create and open a draft -> ${created.status} ${created.body.slice(0, 160)}`);
+  record(
+    'P1',
+    created.status === 201 && Boolean(slug),
+    `create and open a draft -> ${created.status} ${created.body.slice(0, 160)}`,
+  );
   if (slug) {
     await page.reload();
     const cookies = await ctx.cookies(PROXY);
-    record('P1', null, `cookies after opening the draft: ${JSON.stringify(cookies.map((c) => [c.name, c.path]))}`);
+    record(
+      'P1',
+      null,
+      `cookies after opening the draft: ${JSON.stringify(cookies.map((c) => [c.name, c.path]))}`,
+    );
     const draftText = `Draft edit ${Date.now()}`;
     try {
       await openPage(page, A, 'index');
       const current = await apiCall(page, '/api/gitquire/drafts/current');
-      record('P1', current.body.includes(slug), `inside the draft after reload: ${current.status} ${current.body.slice(0, 120)}`);
+      record(
+        'P1',
+        current.body.includes(slug),
+        `inside the draft after reload: ${current.status} ${current.body.slice(0, 120)}`,
+      );
       await typeAtEnd(page, draftText);
       await new Promise((r) => setTimeout(r, 8000));
       const changes = await apiCall(page, `/api/gitquire/drafts/${slug}/changes`);
       const inLive = disk('gq-a', 'index.md').includes(draftText);
-      record('P1', !inLive && changes.body.includes('index'), `draft edit stays out of the live wiki: ${!inLive}; draft changes ${changes.status} ${changes.body.slice(0, 160)}`);
+      record(
+        'P1',
+        !inLive && changes.body.includes('index'),
+        `draft edit stays out of the live wiki: ${!inLive}; draft changes ${changes.status} ${changes.body.slice(0, 160)}`,
+      );
     } catch (err) {
       record('P1', false, `editing inside the draft: ${String(err).slice(0, 200)}`);
     }
@@ -219,7 +277,11 @@ async function p1(browser) {
     await page.reload();
     await openPage(page, A, 'index');
     const after = await apiCall(page, '/api/gitquire/drafts/current');
-    record('P1', left.status === 200 && after.body.includes('"viewing":null'), `leave the draft -> ${left.status}; current ${after.body.slice(0, 120)}`);
+    record(
+      'P1',
+      left.status === 200 && after.body.includes('"viewing":null'),
+      `leave the draft -> ${left.status}; current ${after.body.slice(0, 120)}`,
+    );
   }
   return { ctx, page, signedIn: landed, slug };
 }
@@ -231,7 +293,9 @@ async function p2(browser) {
   await signIn(page, B);
   await openPage(page, A, 'index');
   const onlyA = await apiCall(page, '/api/create-page', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: 'only-in-a.md' }),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: 'only-in-a.md' }),
   });
   record('P2', null, `create page only-in-a in A -> ${onlyA.status}`);
   await openPage(page, A, 'only-in-a');
@@ -250,25 +314,47 @@ async function p2(browser) {
   await new Promise((r) => setTimeout(r, 12_000));
   const inBDisk = disk('gq-b', 'index.md').includes(offlineText);
   const inBEditor = (await editor(pageB).innerText()).includes(offlineText);
-  record('P2', !inBDisk && !inBEditor, `offline edit of A after switching to B: in B's file ${inBDisk}, in B's editor ${inBEditor}`);
+  record(
+    'P2',
+    !inBDisk && !inBEditor,
+    `offline edit of A after switching to B: in B's file ${inBDisk}, in B's editor ${inBEditor}`,
+  );
   const bShowsA = (await pageB.locator('body').innerText()).includes('only-in-a');
   record('P2', !bShowsA, `B's window shows A's page only-in-a (as a tab or anywhere): ${bShowsA}`);
-  const tabsKey = (await pageB.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('ok-editor-tabs')))) ?? [];
+  const tabsKey =
+    (await pageB.evaluate(() =>
+      Object.keys(localStorage).filter((k) => k.startsWith('ok-editor-tabs')),
+    )) ?? [];
   for (const key of tabsKey) {
-    record('P2', null, `${key} after visiting A then B: ${(await pageB.evaluate((k) => localStorage.getItem(k), key))?.slice(0, 400)}`);
+    record(
+      'P2',
+      null,
+      `${key} after visiting A then B: ${(await pageB.evaluate((k) => localStorage.getItem(k), key))?.slice(0, 400)}`,
+    );
   }
   const storage = await pageB.evaluate(async () => ({
     local: Object.keys(localStorage),
     session: Object.keys(sessionStorage),
     idb: (await indexedDB.databases?.())?.map((d) => d.name) ?? [],
   }));
-  record('P2', null, `browser storage shared by both wikis on one origin: ${JSON.stringify(storage).slice(0, 900)}`);
+  record(
+    'P2',
+    null,
+    `browser storage shared by both wikis on one origin: ${JSON.stringify(storage).slice(0, 900)}`,
+  );
   const pageA = await ctx.newPage();
   await openPage(pageA, A, 'index');
-  const kept = await poll(async () => (disk('gq-a', 'index.md').includes(offlineText) ? true : null), 30_000);
+  const kept = await poll(
+    async () => (disk('gq-a', 'index.md').includes(offlineText) ? true : null),
+    30_000,
+  );
   record('P2', null, `offline edit reached A after reopening A: ${Boolean(kept)}`);
   const bText = await editor(pageB).innerText();
-  record('P2', !bText.includes('Wiki A'), `B's page shows only B's content: ${!bText.includes('Wiki A')}`);
+  record(
+    'P2',
+    !bText.includes('Wiki A'),
+    `B's page shows only B's content: ${!bText.includes('Wiki A')}`,
+  );
   await ctx.close();
 }
 
@@ -293,7 +379,11 @@ try {
   await typeAtEnd(page, p3);
   await new Promise((r) => setTimeout(r, 2500));
   appendFileSync('/tmp/p3-sentinel.txt', p3);
-  record('P3', null, `typed "${p3}" in A 2.5 s before the stop; on disk at that moment: ${disk('gq-a', 'index.md').includes(p3)}`);
+  record(
+    'P3',
+    null,
+    `typed "${p3}" in A 2.5 s before the stop; on disk at that moment: ${disk('gq-a', 'index.md').includes(p3)}`,
+  );
 } catch (err) {
   record('P3', false, `could not prepare the last edit: ${String(err).slice(0, 200)}`);
 }
@@ -307,9 +397,16 @@ for (const entry of log) {
 }
 record('P1', null, `requests that arrived without a wiki prefix: ${JSON.stringify(kinds)}`);
 
-const lines = ['### GitQuire prototype rows P1-P2', '', '| Row | Result | Detail |', '| --- | --- | --- |'];
+const lines = [
+  '### GitQuire prototype rows P1-P2',
+  '',
+  '| Row | Result | Detail |',
+  '| --- | --- | --- |',
+];
 for (const { row, passed, detail } of results) {
-  lines.push(`| ${row} | ${passed === true ? 'pass' : passed === false ? '**fail**' : 'note'} | ${detail.replaceAll('|', '/')} |`);
+  lines.push(
+    `| ${row} | ${passed === true ? 'pass' : passed === false ? '**fail**' : 'note'} | ${detail.replaceAll('|', '/')} |`,
+  );
 }
 const summary = `${lines.join('\n')}\n`;
 console.log(summary);

@@ -9,7 +9,13 @@ const prefixes = Object.keys(wikis).sort((a, b) => b.length - a.length);
 const WIKI_COOKIE = 'gq_proto_wiki';
 
 function note(kind, req, detail = '') {
-  const line = JSON.stringify({ kind, method: req.method, url: req.url, referer: req.headers.referer ?? null, detail });
+  const line = JSON.stringify({
+    kind,
+    method: req.method,
+    url: req.url,
+    referer: req.headers.referer ?? null,
+    detail,
+  });
   appendFileSync(logFile, `${line}\n`);
 }
 
@@ -40,7 +46,9 @@ function route(req) {
   return null;
 }
 
-const SHIM_BODY = (prefix) => `(()=>{const P=${JSON.stringify(prefix.slice(0, -1))};window.__gqProtoShim=P;
+const SHIM_BODY = (
+  prefix,
+) => `(()=>{const P=${JSON.stringify(prefix.slice(0, -1))};window.__gqProtoShim=P;
 const fix=(u)=>{try{if(typeof u!=='string')return u;if(u.startsWith('/')&&!u.startsWith('//')&&!u.startsWith(P+'/'))return P+u;
 const x=new URL(u,location.href);if(x.host===location.host&&!x.pathname.startsWith(P+'/')){x.pathname=P+x.pathname;return x.toString();}}catch{}return u;};
 const of=window.fetch.bind(window);window.fetch=(i,o)=>{if(typeof i==='string'||i instanceof URL)return of(fix(String(i)),o);
@@ -53,7 +61,8 @@ const osb=navigator.sendBeacon?.bind(navigator);if(osb)navigator.sendBeacon=(u,d
 })();`;
 const SHIM = (prefix) => `<script src="${prefix}__gq_proto_shim.js"></script>`;
 
-const HOST_AUTHORIZE = process.env.PROXY_HOST_AUTHORIZE ?? 'http://127.0.0.1:3000/login/oauth/authorize';
+const HOST_AUTHORIZE =
+  process.env.PROXY_HOST_AUTHORIZE ?? 'http://127.0.0.1:3000/login/oauth/authorize';
 const ADD_SCOPE = process.env.PROXY_OAUTH_SCOPE ?? '';
 
 function wikiSuffix(prefix) {
@@ -91,8 +100,10 @@ function rewriteHeaders(headers, target, req) {
     out.location = u.toString();
   } else if (typeof loc === 'string') {
     const backendOrigin = `http://127.0.0.1:${port}`;
-    if (loc.startsWith(backendOrigin)) out.location = target.prefix.slice(0, -1) + loc.slice(backendOrigin.length);
-    else if (loc.startsWith('/') && !loc.startsWith('//') && !prefixOf(loc)) out.location = target.prefix.slice(0, -1) + loc;
+    if (loc.startsWith(backendOrigin))
+      out.location = target.prefix.slice(0, -1) + loc.slice(backendOrigin.length);
+    else if (loc.startsWith('/') && !loc.startsWith('//') && !prefixOf(loc))
+      out.location = target.prefix.slice(0, -1) + loc;
   }
   const cookies = out['set-cookie'];
   const signInStart = target.path.startsWith('/auth/github/login');
@@ -102,7 +113,9 @@ function rewriteHeaders(headers, target, req) {
     const suffix = wikiSuffix(target.prefix);
     out['set-cookie'] = cookies.map((c) => {
       const renamed = c.replace(/^([^=]+)=/, (_, name) => `${name}${suffix}=`);
-      return /;\s*path=/i.test(renamed) ? renamed.replace(/;\s*path=[^;]*/i, '; Path=/') : `${renamed}; Path=/`;
+      return /;\s*path=/i.test(renamed)
+        ? renamed.replace(/;\s*path=[^;]*/i, '; Path=/')
+        : `${renamed}; Path=/`;
     });
   }
   const wikiCookie = `${WIKI_COOKIE}=${encodeURIComponent(target.prefix)}; Path=/; HttpOnly; SameSite=Lax`;
@@ -113,7 +126,9 @@ function rewriteHeaders(headers, target, req) {
 const server = http.createServer((req, res) => {
   const shimPrefix = prefixes.find((p) => req.url === `${p}__gq_proto_shim.js`);
   if (shimPrefix) {
-    res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }).end(SHIM_BODY(shimPrefix));
+    res
+      .writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' })
+      .end(SHIM_BODY(shimPrefix));
     return;
   }
   const target = route(req);
@@ -124,7 +139,7 @@ const server = http.createServer((req, res) => {
   }
   if (target.how !== 'prefix') note(target.how, req);
   const headers = { ...req.headers, 'x-forwarded-prefix': target.prefix.slice(0, -1) };
-  if (headers.cookie) headers.cookie = cookiesFor(headers.cookie, target.prefix);
+  headers.cookie &&= cookiesFor(headers.cookie, target.prefix);
   if (headers.referer) {
     try {
       const r = new URL(headers.referer);
@@ -137,17 +152,30 @@ const server = http.createServer((req, res) => {
   }
   delete headers['accept-encoding'];
   const upstream = http.request(
-    { host: '127.0.0.1', port: wikis[target.prefix], method: req.method, path: target.path, headers },
+    {
+      host: '127.0.0.1',
+      port: wikis[target.prefix],
+      method: req.method,
+      path: target.path,
+      headers,
+    },
     (up) => {
       const outHeaders = rewriteHeaders(up.headers, target, req);
       const type = String(up.headers['content-type'] ?? '');
-      if (type.includes('text/html')) note('html', req, `${up.statusCode} ${type} encoding=${up.headers['content-encoding'] ?? 'none'}`);
+      if (type.includes('text/html'))
+        note(
+          'html',
+          req,
+          `${up.statusCode} ${type} encoding=${up.headers['content-encoding'] ?? 'none'}`,
+        );
       if (type.includes('text/html') && !up.headers['content-encoding']) {
         const chunks = [];
         up.on('data', (c) => chunks.push(c));
         up.on('end', () => {
           let body = Buffer.concat(chunks).toString('utf8');
-          body = body.includes('<head>') ? body.replace('<head>', `<head>${SHIM(target.prefix)}`) : SHIM(target.prefix) + body;
+          body = body.includes('<head>')
+            ? body.replace('<head>', `<head>${SHIM(target.prefix)}`)
+            : SHIM(target.prefix) + body;
           delete outHeaders['content-length'];
           res.writeHead(up.statusCode ?? 502, outHeaders).end(body);
         });
@@ -188,7 +216,9 @@ server.on('upgrade', (req, socket, head) => {
   socket.on('error', () => upstream.destroy());
 });
 
-server.listen(port, '127.0.0.1', () => console.log(`front proxy on ${port}: ${JSON.stringify(wikis)}`));
+server.listen(port, '127.0.0.1', () =>
+  console.log(`front proxy on ${port}: ${JSON.stringify(wikis)}`),
+);
 
 const shimPort = Number(process.env.HOST_SHIM_PORT ?? 0);
 const hostPort = Number(process.env.HOST_PORT ?? 3000);
@@ -212,21 +242,28 @@ if (shimPort) {
           }
           headers['content-length'] = String(body.length);
         }
-        const up = http.request({ host: '127.0.0.1', port: hostPort, method: req.method, path: req.url, headers }, (r) => {
-          const out = { ...r.headers };
-          if (req.url?.startsWith('/login/oauth/access_token')) {
-            const parts = [];
-            r.on('data', (c) => parts.push(c));
-            r.on('end', () => {
-              const text = Buffer.concat(parts).toString('utf8');
-              note('host-exchange-answer', req, `${r.statusCode} ${text.includes('access_token') ? 'token issued' : text.slice(0, 200)}`);
-              res.writeHead(r.statusCode ?? 502, out).end(text);
-            });
-            return;
-          }
-          res.writeHead(r.statusCode ?? 502, out);
-          r.pipe(res);
-        });
+        const up = http.request(
+          { host: '127.0.0.1', port: hostPort, method: req.method, path: req.url, headers },
+          (r) => {
+            const out = { ...r.headers };
+            if (req.url?.startsWith('/login/oauth/access_token')) {
+              const parts = [];
+              r.on('data', (c) => parts.push(c));
+              r.on('end', () => {
+                const text = Buffer.concat(parts).toString('utf8');
+                note(
+                  'host-exchange-answer',
+                  req,
+                  `${r.statusCode} ${text.includes('access_token') ? 'token issued' : text.slice(0, 200)}`,
+                );
+                res.writeHead(r.statusCode ?? 502, out).end(text);
+              });
+              return;
+            }
+            res.writeHead(r.statusCode ?? 502, out);
+            r.pipe(res);
+          },
+        );
         up.on('error', () => res.writeHead(502).end());
         up.end(body);
       });

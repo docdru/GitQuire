@@ -26,6 +26,10 @@ All paths under `packages/server/src/gitquire/` unless stated.
 
 Modules added by the branch are listed here by the pull request that adds them.
 
+| Added | Module | Notes |
+| --- | --- | --- |
+| Stage 0 | `.github/workflows/prototypes.yml`, `.github/prototypes/` | Forgejo 15 in a container, the prototype front door (`front-proxy.mjs`) and the P and F rows; throwaway code kept as the base of H5. Not part of the product |
+
 ## Contract files
 
 Sent with every review as reference docs (later as `[[related.rules]]`): none yet. Planned: the host interface types (stage 1), the "who is this request" function (block 1), the front door's access check (block 5).

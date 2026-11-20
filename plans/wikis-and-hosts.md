@@ -118,4 +118,66 @@ The agent merges a pull request into `wikis-hosts` when `ci-ok` is green on the 
 
 ## Prototype findings
 
-Appended by stage 0.
+Run on 2026-11-20 by `.github/workflows/prototypes.yml` on GitHub Actions: Forgejo **15.0.12** in a container, GitQuire's image built from `wikis-hosts` (`main` at `d5bf867`), headless Chromium. The scripts are in `.github/prototypes/`. Everything below was run for real except P5. Two runs gave the same answers; numbers are from the last.
+
+### Verdict per row
+
+| # | Result | In one line |
+| --- | --- | --- |
+| P1 | **pass**, with a prototype front door | Sign-in, an uploaded image, live editing in two tabs, entering, editing and leaving a draft all work under `/w/team/wiki/`. What it took is listed under "Addresses" |
+| P2 | **pass** | An offline edit in wiki A did not reach wiki B, and reached A when A was reopened; B never showed A's page |
+| P3 | **pass** (written down) | `docker stop` ends GitQuire in 0.4 s with exit 0 and no last commit or push; edits stay on the volume uncommitted |
+| P4 | **pass** (numbers) | Start to `/readyz` 0.85–1.7 s; one idle editor process 184 MB RSS, container 132 MiB |
+| P5 | **prepared, not tried** | `.github/prototypes/P5.md` and `p5-mcp.mjs` for the owner. Until then the `wiki` argument is unconfirmed |
+| F1 | **pass**, with three changes for H2 | Sign-in works with scope `read:user read:repository`; the second redirect is silent |
+| F2 | **pass** | The bot token works as the Git password with any user name, `x-access-token` included |
+| F3 | **pass** | Pull request, squash merge with title, close, branch delete through the API |
+| F4 | **pass** | Writer bot: 403. Admin bot: 200 with `none`, `write` or `admin`; unknown login 404 |
+| F5 | **fail** | A repository-limited token cannot ask for another person's permission (403), so it cannot do the R15 re-check |
+| F6 | **pass** | A commit with `<login>@<NO_REPLY_ADDRESS>` is linked to the account and shows its avatar |
+| F7 | **pass**, one note | Comment threads render as footnotes with the thread as a list; Mermaid and math are marked for the browser to draw; display math loses `\,` |
+| F8 | **pass**, fallback needed | A team-only member passes the sign-in check and the bot re-check, but is **not** in the collaborators list |
+| F9 | **pass** | Removed bot: 404 on the repo and the permission call, Git "Repository not found". Revoked token: 401 everywhere. Both distinct from "unreachable" |
+
+**Gate: F5 fails its "passes when", so by the plan's rule the run stops after stage 0.** The plan already accepts one unlimited bot token per server ("Known limits"), so F5 does not break M1's design; what it removes is the later option of one repository-limited token per wiki, and the analysis' recommended Forgejo set-up. The owner decides whether to continue.
+
+### Forgejo (F rows, R10, R17, R18)
+
+- **Version:** `GET /api/v1/version` → `15.0.12+gitea-1.22.0`. R17 must parse the leading number, not compare strings.
+- **OAuth scopes are enforced** (the Forgejo documentation the analysis quoted says otherwise). With no scope the token is unlimited (it could create a repo); with `read:user` the repo check answers 403; with `read:user read:repository` the token can read the person and the repo's `permissions` and nothing more (repo create 403). GitQuire must ask for `read:user read:repository`. A team-only member of an organisation passes with the same scope.
+- **Sign-in differences from GitHub, all found by running today's code against Forgejo (P1):** the authorize address needs `response_type=code` (otherwise "Only code response type is supported"); the code exchange needs `grant_type=authorization_code` (GitQuire sends a JSON body without it and gets no token); GitQuire sends no `scope`. With these three added by the prototype, today's `access-gate.ts` signs a person in through Forgejo unchanged: `GET /api/v1/user` and `GET /api/v1/repos/{o}/{r}` answer in GitHub's shape, `Bearer` and `token` both work. The first sign-in shows a consent page; the second redirect for an approved application is silent (303 with a code), so Add a wiki can reuse it.
+- **Identity in today's code on Forgejo:** `/auth/me` gives `"email": "2+bob@users.noreply.github.com"` (the GitHub form) and `avatarUrl` on Forgejo. H3's per-host no-reply form is needed; Forgejo links `bob@noreply.example.org` (F6).
+- **Git:** basic auth with the token as password, any user name. Today's header form works unchanged.
+- **Drafts:** `POST /pulls` 201; the `head` filter on the list is **ignored** (filter in GitQuire, as planned); squash with `MergeTitleField` sets the commit title; `PATCH state=closed` 201; branch `DELETE` 204. A conflicting pull request reads `mergeable: false` and merging answers **405** "Please try again later"; merging an already merged one also answers **405**. The status alone cannot tell the two apart: read `merged` and `mergeable` first.
+- **Re-checks (F4, F9 → R15):** bot as writer: 403 on `collaborators/{u}/permission` (the analysis' risk is real; the bot must be admin). As admin: 200 `none`/`write`/`admin`, 404 for an unknown login. Bot removed from the repo: 404 on the repo and the permission call. Token revoked: 401. No token: 404. So for GitQuire's own token, 401 = token refused, 403 = bot not admin, 404 on its own wiki = bot removed (or repo gone; `repoById` tells which), network error or 5xx = unreachable.
+- **Repository-limited token (F5):** created with `repositories: [{owner, name}]`. On its repo: Git, list and create pull requests work; the permission call answers **403** although the bot is repo admin (the same call with the bot's unlimited credentials: 200). On another repo the bot can reach: Git refused, file contents 403, pull request create 404, but `GET /repos/{o}/{r}` **200** (metadata still readable).
+- **R10, R18:** the repo record carries `owner.id` (organisation `team` → 7) and `id`; `GET /repositories/{id}` returns the repo.
+- **People (F8):** the collaborators list holds direct collaborators only (`alice`, `bob`, the bot), not team members. `people.ts`' merge of "people who have signed in" is required on Forgejo.
+- **Rendering (F7):** footnote mark `<sup id="fnref:user-content-c-7f3a">`, thread at the end as a list with mentions linked; `language-mermaid` and `language-math` with `is-loading` (drawn by Forgejo's browser code); task box; `[[Meeting notes]]` becomes a link. In `$$ … $$` the `\,` is eaten by Markdown escaping (`x,dx`).
+
+### Addresses (P1, P2) — what the front door must do
+
+The prototype (`front-proxy.mjs`) strips `/w/<owner>/<repo>/`, adds it to `Location`, and injected a small script that adds the prefix to the app's `fetch`, `WebSocket`, `EventSource`, `XMLHttpRequest` and `sendBeacon` calls (standing in for block 3).
+
+- **The page's Content-Security-Policy blocks inline scripts** (`script-src 'self'` plus hashes). Anything the front door adds to the page must be a same-origin file, or better, the app's own code (block 3).
+- **Sign-in:** the callback address is built as `new URL('/auth/github/callback', externalUrl)`, which drops the prefix, and the state cookie is checked there. Behind a prefix this only works if sign-in happens at the root, which is the plan's front door; the prototype routed the callback by a cookie and kept the sign-in cookies at `/`.
+- **Images escape the prefix.** An upload answers `src: "dot.png"`; under `/w/team/wiki/` the editor loads it as `/dot.png`. The `Referer` catch-all routed it to the right wiki, but it loaded only once the session was readable at `/`. A per-wiki cookie path (`Path=/w/<o>/<r>/`) is not enough; **the session must be the front door's, at the root**, with the person passed on (R2). The prototype emulated that by renaming each wiki's cookies (`gq_session__w_team_wiki`) at `/`.
+- **Draft cookie** `gq_view` needs the same treatment (renamed per wiki in the prototype); the draft then opened, took an edit that stayed out of the live file, and closed.
+- **Requests that arrived without a prefix in the final run:** only the sign-in callback and `GET /dot.png` (by `Referer`). With the script shim, no `POST`, WebSocket or API call escaped; without it (CSP) every API call did.
+- **Browser storage (P2):** IndexedDB names already carry a per-project id (`ok-ydoc:main:<uuid>:index`), so offline edits did not cross over. `localStorage` keys are per origin and shared by all wikis: `ok-editor-tabs-v1:http://127.0.0.1:9000`, `ok-last-observed-branch`, `ok-doc-lineage-epochs`. B did not show A's tab in this run; block 3's `storageNamespace` must still cover these keys.
+
+### Stopping and size (P3, P4)
+
+- `docker stop` (10 s grace) ended both servers in 0.38 s, exit 0. Edits typed in the last two minutes were on the volume but **not committed**; nothing of the live edits reached Forgejo during the run (sync reported `lastPushOk` with `ahead: 0`). The draft branch had been pushed when the draft was created; its working copy was on the drafts volume. Nothing that reached the disk was lost. R6 needs "commit and push, then stop", and a `stop_grace_period` that leaves time for it.
+- Start to `/readyz`: 1.1–1.7 s on a fresh volume, 0.85–1.2 s on a restart. Memory 20 s after start, nobody connected: main process 181–187 MB RSS, container 130–135 MiB. A page in use or a draft adds to that; not measured.
+
+### Changes to the plan from stage 0
+
+1. H2: authorize with `response_type=code` and `scope=read:user read:repository`; exchange with `grant_type=authorization_code`. Harmless for GitHub, which ignores both.
+2. H2: tell a conflict from "already merged" by reading the pull request, not by the 405.
+3. H3: the commit email in `/auth/me` and in commits must use the host's no-reply form.
+4. R15 mapping as above (401, 403, 404, network or 5xx).
+5. Block 1/5: sign-in, the session and the draft-view cookie live at the root in the front door; editor processes set no cookies of their own.
+6. Block 3: the prefix comes from the app's code, not an injected script; `localStorage` keys get the wiki namespace.
+7. R6: commit and push before stopping.
+8. Forgejo set-up docs (H6): the bot needs an unlimited `write:repository` token and repo admin; repository-limited tokens cannot do the access re-check (F5).

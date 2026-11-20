@@ -2,15 +2,22 @@ import http from 'node:http';
 
 const port = Number(process.env.PORT ?? 8765);
 const wikis = {
-  'team/wiki': { title: 'Wiki A', pages: { index: '# Index of Wiki A\n\nThe first line of Wiki A.\n' } },
-  'team/wiki-b': { title: 'Wiki B', pages: { index: '# Index of Wiki B\n\nThe first line of Wiki B.\n' } },
+  'team/wiki': {
+    title: 'Wiki A',
+    pages: { index: '# Index of Wiki A\n\nThe first line of Wiki A.\n' },
+  },
+  'team/wiki-b': {
+    title: 'Wiki B',
+    pages: { index: '# Index of Wiki B\n\nThe first line of Wiki B.\n' },
+  },
 };
 const calls = [];
 
 const tools = [
   {
     name: 'list_wikis',
-    description: 'List the wikis this person can open. Every other tool needs one of these names as its wiki argument.',
+    description:
+      'List the wikis this person can open. Every other tool needs one of these names as its wiki argument.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
@@ -19,7 +26,10 @@ const tools = [
     inputSchema: {
       type: 'object',
       properties: {
-        wiki: { type: 'string', description: 'The wiki, as list_wikis names it, for example team/wiki' },
+        wiki: {
+          type: 'string',
+          description: 'The wiki, as list_wikis names it, for example team/wiki',
+        },
         path: { type: 'string', description: 'Page name without .md, for example index' },
       },
       required: ['wiki', 'path'],
@@ -51,11 +61,19 @@ function handle(msg) {
     calls.push({ at: new Date().toISOString(), name, args });
     console.log(`[P5] call ${name} ${JSON.stringify(args)}`);
     if (name === 'list_wikis') {
-      return result(id, text(Object.entries(wikis).map(([k, v]) => `${k} — ${v.title}`).join('\n')));
+      return result(
+        id,
+        text(
+          Object.entries(wikis)
+            .map(([k, v]) => `${k} — ${v.title}`)
+            .join('\n'),
+        ),
+      );
     }
     if (name === 'read_page') {
       const wiki = wikis[args.wiki];
-      if (!wiki) return result(id, text(`Unknown wiki "${args.wiki}". Call list_wikis first.`, true));
+      if (!wiki)
+        return result(id, text(`Unknown wiki "${args.wiki}". Call list_wikis first.`, true));
       const page = wiki.pages[args.path];
       if (!page) return result(id, text(`No page "${args.path}" in ${args.wiki}.`, true));
       return result(id, text(page));
@@ -70,7 +88,9 @@ function handle(msg) {
 http
   .createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/calls') {
-      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(calls, null, 2));
+      res
+        .writeHead(200, { 'content-type': 'application/json' })
+        .end(JSON.stringify(calls, null, 2));
       return;
     }
     if (req.method !== 'POST' || !req.url?.startsWith('/mcp')) {
