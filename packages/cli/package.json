@@ -1,6 +1,6 @@
 {
   "name": "@gitquire/cli",
-  "version": "0.0.0-unknown",
+  "version": "0.1.0",
   "description": "Local-first, agent-friendly Markdown knowledge base with a cross-platform CLI and web editor",
   "keywords": [
     "knowledge-base",
