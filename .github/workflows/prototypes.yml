@@ -138,7 +138,10 @@ jobs:
       - name: Front proxy
         run: |
           HOST_SHIM_PORT=9001 PROXY_HOST_AUTHORIZE=http://127.0.0.1:9001/login/oauth/authorize PROXY_OAUTH_SCOPE='read:user read:repository' PROXY_WIKIS='{"/w/team/wiki/":8101,"/w/team/wiki-b/":8102}' nohup node .github/prototypes/front-proxy.mjs > /tmp/proxy.out 2>&1 &
-          sleep 1
+          for i in $(seq 1 40); do
+            if curl -s -o /dev/null http://127.0.0.1:9000/healthz-proxy; then break; fi
+            sleep 0.5
+          done
           cat /tmp/proxy.out
           curl -s -o /dev/null -w 'GET /w/team/wiki/ -> %{http_code} %{redirect_url}\n' -H 'Accept: text/html' "$PROXY_URL/w/team/wiki/"
 
