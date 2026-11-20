@@ -1477,7 +1477,7 @@ function EditorAreaInner({
     const renderEditorContent = (activityMount: ReactNode) => (
       <div className="relative flex h-full flex-col">
         <DocChangeNotice docName={activeDocName} timelineAvailable />
-        <div className="relative min-h-0 flex-1">
+        <div className="relative min-h-0 flex-1" data-gitquire-editor-overlay-host="">
           <div className="relative h-full">
             {activityMount}
             <FindReplaceController activeDocName={activeDocName} isSourceMode={isSourceMode} />

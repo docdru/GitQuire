@@ -13,6 +13,7 @@ import {
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { editorOverlayHost } from '@/editor/editor-overlay-host';
 import { MentionTextarea } from '@/gitquire-people/MentionTextarea';
 import { knownLogins, usePeople } from '@/lib/gitquire/people';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,8 @@ import {
 const QUOTE_CLASS = 'line-clamp-2 border-s-2 ps-2 text-start text-muted-foreground text-xs';
 const PANEL_CLASS =
   'fixed end-0 top-12 bottom-0 z-40 flex w-full flex-col border-s bg-background shadow-lg sm:w-96';
+const TOGGLE_CLASS =
+  'absolute end-4 bottom-[calc(max(1rem,var(--ask-composer-clearance,0px)+0.75rem)+var(--conflict-footer-height,0px))] z-30 gap-1.5 shadow-md';
 const CARD_CLASS =
   'fixed z-50 flex w-[min(24rem,calc(100vw-1rem))] flex-col gap-3 overflow-y-auto rounded-lg border bg-background p-3 shadow-lg';
 const NARROW_QUERY = '(max-width: 639px)';
@@ -418,6 +421,13 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
   const threads = useThreads(editor);
   const [me, setMe] = useState<Author | null>(null);
   const [draftBody, setDraftBody] = useState('');
+  const [overlayHost, setOverlayHost] = useState<HTMLElement | null>(null);
+
+  const hostProbe = useRef<HTMLSpanElement>(null);
+
+  useLayoutEffect(() => {
+    setOverlayHost(editorOverlayHost(hostProbe.current));
+  }, []);
 
   const forThisDoc = ui.docName === docName;
   const isOpen = ui.open && forThisDoc;
@@ -628,7 +638,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
         type="button"
         variant="outline"
         size="sm"
-        className="fixed end-4 bottom-4 z-40 gap-1.5 shadow-md"
+        className={TOGGLE_CLASS}
         onClick={() => openDiscussions(docName)}
         data-testid="discussion-toggle"
       >
@@ -641,7 +651,8 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
 
   return (
     <>
-      {list}
+      <span ref={hostProbe} hidden />
+      {list && overlayHost !== null && createPortal(list, isOpen ? document.body : overlayHost)}
       {draftCard}
       {threadPopover}
     </>

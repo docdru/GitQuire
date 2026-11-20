@@ -5,6 +5,7 @@ import {
 } from './document-scrollports';
 
 export const ASK_COMPOSER_HEIGHT_VAR = '--ask-composer-height';
+export const ASK_COMPOSER_CLEARANCE_VAR = '--ask-composer-clearance';
 
 export const ASK_COMPOSER_INSET_SELECTORS = [
   DOCUMENT_SCROLL_HOST_SELECTOR,
@@ -19,16 +20,19 @@ export const ASK_COMPOSER_INSET_SELECTORS = [
 let publishedPx: number | null = null;
 let insetStyle: HTMLStyleElement | null = null;
 
-export function publishAskComposerHeight(px: number | null): void {
-  if (px === publishedPx) return;
+let publishedClearancePx: number | null = null;
+
+export function publishAskComposerHeight(px: number | null, clearancePx: number | null = px): void {
+  if (px === publishedPx && clearancePx === publishedClearancePx) return;
   publishedPx = px;
+  publishedClearancePx = clearancePx;
   if (px === null) {
     insetStyle?.remove();
     insetStyle = null;
     return;
   }
   insetStyle ??= document.head.appendChild(document.createElement('style'));
-  insetStyle.textContent = `${ASK_COMPOSER_INSET_SELECTORS.join(', ')} { ${ASK_COMPOSER_HEIGHT_VAR}: ${px}px; }`;
+  insetStyle.textContent = `${ASK_COMPOSER_INSET_SELECTORS.join(', ')} { ${ASK_COMPOSER_HEIGHT_VAR}: ${px}px; } :root { ${ASK_COMPOSER_CLEARANCE_VAR}: ${clearancePx ?? px}px; }`;
 }
 
 export function publishedAskComposerHeightPx(): number {
