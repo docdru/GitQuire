@@ -57,7 +57,7 @@ Proposed and not objected to: a repo becomes a wiki only when a repo admin click
 | R12 | Host credentials live only in the front door; an editor process gets a token for its own repo and the settings it needs, nothing else | All wikis share one container and user |
 | R13 | The agent-token store has exactly one writer, the front door | It caches in memory (`agent-tokens.ts`) |
 | R14 | If the host cannot be reached (network errors and 5xx only): people already inside stay, nobody new is let in | Today "unknown" counts as allowed |
-| R15 | When GitQuire's own token is refused (401, 403) for a wiki, the wiki is "disconnected": administrators see why, nobody new is let in, open sessions end at the next re-check | Otherwise a removed bot or a bot without admin rights silently disables every access re-check |
+| R15 | When GitQuire's own token is refused for a wiki, the wiki is "disconnected": administrators see why, nobody new is let in, open sessions end at the next re-check. On Forgejo (stage 0): 401 = token revoked, 403 = bot not repo admin, 404 on the wiki's own repo = bot removed or repo gone (`repoById` tells which); only network errors and 5xx are "unreachable" (R14) | Otherwise a removed bot or a bot without admin rights silently disables every access re-check |
 | R16 | Every wiki record, folder and person id carries its host; addresses are looked up, not parsed | Keeps several hosts per server possible |
 | R17 | On Forgejo the start fails with a clear message when the version is below the floor or the bot cannot ask for another person's permission | The permission endpoint is admin-only |
 | R18 | A repo becomes or stays a running wiki only while its owner is allowed; the check is in the front door, not in the app | Without it anyone who can give GitQuire access to a repo can use the server, at about 250 MB per wiki in use |
@@ -77,7 +77,7 @@ Proposed and not objected to: a repo becomes a wiki only when a repo admin click
 
 | Side | Function | GitHub | Forgejo |
 | --- | --- | --- | --- |
-| Door | `signIn` | OAuth of the App | OAuth2 application; ask for the smallest scope, use the token once, never store it |
+| Door | `signIn` | OAuth of the App | OAuth2 application; authorize with `response_type=code` and `scope=read:user read:repository`, exchange with `grant_type=authorization_code` (stage 0); use the token once, never store it |
 | Door | `access(personToken, repo)` → none, write, admin | `permissions` on the repo | Same; no "maintain" |
 | Door | `accessByBot(login, repo)` → none, write, admin, refused, unreachable | Collaborator permission with the app token | Same call with the bot token; bot must be repo admin |
 | Door | `addableRepos(personToken)` | Installations and their repos visible to the person | `GET /user/repos` of the person, kept where the person is admin and the bot has access |
