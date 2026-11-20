@@ -101,6 +101,10 @@ async function p1(browser) {
   const page = await ctx.newPage();
   const seen = [];
   page.on('request', (r) => seen.push(`${r.method()} ${r.url()}`));
+  page.on('pageerror', (e) => console.log(`[P1] INFO: page error ${String(e).slice(0, 300)}`));
+  page.on('console', (m) => {
+    if (m.type() === 'error') console.log(`[P1] INFO: console error ${m.text().slice(0, 300)}`);
+  });
   let steps;
   try {
     steps = await signIn(page, A);
@@ -109,6 +113,9 @@ async function p1(browser) {
     return { ctx, page, signedIn: false };
   }
   const landed = page.url().startsWith(`${A}/`);
+  const diag = await page.evaluate(() => ({ shim: window.__gqProtoShim ?? null, head: document.documentElement.outerHTML.slice(0, 300) }));
+  record('P1', null, `diagnostics: shim ${diag.shim}; page starts ${JSON.stringify(diag.head)}`);
+  record('P1', null, `first requests: ${JSON.stringify(seen.slice(0, 25))}`);
   record('P1', landed, `sign-in steps ${JSON.stringify(steps)}; landed under the wiki prefix: ${landed}`);
   const me = await apiCall(page, '/auth/me');
   record('P1', me.status === 200 && me.body.includes('bob'), `GET /auth/me through the prefix -> ${me.status} ${me.body.slice(0, 160)}`);

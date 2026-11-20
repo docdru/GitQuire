@@ -40,7 +40,7 @@ function route(req) {
   return null;
 }
 
-const SHIM = (prefix) => `<script>(()=>{const P=${JSON.stringify(prefix.slice(0, -1))};
+const SHIM = (prefix) => `<script>(()=>{const P=${JSON.stringify(prefix.slice(0, -1))};window.__gqProtoShim=P;
 const fix=(u)=>{try{if(typeof u!=='string')return u;if(u.startsWith('/')&&!u.startsWith('//')&&!u.startsWith(P+'/'))return P+u;
 const x=new URL(u,location.href);if(x.host===location.host&&!x.pathname.startsWith(P+'/')){x.pathname=P+x.pathname;return x.toString();}}catch{}return u;};
 const of=window.fetch.bind(window);window.fetch=(i,o)=>{if(typeof i==='string'||i instanceof URL)return of(fix(String(i)),o);
@@ -115,7 +115,8 @@ const server = http.createServer((req, res) => {
     (up) => {
       const outHeaders = rewriteHeaders(up.headers, target, req);
       const type = String(up.headers['content-type'] ?? '');
-      if (type.includes('text/html')) {
+      if (type.includes('text/html')) note('html', req, `${up.statusCode} ${type} encoding=${up.headers['content-encoding'] ?? 'none'}`);
+      if (type.includes('text/html') && !up.headers['content-encoding']) {
         const chunks = [];
         up.on('data', (c) => chunks.push(c));
         up.on('end', () => {
