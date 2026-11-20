@@ -160,10 +160,10 @@ def web_login(user):
 
 
 def authorize(op, client_id, scope, state):
-    query = urllib.parse.urlencode({
-        "client_id": client_id, "redirect_uri": CALLBACK, "response_type": "code",
-        "state": state, "scope": scope,
-    })
+    params = {"client_id": client_id, "redirect_uri": CALLBACK, "response_type": "code", "state": state}
+    if scope:
+        params["scope"] = scope
+    query = urllib.parse.urlencode(params)
     return get_html(op, BASE + "/login/oauth/authorize?" + query)
 
 
@@ -475,6 +475,7 @@ def f7(token):
 def main():
     version, team_id = setup()
     print(f"Forgejo version {version}")
+    f1("", "GitQuire no scope")
     f1("read:user", "GitQuire user only")
     f1("read:user read:repository", "GitQuire repo read")
     f1("read:user read:repository", "GitQuire repo read, team member", "carol")

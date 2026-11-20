@@ -137,7 +137,7 @@ jobs:
 
       - name: Front proxy
         run: |
-          PROXY_WIKIS='{"/w/team/wiki/":8101,"/w/team/wiki-b/":8102}' nohup node .github/prototypes/front-proxy.mjs > /tmp/proxy.out 2>&1 &
+          PROXY_OAUTH_SCOPE='read:user read:repository' PROXY_WIKIS='{"/w/team/wiki/":8101,"/w/team/wiki-b/":8102}' nohup node .github/prototypes/front-proxy.mjs > /tmp/proxy.out 2>&1 &
           sleep 1
           cat /tmp/proxy.out
           curl -s -o /dev/null -w 'GET /w/team/wiki/ -> %{http_code} %{redirect_url}\n' -H 'Accept: text/html' "$PROXY_URL/w/team/wiki/"
@@ -164,7 +164,7 @@ jobs:
             echo "[P3] INFO: gq-$id before stop: status=$(docker exec gq-$id git -C /data status --porcelain | wc -l) files, unpushed=$(docker exec gq-$id git -C /data log --oneline '@{u}..HEAD' 2>&1 | wc -l) commits"
             echo "[P3] INFO: gq-$id processes: $(docker exec gq-$id sh -c 'ps -eo pid,rss,args --no-headers | grep -c node')"
           done
-          docker exec gq-a sh -c 'ps -eo pid,rss,etimes,args --no-headers | grep node | cut -c1-160'
+          docker exec gq-a ps -eo pid,rss,etimes,args --no-headers | cut -c1-160
           start=$(date +%s.%N)
           docker stop gq-a gq-b
           echo "[P3] INFO: docker stop of both took $(echo "$(date +%s.%N) - $start" | bc) s (default 10 s grace)"
@@ -195,7 +195,7 @@ jobs:
           echo "[P4] INFO: restart of gq-a to /readyz: $(echo "$(date +%s.%N) - $start" | bc) s"
           sleep 20
           docker stats --no-stream --format '[P4] INFO: {{.Name}} memory {{.MemUsage}} cpu {{.CPUPerc}} pids {{.PIDs}}' gq-a
-          docker exec gq-a sh -c 'ps -eo rss,args --no-headers | grep node | awk "{printf \"[P4] INFO: process rss %.0f MB: \", \$1/1024; \$1=\"\"; print substr(\$0,1,120)}"'
+          docker exec gq-a ps -eo rss,etimes,args --no-headers | awk '{printf "[P4] INFO: rss %.0f MB, up %s s: ", $1/1024, $2; $1=""; $2=""; print substr($0,1,140)}'
 
       - name: Logs
         if: always()

@@ -52,16 +52,35 @@ const oo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,
 const osb=navigator.sendBeacon?.bind(navigator);if(osb)navigator.sendBeacon=(u,d)=>osb(fix(String(u)),d);
 })();</script>`;
 
-function rewriteHeaders(headers, target) {
+const HOST_AUTHORIZE = process.env.PROXY_HOST_AUTHORIZE ?? 'http://127.0.0.1:3000/login/oauth/authorize';
+const ADD_SCOPE = process.env.PROXY_OAUTH_SCOPE ?? '';
+
+function rewriteHeaders(headers, target, req) {
   const out = { ...headers };
   const loc = out.location;
-  if (typeof loc === 'string') {
+  if (typeof loc === 'string' && loc.startsWith(HOST_AUTHORIZE)) {
+    const u = new URL(loc);
+    const added = [];
+    if (!u.searchParams.has('response_type')) {
+      u.searchParams.set('response_type', 'code');
+      added.push('response_type=code');
+    }
+    if (ADD_SCOPE && !u.searchParams.has('scope')) {
+      u.searchParams.set('scope', ADD_SCOPE);
+      added.push(`scope=${ADD_SCOPE}`);
+    }
+    if (added.length) note('host-authorize-patched', req, added.join(' '));
+    out.location = u.toString();
+  } else if (typeof loc === 'string') {
     const backendOrigin = `http://127.0.0.1:${port}`;
     if (loc.startsWith(backendOrigin)) out.location = target.prefix.slice(0, -1) + loc.slice(backendOrigin.length);
     else if (loc.startsWith('/') && !loc.startsWith('//') && !prefixOf(loc)) out.location = target.prefix.slice(0, -1) + loc;
   }
   const cookies = out['set-cookie'];
-  if (Array.isArray(cookies)) {
+  const signInStart = target.path.startsWith('/auth/github/login');
+  if (Array.isArray(cookies) && signInStart) {
+    note('sign-in-cookie-kept-at-root', req, cookies.map((c) => c.split('=')[0]).join(','));
+  } else if (Array.isArray(cookies)) {
     out['set-cookie'] = cookies.map((c) =>
       /;\s*path=/i.test(c) ? c.replace(/;\s*path=[^;]*/i, `; Path=${target.prefix}`) : `${c}; Path=${target.prefix}`,
     );
@@ -94,7 +113,7 @@ const server = http.createServer((req, res) => {
   const upstream = http.request(
     { host: '127.0.0.1', port: wikis[target.prefix], method: req.method, path: target.path, headers },
     (up) => {
-      const outHeaders = rewriteHeaders(up.headers, target);
+      const outHeaders = rewriteHeaders(up.headers, target, req);
       const type = String(up.headers['content-type'] ?? '');
       if (type.includes('text/html')) {
         const chunks = [];
