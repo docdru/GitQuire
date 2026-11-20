@@ -65,15 +65,23 @@ where it comes from. Typed links (`supersedes:: [[Decision 9]]`, or a property s
 ### 💬 Comments inside the file
 
 Select text and choose **Comment** (or press ⇧⌘M) to start a thread. Reply, `@mention` teammates
-and resolve when done. Threads are saved in a hidden block at the end of the Markdown file that GitHub doesn't
-render, one JSON line per thread, so they travel through branches and pull requests and diff
-cleanly:
+and resolve when done. Each thread is a plain Markdown footnote: a small mark after the commented passage, and the thread at the end of the page. GitHub,
+Obsidian and other Markdown tools show it as a footnote, people and agents can read and write it
+without GitQuire, and it travels through branches and pull requests and diffs cleanly:
 
 ```markdown
-<!-- gitquire-comments v1
-{"id":"…","anchor":{"exact":"quarterly numbers","prefix":"…","suffix":"…"},"resolved":false,"comments":[…]}
--->
+The quarterly numbers[^c-7f3a] look good.
+
+[^c-7f3a]: 💬 on "quarterly numbers"
+
+    - **@alice** · 2026-11-14 10:32 — Where do these come from?
+    - **@bob** · 2026-11-14 11:02 — From the Q3 controlling export.
 ```
+
+Resolving a thread removes its mark and footnote; the Git history keeps both. The full rules are in
+[Comment format](./docs/content/gitquire/comment-format.mdx). Pages with the older hidden
+`<!-- gitquire-comments v1 … -->` block are still read and switch to footnotes the next time
+they are saved.
 
 ### 🔔 Mentions that reach people
 
