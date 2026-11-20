@@ -1,14 +1,9 @@
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { isMacOS } from '@tiptap/core';
 import type { ComponentProps, ReactNode } from 'react';
-import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { assetTabId, folderTabId } from '@/editor/editor-tabs';
-import {
-  __resetPaneVisibilityStoreForTests,
-  type PaneVisibilityRequest,
-  paneVisibilityStore,
-} from '@/lib/pane-visibility-store';
 import { renderLinguiTemplate } from '@/test-utils/lingui-mock';
 import {
   expectVisualClassTokens,
@@ -429,9 +424,6 @@ describe('EditorTabs runtime behavior', () => {
     const markdownTab = tabButton('docs/team/notes.md');
     expect(markdownTab.textContent).toBe('notes');
     expect(markdownTab.getAttribute('title')).toBeNull();
-    expect(markdownTab.closest('[data-sortable-id]')?.getAttribute('aria-keyshortcuts')).toBe(
-      'Meta+1 Control+1',
-    );
 
     const mdxTab = tabButton('docs/team/spec.mdx');
     expect(mdxTab.textContent).toBe('spec');
@@ -554,15 +546,6 @@ describe('EditorTabs runtime behavior', () => {
 
     const tooltip = await screen.findByRole('tooltip');
     expect(tooltipText(tooltip)).toBe('readme.txt');
-  });
-
-  test('advertises pane-local tab shortcuts only in the focused pane', async () => {
-    focusedPaneId = 'pane-b';
-    const { container } = await renderEditorTabs();
-
-    for (const tab of container.querySelectorAll('[data-sortable-id]')) {
-      expect(tab.getAttribute('aria-keyshortcuts')).toBeNull();
-    }
   });
 
   test('pairs every tab surface with its own foreground token', async () => {
@@ -984,121 +967,6 @@ describe('EditorTabs runtime behavior', () => {
     expect(sortableContextProps.at(-1)?.items).toEqual(visibleTabIds);
   });
 
-  test('handles tab keyboard shortcuts for create, navigation, jump, and reopen', async () => {
-    const { newId } = defaultTabs();
-    await renderEditorTabs();
-
-    const primaryMod = primaryShortcutModifier();
-
-    fireEvent.keyDown(window, { key: 't', ...primaryMod });
-    expect(openNewTab).toHaveBeenCalledTimes(1);
-
-    fireEvent.keyDown(window, { key: 'Tab', ctrlKey: true });
-    expect(activateTab).toHaveBeenLastCalledWith('docs/team/readme');
-
-    fireEvent.keyDown(window, { key: 'Tab', ctrlKey: true, shiftKey: true });
-    expect(activateTab).toHaveBeenLastCalledWith('docs/team/notes');
-
-    fireEvent.keyDown(window, { key: '1', ...primaryMod });
-    expect(activateTab).toHaveBeenLastCalledWith('docs/team/notes');
-
-    fireEvent.keyDown(window, { key: '9', ...primaryMod });
-    expect(activateNewTab).toHaveBeenLastCalledWith(newId);
-
-    fireEvent.keyDown(window, { key: 'T', ...primaryMod, shiftKey: true });
-    expect(reopenClosedTab).toHaveBeenCalledTimes(1);
-
-    activateNewTab.mockClear();
-    activateTab.mockClear();
-    fireEvent.keyDown(window, { key: '7', ...primaryMod });
-    expect(activateNewTab).not.toHaveBeenCalled();
-    expect(activateTab).not.toHaveBeenCalled();
-  });
-
-  test('tab cycling shortcuts wrap from last to first and first to last', async () => {
-    const { newId } = defaultTabs();
-    activeDocName = null;
-    activeTabId = null;
-    activeNewTabId = newId;
-    isNewTabActive = true;
-    await renderEditorTabs();
-
-    fireEvent.keyDown(window, { key: 'Tab', ctrlKey: true });
-    expect(activateTab).toHaveBeenLastCalledWith('docs/team/notes');
-
-    cleanup();
-    resetState();
-    activeDocName = 'docs/team/notes';
-    activeTabId = 'docs/team/notes';
-    await renderEditorTabs();
-
-    fireEvent.keyDown(window, { key: 'Tab', ctrlKey: true, shiftKey: true });
-    expect(activateNewTab).toHaveBeenLastCalledWith(newId);
-  });
-
-  test('modifier hold delays per-tab shortcut hints and non-active close affordances', async () => {
-    vi.useFakeTimers();
-    try {
-      await renderEditorTabs();
-
-      expect(screen.queryAllByTestId('editor-tab-shortcut-hint')).toHaveLength(0);
-
-      fireEvent.keyDown(window, { key: 'Meta', metaKey: true });
-
-      expect(screen.queryAllByTestId('editor-tab-shortcut-hint')).toHaveLength(0);
-      expectVisualClassTokens(
-        screen.getByRole('button', { name: 'Close docs/team/notes.md' }).getAttribute('class'),
-        ['pointer-events-none', 'opacity-0'],
-      );
-      expectVisualClassTokens(
-        screen.getByRole('button', { name: 'Close new tab' }).getAttribute('class'),
-        ['pointer-events-none', 'opacity-0'],
-      );
-
-      act(() => {
-        vi.advanceTimersByTime(999);
-      });
-
-      expect(screen.queryAllByTestId('editor-tab-shortcut-hint')).toHaveLength(0);
-      expectVisualClassTokens(
-        screen.getByRole('button', { name: 'Close docs/team/notes.md' }).getAttribute('class'),
-        ['pointer-events-none', 'opacity-0'],
-      );
-
-      act(() => {
-        vi.advanceTimersByTime(1);
-      });
-
-      expect(
-        screen.getAllByTestId('editor-tab-shortcut-hint').map((node) => node.textContent),
-      ).toEqual(['⌘1', '⌘2', '⌘3', '⌘4', '⌘5', '⌘6']);
-      for (const hint of screen.getAllByTestId('editor-tab-shortcut-hint')) {
-        expectVisualClassTokens(hint.className, ['mr-1', 'w-fit', 'shrink-0']);
-        expectVisualClassTokensAbsent(hint.className, ['absolute', 'animate-in', 'zoom-in-95']);
-      }
-      expect(screen.queryByRole('button', { name: 'Close docs/team/notes.md' })).toBeNull();
-      expect(screen.queryByRole('button', { name: 'Close new tab' })).toBeNull();
-
-      fireEvent.blur(window);
-
-      expect(screen.queryAllByTestId('editor-tab-shortcut-hint')).toHaveLength(0);
-      expect(screen.getByRole('button', { name: 'Close docs/team/notes.md' })).toBeTruthy();
-
-      fireEvent.keyDown(window, { key: 'Meta', metaKey: true });
-      act(() => {
-        vi.advanceTimersByTime(1000);
-      });
-      expect(screen.getAllByTestId('editor-tab-shortcut-hint')).toHaveLength(6);
-
-      fireEvent.keyUp(window, { key: 'Meta' });
-
-      expect(screen.queryAllByTestId('editor-tab-shortcut-hint')).toHaveLength(0);
-      expect(screen.getByRole('button', { name: 'Close docs/team/notes.md' })).toBeTruthy();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   test('context actions close visible document tabs in bulk while routing empty tabs through closeNewTab', async () => {
     const { newId } = defaultTabs();
     pinnedTabIds = ['docs/team/readme'];
@@ -1251,175 +1119,40 @@ describe('EditorTabs runtime behavior', () => {
   });
 });
 
-describe('EditorTabs shortcuts with the editor hidden', () => {
+describe('EditorTabs and the browser tab chords', () => {
   beforeEach(() => {
     resetState();
-    __resetPaneVisibilityStoreForTests();
   });
 
   afterEach(() => {
     cleanup();
-    __resetPaneVisibilityStoreForTests();
   });
 
   test.each([
+    { chord: 'new tab', keys: () => ({ key: 't', ...primaryShortcutModifier() }) },
     {
-      shortcut: 'tab-new',
-      keys: () => ({ key: 't', ...primaryShortcutModifier() }),
-      performs: openNewTab,
-    },
-    {
-      shortcut: 'tab-reopen-closed',
+      chord: 'reopen closed tab',
       keys: () => ({ key: 'T', shiftKey: true, ...primaryShortcutModifier() }),
-      performs: reopenClosedTab,
     },
-    { shortcut: 'tab-next', keys: () => ({ key: 'Tab', ctrlKey: true }), performs: activateTab },
-    {
-      shortcut: 'tab-previous',
-      keys: () => ({ key: 'Tab', ctrlKey: true, shiftKey: true }),
-      performs: activateTab,
-    },
-    {
-      shortcut: 'jump to tab 1',
-      keys: () => ({ key: '1', ...primaryShortcutModifier() }),
-      performs: activateTab,
-    },
-  ])('$shortcut shows a hidden editor before acting', async ({ keys, performs }) => {
-    const log: Array<PaneVisibilityRequest | 'act'> = [];
-    paneVisibilityStore.subscribeRequests((request) => log.push(request));
-    paneVisibilityStore.publish({
-      editor: { open: false, onScreen: false },
-      agents: null,
-    });
-    performs.mockImplementation(() => log.push('act'));
-    onTestFinished(() => {
-      performs.mockReset();
-    });
-    await renderEditorTabs();
+    { chord: 'next tab', keys: () => ({ key: 'Tab', ctrlKey: true }) },
+    { chord: 'previous tab', keys: () => ({ key: 'Tab', ctrlKey: true, shiftKey: true }) },
+    { chord: 'jump to tab 1', keys: () => ({ key: '1', ...primaryShortcutModifier() }) },
+    { chord: 'jump to last tab', keys: () => ({ key: '9', ...primaryShortcutModifier() }) },
+  ])('leaves the $chord chord to the browser', async ({ keys }) => {
+    const { container } = await renderEditorTabs();
 
-    fireEvent.keyDown(window, keys());
-
-    expect(log).toEqual([{ pane: 'editor', open: true }, 'act']);
-  });
-});
-
-describe('EditorTabs global chords — overlay gate', () => {
-  beforeEach(() => {
-    resetState();
-  });
-
-  afterEach(() => {
-    cleanup();
-  });
-
-  async function renderTabsUnderOverlay() {
-    const { EditorTabs } = await import('./EditorTabs');
-    const { Dialog, DialogContent, DialogDescription, DialogTitle } = await import(
-      '@/components/ui/dialog'
-    );
-    const view = render(
-      <TooltipProvider>
-        <EditorTabs />
-        <Dialog open>
-          <DialogContent>
-            <DialogTitle>Command palette</DialogTitle>
-            <DialogDescription>Search files and commands</DialogDescription>
-          </DialogContent>
-        </Dialog>
-      </TooltipProvider>,
-    );
-    await waitFor(() => expect(screen.getByRole('dialog')).not.toBeNull());
-    return view;
-  }
-
-  function press(init: KeyboardEventInit): boolean {
-    let notPrevented = true;
+    let notPrevented = false;
     act(() => {
-      notPrevented = fireEvent.keyDown(document.body, init);
+      notPrevented = fireEvent.keyDown(document.body, keys());
     });
-    return notPrevented;
-  }
 
-  const newTab = () => ({ key: 't', ...primaryShortcutModifier() });
-  const reopenClosed = () => ({ key: 't', shiftKey: true, ...primaryShortcutModifier() });
-  const jumpToFirst = () => ({ key: '1', ...primaryShortcutModifier() });
-  const nextTab = () => ({ key: 'Tab', ctrlKey: true });
-
-  test('⌘T opens a tab with no overlay, and does not while one is open', async () => {
-    await renderEditorTabs();
-    press(newTab());
-    expect(openNewTab).toHaveBeenCalledTimes(1);
-
-    cleanup();
-    resetState();
-
-    await renderTabsUnderOverlay();
-    press(newTab());
+    expect(notPrevented).toBe(true);
     expect(openNewTab).not.toHaveBeenCalled();
-  });
-
-  test('⇧⌘T reopens a closed tab with no overlay, and does not while one is open', async () => {
-    await renderEditorTabs();
-    press(reopenClosed());
-    expect(reopenClosedTab).toHaveBeenCalledTimes(1);
-
-    cleanup();
-    resetState();
-
-    await renderTabsUnderOverlay();
-    press(reopenClosed());
     expect(reopenClosedTab).not.toHaveBeenCalled();
-  });
-
-  test('⌘1 jumps to a tab with no overlay, and does not while one is open', async () => {
-    await renderEditorTabs();
-    press(jumpToFirst());
-    expect(activateTab).toHaveBeenCalledTimes(1);
-
-    cleanup();
-    resetState();
-
-    await renderTabsUnderOverlay();
-    press(jumpToFirst());
     expect(activateTab).not.toHaveBeenCalled();
-  });
-
-  test('⌃Tab cycles tabs with no overlay, and does not while one is open', async () => {
-    await renderEditorTabs();
-    press(nextTab());
-    expect(activateTab).toHaveBeenCalledTimes(1);
-
-    cleanup();
-    resetState();
-
-    await renderTabsUnderOverlay();
-    press(nextTab());
-    expect(activateTab).not.toHaveBeenCalled();
-  });
-
-  test('leaves unclaimed chords alone while an overlay is open', async () => {
-    await renderTabsUnderOverlay();
-
-    const seen: string[] = [];
-    const spy = (event: Event) => seen.push((event as KeyboardEvent).key);
-    document.addEventListener('keydown', spy);
-
-    try {
-      for (const key of ['c', 'v', 'x', 'a', 'z']) {
-        expect(press({ key, ...primaryShortcutModifier() })).toBe(true);
-      }
-      expect(press({ key: 'z', shiftKey: true, ...primaryShortcutModifier() })).toBe(true);
-      for (const key of ['ArrowDown', 'ArrowUp', 'Enter']) {
-        expect(press({ key })).toBe(true);
-      }
-      press({ key: 'Escape' });
-    } finally {
-      document.removeEventListener('keydown', spy);
+    expect(activateNewTab).not.toHaveBeenCalled();
+    for (const tab of container.querySelectorAll('[data-sortable-id]')) {
+      expect(tab.getAttribute('aria-keyshortcuts')).toBeNull();
     }
-
-    expect(seen).toEqual(['c', 'v', 'x', 'a', 'z', 'z', 'ArrowDown', 'ArrowUp', 'Enter', 'Escape']);
-    expect(openNewTab).not.toHaveBeenCalled();
-    expect(activateTab).not.toHaveBeenCalled();
-    expect(reopenClosedTab).not.toHaveBeenCalled();
   });
 });

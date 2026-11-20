@@ -92,7 +92,7 @@ Select text in the WYSIWYG editor and the selection bubble menu shows a **Commen
 
 ## Header panes
 
-The **✨** button at the right end of the header shows and hides the AI chat pane; `Cmd+L` on macOS or `Ctrl+L` on Windows and Linux does the same. See [AI chat](/docs/gitquire/ai-chat). The editor and the pane split the window; drag the gap between them to change their shares. In a window narrower than 48rem (768px at the default text size) only one of them is shown at a time, and opening a document selects the editor.
+The **✨** button at the right end of the header shows and hides the AI chat pane; `Cmd+Option+A` on macOS or `Ctrl+Alt+A` on Windows and Linux does the same. See [AI chat](/docs/gitquire/ai-chat). The editor and the pane split the window; drag the gap between them to change their shares. In a window narrower than 48rem (768px at the default text size) only one of them is shown at a time, and opening a document selects the editor.
 
 ## Properties
 
@@ -158,9 +158,9 @@ Open tabs, pane order, sizes, and the focused pane are restored with the project
 
 ## Command palette
 
-`Cmd+K` opens the command palette, and `Cmd+P` (`Ctrl+P` on Windows / Linux) does the same from anywhere — including while text is selected in the visual editor, where `Cmd+K` adds a link instead. Type to jump to any file or folder, run create commands, open the graph or settings, or dispatch to an agent; recently opened entries surface first. In the desktop app it also switches projects and worktrees. In project windows, searching `editor` finds **Show Editor** or **Hide Editor**, whichever applies, the same toggle as the header's **Editor** button (see [Hide the editor](#hide-the-editor)).
+`Cmd+K` (`Ctrl+K` on Windows / Linux) opens the command palette, and `Cmd+Option+P` (`Ctrl+Alt+P`) does the same from anywhere, including while text is selected in the visual editor, where `Cmd+K` adds a link instead. Type to jump to any file or folder, run create commands, open the graph or settings, or dispatch to an agent; recently opened entries surface first. In the desktop app it also switches projects and worktrees. In project windows, searching `editor` finds **Show Editor** or **Hide Editor**, whichever applies, the same toggle as the header's **Editor** button (see [Hide the editor](#hide-the-editor)).
 
-In the browser, `Cmd+P` is normally the print shortcut; GitQuire takes it for the palette, so print from the browser's own menu instead.
+GitQuire leaves the browser's own shortcuts alone: `Cmd+P` prints, `Cmd+L` goes to the address bar, and `Cmd+N`, `Cmd+T`, `Ctrl+Tab` and `Cmd+1` to `Cmd+9` open and switch browser windows and tabs. Editor tabs are switched with the mouse.
 
 Remove a recent project from the list by hovering its row and clicking the ×, or right-clicking for a **Remove from recent projects** menu — the same controls are on the **Switch project** dropdown in the header at the top of the window and in the Project Navigator. A recent whose folder was deleted or moved off disk isn't greyed out; it's cleared automatically the next time you open it, with a brief notice, instead of opening a broken window.
 
@@ -183,19 +183,14 @@ Keyboard shortcuts (on Windows / Linux, use `Ctrl` in place of `Cmd` and `Alt` i
 
 | Shortcut | Action |
 | --- | --- |
-| `Cmd+T` | Open a new editor tab. |
-| `Ctrl+Tab` | Move to the next editor tab. |
-| `Ctrl+Shift+Tab` | Move to the previous editor tab. |
-| `Cmd+1` ... `Cmd+8` | Jump to one of the first eight editor tabs. |
-| `Cmd+9` | Jump to the last editor tab. |
-| `Cmd+Shift+T` | Reopen the most recently closed editor tab. |
 | `Cmd+K` | Command palette — or, with text selected in the visual editor, add a link (cursor inside a link edits it). |
 | `Cmd+Option+S` | Show / Hide the file sidebar. Matches Apple's standard sidebar accelerator. |
 | `Cmd+Option+B` | Show / Hide the document panel. Matches VS Code's Secondary Side Bar accelerator. |
 | `Cmd+Option+M` | Toggle between the visual and source editors, keeping your place. |
 | `Cmd+Option+E` | **View in source** — jump from the visual editor to the Markdown for the block at the cursor, centered and highlighted (visual editor only). |
-| `Cmd+P` | Open the [command palette](#command-palette) from anywhere — unlike `Cmd+K`, it opens the palette even while text is selected in the visual editor. |
-| `Cmd+L` | Show / Hide the AI chat pane. |
+| `Cmd+Option+P` | Open the [command palette](#command-palette) from anywhere — unlike `Cmd+K`, it opens the palette even while text is selected in the visual editor. |
+| `Cmd+Option+A` | Show / Hide the AI chat pane. |
+| `Cmd+Option+N` | New file. |
 | `Cmd+Shift+M` | [Comment](/docs/gitquire/comments) on the selected text (visual editor). |
 | `Cmd+F` | Find in the visual editor. |
 | `Cmd+Option+F` | Find and replace (`Ctrl+H` on Windows / Linux). |

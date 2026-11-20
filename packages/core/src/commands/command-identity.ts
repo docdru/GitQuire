@@ -176,7 +176,7 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     shortcutId: 'new-item',
     availability: {},
     palette: { group: 'commands', visibility: 'always' },
-    menu: [{ section: 'file-create', order: 0, accelerator: 'CmdOrCtrl+N' }],
+    menu: [{ section: 'file-create', order: 0, accelerator: 'CmdOrCtrl+Alt+N' }],
   },
   {
     id: 'new-folder',
@@ -357,7 +357,7 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     },
     availability: {},
     palette: { group: 'view', visibility: 'search-only' },
-    menu: [{ section: 'view-panels', order: 4, accelerator: 'CmdOrCtrl+L' }],
+    menu: [{ section: 'view-panels', order: 4, accelerator: 'CmdOrCtrl+Alt+A' }],
   },
   {
     id: 'toggle-show-hidden-files',

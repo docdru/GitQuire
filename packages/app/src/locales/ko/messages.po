@@ -751,18 +751,6 @@ msgstr "{label} 작업"
 msgid "Activate new tab"
 msgstr "새 탭 활성화"
 
-msgid "Activate one of the first eight editor tabs."
-msgstr "처음 8개 편집기 탭 중 하나 활성화"
-
-msgid "Activate the last editor tab."
-msgstr "마지막 편집기 탭 활성화"
-
-msgid "Activate the next editor tab."
-msgstr "다음 편집기 탭 활성화"
-
-msgid "Activate the previous editor tab."
-msgstr "이전 편집기 탭 활성화"
-
 msgid "Active"
 msgstr "활성"
 
@@ -3866,14 +3854,8 @@ msgstr "항목 {0}"
 msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
 msgstr ""
 
-msgid "Jump to last tab"
-msgstr "마지막 탭으로 이동"
-
 msgid "Jump to page {pageNumber}"
 msgstr "{pageNumber}페이지로 이동"
-
-msgid "Jump to tab 1-8"
-msgstr "1~8번 탭으로 이동"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "커서가 있는 블록의 Markdown 소스로 이동해 가운데에 표시하고 강조합니다."
@@ -4625,9 +4607,6 @@ msgstr "다음 일치 항목"
 msgid "Next source diagnostic"
 msgstr "다음 소스 진단으로 이동"
 
-msgid "Next tab"
-msgstr "다음 탭"
-
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "아직 <0>.markdownlint.*</0> 파일이 없습니다. 모든 규칙은 VS Code markdownlint 확장과 같은 기본값으로 실행됩니다. 줄 길이를 제외한 모든 규칙이 켜져 있습니다."
 
@@ -5057,9 +5036,6 @@ msgstr "브라우저에서 {keyName} 열기"
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "다음 주소를 열어 이 코드를 입력하세요: <0><1>{verificationUri}</1><2/></0>"
 
-msgid "Open a blank editor tab."
-msgstr "빈 편집기 탭을 엽니다."
-
 msgid "Open a doc to share its URL."
 msgstr "URL을 공유할 문서를 여세요."
 
@@ -5089,9 +5065,6 @@ msgstr "소스 편집기 모드에서 CodeMirror 검색을 엽니다."
 
 msgid "Open CodeMirror's go-to-line prompt."
 msgstr "CodeMirror의 줄 이동 프롬프트를 엽니다."
-
-msgid "Open CodeMirror's lint diagnostics panel."
-msgstr "CodeMirror lint 진단 패널을 엽니다."
 
 msgid "Open date picker for {keyName}"
 msgstr "{keyName} 날짜 선택기 열기"
@@ -5140,9 +5113,6 @@ msgstr "설정 열기"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "소스 문서 열기: {mirrorSrc}"
-
-msgid "Open source lint panel"
-msgstr "소스 lint 패널 열기"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "소스 열기: {mirrorSrc}"
@@ -5495,9 +5465,6 @@ msgstr "이전 변경"
 
 msgid "Previous match"
 msgstr "이전 일치 항목"
-
-msgid "Previous tab"
-msgstr "이전 탭"
 
 msgid "Private"
 msgstr "비공개"
@@ -5856,12 +5823,6 @@ msgstr "렌더링 오류"
 msgid "Rendered"
 msgstr "렌더링됨"
 
-msgid "Reopen closed tab"
-msgstr "닫은 탭 다시 열기"
-
-msgid "Reopen the most recently closed editor tab."
-msgstr "가장 최근에 닫은 편집기 탭을 다시 엽니다."
-
 msgid "Reopen this window to sign in with your browser"
 msgstr "브라우저로 로그인하려면 이 창을 다시 여세요"
 
@@ -6161,7 +6122,7 @@ msgid "Search failed."
 msgstr "검색에 실패했습니다."
 
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
-msgstr "파일, 명령, 프로젝트 및 AI 핸드오프 작업을 검색합니다. 비주얼 편집기에서 텍스트를 선택하면 K 키 조합 대신 링크를 추가하고, P 키 조합은 항상 팔레트를 엽니다."
+msgstr ""
 
 msgid "Search files, folders, and commands for the current workspace."
 msgstr "현재 워크스페이스의 파일, 폴더 및 명령을 검색합니다."

@@ -747,18 +747,6 @@ msgstr "{label}-এর জন্য ক্রিয়া"
 msgid "Activate new tab"
 msgstr "নতুন ট্যাব সক্রিয় করুন"
 
-msgid "Activate one of the first eight editor tabs."
-msgstr "প্রথম আটটি সম্পাদক ট্যাবের যেকোনো একটি সক্রিয় করুন।"
-
-msgid "Activate the last editor tab."
-msgstr "শেষ সম্পাদক ট্যাব সক্রিয় করুন।"
-
-msgid "Activate the next editor tab."
-msgstr "পরবর্তী সম্পাদক ট্যাব সক্রিয় করুন।"
-
-msgid "Activate the previous editor tab."
-msgstr "আগের সম্পাদক ট্যাব সক্রিয় করুন।"
-
 msgid "Active"
 msgstr "সক্রিয়"
 
@@ -3862,14 +3850,8 @@ msgstr "আইটেম {0}"
 msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
 msgstr ""
 
-msgid "Jump to last tab"
-msgstr "শেষ ট্যাবে যান"
-
 msgid "Jump to page {pageNumber}"
 msgstr "পাতা {pageNumber}-এ যান"
-
-msgid "Jump to tab 1-8"
-msgstr "ট্যাব ১-৮-এ যান"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "কার্সরে থাকা ব্লকের markdown সোর্সে যান, মাঝখানে ও হাইলাইট করা অবস্থায়।"
@@ -4621,9 +4603,6 @@ msgstr "পরবর্তী মিল"
 msgid "Next source diagnostic"
 msgstr "পরবর্তী সোর্স নির্ণয়"
 
-msgid "Next tab"
-msgstr "পরবর্তী ট্যাব"
-
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "এখনও কোনো <0>.markdownlint.*</0> ফাইল নেই — প্রতিটি নিয়ম VS Code markdownlint এক্সটেনশনের মতো একই ডিফল্টে চলে: লাইনের দৈর্ঘ্য ছাড়া সব চালু।"
 
@@ -5053,9 +5032,6 @@ msgstr "{keyName} ব্রাউজারে খুলুন"
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "<0><1>{verificationUri}</1><2/></0> খুলুন এবং এই কোডটি দিন:"
 
-msgid "Open a blank editor tab."
-msgstr "একটি খালি সম্পাদক ট্যাব খুলুন।"
-
 msgid "Open a doc to share its URL."
 msgstr "কোনো নথির URL ভাগ করতে সেটি খুলুন।"
 
@@ -5085,9 +5061,6 @@ msgstr "সোর্স সম্পাদক মোডে CodeMirror অনু�
 
 msgid "Open CodeMirror's go-to-line prompt."
 msgstr "CodeMirror-এর লাইনে-যাওয়া প্রম্পট খুলুন।"
-
-msgid "Open CodeMirror's lint diagnostics panel."
-msgstr "CodeMirror-এর lint নির্ণয় প্যানেল খুলুন।"
 
 msgid "Open date picker for {keyName}"
 msgstr "{keyName}-এর জন্য তারিখ নির্বাচক খুলুন"
@@ -5136,9 +5109,6 @@ msgstr "সেটিং খুলুন"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "উৎস নথি খুলুন: {mirrorSrc}"
-
-msgid "Open source lint panel"
-msgstr "সোর্স lint প্যানেল খুলুন"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "উৎস খুলুন: {mirrorSrc}"
@@ -5491,9 +5461,6 @@ msgstr "আগের পরিবর্তন"
 
 msgid "Previous match"
 msgstr "আগের মিল"
-
-msgid "Previous tab"
-msgstr "আগের ট্যাব"
 
 msgid "Private"
 msgstr "ব্যক্তিগত"
@@ -5852,12 +5819,6 @@ msgstr "রেন্ডার ত্রুটি"
 msgid "Rendered"
 msgstr "রেন্ডার করা"
 
-msgid "Reopen closed tab"
-msgstr "বন্ধ করা ট্যাব আবার খুলুন"
-
-msgid "Reopen the most recently closed editor tab."
-msgstr "সবচেয়ে সম্প্রতি বন্ধ করা সম্পাদক ট্যাবটি আবার খুলুন।"
-
 msgid "Reopen this window to sign in with your browser"
 msgstr "আপনার ব্রাউজার দিয়ে সাইন ইন করতে এই জানালাটি আবার খুলুন"
 
@@ -6157,7 +6118,7 @@ msgid "Search failed."
 msgstr "অনুসন্ধান ব্যর্থ।"
 
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
-msgstr "ফাইল, কমান্ড, প্রকল্প ও AI হস্তান্তরের ক্রিয়া খুঁজুন। দৃশ্য সম্পাদকে লেখা নির্বাচিত থাকলে K সংযোগটি বদলে একটি লিংক যোগ করে; P সংযোগটি সবসময় কমান্ড প্যালেট খোলে।"
+msgstr ""
 
 msgid "Search files, folders, and commands for the current workspace."
 msgstr "বর্তমান ওয়ার্কস্পেসের ফাইল, ফোল্ডার ও কমান্ড খুঁজুন।"

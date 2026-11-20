@@ -747,18 +747,6 @@ msgstr "{label} के लिए क्रियाएँ"
 msgid "Activate new tab"
 msgstr "नया टैब सक्रिय करें"
 
-msgid "Activate one of the first eight editor tabs."
-msgstr "पहले आठ संपादक टैब में से किसी एक को सक्रिय करें।"
-
-msgid "Activate the last editor tab."
-msgstr "अंतिम संपादक टैब सक्रिय करें।"
-
-msgid "Activate the next editor tab."
-msgstr "अगला संपादक टैब सक्रिय करें।"
-
-msgid "Activate the previous editor tab."
-msgstr "पिछला संपादक टैब सक्रिय करें।"
-
 msgid "Active"
 msgstr "सक्रिय"
 
@@ -3862,14 +3850,8 @@ msgstr "आइटम {0}"
 msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
 msgstr ""
 
-msgid "Jump to last tab"
-msgstr "अंतिम टैब पर जाएँ"
-
 msgid "Jump to page {pageNumber}"
 msgstr "पेज {pageNumber} पर जाएँ"
-
-msgid "Jump to tab 1-8"
-msgstr "टैब 1-8 पर जाएँ"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "कर्सर वाले ब्लॉक के markdown स्रोत पर जाएँ, बीच में और उभारा हुआ।"
@@ -4621,9 +4603,6 @@ msgstr "अगला मेल"
 msgid "Next source diagnostic"
 msgstr "अगला स्रोत निदान"
 
-msgid "Next tab"
-msgstr "अगला टैब"
-
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "अभी कोई <0>.markdownlint.*</0> फ़ाइल नहीं है — हर नियम उन्हीं डिफ़ॉल्ट पर चलता है जो VS Code markdownlint एक्सटेंशन में हैं: पंक्ति की लंबाई को छोड़कर सब चालू।"
 
@@ -5053,9 +5032,6 @@ msgstr "{keyName} को ब्राउज़र में खोलें"
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "<0><1>{verificationUri}</1><2/></0> खोलें और यह कोड डालें:"
 
-msgid "Open a blank editor tab."
-msgstr "एक खाली संपादक टैब खोलें।"
-
 msgid "Open a doc to share its URL."
 msgstr "किसी दस्तावेज़ का URL साझा करने के लिए उसे खोलें।"
 
@@ -5085,9 +5061,6 @@ msgstr "स्रोत संपादक मोड में CodeMirror खो
 
 msgid "Open CodeMirror's go-to-line prompt."
 msgstr "CodeMirror का पंक्ति-पर-जाएँ प्रॉम्प्ट खोलें।"
-
-msgid "Open CodeMirror's lint diagnostics panel."
-msgstr "CodeMirror का lint निदान पैनल खोलें।"
 
 msgid "Open date picker for {keyName}"
 msgstr "{keyName} के लिए तारीख़ चयनकर्ता खोलें"
@@ -5136,9 +5109,6 @@ msgstr "सेटिंग खोलें"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "स्रोत दस्तावेज़ खोलें: {mirrorSrc}"
-
-msgid "Open source lint panel"
-msgstr "स्रोत lint पैनल खोलें"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "स्रोत खोलें: {mirrorSrc}"
@@ -5491,9 +5461,6 @@ msgstr "पिछला बदलाव"
 
 msgid "Previous match"
 msgstr "पिछला मेल"
-
-msgid "Previous tab"
-msgstr "पिछला टैब"
 
 msgid "Private"
 msgstr "निजी"
@@ -5852,12 +5819,6 @@ msgstr "रेंडर त्रुटि"
 msgid "Rendered"
 msgstr "रेंडर किया गया"
 
-msgid "Reopen closed tab"
-msgstr "बंद किया गया टैब फिर से खोलें"
-
-msgid "Reopen the most recently closed editor tab."
-msgstr "सबसे हाल में बंद किया गया संपादक टैब फिर से खोलें।"
-
 msgid "Reopen this window to sign in with your browser"
 msgstr "अपने ब्राउज़र से साइन इन करने के लिए यह विंडो दोबारा खोलें"
 
@@ -6157,7 +6118,7 @@ msgid "Search failed."
 msgstr "खोज विफल।"
 
 msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
-msgstr "फ़ाइलें, कमांड, प्रोजेक्ट और AI हैंडऑफ़ क्रियाएँ खोजें। दृश्य संपादक में पाठ चयनित होने पर K संयोजन इसके बजाय एक लिंक जोड़ता है; P संयोजन हमेशा कमांड पैलेट खोलता है।"
+msgstr ""
 
 msgid "Search files, folders, and commands for the current workspace."
 msgstr "मौजूदा कार्यक्षेत्र के लिए फ़ाइलें, फ़ोल्डर और कमांड खोजें।"

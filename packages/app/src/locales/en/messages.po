@@ -751,18 +751,6 @@ msgstr "Actions for {label}"
 msgid "Activate new tab"
 msgstr "Activate new tab"
 
-msgid "Activate one of the first eight editor tabs."
-msgstr "Activate one of the first eight editor tabs."
-
-msgid "Activate the last editor tab."
-msgstr "Activate the last editor tab."
-
-msgid "Activate the next editor tab."
-msgstr "Activate the next editor tab."
-
-msgid "Activate the previous editor tab."
-msgstr "Activate the previous editor tab."
-
 msgid "Active"
 msgstr "Active"
 
@@ -3866,14 +3854,8 @@ msgstr "Item {0}"
 msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
 msgstr "Its changes are thrown away for everyone. The live wiki stays as it is."
 
-msgid "Jump to last tab"
-msgstr "Jump to last tab"
-
 msgid "Jump to page {pageNumber}"
 msgstr "Jump to page {pageNumber}"
-
-msgid "Jump to tab 1-8"
-msgstr "Jump to tab 1-8"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "Jump to the markdown source for the block at the cursor, centered and highlighted."
@@ -4625,9 +4607,6 @@ msgstr "Next match"
 msgid "Next source diagnostic"
 msgstr "Next source diagnostic"
 
-msgid "Next tab"
-msgstr "Next tab"
-
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 
@@ -5057,9 +5036,6 @@ msgstr "Open {keyName} in browser"
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 
-msgid "Open a blank editor tab."
-msgstr "Open a blank editor tab."
-
 msgid "Open a doc to share its URL."
 msgstr "Open a doc to share its URL."
 
@@ -5089,9 +5065,6 @@ msgstr "Open CodeMirror search in source editor mode."
 
 msgid "Open CodeMirror's go-to-line prompt."
 msgstr "Open CodeMirror's go-to-line prompt."
-
-msgid "Open CodeMirror's lint diagnostics panel."
-msgstr "Open CodeMirror's lint diagnostics panel."
 
 msgid "Open date picker for {keyName}"
 msgstr "Open date picker for {keyName}"
@@ -5140,9 +5113,6 @@ msgstr "Open settings"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "Open source doc: {mirrorSrc}"
-
-msgid "Open source lint panel"
-msgstr "Open source lint panel"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "Open source: {mirrorSrc}"
@@ -5495,9 +5465,6 @@ msgstr "Previous change"
 
 msgid "Previous match"
 msgstr "Previous match"
-
-msgid "Previous tab"
-msgstr "Previous tab"
 
 msgid "Private"
 msgstr "Private"
@@ -5855,12 +5822,6 @@ msgstr "render error"
 
 msgid "Rendered"
 msgstr "Rendered"
-
-msgid "Reopen closed tab"
-msgstr "Reopen closed tab"
-
-msgid "Reopen the most recently closed editor tab."
-msgstr "Reopen the most recently closed editor tab."
 
 msgid "Reopen this window to sign in with your browser"
 msgstr "Reopen this window to sign in with your browser"

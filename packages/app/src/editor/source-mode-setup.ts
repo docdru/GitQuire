@@ -6,7 +6,7 @@ import {
 } from '@codemirror/autocomplete';
 import { defaultKeymap } from '@codemirror/commands';
 import { bracketMatching, foldGutter, foldKeymap, indentOnInput } from '@codemirror/language';
-import { lintKeymap } from '@codemirror/lint';
+import { nextDiagnostic } from '@codemirror/lint';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { EditorState, type Extension } from '@codemirror/state';
 import {
@@ -43,6 +43,6 @@ export const sourceModeSetup: Extension = [
     ...searchKeymap,
     ...foldKeymap,
     ...completionKeymap,
-    ...lintKeymap,
+    { key: 'F8', run: nextDiagnostic },
   ]),
 ];
