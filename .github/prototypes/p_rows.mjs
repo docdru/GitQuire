@@ -118,6 +118,8 @@ async function p1(browser) {
   record('P1', null, `first requests: ${JSON.stringify(seen.slice(0, 25))}`);
   record('P1', landed, `sign-in steps ${JSON.stringify(steps)}; landed under the wiki prefix: ${landed}`);
   const me = await apiCall(page, '/auth/me');
+  const cookieList = (await ctx.cookies()).map((c) => [c.name, c.path]);
+  record('P1', null, `all cookies after sign-in: ${JSON.stringify(cookieList)}`);
   record('P1', me.status === 200 && me.body.includes('bob'), `GET /auth/me through the prefix -> ${me.status} ${me.body.slice(0, 160)}`);
   try {
     await openPage(page, A, 'index');
@@ -159,6 +161,12 @@ async function p1(browser) {
       return sizes.length > 0 && sizes.every(([, , w]) => w > 0) ? sizes : null;
     }, 30_000);
     const all = await editor(page).locator('img').evaluateAll((imgs) => imgs.map((i) => [i.getAttribute('src'), i.currentSrc, i.naturalWidth]));
+    for (const [, url] of all) {
+      const viaProxy = await page.request.get(url).catch((e) => ({ status: () => String(e) }));
+      const direct = await page.request.get(url.replace('127.0.0.1:9000', '127.0.0.1:8101')).catch((e) => ({ status: () => String(e) }));
+      const prefixed = await page.request.get(url.replace('127.0.0.1:9000/', '127.0.0.1:9000/w/team/wiki/')).catch((e) => ({ status: () => String(e) }));
+      record('P1', null, `image ${url}: through the catch-all -> ${viaProxy.status()}, with the prefix -> ${prefixed.status()}, straight to the wiki's process -> ${direct.status()}`);
+    }
     record('P1', Boolean(loaded), `uploaded image in the editor: ${JSON.stringify(all)}`);
   }
 
@@ -187,6 +195,7 @@ async function p1(browser) {
   } catch {}
   record('P1', created.status === 201 && Boolean(slug), `create and open a draft -> ${created.status} ${created.body.slice(0, 160)}`);
   if (slug) {
+    await page.reload();
     const cookies = await ctx.cookies(PROXY);
     record('P1', null, `cookies after opening the draft: ${JSON.stringify(cookies.map((c) => [c.name, c.path]))}`);
     const draftText = `Draft edit ${Date.now()}`;
@@ -207,6 +216,7 @@ async function p1(browser) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug: null }),
     });
+    await page.reload();
     await openPage(page, A, 'index');
     const after = await apiCall(page, '/api/gitquire/drafts/current');
     record('P1', left.status === 200 && after.body.includes('"viewing":null'), `leave the draft -> ${left.status}; current ${after.body.slice(0, 120)}`);
@@ -233,6 +243,12 @@ async function p2(browser) {
   const inBDisk = disk('gq-b', 'index.md').includes(offlineText);
   const inBEditor = (await editor(pageB).innerText()).includes(offlineText);
   record('P2', !inBDisk && !inBEditor, `offline edit of A after switching to B: in B's file ${inBDisk}, in B's editor ${inBEditor}`);
+  const tabsKey = (await pageB.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('ok-editor-tabs')))) ?? [];
+  for (const key of tabsKey) {
+    record('P2', null, `${key} after visiting A then B: ${(await pageB.evaluate((k) => localStorage.getItem(k), key))?.slice(0, 400)}`);
+  }
+  const syncA = await apiCall(pageB, `${A}/api/sync/status`);
+  record('P3', null, `sync status of A: ${syncA.status} ${syncA.body.slice(0, 500)}`);
   const storage = await pageB.evaluate(async () => ({
     local: Object.keys(localStorage),
     session: Object.keys(sessionStorage),

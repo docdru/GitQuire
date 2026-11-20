@@ -116,7 +116,9 @@ jobs:
               git config --global user.name GitQuire && git config --global user.email gitquire@localhost
               git clone -q http://gitquire-bot:$BOT_TOKEN@127.0.0.1:3000/team/$repo.git /tmp/c
               cp -a /tmp/c/. /data/ && cd /data && gitquire init < /dev/null > /dev/null
-              mkdir -p .gitquire/local && printf 'autoSync:\n  mode: full\n' >> .gitquire/local/config.yml"
+              mkdir -p .gitquire/local
+              if ! grep -q '^autoSync:' .gitquire/local/config.yml 2>/dev/null; then printf 'autoSync:\n  mode: full\n' >> .gitquire/local/config.yml; fi
+              echo '--- .gitquire/local/config.yml'; cat .gitquire/local/config.yml; git remote -v | sed 's/:[^:@]*@/:***@/'"
             start=$(date +%s.%N)
             docker run -d --name "gq-$id" --network host -v "gq-$id:/data" -v "gq-$id-drafts:/.gitquire-drafts" \
               -e PORT="$port" -e GITQUIRE_ALLOW_EXTERNAL=1 \
