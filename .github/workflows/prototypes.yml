@@ -64,3 +64,141 @@ jobs:
         env:
           FORGEJO_ID: ${{ job.services.forgejo.id }}
         run: docker logs "$FORGEJO_ID" 2>&1 | tail -80
+
+  gitquire-rows:
+    name: GitQuire rows P1-P4
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PROXY_URL: http://127.0.0.1:9000
+      PROXY_LOG: /tmp/proxy-escapes.log
+      PLAYWRIGHT_VERSION: 1.63.0
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start Forgejo
+        run: |
+          set -eu
+          docker run -d --name forgejo --network host \
+            -e USER_UID=1000 -e USER_GID=1000 \
+            -e FORGEJO__security__INSTALL_LOCK=true \
+            -e FORGEJO__database__DB_TYPE=sqlite3 \
+            -e FORGEJO__server__ROOT_URL=http://127.0.0.1:3000/ \
+            -e FORGEJO__server__HTTP_PORT=3000 \
+            -e FORGEJO__service__NO_REPLY_ADDRESS=noreply.example.org \
+            -e FORGEJO__repository__DEFAULT_BRANCH=main \
+            "$FORGEJO_IMAGE"
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/v1/version >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          docker exec -u git forgejo forgejo admin user create --admin --username root \
+            --password "$FORGEJO_ADMIN_PASSWORD" --email root@example.org --must-change-password=false
+          python3 -I .github/prototypes/forgejo_setup.py
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: gitquire:ci
+
+      - name: Prepare two wikis and start them
+        run: |
+          set -eu
+          for w in a:wiki:8101 b:wiki-b:8102; do
+            id=${w%%:*}; rest=${w#*:}; repo=${rest%%:*}; port=${rest#*:}
+            docker volume create "gq-$id" >/dev/null
+            docker run --rm --network host -v "gq-$id:/data" --entrypoint sh gitquire:ci -c "
+              set -eu
+              git config --global user.name GitQuire && git config --global user.email gitquire@localhost
+              git clone -q http://gitquire-bot:$BOT_TOKEN@127.0.0.1:3000/team/$repo.git /tmp/c
+              cp -a /tmp/c/. /data/ && cd /data && gitquire init < /dev/null > /dev/null
+              mkdir -p .gitquire/local && printf 'autoSync:\n  mode: full\n' >> .gitquire/local/config.yml"
+            start=$(date +%s.%N)
+            docker run -d --name "gq-$id" --network host -v "gq-$id:/data" -v "gq-$id-drafts:/.gitquire-drafts" \
+              -e PORT="$port" -e GITQUIRE_ALLOW_EXTERNAL=1 \
+              -e GITQUIRE_EXTERNAL_URL="$PROXY_URL/w/team/$repo" \
+              -e GITHUB_APP_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITHUB_APP_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+              -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+              -e GITQUIRE_REPO="team/$repo" \
+              -e GITQUIRE_GITHUB_WEB_URL=http://127.0.0.1:3000 \
+              -e GITQUIRE_GITHUB_API_URL=http://127.0.0.1:3000/api/v1 \
+              gitquire:ci >/dev/null
+            for i in $(seq 1 120); do
+              if curl -fsS "http://127.0.0.1:$port/readyz" >/dev/null 2>&1; then break; fi
+              sleep 0.5
+            done
+            curl -fsS "http://127.0.0.1:$port/readyz" >/dev/null
+            echo "[P4] INFO: gq-$id first start to /readyz: $(echo "$(date +%s.%N) - $start" | bc) s"
+          done
+
+      - name: Front proxy
+        run: |
+          PROXY_WIKIS='{"/w/team/wiki/":8101,"/w/team/wiki-b/":8102}' nohup node .github/prototypes/front-proxy.mjs > /tmp/proxy.out 2>&1 &
+          sleep 1
+          cat /tmp/proxy.out
+          curl -s -o /dev/null -w 'GET /w/team/wiki/ -> %{http_code} %{redirect_url}\n' -H 'Accept: text/html' "$PROXY_URL/w/team/wiki/"
+
+      - name: Install Playwright
+        run: |
+          set -eu
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "playwright@$PLAYWRIGHT_VERSION" >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: P1 and P2
+        run: |
+          cp .github/prototypes/p_rows.mjs /tmp/pw/
+          cd /tmp/pw && node p_rows.mjs
+
+      - name: P3 stop with unpushed work
+        run: |
+          set -u
+          sentinel=$(cat /tmp/p3-sentinel.txt 2>/dev/null || echo none)
+          echo "[P3] INFO: sentinel '$sentinel'"
+          for id in a b; do
+            echo "[P3] INFO: gq-$id before stop: status=$(docker exec gq-$id git -C /data status --porcelain | wc -l) files, unpushed=$(docker exec gq-$id git -C /data log --oneline '@{u}..HEAD' 2>&1 | wc -l) commits"
+            echo "[P3] INFO: gq-$id processes: $(docker exec gq-$id sh -c 'ps -eo pid,rss,args --no-headers | grep -c node')"
+          done
+          docker exec gq-a sh -c 'ps -eo pid,rss,etimes,args --no-headers | grep node | cut -c1-160'
+          start=$(date +%s.%N)
+          docker stop gq-a gq-b
+          echo "[P3] INFO: docker stop of both took $(echo "$(date +%s.%N) - $start" | bc) s (default 10 s grace)"
+          docker inspect -f '{{.Name}} exit {{.State.ExitCode}} oom {{.State.OOMKilled}}' gq-a gq-b
+          docker logs --tail 30 gq-a 2>&1 | cut -c1-240
+          for id in a:wiki b:wiki-b; do
+            v=${id%%:*}; repo=${id#*:}
+            docker run --rm --network host -v "gq-$v:/data" --entrypoint sh gitquire:ci -c "
+              cd /data
+              git fetch -q origin 2>/dev/null
+              echo \"[P3] INFO: gq-$v volume after stop: uncommitted=\$(git status --porcelain | wc -l) unpushed=\$(git log --oneline origin/main..HEAD | wc -l) last sentinel on volume=\$(grep -c '$sentinel' index.md)\"
+              echo \"[P3] INFO: gq-$v on Forgejo main: last sentinel=\$(git show origin/main:index.md | grep -c '$sentinel') commits=\$(git rev-list --count origin/main)\"
+              git log --oneline -5 origin/main"
+          done
+          drafts=$(docker run --rm -v gq-a-drafts:/d alpine sh -c 'ls -A /d; find /d -maxdepth 3 -name index.md | head')
+          echo "[P3] INFO: draft volume of gq-a: $drafts"
+          curl -s -u "root:$FORGEJO_ADMIN_PASSWORD" "http://127.0.0.1:3000/api/v1/repos/team/wiki/branches" | python3 -c 'import json,sys; print("[P3] INFO: branches on Forgejo:", [b["name"] for b in json.load(sys.stdin)])'
+
+      - name: P4 start time and memory
+        run: |
+          set -eu
+          start=$(date +%s.%N)
+          docker start gq-a >/dev/null
+          for i in $(seq 1 240); do
+            if curl -fsS http://127.0.0.1:8101/readyz >/dev/null 2>&1; then break; fi
+            sleep 0.25
+          done
+          echo "[P4] INFO: restart of gq-a to /readyz: $(echo "$(date +%s.%N) - $start" | bc) s"
+          sleep 20
+          docker stats --no-stream --format '[P4] INFO: {{.Name}} memory {{.MemUsage}} cpu {{.CPUPerc}} pids {{.PIDs}}' gq-a
+          docker exec gq-a sh -c 'ps -eo rss,args --no-headers | grep node | awk "{printf \"[P4] INFO: process rss %.0f MB: \", \$1/1024; \$1=\"\"; print substr(\$0,1,120)}"'
+
+      - name: Logs
+        if: always()
+        run: |
+          echo "::group::proxy"; cat /tmp/proxy.out; cat /tmp/proxy-escapes.log 2>/dev/null | tail -100; echo "::endgroup::"
+          for c in gq-a gq-b forgejo; do echo "::group::$c"; docker logs --tail 150 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
