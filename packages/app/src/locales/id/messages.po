@@ -747,18 +747,6 @@ msgstr "Tindakan untuk {label}"
 msgid "Activate new tab"
 msgstr "Aktifkan tab baru"
 
-msgid "Activate one of the first eight editor tabs."
-msgstr "Mengaktifkan salah satu dari delapan tab penyunting pertama."
-
-msgid "Activate the last editor tab."
-msgstr "Mengaktifkan tab penyunting terakhir."
-
-msgid "Activate the next editor tab."
-msgstr "Mengaktifkan tab penyunting berikutnya."
-
-msgid "Activate the previous editor tab."
-msgstr "Mengaktifkan tab penyunting sebelumnya."
-
 msgid "Active"
 msgstr "Aktif"
 
@@ -3862,14 +3850,8 @@ msgstr "Item {0}"
 msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
 msgstr ""
 
-msgid "Jump to last tab"
-msgstr "Lompat ke tab terakhir"
-
 msgid "Jump to page {pageNumber}"
 msgstr "Lompat ke halaman {pageNumber}"
-
-msgid "Jump to tab 1-8"
-msgstr "Lompat ke tab 1-8"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "Lompat ke sumber markdown untuk blok di posisi kursor, terpusat dan tersorot."
@@ -4621,9 +4603,6 @@ msgstr "Kecocokan berikutnya"
 msgid "Next source diagnostic"
 msgstr "Diagnostik sumber berikutnya"
 
-msgid "Next tab"
-msgstr "Tab berikutnya"
-
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "Belum ada berkas <0>.markdownlint.*</0> — setiap aturan berjalan dengan bawaan yang sama seperti ekstensi markdownlint VS Code: semuanya aktif, kecuali panjang baris."
 
@@ -5053,9 +5032,6 @@ msgstr "Buka {keyName} di peramban"
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "Buka <0><1>{verificationUri}</1><2/></0> lalu masukkan kode ini:"
 
-msgid "Open a blank editor tab."
-msgstr "Membuka tab penyunting kosong."
-
 msgid "Open a doc to share its URL."
 msgstr "Buka sebuah dokumen untuk membagikan URL-nya."
 
@@ -5085,9 +5061,6 @@ msgstr "Membuka pencarian CodeMirror di mode penyunting sumber."
 
 msgid "Open CodeMirror's go-to-line prompt."
 msgstr "Membuka kotak ke-baris CodeMirror."
-
-msgid "Open CodeMirror's lint diagnostics panel."
-msgstr "Membuka panel diagnostik lint CodeMirror."
 
 msgid "Open date picker for {keyName}"
 msgstr "Buka pemilih tanggal untuk {keyName}"
@@ -5136,9 +5109,6 @@ msgstr "Buka pengaturan"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "Buka dokumen sumber: {mirrorSrc}"
-
-msgid "Open source lint panel"
-msgstr "Buka panel lint sumber"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "Buka sumber: {mirrorSrc}"
@@ -5491,9 +5461,6 @@ msgstr "Perubahan sebelumnya"
 
 msgid "Previous match"
 msgstr "Kecocokan sebelumnya"
-
-msgid "Previous tab"
-msgstr "Tab sebelumnya"
 
 msgid "Private"
 msgstr "Pribadi"
@@ -5852,12 +5819,6 @@ msgstr "galat render"
 msgid "Rendered"
 msgstr "Dirender"
 
-msgid "Reopen closed tab"
-msgstr "Buka lagi tab yang ditutup"
-
-msgid "Reopen the most recently closed editor tab."
-msgstr "Membuka lagi tab penyunting yang paling akhir ditutup."
-
 msgid "Reopen this window to sign in with your browser"
 msgstr "Buka lagi jendela ini untuk masuk lewat peramban Anda"
 
@@ -6156,8 +6117,8 @@ msgstr "Cari emoji"
 msgid "Search failed."
 msgstr "Pencarian gagal."
 
-msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
-msgstr "Cari berkas, perintah, proyek, dan tindakan serah terima AI. Kombinasi K justru menambahkan tautan bila ada teks terpilih di penyunting visual; kombinasi P selalu membuka palet perintah."
+msgid "Search files, commands, projects, and AI handoff actions. Adds a link instead when text is selected in the visual editor."
+msgstr ""
 
 msgid "Search files, folders, and commands for the current workspace."
 msgstr "Mencari berkas, folder, dan perintah untuk ruang kerja saat ini."

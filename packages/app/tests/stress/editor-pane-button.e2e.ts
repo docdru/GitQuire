@@ -592,23 +592,6 @@ test.describe('deliberate opens show a hidden editor', () => {
 });
 
 test.describe('editor shortcuts show a hidden editor before acting', () => {
-  test('the next-tab shortcut shows the editor and switches tabs', async ({ page, api }) => {
-    const first = await openWeb(page, api, 'next-tab');
-    const second = otherDocName('next-tab');
-    const editor = page.locator('.tiptap-editor .ProseMirror').first();
-    await editor.click();
-    await page.keyboard.press('End');
-    await page.keyboard.type(' kept');
-    await expect(editor).toContainText('kept');
-    await quickOpen(page, second);
-    await expectEditorShownOn(page, second);
-    await expect(page.locator('[data-editor-tab-id]')).toHaveCount(2);
-
-    await hideEditor(page);
-    await page.keyboard.press('Control+Tab');
-    await expectEditorShownOn(page, first);
-  });
-
   test('the side panel and file list shortcuts show the editor', async ({ page, api }) => {
     await openWeb(page, api, 'panel-shortcuts');
     await hideEditor(page);

@@ -337,6 +337,8 @@ function NewItemShortcutHandler() {
           altKey: e.altKey,
           shiftKey: e.shiftKey,
           key: e.key,
+          code: e.code,
+          getModifierState: (modifier) => e.getModifierState(modifier),
         })
       ) {
         return;

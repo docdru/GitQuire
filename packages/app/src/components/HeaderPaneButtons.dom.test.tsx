@@ -217,9 +217,9 @@ describe('HeaderPaneButtons', () => {
   });
 
   test.each([
-    { platform: 'MacIntel', agents: '⌘ L' },
-    { platform: 'Win32', agents: 'Ctrl L' },
-    { platform: 'Linux x86_64', agents: 'Ctrl L' },
+    { platform: 'MacIntel', agents: '⌥⌘ A' },
+    { platform: 'Win32', agents: 'Ctrl Alt A' },
+    { platform: 'Linux x86_64', agents: 'Ctrl Alt A' },
   ])(
     'the tooltip names the button and its $platform shortcut, the same in both states',
     async ({ platform, agents }) => {

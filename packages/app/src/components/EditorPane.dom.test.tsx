@@ -657,10 +657,16 @@ describe('EditorPane keeps the Agents pane and view-in-source wiring', () => {
 
   const agentsShown = () => screen.getByTestId('editor-area').getAttribute('data-agents-visible');
 
-  test('web host: a Cmd/Ctrl+L keydown is intercepted (the agents toggle is wired)', async () => {
+  test('web host: the Alt chord toggles the agents pane', async () => {
     await renderEditorPane();
 
-    const init: KeyboardEventInit = { key: 'l', cancelable: true, bubbles: true };
+    const init: KeyboardEventInit = {
+      key: 'a',
+      code: 'KeyA',
+      altKey: true,
+      cancelable: true,
+      bubbles: true,
+    };
     if (isMacOS()) init.metaKey = true;
     else init.ctrlKey = true;
     const event = new KeyboardEvent('keydown', init);
@@ -670,6 +676,21 @@ describe('EditorPane keeps the Agents pane and view-in-source wiring', () => {
 
     expect(event.defaultPrevented).toBe(true);
     expect(agentsShown()).toBe('true');
+  });
+
+  test('web host: Cmd/Ctrl+L is left to the browser address bar', async () => {
+    await renderEditorPane();
+
+    const init: KeyboardEventInit = { key: 'l', code: 'KeyL', cancelable: true, bubbles: true };
+    if (isMacOS()) init.metaKey = true;
+    else init.ctrlKey = true;
+    const event = new KeyboardEvent('keydown', init);
+    act(() => {
+      window.dispatchEvent(event);
+    });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(agentsShown()).not.toBe('true');
   });
 
   test('web host: an unrelated keydown is not intercepted', async () => {

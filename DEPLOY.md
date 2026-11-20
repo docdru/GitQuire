@@ -262,7 +262,7 @@ the GitHub App when it is configured) and revokes the tokens of people who lost 
 
 ## AI chat
 
-People can chat with Claude or Mistral in the ✨ pane (⌘L) and from the box under each page. The
+People can chat with Claude or Mistral in the ✨ pane (⌥⌘A) and from the box under each page. The
 assistant searches, reads and, when asked, edits pages through the same tools as `/mcp`, so its
 changes appear live, are credited to the person chatting, and follow their **Put my AI assistant's
 edits into a draft** setting. It cannot delete pages, change settings, read hidden folders such as

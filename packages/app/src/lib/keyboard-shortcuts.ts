@@ -71,6 +71,7 @@ export interface ShortcutEventLike {
   shiftKey?: boolean;
   key: string;
   code?: string;
+  getModifierState?: (key: string) => boolean;
 }
 
 export const SHORTCUT_CATEGORY_LABELS: Record<ShortcutCategory, MessageDescriptor> = {
@@ -89,18 +90,13 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     id: 'command-palette',
     category: 'general',
     title: msg`Command palette`,
-    description: msg`Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette.`,
+    description: msg`Search files, commands, projects, and AI handoff actions. Adds a link instead when text is selected in the visual editor.`,
     scope: msg`Global`,
     bindings: [
       {
         mac: '⌘ K',
         windowsLinux: 'Ctrl K',
         match: { key: 'k', mod: true },
-      },
-      {
-        mac: '⌘ P',
-        windowsLinux: 'Ctrl P',
-        match: { key: 'p', mod: true },
       },
     ],
   },
@@ -120,14 +116,9 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     scope: msg`Global outside text fields`,
     bindings: [
       {
-        mac: '⌘ N',
-        windowsLinux: 'Ctrl N',
-        match: { key: 'n', mod: true },
-      },
-      {
         mac: '⌥⌘ N',
         windowsLinux: 'Ctrl Alt N',
-        match: { key: 'n', anyMod: true, altKey: true, allowExtraModifiers: true },
+        match: { code: 'KeyN', anyMod: true, altKey: true, allowExtraModifiers: true },
       },
     ],
   },
@@ -181,81 +172,9 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     scope: msg`Global`,
     bindings: [
       {
-        mac: '⌘ L',
-        windowsLinux: 'Ctrl L',
-        match: { key: 'l', mod: true },
-      },
-    ],
-  },
-  {
-    id: 'tab-new',
-    category: 'navigation',
-    title: msg`New tab`,
-    description: msg`Open a blank editor tab.`,
-    scope: msg`Global`,
-    bindings: [
-      {
-        mac: '⌘ T',
-        windowsLinux: 'Ctrl T',
-        match: { key: 't', mod: true },
-      },
-    ],
-  },
-  {
-    id: 'tab-next',
-    category: 'navigation',
-    title: msg`Next tab`,
-    description: msg`Activate the next editor tab.`,
-    scope: msg`Global`,
-    bindings: [
-      {
-        mac: '⌃ Tab',
-        windowsLinux: 'Ctrl Tab',
-        match: { key: 'Tab', ctrlKey: true },
-      },
-    ],
-  },
-  {
-    id: 'tab-previous',
-    category: 'navigation',
-    title: msg`Previous tab`,
-    description: msg`Activate the previous editor tab.`,
-    scope: msg`Global`,
-    bindings: [
-      {
-        mac: '⌃⇧ Tab',
-        windowsLinux: 'Ctrl Shift Tab',
-        match: { key: 'Tab', ctrlKey: true, shiftKey: true },
-      },
-    ],
-  },
-  {
-    id: 'tab-jump',
-    category: 'navigation',
-    title: msg`Jump to tab 1-8`,
-    description: msg`Activate one of the first eight editor tabs.`,
-    scope: msg`Global`,
-    bindings: [{ mac: '⌘ 1-8', windowsLinux: 'Ctrl 1-8' }],
-  },
-  {
-    id: 'tab-jump-last',
-    category: 'navigation',
-    title: msg`Jump to last tab`,
-    description: msg`Activate the last editor tab.`,
-    scope: msg`Global`,
-    bindings: [{ mac: '⌘ 9', windowsLinux: 'Ctrl 9' }],
-  },
-  {
-    id: 'tab-reopen-closed',
-    category: 'navigation',
-    title: msg`Reopen closed tab`,
-    description: msg`Reopen the most recently closed editor tab.`,
-    scope: msg`Global`,
-    bindings: [
-      {
-        mac: '⇧⌘ T',
-        windowsLinux: 'Ctrl Shift T',
-        match: { key: 't', mod: true, shiftKey: true },
+        mac: '⌥⌘ A',
+        windowsLinux: 'Ctrl Alt A',
+        match: { code: 'KeyA', anyMod: true, altKey: true, allowExtraModifiers: true },
       },
     ],
   },
@@ -781,14 +700,6 @@ const KEYBOARD_SHORTCUT_DEFINITIONS = [
     bindings: [{ mac: 'Shift Alt M', windowsLinux: 'Ctrl M' }],
   },
   {
-    id: 'source-lint-panel',
-    category: 'source',
-    title: msg`Open source lint panel`,
-    description: msg`Open CodeMirror's lint diagnostics panel.`,
-    scope: msg`Source editor`,
-    bindings: [{ mac: '⇧⌘ M', windowsLinux: 'Ctrl Shift M' }],
-  },
-  {
     id: 'source-next-diagnostic',
     category: 'source',
     title: msg`Next source diagnostic`,
@@ -907,11 +818,17 @@ function isShortcutMatch(match: PlatformShortcutMatch): match is ShortcutMatch {
   return 'key' in match || 'code' in match;
 }
 
+function isAltGraphKeystroke(event: ShortcutEventLike, platform: ShortcutPlatform): boolean {
+  if (platform !== 'windowsLinux') return false;
+  return event.getModifierState?.('AltGraph') === true;
+}
+
 function matchesBinding(
   event: ShortcutEventLike,
   match: ShortcutMatch,
   platform: ShortcutPlatform,
 ): boolean {
+  if (isAltGraphKeystroke(event, platform)) return false;
   if (match.key && event.key.toLowerCase() !== match.key.toLowerCase()) return false;
   if (match.code && event.code !== match.code) return false;
 

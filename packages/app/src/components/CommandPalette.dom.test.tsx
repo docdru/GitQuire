@@ -244,7 +244,7 @@ describe('CommandPalette DOM behavior', () => {
   test('new-file shows its shortcut and new-folder has none', async () => {
     await renderPalette();
 
-    expect(screen.getByTestId('command-palette-new-file').textContent).toMatch(/⌘ N|Ctrl N/);
+    expect(screen.getByTestId('command-palette-new-file').textContent).toMatch(/⌥⌘ N|Ctrl Alt N/);
     expect(screen.getByTestId('command-palette-new-folder').textContent).not.toMatch(
       /⇧⌘ N|Ctrl Shift N/,
     );
@@ -789,11 +789,6 @@ describe('CommandPalette ⌘K — overlay gate', () => {
     fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true });
   }
 
-  function pressCommandP() {
-    fireEvent.keyDown(document.body, { key: 'p', metaKey: true });
-    fireEvent.keyDown(document.body, { key: 'p', ctrlKey: true });
-  }
-
   test('closes itself on ⌘K while it is the open layer', async () => {
     const { onOpenChange } = await renderPalette();
 
@@ -836,22 +831,17 @@ describe('CommandPalette ⌘K — overlay gate', () => {
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
-  test('opens on ⌘P with nothing else open', async () => {
+  test('leaves ⌘P to the browser so a page can be printed', async () => {
     const { CommandPalette } = await import('./CommandPalette');
     const onOpenChange = vi.fn(() => {});
     render(<CommandPalette open={false} onOpenChange={onOpenChange} />);
 
-    pressCommandP();
+    const macNotPrevented = fireEvent.keyDown(document.body, { key: 'p', metaKey: true });
+    const otherNotPrevented = fireEvent.keyDown(document.body, { key: 'p', ctrlKey: true });
 
-    expect(onOpenChange).toHaveBeenCalledWith(true);
-  });
-
-  test('closes itself on ⌘P while it is the open layer', async () => {
-    const { onOpenChange } = await renderPalette();
-
-    pressCommandP();
-
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(macNotPrevented).toBe(true);
+    expect(otherNotPrevented).toBe(true);
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   test('suppresses the browser default on the palette chord even when another dialog owns the keyboard', async () => {
@@ -873,22 +863,22 @@ describe('CommandPalette ⌘K — overlay gate', () => {
     );
     await waitFor(() => expect(screen.getByRole('dialog')).not.toBeNull());
 
-    const cmdP = new KeyboardEvent('keydown', {
-      key: 'p',
+    const cmdK = new KeyboardEvent('keydown', {
+      key: 'k',
       metaKey: true,
       bubbles: true,
       cancelable: true,
     });
-    const ctrlP = new KeyboardEvent('keydown', {
-      key: 'p',
+    const ctrlK = new KeyboardEvent('keydown', {
+      key: 'k',
       ctrlKey: true,
       bubbles: true,
       cancelable: true,
     });
-    fireEvent(document.body, cmdP);
-    fireEvent(document.body, ctrlP);
+    fireEvent(document.body, cmdK);
+    fireEvent(document.body, ctrlK);
 
-    expect(cmdP.defaultPrevented || ctrlP.defaultPrevented).toBe(true);
+    expect(cmdK.defaultPrevented || ctrlK.defaultPrevented).toBe(true);
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 });

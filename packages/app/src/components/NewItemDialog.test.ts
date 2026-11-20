@@ -161,9 +161,9 @@ describe('composeNewItemPath — kind=folder (composite)', () => {
 });
 
 describe('isNewItemShortcut', () => {
-  const base = { metaKey: false, ctrlKey: false, altKey: false, key: 'n' };
+  const base = { metaKey: false, ctrlKey: false, altKey: false, key: 'n', code: 'KeyN' };
 
-  test('Cmd+N on BODY matches', () => {
+  test('Cmd+N is left to the browser', () => {
     expect(
       isNewItemShortcut(
         {
@@ -173,10 +173,10 @@ describe('isNewItemShortcut', () => {
         },
         'mac',
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  test('Ctrl+N on BODY matches on Windows/Linux', () => {
+  test('Ctrl+N is left to the browser on Windows/Linux', () => {
     expect(
       isNewItemShortcut(
         {
@@ -186,10 +186,10 @@ describe('isNewItemShortcut', () => {
         },
         'windowsLinux',
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  test('Ctrl+Alt+N browser fallback still matches', () => {
+  test('Ctrl+Alt+N matches', () => {
     expect(
       isNewItemShortcut({
         ...base,
@@ -200,7 +200,7 @@ describe('isNewItemShortcut', () => {
     ).toBe(true);
   });
 
-  test('Cmd+Alt+N browser fallback still matches', () => {
+  test('Cmd+Alt+N matches', () => {
     expect(
       isNewItemShortcut({
         ...base,
@@ -211,13 +211,14 @@ describe('isNewItemShortcut', () => {
     ).toBe(true);
   });
 
-  test('uppercase key value still matches when Shift is not held', () => {
+  test('matches on the physical key when Option changes the typed character', () => {
     expect(
       isNewItemShortcut(
         {
           ...base,
           metaKey: true,
-          key: 'N',
+          altKey: true,
+          key: 'Dead',
           target: { tagName: 'BODY' },
         },
         'mac',
@@ -245,6 +246,7 @@ describe('isNewItemShortcut', () => {
       isNewItemShortcut({
         ...base,
         metaKey: true,
+        altKey: true,
         target: { tagName: 'INPUT' },
       }),
     ).toBe(false);
@@ -255,6 +257,7 @@ describe('isNewItemShortcut', () => {
       isNewItemShortcut({
         ...base,
         ctrlKey: true,
+        altKey: true,
         target: { tagName: 'TEXTAREA' },
       }),
     ).toBe(false);
@@ -265,6 +268,7 @@ describe('isNewItemShortcut', () => {
       isNewItemShortcut({
         ...base,
         metaKey: true,
+        altKey: true,
         target: { tagName: 'DIV', isContentEditable: true },
       }),
     ).toBe(false);
@@ -288,6 +292,7 @@ describe('isNewItemShortcut', () => {
         metaKey: true,
         altKey: true,
         key: 'm',
+        code: 'KeyM',
         target: { tagName: 'BODY' },
       }),
     ).toBe(false);

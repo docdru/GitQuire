@@ -30,7 +30,6 @@ describe('keyboard shortcut registry', () => {
     expect(formatShortcutLabel('source-folding', 'windowsLinux')).toBe(
       'Control Shift Left Bracket or Control Shift Right Bracket',
     );
-    expect(formatShortcutLabel('tab-next', 'mac')).toBe('Control Tab');
   });
 
   test('matches settings shortcut exactly and excludes Alt combinations', () => {
@@ -81,21 +80,9 @@ describe('keyboard shortcut registry', () => {
     ).toBe(false);
   });
 
-  test('matches new file primary shortcut per platform and browser-safe fallback', () => {
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, key: 'n', code: 'KeyN' },
-        'new-item',
-        'mac',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 'n', code: 'KeyN' },
-        'new-item',
-        'windowsLinux',
-      ),
-    ).toBe(true);
+  test('matches new file on the Alt chord and leaves Cmd/Ctrl+N to the browser', () => {
+    expect(formatShortcut('new-item', 'mac')).toBe('⌥⌘ N');
+    expect(formatShortcut('new-item', 'windowsLinux')).toBe('Ctrl Alt N');
     expect(
       matchesKeyboardShortcut(
         { metaKey: true, ctrlKey: false, altKey: true, key: 'n', code: 'KeyN' },
@@ -112,110 +99,113 @@ describe('keyboard shortcut registry', () => {
     ).toBe(true);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'N', code: 'KeyN' },
+        { metaKey: true, ctrlKey: false, altKey: false, key: 'n', code: 'KeyN' },
         'new-item',
         'mac',
       ),
     ).toBe(false);
-  });
-
-  test('formats the toggle-agent-panel shortcut as Cmd/Ctrl + L', () => {
-    expect(formatShortcut('toggle-agent-panel', 'mac')).toBe('⌘ L');
-    expect(formatShortcut('toggle-agent-panel', 'windowsLinux')).toBe('Ctrl L');
-  });
-
-  test('matches toggle-agent-panel on Cmd+L / Ctrl+L and excludes extra modifiers', () => {
     expect(
       matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, key: 'l' },
+        { metaKey: false, ctrlKey: true, altKey: false, key: 'n', code: 'KeyN' },
+        'new-item',
+        'windowsLinux',
+      ),
+    ).toBe(false);
+  });
+
+  test('formats the toggle-agent-panel shortcut like the other panel toggles', () => {
+    expect(formatShortcut('toggle-agent-panel', 'mac')).toBe('⌥⌘ A');
+    expect(formatShortcut('toggle-agent-panel', 'windowsLinux')).toBe('Ctrl Alt A');
+  });
+
+  test('matches toggle-agent-panel on the Alt chord and leaves Cmd/Ctrl+L to the browser', () => {
+    expect(
+      matchesKeyboardShortcut(
+        { metaKey: true, ctrlKey: false, altKey: true, key: 'å', code: 'KeyA' },
         'toggle-agent-panel',
         'mac',
       ),
     ).toBe(true);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 'l' },
+        { metaKey: false, ctrlKey: true, altKey: true, key: 'a', code: 'KeyA' },
         'toggle-agent-panel',
         'windowsLinux',
       ),
     ).toBe(true);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 'l' },
+        { metaKey: true, ctrlKey: false, altKey: false, key: 'a', code: 'KeyA' },
         'toggle-agent-panel',
         'mac',
       ),
     ).toBe(false);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'l' },
+        { metaKey: false, ctrlKey: false, altKey: true, key: 'a', code: 'KeyA' },
         'toggle-agent-panel',
         'mac',
       ),
     ).toBe(false);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: true, key: 'l' },
+        { metaKey: true, ctrlKey: false, altKey: false, key: 'l', code: 'KeyL' },
         'toggle-agent-panel',
         'mac',
       ),
     ).toBe(false);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, altKey: false, key: 'l' },
+        { metaKey: false, ctrlKey: true, altKey: false, key: 'l', code: 'KeyL' },
         'toggle-agent-panel',
-        'mac',
+        'windowsLinux',
       ),
     ).toBe(false);
   });
 
-  test('matches tab shortcuts with strict modifiers', () => {
+  test('ignores AltGr keystrokes, which Windows reports as Ctrl+Alt', () => {
+    const altGraphHeld = (key: string) => key === 'AltGraph';
+    const noAltGraph = () => false;
+    const euroSign = { metaKey: false, ctrlKey: true, altKey: true, key: '€', code: 'KeyE' };
     expect(
       matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, key: 't' },
-        'tab-new',
-        'mac',
+        { ...euroSign, getModifierState: altGraphHeld },
+        'view-source-at-cursor',
+        'windowsLinux',
       ),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 't' },
-        'tab-new',
+        { ...euroSign, key: 'e', getModifierState: noAltGraph },
+        'view-source-at-cursor',
         'windowsLinux',
       ),
     ).toBe(true);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 't' },
-        'tab-new',
-        'mac',
+        {
+          metaKey: false,
+          ctrlKey: true,
+          altKey: true,
+          key: 'µ',
+          code: 'KeyM',
+          getModifierState: altGraphHeld,
+        },
+        'toggle-editor-mode',
+        'windowsLinux',
       ),
     ).toBe(false);
     expect(
       matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, key: 'Tab' },
-        'tab-next',
-        'mac',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, shiftKey: true, key: 'Tab' },
-        'tab-next',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: true, altKey: false, shiftKey: true, key: 'Tab' },
-        'tab-previous',
-        'mac',
-      ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'T' },
-        'tab-reopen-closed',
+        {
+          metaKey: true,
+          ctrlKey: false,
+          altKey: true,
+          key: '€',
+          code: 'KeyE',
+          getModifierState: altGraphHeld,
+        },
+        'view-source-at-cursor',
         'mac',
       ),
     ).toBe(true);
@@ -302,52 +292,21 @@ describe('keyboard shortcut registry', () => {
     expect(matchesKeyboardShortcut(exactCmdK, 'command-palette', 'mac')).toBe(true);
   });
 
-  test('opens the command palette on exact Cmd/Ctrl+P as well as Cmd/Ctrl+K', () => {
+  test('leaves Cmd/Ctrl+P to the browser for printing', () => {
     expect(
       matchesKeyboardShortcut(
         { metaKey: true, ctrlKey: false, altKey: false, key: 'p' },
         'command-palette',
         'mac',
       ),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       matchesKeyboardShortcut(
         { metaKey: false, ctrlKey: true, altKey: false, key: 'p' },
         'command-palette',
         'windowsLinux',
       ),
-    ).toBe(true);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: true, key: 'p' },
-        'command-palette',
-        'mac',
-      ),
     ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: false, ctrlKey: false, altKey: false, key: 'p' },
-        'command-palette',
-        'mac',
-      ),
-    ).toBe(false);
-    expect(
-      matchesKeyboardShortcut(
-        { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, key: 'p' },
-        'command-palette',
-        'mac',
-      ),
-    ).toBe(false);
-  });
-
-  test('Cmd/Ctrl+P reaches the palette unconditionally — add-link never claims it', () => {
-    const exactCmdP = { metaKey: true, ctrlKey: false, altKey: false, key: 'p' };
-    expect(matchesKeyboardShortcut(exactCmdP, 'command-palette', 'mac')).toBe(true);
-    expect(matchesKeyboardShortcut(exactCmdP, 'add-link', 'mac')).toBe(false);
-
-    const exactCtrlP = { metaKey: false, ctrlKey: true, altKey: false, key: 'p' };
-    expect(matchesKeyboardShortcut(exactCtrlP, 'command-palette', 'windowsLinux')).toBe(true);
-    expect(matchesKeyboardShortcut(exactCtrlP, 'add-link', 'windowsLinux')).toBe(false);
   });
 
   test('keeps Cmd+K as the displayed command-palette chord', () => {

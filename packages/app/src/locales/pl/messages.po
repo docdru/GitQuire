@@ -751,18 +751,6 @@ msgstr "Akcje dla {label}"
 msgid "Activate new tab"
 msgstr "Aktywuj nową kartę"
 
-msgid "Activate one of the first eight editor tabs."
-msgstr "Aktywuj jedną z pierwszych ośmiu kart edytora."
-
-msgid "Activate the last editor tab."
-msgstr "Aktywuj ostatnią kartę edytora."
-
-msgid "Activate the next editor tab."
-msgstr "Aktywuj następną kartę edytora."
-
-msgid "Activate the previous editor tab."
-msgstr "Aktywuj poprzednią kartę edytora."
-
 msgid "Active"
 msgstr "Aktywne"
 
@@ -3866,14 +3854,8 @@ msgstr "Element {0}"
 msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
 msgstr ""
 
-msgid "Jump to last tab"
-msgstr "Przejdź do ostatniej karty"
-
 msgid "Jump to page {pageNumber}"
 msgstr "Przejdź do strony {pageNumber}"
-
-msgid "Jump to tab 1-8"
-msgstr "Przejdź do karty 1-8"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "Przejdź do źródła Markdown bloku pod kursorem, wyróżniając go i przewijając na środek."
@@ -4625,9 +4607,6 @@ msgstr "Następne dopasowanie"
 msgid "Next source diagnostic"
 msgstr "Następny komunikat źródłowy"
 
-msgid "Next tab"
-msgstr "Następna karta"
-
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "Brak pliku <0>.markdownlint.*</0> — każda reguła działa na tych samych ustawieniach domyślnych co rozszerzenie markdownlint dla VS Code: wszystkie włączone, poza długością linii."
 
@@ -5057,9 +5036,6 @@ msgstr "Otwórz {keyName} w przeglądarce"
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "Otwórz <0><1>{verificationUri}</1><2/></0> i wpisz ten kod:"
 
-msgid "Open a blank editor tab."
-msgstr "Otwórz pustą kartę edytora."
-
 msgid "Open a doc to share its URL."
 msgstr "Otwórz dokument, aby udostępnić jego adres URL."
 
@@ -5089,9 +5065,6 @@ msgstr "Otwórz wyszukiwanie CodeMirror w trybie edycji kodu źródłowego."
 
 msgid "Open CodeMirror's go-to-line prompt."
 msgstr "Otwórz okienko przechodzenia do wiersza CodeMirror."
-
-msgid "Open CodeMirror's lint diagnostics panel."
-msgstr "Otwórz panel diagnostyki lint CodeMirror."
 
 msgid "Open date picker for {keyName}"
 msgstr "Otwórz wybór daty dla {keyName}"
@@ -5140,9 +5113,6 @@ msgstr "Otwórz ustawienia"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "Otwórz dokument źródłowy: {mirrorSrc}"
-
-msgid "Open source lint panel"
-msgstr "Otwórz panel lintu kodu źródłowego"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "Otwórz źródło: {mirrorSrc}"
@@ -5495,9 +5465,6 @@ msgstr "Poprzednia zmiana"
 
 msgid "Previous match"
 msgstr "Poprzednie dopasowanie"
-
-msgid "Previous tab"
-msgstr "Poprzednia karta"
 
 msgid "Private"
 msgstr "Prywatne"
@@ -5856,12 +5823,6 @@ msgstr "błąd renderowania"
 msgid "Rendered"
 msgstr "Wyrenderowano"
 
-msgid "Reopen closed tab"
-msgstr "Otwórz ponownie zamkniętą kartę"
-
-msgid "Reopen the most recently closed editor tab."
-msgstr "Otwiera ponownie ostatnio zamkniętą kartę edytora."
-
 msgid "Reopen this window to sign in with your browser"
 msgstr "Otwórz to okno ponownie, aby zalogować się w przeglądarce"
 
@@ -6160,8 +6121,8 @@ msgstr "Szukaj emoji"
 msgid "Search failed."
 msgstr "Wyszukiwanie nie powiodło się."
 
-msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
-msgstr "Przeszukaj pliki, polecenia, projekty i akcje przekazywania do AI. Skrót K dodaje zamiast tego link, gdy w edytorze wizualnym zaznaczony jest tekst; skrót P zawsze otwiera paletę."
+msgid "Search files, commands, projects, and AI handoff actions. Adds a link instead when text is selected in the visual editor."
+msgstr ""
 
 msgid "Search files, folders, and commands for the current workspace."
 msgstr "Przeszukaj pliki, foldery i polecenia bieżącego obszaru roboczego."

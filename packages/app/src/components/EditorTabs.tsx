@@ -40,7 +40,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { Kbd } from '@/components/ui/kbd';
 import { isBlobRunnerNewTabId, useDocumentContext } from '@/editor/DocumentContext';
 import {
   filterClosableTabIds,
@@ -50,9 +49,6 @@ import {
 } from '@/editor/editor-tabs';
 import { useDocConflict } from '@/hooks/use-conflicts';
 import { emitFileTreeMenuActionRename } from '@/lib/file-tree-menu-action-events';
-import { matchesKeyboardShortcut } from '@/lib/keyboard-shortcuts';
-import { isOverlayLayerOpen } from '@/lib/overlay-layers';
-import { revealEditorBeforeActing } from '@/lib/reveal-editor';
 import { cn } from '@/lib/utils';
 import {
   type EditorTabDragData,
@@ -97,48 +93,6 @@ function syncTabOverflowIndicators(scrollContainer: HTMLElement): void {
   overflowRoot.toggleAttribute(
     'data-overflow-right',
     scrollContainer.scrollLeft < maxScrollLeft - 1,
-  );
-}
-
-function hasTabShortcutModifier(event: globalThis.KeyboardEvent): boolean {
-  return event.metaKey || event.ctrlKey;
-}
-
-const TAB_SHORTCUT_HINT_DELAY_MS = 1000;
-
-function shortcutDigitForIndex(index: number, tabCount: number): string | null {
-  if (index < 0 || index >= tabCount) return null;
-  if (index < 8) return String(index + 1);
-  return index === tabCount - 1 ? '9' : null;
-}
-
-function tabAriaKeyShortcutsForIndex(index: number, tabCount: number): string | undefined {
-  const shortcutDigit = shortcutDigitForIndex(index, tabCount);
-  if (!shortcutDigit) return undefined;
-  return [`Meta+${shortcutDigit}`, `Control+${shortcutDigit}`].join(' ');
-}
-
-function jumpTabIndexFromShortcut(
-  event: globalThis.KeyboardEvent,
-  tabCount: number,
-): number | null {
-  if (!hasTabShortcutModifier(event) || event.altKey || event.shiftKey) return null;
-  if (!/^[1-9]$/.test(event.key)) return null;
-  const digit = Number(event.key);
-  if (digit === 9) return tabCount > 0 ? tabCount - 1 : null;
-  const index = digit - 1;
-  return index < Math.min(8, tabCount) ? index : null;
-}
-
-function TabShortcutHint({ value }: { value: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      data-testid="editor-tab-shortcut-hint"
-      className="mr-1 flex h-5 w-fit shrink-0 items-center justify-center font-mono tabular-nums @max-[5rem]/tab:hidden"
-    >
-      <Kbd className="px-0.5 text-[10px]">{`⌘${value}`}</Kbd>
-    </span>
   );
 }
 
@@ -397,27 +351,19 @@ function EditorTabContextMenu({
 function TabPinOrCloseButton({
   accessibleLabel,
   closeTab,
-  forceCloseVisible = false,
   isActive,
   isPinned,
-  shortcutHint = null,
   tabId,
   unpinTab,
 }: {
   accessibleLabel: string;
   closeTab: (tabId: string) => void;
-  forceCloseVisible?: boolean;
   isActive: boolean;
   isPinned: boolean;
-  shortcutHint?: string | null;
   tabId: string;
   unpinTab: (tabId: string) => void;
 }) {
   const { t } = useLingui();
-  if (shortcutHint) {
-    return <TabShortcutHint value={shortcutHint} />;
-  }
-
   if (isPinned) {
     return (
       <Button
@@ -444,7 +390,7 @@ function TabPinOrCloseButton({
       size="icon-xs"
       aria-label={t`Close ${accessibleLabel}`}
       data-testid="editor-tab-close-button"
-      className={getTabCloseButtonClass(forceCloseVisible || isActive)}
+      className={getTabCloseButtonClass(isActive)}
       tabIndex={getTabCloseButtonTabIndex(isActive)}
       onClick={(event) => {
         event.stopPropagation();
@@ -543,13 +489,11 @@ function DocumentTabButton({
 interface EditorTabFrameProps {
   accessibleLabel: string;
   activateTab: (tabId: string) => void;
-  ariaKeyShortcuts?: string;
   children: ReactNode;
   closeTab: (tabId: string) => void;
   closeTabs: (tabIds: readonly string[]) => void;
   docExt?: string;
   dropIndicatorSide?: 'before' | 'after';
-  forceCloseVisible: boolean;
   isActive: boolean;
   isFocusedPane: boolean;
   isPinned: boolean;
@@ -560,7 +504,6 @@ interface EditorTabFrameProps {
   pinnedTabIds: readonly string[];
   promoteTab: (tabId: string) => void;
   renameName?: string;
-  shortcutHint: string | null;
   splitTab: (tabId: string, side: 'left' | 'right', label: string) => void;
   tabId: string;
   target?: EditorTabFileTarget;
@@ -570,13 +513,11 @@ interface EditorTabFrameProps {
 function EditorTabFrame({
   accessibleLabel,
   activateTab,
-  ariaKeyShortcuts,
   children,
   closeTab,
   closeTabs,
   docExt,
   dropIndicatorSide,
-  forceCloseVisible,
   isActive,
   isFocusedPane,
   isPinned,
@@ -587,7 +528,6 @@ function EditorTabFrame({
   pinnedTabIds,
   promoteTab,
   renameName,
-  shortcutHint,
   splitTab,
   tabId,
   target,
@@ -618,7 +558,6 @@ function EditorTabFrame({
         tabId={tabId}
         activateFromKeyboard={() => activateTab(tabId)}
         aria-current={isActive ? 'page' : undefined}
-        aria-keyshortcuts={ariaKeyShortcuts}
         data-active-tab={isActive ? 'true' : undefined}
         data-preview-tab={isPreview ? 'true' : undefined}
         className={tabShellClassName(isActive, isFocusedPane)}
@@ -635,10 +574,8 @@ function EditorTabFrame({
         <TabPinOrCloseButton
           accessibleLabel={accessibleLabel}
           closeTab={closeTab}
-          forceCloseVisible={forceCloseVisible}
           isActive={isActive}
           isPinned={isPinned}
-          shortcutHint={shortcutHint}
           tabId={tabId}
           unpinTab={unpinTab}
         />
@@ -664,7 +601,6 @@ export function EditorTabs({
 }: EditorTabsProps) {
   const { t } = useLingui();
   const context = useDocumentContext();
-  const { reopenClosedTab } = context;
   const pane = context.panes.find((candidate) => candidate.id === paneId) ?? context.panes[0];
   const resolvedPaneId = pane?.id ?? paneId;
   const openTabs = pane?.openTabs ?? [];
@@ -701,11 +637,7 @@ export function EditorTabs({
     onSplitComplete?.(nextPaneId, tabId);
   }
   const { pageMeta } = usePageList();
-  const [showTabShortcutHints, setShowTabShortcutHints] = useState(false);
   const tabScrollRef = useRef<HTMLDivElement>(null);
-  const tabShortcutHintTimerRef = useRef<number | null>(null);
-  const isTabShortcutModifierHeldRef = useRef(false);
-  const showTabShortcutHintsRef = useRef(false);
   const activeTabId =
     activeContextTabId ?? (activeTarget ? tabIdForNavigationTarget(activeTarget) : null);
 
@@ -716,14 +648,6 @@ export function EditorTabs({
     }
     return undefined;
   }
-
-  useEffect(() => {
-    return () => {
-      if (tabShortcutHintTimerRef.current === null) return;
-      window.clearTimeout(tabShortcutHintTimerRef.current);
-      tabShortcutHintTimerRef.current = null;
-    };
-  }, []);
 
   const newTabIdSet = new Set(newTabIds);
 
@@ -743,129 +667,6 @@ export function EditorTabs({
     for (const tabId of emptyTabIds) closeNewTab(tabId);
   }
 
-  useEffect(() => {
-    if (!isFocusedPane) return;
-    const currentNewTabIds = new Set(newTabIds);
-    const currentVisibleTabIds = [...openTabs, ...newTabIds];
-
-    function clearTabShortcutHintTimer() {
-      if (tabShortcutHintTimerRef.current === null) return;
-      window.clearTimeout(tabShortcutHintTimerRef.current);
-      tabShortcutHintTimerRef.current = null;
-    }
-
-    function setTabShortcutModifierHeld(nextValue: boolean) {
-      if (isTabShortcutModifierHeldRef.current === nextValue) return;
-      isTabShortcutModifierHeldRef.current = nextValue;
-    }
-
-    function setTabShortcutHintsVisible(nextValue: boolean) {
-      if (showTabShortcutHintsRef.current === nextValue) return;
-      showTabShortcutHintsRef.current = nextValue;
-      setShowTabShortcutHints(nextValue);
-    }
-
-    function scheduleTabShortcutHintReveal() {
-      setTabShortcutModifierHeld(true);
-      if (showTabShortcutHintsRef.current || tabShortcutHintTimerRef.current !== null) return;
-      tabShortcutHintTimerRef.current = window.setTimeout(() => {
-        tabShortcutHintTimerRef.current = null;
-        if (!isTabShortcutModifierHeldRef.current) return;
-        setTabShortcutHintsVisible(true);
-      }, TAB_SHORTCUT_HINT_DELAY_MS);
-    }
-
-    function clearShortcutHints() {
-      clearTabShortcutHintTimer();
-      setTabShortcutModifierHeld(false);
-      setTabShortcutHintsVisible(false);
-    }
-
-    function activateVisibleTab(tabId: string) {
-      if (currentNewTabIds.has(tabId)) {
-        context.activateNewTabInPane(resolvedPaneId, tabId);
-      } else {
-        context.activateTabInPane(resolvedPaneId, tabId);
-      }
-    }
-
-    function activateTabByOffset(offset: number) {
-      if (currentVisibleTabIds.length === 0) return;
-      const activeVisibleTabId = isNewTabActive ? activeNewTabId : activeTabId;
-      const activeIndex = activeVisibleTabId
-        ? currentVisibleTabIds.indexOf(activeVisibleTabId)
-        : -1;
-      const baseIndex = activeIndex >= 0 ? activeIndex : 0;
-      const nextIndex =
-        (baseIndex + offset + currentVisibleTabIds.length) % currentVisibleTabIds.length;
-      activateVisibleTab(currentVisibleTabIds[nextIndex]);
-    }
-
-    function onKeyDown(event: globalThis.KeyboardEvent) {
-      if (!hasTabShortcutModifier(event)) return;
-      if (isOverlayLayerOpen()) return;
-      scheduleTabShortcutHintReveal();
-
-      if (matchesKeyboardShortcut(event, 'tab-new')) {
-        event.preventDefault();
-        revealEditorBeforeActing();
-        context.openNewTabInPane(resolvedPaneId);
-        return;
-      }
-      if (matchesKeyboardShortcut(event, 'tab-reopen-closed')) {
-        event.preventDefault();
-        revealEditorBeforeActing();
-        reopenClosedTab();
-        return;
-      }
-      if (matchesKeyboardShortcut(event, 'tab-next')) {
-        event.preventDefault();
-        revealEditorBeforeActing();
-        activateTabByOffset(1);
-        return;
-      }
-      if (matchesKeyboardShortcut(event, 'tab-previous')) {
-        event.preventDefault();
-        revealEditorBeforeActing();
-        activateTabByOffset(-1);
-        return;
-      }
-
-      const jumpIndex = jumpTabIndexFromShortcut(event, currentVisibleTabIds.length);
-      if (jumpIndex === null) return;
-      event.preventDefault();
-      revealEditorBeforeActing();
-      activateVisibleTab(currentVisibleTabIds[jumpIndex]);
-    }
-
-    function onKeyUp(event: globalThis.KeyboardEvent) {
-      if (!event.metaKey && !event.ctrlKey) clearShortcutHints();
-    }
-
-    window.addEventListener('keydown', onKeyDown, { capture: true });
-    window.addEventListener('keyup', onKeyUp, { capture: true });
-    window.addEventListener('blur', clearShortcutHints);
-    document.addEventListener('visibilitychange', clearShortcutHints);
-    return () => {
-      window.removeEventListener('keydown', onKeyDown, { capture: true });
-      window.removeEventListener('keyup', onKeyUp, { capture: true });
-      window.removeEventListener('blur', clearShortcutHints);
-      document.removeEventListener('visibilitychange', clearShortcutHints);
-    };
-  }, [
-    activeNewTabId,
-    activeTabId,
-    context.activateNewTabInPane,
-    context.activateTabInPane,
-    context.openNewTabInPane,
-    isFocusedPane,
-    isNewTabActive,
-    newTabIds,
-    openTabs,
-    reopenClosedTab,
-    resolvedPaneId,
-  ]);
-  const forceTabCloseVisible = showTabShortcutHints;
   const selectedTabId = isNewTabActive ? activeNewTabId : activeTabId;
   const previousSelectedTabIdRef = useRef(selectedTabId);
 
@@ -942,12 +743,6 @@ export function EditorTabs({
                 />
               ) : null}
               {visibleTabIds.map((tabId, tabIndex) => {
-                const shortcutHint = showTabShortcutHints
-                  ? shortcutDigitForIndex(tabIndex, visibleTabIds.length)
-                  : null;
-                const ariaKeyShortcuts = isFocusedPane
-                  ? tabAriaKeyShortcutsForIndex(tabIndex, visibleTabIds.length)
-                  : undefined;
                 if (newTabIdSet.has(tabId)) {
                   const isActive = tabId === activeNewTabId;
                   return (
@@ -973,7 +768,6 @@ export function EditorTabs({
                         tabId={tabId}
                         activateFromKeyboard={() => activateNewTab(tabId)}
                         aria-current={isActive ? 'page' : undefined}
-                        aria-keyshortcuts={ariaKeyShortcuts}
                         data-active-tab={isActive ? 'true' : undefined}
                         className={tabShellClassName(isActive, isFocusedPane)}
                         onAuxClick={(event) => {
@@ -1005,23 +799,19 @@ export function EditorTabs({
                             )}
                           </span>
                         </button>
-                        {shortcutHint ? (
-                          <TabShortcutHint value={shortcutHint} />
-                        ) : (
-                          <button
-                            type="button"
-                            aria-label={t`Close new tab`}
-                            data-testid="editor-new-tab-placeholder-close"
-                            className={getTabCloseButtonClass(forceTabCloseVisible || isActive)}
-                            tabIndex={getTabCloseButtonTabIndex(isActive)}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              closeNewTab(tabId);
-                            }}
-                          >
-                            <XIcon aria-hidden="true" className="size-3.5" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          aria-label={t`Close new tab`}
+                          data-testid="editor-new-tab-placeholder-close"
+                          className={getTabCloseButtonClass(isActive)}
+                          tabIndex={getTabCloseButtonTabIndex(isActive)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            closeNewTab(tabId);
+                          }}
+                        >
+                          <XIcon aria-hidden="true" className="size-3.5" />
+                        </button>
                       </SortableTab>
                     </EditorTabContextMenu>
                   );
@@ -1039,7 +829,6 @@ export function EditorTabs({
                       key={tabId}
                       accessibleLabel={accessibleLabel}
                       activateTab={activateTab}
-                      ariaKeyShortcuts={ariaKeyShortcuts}
                       dropIndicatorSide={dropIndicatorSideForTab(tabIndex)}
                       tabId={tabId}
                       paneId={resolvedPaneId}
@@ -1052,7 +841,6 @@ export function EditorTabs({
                       openTabs={visibleTabIds}
                       closeTab={closeTab}
                       closeTabs={closeVisibleTabs}
-                      forceCloseVisible={forceTabCloseVisible}
                       isActive={isActive}
                       isFocusedPane={isFocusedPane}
                       isPinned={isPinned}
@@ -1060,7 +848,6 @@ export function EditorTabs({
                       pinTab={pinTab}
                       pinnedTabIds={pinnedTabIds}
                       promoteTab={promoteTab}
-                      shortcutHint={shortcutHint}
                       splitTab={splitTab}
                       unpinTab={unpinTab}
                     >
@@ -1108,7 +895,6 @@ export function EditorTabs({
                       key={tabId}
                       accessibleLabel={accessibleLabel}
                       activateTab={activateTab}
-                      ariaKeyShortcuts={ariaKeyShortcuts}
                       dropIndicatorSide={dropIndicatorSideForTab(tabIndex)}
                       tabId={tabId}
                       paneId={resolvedPaneId}
@@ -1122,7 +908,6 @@ export function EditorTabs({
                       openTabs={visibleTabIds}
                       closeTab={closeTab}
                       closeTabs={closeVisibleTabs}
-                      forceCloseVisible={forceTabCloseVisible}
                       isActive={isActive}
                       isFocusedPane={isFocusedPane}
                       isPinned={isPinned}
@@ -1130,7 +915,6 @@ export function EditorTabs({
                       pinTab={pinTab}
                       pinnedTabIds={pinnedTabIds}
                       promoteTab={promoteTab}
-                      shortcutHint={shortcutHint}
                       splitTab={splitTab}
                       unpinTab={unpinTab}
                     >
@@ -1181,7 +965,6 @@ export function EditorTabs({
                     key={tabId}
                     accessibleLabel={accessibleLabel}
                     activateTab={activateTab}
-                    ariaKeyShortcuts={ariaKeyShortcuts}
                     dropIndicatorSide={dropIndicatorSideForTab(tabIndex)}
                     tabId={tabId}
                     paneId={resolvedPaneId}
@@ -1191,7 +974,6 @@ export function EditorTabs({
                     openTabs={visibleTabIds}
                     closeTab={closeTab}
                     closeTabs={closeVisibleTabs}
-                    forceCloseVisible={forceTabCloseVisible}
                     isActive={isActive}
                     isFocusedPane={isFocusedPane}
                     isPinned={isPinned}
@@ -1199,7 +981,6 @@ export function EditorTabs({
                     pinTab={pinTab}
                     pinnedTabIds={pinnedTabIds}
                     promoteTab={promoteTab}
-                    shortcutHint={shortcutHint}
                     splitTab={splitTab}
                     unpinTab={unpinTab}
                   >

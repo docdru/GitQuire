@@ -751,18 +751,6 @@ msgstr "إجراءات {label}"
 msgid "Activate new tab"
 msgstr "تنشيط تبويب جديد"
 
-msgid "Activate one of the first eight editor tabs."
-msgstr "تنشيط أحد أول ثمانية تبويبات في المحرر."
-
-msgid "Activate the last editor tab."
-msgstr "تنشيط آخر تبويب في المحرر."
-
-msgid "Activate the next editor tab."
-msgstr "تنشيط التبويب التالي في المحرر."
-
-msgid "Activate the previous editor tab."
-msgstr "تنشيط التبويب السابق في المحرر."
-
 msgid "Active"
 msgstr "نشط"
 
@@ -3866,14 +3854,8 @@ msgstr "العنصر {0}"
 msgid "Its changes are thrown away for everyone. The live wiki stays as it is."
 msgstr ""
 
-msgid "Jump to last tab"
-msgstr "الانتقال إلى آخر تبويب"
-
 msgid "Jump to page {pageNumber}"
 msgstr "الانتقال إلى الصفحة {pageNumber}"
-
-msgid "Jump to tab 1-8"
-msgstr "الانتقال إلى التبويب 1-8"
 
 msgid "Jump to the markdown source for the block at the cursor, centered and highlighted."
 msgstr "انتقل إلى مصدر Markdown للكتلة عند المؤشر، موسّطًا ومظللًا."
@@ -4625,9 +4607,6 @@ msgstr "التطابق التالي"
 msgid "Next source diagnostic"
 msgstr "تشخيص المصدر التالي"
 
-msgid "Next tab"
-msgstr "التبويب التالي"
-
 msgid "No <0>.markdownlint.*</0> file yet — every rule runs on the same defaults as the VS Code markdownlint extension: all on, except line length."
 msgstr "لا يوجد ملف <0>.markdownlint.*</0> بعد — تعمل كل قاعدة على الافتراضيات نفسها التي يستخدمها امتداد markdownlint في VS Code: الكل مفعّل، ما عدا طول السطر."
 
@@ -5057,9 +5036,6 @@ msgstr "فتح {keyName} في المتصفح"
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "افتح <0><1>{verificationUri}</1><2/></0> وأدخل هذا الرمز:"
 
-msgid "Open a blank editor tab."
-msgstr "افتح تبويب محرر فارغًا."
-
 msgid "Open a doc to share its URL."
 msgstr "افتح مستندًا لمشاركة رابطه."
 
@@ -5089,9 +5065,6 @@ msgstr "افتح بحث CodeMirror في وضع محرر المصدر."
 
 msgid "Open CodeMirror's go-to-line prompt."
 msgstr "افتح موجّه الانتقال إلى سطر في CodeMirror."
-
-msgid "Open CodeMirror's lint diagnostics panel."
-msgstr "افتح لوحة تشخيصات الفحص في CodeMirror."
 
 msgid "Open date picker for {keyName}"
 msgstr "فتح منتقي التاريخ لـ {keyName}"
@@ -5140,9 +5113,6 @@ msgstr "فتح الإعدادات"
 
 msgid "Open source doc: {mirrorSrc}"
 msgstr "فتح مستند المصدر: {mirrorSrc}"
-
-msgid "Open source lint panel"
-msgstr "فتح لوحة فحص المصدر"
 
 msgid "Open source: {mirrorSrc}"
 msgstr "فتح المصدر: {mirrorSrc}"
@@ -5495,9 +5465,6 @@ msgstr "التغيير السابق"
 
 msgid "Previous match"
 msgstr "التطابق السابق"
-
-msgid "Previous tab"
-msgstr "التبويب السابق"
 
 msgid "Private"
 msgstr "خاص"
@@ -5856,12 +5823,6 @@ msgstr "خطأ في العرض"
 msgid "Rendered"
 msgstr "معروض"
 
-msgid "Reopen closed tab"
-msgstr "إعادة فتح التبويب المغلق"
-
-msgid "Reopen the most recently closed editor tab."
-msgstr "أعد فتح آخر تبويب محرر مغلق."
-
 msgid "Reopen this window to sign in with your browser"
 msgstr "أعد فتح هذه النافذة لتسجيل الدخول عبر متصفحك"
 
@@ -6160,8 +6121,8 @@ msgstr "البحث في الرموز التعبيرية"
 msgid "Search failed."
 msgstr "فشل البحث."
 
-msgid "Search files, commands, projects, and AI handoff actions. The K chord adds a link instead when text is selected in the visual editor; the P chord always opens the palette."
-msgstr "ابحث في الملفات والأوامر والمشاريع وإجراءات تسليم الذكاء الاصطناعي. يضيف اختصار K رابطًا بدلًا من ذلك عند تحديد نص في المحرر المرئي؛ أما اختصار P فيفتح لوحة الأوامر دائمًا."
+msgid "Search files, commands, projects, and AI handoff actions. Adds a link instead when text is selected in the visual editor."
+msgstr ""
 
 msgid "Search files, folders, and commands for the current workspace."
 msgstr "ابحث في ملفات مساحة العمل الحالية ومجلداتها وأوامرها."
