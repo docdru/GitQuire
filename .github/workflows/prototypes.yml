@@ -1,0 +1,66 @@
+name: Prototypes (wikis-hosts)
+
+on:
+  push:
+    branches: [wh/prototypes]
+  pull_request:
+    paths:
+      - .github/workflows/prototypes.yml
+      - .github/prototypes/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prototypes-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORGEJO_IMAGE: codeberg.org/forgejo/forgejo:15
+  FORGEJO_ADMIN_PASSWORD: root-password-1
+
+jobs:
+  forgejo-rows:
+    name: Forgejo rows F1-F9
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      forgejo:
+        image: codeberg.org/forgejo/forgejo:15
+        ports:
+          - 3000:3000
+        env:
+          USER_UID: '1000'
+          USER_GID: '1000'
+          FORGEJO__security__INSTALL_LOCK: 'true'
+          FORGEJO__database__DB_TYPE: sqlite3
+          FORGEJO__server__ROOT_URL: http://127.0.0.1:3000/
+          FORGEJO__server__HTTP_PORT: '3000'
+          FORGEJO__service__NO_REPLY_ADDRESS: noreply.example.org
+          FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE: 'true'
+          FORGEJO__repository__DEFAULT_BRANCH: main
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Wait for Forgejo and create the admin
+        env:
+          FORGEJO_ID: ${{ job.services.forgejo.id }}
+        run: |
+          set -eu
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/v1/version >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:3000/api/v1/version
+          docker exec -u git "$FORGEJO_ID" forgejo admin user create --admin --username root \
+            --password "$FORGEJO_ADMIN_PASSWORD" --email root@example.org --must-change-password=false
+
+      - name: F1-F9
+        run: python3 -I .github/prototypes/forgejo_rows.py
+
+      - name: Forgejo logs
+        if: always()
+        env:
+          FORGEJO_ID: ${{ job.services.forgejo.id }}
+        run: docker logs "$FORGEJO_ID" 2>&1 | tail -80
