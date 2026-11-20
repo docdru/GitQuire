@@ -371,8 +371,8 @@ msgstr "{keyName} type: complex value (nested; read-only)"
 msgid "{keyName} value"
 msgstr "{keyName} value"
 
-msgid "{label} ({0})"
-msgstr "{label} ({0})"
+msgid "{label} ({badgeCount})"
+msgstr "{label} ({badgeCount})"
 
 msgid "{label} enabled"
 msgstr "{label} enabled"
@@ -1555,9 +1555,6 @@ msgstr "Close all unpinned"
 msgid "Close comment"
 msgstr "Close comment"
 
-msgid "Close comments"
-msgstr "Close comments"
-
 msgid "Close diff"
 msgstr "Close diff"
 
@@ -1654,8 +1651,14 @@ msgstr "Comment on this selection"
 msgid "Comment thread"
 msgstr "Comment thread"
 
+msgid "Comment threads"
+msgstr "Comment threads"
+
 msgid "Comments"
 msgstr "Comments"
+
+msgid "Comments are shown when the page is open in the editor."
+msgstr "Comments are shown when the page is open in the editor."
 
 msgid "Commit and sync"
 msgstr "Commit and sync"

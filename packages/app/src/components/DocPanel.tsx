@@ -2,7 +2,7 @@
 
 import { t } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { AlertTriangle, Clock, Link2, ListTree, Network } from 'lucide-react';
+import { AlertTriangle, Clock, Link2, ListTree, MessagesSquare, Network } from 'lucide-react';
 import { lazy, Suspense, useEffect } from 'react';
 import { setDocPanelOnScreen } from '@/components/doc-panel-visibility';
 import { LinksPanel } from '@/components/LinksPanel';
@@ -18,14 +18,16 @@ import { useDocumentContext } from '@/editor/DocumentContext';
 import { useDocLintConfig } from '@/editor/lint-config-client';
 import { useDocDiagnostics } from '@/editor/useDocDiagnostics';
 import { useDocLinkFindings } from '@/editor/validation-audit-client';
+import { CommentsPanel, useOpenThreadCount } from '@/gitquire-comments/DiscussionPanel';
 import { cn } from '@/lib/utils';
 import { type DocProblemCounts, patchDocValidationSource } from '@/lib/validation-store';
 
-export type PanelTab = 'outline' | 'links' | 'graph' | 'timeline' | 'problems';
+export type PanelTab = 'outline' | 'links' | 'comments' | 'graph' | 'timeline' | 'problems';
 
 export const TABS: { id: PanelTab; icon: typeof ListTree }[] = [
   { id: 'outline', icon: ListTree },
   { id: 'links', icon: Link2 },
+  { id: 'comments', icon: MessagesSquare },
   { id: 'graph', icon: Network },
   { id: 'timeline', icon: Clock },
   { id: 'problems', icon: AlertTriangle },
@@ -44,6 +46,7 @@ function countsOf(diagnostics: readonly { severity: string }[]): DocProblemCount
 function tabLabel(id: PanelTab): string {
   if (id === 'outline') return t`Outline`;
   if (id === 'links') return t`Links`;
+  if (id === 'comments') return t`Comments`;
   if (id === 'graph') return t`Graph`;
   if (id === 'problems') return t`Problems`;
   return t`Timeline`;
@@ -117,6 +120,7 @@ export function DocPanel({
       applyLintFixes(lintProvider, collectFixes(lintDiagnostics), docName);
     }
   };
+  const openThreadCount = useOpenThreadCount(docName);
   const effectiveTab: PanelTab = activeTab;
   const showTabStrip = mode === 'doc';
   useEffect(() => {
@@ -146,7 +150,9 @@ export function DocPanel({
           >
             {TABS.map(({ id, icon: Icon }) => {
               const label = tabLabel(id);
-              const showBadge = id === 'problems' && diagnostics.length > 0;
+              const badgeCount =
+                id === 'problems' ? diagnostics.length : id === 'comments' ? openThreadCount : 0;
+              const showBadge = badgeCount > 0;
               return (
                 <Tooltip key={id}>
                   <ToggleGroupItem
@@ -154,7 +160,7 @@ export function DocPanel({
                     role="tab"
                     id={`tab-${id}`}
                     aria-controls={`panel-${id}`}
-                    aria-label={showBadge ? t`${label} (${diagnostics.length})` : label}
+                    aria-label={showBadge ? t`${label} (${badgeCount})` : label}
                     asChild
                   >
                     <TooltipTrigger className="relative">
@@ -165,7 +171,7 @@ export function DocPanel({
                           aria-hidden="true"
                           className="pointer-events-none absolute -top-0.5 right-0.5 h-3.5 min-w-3.5 rounded-full px-1 font-sans text-[9px] leading-none tabular-nums"
                         >
-                          {diagnostics.length > 99 ? '99+' : diagnostics.length}
+                          {badgeCount > 99 ? '99+' : badgeCount}
                         </Badge>
                       )}
                     </TooltipTrigger>
@@ -202,6 +208,9 @@ export function DocPanel({
               onDestinationRequested={onDestinationRequested}
               onDestinationComplete={onDestinationComplete}
             />
+          )}
+          {effectiveTab === 'comments' && (
+            <CommentsPanel docName={docName} onNavigated={onDestinationComplete} />
           )}
           {effectiveTab === 'graph' && (
             <Suspense

@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react';
+import { requestDocPanelTab } from '@/components/doc-panel-events';
 import type { Anchor, Author } from './thread-ops';
 
 export interface DiscussionUiState {
   docName: string | null;
-  open: boolean;
   activeThreadId: string | null;
   revealThreadId: string | null;
   draft: { anchor: Anchor; from: number; to: number } | null;
@@ -11,7 +11,6 @@ export interface DiscussionUiState {
 
 let state: DiscussionUiState = {
   docName: null,
-  open: false,
   activeThreadId: null,
   revealThreadId: null,
   draft: null,
@@ -36,32 +35,22 @@ export function useDiscussionUi(): DiscussionUiState {
   return useSyncExternalStore(subscribeDiscussionUi, getDiscussionUi, getDiscussionUi);
 }
 
-function listOpenFor(docName: string): boolean {
-  return state.open && state.docName === docName;
+export function openThread(docName: string, activeThreadId: string): void {
+  emit({ docName, activeThreadId, revealThreadId: null, draft: null });
 }
 
-function draftFor(docName: string): DiscussionUiState['draft'] {
-  return state.docName === docName ? state.draft : null;
+export function openCommentsPane(): void {
+  requestDocPanelTab('comments');
 }
 
-export function openDiscussions(docName: string, activeThreadId: string | null = null): void {
-  emit({
-    docName,
-    open: activeThreadId === null ? true : listOpenFor(docName),
-    activeThreadId,
-    revealThreadId: null,
-    draft: activeThreadId === null ? draftFor(docName) : null,
-  });
-}
-
-export function showThreadInList(docName: string, activeThreadId: string): void {
-  emit({ docName, open: true, activeThreadId, revealThreadId: null, draft: null });
+export function showThreadInPane(docName: string, activeThreadId: string): void {
+  openThread(docName, activeThreadId);
+  openCommentsPane();
 }
 
 export function revealDiscussion(docName: string, threadId: string): void {
   emit({
     docName,
-    open: listOpenFor(docName),
     activeThreadId: threadId,
     revealThreadId: threadId,
     draft: null,
@@ -72,12 +61,8 @@ export function clearReveal(): void {
   if (state.revealThreadId !== null) emit({ ...state, revealThreadId: null });
 }
 
-export function closeDiscussions(): void {
-  emit({ ...state, open: false });
-}
-
 export function startDraft(docName: string, draft: NonNullable<DiscussionUiState['draft']>): void {
-  emit({ docName, open: listOpenFor(docName), activeThreadId: null, revealThreadId: null, draft });
+  emit({ docName, activeThreadId: null, revealThreadId: null, draft });
 }
 
 export function clearDraft(): void {

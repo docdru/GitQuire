@@ -6,7 +6,7 @@ import type { Editor } from '@tiptap/react';
 import { useEffect } from 'react';
 import { placeThreads, readThreads } from './editor-threads';
 import { useThreadSync } from './thread-sync';
-import { getDiscussionUi, openDiscussions, subscribeDiscussionUi } from './ui-store';
+import { getDiscussionUi, openThread, subscribeDiscussionUi } from './ui-store';
 
 const discussionKey = new PluginKey<DecorationSet>('gitquireDiscussions');
 
@@ -52,7 +52,7 @@ function createDiscussionPlugin(docName: string): Plugin<DecorationSet> {
       decorations: (state) => discussionKey.getState(state),
       handleClickOn: (_view, _pos, node) => {
         if (node.type.name !== GITQUIRE_COMMENT_MARK_NODE) return false;
-        openDiscussions(docName, String(node.attrs.id ?? ''));
+        openThread(docName, String(node.attrs.id ?? ''));
         return true;
       },
       handleClick: (view, pos) => {
@@ -63,7 +63,7 @@ function createDiscussionPlugin(docName: string): Plugin<DecorationSet> {
           const size = range.to - range.from;
           if (hit === undefined || size < hit.size) hit = { id: thread.id, size };
         }
-        if (hit !== undefined) openDiscussions(docName, hit.id);
+        if (hit !== undefined) openThread(docName, hit.id);
         return false;
       },
     },

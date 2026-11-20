@@ -75,7 +75,7 @@ vi.doMock('@/components/ProblemsPanel', () => ({
 
 const { DocPanel } = await import('./DocPanel');
 
-type Tab = 'outline' | 'links' | 'graph' | 'timeline' | 'problems';
+type Tab = 'outline' | 'links' | 'comments' | 'graph' | 'timeline' | 'problems';
 
 function renderPanel(activeTab: Tab) {
   return render(
@@ -100,10 +100,19 @@ afterEach(() => {
 });
 
 describe('DocPanel — tab gating', () => {
-  test('renders the full tab strip (outline + links + graph + timeline + problems)', () => {
+  test('renders the full tab strip, Comments included', () => {
     renderPanel('outline');
-    expect(screen.getAllByRole('tab')).toHaveLength(5);
+    expect(screen.getAllByRole('tab')).toHaveLength(6);
+    expect(screen.getByRole('tab', { name: 'Comments' })).toBeTruthy();
     expect(screen.getByTestId('outline-panel')).toBeTruthy();
+  });
+
+  test('the Comments tab asks to open the page when no editor has it', () => {
+    renderPanel('comments');
+    expect(screen.getByRole('tabpanel').getAttribute('id')).toBe('panel-comments');
+    expect(
+      screen.getByText('Comments are shown when the page is open in the editor.'),
+    ).toBeTruthy();
   });
 
   test('renders the Problems panel when its tab is active, against the active doc', () => {
