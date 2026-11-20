@@ -371,8 +371,8 @@ msgstr "{keyName} प्रकार: जटिल मान (नेस्टे
 msgid "{keyName} value"
 msgstr "{keyName} मान"
 
-msgid "{label} ({0})"
-msgstr "{label} ({0})"
+msgid "{label} ({badgeCount})"
+msgstr ""
 
 msgid "{label} enabled"
 msgstr "{label} सक्षम"
@@ -1551,9 +1551,6 @@ msgstr "सभी अनपिन किए हुए बंद करें"
 msgid "Close comment"
 msgstr ""
 
-msgid "Close comments"
-msgstr ""
-
 msgid "Close diff"
 msgstr "अंतर बंद करें"
 
@@ -1650,8 +1647,14 @@ msgstr "इस चयन पर टिप्पणी करें"
 msgid "Comment thread"
 msgstr ""
 
+msgid "Comment threads"
+msgstr ""
+
 msgid "Comments"
 msgstr "टिप्पणियाँ"
+
+msgid "Comments are shown when the page is open in the editor."
+msgstr ""
 
 msgid "Commit and sync"
 msgstr "कमिट करें और सिंक करें"

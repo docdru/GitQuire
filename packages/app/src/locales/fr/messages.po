@@ -371,8 +371,8 @@ msgstr "Type de {keyName} : valeur complexe (imbriquée ; lecture seule)"
 msgid "{keyName} value"
 msgstr "Valeur de {keyName}"
 
-msgid "{label} ({0})"
-msgstr "{label} ({0})"
+msgid "{label} ({badgeCount})"
+msgstr ""
 
 msgid "{label} enabled"
 msgstr "{label} activé"
@@ -1555,9 +1555,6 @@ msgstr "Fermer tous les onglets non épinglés"
 msgid "Close comment"
 msgstr ""
 
-msgid "Close comments"
-msgstr ""
-
 msgid "Close diff"
 msgstr "Fermer les différences"
 
@@ -1654,8 +1651,14 @@ msgstr "Commenter cette sélection"
 msgid "Comment thread"
 msgstr ""
 
+msgid "Comment threads"
+msgstr ""
+
 msgid "Comments"
 msgstr "Commentaires"
+
+msgid "Comments are shown when the page is open in the editor."
+msgstr ""
 
 msgid "Commit and sync"
 msgstr "Valider et synchroniser"

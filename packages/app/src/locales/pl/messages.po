@@ -371,8 +371,8 @@ msgstr "{keyName} typ: wartość złożona (zagnieżdżona; tylko do odczytu)"
 msgid "{keyName} value"
 msgstr "{keyName}: wartość"
 
-msgid "{label} ({0})"
-msgstr "{label} ({0})"
+msgid "{label} ({badgeCount})"
+msgstr ""
 
 msgid "{label} enabled"
 msgstr "{label} włączone"
@@ -1555,9 +1555,6 @@ msgstr "Zamknij wszystkie nieprzypięte"
 msgid "Close comment"
 msgstr ""
 
-msgid "Close comments"
-msgstr ""
-
 msgid "Close diff"
 msgstr "Zamknij widok różnic"
 
@@ -1654,8 +1651,14 @@ msgstr "Skomentuj to zaznaczenie"
 msgid "Comment thread"
 msgstr ""
 
+msgid "Comment threads"
+msgstr ""
+
 msgid "Comments"
 msgstr "Komentarze"
+
+msgid "Comments are shown when the page is open in the editor."
+msgstr ""
 
 msgid "Commit and sync"
 msgstr "Zatwierdź i synchronizuj"
