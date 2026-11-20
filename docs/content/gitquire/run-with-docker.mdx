@@ -41,4 +41,7 @@ working copy. Health checks are `GET /healthz` (process up) and `GET /readyz` (r
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | unset | Post new mentions to a team chat ([mentions](./mentions.mdx#team-chat)) |
 
 The image is published from `main` as `ghcr.io/docdru/gitquire:latest` and
-`ghcr.io/docdru/gitquire:sha-<commit>`. Pin a `sha-` tag in production.
+`ghcr.io/docdru/gitquire:sha-<commit>`, and each release as `ghcr.io/docdru/gitquire:<version>`
+(for example `0.3.1`, and `0.3` for the newest `0.3.x`). Pin a version in production; the
+[releases page](https://github.com/docdru/GitQuire/releases) lists what changed, and
+"Versions and upgrades" in `DEPLOY.md` has the upgrade steps.

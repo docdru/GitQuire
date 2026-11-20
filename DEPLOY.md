@@ -50,6 +50,7 @@ repository sync, the GitHub App key as `app.pem` with
 | --- | --- |
 | Start, or apply a changed `gitquire.env` | `docker compose up -d` |
 | Update to the latest image | `docker compose pull && docker compose up -d` |
+| Move to a released version | Set `image: ghcr.io/docdru/gitquire:<version>` in `compose.yaml`, then `docker compose pull && docker compose up -d` |
 | Follow the log | `docker compose logs -f gitquire` |
 | Start the Mailpit test inbox on port 8025 | `docker compose --profile mail-test up -d` |
 
@@ -379,6 +380,37 @@ docker build -t gitquire:local .
 
 CI builds and smoke-tests the image on every pull request and publishes it to
 `ghcr.io/docdru/gitquire` from `main` (see [`.github/workflows/docker.yml`](./.github/workflows/docker.yml)).
+
+## Versions and upgrades
+
+The image is published under these tags:
+
+| Tag | What it is | Use it for |
+| --- | --- | --- |
+| `0.3.1` | One released version; never moves | A server people rely on |
+| `0.3` | The newest `0.3.x` release | Taking fixes without reading release notes |
+| `latest` | The newest commit on `main`, released or not | A test server |
+| `sha-<commit>` | One commit on `main` | Going back to an exact build |
+
+Each release is listed with its changes on the
+[releases page](https://github.com/docdru/GitQuire/releases). While the version starts with `0.`,
+a new middle number (`0.3` to `0.4`) means the upgrade may need a manual step, which the release
+notes name; a new last number never does.
+
+To upgrade a server that is pinned to a version:
+
+1. Read the release notes of every version in between.
+2. Back up the volume:
+   `docker run --rm -v gitquire-data:/data -v "$PWD":/b alpine tar czf /b/gitquire-data.tgz -C /data .`
+3. Change the version in the `image:` line of `compose.yaml`.
+4. `docker compose pull && docker compose up -d`
+
+To go back, put the old version in the `image:` line and repeat step 4. When the release notes say
+an upgrade changes files on the volume, restore the backup as well. Edits that were already pushed
+to GitHub stay there.
+
+`docker compose exec gitquire gitquire --version` prints the version a running server has. An
+image built from `main` between two releases reports the version of the last release.
 
 ## Upgrading from the old names
 

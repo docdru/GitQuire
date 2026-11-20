@@ -226,3 +226,78 @@ jobs:
       - name: Remove containers
         if: always()
         run: docker rm -f gq gq-e2e gq-auth || true
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      packages: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Decide whether this commit is a new release
+        id: version
+        run: |
+          set -eu
+          version=$(node scripts/release-version.mjs --print)
+          tags=$(node scripts/release-version.mjs --image-tags)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+          if [ -z "$tags" ]; then
+            echo "The packages carry no release version ($version). Nothing to release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          elif gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$version" --silent 2>/dev/null; then
+            echo "v$version is already released."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Releasing v$version from $GITHUB_SHA."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        if: steps.version.outputs.release == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check that the tested image reports this version
+        if: steps.version.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -eu
+          reported=$(docker run --rm --entrypoint gitquire "$IMAGE:sha-$GITHUB_SHA" --version)
+          echo "$reported"
+          test "$(printf '%s\n' "$reported" | head -n 1)" = "$VERSION"
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.version.outputs.release == 'true'
+
+      - name: Tag the tested image with the version
+        if: steps.version.outputs.release == 'true'
+        env:
+          TAGS: ${{ steps.version.outputs.tags }}
+        run: |
+          set -eu
+          for tag in $TAGS; do
+            docker buildx imagetools create -t "$IMAGE:$tag" "$IMAGE:sha-$GITHUB_SHA"
+          done
+
+      - name: Create the tag and the GitHub release
+        if: steps.version.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -eu
+          prerelease=""
+          case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --title "GitQuire $VERSION" \
+            --generate-notes $prerelease \
+            --notes "Image: \`$IMAGE:$VERSION\`. Upgrade notes: see \"Versions and upgrades\" in DEPLOY.md."
