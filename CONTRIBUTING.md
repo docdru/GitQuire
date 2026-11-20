@@ -192,8 +192,14 @@ you leave a P0 or P1 as it is.
 - What the reviewer looks for is in `.github/ai-review.toml`, and so is the Mistral model it uses
   (`model`). The action reads that file from the pull request's base branch, so a change to it
   takes effect after it is merged.
-- The workflow pins the action to the commit of its release v1.1.0. To upgrade, replace the commit
+- The workflow pins the action to the commit of its release v1.2.0. To upgrade, replace the commit
   with the one of the new release tag and update the version in this line.
+- Besides the diff, the changed files and the reference docs, the reviewer gets related files
+  (`[related]` in the config): the tests of the changed files, the files that import them and the
+  files they import (one step, relative imports only), and the names of neighbouring files. For
+  that the action downloads the pull request's head as an archive and reads it in memory; nothing
+  is run. A file that defines a contract other code must honour can be sent whenever a given path
+  changes, with a `[[related.rules]]` entry.
 - The workflow uses plain `pull_request`, never `pull_request_target`, and the action reads the
   pull request through the GitHub API without checking out or running any of it. Pull requests
   from forks and from bots are skipped, so they cannot spend API credit or reach the secret.

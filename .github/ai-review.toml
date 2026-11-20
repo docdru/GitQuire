@@ -39,6 +39,11 @@ generated_files = [
 ]
 generated_suffixes = [".po"]
 
+[related]
+tests = true
+imports = true
+nearby = true
+
 [[sections]]
 key = "security"
 title = "🔒 Security and access"
