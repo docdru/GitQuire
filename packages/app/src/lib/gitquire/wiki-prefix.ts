@@ -1,12 +1,10 @@
-const PREFIX_RE = /^(?:\/[A-Za-z0-9_~-][A-Za-z0-9._~-]*)+$/;
-
-function isValidPrefix(value: string): boolean {
-  return PREFIX_RE.test(value) && !value.split('/').some((part) => part === '.' || part === '..');
-}
+const WIKI_ADDRESS_RE = /^(\/w\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\//;
 
 export function prefixFromPath(pathname: string): string {
-  const folder = pathname.slice(0, pathname.lastIndexOf('/'));
-  return folder !== '' && isValidPrefix(folder) ? folder : '';
+  const prefix = WIKI_ADDRESS_RE.exec(pathname)?.[1];
+  if (prefix === undefined) return '';
+  const repo = prefix.slice(prefix.lastIndexOf('/') + 1);
+  return repo === '.' || repo === '..' ? '' : prefix;
 }
 
 export function wikiPrefix(): string {

@@ -14,7 +14,13 @@ describe('the wiki prefix in the browser', () => {
     expect(defaultCollabWsUrl()).toBe(`ws://${window.location.host}/collab`);
   });
 
-  it('comes from the folder the page was loaded from', () => {
+  it('stays empty at a deeper path outside /w/<owner>/<repo>/', () => {
+    window.history.replaceState(null, '', '/docs/plan');
+    expect(wikiPrefix()).toBe('');
+    expect(defaultCollabWsUrl()).toBe(`ws://${window.location.host}/collab`);
+  });
+
+  it('comes from the /w/<owner>/<repo>/ address the page was loaded from', () => {
     window.history.replaceState(null, '', '/w/team/wiki/#/notes/plan');
     expect(wikiPrefix()).toBe('/w/team/wiki');
     expect(wikiStorageNamespace()).toBe('wiki:/w/team/wiki');

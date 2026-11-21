@@ -3,22 +3,34 @@ import { scopedStorageKey } from '@/lib/storage-scope';
 import { prefixFromPath, wikiStorageNamespace, withWikiPrefix } from './wiki-prefix';
 
 describe('the wiki prefix', () => {
-  it('is empty for a wiki served at the root, as today', () => {
+  it('is empty outside the /w/<owner>/<repo>/ address scheme, as today', () => {
     expect(prefixFromPath('/')).toBe('');
     expect(prefixFromPath('/index.html')).toBe('');
     expect(prefixFromPath('/notes')).toBe('');
+    expect(prefixFromPath('/docs/plan')).toBe('');
+    expect(prefixFromPath('/something/page/')).toBe('');
+    expect(prefixFromPath('/gitquire/')).toBe('');
   });
 
-  it('is the folder the app was loaded from', () => {
+  it('is /w/<owner>/<repo> when the page is under that address', () => {
     expect(prefixFromPath('/w/team/wiki/')).toBe('/w/team/wiki');
+    expect(prefixFromPath('/w/team/wiki/x')).toBe('/w/team/wiki');
     expect(prefixFromPath('/w/team/wiki/index.html')).toBe('/w/team/wiki');
     expect(prefixFromPath('/w/team/my.wiki/')).toBe('/w/team/my.wiki');
   });
 
-  it('ignores a folder that is not a plain path', () => {
-    expect(prefixFromPath('/w/../x/')).toBe('');
-    expect(prefixFromPath('/w/a%20b/')).toBe('');
-    expect(prefixFromPath('//evil.example/')).toBe('');
+  it('needs the owner, the repo and the slash after them', () => {
+    expect(prefixFromPath('/w/team')).toBe('');
+    expect(prefixFromPath('/w/team/')).toBe('');
+    expect(prefixFromPath('/w/team/wiki')).toBe('');
+    expect(prefixFromPath('/x/w/team/wiki/')).toBe('');
+  });
+
+  it('ignores owners and repos that are not plain names', () => {
+    expect(prefixFromPath('/w/team/../')).toBe('');
+    expect(prefixFromPath('/w/team/./')).toBe('');
+    expect(prefixFromPath('/w/a%20b/wiki/')).toBe('');
+    expect(prefixFromPath('/w/te.am/wiki/')).toBe('');
   });
 });
 
