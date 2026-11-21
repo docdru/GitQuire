@@ -258,6 +258,30 @@ describe('GitHub door host for several repositories', () => {
     expect(await host.health({ owner: 'acme', name: 'notes' })).toBe('unreachable');
   });
 
+  it('forgets a repo token the host refuses, so a reinstalled app gets a fresh one', async () => {
+    let minted = 0;
+    let revoked = true;
+    const host = door((method, path, token) => {
+      if (path.endsWith('/installation')) return { status: 200, body: { id: 11 } };
+      if (method === 'POST') {
+        minted += 1;
+        return { status: 201, body: tokenBody(`ghs_${minted}`, '2026-11-21T13:00:00Z') };
+      }
+      if (path === '/repos/acme/notes/collaborators/bob/permission') {
+        return revoked && token === 'ghs_1'
+          ? { status: 401, body: { message: 'Bad credentials' } }
+          : { status: 200, body: { permission: 'write', role_name: 'write' } };
+      }
+      return { status: 404 };
+    });
+    const notes = { owner: 'acme', name: 'notes' };
+    expect(await host.tokenFor(notes)).toBe('ghs_1');
+    expect(await host.accessByBot('bob', notes)).toBe('refused:token');
+    revoked = false;
+    expect(await host.tokenFor(notes)).toBe('ghs_2');
+    expect(await host.accessByBot('bob', notes)).toBe('write');
+  });
+
   it('re-checks people with the token of their own repo', async () => {
     const calls: string[] = [];
     const host = door((method, path) => {

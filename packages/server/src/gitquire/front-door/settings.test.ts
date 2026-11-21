@@ -43,6 +43,24 @@ describe('front door settings', () => {
     expect(settings.forgejoBotToken).toBeUndefined();
   });
 
+  it('reads how long access answers are kept and how long an unused wiki keeps running', () => {
+    const plain = resolveFrontDoorSettings(github, '/data');
+    expect(plain.accessCheckMs).toBe(300_000);
+    expect(plain.wikiIdleMs).toBe(30 * 60_000);
+    const set = resolveFrontDoorSettings(
+      { ...github, GITQUIRE_ACCESS_CHECK_SECONDS: '20', GITQUIRE_WIKI_IDLE_MINUTES: '1.5' },
+      '/data',
+    );
+    expect(set.accessCheckMs).toBe(20_000);
+    expect(set.wikiIdleMs).toBe(90_000);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_ACCESS_CHECK_SECONDS: '0' }, '/data'),
+    ).toThrow(/GITQUIRE_ACCESS_CHECK_SECONDS must be a number of seconds between 1 and 3600/);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_WIKI_IDLE_MINUTES: 'soon' }, '/data'),
+    ).toThrow(/GITQUIRE_WIKI_IDLE_MINUTES must be/);
+  });
+
   it('reads the agent settings, and still refuses GITQUIRE_MCP_TOKEN (R7)', () => {
     const plain = resolveFrontDoorSettings(github, '/data');
     expect(plain.agentTokenDays).toBe(90);

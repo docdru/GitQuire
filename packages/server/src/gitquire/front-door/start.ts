@@ -137,6 +137,7 @@ export async function startFrontDoor(
   const later = { check: (_wiki: WikiRecord): void => {} };
   const access = createWikiAccess({
     host,
+    ttlMs: settings.accessCheckMs,
     changed: (wiki) => later.check(wiki),
     runnable: (wiki) => ownerAllowed(owners, wiki),
     refused: (wiki, refusal) => {
@@ -158,6 +159,7 @@ export async function startFrontDoor(
     table,
     owners,
     tokenSocket: () => tokenSocketPath,
+    idleMs: settings.wikiIdleMs,
     log,
   });
   later.check = (wiki) => {
@@ -257,11 +259,14 @@ export async function startFrontDoor(
   const address = server.address();
   const boundPort = typeof address === 'object' && address !== null ? address.port : port;
 
-  const recheck = setInterval(() => {
-    door
-      .recheckConnections()
-      .catch((err: unknown) => log.warn({ err }, '[gitquire-door] live-editing re-check failed'));
-  }, RECHECK_MS);
+  const recheck = setInterval(
+    () => {
+      door
+        .recheckConnections()
+        .catch((err: unknown) => log.warn({ err }, '[gitquire-door] live-editing re-check failed'));
+    },
+    Math.min(RECHECK_MS, settings.accessCheckMs),
+  );
   recheck.unref();
   const checkAll = async (): Promise<void> => {
     for (const wiki of table.list()) {

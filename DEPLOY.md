@@ -727,6 +727,13 @@ container starts with `GITQUIRE_WIKIS` off, before anything is written to it.
 - Whether an AI assistant such as Claude uses the `wiki` argument well has not been tried with a
   real connector yet.
 
+### Timing of access checks and stops
+
+| Setting | Meaning |
+| --- | --- |
+| `GITQUIRE_ACCESS_CHECK_SECONDS` | How long the front door keeps a person's access answer before asking the host again, 1 to 3600, default 300. Open live-editing connections are checked every minute, or at this interval when it is shorter, so a person who loses access is cut off within this time plus a minute. Shorter means more host calls. |
+| `GITQUIRE_WIKI_IDLE_MINUTES` | How long a wiki's process keeps running without use, default 30. It stops only once it is pushed and clean, and starts again on the next request. |
+
 ## Build the image yourself
 
 ```bash
@@ -824,3 +831,4 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |
 | `GITQUIRE_BEHIND_FRONT_DOOR`, `GITQUIRE_DOOR_TOKEN_SOCKET` | [Behind GitQuire's front door](#behind-gitquires-front-door) |
 | `GITQUIRE_WIKIS`, `GITQUIRE_ALLOWED_OWNERS` | [Several wikis](#several-wikis) |
+| `GITQUIRE_ACCESS_CHECK_SECONDS`, `GITQUIRE_WIKI_IDLE_MINUTES` | [Several wikis](#timing-of-access-checks-and-stops) |
