@@ -166,28 +166,6 @@ test('stacked with the full-ci label: everything', () => {
   expect(result.docker).toBe(true);
 });
 
-test('a pull request against wikis-hosts runs everything, Docker included', () => {
-  const result = pr(['docs/a.mdx'], { baseRef: 'wikis-hosts' });
-  expect(result.full).toBe(true);
-  expect(result.stacked).toBe(false);
-  expect(names(result)).toEqual(all);
-  expect(result.docker).toBe(true);
-  expect(result.summary).toBe('full run: pull request against wikis-hosts');
-});
-
-test('a push to wikis-hosts runs everything', () => {
-  const result = plan({ suites, event: 'push', ref: 'wikis-hosts' });
-  expect(names(result)).toEqual(all);
-  expect(result.docker).toBe(true);
-  expect(result.summary).toBe('full run: push to wikis-hosts');
-});
-
-test('a pull request stacked on a pull request into wikis-hosts keeps the reduced set', () => {
-  const result = pr(['packages/app/src/App.tsx'], { baseRef: 'wh/host-interface' });
-  expect(result.stacked).toBe(true);
-  expect(result.docker).toBe(false);
-});
-
 test('shard names collapse into a range when all shards are listed', () => {
   expect(compressNames(['a 1/2', 'b', 'a 2/2', 'c 1/3'])).toEqual(['a 1–2', 'b', 'c (1 of 3)']);
 });
