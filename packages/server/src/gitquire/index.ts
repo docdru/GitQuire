@@ -37,6 +37,7 @@ import {
 } from './legacy-data-folder.ts';
 import type { ScanFilter } from './page-scan.ts';
 import { setSessionPrincipalResolver } from './principal-directory.ts';
+import { createStopStateRoute, projectStopState } from './process-pool/stop-state.ts';
 import {
   bootstrapRepository,
   ensureAutoSyncMode,
@@ -291,9 +292,17 @@ export function createGitQuireHttp(
           sessionUser: gate.sessionUser,
           log: options.log,
         });
+  const stopState = createStopStateRoute(() =>
+    projectStopState(
+      options.projectDir,
+      runGitSync,
+      drafts === undefined ? async () => ({ pushedAndClean: true }) : drafts.instances.stopState,
+    ),
+  );
   return {
     handleRequest: (req, res) =>
       (gate?.handleRequest(req, res) ?? false) ||
+      stopState(req, res) ||
       (drafts?.http.handleRequest(req, res) ?? false) ||
       (chat?.handle(req, res) ?? false) ||
       routes.handle(req, res),
@@ -304,9 +313,13 @@ export function createGitQuireHttp(
     useContentFilter: (filter) => {
       contentFilter = filter;
     },
+    stopChildren: async () => {
+      await drafts?.stop();
+    },
   };
 }
 
 export interface GitQuireHttp extends AccessGate {
   useContentFilter: (filter: ScanFilter) => void;
+  stopChildren: () => Promise<void>;
 }

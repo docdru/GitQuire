@@ -425,6 +425,7 @@ export interface ServerOptions {
   shadowRepo?: ShadowHandle;
   contentRoot?: string;
   destroyTimeoutMs?: number;
+  finalPushTimeoutMs?: number;
   authorityRegistryPath?: string;
   onAgentWrite?: () => void;
   localOpCliArgs?: string[];
@@ -493,6 +494,32 @@ export interface ServerInstance {
   readonly resolveTrackedFile: (relativePath: string) => string | undefined;
   readonly recheckDisk: () => Promise<RecheckResult>;
   readonly runGitMove: <T>(step: () => Promise<T>) => Promise<T>;
+}
+
+export type FinalPushOutcome = 'pushed' | 'skipped' | 'failed' | 'timeout';
+
+export async function pushBeforeStop(
+  engine: Pick<SyncEngine, 'getStatus' | 'pushOnce'>,
+  timeoutMs: number,
+): Promise<FinalPushOutcome> {
+  const status = engine.getStatus();
+  if (status.syncMode !== 'full' || !status.hasRemote) return 'skipped';
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<'timeout'>((resolve) => {
+    timer = setTimeout(() => resolve('timeout'), timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      engine.pushOnce().then(
+        () =>
+          engine.getStatus().pushError === undefined ? ('pushed' as const) : ('failed' as const),
+        () => 'failed' as const,
+      ),
+      timeout,
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
 }
 
 export function observeShutdownDocumentRetirements(
@@ -626,6 +653,7 @@ export function createServer(options: ServerOptions): ServerInstance {
     shadowRepo,
     contentRoot,
     destroyTimeoutMs = 10_000,
+    finalPushTimeoutMs = 0,
     localOpCliArgs,
     authStreamHeartbeatMs,
     skipStateManifestCheck = false,
@@ -5297,6 +5325,15 @@ export function createServer(options: ServerOptions): ServerInstance {
             log.error({ err }, '[server] shutdown phase-4 git commit flush failed');
           } finally {
             if (l2TimeoutId !== undefined) clearTimeout(l2TimeoutId);
+          }
+          if (syncEngine && finalPushTimeoutMs > 0) {
+            const outcome = await pushBeforeStop(syncEngine, finalPushTimeoutMs);
+            if (outcome === 'failed' || outcome === 'timeout') {
+              phaseErrors.push({ phase: 'final-push', error: outcome });
+              log.error({ outcome }, '[server] shutdown final push did not finish');
+            } else {
+              log.info({ outcome }, '[server] shutdown final push');
+            }
           }
           try {
             if (syncEngine) {

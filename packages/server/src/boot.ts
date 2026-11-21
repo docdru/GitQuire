@@ -49,6 +49,8 @@ import {
   describeLegacyDataFolderMigration,
   migrateLegacyDataFolders,
 } from './gitquire/legacy-data-folder.ts';
+import { listenOnUnixSocket, unixSocketFromEnv } from './gitquire/process-pool/socket-listener.ts';
+import { behindFrontDoorFromEnv } from './gitquire/request-person.ts';
 import { createShellHeaderSetter } from './http/shell-csp.ts';
 import {
   attachCollabClientCounter,
@@ -124,6 +126,8 @@ function computeWorktreeAttributes(projectDir: string): {
 
 const DEFAULT_IDLE_THRESHOLD_MS = 30 * 60 * 1000;
 const DESTROY_STEP_TIMEOUT_MS = Number(process.env.GITQUIRE_DESTROY_STEP_TIMEOUT_MS) || 5000;
+const FINAL_PUSH_TIMEOUT_MS = 15_000;
+const CHILDREN_STOP_BUDGET_MS = 25_000;
 
 export interface BootServerOptions
   extends Pick<
@@ -294,6 +298,9 @@ async function bootServerInner(
   }
 
   const ingressPolicy = buildIngressPolicy({ serverRuntime });
+  const unixSocket = unixSocketFromEnv(process.env);
+  const tcpPort = unixSocket === undefined ? opts.port : undefined;
+  const finalPushTimeoutMs = behindFrontDoorFromEnv(process.env) ? FINAL_PUSH_TIMEOUT_MS : 0;
   configureHostFromEnv(process.env, opts.projectDir ?? opts.contentDir);
   const gitHubAppTokens = await startGitHubAppTokensFromEnv(process.env, log);
   const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log, {
@@ -414,7 +421,7 @@ async function bootServerInner(
     projectDir: opts.projectDir,
     ingressPolicy,
     contentRoot: opts.contentRoot,
-    port: opts.port,
+    port: tcpPort,
     host: opts.host,
     quiet: opts.quiet ?? false,
     debounce: opts.debounce,
@@ -426,6 +433,7 @@ async function bootServerInner(
     enableTestRoutes: opts.enableTestRoutes,
     shadowRepo: opts.shadowRepo,
     destroyTimeoutMs: opts.destroyTimeoutMs,
+    finalPushTimeoutMs,
     localOpCliArgs: opts.localOpCliArgs,
     authStreamHeartbeatMs: opts.authStreamHeartbeatMs,
     onAgentWrite: opts.onAgentWrite,
@@ -466,7 +474,7 @@ async function bootServerInner(
     if (host === '0.0.0.0' || host === '::') return 'localhost';
     return host.includes(':') && !host.startsWith('[') ? `[${host}]` : host;
   })();
-  let boundPort = opts.port ?? 0;
+  let boundPort = tcpPort ?? 0;
   const internalBaseUrl = (): string => `http://${mcpHost}:${boundPort}`;
   const mcpHttpHandler = createMcpHttpHandler({
     contentDir: opts.contentDir,
@@ -562,14 +570,14 @@ async function bootServerInner(
       });
     });
   try {
-    await listenOn(httpServer, opts.port ?? 0, primaryAddress ?? DEFAULT_SERVER_HOST);
+    await listenOn(httpServer, tcpPort ?? 0, primaryAddress ?? DEFAULT_SERVER_HOST);
   } catch (err) {
     await cleanupAfterListenFailure();
     throw err;
   }
   const primaryAddr = httpServer.address();
   const primaryPort =
-    typeof primaryAddr === 'object' && primaryAddr !== null ? primaryAddr.port : (opts.port ?? 0);
+    typeof primaryAddr === 'object' && primaryAddr !== null ? primaryAddr.port : (tcpPort ?? 0);
   const secondaryServers: HttpServer[] = [];
   for (const address of listenAddresses.slice(1)) {
     const secondary = createHttpServer();
@@ -607,12 +615,29 @@ async function bootServerInner(
     }
     secondaryServers.push(secondary);
   }
+  if (unixSocket !== undefined) {
+    try {
+      secondaryServers.push(await listenOnUnixSocket(httpServer, unixSocket, createHttpServer));
+    } catch (err) {
+      log.error(
+        { err, socket: unixSocket },
+        '[boot] unix socket bind failed — unwinding all listeners',
+      );
+      for (const bound of [...secondaryServers, httpServer]) {
+        bound.closeAllConnections?.();
+        await new Promise<void>((resolveClose) => bound.close(() => resolveClose()));
+      }
+      await cleanupAfterListenFailure();
+      throw err;
+    }
+    log.info({ socket: unixSocket }, '[boot] also listening on a unix socket');
+  }
 
   const listenMs = bootElapsedMs();
   if (listenMs !== undefined) recordBootPhase('httpListenMs', listenMs);
 
   const addr = httpServer.address();
-  const realPort = typeof addr === 'object' && addr !== null ? addr.port : (opts.port ?? 0);
+  const realPort = typeof addr === 'object' && addr !== null ? addr.port : (tcpPort ?? 0);
   boundPort = realPort;
   const boundBaseUrl = internalBaseUrl();
   updateServerLockPort(lockDir, realPort, boundBaseUrl);
@@ -633,7 +658,9 @@ async function bootServerInner(
     name: string,
     work: () => Promise<void>,
     retirementSource?: ServerInstance['hocuspocus'],
+    extraMs = 0,
   ): Promise<void> => {
+    const budgetMs = DESTROY_STEP_TIMEOUT_MS + extraMs;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let stopObserving: (() => void) | undefined;
     let finished = false;
@@ -644,13 +671,13 @@ async function bootServerInner(
       timeout.reject(
         new Error(
           retirementSource
-            ? `${name} timed out: no document retired for ${DESTROY_STEP_TIMEOUT_MS}ms`
-            : `${name} timed out after ${DESTROY_STEP_TIMEOUT_MS}ms`,
+            ? `${name} timed out: no document retired for ${budgetMs}ms`
+            : `${name} timed out after ${budgetMs}ms`,
         ),
       );
     };
     const arm = () => {
-      timer = setTimeout(expire, DESTROY_STEP_TIMEOUT_MS);
+      timer = setTimeout(expire, budgetMs);
       timer.unref?.();
     };
     try {
@@ -694,9 +721,10 @@ async function bootServerInner(
       name: string,
       work: () => Promise<void>,
       retirementSource?: ServerInstance['hocuspocus'],
+      extraMs = 0,
     ): Promise<void> => {
       try {
-        await withDestroyTimeout(name, work, retirementSource);
+        await withDestroyTimeout(name, work, retirementSource, extraMs);
       } catch (err) {
         errors.push(err);
         log.warn({ err, step: name }, 'bootServer destroy step failed');
@@ -760,7 +788,13 @@ async function bootServerInner(
           );
         }),
     );
-    await runStep('destroyHocuspocus', () => destroyHocuspocus(), hocuspocus);
+    await runStep(
+      'gitquire.stopChildren',
+      () => gitquireHttp.stopChildren(),
+      undefined,
+      CHILDREN_STOP_BUDGET_MS,
+    );
+    await runStep('destroyHocuspocus', () => destroyHocuspocus(), hocuspocus, finalPushTimeoutMs);
     await runStep('shutdownTelemetry', () => shutdownTelemetry());
     await runStep('teardownToleranceTelemetry', () => teardownToleranceTelemetryWriter());
     await runStep('flushLogFileSinks', () => loggerFactory.flushAllFileSinks());

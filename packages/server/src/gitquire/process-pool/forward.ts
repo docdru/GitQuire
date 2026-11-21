@@ -44,7 +44,7 @@ function forwardedHeaders(
 export function proxyRequest(
   req: IncomingMessage,
   res: ServerResponse,
-  port: number,
+  socketPath: string,
   options: {
     extraHeaders?: Record<string, string>;
     onResponse?: (
@@ -55,8 +55,7 @@ export function proxyRequest(
 ): void {
   const upstream = request(
     {
-      host: '127.0.0.1',
-      port,
+      socketPath,
       method: req.method,
       path: req.url,
       headers: forwardedHeaders(req, options.extraHeaders),
@@ -112,11 +111,11 @@ export function proxyUpgrade(
   req: IncomingMessage,
   socket: Duplex,
   head: Buffer,
-  port: number,
+  socketPath: string,
   onClose: () => void,
   extraHeaders: Record<string, string> = {},
 ): void {
-  const upstream = connect(port, '127.0.0.1');
+  const upstream = connect(socketPath);
   let closed = false;
   const close = () => {
     if (closed) return;

@@ -55,7 +55,6 @@ function setup(options: { readyAfter?: number } = {}) {
   const instances = createDraftInstances({
     baseDir,
     cli: ['node', 'cli.mjs'],
-    env: { KEEP: 'yes' },
     internalSecret: 's'.repeat(64),
     log: silentLog,
     prepare: async (draft, dir) => {
@@ -67,36 +66,50 @@ function setup(options: { readyAfter?: number } = {}) {
       spawned.push({ args, env: options.env, child });
       return child as unknown as ChildProcess;
     },
-    fetch: (async () => {
+    socketDir: baseDir,
+    get: async (socket, path) => {
+      if (path === '/api/gitquire/stop-state') {
+        return { status: 200, body: JSON.stringify({ pushedAndClean: !socket.includes('dirty') }) };
+      }
       polls += 1;
-      return new Response('', { status: polls > (options.readyAfter ?? 0) ? 200 : 503 });
-    }) as typeof fetch,
-    freePort: async () => 40000 + spawned.length,
+      return { status: polls > (options.readyAfter ?? 0) ? 200 : 503, body: '' };
+    },
+    env: { KEEP: 'yes', PORT: '8080' },
   });
-  return { instances, spawned, prepared };
+  return { instances, spawned, prepared, baseDir };
 }
 
 describe('draft editors', () => {
   it('prepares and starts one editor per draft, even when asked twice at once', async () => {
-    const { instances, spawned, prepared } = setup({ readyAfter: 2 });
+    const { instances, spawned, prepared, baseDir } = setup({ readyAfter: 2 });
     const [a, b] = await Promise.all([
       instances.ensure(record('plan')),
       instances.ensure(record('plan')),
     ]);
-    expect(a).toBe(40000);
-    expect(b).toBe(40000);
+    expect(a).toBe(join(baseDir, 'plan.sock'));
+    expect(b).toBe(a);
     expect(prepared).toEqual(['plan']);
     expect(spawned).toHaveLength(1);
     expect(spawned[0]?.args).toEqual(['cli.mjs', 'start']);
     expect(spawned[0]?.env).toMatchObject({
       KEEP: 'yes',
-      PORT: '40000',
+      GITQUIRE_SOCKET: a,
       GITQUIRE_BIND: '127.0.0.1',
       GITQUIRE_DRAFT: 'plan',
       GITQUIRE_BRANCH: 'draft/plan',
       GITQUIRE_INTERNAL_SECRET: 's'.repeat(64),
     });
+    expect(spawned[0]?.env).not.toHaveProperty('PORT');
     expect(instances.isRunning('plan')).toBe(true);
+  });
+
+  it('reports pushed and clean only when every running draft does', async () => {
+    const { instances } = setup();
+    expect(await instances.stopState()).toEqual({ pushedAndClean: true });
+    await instances.ensure(record('plan'));
+    expect(await instances.stopState()).toEqual({ pushedAndClean: true });
+    await instances.ensure(record('dirty-notes'));
+    expect(await instances.stopState()).toEqual({ pushedAndClean: false });
   });
 
   it('stops an editor with SIGTERM and starts it again on demand', async () => {

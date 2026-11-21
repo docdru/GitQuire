@@ -35,6 +35,9 @@ docker run --rm -p 8080:8080 \
 Behind a real domain, also set `GITQUIRE_EXTERNAL_URL=https://your.domain`. Run exactly one container per
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
 
+On `docker stop` GitQuire writes open pages to disk and waits for its draft editors to stop. Give it
+time: `deploy/compose.yaml` sets `stop_grace_period: 60s`; with `docker run`, use `docker stop -t 60`.
+
 For nginx, start from [`deploy/nginx/sites-available/gitquire.conf`](./deploy/nginx/sites-available/gitquire.conf).
 It forwards WebSocket upgrades (live editing needs them) and allows uploads up to 50 MB. Publish the
 container port on loopback only (`-p 127.0.0.1:8080:8080`) so nginx is the only way in, and set
@@ -148,8 +151,8 @@ need GitHub sign-in; with the GitHub App, each draft is a `draft/<name>` branch 
 so the App needs **Pull requests: read and write** and **Contents: read and write**. Without the App,
 drafts use the repository's `origin` remote directly and are published by a squash merge.
 
-For each draft in use, the server starts one more editor process on a loopback port, with its own
-working copy, and forwards the people who opened that draft to it. A process needs about 250 MB of
+For each draft in use, the server starts one more editor process, with its own working copy, and
+forwards the people who opened that draft to it over a Unix socket in a private folder under `/tmp`. A process needs about 250 MB of
 memory, starts in a few seconds, and stops after 30 minutes without anyone in the draft. Working
 copies are kept in `GITQUIRE_DRAFTS_DIR` (default: `.gitquire-drafts/<folder>` next to the project,
 so `/.gitquire-drafts/data` in the container). They can be recreated from GitHub, but mount a volume
@@ -391,7 +394,11 @@ With it on, the editor process:
   and reads it from the same request header; the front door keeps the cookie at `/`;
 - adds the address prefix the front door sends (`x-gitquire-prefix`, for example `/w/team/wiki`) to
   the live-editing address and its own redirects;
-- has no agent tokens, no agent pages and no `/mcp` sign-in of its own.
+- has no agent tokens, no agent pages and no `/mcp` sign-in of its own;
+- on `SIGTERM`, commits and pushes what is not pushed yet (up to 15 seconds, only with
+  `autoSync.mode: full` and a remote) before it stops, after stopping its drafts, which do the same.
+  `GET /api/gitquire/stop-state` with the internal secret answers whether the wiki and its running
+  drafts are pushed and clean (`{"pushedAndClean": true, …}`); the front door stops a wiki only then.
 
 The front door sets `GITQUIRE_EXTERNAL_URL` of each editor process to the public address **with**
 the wiki's prefix, for example `https://brain.example.com/w/team/wiki`, so links in mention mails and

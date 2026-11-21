@@ -89,7 +89,7 @@ export function fakeInstances(repos: TestRepos): DraftInstances & { halted: stri
     dir,
     ensure: async (draft) => {
       await prepareDir(draft);
-      return 1;
+      return join(repos.root, `${draft.slug}.sock`);
     },
     touch: () => undefined,
     hold: () => () => undefined,
@@ -102,6 +102,7 @@ export function fakeInstances(repos: TestRepos): DraftInstances & { halted: stri
     erase,
     prepareDir,
     exclusive: (_slug, work) => work(),
+    stopState: async () => ({ pushedAndClean: true }),
     stopAll: async () => undefined,
   };
 }
