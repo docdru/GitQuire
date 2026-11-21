@@ -61,8 +61,12 @@ export function draftLink(externalUrl: string | undefined, slug: string): string
   return `${externalUrl}/?draft=${encodeURIComponent(slug)}`;
 }
 
+function inWiki(config: Pick<MailConfig, 'wiki'>): string {
+  return config.wiki === undefined ? '' : ` in the wiki ${config.wiki}`;
+}
+
 function reviewMail(
-  config: Pick<MailConfig, 'externalUrl'>,
+  config: Pick<MailConfig, 'externalUrl' | 'wiki'>,
   to: string,
   mention: Mention,
   draft: { slug: string; title: string },
@@ -70,7 +74,7 @@ function reviewMail(
   const who = clipName(mention.author.name ?? mention.author.login ?? '') || 'Someone';
   const title = clipName(draft.title);
   const link = draftLink(config.externalUrl, draft.slug);
-  const lines = [`${who} asked you to review the draft "${title}".`];
+  const lines = [`${who} asked you to review the draft "${title}"${inWiki(config)}.`];
   if (mention.body.trim() !== '') lines.push('', mention.body);
   if (link !== undefined) lines.push('', `Open the draft: ${link}`);
   lines.push(
@@ -78,11 +82,12 @@ function reviewMail(
     'You get this mail because you entered this address for mentions in GitQuire.',
     'To stop, open the mention list in GitQuire and choose "Stop emailing me".',
   );
-  return { to, subject: `${who} asked you to review ${title}`, text: `${lines.join('\n')}\n` };
+  const subject = `${who} asked you to review ${title}${config.wiki === undefined ? '' : ` in ${config.wiki}`}`;
+  return { to, subject, text: `${lines.join('\n')}\n` };
 }
 
 export function mentionMail(
-  config: Pick<MailConfig, 'externalUrl'>,
+  config: Pick<MailConfig, 'externalUrl' | 'wiki'>,
   to: string,
   mention: Mention,
 ): MailMessage {
@@ -92,9 +97,13 @@ export function mentionMail(
   const link = pageLink(config.externalUrl, mention.docName);
   const task = mention.kind === 'task';
   const lines = task
-    ? [`${who} mentioned you in an action item in "${page}":`, '', `- [ ] ${mention.body}`]
+    ? [
+        `${who} mentioned you in an action item in "${page}"${inWiki(config)}:`,
+        '',
+        `- [ ] ${mention.body}`,
+      ]
     : [
-        `${who} mentioned you in "${page}".`,
+        `${who} mentioned you in "${page}"${inWiki(config)}.`,
         '',
         `On the text: "${mention.quote}"`,
         '',
@@ -106,9 +115,10 @@ export function mentionMail(
     'You get this mail because you entered this address for mentions in GitQuire.',
     'To stop, open the mention list in GitQuire and choose "Stop emailing me".',
   );
+  const where = config.wiki === undefined ? page : `${page} (${config.wiki})`;
   const subject = task
-    ? `${who} mentioned you in an action item in ${page}`
-    : `${who} mentioned you in ${page}`;
+    ? `${who} mentioned you in an action item in ${where}`
+    : `${who} mentioned you in ${where}`;
   return { to, subject, text: `${lines.join('\n')}\n` };
 }
 

@@ -127,29 +127,44 @@ export function createActionItemMentions(deps: ActionItemMentionDeps): MentionIn
           deps.onError?.(err);
         }
       }
-      return tasks.flatMap((task): Mention[] => {
-        const entry = seen[task.id];
-        if (entry === undefined) return [];
-        return [
-          {
-            id: task.id,
-            kind: 'task',
-            path: task.path,
-            docName: task.docName,
-            threadId: '',
-            commentId: '',
-            author: entry.author ?? UNKNOWN_AUTHOR,
-            at: entry.at,
-            body: clip(task.text),
-            quote: task.title,
-            resolved: false,
-            logins: task.logins,
-            ...(entry.at === BASELINE_AT ? { quiet: true } : {}),
-          },
-        ];
-      });
+      return taskMentions(tasks, seen);
     },
   };
+}
+
+function taskMentions(
+  tasks: readonly OpenTask[],
+  seen: Readonly<Record<string, SeenEntry>>,
+): Mention[] {
+  return tasks.flatMap((task): Mention[] => {
+    const entry = Object.hasOwn(seen, task.id) ? seen[task.id] : undefined;
+    if (entry === undefined) return [];
+    return [
+      {
+        id: task.id,
+        kind: 'task',
+        path: task.path,
+        docName: task.docName,
+        threadId: '',
+        commentId: '',
+        author: entry.author ?? UNKNOWN_AUTHOR,
+        at: entry.at,
+        body: clip(task.text),
+        quote: task.title,
+        resolved: false,
+        logins: task.logins,
+        ...(entry.at === BASELINE_AT ? { quiet: true } : {}),
+      },
+    ];
+  });
+}
+
+export function seenActionItemMentions(
+  stateFile: string,
+  pages: readonly ActionItemPage[],
+): Mention[] {
+  const state = readState(stateFile);
+  return state === undefined ? [] : taskMentions(openTasks(pages), state.seen);
 }
 
 export function combinedMentionIndex(...indexes: readonly MentionIndex[]): MentionIndex {

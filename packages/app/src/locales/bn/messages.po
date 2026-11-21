@@ -5194,6 +5194,9 @@ msgstr "অন্যান্য"
 msgid "Other Git hosts"
 msgstr "অন্যান্য Git হোস্ট"
 
+msgid "Other wikis, {0} unread"
+msgstr "অন্যান্য উইকি, {0}টি অপঠিত"
+
 msgid "Out"
 msgstr ""
 

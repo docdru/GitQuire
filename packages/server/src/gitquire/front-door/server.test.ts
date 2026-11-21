@@ -1,16 +1,21 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, request, type Server } from 'node:http';
 import { connect } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import {
+  normalizeCommentTimes,
+  writeCommentThreads,
+} from '@gitquire/core/gitquire/comment-threads';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddableRepo, BotAccess, DoorHost, HostRepo, RepoAccess } from '../host/types.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
+import { createMentionCounts } from './mention-counts.ts';
 import { createFrontDoor, type FrontDoor } from './server.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import { createWikiProcesses, type WikiProcesses } from './wiki-processes.ts';
-import { openWikiTable, type WikiTable } from './wiki-table.ts';
+import { openWikiTable, type WikiTable, wikiDir } from './wiki-table.ts';
 
 const silentLog = { info: () => {}, warn: () => {}, error: () => {} };
 
@@ -57,6 +62,7 @@ afterEach(async () => {
 
 interface Rig {
   base: string;
+  data: string;
   door: FrontDoor;
   table: WikiTable;
   processes: WikiProcesses;
@@ -167,6 +173,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
       options.host === 'forgejo'
         ? { botLogin: 'gq-bot' }
         : { installUrl: 'https://github.com/apps/gq/installations/new' },
+    mentionCounts: createMentionCounts(data, now),
     log: silentLog,
     now,
     randomState: () => 'state-1',
@@ -187,6 +194,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
   settings.externalUrl = new URL(`http://127.0.0.1:${port}`);
   return {
     base: `http://127.0.0.1:${port}`,
+    data,
     door,
     table,
     processes,
@@ -598,6 +606,53 @@ describe('wiki list and Add a wiki pages', () => {
       addWikiPage: '/add-wiki',
       hosts: 'This server hosts wikis from team.',
     });
+  });
+});
+
+function mentionPage(threadId: string, mentioned: string[]): string {
+  const comment = normalizeCommentTimes({
+    id: `${threadId}-1`,
+    author: { id: 'github-99', login: 'carol' },
+    createdAt: '2026-11-20T09:00:00.000Z',
+    body: `Please look, ${mentioned.map((login) => `@${login}`).join(' ')}`,
+    mentions: mentioned,
+  });
+  return writeCommentThreads('The quarterly numbers look good.\n', [
+    { id: threadId, anchor: { exact: 'quarterly numbers' }, resolved: false, comments: [comment] },
+  ]);
+}
+
+describe('mention counts across wikis', () => {
+  it("counts a person's unread mentions only in wikis they may open", async () => {
+    const r = await rig();
+    const a = wikiDir(r.data, { key: 'github-1' });
+    const b = wikiDir(r.data, { key: 'github-2' });
+    mkdirSync(a, { recursive: true });
+    mkdirSync(b, { recursive: true });
+    writeFileSync(join(a, 'one.md'), mentionPage('c-1', ['alice', 'bob']));
+    writeFileSync(join(b, 'two.md'), mentionPage('c-2', ['alice', 'bob']));
+    writeFileSync(join(b, 'three.md'), mentionPage('c-3', ['bob']));
+    const alice = await signIn(r, 'alice');
+    const bob = await signIn(r, 'bob');
+    const hers = (await (await get(r, '/api/front-door/wikis', alice)).json()) as {
+      unread: number;
+      wikis: Array<{ key: string; unread?: number }>;
+    };
+    expect(hers.unread).toBe(2);
+    expect(hers.wikis.map((w) => [w.key, w.unread])).toEqual([
+      ['github-1', 1],
+      ['github-2', 1],
+    ]);
+    const his = (await (await get(r, '/api/front-door/wikis', bob)).json()) as typeof hers;
+    expect(his).toMatchObject({ unread: 1, wikis: [{ key: 'github-1', unread: 1 }] });
+    expect(JSON.stringify(his)).not.toContain('github-2');
+    const page = await (await get(r, '/', bob, { accept: 'text/html' })).text();
+    expect(page).toContain('data-unread="1">1 unread mention</strong>');
+    expect(page).not.toContain('team/b');
+    r.table.disconnect('github-2', 'removed');
+    const later = (await (await get(r, '/api/front-door/wikis', alice)).json()) as typeof hers;
+    expect(later.unread).toBe(1);
+    expect(later.wikis.find((w) => w.key === 'github-2')?.unread).toBeUndefined();
   });
 });
 

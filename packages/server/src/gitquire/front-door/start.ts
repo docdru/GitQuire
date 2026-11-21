@@ -10,6 +10,7 @@ import type { DoorHost, HostRepo } from '../host/types.ts';
 import { createWikiAccess } from './access.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
+import { createMentionCounts } from './mention-counts.ts';
 import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
 import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.ts';
 import {
@@ -171,6 +172,7 @@ export async function startFrontDoor(
       jwt: appJwt,
       botToken: () => settings.forgejoBotToken,
     }),
+    mentionCounts: createMentionCounts(settings.dataDir),
     log,
   });
   const server = createServer(door.handleRequest);

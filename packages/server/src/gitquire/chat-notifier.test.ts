@@ -119,6 +119,33 @@ describe('chat messages', () => {
   });
 });
 
+describe('chat messages behind the front door', () => {
+  it('name the wiki in every format, and only behind the front door', () => {
+    const inWiki = chatMessage(
+      { externalUrl: external, wiki: 'team/handbook' },
+      mention('t1:c1', '2026-11-12T09:00:00Z'),
+    );
+    expect((chatPayload('slack', inWiki) as { text: string }).text).toContain(
+      '|Quarterly report (team/handbook)>',
+    );
+    expect((chatPayload('discord', inWiki) as { content: string }).content).toContain(
+      'in Quarterly report (team/handbook) (https://',
+    );
+    expect(chatPayload('generic', inWiki)).toMatchObject({
+      page: 'Quarterly report',
+      wiki: 'team/handbook',
+    });
+    const env = {
+      GITQUIRE_CHAT_WEBHOOK_URL: 'https://chat.acme.com/hooks/abc',
+      GITQUIRE_REPO: 'team/handbook',
+    };
+    const off = resolveChatConfig(env);
+    const on = resolveChatConfig({ ...env, GITQUIRE_BEHIND_FRONT_DOOR: 'on' });
+    expect(off.kind === 'on' && off.config.wiki).toBe(undefined);
+    expect(on.kind === 'on' && on.config.wiki).toBe('team/handbook');
+  });
+});
+
 describe('chat notifier', () => {
   function setup(mentions: Mention[], savedState?: string) {
     const dir = mkdtempSync(join(tmpdir(), 'gq-chat-'));
