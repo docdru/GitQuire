@@ -5,7 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 
 let workspace: { contentDir: string; pathSeparator: '/' | '\\' } | null = null;
 
-let repository: { owner: string; name: string; url: string } | null = null;
+let repository: { owner: string; name: string; url: string; host: string } | null = null;
 
 vi.mock('@/lib/use-workspace', () => ({ useWorkspace: () => workspace }));
 vi.mock('@/lib/gitquire/repository', () => ({ useGitQuireRepository: () => repository }));
@@ -28,7 +28,12 @@ afterEach(() => {
 describe('WebProjectName', () => {
   test('shows the GitHub repository instead of the container folder', () => {
     workspace = { contentDir: '/data', pathSeparator: '/' };
-    repository = { owner: 'acme', name: 'team-wiki', url: 'https://github.com/acme/team-wiki' };
+    repository = {
+      owner: 'acme',
+      name: 'team-wiki',
+      url: 'https://github.com/acme/team-wiki',
+      host: 'GitHub',
+    };
     render(<WebProjectName />, { wrapper: TooltipProvider });
 
     expect(screen.getByTestId('web-project-name-label').textContent).toBe('acme/team-wiki');

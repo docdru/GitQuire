@@ -4249,8 +4249,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "Judul bagian sedang."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "Sebut orang dengan nama {host} mereka, seperti @anna."
 
 msgid "Mentions"
 msgstr ""
@@ -4972,10 +4972,10 @@ msgstr "Aktif — mengarahkan kursor ke tautan eksternal mengirim URL-nya ke sit
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Aktif — kueri pencarian Anda dan teks halaman yang cocok dikirim ke penyedia embedding Anda (OpenAI secara bawaan) untuk menghitung embedding."
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "Di {host}"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5023,8 +5023,8 @@ msgstr "Buka"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "Buka {0} di GitHub (terbuka di tab baru)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "Buka {fullName} di {host}"
 
 msgid "Open {keyName} in browser"
 msgstr "Buka {keyName} di peramban"
@@ -5555,8 +5555,8 @@ msgstr "Diterbitkan"
 msgid "Published by {publisher}"
 msgstr "Diterbitkan oleh {publisher}"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "Diterbitkan di {host}"
 
 msgid "Published or discarded"
 msgstr ""

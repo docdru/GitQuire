@@ -4249,8 +4249,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "মাঝারি বিভাগ শিরোনাম।"
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "মানুষদের তাদের {host} নাম দিয়ে উল্লেখ করুন, যেমন @anna।"
 
 msgid "Mentions"
 msgstr ""
@@ -4972,10 +4972,10 @@ msgstr "চালু — কোনো বাইরের লিংকের উ�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "চালু — আপনার অনুসন্ধানের প্রশ্ন ও মিলে যাওয়া পাতাগুলোর লেখা এমবেডিং হিসাব করতে আপনার এমবেডিং সরবরাহকারীর (ডিফল্টে OpenAI) কাছে পাঠানো হয়।"
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "{host}-এ"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5023,8 +5023,8 @@ msgstr "খুলুন"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "{0} GitHub-এ খুলুন (নতুন ট্যাবে খোলে)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "{host}-এ {fullName} খুলুন"
 
 msgid "Open {keyName} in browser"
 msgstr "{keyName} ব্রাউজারে খুলুন"
@@ -5555,8 +5555,8 @@ msgstr "প্রকাশিত"
 msgid "Published by {publisher}"
 msgstr "{publisher} প্রকাশ করেছে"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "{host}-এ প্রকাশিত"
 
 msgid "Published or discarded"
 msgstr ""
