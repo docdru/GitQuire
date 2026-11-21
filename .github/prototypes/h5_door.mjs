@@ -89,11 +89,9 @@ check(
     health.writer2 === 'refused:not-admin' &&
     health.hidden === 'refused:removed' &&
     health.revokedBot === 'refused:token' &&
-    health.noLimitedToken === 'refused:token',
-  `ok, bot only writer, bot not on the repo, revoked bot token, no limited token -> ${JSON.stringify(health)}`,
-);
-console.log(
-  `INFO health: a token limited to team/notes checked against team/wiki -> ${health.limitedForAnother}`,
+    health.noLimitedToken === 'refused:token' &&
+    health.limitedForAnother === 'refused:token',
+  `ok, bot only writer, bot not on the repo, revoked bot token, no limited token, a token limited to another repo -> ${JSON.stringify(health)}`,
 );
 
 check(
