@@ -10,6 +10,7 @@ on:
       - packages/server/src/gitquire/**
       - packages/cli/src/commands/gitquire-bootstrap.ts
       - packages/cli/src/commands/front-door.ts
+      - packages/cli/src/commands/wikis.ts
       - docker/**
       - Dockerfile
   workflow_dispatch:
@@ -315,6 +316,20 @@ jobs:
 
       - name: H5 rows
         run: python3 -I .github/prototypes/h5_forgejo.py test
+
+      - name: Before moving the single wiki over (alice's agent token and a draft)
+        run: python3 -I .github/prototypes/h5_adopt.py prepare
+
+      - name: Move a copy of the single-wiki volume over and back (gitquire wikis adopt, unadopt)
+        run: |
+          set -eu
+          docker stop -t 60 gq-h5 >/dev/null
+          python3 -I .github/prototypes/h5_adopt.py run
+
+      - name: Logs of the moved volume
+        if: always()
+        run: |
+          for c in gq-adopted gq-unadopted; do echo "::group::$c"; docker logs --tail 200 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
 
       - name: Two wikis behind the front door (repos, tokens, OAuth app)
         run: |

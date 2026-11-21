@@ -3,7 +3,7 @@ import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
-import { createForgejoDoorHost } from '../host/forgejo.ts';
+import { createForgejoDoorHost, type ForgejoRepoTokens } from '../host/forgejo.ts';
 import { createGitHubDoorHost } from '../host/github.ts';
 import { hostNamesFromEnv, setHostNames } from '../host/names.ts';
 import type { DoorHost, HostPerson, HostRepo } from '../host/types.ts';
@@ -41,9 +41,33 @@ function nameKey(repo: HostRepo): string {
 export function refuseSingleWikiVolume(dataDir: string): void {
   if (existsSync(join(dataDir, '.git'))) {
     throw new FrontDoorConfigError(
-      `${dataDir} holds the checkout of a single wiki (it has .git). GITQUIRE_WIKIS=on needs a volume of its own; moving a single-wiki volume over is not supported yet.`,
+      `${dataDir} holds the checkout of a single wiki (it has .git). Move it into the several-wiki layout first with "gitquire wikis adopt" (see "Moving a single wiki over" in DEPLOY.md), or give the front door a volume of its own.`,
     );
   }
+}
+
+export function doorHostFor(
+  settings: Pick<FrontDoorSettings, 'host' | 'webUrl' | 'apiUrl' | 'forgejoBotToken' | 'githubApp'>,
+  repoToken: ForgejoRepoTokens['tokenFor'],
+): DoorHost {
+  if (settings.host === 'forgejo') {
+    return createForgejoDoorHost(
+      { webUrl: settings.webUrl, apiUrl: settings.apiUrl, repo: undefined },
+      { botToken: () => settings.forgejoBotToken, repoTokens: { tokenFor: repoToken } },
+    );
+  }
+  return createGitHubDoorHost(
+    { webUrl: settings.webUrl, apiUrl: settings.apiUrl, repo: undefined },
+    {
+      app: {
+        jwt: () => {
+          const app = settings.githubApp;
+          if (app === undefined) throw new Error('No GitHub App key.');
+          return createAppJwt(app.appId, app.privateKeyPem, Date.now());
+        },
+      },
+    },
+  );
 }
 
 async function checkHost(host: DoorHost, log: GateLogger): Promise<void> {
@@ -99,23 +123,7 @@ export async function startFrontDoor(
     if (app === undefined) throw new Error('No GitHub App key.');
     return createAppJwt(app.appId, app.privateKeyPem, Date.now());
   };
-  const host: DoorHost =
-    settings.host === 'forgejo'
-      ? createForgejoDoorHost(
-          { webUrl: settings.webUrl, apiUrl: settings.apiUrl, repo: undefined },
-          {
-            botToken: () => settings.forgejoBotToken,
-            repoTokens: {
-              tokenFor: (repo) => trial.get(nameKey(repo)) ?? store?.tokenFor(repo),
-            },
-          },
-        )
-      : createGitHubDoorHost(
-          { webUrl: settings.webUrl, apiUrl: settings.apiUrl, repo: undefined },
-          {
-            app: { jwt: appJwt },
-          },
-        );
+  const host = doorHostFor(settings, (repo) => trial.get(nameKey(repo)) ?? store?.tokenFor(repo));
   await checkHost(host, log);
 
   const later = { check: (_wiki: WikiRecord): void => {} };

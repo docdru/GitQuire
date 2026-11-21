@@ -1,0 +1,65 @@
+---
+title: Several wikis
+icon: LuLibrary
+description: Run several wikis in one GitQuire container behind one front door, and move a single wiki over.
+---
+
+With `GITQUIRE_WIKIS=on`, one GitQuire container serves several wikis. Each wiki is a repository on
+your Git host (GitHub or Forgejo) and opens at `/w/<owner>/<repo>/`. Everyone signs in once, at the
+front door, and sees only the wikis whose repository they can write to. This is new; try it on a
+copy of your volume first.
+
+## Turn it on
+
+| Setting | Meaning |
+| --- | --- |
+| `GITQUIRE_WIKIS=on` | Several wikis behind one front door. Off or empty: one wiki, as before. |
+| `GITQUIRE_ALLOWED_OWNERS` | Users or organisations whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. |
+| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it. |
+| `GITQUIRE_ADMINS` | Server administrators. On Forgejo only they add wikis. |
+
+The sign-in settings, `GITQUIRE_SESSION_SECRET`, `GITQUIRE_EXTERNAL_URL` (the root address) and
+GitQuire's own access to the host are needed as for one wiki. `GITQUIRE_ALLOWED_USERS` and
+`GITQUIRE_MCP_TOKEN` cannot be used with several wikis: both would open every wiki.
+
+## Add a wiki
+
+`/` lists your wikis, with **Add a wiki**. It lists the repositories you administer under an
+allowed owner that GitQuire can reach; **Make this a wiki** turns one on. GitQuire writes nothing
+into any other repository.
+
+- **GitHub:** any administrator of the repository can add it, once the GitHub App is installed on it.
+- **Forgejo:** a server administrator makes GitQuire's bot an administrator of the repository,
+  signs in as the bot to create a token with `write:repository` limited to this repository, and
+  enters it next to the repository. The bot must also reach at least one other repository, so
+  GitQuire can confirm the token is limited.
+
+## Who sees what
+
+A person opens a wiki only while they can write to its repository; GitQuire checks again every few
+minutes and also cuts off open live editing. Someone without access is told there is no wiki at
+that address, for every page, file, image, draft, assistant call and mention count of it. If
+GitQuire loses its own access to a repository (the app was uninstalled, the bot removed), or the
+owner is taken off the allowed list, the wiki is **disconnected**: its administrators see why,
+nobody can open it, and nothing is deleted. Inside a wiki, the repository name in the header
+switches between your wikis and shows unread mentions in the others.
+
+AI agents use one address for all wikis, `https://<server>/mcp`; every tool takes a `wiki`
+argument such as `team/handbook`, which a person with one wiki may leave out. See
+[Connect AI](./connect-ai.mdx).
+
+## Move a single wiki over
+
+`gitquire wikis adopt` moves an existing single-wiki volume into the several-wiki layout, with its
+people, mentions, drafts, settings, AI chats, saved AI keys and agent tokens; `gitquire wikis
+unadopt` moves it back while it is still the only wiki. Stop the container first, and try it on a
+copy of the volume with `--dry-run`:
+
+```bash
+docker compose stop gitquire
+docker compose run --rm --entrypoint gitquire gitquire wikis adopt /data --dry-run
+```
+
+It refuses edits that are not pushed yet unless you pass `--force`, never deletes anything, and
+can be run again. The full steps, the Forgejo token and the way back are in
+[DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#moving-a-single-wiki-over).
