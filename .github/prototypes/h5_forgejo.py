@@ -430,7 +430,8 @@ def wikis_test():
     encoded = base64.b64encode(mention.encode()).decode()
     for key in keys.values():
         docker("exec", WIKIS_CONTAINER, "sh", "-c",
-               f"echo {encoded} | base64 -d > /data/wikis/{key}/h5-mentions.md", check_ok=False)
+               f"echo {encoded} | base64 -d > /data/wikis/{key}/h5-mentions.md")
+    time.sleep(6)
     status, listed, _ = door_call("GET", "/api/front-door/wikis", alice)
     counts = {w.get("name"): w.get("unread") for w in listed.get("wikis", [])} if isinstance(listed, dict) else {}
     check("Wikis badge", status == 200 and counts == {"alpha": 1, "beta": 1} and listed.get("unread") == 2,
