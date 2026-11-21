@@ -301,7 +301,7 @@ def wikis_setup():
     f.call("PUT", "/repos/team/alpha/collaborators/dave", {"permission": "write"}, auth=f.ADMIN)
     tokens = {}
     for name in ("alpha", "beta"):
-        status, body = f.make_token("gitquire-bot", f"wiki-{name}", ["write:repository"],
+        status, body = f.make_token("gitquire-bot", f"wiki-{name}", ["write:repository", "read:user"],
                                     repositories=[{"owner": "team", "name": name}])
         if status != 201:
             raise RuntimeError(f"limited token for {name}: {status} {body}")
@@ -311,9 +311,18 @@ def wikis_setup():
     }, auth=f.ADMIN)
     if status != 201:
         raise RuntimeError(f"oauth app: {status} {app}")
+    status, other = f.make_token("alice", "not-the-bot", ["write:repository", "read:user"])
+    if status != 201:
+        raise RuntimeError(f"alice's token: {status} {other}")
+    tokens["alice"] = other["sha1"]
+    status, wide = f.make_token("gitquire-bot", "bot-unlimited-2", ["write:repository", "read:user"])
+    if status != 201:
+        raise RuntimeError(f"second bot token: {status} {wide}")
+    tokens["wide"] = wide["sha1"]
     for secret in (*tokens.values(), app["client_secret"]):
         print("::add-mask::" + secret)
     env_out([f"ALPHA_TOKEN={tokens['alpha']}", f"BETA_TOKEN={tokens['beta']}",
+             f"ALICE_TOKEN={tokens['alice']}", f"WIDE_TOKEN={tokens['wide']}",
              f"WIKIS_CLIENT_ID={app['client_id']}", f"WIKIS_CLIENT_SECRET={app['client_secret']}"])
     print("two-wiki set-up done")
 
@@ -367,6 +376,12 @@ def wikis_test():
                                    {"id": repos.get("alpha", {}).get("id"), "token": os.environ["BETA_TOKEN"]})
     check("Wikis add", status == 400 and isinstance(refused, dict) and refused.get("error") == "token-refused",
           f"a token limited to another repository is refused -> {status} {refused}")
+    for label, token, expected in (("an unlimited token of another account", os.environ["ALICE_TOKEN"], "not-the-bot"),
+                                   ("an unlimited token of the bot", os.environ["WIDE_TOKEN"], "not-limited")):
+        status, refused, _ = door_call("POST", "/api/front-door/wikis", alice,
+                                       {"id": repos.get("alpha", {}).get("id"), "token": token})
+        check("Wikis add", status == 400 and isinstance(refused, dict) and refused.get("refusal") == expected,
+              f"{label} is refused -> {status} {refused}")
     keys = {}
     for name, token in (("alpha", os.environ["ALPHA_TOKEN"]), ("beta", os.environ["BETA_TOKEN"])):
         status, made, _ = door_call("POST", "/api/front-door/wikis", alice,
@@ -392,11 +407,11 @@ def wikis_test():
     check("Wikis access", status == 200 and isinstance(me, dict) and me.get("login") == "dave"
           and me.get("admin") is False, f"dave (writer on alpha) opens alpha -> {status} {me}")
     status, body, _ = door_call("GET", "/w/team/beta/auth/me", dave)
-    check("Wikis access", status == 403 and isinstance(body, dict) and body.get("error") == "no-access",
-          f"dave has no access to beta -> {status} {body}")
+    check("Wikis access", status == 404 and isinstance(body, dict) and body.get("error") == "not-a-wiki",
+          f"dave has no access to beta, which looks like no wiki at all -> {status} {body}")
     status, page, _ = door_call("GET", "/w/team/beta/", dave, accept="text/html")
-    check("Wikis access", status == 403 and "does not have write access" in str(page),
-          f"dave sees the no-access page for beta -> {status}")
+    check("Wikis access", status == 404 and "There is no wiki at this address" in str(page)
+          and "team/beta" not in str(page), f"dave sees the no-wiki page for beta, without its name -> {status}")
     status, listed, _ = door_call("GET", "/api/front-door/wikis", dave)
     names = [w.get("name") for w in listed.get("wikis", [])] if isinstance(listed, dict) else []
     check("Wikis access", status == 200 and names == ["alpha"], f"dave's wiki list -> {status} {names}")
