@@ -88,6 +88,11 @@ describe('forwarded prefix and draft view', () => {
     expect(forwardedPrefix(req({ [FORWARDED_PREFIX_HEADER]: '/w/team/wiki' }), true)).toBe('');
   });
 
+  it('takes a repo whose name starts with a dot, as the app does', () => {
+    const headers = { ...internalRequestHeaders(), [FORWARDED_PREFIX_HEADER]: '/w/team/.github' };
+    expect(forwardedPrefix(req(headers), true)).toBe('/w/team/.github');
+  });
+
   it('refuses a prefix that is not a plain path', () => {
     for (const bad of ['w/team', '/w/team/', '//evil.example', '/w/../x', '/w/a b', '/w/"x']) {
       const headers = { ...internalRequestHeaders(), [FORWARDED_PREFIX_HEADER]: bad };

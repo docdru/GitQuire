@@ -10,7 +10,7 @@ export const PROXIED_PRINCIPAL_HEADER = 'x-gitquire-principal';
 export const FORWARDED_PREFIX_HEADER = 'x-gitquire-prefix';
 export const FORWARDED_VIEW_HEADER = 'x-gitquire-view';
 
-const PREFIX_RE = /^(?:\/[A-Za-z0-9_~-][A-Za-z0-9._~-]*)+$/;
+const PREFIX_RE = /^(?:\/[A-Za-z0-9._~-]+)+$/;
 
 export function behindFrontDoorFromEnv(env: Env): boolean {
   return ['1', 'on', 'true', 'yes'].includes(
