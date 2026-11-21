@@ -518,9 +518,11 @@ A repository becomes a wiki only when one of its administrators chooses **Make t
 GitQuire writes nothing into any other repository. On GitHub any administrator of a repository
 under an allowed owner can do that, as long as the GitHub App is installed on it. On Forgejo a
 server administrator does it and enters a token of GitQuire's bot account limited to that
-repository, with `write:repository` and `read:user` (GitQuire cannot create such a token itself).
-GitQuire checks that the token belongs to the bot, can push to the repository and is refused on
-another repository the bot can reach; the front door keeps these tokens in
+repository, with `write:repository` (GitQuire cannot create such a token itself). GitQuire checks
+that the token can push to the repository, cannot read a person (a limited token cannot) and is
+refused on another repository the bot can reach, so the bot needs access to at least one more
+repository, even an empty one. Forgejo does not say whose token it is, so that cannot be checked;
+the front door keeps these tokens in
 `/data/server/repo-tokens.json` (mode 0600). A server administrator sees every disconnected wiki
 and why.
 

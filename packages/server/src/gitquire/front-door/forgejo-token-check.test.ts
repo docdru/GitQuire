@@ -25,10 +25,9 @@ const otherRepos = [
 ];
 
 describe('Forgejo token scope check (F10)', () => {
-  it('accepts a token of the bot that is refused on another repository the bot reaches', async () => {
+  it('accepts a token that cannot read its person and is refused on another repository the bot reaches', async () => {
     const result = await check((token, path) => {
-      if (path === '/user')
-        return [200, { login: token === 'bot' ? 'gitquire-bot' : 'GitQuire-Bot' }];
+      if (path === '/user') return token === 'bot' ? [200, { login: 'gitquire-bot' }] : [403, {}];
       if (path.startsWith('/user/repos')) return [200, otherRepos];
       if (path === '/repos/team/beta/contents') return [token === 'bot' ? 200 : 403, {}];
       return [404, {}];
@@ -36,34 +35,28 @@ describe('Forgejo token scope check (F10)', () => {
     expect(result).toBe('limited');
   });
 
-  it('refuses a token that reaches another repository, belongs to someone else, or hides its owner', async () => {
-    const unlimited = check((token, path) => {
-      if (path === '/user') return [200, { login: 'gitquire-bot' }];
-      if (path.startsWith('/user/repos')) return [200, otherRepos];
-      return [token === 'x' ? 200 : 404, []];
-    });
-    expect(await unlimited(repo, 'x')).toBe('not-limited');
-    const someoneElse = check((token, path) =>
-      path === '/user' ? [200, { login: token === 'bot' ? 'gitquire-bot' : 'mallory' }] : [404, {}],
+  it('refuses a token that can read its person, or that is not refused on another repository', async () => {
+    const readsPerson = check((_token, path) =>
+      path === '/user' ? [200, { login: 'mallory' }] : [404, {}],
     );
-    expect(await someoneElse(repo, 'x')).toBe('not-the-bot');
-    const noScope = check((token, path) =>
-      path === '/user'
-        ? token === 'bot'
-          ? [200, { login: 'gitquire-bot' }]
-          : [403, {}]
-        : [404, {}],
-    );
-    expect(await noScope(repo, 'x')).toBe('cannot-read-owner');
+    expect(await readsPerson(repo, 'x')).toBe('not-limited');
+    for (const probe of [200, 404]) {
+      const reaches = check((token, path) => {
+        if (path === '/user') return token === 'bot' ? [200, {}] : [403, {}];
+        if (path.startsWith('/user/repos')) return [200, otherRepos];
+        return [probe, []];
+      });
+      expect(await reaches(repo, 'x')).toBe('not-limited');
+    }
   });
 
-  it('accepts the bot token limited only by what the bot reaches when it reaches no other repository', async () => {
-    const only = check((_token, path) => {
-      if (path === '/user') return [200, { login: 'gitquire-bot' }];
+  it('cannot confirm the token when the bot reaches no other repository', async () => {
+    const only = check((token, path) => {
+      if (path === '/user') return token === 'bot' ? [200, {}] : [403, {}];
       if (path.startsWith('/user/repos')) return [200, [otherRepos[0]]];
       return [404, {}];
     });
-    expect(await only(repo, 'x')).toBe('limited');
+    expect(await only(repo, 'x')).toBe('cannot-confirm');
   });
 
   it('says unreachable when the host is down', async () => {

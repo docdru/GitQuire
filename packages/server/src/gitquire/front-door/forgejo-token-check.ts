@@ -1,11 +1,6 @@
 import type { HostRepoRecord } from '../host/types.ts';
 
-export type TokenScope =
-  | 'limited'
-  | 'not-the-bot'
-  | 'not-limited'
-  | 'cannot-read-owner'
-  | 'unreachable';
+export type TokenScope = 'limited' | 'not-limited' | 'cannot-confirm' | 'unreachable';
 
 type Answer = { status: number; body: unknown } | { status: 'unreachable' };
 
@@ -45,24 +40,12 @@ export function createForgejoTokenScopeCheck(deps: {
     }
   }
 
-  function loginOf(answer: Answer): string | undefined {
-    if (answer.status !== 200) return undefined;
-    const login = (answer.body as { login?: unknown } | undefined)?.login;
-    return typeof login === 'string' ? login.toLowerCase() : undefined;
-  }
-
   return async (repo, token) => {
     const bot = deps.botToken();
     if (bot === undefined) return 'unreachable';
-    const [botUser, tokenUser] = await Promise.all([call('/user', bot), call('/user', token)]);
-    if (botUser.status === 'unreachable' || tokenUser.status === 'unreachable') {
-      return 'unreachable';
-    }
-    const botLogin = loginOf(botUser);
-    const tokenLogin = loginOf(tokenUser);
-    if (botLogin === undefined) return 'unreachable';
-    if (tokenLogin === undefined) return 'cannot-read-owner';
-    if (tokenLogin !== botLogin) return 'not-the-bot';
+    const person = await call('/user', token);
+    if (person.status === 'unreachable') return 'unreachable';
+    if (person.status === 200) return 'not-limited';
     const listed = await call('/user/repos?limit=50', bot);
     if (listed.status === 'unreachable') return 'unreachable';
     const others = (Array.isArray(listed.body) ? listed.body : [])
@@ -75,6 +58,7 @@ export function createForgejoTokenScopeCheck(deps: {
           typeof item.owner?.login === 'string',
       )
       .slice(0, PROBES);
+    if (others.length === 0) return 'cannot-confirm';
     for (const other of others) {
       const probe = await call(
         `${repoPath(String(other.owner?.login), String(other.name))}/contents`,
