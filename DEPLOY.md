@@ -498,7 +498,7 @@ after 30 minutes without use, once it says it is pushed and clean.
 
 | Setting | Meaning |
 | --- | --- |
-| `GITQUIRE_WIKIS=on` | Several wikis behind one front door. |
+| `GITQUIRE_WIKIS=on` | Several wikis behind one front door. `off` or empty: one wiki. Any other value stops the container. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
 | `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it. |
 | `GITQUIRE_ADMINS` | Server administrators. On Forgejo only they can add a wiki, because they enter its token. |
@@ -523,12 +523,21 @@ A repository becomes a wiki only when one of its administrators chooses **Make t
 GitQuire writes nothing into any other repository. On GitHub any administrator of a repository
 under an allowed owner can do that, as long as the GitHub App is installed on it. On Forgejo a
 server administrator does it and enters a token of GitQuire's bot account limited to that
-repository with `write:repository` (GitQuire cannot create such a token itself); the front door
-keeps these tokens in `/data/server/repo-tokens.json` (mode 0600).
+repository, with `write:repository` (GitQuire cannot create such a token itself). GitQuire checks
+that the token can push to the repository, cannot read a person (a limited token cannot) and is
+refused on another repository the bot can reach, so the bot needs access to at least one more
+repository, even an empty one. Forgejo does not say whose token it is, so that cannot be checked;
+the front door keeps these tokens in
+`/data/server/repo-tokens.json` (mode 0600). A server administrator sees every disconnected wiki
+and why.
+
+A person who cannot open a wiki is told there is no wiki at that address, whether it exists or
+not; only its administrators see that it is disconnected.
 
 The volume holds `/data/server/` (the wiki table and the Forgejo tokens) and one folder per wiki,
 `/data/wikis/<host>-<repository id>/`, so a renamed repository keeps its folder; its old address
-redirects to the new one.
+redirects to the new one. A volume is either one wiki or several: the front door refuses a volume
+that holds a single wiki's checkout, and a single wiki refuses a volume with `server/wikis.json`.
 
 `GITQUIRE_ALLOWED_USERS` and `GITQUIRE_MCP_TOKEN` cannot be used with `GITQUIRE_WIKIS=on`: both
 skip the check of who may write to a repository and would open every wiki. GitQuire refuses to

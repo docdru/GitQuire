@@ -44,7 +44,7 @@ import {
   resolveForgejoRepoConfig,
 } from './host/forgejo-repo.ts';
 import { createGitHubDoorHost } from './host/github.ts';
-import { hostNamesFromEnv, parseHostKind, setHostNames } from './host/names.ts';
+import { HostConfigError, hostNamesFromEnv, parseHostKind, setHostNames } from './host/names.ts';
 import type { DoorHost, HostNames } from './host/types.ts';
 import {
   describeLegacyDataFolderMigration,
@@ -150,12 +150,21 @@ export { HostConfigError } from './host/names.ts';
 type Env = Readonly<Record<string, string | undefined>>;
 
 export function configureHostFromEnv(env: Env, projectDir: string | undefined): HostNames {
+  if (projectDir !== undefined && !behindFrontDoorFromEnv(env)) refuseFrontDoorVolume(projectDir);
   const names = hostNamesFromEnv(env);
   if (projectDir !== undefined && !isDraftInstance(env)) {
     checkDataFolderHost(projectDir, names.kind, [agentTokensFile(env, projectDir)]);
   }
   setHostNames(names);
   return names;
+}
+
+export function refuseFrontDoorVolume(projectDir: string): void {
+  if (existsSync(join(projectDir, 'server', 'wikis.json'))) {
+    throw new HostConfigError(
+      `${projectDir} holds several wikis (server/wikis.json). Start it with GITQUIRE_WIKIS=on, or give this single wiki a volume of its own.`,
+    );
+  }
 }
 
 function agentTokensFile(env: Env, projectDir: string): string {

@@ -62,11 +62,36 @@ const PASSED_SETTINGS = new Set([
   'GITQUIRE_CHANNEL',
 ]);
 
+const PASSED_SYSTEM = new Set([
+  'PATH',
+  'HOME',
+  'USER',
+  'LOGNAME',
+  'SHELL',
+  'LANG',
+  'LANGUAGE',
+  'TZ',
+  'TMPDIR',
+  'TERM',
+  'NODE_ENV',
+  'NODE_EXTRA_CA_CERTS',
+  'NODE_USE_ENV_PROXY',
+  'SSL_CERT_FILE',
+  'SSL_CERT_DIR',
+  'GIT_SSL_CAINFO',
+  'GIT_SSL_CAPATH',
+  'HTTP_PROXY',
+  'HTTPS_PROXY',
+  'NO_PROXY',
+  'ALL_PROXY',
+  'CI',
+]);
+
 function isPassed(name: string): boolean {
   const upper = name.toUpperCase();
   if (upper.startsWith('GITQUIRE_')) return PASSED_SETTINGS.has(upper);
-  if (upper.startsWith('GITHUB_') || upper.startsWith('OK_')) return false;
-  return true;
+  if (upper.startsWith('LC_')) return true;
+  return PASSED_SYSTEM.has(upper);
 }
 
 export function wikiEnv(
@@ -160,6 +185,7 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
   const lastUsed = new Map<string, number>();
   const holds = new Map<string, number>();
   const startedAs = new Map<string, string>();
+  const starting = new Set<string>();
   const bootstrap = deps.bootstrap ?? runBootstrap(deps.cli);
   const plainGet = deps.get ?? socketGet;
 
@@ -208,7 +234,7 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
       deps.table.disconnect(wiki.key, 'owner-not-allowed');
       return 'closed';
     }
-    const health = await deps.host.health({ owner: wiki.owner, name: wiki.name });
+    const health = await deps.host.health(wiki);
     if (health === 'unreachable') return wiki.state === 'on' ? 'unreachable' : 'closed';
     if (health !== 'ok') {
       deps.table.disconnect(wiki.key, health.slice('refused:'.length) as Refusal);
@@ -221,6 +247,25 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
     return 'runnable';
   }
 
+  function live(key: string): boolean {
+    return starting.has(key) || pool.isRunning(key);
+  }
+
+  function forgetStopped(): void {
+    for (const key of secrets.keys()) {
+      if (live(key)) continue;
+      const secret = secrets.get(key);
+      secrets.delete(key);
+      for (const [socket, owner] of bySocket) if (owner === key) bySocket.delete(socket);
+      if (secret !== undefined) startedAs.delete(key);
+    }
+  }
+
+  function ownerConfirmed(wiki: WikiRecord): boolean {
+    const pinned = deps.owners.pinned();
+    return [...deps.owners.names].some((name) => pinned[name] === wiki.ownerId);
+  }
+
   function ensure(wiki: WikiRecord): Promise<string> {
     lastUsed.set(wiki.key, now());
     return pool.ensure(wiki.key, async () => {
@@ -228,20 +273,34 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
       if (verdict === 'closed' || wiki.state !== 'on') {
         throw new WikiClosedError(`The wiki ${wiki.owner}/${wiki.name} is disconnected.`);
       }
-      const dir = wikiDir(deps.dataDir, wiki);
-      mkdirSync(dir, { recursive: true });
-      const secret = randomBytes(32).toString('hex');
-      secrets.set(wiki.key, secret);
-      bySocket.set(pool.socketPath(wiki.key), wiki.key);
-      const env = wikiEnv(deps.env, wiki, {
-        externalUrl: deps.externalUrl,
-        secret,
-        tokenSocket: deps.tokenSocket(),
-      });
-      await bootstrap(dir, env);
-      startedAs.set(wiki.key, `${wiki.owner}/${wiki.name}`);
-      return { cwd: dir, env };
+      if (verdict === 'unreachable' && !ownerConfirmed(wiki)) {
+        throw new Error(
+          `The host cannot be reached, and the owner of ${wiki.owner}/${wiki.name} was never confirmed by id.`,
+        );
+      }
+      starting.add(wiki.key);
+      try {
+        return await prepare(wiki);
+      } finally {
+        starting.delete(wiki.key);
+      }
     });
+  }
+
+  async function prepare(wiki: WikiRecord): Promise<{ cwd: string; env: Record<string, string> }> {
+    const dir = wikiDir(deps.dataDir, wiki);
+    mkdirSync(dir, { recursive: true });
+    const secret = randomBytes(32).toString('hex');
+    secrets.set(wiki.key, secret);
+    bySocket.set(pool.socketPath(wiki.key), wiki.key);
+    const env = wikiEnv(deps.env, wiki, {
+      externalUrl: deps.externalUrl,
+      secret,
+      tokenSocket: deps.tokenSocket(),
+    });
+    await bootstrap(dir, env);
+    startedAs.set(wiki.key, `${wiki.owner}/${wiki.name}`);
+    return { cwd: dir, env };
   }
 
   async function stopIfStoppable(key: string, why: string): Promise<void> {
@@ -255,6 +314,7 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
   }
 
   async function sweep(): Promise<void> {
+    forgetStopped();
     for (const key of pool.running()) {
       if ((holds.get(key) ?? 0) > 0) continue;
       const wiki = deps.table.byKey(key);
@@ -277,10 +337,10 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
   return {
     ensure,
     check,
-    secretOf: (key) => secrets.get(key),
+    secretOf: (key) => (live(key) ? secrets.get(key) : undefined),
     wikiOfSecret: (secret) => {
       for (const [key, value] of secrets) {
-        if (safeEqual(value, secret)) return key;
+        if (live(key) && safeEqual(value, secret)) return key;
       }
       return undefined;
     },
