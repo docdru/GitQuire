@@ -195,3 +195,48 @@ Results (Forgejo 15.0.12, two runs on #187):
 - **Draft steps with a limited token: pass.** Push, open, squash merge with a title (the title lands on `main`), close (201), delete branches through the API (204) and through Git, collaborators list (200) and repo record (200) all work. Two tokens are enough for everything GitQuire does.
 - **GitQuire cannot create the per-wiki token itself.** Token creation refuses every token: without `write:user` 403, with `write:user` 401 "auth method not allowed". It works only with a password: the bot's own, or a site admin's with the `Sudo` header (201). GitQuire stores neither, so **a person who can sign in as the bot creates each wiki's token on Forgejo and enters it at Add a wiki.** On Forgejo, adding a wiki is therefore a server administrator's step, unlike on GitHub, where any repo admin under an allowed owner can add one.
 - **Correction to F3:** merging a pull request right after opening it can answer 405 "Please try again later" while Forgejo is still checking mergeability (it passed in the earlier runs only by timing). A conflicting pull request answers the same 405 with the same message, every second for 20 s. Merging an already merged one answers 405 with an empty message. So H2 retries a 405 for a few seconds, then reads the pull request: `merged` true means already published, `mergeable` false after the retries means a conflict.
+
+## Findings of the run, stages 1–6 (2026-11-21)
+
+Everything below was found while building and testing stages 1–6 (#188–#207). "Real Forgejo" means the `forgejo-h5` job: GitQuire's image from the branch against Forgejo 15.0.12 over https in CI. Nothing ran against real GitHub or on the test server.
+
+### Changes to decisions or requirements: none
+
+No finding broke a decision of the plan. Several sharpen it:
+
+- **Forgejo per-wiki token check (#198):** a repository-limited token cannot be told apart from an unlimited one by asking whose it is (`read:user` is not allowed on a limited token). Add a wiki therefore refuses a token that can read `GET /user` or that is not refused on other repositories the bot reaches. **The bot must reach at least one repository besides the wiki's** (an empty one is enough), or the first Forgejo wiki cannot be added.
+- **"Gone" versus "bot removed" (#196):** for a private repo neither host tells a deleted repo from a removed bot (both 404 for GitQuire's credentials). Both lead to "disconnected", never deleted (R11); R15's "`repoById` tells which" overstates it.
+- **On Forgejo only server administrators add wikis:** built that way (a login in `GITQUIRE_ADMINS` who is also repo admin). **Not confirmed by the owner.**
+- **Anyone on the host can sign in to the front door** (#198), so a repo admin without a wiki can reach Add a wiki; they see only wikis they can write to.
+- **AI chat behind the front door (#204):** each wiki gets `GITQUIRE_CHAT_KEY_SECRET`, an HMAC of the session secret and the wiki key, never the session secret (R12). People enter their AI key once per wiki.
+- **R9 (#204):** a person whose only wiki is disconnected loses their agent tokens.
+- **Two settings for tests (#206):** `GITQUIRE_ACCESS_CHECK_SECONDS` (300) and `GITQUIRE_WIKI_IDLE_MINUTES` (30).
+
+### Bugs found on `main` (fixed there, for the owner to merge)
+
+- #188: draft pull request links ignored `GITQUIRE_GITHUB_WEB_URL`.
+- #197: the sign-in gate judged WebSocket upgrades on the normalised path while the live-editing host matched the raw one (`/collab/../x`); `//x/healthz` skipped sign-in; `next=/%09/evil.example` was an open redirect after sign-in.
+
+### Bugs found by testing against the real Forgejo (fixed on the branch)
+
+- Sync's Git ran with a reduced environment and an environment guard, so `GIT_SSL_CAINFO`/`GIT_SSL_CAPATH` reached the bootstrap clone but not sync (#190).
+- The credential relay dropped a non-default port (`host:3000`), so sync had no token (#190). A server under a path (`https://example.org/git`) is refused, because sync's remote parser cannot match it.
+
+### Found by the separate reviews (fixed before merging)
+
+- Block 5: disconnected wikis invisible to admins after a restart (R11); header injection through the URL-decoded draft-view cookie on the WebSocket hop; GitHub rate limits read as "bot not admin"; the editor environment a denylist; one volume usable by both modes; existence of wikis leaked to people without access.
+- Block 2: the final push reported "pushed" when it had returned early; budgets that could cut a draft's own push; a start in progress at shutdown left a child running.
+- Block 10: crash recovery of `adopt` and `unadopt`; a restart with `GITQUIRE_WIKIS` off cloning over a moved volume.
+
+### Known limits added
+
+- All processes run as one container user: code execution inside one wiki's process could read the front door's environment and other wikis' files (the plan's "one container user" limit). The MCP `exec` tool is a virtual shell, so an agent alone cannot.
+- While the host is unreachable, a signed-in person gets 503 at a wiki address they have no answer for, where an unknown address gives 404.
+- A draft someone has entered fails to publish if its branch got a commit on the host meanwhile (also with one wiki).
+- `unadopt` works only while the server has exactly the one moved wiki; a lock left by a crashed container stops `adopt`/`unadopt` until removed.
+- The front door does not pass `GITQUIRE_BRANCH`; `adopt` refuses a checkout off the default branch.
+- The AI review often raises P1s that are wrong (prose "comments" in code without comments, imports read as rule breaks, contradicting itself between runs) and its reply is sometimes cut off on large pull requests; every finding was checked.
+
+### Not verified
+
+- Real GitHub (App sign-in, installation tokens per repo, uninstall); the editor UI in a browser on Forgejo; P5 (a real Claude connector with the `wiki` argument); the test server.
