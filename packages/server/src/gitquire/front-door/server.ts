@@ -86,14 +86,13 @@ interface AddableEntry {
   answer: 'listed' | 'refused' | 'unreachable';
 }
 
-export type TokenCheck = HostHealth | 'not-limited' | 'not-the-bot' | 'cannot-read-owner';
+export type TokenCheck = HostHealth | 'not-limited' | 'cannot-confirm';
 
 const TOKEN_REFUSED_TEXT: Record<string, string> = {
   'not-limited':
     'The token reaches other repositories too. Create one limited to this repository only.',
-  'not-the-bot': "The token belongs to another account. Create it as GitQuire's bot account.",
-  'cannot-read-owner':
-    'GitQuire cannot tell whose token this is. Create it with read:user as well as write:repository.',
+  'cannot-confirm':
+    "GitQuire cannot check that the token is limited to this repository: give GitQuire's bot account access to one more repository (any, even an empty one) and try again.",
 };
 
 function tokenRefusal(res: ServerResponse, label: string, health: TokenCheck): void {
