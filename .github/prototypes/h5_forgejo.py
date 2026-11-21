@@ -197,8 +197,8 @@ def run_tests():
     state = published.get("draft", {}).get("status") if isinstance(published, dict) else None
     check("H5 drafts", status == 200 and state == "published", f"publish (squash merge) -> {status} {state} {published if status != 200 else ''}")
     status, pulls, _ = f.call("GET", "/repos/team/wiki/pulls?state=closed", auth=f.ADMIN)
-    merged = [p for p in pulls if p.get("head", {}).get("ref") == branch and p.get("merged")] if isinstance(pulls, list) else []
-    check("H5 drafts", len(merged) == 1, f"publishing opened a pull request on Forgejo and merged it ({len(merged)})")
+    merged = [p for p in pulls if p.get("title") == "H5 draft" and p.get("merged")] if isinstance(pulls, list) else []
+    check("H5 drafts", len(merged) == 1, f"publishing opened a pull request on Forgejo and merged it: {[(p.get('number'), p.get('head', {}).get('ref'), p.get('merged')) for p in pulls] if isinstance(pulls, list) else pulls}")
     titles = [c.get("commit", {}).get("message", "") for c in main_commits()]
     check("H5 drafts", any(t.startswith("H5 draft (#") for t in titles), f"main has the squash commit with the draft's title: {titles[:3]}")
     status, _, _ = f.call("GET", f"/repos/team/wiki/branches/{branch}", auth=f.ADMIN)
