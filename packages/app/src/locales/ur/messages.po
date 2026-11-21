@@ -778,6 +778,9 @@ msgstr "خصوصیت شامل کریں"
 msgid "Add a starter pack"
 msgstr "ابتدائی پیک شامل کریں"
 
+msgid "Add a wiki"
+msgstr "وکی شامل کریں"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab، Gitea، Bitbucket، Azure DevOps یا خود میزبانی والے git سرور کے لیے رسائی ٹوکن شامل کریں۔ ٹوکن کے بغیر git اس ہوسٹ کے لیے پہلے سے محفوظ اسناد استعمال کرتا ہے؛ ٹوکن ہونے پر GitQuire ان کی جگہ ٹوکن استعمال کرتا ہے۔"
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "تمام ٹیگز"
+
+msgid "All wikis"
+msgstr "تمام وکی"
 
 msgid "Allowed element values (empty = any)"
 msgstr "اجازت شدہ عنصری اقدار (خالی = کوئی بھی)"
@@ -2355,6 +2361,9 @@ msgstr ""
 
 msgid "Disconnect"
 msgstr "منقطع کریں"
+
+msgid "Disconnected"
+msgstr "منقطع"
 
 msgid "Disconnecting"
 msgstr "منقطع کیا جا رہا ہے"
@@ -8177,6 +8186,9 @@ msgstr "آپ کی صارف ترتیبات پڑھی نہیں جا سکیں"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "آپ کی وکی"
 
 msgid "Zoom in"
 msgstr "بڑا کریں"

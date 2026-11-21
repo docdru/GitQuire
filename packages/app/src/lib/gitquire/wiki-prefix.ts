@@ -16,8 +16,15 @@ export function hasWikiPrefix(path: string, prefix: string): boolean {
   return path === prefix || path.startsWith(`${prefix}/`);
 }
 
+export const FRONT_DOOR_API = '/api/front-door';
+
+function isFrontDoorPath(path: string): boolean {
+  return path === FRONT_DOOR_API || path.startsWith(`${FRONT_DOOR_API}/`);
+}
+
 export function withWikiPrefix(path: string, prefix: string = wikiPrefix()): string {
   if (prefix === '' || !path.startsWith('/') || path.startsWith('//')) return path;
+  if (isFrontDoorPath(path)) return path;
   return hasWikiPrefix(path, prefix) ? path : `${prefix}${path}`;
 }
 

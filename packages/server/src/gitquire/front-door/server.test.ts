@@ -163,6 +163,10 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
             isBotToken: (token) => token === 'bot',
           }
         : undefined,
+    addWikiHelp: async () =>
+      options.host === 'forgejo'
+        ? { botLogin: 'gq-bot' }
+        : { installUrl: 'https://github.com/apps/gq/installations/new' },
     log: silentLog,
     now,
     randomState: () => 'state-1',
@@ -511,7 +515,127 @@ describe('front door', () => {
   });
 });
 
+describe('wiki list and Add a wiki pages', () => {
+  let r: Rig;
+  beforeEach(async () => {
+    r = await rig();
+  });
+
+  const postForm = (
+    path: string,
+    cookie: string,
+    fields: Record<string, string>,
+    origin = r.base,
+  ) =>
+    httpFetch(`${r.base}${path}`, {
+      method: 'POST',
+      headers: {
+        cookie,
+        origin,
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(fields).toString(),
+    });
+
+  it('lists only the wikis a person may open, and why a wiki is disconnected only to its admins', async () => {
+    const alice = await signIn(r, 'alice');
+    const bob = await signIn(r, 'bob');
+    r.table.disconnect('github-1', 'removed');
+    const mine = await (await get(r, '/', alice, { accept: 'text/html' })).text();
+    expect(mine).toContain('<li data-wiki="github-1">team/a <span class="muted">admin</span>');
+    expect(mine).toContain('(disconnected)');
+    expect(mine).toContain('GitQuire no longer has access to this repository');
+    expect(mine).toContain('href="/w/team/b/"');
+    expect(mine).toContain('<a href="/add-wiki">Add a wiki</a>');
+    expect(mine).toContain('This server hosts wikis from team.');
+    const his = await (await get(r, '/', bob, { accept: 'text/html' })).text();
+    expect(his).toContain('You have no wikis on this server yet.');
+    expect(his).not.toContain('team/a');
+    expect(his).not.toContain('team/b');
+  });
+
+  it('asks the host again before showing Add a wiki, then lists the repos the person administers', async () => {
+    const plain = await signIn(r, 'alice');
+    const first = await get(r, '/add-wiki', plain, { accept: 'text/html' });
+    expect(first.status).toBe(302);
+    expect(first.headers.get('location')).toBe('/auth/github/add-wiki?next=%2Fadd-wiki');
+    const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const page = await (await get(r, '/add-wiki', session, { accept: 'text/html' })).text();
+    expect(page).toContain(
+      '<tr data-repo="1"><td><code>team/a</code></td><td><a href="/w/team/a/">',
+    );
+    expect(page).toContain(
+      '<input type="hidden" name="id" value="3"><button type="submit">Make this a wiki</button>',
+    );
+    expect(page).not.toContain('other/d');
+    expect(page).toContain('href="https://github.com/apps/gq/installations/new"');
+    expect(page).toContain('This server hosts wikis from team.');
+    expect((await postForm('/add-wiki', session, { id: '3' }, 'https://evil.example')).status).toBe(
+      403,
+    );
+    const refused = await postForm('/add-wiki', session, { id: '4' });
+    expect(refused.status).toBe(403);
+    expect(await refused.text()).toContain('role="alert"');
+    const made = await postForm('/add-wiki', session, { id: '3' });
+    expect(made.status).toBe(303);
+    expect(made.headers.get('location')).toBe('/w/team/c/');
+    expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
+  });
+
+  it('tells a person at the address of a repo under an allowed owner that it is no wiki yet', async () => {
+    const session = await signIn(r, 'alice');
+    const yet = await (await get(r, '/w/team/zzz/', session, { accept: 'text/html' })).text();
+    expect(yet).toContain('This repository is not a wiki yet.');
+    expect(yet).toContain('This server hosts wikis from team.');
+    const other = await (await get(r, '/w/other/x/', session, { accept: 'text/html' })).text();
+    expect(other).toContain('There is no wiki at this address.');
+    expect(other).toContain('This server hosts wikis from team.');
+  });
+
+  it('lists the wikis with the Add a wiki page address for the app menu', async () => {
+    const session = await signIn(r, 'alice');
+    expect(await (await get(r, '/api/front-door/wikis', session)).json()).toMatchObject({
+      addWikiPage: '/add-wiki',
+      hosts: 'This server hosts wikis from team.',
+    });
+  });
+});
+
 describe('front door on Forgejo', () => {
+  it('explains on Add a wiki that the bot must be repo admin and a server administrator enters the token', async () => {
+    const r = await rig({ host: 'forgejo' });
+    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const page = await (await get(r, '/add-wiki', alice, { accept: 'text/html' })).text();
+    expect(page).toContain('<strong>@gq-bot</strong>');
+    expect(page).toContain('make that account an administrator of the repository');
+    expect(page).toContain('a server administrator signs in to');
+    expect(page).toContain('<input type="password" name="token"');
+    const bob = await signIn(r, 'bob', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const his = await (await get(r, '/add-wiki', bob, { accept: 'text/html' })).text();
+    expect(his).toContain('A server administrator can add it.');
+    expect(his).toContain('only server administrators add wikis');
+    expect(his).not.toContain('name="token"');
+    const form = (cookie: string, fields: Record<string, string>, path = '/add-wiki') =>
+      httpFetch(`${r.base}${path}`, {
+        method: 'POST',
+        headers: { cookie, origin: r.base, 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(fields).toString(),
+      });
+    expect((await form(bob, { id: '3', token: 'good' })).status).toBe(403);
+    expect((await form(alice, { id: '3', token: 'wrong' })).status).toBe(400);
+    expect((await form(alice, { id: '3', token: 'good' })).headers.get('location')).toBe(
+      '/w/team/c/',
+    );
+    r.table.disconnect('github-1', 'token');
+    const home = await (await get(r, '/', alice, { accept: 'text/html' })).text();
+    expect(home).toContain('action="/add-wiki/token"');
+    expect((await form(bob, { key: 'github-1', token: 'good' }, '/add-wiki/token')).status).toBe(
+      403,
+    );
+    const saved = await form(alice, { key: 'github-1', token: 'good' }, '/add-wiki/token');
+    expect(saved.status).toBe(303);
+  });
+
   it('lets only a server administrator add a wiki, with a token that works for the repository (F10)', async () => {
     const r = await rig({ host: 'forgejo' });
     const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2F');
