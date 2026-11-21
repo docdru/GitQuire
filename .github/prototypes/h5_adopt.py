@@ -162,6 +162,13 @@ def run():
     check("Adopt", copied and original,
           f"draft working copy: original in /.gitquire-drafts/data/{slug}/data {'kept' if original else 'not made by the single wiki'}, "
           f"copy in /data/wikis/.gitquire-drafts/{key}/{slug}/{key} {'made' if copied else 'missing'}")
+    env = base_env()
+    env["GITQUIRE_ALLOW_EXTERNAL"] = "1"
+    proc = h.docker("run", "--rm", "--network", "host", *volumes("/.gitquire-drafts"), *env_args(env), IMAGE,
+                    check_ok=False)
+    after = on_copy("ls -A /data | tr '\\n' ' '")
+    check("Adopt", proc.returncode == 78 and "several wikis" in output(proc) and after.stdout.split() == ["server", "wikis"],
+          f"started with GITQUIRE_WIKIS off, the moved volume is refused before anything is written -> exit {proc.returncode}: {output(proc)[-200:]}; /data: {after.stdout.strip()}")
     proc = gitquire("wikis", "adopt", "/data")
     check("Adopt", proc.returncode == 0 and "nothing to do" in proc.stdout,
           f"adopt again changes nothing -> exit {proc.returncode}: {output(proc)[-200:]}")

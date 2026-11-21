@@ -1,5 +1,6 @@
-import { chmodSync, existsSync, mkdirSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
+import { hostname } from 'node:os';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
@@ -7,6 +8,7 @@ import { createForgejoDoorHost, type ForgejoRepoTokens } from '../host/forgejo.t
 import { createGitHubDoorHost } from '../host/github.ts';
 import { hostNamesFromEnv, setHostNames } from '../host/names.ts';
 import type { DoorHost, HostPerson, HostRepo } from '../host/types.ts';
+import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
 import { createDoorAgents } from './agents.ts';
@@ -39,6 +41,12 @@ function nameKey(repo: HostRepo): string {
 }
 
 export function refuseSingleWikiVolume(dataDir: string): void {
+  const move = interruptedMove(dataDir);
+  if (move !== undefined) {
+    throw new FrontDoorConfigError(
+      `${dataDir} is in the middle of "${move}", which was interrupted. Run "${move}" again to finish it before starting GitQuire.`,
+    );
+  }
   if (existsSync(join(dataDir, '.git'))) {
     throw new FrontDoorConfigError(
       `${dataDir} holds the checkout of a single wiki (it has .git). Move it into the several-wiki layout first with "gitquire wikis adopt" (see "Moving a single wiki over" in DEPLOY.md), or give the front door a volume of its own.`,
@@ -240,6 +248,12 @@ export async function startFrontDoor(
     server.once('error', reject);
     server.listen(port, bind, () => resolve());
   });
+  const lockFile = join(settings.dataDir, 'server', FRONT_DOOR_LOCK);
+  writeFileSync(
+    lockFile,
+    `${JSON.stringify({ pid: process.pid, hostname: hostname(), startedAt: new Date().toISOString() })}\n`,
+    { mode: 0o600 },
+  );
   const address = server.address();
   const boundPort = typeof address === 'object' && address !== null ? address.port : port;
 
@@ -289,6 +303,7 @@ export async function startFrontDoor(
       await agents.close();
       await processes.stopAll();
       await tokenSocket.close();
+      rmSync(lockFile, { force: true });
     },
   };
 }

@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { generateKeyPairSync } from 'node:crypto';
 import {
   existsSync,
   mkdirSync,
@@ -15,11 +16,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { deriveChatKeySecret } from '../chat/key-secret.ts';
 import { createChatKeyStore } from '../chat/key-store.ts';
 import type { HostRepo, RepoLookup } from '../host/types.ts';
-import { refuseFrontDoorVolume } from '../index.ts';
+import { refuseFrontDoorVolume, runGitQuireBootstrap } from '../index.ts';
+import { FRONT_DOOR_LOCK, MOVING_BACK, MOVING_IN } from '../volume-markers.ts';
 import {
   type AdoptDeps,
   adoptSingleWiki,
-  MOVING_IN,
   type MoveOverSettings,
   unadoptWiki,
 } from './move-over.ts';
@@ -66,6 +67,8 @@ function volume(): Volume {
   git(remote, 'init', '-q', '--bare', '-b', 'main');
   const data = join(root, 'data');
   git(root, 'clone', '-q', remote, data);
+  git(data, 'config', `url.${join(root, 'host')}/.insteadOf`, 'https://git.example.org/');
+  git(data, 'remote', 'set-url', 'origin', 'https://git.example.org/team/wiki.git');
   mkdirSync(join(data, 'server'));
   mkdirSync(join(data, 'wikis'));
   writeFileSync(join(data, 'server', 'page.md'), '# A page in a folder called server\n');
@@ -76,6 +79,7 @@ function volume(): Volume {
   git(data, 'add', '-A');
   git(data, 'commit', '-q', '-m', 'start');
   git(data, 'push', '-q', '-u', 'origin', 'main');
+  git(data, 'remote', 'set-head', 'origin', 'main');
   const state = join(data, '.gitquire', 'local', 'gitquire');
   mkdirSync(state, { recursive: true });
   writeFileSync(join(state, 'people.json'), '{"people":[]}\n');
@@ -89,13 +93,14 @@ function volume(): Volume {
     root,
     data,
     drafts,
-    env: { GITQUIRE_DRAFTS_DIR: drafts },
+    env: { GITQUIRE_DRAFTS_DIR: drafts, GITQUIRE_WIKIS: 'on' },
     settings: {
       host: 'github',
       dataDir: data,
       sessionSecret: SECRET,
       defaultWiki: { owner: 'team', name: 'wiki' },
       allowedOwners: new Set(['team']),
+      webUrl: 'https://git.example.org',
     },
   };
 }
@@ -286,6 +291,57 @@ describe('gitquire wikis adopt', () => {
     expect(existsSync(staging)).toBe(false);
   });
 
+  it('finishes a half-done move without --force, whichever folder holds .git, and refuses unpushed commits there', async () => {
+    const vol = volume();
+    const staging = join(vol.data, MOVING_IN);
+    mkdirSync(staging);
+    execFileSync('mv', [join(vol.data, 'README.md'), join(staging, 'README.md')]);
+    const report = await adoptSingleWiki(adoptDeps(vol), run);
+    expect(report.changed).toBe(true);
+    const target = join(vol.data, 'wikis', KEY);
+    expect(git(target, 'status', '--porcelain').trim()).toBe('');
+
+    const other = volume();
+    writeFileSync(join(other.data, 'README.md'), '# Wiki, later\n');
+    git(other.data, 'commit', '-q', '-am', 'later');
+    const half = join(other.data, MOVING_IN);
+    mkdirSync(half);
+    execFileSync('mv', [join(other.data, '.git'), join(half, '.git')]);
+    await expect(
+      adoptSingleWiki(adoptDeps(vol, { settings: other.settings, env: other.env }), run),
+    ).rejects.toThrow(
+      /interrupted move is waiting to be finished[\s\S]*1 commit not pushed[\s\S]*Pass --force/,
+    );
+    const forced = await adoptSingleWiki(
+      adoptDeps(vol, { settings: other.settings, env: other.env }),
+      { dryRun: false, force: true },
+    );
+    expect(forced.changed).toBe(true);
+    expect(git(join(other.data, 'wikis', KEY), 'log', '-1', '--format=%s').trim()).toBe('later');
+  });
+
+  it('on Forgejo checks GITQUIRE_HOST_REPO_TOKEN already in a dry run', async () => {
+    const vol = volume();
+    const checked: string[] = [];
+    const report = await adoptSingleWiki(
+      adoptDeps(vol, {
+        settings: { ...vol.settings, host: 'forgejo' },
+        host: {
+          repoByName: async () => ({ state: 'found', repo: { ...RECORD, host: 'forgejo' } }),
+        },
+        repoToken: 'wide',
+        checkRepoToken: async (_repo, token) => {
+          checked.push(token);
+          return 'not-limited';
+        },
+      }),
+      { dryRun: true, force: false },
+    );
+    expect(checked).toEqual(['wide']);
+    expect(report.warnings.join('\n')).toMatch(/would not be kept \(not-limited\)/);
+    expect(existsSync(join(vol.data, '.git'))).toBe(true);
+  });
+
   it('on Forgejo keeps GITQUIRE_HOST_REPO_TOKEN as the wiki token only after the check', async () => {
     const vol = volume();
     const forgejo = { ...RECORD, host: 'forgejo' as const };
@@ -317,9 +373,75 @@ describe('gitquire wikis adopt', () => {
       },
       run,
     );
-    expect(refused.warnings.join('\n')).toMatch(/was not kept \(not-limited\)/);
+    expect(refused.warnings.join('\n')).toMatch(/is not kept \(not-limited\)/);
     expect(existsSync(repoTokensFile(other.data))).toBe(false);
     expect(openWikiTable(wikiTableFile(other.data)).list()).toHaveLength(1);
+  });
+});
+
+describe('gitquire wikis adopt refuses', () => {
+  it('without GITQUIRE_WIKIS=on, while the front door runs, and on another host', async () => {
+    const vol = volume();
+    await expect(
+      adoptSingleWiki(adoptDeps(vol, { env: { ...vol.env, GITQUIRE_WIKIS: 'off' } }), run),
+    ).rejects.toThrow(/GITQUIRE_WIKIS=on included/);
+    mkdirSync(join(vol.data, 'server', 'x'), { recursive: true });
+    writeFileSync(join(vol.data, 'server', FRONT_DOOR_LOCK), '{}');
+    await expect(adoptSingleWiki(adoptDeps(vol), run)).rejects.toThrow(/front door is running/);
+    rmSync(join(vol.data, 'server', FRONT_DOOR_LOCK));
+    const github = { ...vol.settings, webUrl: 'https://github.com' };
+    await expect(adoptSingleWiki(adoptDeps(vol, { settings: github }), run)).rejects.toThrow(
+      /not a clone of team\/wiki on https:\/\/github.com/,
+    );
+    expect(existsSync(join(vol.data, '.git'))).toBe(true);
+  });
+
+  it('a checkout that is not on the default branch, and a GITQUIRE_BRANCH the front door would not follow', async () => {
+    const vol = volume();
+    await expect(
+      adoptSingleWiki(adoptDeps(vol, { env: { ...vol.env, GITQUIRE_BRANCH: 'notes' } }), run),
+    ).rejects.toThrow(/GITQUIRE_BRANCH is notes, but a wiki behind the front door always follows/);
+    git(vol.data, 'checkout', '-q', '-b', 'notes');
+    git(vol.data, 'push', '-q', '-u', 'origin', 'notes');
+    await expect(adoptSingleWiki(adoptDeps(vol), run)).rejects.toThrow(
+      /checkout is on notes, not on the repository's default branch main/,
+    );
+  });
+
+  it('warns about saved AI keys that open with neither secret', async () => {
+    const vol = volume();
+    const settings = { ...vol.settings, sessionSecret: 'another-secret-of-thirty-two-chars!' };
+    const report = await adoptSingleWiki(adoptDeps(vol, { settings }), run);
+    expect(report.warnings.join('\n')).toMatch(/open neither with GITQUIRE_SESSION_SECRET/);
+  });
+});
+
+describe('a volume in the middle of a move', () => {
+  it('is refused by the single wiki, by gitquire-bootstrap before it writes, and by the front door', async () => {
+    for (const marker of [MOVING_IN, MOVING_BACK]) {
+      const dir = mkdtempSync(join(tmpdir(), 'gq-marker-'));
+      dirs.push(dir);
+      mkdirSync(join(dir, marker));
+      expect(() => refuseFrontDoorVolume(dir)).toThrow(/interrupted. Run "gitquire wikis/);
+      expect(() => refuseSingleWikiVolume(dir)).toThrow(/interrupted. Run "gitquire wikis/);
+    }
+    const moved = mkdtempSync(join(tmpdir(), 'gq-moved-'));
+    dirs.push(moved);
+    mkdirSync(join(moved, 'server'));
+    writeFileSync(join(moved, 'server', 'wikis.json'), '{}');
+    const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+    await expect(
+      runGitQuireBootstrap(
+        moved,
+        {
+          GITHUB_APP_ID: '1',
+          GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs1', format: 'pem' }).toString(),
+          GITQUIRE_REPO: 'team/wiki',
+        },
+        () => {},
+      ),
+    ).rejects.toThrow(/holds several wikis/);
+    expect(readdirSync(moved)).toEqual(['server']);
   });
 });
 
@@ -431,5 +553,44 @@ describe('gitquire wikis unadopt (the way back)', () => {
     ).rejects.toThrow(/exactly one wiki; this one has 2/);
     expect(existsSync(join(vol.data, 'server', 'wikis.json'))).toBe(true);
     expect(existsSync(join(target, 'typed.md'))).toBe(true);
+  });
+
+  it('finishes a move back interrupted at any point', async () => {
+    const at = async (crash: (vol: Volume) => void) => {
+      const vol = volume();
+      await adoptSingleWiki(adoptDeps(vol), run);
+      crash(vol);
+      const report = await unadoptWiki(
+        { settings: vol.settings, env: vol.env, running: () => undefined },
+        run,
+      );
+      expect(report.changed).toBe(true);
+      expect(existsSync(join(vol.data, '.git'))).toBe(true);
+      expect(existsSync(join(vol.data, MOVING_BACK))).toBe(false);
+      expect(existsSync(join(vol.data, 'server', 'page.md'))).toBe(true);
+      expect(git(vol.data, 'status', '--porcelain').trim()).toBe('');
+      expect(() => refuseFrontDoorVolume(vol.data)).not.toThrow();
+    };
+    const back = (vol: Volume) => join(vol.data, MOVING_BACK);
+    await at((vol) => {
+      mkdirSync(back(vol));
+      writeFileSync(join(back(vol), 'moved-back-at'), '2026-11-22T00-00-00-000Z\n');
+    });
+    await at((vol) => {
+      mkdirSync(back(vol));
+      writeFileSync(join(back(vol), 'moved-back-at'), '2026-11-22T00-00-00-000Z\n');
+      execFileSync('mv', [join(vol.data, 'server'), join(back(vol), 'server')]);
+    });
+    await at((vol) => {
+      mkdirSync(back(vol));
+      writeFileSync(join(back(vol), 'moved-back-at'), '2026-11-22T00-00-00-000Z\n');
+      execFileSync('mv', [join(vol.data, 'server'), join(back(vol), 'server')]);
+      execFileSync('mv', [join(vol.data, 'wikis'), join(back(vol), 'wikis')]);
+      writeFileSync(join(back(vol), 'parked'), 'x\n');
+      const from = join(back(vol), 'wikis', KEY);
+      for (const name of ['.git', 'server', 'README.md']) {
+        execFileSync('mv', [join(from, name), join(vol.data, name)]);
+      }
+    });
   });
 });

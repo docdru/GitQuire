@@ -17,15 +17,15 @@ import { CHAT_PROVIDERS } from '../chat/models.ts';
 import { draftsDir } from '../drafts/store.ts';
 import type { DoorHost, HostRepo, HostRepoRecord, RepoLookup } from '../host/types.ts';
 import { type RunGit, runGitSync } from '../repo-bootstrap.ts';
+import { FRONT_DOOR_LOCK, MOVING_BACK, MOVING_IN } from '../volume-markers.ts';
 import { type AllowedOwners, ownerAllowed, pinAllowedOwner } from './allowed-owners.ts';
 import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
 import type { FrontDoorSettings } from './settings.ts';
+import { wikisModeFromEnv } from './settings.ts';
 import { openWikiTable, wikiDir, wikiKey, wikiTableFile } from './wiki-table.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
-export const MOVING_IN = '.gitquire-moving-in';
-const MOVING_BACK = '.gitquire-moving-back';
 const LEFT_AT_ROOT = new Set(['lost+found']);
 const ADDED_BY = 'gitquire wikis adopt';
 const KEYS_BEFORE_WIKIS = '.before-wikis';
@@ -39,7 +39,7 @@ export class MoveOverError extends Error {
 
 export type MoveOverSettings = Pick<
   FrontDoorSettings,
-  'host' | 'dataDir' | 'sessionSecret' | 'defaultWiki' | 'allowedOwners'
+  'host' | 'dataDir' | 'sessionSecret' | 'defaultWiki' | 'allowedOwners' | 'webUrl'
 >;
 
 export type RepoTokenCheck = (repo: HostRepoRecord, token: string) => Promise<string>;
@@ -108,8 +108,16 @@ function moveEntries(from: string, to: string, skip: ReadonlySet<string>): numbe
   return moved;
 }
 
+function aheadOfHost(dir: string, runGit: RunGit): string[] {
+  try {
+    const ahead = Number(runGit(['rev-list', '--count', '@{upstream}..HEAD'], dir).trim());
+    return ahead > 0 ? [`${dir}: ${ahead} commit${ahead === 1 ? '' : 's'} not pushed`] : [];
+  } catch {
+    return [`${dir}: the branch has no upstream on the host to compare with`];
+  }
+}
+
 function unpushedWork(dir: string, runGit: RunGit = runGitSync): string[] {
-  const found: string[] = [];
   let status: string;
   try {
     status = runGit(['status', '--porcelain'], dir);
@@ -117,14 +125,10 @@ function unpushedWork(dir: string, runGit: RunGit = runGitSync): string[] {
     return [`${dir}: git status failed (${err instanceof Error ? err.message : String(err)})`];
   }
   const changed = status.split('\n').filter((line) => line.trim() !== '').length;
-  if (changed > 0) found.push(`${dir}: ${changed} uncommitted change${changed === 1 ? '' : 's'}`);
-  try {
-    const ahead = Number(runGit(['rev-list', '--count', '@{upstream}..HEAD'], dir).trim());
-    if (ahead > 0) found.push(`${dir}: ${ahead} commit${ahead === 1 ? '' : 's'} not pushed`);
-  } catch {
-    found.push(`${dir}: the branch has no upstream on the host to compare with`);
-  }
-  return found;
+  return [
+    ...(changed > 0 ? [`${dir}: ${changed} uncommitted change${changed === 1 ? '' : 's'}`] : []),
+    ...aheadOfHost(dir, runGit),
+  ];
 }
 
 function draftCopies(root: string, inner: string): Array<{ slug: string; dir: string }> {
@@ -133,20 +137,88 @@ function draftCopies(root: string, inner: string): Array<{ slug: string; dir: st
     .map((slug) => ({ slug, dir: join(root, slug, inner) }));
 }
 
-function originMatches(dir: string, names: readonly HostRepo[], runGit: RunGit): boolean {
-  let url: string;
+function originOf(dir: string, runGit: RunGit): { host: string; path: string } | undefined {
+  let raw: string;
   try {
-    url = runGit(['remote', 'get-url', 'origin'], dir).trim();
+    raw = runGit(['config', '--get', 'remote.origin.url'], dir).trim();
+  } catch {
+    return undefined;
+  }
+  try {
+    const url = new URL(raw);
+    return { host: url.host.toLowerCase(), path: url.pathname };
+  } catch {
+    const scp = /^(?:[^@/]+@)?([^:/]+):(.+)$/.exec(raw);
+    return scp === null ? undefined : { host: (scp[1] ?? '').toLowerCase(), path: `/${scp[2]}` };
+  }
+}
+
+function originMatches(
+  dir: string,
+  webUrl: string,
+  names: readonly HostRepo[],
+  runGit: RunGit,
+): boolean {
+  const origin = originOf(dir, runGit);
+  if (origin === undefined) return false;
+  let host: string;
+  try {
+    host = new URL(webUrl).host.toLowerCase();
   } catch {
     return false;
   }
-  const path = url
+  if (origin.host !== host) return false;
+  const path = origin.path
     .replace(/\.git$/i, '')
     .replace(/\/+$/, '')
     .toLowerCase();
   return names.some((name) =>
     path.endsWith(`/${name.owner.toLowerCase()}/${name.name.toLowerCase()}`),
   );
+}
+
+function branchProblem(dir: string, env: Env, runGit: RunGit): string | 'unknown' | undefined {
+  const read = (args: string[]): string | undefined => {
+    try {
+      return runGit(args, dir).trim() || undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  const head = read(['symbolic-ref', '--quiet', '--short', 'HEAD']);
+  const remoteHead = read(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD']);
+  const wanted = env.GITQUIRE_BRANCH?.trim() || undefined;
+  if (remoteHead === undefined) {
+    return wanted === undefined
+      ? 'unknown'
+      : `GITQUIRE_BRANCH is ${wanted}, but the default branch of the repository cannot be read from the checkout. A wiki behind the front door always follows the repository's default branch.`;
+  }
+  const defaultBranch = remoteHead.replace(/^origin\//, '');
+  if (wanted !== undefined && wanted !== defaultBranch) {
+    return `GITQUIRE_BRANCH is ${wanted}, but a wiki behind the front door always follows the repository's default branch, ${defaultBranch}.`;
+  }
+  if (head !== defaultBranch) {
+    return `The checkout is on ${head ?? 'no branch'}, not on the repository's default branch ${defaultBranch}, which a wiki behind the front door follows.`;
+  }
+  return undefined;
+}
+
+function frontDoorLock(dirs: readonly string[]): string | undefined {
+  return dirs.map((dir) => join(dir, FRONT_DOOR_LOCK)).find((file) => existsSync(file));
+}
+
+function refuseWhileFrontDoorRuns(dirs: readonly string[]): void {
+  const lock = frontDoorLock(dirs);
+  if (lock !== undefined) {
+    throw new MoveOverError(
+      `The front door is running on this volume, or stopped without cleaning up (${lock}). Stop the container; if it is stopped and was not stopped cleanly, remove ${lock}. Nothing was changed.`,
+    );
+  }
+}
+
+function unreadableKeys(projectDir: string, secrets: readonly string[]): boolean {
+  const files = entries(chatKeysDir(projectDir)).filter((file) => /^\d+\.json$/.test(file));
+  return files.length > 0 && secrets.every((secret) => keysSealedWith(projectDir, secret) === 0);
 }
 
 function copyWhole(from: string, to: string): void {
@@ -228,6 +300,12 @@ export async function adoptSingleWiki(
   const dataDir = resolve(settings.dataDir);
   const steps: string[] = [];
   const warnings: string[] = [];
+  if (!wikisModeFromEnv(env)) {
+    throw new MoveOverError(
+      'Run gitquire wikis adopt with the settings for several wikis, GITQUIRE_WIKIS=on included. Nothing was changed.',
+    );
+  }
+  refuseWhileFrontDoorRuns([join(dataDir, 'server')]);
   const named = settings.defaultWiki;
   if (named === undefined) {
     throw new MoveOverError(
@@ -248,7 +326,7 @@ export async function adoptSingleWiki(
     const holder = existsSync(dir) ? deps.running(dir) : undefined;
     if (holder !== undefined) {
       throw new MoveOverError(
-        `GitQuire is still running on ${dir} (${holder}). Stop the container first, then run this with "docker compose run".`,
+        `GitQuire is still running on ${dir} (${holder}). Stop the container first, then run this again.`,
       );
     }
   }
@@ -291,10 +369,21 @@ export async function adoptSingleWiki(
   if (holder !== undefined) {
     throw new MoveOverError(`GitQuire is still running on ${target} (${holder}). Stop it first.`);
   }
-  if (isDir(join(source, '.git')) && !originMatches(source, [named, repo], runGit)) {
+  const gitDir = isDir(join(source, '.git')) ? source : undefined;
+  if (gitDir !== undefined && !originMatches(gitDir, settings.webUrl, [named, repo], runGit)) {
     throw new MoveOverError(
-      `The checkout in ${source} is not a clone of ${named.owner}/${named.name}: its origin points elsewhere. Nothing was changed.`,
+      `The checkout in ${gitDir} is not a clone of ${named.owner}/${named.name} on ${settings.webUrl}: its origin points elsewhere. Nothing was changed.`,
     );
+  }
+  if (gitDir !== undefined) {
+    const branch = branchProblem(gitDir, env, runGit);
+    if (branch === 'unknown') {
+      warnings.push(
+        "The repository's default branch cannot be read from the checkout; a wiki behind the front door follows the default branch.",
+      );
+    } else if (branch !== undefined) {
+      throw new MoveOverError(`${branch} Nothing was changed.`);
+    }
   }
 
   const singleDrafts = draftsDir(dataDir, env);
@@ -311,12 +400,18 @@ export async function adoptSingleWiki(
 
   if (!moved) {
     const unpushed = [
-      ...(isDir(join(source, '.git')) ? unpushedWork(source, runGit) : []),
+      ...(gitDir === undefined
+        ? []
+        : resuming
+          ? aheadOfHost(gitDir, runGit)
+          : unpushedWork(gitDir, runGit)),
       ...drafts.flatMap((draft) => unpushedWork(draft.dir, runGit)),
     ];
     if (unpushed.length > 0 && !options.force) {
       throw new MoveOverError(
-        `Not everything is pushed to the host:\n- ${unpushed.join('\n- ')}\nStart the single wiki again and let it push, or pass --force: the edits then move along and the wiki pushes them behind the front door. Nothing was changed.`,
+        resuming
+          ? `An interrupted move is waiting to be finished, and not everything is pushed to the host:\n- ${unpushed.join('\n- ')}\nThe single wiki cannot start on a half-moved volume. Pass --force to finish the move: the commits move along and the wiki pushes them behind the front door.`
+          : `Not everything is pushed to the host:\n- ${unpushed.join('\n- ')}\nStart the single wiki again and let it push, or pass --force: the edits then move along and the wiki pushes them behind the front door. Nothing was changed.`,
       );
     }
     if (unpushed.length > 0)
@@ -340,6 +435,28 @@ export async function adoptSingleWiki(
     );
   }
   const record = table?.byKey(key) === undefined;
+  if (
+    unreadableKeys(source, [
+      settings.sessionSecret,
+      deriveChatKeySecret(settings.sessionSecret, key),
+    ])
+  ) {
+    warnings.push(
+      `Saved AI keys in ${chatKeysDir(source)} open neither with GITQUIRE_SESSION_SECRET nor with this wiki's key, so none were re-sealed; people enter them again. Use the session secret the single wiki ran with to keep them.`,
+    );
+  }
+  let tokenVerdict: string | undefined;
+  if (storeToken && deps.repoToken !== undefined) {
+    tokenVerdict =
+      deps.checkRepoToken === undefined
+        ? 'it could not be checked'
+        : await deps.checkRepoToken(repo, deps.repoToken);
+    if (tokenVerdict !== 'ok') {
+      warnings.push(
+        `GITQUIRE_HOST_REPO_TOKEN ${options.dryRun ? 'would not be' : 'is not'} kept (${tokenVerdict}). The wiki shows as disconnected until a server administrator enters a token limited to ${repo.owner}/${repo.name} in the wiki list.`,
+      );
+    }
+  }
 
   if (!moved) {
     steps.push(
@@ -359,9 +476,9 @@ export async function adoptSingleWiki(
       `Copy the agent tokens to the front door's store ${doorTokens}; the original stays.`,
     );
   }
-  if (storeToken) {
+  if (tokenVerdict === 'ok') {
     steps.push(
-      `Check GITQUIRE_HOST_REPO_TOKEN and keep it as this wiki's token in ${tokenStoreFile}.`,
+      `Keep GITQUIRE_HOST_REPO_TOKEN, which passed the checks, as this wiki's token in ${tokenStoreFile}.`,
     );
   }
   if (record) steps.push(`Add ${repo.owner}/${repo.name} as the wiki ${key} to ${tableFile}.`);
@@ -409,18 +526,8 @@ export async function adoptSingleWiki(
     copyFileSync(tokensAt(env, dataDir, target), doorTokens);
     chmodSync(doorTokens, 0o600);
   }
-  if (storeToken && deps.repoToken !== undefined) {
-    const verdict =
-      deps.checkRepoToken === undefined
-        ? 'it could not be checked'
-        : await deps.checkRepoToken(repo, deps.repoToken);
-    if (verdict === 'ok') {
-      openRepoTokenStore(tokenStoreFile, () => undefined).set(key, deps.repoToken);
-    } else {
-      warnings.push(
-        `GITQUIRE_HOST_REPO_TOKEN was not kept (${verdict}). The wiki shows as disconnected until a server administrator enters a token limited to ${repo.owner}/${repo.name} in the wiki list.`,
-      );
-    }
+  if (tokenVerdict === 'ok' && deps.repoToken !== undefined) {
+    openRepoTokenStore(tokenStoreFile, () => undefined).set(key, deps.repoToken);
   }
   if (record) {
     const finalTable = table ?? openWikiTable(tableFile);
@@ -449,12 +556,20 @@ export async function unadoptWiki(
     steps.push(`${dataDir} already holds a single wiki.`);
     return { changed: false, steps, warnings };
   }
-  const serverDir = resuming ? join(back, 'server') : join(dataDir, 'server');
-  const wikisDir = resuming ? join(back, 'wikis') : join(dataDir, 'wikis');
-  const tableFile = join(serverDir, 'wikis.json');
-  if (!existsSync(tableFile)) {
+  const parkedFile = join(back, 'parked');
+  const parked = existsSync(parkedFile);
+  const placeOf = (name: 'server' | 'wikis'): string | undefined => {
+    if (existsSync(join(back, name))) return join(back, name);
+    if (!parked && existsSync(join(dataDir, name))) return join(dataDir, name);
+    return undefined;
+  };
+  const serverDir = placeOf('server');
+  const wikisDir = placeOf('wikis');
+  refuseWhileFrontDoorRuns([join(dataDir, 'server'), join(back, 'server')]);
+  const tableFile = serverDir === undefined ? undefined : join(serverDir, 'wikis.json');
+  if (tableFile === undefined || !existsSync(tableFile) || wikisDir === undefined) {
     throw new MoveOverError(
-      `${dataDir} holds no wiki table (server/wikis.json); there is nothing to move back.`,
+      `${dataDir} holds no wiki table (server/wikis.json) and wiki folders (wikis/); there is nothing to move back.`,
     );
   }
   const wikis = openWikiTable(tableFile).list();
@@ -466,7 +581,8 @@ export async function unadoptWiki(
   const wiki = wikis[0];
   const key = wiki.key;
   const source = join(wikisDir, key);
-  if (!resuming && !isDir(join(source, '.git'))) {
+  const entriesMoved = parked && !isDir(join(source, '.git'));
+  if (!entriesMoved && !isDir(join(source, '.git'))) {
     throw new MoveOverError(`${source} holds no checkout. Nothing was changed.`);
   }
   if (!resuming) {
@@ -478,14 +594,14 @@ export async function unadoptWiki(
         `${dataDir} holds more than the front door's server/ and wikis/: ${extra.join(', ')}. Nothing was changed; move them aside first.`,
       );
     }
-    const otherFolders = entries(wikisDir).filter(
-      (name) => name !== key && name !== '.gitquire-drafts',
+  }
+  const otherFolders = entries(wikisDir).filter(
+    (name) => name !== key && name !== '.gitquire-drafts',
+  );
+  if (otherFolders.length > 0) {
+    throw new MoveOverError(
+      `${wikisDir} holds other wiki folders (${otherFolders.join(', ')}). Nothing was changed.`,
     );
-    if (otherFolders.length > 0) {
-      throw new MoveOverError(
-        `${wikisDir} holds other wiki folders (${otherFolders.join(', ')}). Nothing was changed.`,
-      );
-    }
   }
   for (const dir of [source, dataDir]) {
     const holder = isDir(dir) ? deps.running(dir) : undefined;
@@ -495,26 +611,40 @@ export async function unadoptWiki(
       );
     }
   }
-  const doorDrafts = draftsDir(source, {});
-  const drafts = draftCopies(doorDrafts, key);
-  if (!resuming) {
-    const unpushed = [
-      ...unpushedWork(source, runGit),
-      ...drafts.flatMap((draft) => unpushedWork(draft.dir, runGit)),
-    ];
-    if (unpushed.length > 0) {
-      if (!options.force) {
-        throw new MoveOverError(
-          `Not everything is pushed to the host:\n- ${unpushed.join('\n- ')}\nStart the front door again and let the wiki push, or pass --force. Nothing was changed.`,
-        );
-      }
-      warnings.push(`Moved back with --force although not pushed: ${unpushed.join('; ')}`);
+  const drafts = draftCopies(draftsDir(source, {}), key);
+  const gitDir = isDir(join(source, '.git'))
+    ? source
+    : isDir(join(dataDir, '.git'))
+      ? dataDir
+      : undefined;
+  const unpushed = [
+    ...(gitDir === undefined
+      ? []
+      : resuming
+        ? aheadOfHost(gitDir, runGit)
+        : unpushedWork(gitDir, runGit)),
+    ...drafts.flatMap((draft) => unpushedWork(draft.dir, runGit)),
+  ];
+  if (unpushed.length > 0) {
+    if (!options.force) {
+      throw new MoveOverError(
+        resuming
+          ? `An interrupted move back is waiting to be finished, and not everything is pushed to the host:\n- ${unpushed.join('\n- ')}\nPass --force to finish the move back; the single wiki pushes the commits.`
+          : `Not everything is pushed to the host:\n- ${unpushed.join('\n- ')}\nStart the front door again and let the wiki push, or pass --force. Nothing was changed.`,
+      );
     }
+    warnings.push(`Moved back with --force although not pushed: ${unpushed.join('; ')}`);
+  }
+  const derived = deriveChatKeySecret(settings.sessionSecret, key);
+  if (gitDir !== undefined && unreadableKeys(gitDir, [derived, settings.sessionSecret])) {
+    warnings.push(
+      `Saved AI keys in ${chatKeysDir(gitDir)} open neither with this wiki's key nor with GITQUIRE_SESSION_SECRET, so none are re-sealed; people enter them again.`,
+    );
   }
   const singleDrafts = draftsDir(dataDir, env);
   steps.push(
     `Move ${join(dataDir, 'server')} and ${join(dataDir, 'wikis')} to ${back}.`,
-    `Move every entry of ${source} back into ${dataDir}.`,
+    `Move every entry of ${join(back, 'wikis', key)} back into ${dataDir}.`,
     'Re-seal the saved AI keys with GITQUIRE_SESSION_SECRET again (a copy of the current ones stays beside them).',
     `Put the front door's agent tokens back as the single wiki's (an existing file is kept beside it).`,
     ...drafts.map(
@@ -533,20 +663,21 @@ export async function unadoptWiki(
     return { changed: false, wiki: `${wiki.owner}/${wiki.name}`, key, steps, warnings };
   }
 
+  mkdirSync(back, { recursive: true });
   const stampFile = join(back, 'moved-back-at');
-  if (!resuming) {
-    mkdirSync(back, { recursive: true });
-    writeFileSync(stampFile, `${stampOf(now())}\n`);
-    renameSync(join(dataDir, 'server'), join(back, 'server'));
-    renameSync(join(dataDir, 'wikis'), join(back, 'wikis'));
+  if (!existsSync(stampFile)) writeFileSync(stampFile, `${stampOf(now())}\n`);
+  const stamp = readFileSync(stampFile, 'utf8').trim();
+  if (!parked) {
+    for (const name of ['server', 'wikis']) {
+      if (!existsSync(join(back, name))) renameSync(join(dataDir, name), join(back, name));
+    }
+    writeFileSync(parkedFile, `${stamp}\n`);
   }
-  const stamp = existsSync(stampFile) ? readFileSync(stampFile, 'utf8').trim() : stampOf(now());
   const from = join(back, 'wikis', key);
   moveEntries(from, dataDir, new Set());
 
   const keysDir = chatKeysDir(dataDir);
   const keysBackup = `${keysDir}.before-single-wiki-${stamp}`;
-  const derived = deriveChatKeySecret(settings.sessionSecret, key);
   if (keysSealedWith(dataDir, derived) > 0) {
     if (!existsSync(keysBackup)) copyWhole(keysDir, keysBackup);
     resealKeys(dataDir, derived, settings.sessionSecret);

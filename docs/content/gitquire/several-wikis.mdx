@@ -52,13 +52,20 @@ argument such as `team/handbook`, which a person with one wiki may leave out. Se
 
 `gitquire wikis adopt` moves an existing single-wiki volume into the several-wiki layout, with its
 people, mentions, drafts, settings, AI chats, saved AI keys and agent tokens; `gitquire wikis
-unadopt` moves it back while it is still the only wiki. Stop the container first, and try it on a
-copy of the volume with `--dry-run`:
+unadopt` moves it back while it is still the only wiki. Both run with the container stopped and
+with the settings for several wikis (`GITQUIRE_WIKIS=on` included). Start with a dry run, which
+changes nothing:
 
 ```bash
 docker compose stop gitquire
-docker compose run --rm --entrypoint gitquire gitquire wikis adopt /data --dry-run
+docker run --rm --env-file gitquire-wikis.env \
+  -v gitquire-data:/data -v gitquire-drafts:/drafts -e GITQUIRE_DRAFTS_DIR=/drafts \
+  -v "$PWD/app.pem:/run/secrets/app.pem:ro" \
+  --entrypoint gitquire ghcr.io/docdru/gitquire:latest wikis adopt /data --dry-run
 ```
+
+Before moving the real volume, try the move on a copy of it; DEPLOY.md shows how, and what to
+watch for (the trial pushes to the real repository).
 
 It refuses edits that are not pushed yet unless you pass `--force`, never deletes anything, and
 can be run again. The full steps, the Forgejo token and the way back are in

@@ -628,44 +628,70 @@ becomes the first wiki in `/data/server/wikis.json`, and the draft working copie
 to it. `gitquire wikis unadopt` is the way back. Both run with the container stopped, in the same
 environment as the front door, and never delete anything.
 
-**Try it on a copy of the volume first**, with the settings you will use for several wikis in
-`gitquire.env` (`GITQUIRE_WIKIS=on`, `GITQUIRE_ALLOWED_OWNERS` or `GITQUIRE_REPO`, and without
-`GITQUIRE_ALLOWED_USERS` and `GITQUIRE_MCP_TOKEN`):
+**Try it on a copy of the volume first.** Write the settings for several wikis into a separate
+file, `gitquire-wikis.env`: your current settings plus `GITQUIRE_WIKIS=on`, `GITQUIRE_ALLOWED_OWNERS`
+(or keep `GITQUIRE_REPO`), without `GITQUIRE_ALLOWED_USERS`, `GITQUIRE_MCP_TOKEN` and
+`GITQUIRE_BRANCH`. Then:
 
 ```bash
 docker compose stop gitquire
 docker volume create gitquire-data-copy
+docker volume create gitquire-drafts-copy
 docker run --rm -v gitquire-data:/from:ro -v gitquire-data-copy:/to alpine cp -a /from/. /to/
-docker run --rm --env-file gitquire.env -v gitquire-data-copy:/data -v gitquire-drafts:/drafts:ro \
-  -e GITQUIRE_DRAFTS_DIR=/drafts --entrypoint gitquire ghcr.io/docdru/gitquire:latest \
-  wikis adopt /data --dry-run
+docker run --rm -v gitquire-drafts:/from:ro -v gitquire-drafts-copy:/to alpine cp -a /from/. /to/
+docker run --rm --env-file gitquire-wikis.env \
+  -v gitquire-data-copy:/data -v gitquire-drafts-copy:/drafts -e GITQUIRE_DRAFTS_DIR=/drafts \
+  -v "$PWD/app.pem:/run/secrets/app.pem:ro" \
+  --entrypoint gitquire ghcr.io/docdru/gitquire:latest wikis adopt /data --dry-run
 ```
 
-The dry run looks the repository up on the host and lists every step without changing anything.
-Without `--dry-run` it moves the copy; start a second container on the copy (another port, the
-same settings) and look around before you move the real volume the same way with
-`docker compose run --rm --entrypoint gitquire gitquire wikis adopt /data`.
+(On Forgejo, mount the token files instead of `app.pem` if your settings use `_FILE` variables.)
+The dry run looks the repository up on the host, checks everything below (on Forgejo also
+`GITQUIRE_HOST_REPO_TOKEN`) and lists every step without changing anything. Without `--dry-run` it
+moves the copy. To look around, start a second container on the copy with the same env file, the
+same mounts and another port, and set `GITQUIRE_EXTERNAL_URL` to that address; **its sign-in
+callback (`<address>/auth/github/callback` or `/auth/forgejo/callback`) must be registered with the
+GitHub App or the Forgejo OAuth application**. The trial is not a sandbox: it pushes to the real
+repository and its draft branches, so edit with care or not at all. Then move the real volume the
+same way, with the container stopped:
+
+```bash
+docker run --rm --env-file gitquire-wikis.env \
+  -v gitquire-data:/data -v gitquire-drafts:/drafts -e GITQUIRE_DRAFTS_DIR=/drafts \
+  -v "$PWD/app.pem:/run/secrets/app.pem:ro" \
+  --entrypoint gitquire ghcr.io/docdru/gitquire:latest wikis adopt /data
+```
+
+and switch the service to `env_file: gitquire-wikis.env`.
 
 What it does, and refuses:
 
-- It stops with a message if GitQuire still runs on the volume, if the checkout is not a clone of
-  `GITQUIRE_REPO`, if its owner is not allowed, if the host cannot be asked for the repository's
+- It stops with a message unless `GITQUIRE_WIKIS=on` is set, if GitQuire still runs on the volume
+  (the single wiki's lock, or the front door's `/data/server/front-door.lock`), if the checkout is
+  not a clone of `GITQUIRE_REPO` on the configured host, if it is not on the repository's default
+  branch or `GITQUIRE_BRANCH` names another one (a wiki behind the front door always follows the
+  default branch), if its owner is not allowed, if the host cannot be asked for the repository's
   id, or if anything is not pushed yet: uncommitted changes or commits ahead of the host, in the
   wiki or in a draft working copy. Start the single wiki again and let it push, or pass `--force`:
   the edits then move along and the wiki pushes them behind the front door.
-- Running it again does only what is left; a move that was interrupted continues where it stopped.
+- Running it again does only what is left. A move that was interrupted leaves
+  `/data/.gitquire-moving-in` (or `.gitquire-moving-back` for the way back); while it is there,
+  neither the single wiki nor the front door starts, and running the same command again finishes
+  the move (only commits not yet pushed still need `--force` then).
 - **Agent tokens move:** they are copied to the front door's store, `/data/server/agent-tokens.json`,
   which has one writer, the front door. The `/mcp` address stays the same, and a person with one
   wiki needs no `wiki` argument, so existing tokens and connectors keep working. The original file
   stays in the wiki's folder, unused.
 - **Saved AI keys** are re-sealed with the wiki's own key (see AI chat above), so people do not
-  enter them again; the old files stay in `ai-keys.before-wikis`.
+  enter them again; the old files stay in `ai-keys.before-wikis`. This needs the
+  `GITQUIRE_SESSION_SECRET` the single wiki ran with; if the keys do not open with it, the command
+  says so and people enter their keys again.
 - **Drafts:** each draft working copy is copied from the single wiki's drafts folder
   (`GITQUIRE_DRAFTS_DIR`, `/drafts` in `deploy/compose.yaml`) to
   `/data/wikis/.gitquire-drafts/<host>-<repository id>/`. The originals stay.
 - **On Forgejo**, `GITQUIRE_HOST_REPO_TOKEN` becomes the first wiki's token in
   `/data/server/repo-tokens.json` after the same check as at Add a wiki (so the bot must reach
-  another repository). If the check fails, or the setting is missing, the wiki shows as
+  another repository); the dry run already runs the check. If the check fails, or the setting is missing, the wiki shows as
   disconnected until a server administrator enters a token in the wiki list. Afterwards remove
   `GITQUIRE_HOST_REPO_TOKEN` from the settings.
 - People stay signed in when `GITQUIRE_SESSION_SECRET` stays the same: the front door reads the
@@ -679,7 +705,10 @@ keys with `GITQUIRE_SESSION_SECRET`, puts the front door's agent tokens back as 
 the front door (the wiki table, the Forgejo tokens, the drafts folder) in
 `/data/.gitquire/local/gitquire/several-wikis-<time>/`. Then start the container with
 `GITQUIRE_WIKIS` off and, on Forgejo, with `GITQUIRE_HOST_REPO_TOKEN` again. It also takes
-`--dry-run`.
+`--dry-run`, and an interrupted run is finished by running it again.
+
+A volume that holds several wikis (`server/wikis.json`) or an unfinished move is refused when the
+container starts with `GITQUIRE_WIKIS` off, before anything is written to it.
 
 ### Known limits
 

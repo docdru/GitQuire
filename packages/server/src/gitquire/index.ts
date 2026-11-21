@@ -62,6 +62,7 @@ import {
 import { behindFrontDoorFromEnv, type RequestPerson } from './request-person.ts';
 import { createGitQuireRoutes } from './routes.ts';
 import { setAdminResolver } from './settings-admin.ts';
+import { interruptedMove } from './volume-markers.ts';
 
 export type { AccessGate } from './access-gate.ts';
 
@@ -160,6 +161,12 @@ export function configureHostFromEnv(env: Env, projectDir: string | undefined): 
 }
 
 export function refuseFrontDoorVolume(projectDir: string): void {
+  const move = interruptedMove(projectDir);
+  if (move !== undefined) {
+    throw new HostConfigError(
+      `${projectDir} is in the middle of "${move}", which was interrupted. Run "${move}" again to finish it before starting GitQuire.`,
+    );
+  }
   if (existsSync(join(projectDir, 'server', 'wikis.json'))) {
     throw new HostConfigError(
       `${projectDir} holds several wikis (server/wikis.json). Start it with GITQUIRE_WIKIS=on, or give this single wiki a volume of its own.`,
@@ -321,6 +328,7 @@ export async function runGitQuireBootstrap(
     return { configured: false, message: 'GitHub repository sync is not configured.' };
   }
   const syncMode = parseAutoSyncMode(env.GITQUIRE_SYNC_MODE);
+  if (!behindFrontDoorFromEnv(env)) refuseFrontDoorVolume(dir);
   const outcome = await bootstrapRepository(dir, config, client);
   runGitSync(['config', 'fetch.prune', 'true'], dir);
   for (const line of describeLegacyDataFolderMigration(migrateLegacyDataFolders(dir))) warn(line);
