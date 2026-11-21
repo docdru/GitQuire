@@ -27,6 +27,7 @@ import {
   principalIdForUser,
   sanitizeDisplayName,
 } from './principal-directory.ts';
+import { createRequestPerson, proxiedUser } from './request-person.ts';
 import {
   decodeSigned,
   encodeSigned,
@@ -77,33 +78,6 @@ export interface AccessGate {
   isAdminRequest: (req: IncomingMessage) => boolean;
   agentOwner?: (req: IncomingMessage) => SessionUser | undefined;
   routeUpgrade?: (req: IncomingMessage, socket: Duplex, head: Buffer) => boolean;
-}
-
-export const PROXIED_PRINCIPAL_HEADER = 'x-gitquire-principal';
-
-export function encodeProxiedUser(user: SessionUser): string {
-  return Buffer.from(JSON.stringify(user), 'utf8').toString('base64url');
-}
-
-export function proxiedUser(req: IncomingMessage): SessionUser | undefined {
-  const raw = req.headers[PROXIED_PRINCIPAL_HEADER];
-  if (typeof raw !== 'string' || !isInternalRequest(req)) return undefined;
-  try {
-    const value = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8')) as Record<
-      string,
-      unknown
-    >;
-    if (typeof value.id !== 'number' || typeof value.login !== 'string') return undefined;
-    return {
-      id: value.id,
-      login: value.login,
-      name: typeof value.name === 'string' ? value.name : value.login,
-      avatarUrl: typeof value.avatarUrl === 'string' ? value.avatarUrl : '',
-      ...(value.repoAdmin === true ? { repoAdmin: true } : {}),
-    };
-  } catch {
-    return undefined;
-  }
 }
 
 function isSessionPayload(value: unknown): value is SessionPayload {
@@ -165,6 +139,73 @@ function isAdminOnlyApi(path: string, method: string | undefined): boolean {
   return ADMIN_ONLY_WRITE_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
+export function refuseForPerson(
+  req: IncomingMessage,
+  res: ServerResponse,
+  path: string,
+  user: SessionUser,
+  admin: boolean,
+  now: () => number,
+): boolean {
+  if (path === '/api/principal' && req.method === 'GET') {
+    const principal = principalFromUser(user);
+    sendJson(res, 200, {
+      id: principal.id,
+      display_name: principal.name,
+      display_email: principal.email,
+      source: 'git-config',
+      created_at: new Date(now()).toISOString(),
+    });
+    return true;
+  }
+  if (isInAppAgentPath(path)) {
+    sendJson(res, 403, { error: 'in-app-agents-removed' });
+    return true;
+  }
+  if (isAdminOnlyApi(path, req.method) && !admin) {
+    sendJson(res, 403, { error: 'admin-only' });
+    return true;
+  }
+  if (path.startsWith('/api/local-op/')) {
+    const readOnlyStatus = path === '/api/local-op/auth/status' && req.method === 'GET';
+    if (!readOnlyStatus && !admin) {
+      sendJson(res, 403, { error: 'admin-only' });
+      return true;
+    }
+  }
+  return false;
+}
+
+interface MeFeatures {
+  aiChat: boolean;
+  agentToken: boolean;
+  connector: boolean;
+  canUseTokens: boolean;
+  canConnect: boolean;
+}
+
+export function meBody(
+  user: SessionUser,
+  details: {
+    admin: boolean;
+    adminLogins: ReadonlySet<string>;
+    repo: string | undefined;
+    features: MeFeatures;
+  },
+): Record<string, unknown> {
+  return {
+    ...user,
+    principalId: principalIdForUser(user.id),
+    email: noreplyEmail(user),
+    admin: details.admin,
+    admins: {
+      logins: [...details.adminLogins].sort(),
+      repo: details.repo ?? null,
+    },
+    features: details.features,
+  };
+}
+
 export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps): AccessGate {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
@@ -188,7 +229,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     serializeCookie(name, value, { maxAgeSeconds, secure });
   const clearCookie = (name: string): string => cookie(name, '', 0);
 
-  function sessionUser(req: IncomingMessage): SessionUser | undefined {
+  function cookieUser(req: IncomingMessage): SessionUser | undefined {
     const decoded = decodeSigned(config.sessionSecret, readCookie(req, SESSION_COOKIE));
     if (!isSessionPayload(decoded)) return undefined;
     if (decoded.exp * 1000 <= now()) return undefined;
@@ -226,9 +267,13 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     return sharedMcpTokenAccepted(token);
   }
 
-  function agentOwner(req: IncomingMessage): SessionUser | undefined {
-    return agentTokenRecord(bearerToken(req))?.owner ?? proxiedUser(req);
-  }
+  const person = createRequestPerson({
+    behindFrontDoor: false,
+    cookieUser,
+    agentTokenOwner: (req) => agentTokenRecord(bearerToken(req))?.owner,
+    isAdmin,
+  });
+  const { sessionUser, isAdminRequest, agentOwner } = person;
 
   function agentAccess(user: SessionUser): { agentToken: boolean; connector: boolean } {
     const records = deps.agentTokens?.list(user.id) ?? [];
@@ -266,11 +311,6 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
 
   function isAdmin(user: SessionUser): boolean {
     return config.admins.has(user.login.toLowerCase()) || user.repoAdmin === true;
-  }
-
-  function isAdminRequest(req: IncomingMessage): boolean {
-    const user = sessionUser(req);
-    return user !== undefined && isAdmin(user);
   }
 
   function startLogin(req: IncomingMessage, res: ServerResponse, search: string): void {
@@ -450,22 +490,21 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         sendJson(res, 401, { error: 'not-signed-in' });
         return;
       }
-      sendJson(res, 200, {
-        ...user,
-        principalId: principalIdForUser(user.id),
-        email: noreplyEmail(user),
-        admin: isAdmin(user),
-        admins: {
-          logins: [...config.admins].sort(),
-          repo: repoLabel ?? null,
-        },
-        features: {
-          aiChat: config.aiChat,
-          ...agentAccess(user),
-          canUseTokens: agentPages !== undefined,
-          canConnect: oauth !== undefined,
-        },
-      });
+      sendJson(
+        res,
+        200,
+        meBody(user, {
+          admin: isAdmin(user),
+          adminLogins: config.admins,
+          repo: repoLabel,
+          features: {
+            aiChat: config.aiChat,
+            ...agentAccess(user),
+            canUseTokens: agentPages !== undefined,
+            canConnect: oauth !== undefined,
+          },
+        }),
+      );
       return;
     }
     if (agentPages?.handle(req, res, path) === true) return;
@@ -501,33 +540,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       }
       return true;
     }
-    if (path === '/api/principal' && req.method === 'GET') {
-      const principal = principalFromUser(user);
-      sendJson(res, 200, {
-        id: principal.id,
-        display_name: principal.name,
-        display_email: principal.email,
-        source: 'git-config',
-        created_at: new Date(now()).toISOString(),
-      });
-      return true;
-    }
-    if (isInAppAgentPath(path)) {
-      sendJson(res, 403, { error: 'in-app-agents-removed' });
-      return true;
-    }
-    if (isAdminOnlyApi(path, req.method) && !isAdmin(user)) {
-      sendJson(res, 403, { error: 'admin-only' });
-      return true;
-    }
-    if (path.startsWith('/api/local-op/')) {
-      const readOnlyStatus = path === '/api/local-op/auth/status' && req.method === 'GET';
-      if (!readOnlyStatus && !isAdmin(user)) {
-        sendJson(res, 403, { error: 'admin-only' });
-        return true;
-      }
-    }
-    return false;
+    return refuseForPerson(req, res, path, user, isAdmin(user), now);
   }
 
   function admitUpgrade(req: IncomingMessage, socket: Duplex): boolean {

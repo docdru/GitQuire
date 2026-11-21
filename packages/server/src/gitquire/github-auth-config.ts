@@ -45,7 +45,7 @@ function isOff(value: string | undefined): boolean {
   return ['0', 'off', 'false', 'no'].includes(nonEmpty(value)?.toLowerCase() ?? '');
 }
 
-function loginSet(value: string | undefined): ReadonlySet<string> {
+export function loginSet(value: string | undefined): ReadonlySet<string> {
   const logins = (value ?? '')
     .split(/[\s,]+/)
     .map((login) => login.trim().replace(/^@/, '').toLowerCase())

@@ -60,6 +60,27 @@ describe('session principals', () => {
     expect(sessionPrincipalForAuthPayload(undefined)).toBeUndefined();
   });
 
+  it('hands every header of a live-editing auth payload to the resolver', () => {
+    setSessionPrincipalResolver((req) =>
+      req.headers['x-gitquire-principal'] === 'p' && req.headers['x-gitquire-internal'] === 's'
+        ? alice
+        : undefined,
+    );
+    const fetchStyle = {
+      request: {
+        headers: new Headers({ 'X-GitQuire-Principal': 'p', 'x-gitquire-internal': 's' }),
+      },
+    };
+    const nodeStyle = {
+      request: { headers: { 'x-gitquire-principal': 'p', 'x-gitquire-internal': 's' } },
+    };
+    expect(sessionPrincipalForAuthPayload(fetchStyle)).toEqual(alice);
+    expect(sessionPrincipalForAuthPayload(nodeStyle)).toEqual(alice);
+    expect(
+      sessionPrincipalForAuthPayload({ request: { headers: { 'x-gitquire-principal': 'p' } } }),
+    ).toBeUndefined();
+  });
+
   it('stays inert without a resolver', () => {
     expect(sessionPrincipal({ headers: {} } as IncomingMessage)).toBeUndefined();
     expect(attributeEdit('github-42')).toBeUndefined();

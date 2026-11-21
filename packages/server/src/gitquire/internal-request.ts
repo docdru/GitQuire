@@ -18,7 +18,7 @@ export function internalRequestHeaders(): Record<string, string> {
   return { [INTERNAL_REQUEST_HEADER]: secret.toString() };
 }
 
-export function isInternalRequest(req: IncomingMessage): boolean {
+export function isInternalRequest(req: Pick<IncomingMessage, 'headers'>): boolean {
   const value = req.headers[INTERNAL_REQUEST_HEADER];
   if (typeof value !== 'string') return false;
   const given = Buffer.from(value);

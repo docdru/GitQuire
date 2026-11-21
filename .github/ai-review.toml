@@ -55,6 +55,19 @@ when = [
 ]
 send = ["packages/server/src/gitquire/host/types.ts"]
 
+[[related.rules]]
+when = [
+  "packages/server/src/gitquire/access-gate.ts",
+  "packages/server/src/gitquire/behind-front-door-gate.ts",
+  "packages/server/src/gitquire/internal-request.ts",
+  "packages/server/src/gitquire/principal-directory.ts",
+  "packages/server/src/gitquire/settings-admin.ts",
+  "packages/server/src/collab-bootstrap-url.ts",
+  "packages/server/src/gitquire/drafts/http.ts",
+  "packages/server/src/gitquire/drafts/proxy.ts",
+]
+send = ["packages/server/src/gitquire/request-person.ts"]
+
 [[sections]]
 key = "security"
 title = "🔒 Security and access"

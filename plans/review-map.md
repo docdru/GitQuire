@@ -22,7 +22,7 @@ All paths under `packages/server/src/gitquire/` unless stated.
 | Mentions, mail, chat | `mentions.ts`, `page-scan.ts`, `mention-mailer.ts`, `mail.ts`, `chat-notifier.ts` | Read marks in `mentions.json` |
 | Settings | `personal-settings.ts`, `settings-admin.ts`, `workspace.ts` | |
 | App, server calls | `packages/app/src/lib/client-fetch.ts` (`apiOrigin`), `packages/app/src/editor/DocumentContext.tsx` (`storageNamespace`) | Prefix and per-wiki storage (block 3) |
-| Live-editing address | `packages/server/src/collab-bootstrap-url.ts` | Built from the Host header |
+| Live-editing address | `packages/server/src/collab-bootstrap-url.ts` | Built from the Host header, plus the forwarded prefix behind the front door (block 1) |
 
 Modules added by the branch are listed here by the pull request that adds them.
 
@@ -32,6 +32,9 @@ Modules added by the branch are listed here by the pull request that adds them.
 | Stage 1 (H1, H3) | `host/types.ts` | **Contract.** The host interface: `DoorHost` (sign-in, `access`, `accessByBot` with `refused:token` (401), `refused:not-admin` (403), `refused:removed` (bot no longer reaches the repo) and `unreachable`, async `tokenFor`), `HostNames` (label, id prefix, no-reply email) |
 | Stage 1 | `host/github.ts` | The GitHub door host: authorize address, code exchange, `GET /user`, repo `permissions`, collaborator permission with the app token. Moved from `access-gate.ts` and `agent-access.ts` unchanged |
 | Stage 1 | `host/names.ts` | `GITQUIRE_HOST` (only `github` in stage 1), `GITQUIRE_COMMIT_EMAIL_FORMAT`; the process's host names, read by `noreplyEmail` and `principalIdForUser` |
+| Block 1 | `request-person.ts` | **Contract.** "Who is this request" (R2): `createRequestPerson` gives `sessionUser`, `isAdminRequest` and `agentOwner` for pages, live editing, assistants and the two global hooks. Behind the front door (`GITQUIRE_BEHIND_FRONT_DOOR`) only the forwarded person (`x-gitquire-principal`) with its per-wiki admin flag `repoAdmin` (R3), and only with the internal secret; otherwise today's session cookie and forwarded user. Also the internal headers `x-gitquire-prefix` (address prefix) and `x-gitquire-view` (open draft, request and response), trusted only with the secret and only behind the front door |
+| Block 1 | `behind-front-door-gate.ts` | The gate behind the front door: 403 without the internal secret for everything but `/healthz` and `/readyz`, HTTP and upgrades (R4); no sign-in routes, no cookies, `/auth/me` from the forwarded person; no agent tokens, agent pages or OAuth server |
+| Block 1 | `drafts/http.ts`, `drafts/proxy.ts`, `principal-directory.ts` | Behind the front door: drafts read and hand back the open draft by header, keep the prefix in redirects, and pass the secret, person and prefix on browser and upgrade hops; live-editing auth hands every header, not only the cookie, to the resolvers |
 | Stage 1 | `host/data-folder.ts` | Refuses a data folder recorded for another host, or used by GitHub people when the host is not GitHub; writes nothing for GitHub. Cannot see ids in comment threads committed to the repo |
 
 ## Contract files
@@ -40,7 +43,9 @@ Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they go
 
 - `packages/server/src/gitquire/host/types.ts` (stage 1), for changes under `host/`, to `access-gate.ts`, `agent-access.ts`, `github-app.ts`, `github-pulls.ts` and `drafts/remote.ts`.
 
-Planned: the "who is this request" function (block 1), the front door's access check (block 5).
+- `packages/server/src/gitquire/request-person.ts` (block 1), for changes to `access-gate.ts`, `behind-front-door-gate.ts`, `internal-request.ts`, `principal-directory.ts`, `settings-admin.ts`, `collab-bootstrap-url.ts` and `drafts/` (`http.ts`, `proxy.ts`).
+
+Planned: the front door's access check (block 5).
 
 ## Seams where a mistake leaks or loses work
 

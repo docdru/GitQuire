@@ -1,10 +1,10 @@
 import type { IncomingMessage } from 'node:http';
 import { describe, expect, it } from 'vitest';
-import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER, proxiedUser } from '../access-gate.ts';
 import { chatMessage, chatPayload } from '../chat-notifier.ts';
 import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from '../internal-request.ts';
 import { mentionMail } from '../mention-mailer.ts';
 import type { Mention } from '../mentions.ts';
+import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER, proxiedUser } from '../request-person.ts';
 
 const request: Mention = {
   id: 'draft:plan:r1',
