@@ -28,10 +28,13 @@ export interface FrontDoorSettings {
   serverAdmins: ReadonlySet<string>;
   githubApp: { appId: string; privateKeyPem: string } | undefined;
   forgejoBotToken: string | undefined;
+  agentTokenDays: number;
+  mcpConnectors: boolean;
 }
 
 const MIN_SESSION_SECRET_LENGTH = 32;
 const DEFAULT_SESSION_DAYS = 7;
+const DEFAULT_AGENT_TOKEN_DAYS = 90;
 
 function nonEmpty(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
@@ -211,6 +214,14 @@ export function resolveFrontDoorSettings(
       `GITQUIRE_SESSION_DAYS must be a positive number, got "${sessionDaysRaw}".`,
     );
   }
+  const agentDaysRaw = nonEmpty(env.GITQUIRE_AGENT_TOKEN_DAYS);
+  const agentTokenDays =
+    agentDaysRaw === undefined ? DEFAULT_AGENT_TOKEN_DAYS : Number(agentDaysRaw);
+  if (!Number.isFinite(agentTokenDays) || agentTokenDays <= 0 || agentTokenDays > 3650) {
+    throw new FrontDoorConfigError(
+      `GITQUIRE_AGENT_TOKEN_DAYS must be a number of days between 1 and 3650, got "${agentDaysRaw}".`,
+    );
+  }
   const addresses = hostAddresses(env, host);
   return {
     host,
@@ -227,5 +238,9 @@ export function resolveFrontDoorSettings(
     serverAdmins: loginSet(env.GITQUIRE_ADMINS),
     githubApp,
     forgejoBotToken,
+    agentTokenDays,
+    mcpConnectors: ['1', 'on', 'true', 'yes'].includes(
+      nonEmpty(env.GITQUIRE_MCP_CONNECTORS)?.toLowerCase() ?? '',
+    ),
   };
 }

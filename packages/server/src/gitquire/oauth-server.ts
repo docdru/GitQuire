@@ -33,7 +33,8 @@ export interface OAuthServerDeps {
   store: AgentTokenStore;
   log: GateLogger;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
-  checkAccess?: (login: string) => Promise<AccessVerdict>;
+  checkAccess?: (login: string, id: number) => Promise<AccessVerdict>;
+  severalWikis?: boolean;
   fetch?: typeof fetch;
   now?: () => number;
   randomId?: () => string;
@@ -395,7 +396,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
       res,
       200,
       'Connect an AI app',
-      `<p><strong>${escapeHtml(request.client.name)}</strong> wants to read and edit this wiki as <strong>@${escapeHtml(user.login)}</strong>. Its edits will be credited to you.</p>
+      `<p><strong>${escapeHtml(request.client.name)}</strong> wants to read and edit ${deps.severalWikis === true ? 'your wikis on this server' : 'this wiki'} as <strong>@${escapeHtml(user.login)}</strong>. Its edits will be credited to you.</p>
 <p class="muted">After you allow it, you go back to <code>${escapeHtml(host)}</code>. You can revoke access any time at <a href="/auth/agents">AI agent access</a>.</p>
 <form method="post" action="${AUTHORIZE_PATH}">${hidden}<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
 <p><button type="submit" name="decision" value="allow">Allow</button> <button type="submit" name="decision" value="deny">Cancel</button></p>
@@ -468,9 +469,9 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     return true;
   }
 
-  async function ensureStillAllowed(login: string): Promise<void> {
+  async function ensureStillAllowed(person: { login: string; id: number }): Promise<void> {
     if (deps.checkAccess === undefined) return;
-    if ((await deps.checkAccess(login)) === 'denied') {
+    if ((await deps.checkAccess(person.login, person.id)) === 'denied') {
       throw new OAuthError(
         400,
         'invalid_grant',
@@ -510,7 +511,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
         throw new OAuthError(400, 'invalid_grant', 'The refresh token is not valid.');
       }
       try {
-        await ensureStillAllowed(issued.record.owner.login);
+        await ensureStillAllowed(issued.record.owner);
       } catch (err) {
         deps.store.revoke(issued.record.id, 'admin');
         throw err;
@@ -551,7 +552,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     if (!rememberCode(code.j, code.exp)) {
       throw new OAuthError(400, 'invalid_grant', 'The code was already used.');
     }
-    await ensureStillAllowed(code.u.login);
+    await ensureStillAllowed(code.u);
     const owner = code.u;
     tokenResponse(
       res,

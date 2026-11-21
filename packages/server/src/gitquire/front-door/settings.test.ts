@@ -41,6 +41,24 @@ describe('front door settings', () => {
     expect(settings.forgejoBotToken).toBeUndefined();
   });
 
+  it('reads the agent settings, and still refuses GITQUIRE_MCP_TOKEN (R7)', () => {
+    const plain = resolveFrontDoorSettings(github, '/data');
+    expect(plain.agentTokenDays).toBe(90);
+    expect(plain.mcpConnectors).toBe(false);
+    const set = resolveFrontDoorSettings(
+      { ...github, GITQUIRE_AGENT_TOKEN_DAYS: '30', GITQUIRE_MCP_CONNECTORS: 'on' },
+      '/data',
+    );
+    expect(set.agentTokenDays).toBe(30);
+    expect(set.mcpConnectors).toBe(true);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_AGENT_TOKEN_DAYS: '0' }, '/data'),
+    ).toThrow(/GITQUIRE_AGENT_TOKEN_DAYS/);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_MCP_TOKEN: 'shared' }, '/data'),
+    ).toThrow(/GITQUIRE_MCP_TOKEN cannot be used with GITQUIRE_WIKIS=on/);
+  });
+
   it('refuses to start without allowed owners or GITQUIRE_REPO and says which to set', () => {
     const { GITQUIRE_REPO: _repo, ...env } = github;
     expect(() => resolveFrontDoorSettings(env, '/data')).toThrow(

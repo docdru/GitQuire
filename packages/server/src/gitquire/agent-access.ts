@@ -47,8 +47,8 @@ export interface AccessSweep {
 
 export function startAccessSweep(
   store: AgentTokenStore,
-  check: (login: string) => Promise<AccessVerdict>,
-  deps: { log: GateLogger; intervalMs?: number },
+  check: (login: string, id: number) => Promise<AccessVerdict>,
+  deps: { log: GateLogger; intervalMs?: number; reason?: string },
 ): AccessSweep {
   let running = false;
   async function runOnce(): Promise<number> {
@@ -57,13 +57,14 @@ export function startAccessSweep(
     let revoked = 0;
     try {
       for (const owner of store.owners()) {
-        const verdict = await check(owner.login);
+        const verdict = await check(owner.login, owner.id);
         if (verdict !== 'denied') continue;
         const removed = store.revokeOwner(owner.id);
         revoked += removed;
         deps.log.warn(
           { login: owner.login, removed },
-          '[gitquire-agents] revoked agent access: user no longer has access to the repository',
+          deps.reason ??
+            '[gitquire-agents] revoked agent access: user no longer has access to the repository',
         );
       }
     } finally {

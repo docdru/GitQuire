@@ -9,11 +9,17 @@ import {
   principalFromUser,
   refuseForPerson,
 } from './access-gate.ts';
+import { chatKeySecretFromEnv } from './chat/key-secret.ts';
 import { loginSet, parseGitHubRepo } from './github-auth-config.ts';
 import { pathOf, sendJson } from './http-util.ts';
 import { isInternalRequest } from './internal-request.ts';
 import { bindRequestPrincipal } from './principal-directory.ts';
-import { bindRequestPrefix, createRequestPerson, forwardedPrefix } from './request-person.ts';
+import {
+  bindRequestPrefix,
+  createRequestPerson,
+  forwardedAgentFeatures,
+  forwardedPrefix,
+} from './request-person.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -25,9 +31,9 @@ export interface BehindFrontDoorSettings {
 
 export function resolveBehindFrontDoorSettings(env: Env): BehindFrontDoorSettings {
   const repo = parseGitHubRepo(env.GITQUIRE_REPO);
-  const aiChat = !['0', 'off', 'false', 'no'].includes(
-    env.GITQUIRE_AI_CHAT?.trim().toLowerCase() ?? '',
-  );
+  const aiChat =
+    !['0', 'off', 'false', 'no'].includes(env.GITQUIRE_AI_CHAT?.trim().toLowerCase() ?? '') &&
+    chatKeySecretFromEnv(env) !== undefined;
   return {
     repo: repo === undefined ? undefined : `${repo.owner}/${repo.name}`,
     adminLogins: loginSet(env.GITQUIRE_ADMINS),
@@ -94,10 +100,7 @@ export function createBehindFrontDoorGate(
             repo: settings.repo,
             features: {
               aiChat: settings.aiChat,
-              agentToken: false,
-              connector: false,
-              canUseTokens: false,
-              canConnect: false,
+              ...forwardedAgentFeatures(req, true),
             },
           }),
         );

@@ -489,9 +489,7 @@ out.
 
 **Work in progress on the `wikis-hosts` branch.** The front door's server side is there; the wiki
 list, the Add a wiki page and the menu are not yet (they come next), and moving an existing
-single-wiki volume over is not done yet either. AI chat and AI agents (`/mcp`) are not available
-inside a wiki behind the front door yet: the wiki's process does not get `GITQUIRE_SESSION_SECRET`,
-which AI chat needs for its saved keys.
+single-wiki volume over is not done yet either.
 
 `GITQUIRE_WIKIS=on` turns the container into a front door for several wikis. Each wiki opens at
 `/w/<owner>/<repo>/` and runs in its own editor process, started when someone opens it and stopped
@@ -524,6 +522,31 @@ keeps these tokens in `/data/server/repo-tokens.json` (mode 0600).
 The volume holds `/data/server/` (the wiki table and the Forgejo tokens) and one folder per wiki,
 `/data/wikis/<host>-<repository id>/`, so a renamed repository keeps its folder; its old address
 redirects to the new one.
+
+### AI agents with several wikis
+
+AI agents connect to the front door, not to a wiki: there is **one** address, `https://<server>/mcp`,
+and one connection or token per person, whichever wikis they use. Agent tokens, `/auth/agents`,
+the connector sign-in (`GITQUIRE_MCP_CONNECTORS=on`) and the connector discovery addresses
+(`/.well-known/oauth-*`, `/oauth/*`) are all at the root. The front door keeps the tokens, hashed,
+in `/data/server/agent-tokens.json`; no editor process has a token store of its own. Server
+administrators (`GITQUIRE_ADMINS`) can revoke anyone's tokens there.
+
+The agent sees a tool `list_wikis`, which lists the wikis the person can open, and the usual wiki
+tools, each with an extra `wiki` argument (`owner/repo`, for example `team/handbook`). A person
+with exactly one wiki may leave it out. On every call the front door checks that the person may
+open the named wiki, the same check as for the browser, and passes the call to that wiki's process
+as that person; the edits are credited to them. `/w/<owner>/<repo>/mcp` is not an address: it
+answers 404 and names the one `/mcp` address. **Settings → Connect AI** shows that address in
+every wiki, and **Ask Claude** names the wiki in the prompt.
+
+Every ten minutes the front door checks the owners of agent tokens and revokes a person's tokens
+only when they can open no wiki on the server any more. While the host cannot be reached, nothing
+is revoked.
+
+AI chat is on inside each wiki. The front door gives each wiki's process a key for the saved AI
+keys that is derived from `GITQUIRE_SESSION_SECRET` and the wiki, never the session secret itself,
+so a person enters their API key once per wiki for now.
 
 `GITQUIRE_ALLOWED_USERS` and `GITQUIRE_MCP_TOKEN` cannot be used with `GITQUIRE_WIKIS=on`: both
 skip the check of who may write to a repository and would open every wiki. GitQuire refuses to

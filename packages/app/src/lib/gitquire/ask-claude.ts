@@ -53,6 +53,7 @@ function workspaceLine(workspace: AskWorkspace): string {
 
 export interface ClaudePromptInput {
   wikiUrl: string;
+  wiki?: string;
   workspace?: AskWorkspace;
   target: { kind: 'page' | 'folder'; path: string };
   request: string;
@@ -65,7 +66,9 @@ export function buildClaudePrompt(input: ClaudePromptInput): string {
       : `Folder: ${input.target.path === '' ? '(the whole wiki)' : input.target.path}`;
   const request = input.request.trim().slice(0, MAX_REQUEST_CHARS);
   return [
-    `Use the GitQuire wiki tools (the MCP server for ${input.wikiUrl}) for this.`,
+    input.wiki === undefined
+      ? `Use the GitQuire wiki tools (the MCP server for ${input.wikiUrl}) for this.`
+      : `Use the GitQuire wiki tools (the MCP server for ${input.wikiUrl}) for this, in the wiki ${input.wiki}: give "${input.wiki}" as the wiki argument of every call.`,
     '',
     ...(input.workspace === undefined ? [] : [workspaceLine(input.workspace)]),
     where,
@@ -122,4 +125,12 @@ export function openClaudeLink(url: string): void {
     return;
   }
   window.location.assign(url);
+}
+
+export function askClaudeAddress(
+  origin: string,
+  prefix: string,
+): { wikiUrl: string; wiki?: string } {
+  if (!prefix.startsWith('/w/')) return { wikiUrl: `${origin}${prefix}` };
+  return { wikiUrl: origin, wiki: prefix.slice('/w/'.length) };
 }
