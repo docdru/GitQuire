@@ -79,19 +79,20 @@ export function createPrivateSocketDir(): string {
   return mkdtempSync(join(tmpdir(), 'gq-'));
 }
 
-export function socketGet(socketPath: string, path: string): Promise<SocketAnswer> {
+export function socketGet(
+  socketPath: string,
+  path: string,
+  headers: Record<string, string> = internalRequestHeaders(),
+): Promise<SocketAnswer> {
   return new Promise((resolve, reject) => {
-    const req = request(
-      { socketPath, path, method: 'GET', headers: internalRequestHeaders() },
-      (res) => {
-        const chunks: Buffer[] = [];
-        res.on('data', (chunk: Buffer) => chunks.push(chunk));
-        res.on('end', () =>
-          resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString('utf8') }),
-        );
-        res.on('error', reject);
-      },
-    );
+    const req = request({ socketPath, path, method: 'GET', headers }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on('data', (chunk: Buffer) => chunks.push(chunk));
+      res.on('end', () =>
+        resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString('utf8') }),
+      );
+      res.on('error', reject);
+    });
     req.on('error', reject);
     req.setTimeout(10_000, () => req.destroy(new Error('No answer in time.')));
     req.end();
