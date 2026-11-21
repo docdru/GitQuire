@@ -5194,6 +5194,9 @@ msgstr "Lainnya"
 msgid "Other Git hosts"
 msgstr "Host Git lainnya"
 
+msgid "Other wikis, {0} unread"
+msgstr "Wiki lain, {0} belum dibaca"
+
 msgid "Out"
 msgstr ""
 

@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { connect as connectPlain, isIP, type Socket } from 'node:net';
 import { connect as connectTls } from 'node:tls';
+import { wikiNameFromEnv } from './wiki-name.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -30,6 +31,7 @@ export interface MailConfig {
   from: string;
   externalUrl: string | undefined;
   allowedDomains: string[] | undefined;
+  wiki?: string;
 }
 
 export function isAllowedRecipient(
@@ -118,8 +120,14 @@ export function resolveMailConfig(env: Env): MailConfigResult {
       from,
       externalUrl: externalUrl === undefined || externalUrl === '' ? undefined : externalUrl,
       allowedDomains: domainList(env.GITQUIRE_MAIL_DOMAINS),
+      ...wikiField(env),
     },
   };
+}
+
+function wikiField(env: Env): { wiki?: string } {
+  const wiki = wikiNameFromEnv(env);
+  return wiki === undefined ? {} : { wiki };
 }
 
 export interface MailMessage {

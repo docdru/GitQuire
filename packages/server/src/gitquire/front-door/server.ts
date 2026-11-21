@@ -45,6 +45,7 @@ import {
   ownerAllowed,
   pinAllowedOwner,
 } from './allowed-owners.ts';
+import type { MentionCounts } from './mention-counts.ts';
 import {
   ADD_WIKI_PAGE,
   ADD_WIKI_TOKEN_FORM,
@@ -136,6 +137,7 @@ export interface FrontDoorDeps {
   forgejoTokens?: ForgejoTokenChecks;
   agents?: Pick<DoorAgents, 'handle' | 'features'>;
   addWikiHelp?: () => Promise<AddWikiHelp>;
+  mentionCounts?: MentionCounts;
   log: GateLogger;
   now?: () => number;
   randomState?: () => string;
@@ -211,6 +213,12 @@ interface AddableView {
   name: string;
   blocked?: 'bot-not-admin';
   wiki?: string;
+}
+
+interface ListedWithUnread {
+  wiki: WikiRecord;
+  admin: boolean;
+  unread?: number;
 }
 
 interface AddableAnswer {
@@ -490,13 +498,35 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     };
   }
 
-  async function listWikis(user: DoorSessionUser): Promise<Record<string, unknown>> {
+  function unreadIn(user: DoorSessionUser, wiki: WikiRecord): number | undefined {
+    if (deps.mentionCounts === undefined || wiki.state !== 'on') return undefined;
+    try {
+      return deps.mentionCounts.unread(user, wiki);
+    } catch (err) {
+      deps.log.warn({ err, wiki: wiki.key }, '[gitquire-door] could not count mentions');
+      return undefined;
+    }
+  }
+
+  async function openableWikis(user: DoorSessionUser): Promise<ListedWithUnread[]> {
     const listed = await access.wikisFor(user, table.list(), {
       serverAdmin: isServerAdmin(user),
     });
+    return listed.map(({ wiki, admin }) => {
+      const unread = unreadIn(user, wiki);
+      return unread === undefined ? { wiki, admin } : { wiki, admin, unread };
+    });
+  }
+
+  async function listWikis(user: DoorSessionUser): Promise<Record<string, unknown>> {
+    const listed = await openableWikis(user);
     const fallback = defaultWiki();
     return {
-      wikis: listed.map(({ wiki, admin }) => wikiView(wiki, admin)),
+      wikis: listed.map(({ wiki, admin, unread }) => ({
+        ...wikiView(wiki, admin),
+        ...(unread === undefined ? {} : { unread }),
+      })),
+      unread: listed.reduce((sum, { unread }) => sum + (unread ?? 0), 0),
       hosts: allowedOwnersSentence(deps.owners),
       defaultWiki: fallback === undefined ? null : `${wikiPrefix(fallback)}/`,
       addWiki: addPath,
@@ -851,9 +881,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   async function homePage(res: ServerResponse, user: DoorSessionUser): Promise<void> {
-    const listed = await access.wikisFor(user, table.list(), {
-      serverAdmin: isServerAdmin(user),
-    });
+    const listed = await openableWikis(user);
     const fallback = defaultWiki();
     sendHtml(
       res,

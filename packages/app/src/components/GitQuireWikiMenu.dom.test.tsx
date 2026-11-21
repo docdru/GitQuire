@@ -37,6 +37,16 @@ beforeEach(() => {
               address: '/w/team/a/',
               admin: true,
               state: 'on',
+              unread: 2,
+            },
+            {
+              key: 'github-3',
+              owner: 'team',
+              name: 'c',
+              address: '/w/team/c/',
+              admin: false,
+              state: 'on',
+              unread: 3,
             },
             {
               key: 'github-2',
@@ -72,6 +82,7 @@ describe('the wiki menu', () => {
       'https://github.com/team/a',
     );
     expect(requested).toEqual([]);
+    expect(screen.queryByTestId('wiki-menu-badge')).toBeNull();
   });
 
   test("lists the person's wikis behind the front door, from the front door's own address", async () => {
@@ -80,11 +91,18 @@ describe('the wiki menu', () => {
     render(<WebProjectName />, { wrapper: TooltipProvider });
     expect(screen.getByTestId('web-project-name-label').textContent).toBe('team/a');
     await waitFor(() => expect(requested).toEqual(['/api/front-door/wikis']));
+    expect((await screen.findByTestId('wiki-menu-badge')).textContent).toBe(
+      '3Other wikis, 3 unread',
+    );
     await userEvent.click(screen.getByTestId('web-project-name'));
     const menu = await screen.findByTestId('wiki-menu');
     const here = menu.querySelector('[data-wiki="github-1"]');
     expect(here?.getAttribute('href')).toBe('/w/team/a/');
     expect(here?.getAttribute('aria-current')).toBe('page');
+    expect(here?.querySelector('[data-unread]')?.textContent).toBe('2 Unread');
+    expect(menu.querySelector('[data-wiki="github-3"] [data-unread]')?.textContent).toBe(
+      '3 Unread',
+    );
     const other = menu.querySelector('[data-wiki="github-2"]');
     expect(other?.textContent).toContain('Disconnected');
     expect(other?.getAttribute('title')).toBe('GitQuire no longer has access to this repository.');

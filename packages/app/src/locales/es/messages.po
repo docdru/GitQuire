@@ -5198,6 +5198,9 @@ msgstr "Otro"
 msgid "Other Git hosts"
 msgstr "Otros hosts de Git"
 
+msgid "Other wikis, {0} unread"
+msgstr "Otras wikis, {0} sin leer"
+
 msgid "Out"
 msgstr ""
 

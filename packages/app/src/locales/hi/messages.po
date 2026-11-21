@@ -5194,6 +5194,9 @@ msgstr "अन्य"
 msgid "Other Git hosts"
 msgstr "अन्य Git होस्ट"
 
+msgid "Other wikis, {0} unread"
+msgstr "अन्य विकी, {0} अपठित"
+
 msgid "Out"
 msgstr ""
 

@@ -9,12 +9,22 @@ export interface DoorWiki {
   admin: boolean;
   state: 'on' | 'disconnected';
   why: string | null;
+  unread: number;
 }
 
 export interface DoorWikis {
   wikis: DoorWiki[];
   hosts: string;
   addWikiPage: string;
+}
+
+function countFrom(value: unknown): number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : 0;
+}
+
+export function unreadElsewhere(door: DoorWikis | null, address: string): number {
+  if (door === null) return 0;
+  return door.wikis.reduce((sum, wiki) => (wiki.address === address ? sum : sum + wiki.unread), 0);
 }
 
 function wikiFrom(value: unknown): DoorWiki | undefined {
@@ -37,6 +47,7 @@ function wikiFrom(value: unknown): DoorWiki | undefined {
     admin: v.admin === true,
     state: v.state === 'on' ? 'on' : 'disconnected',
     why: typeof v.why === 'string' ? v.why : null,
+    unread: countFrom(v.unread),
   };
 }
 

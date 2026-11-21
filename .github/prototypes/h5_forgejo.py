@@ -562,6 +562,21 @@ def wikis_test():
     check("Wikis add page", status == 200 and "only server administrators add wikis" in page
           and 'name="token"' not in page,
           f"dave (no server administrator) gets the explanation, no token field -> {status}")
+    mention = ('The numbers look good.\n\n[^c-h5m]: \U0001f4ac on "numbers"\n\n'
+               '    - **@carol** \u00b7 2026-11-20 09:00 \u2014 Please look, @alice @dave\n')
+    encoded = base64.b64encode(mention.encode()).decode()
+    for key in keys.values():
+        docker("exec", WIKIS_CONTAINER, "sh", "-c",
+               f"echo {encoded} | base64 -d > /data/wikis/{key}/h5-mentions.md")
+    time.sleep(6)
+    status, listed, _ = door_call("GET", "/api/front-door/wikis", alice)
+    counts = {w.get("name"): w.get("unread") for w in listed.get("wikis", [])} if isinstance(listed, dict) else {}
+    check("Wikis badge", status == 200 and counts == {"alpha": 1, "beta": 1} and listed.get("unread") == 2,
+          f"alice's unread mentions per wiki -> {status} {counts} total {listed.get('unread') if isinstance(listed, dict) else None}")
+    status, listed, _ = door_call("GET", "/api/front-door/wikis", dave)
+    counts = {w.get("name"): w.get("unread") for w in listed.get("wikis", [])} if isinstance(listed, dict) else {}
+    check("Wikis badge", status == 200 and counts == {"alpha": 1} and listed.get("unread") == 1,
+          f"dave counts only alpha's mention, nothing of beta -> {status} {counts}")
     for name, key in keys.items():
         proc = docker("exec", WIKIS_CONTAINER, "test", "-d", f"/data/wikis/{key}/.git", check_ok=False)
         check("Wikis R10", proc.returncode == 0, f"team/{name} is checked out in /data/wikis/{key}/")

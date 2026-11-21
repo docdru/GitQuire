@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import type { GateLogger } from './access-gate.ts';
 import { draftLink, pageLink } from './mention-mailer.ts';
 import type { Mention, MentionIndex } from './mentions.ts';
+import { wikiNameFromEnv } from './wiki-name.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -21,6 +22,7 @@ export interface ChatConfig {
   url: string;
   format: ChatFormat;
   externalUrl: string | undefined;
+  wiki?: string;
 }
 
 export type ChatConfigResult =
@@ -65,12 +67,14 @@ export function resolveChatConfig(env: Env): ChatConfigResult {
     };
   }
   const externalUrl = env.GITQUIRE_EXTERNAL_URL?.trim().replace(/\/+$/, '');
+  const wiki = wikiNameFromEnv(env);
   return {
     kind: 'on',
     config: {
       url: url.toString(),
       format: wanted === '' ? guessChatFormat(url) : (wanted as ChatFormat),
       externalUrl: externalUrl === undefined || externalUrl === '' ? undefined : externalUrl,
+      ...(wiki === undefined ? {} : { wiki }),
     },
   };
 }
@@ -93,14 +97,17 @@ export interface ChatMessage {
   mentioned: string[];
   quote: string;
   comment: string;
+  wiki?: string;
 }
 
 export function chatMessage(
-  config: Pick<ChatConfig, 'externalUrl'>,
+  config: Pick<ChatConfig, 'externalUrl' | 'wiki'>,
   mention: Mention,
 ): ChatMessage {
+  const wiki = config.wiki === undefined ? {} : { wiki: config.wiki };
   if (mention.draft !== undefined) {
     return {
+      ...wiki,
       review: true,
       who: clip(mention.author.name?.trim() || mention.author.login || '') || 'Someone',
       page: clip(mention.draft.title),
@@ -112,6 +119,7 @@ export function chatMessage(
     };
   }
   return {
+    ...wiki,
     who: clip(mention.author.name?.trim() || mention.author.login || '') || 'Someone',
     page: clip(mention.docName.slice(mention.docName.lastIndexOf('/') + 1)),
     docName: mention.docName,
@@ -131,8 +139,13 @@ function preposition(message: ChatMessage): string {
   return message.review === true ? 'to review' : 'in';
 }
 
+function pageLabel(message: ChatMessage): string {
+  return message.wiki === undefined ? message.page : `${message.page} (${message.wiki})`;
+}
+
 function plainText(message: ChatMessage): string {
-  const where = message.link === undefined ? message.page : `${message.page} (${message.link})`;
+  const page = pageLabel(message);
+  const where = message.link === undefined ? page : `${page} (${message.link})`;
   const head = `${headline(message)} ${preposition(message)} ${where}`;
   return message.comment === '' ? head : `${head}: "${message.comment}"`;
 }
@@ -141,8 +154,8 @@ export function chatPayload(format: ChatFormat, message: ChatMessage): unknown {
   if (format === 'slack') {
     const page =
       message.link === undefined
-        ? `*${slackEscape(message.page)}*`
-        : `<${message.link}|${slackEscape(message.page)}>`;
+        ? `*${slackEscape(pageLabel(message))}*`
+        : `<${message.link}|${slackEscape(pageLabel(message))}>`;
     const who = slackEscape(headline(message));
     const lines = [`${who} ${preposition(message)} ${page}`];
     if (message.comment !== '') lines.push(`> ${slackEscape(message.comment)}`);
@@ -155,7 +168,7 @@ export function chatPayload(format: ChatFormat, message: ChatMessage): unknown {
     const body: unknown[] = [
       {
         type: 'TextBlock',
-        text: `${headline(message)} ${preposition(message)} ${message.page}`,
+        text: `${headline(message)} ${preposition(message)} ${pageLabel(message)}`,
         weight: 'Bolder',
         wrap: true,
       },
@@ -199,6 +212,7 @@ export function chatPayload(format: ChatFormat, message: ChatMessage): unknown {
     author: message.who,
     mentioned: message.mentioned,
     page: message.page,
+    ...(message.wiki === undefined ? {} : { wiki: message.wiki }),
     docName: message.docName,
     url: message.link ?? null,
     quote: message.quote,
