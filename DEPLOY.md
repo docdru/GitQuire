@@ -578,6 +578,13 @@ a path), and GitQuire's own access: on GitHub
 `GITHUB_APP_ID` and the private key, on Forgejo `GITQUIRE_HOST_TOKEN` (the bot's token).
 `GITQUIRE_HOST_REPO_TOKEN` is not used.
 
+### Timing of access checks and stops
+
+| Setting | Meaning |
+| --- | --- |
+| `GITQUIRE_ACCESS_CHECK_SECONDS` | How long the front door keeps a person's access answer before asking the host again, 1 to 3600, default 300. Open live-editing connections are checked every minute, or at this interval when it is shorter, so a person who loses access is cut off within this time plus a minute. Shorter means more host calls. |
+| `GITQUIRE_WIKI_IDLE_MINUTES` | How long a wiki's process keeps running without use, default 30. It stops only once it is pushed and clean, and starts again on the next request. |
+
 ## Build the image yourself
 
 ```bash
@@ -675,3 +682,4 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |
 | `GITQUIRE_BEHIND_FRONT_DOOR`, `GITQUIRE_DOOR_TOKEN_SOCKET` | [Behind GitQuire's front door](#behind-gitquires-front-door) |
 | `GITQUIRE_WIKIS`, `GITQUIRE_ALLOWED_OWNERS` | [Several wikis](#several-wikis) |
+| `GITQUIRE_ACCESS_CHECK_SECONDS`, `GITQUIRE_WIKI_IDLE_MINUTES` | [Several wikis](#timing-of-access-checks-and-stops) |

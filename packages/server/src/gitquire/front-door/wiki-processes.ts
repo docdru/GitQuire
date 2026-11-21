@@ -337,9 +337,12 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
     }
   }
 
-  const timer = setInterval(() => {
-    void sweep();
-  }, SWEEP_MS);
+  const timer = setInterval(
+    () => {
+      void sweep();
+    },
+    Math.min(SWEEP_MS, idleMs),
+  );
   timer.unref();
 
   return {

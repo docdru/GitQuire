@@ -388,7 +388,10 @@ export function createGitHubDoorHost(
     }
     if (isRateLimited(response.status, response.headers, text)) return 'unreachable';
     if (response.status === 404) return 'none';
-    if (response.status === 401) return 'refused:token';
+    if (response.status === 401) {
+      tokens.delete(repoKey(repo));
+      return 'refused:token';
+    }
     if (response.status === 403) return 'refused:not-admin';
     if (response.status !== 200) return 'unreachable';
     let body: { permission?: unknown; role_name?: unknown } | undefined;

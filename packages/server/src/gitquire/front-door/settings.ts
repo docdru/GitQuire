@@ -30,11 +30,30 @@ export interface FrontDoorSettings {
   forgejoBotToken: string | undefined;
   agentTokenDays: number;
   mcpConnectors: boolean;
+  accessCheckMs: number;
+  wikiIdleMs: number;
 }
 
 const MIN_SESSION_SECRET_LENGTH = 32;
 const DEFAULT_SESSION_DAYS = 7;
 const DEFAULT_AGENT_TOKEN_DAYS = 90;
+const DEFAULT_ACCESS_CHECK_SECONDS = 300;
+const DEFAULT_WIKI_IDLE_MINUTES = 30;
+
+function numberSetting(
+  env: Env,
+  name: string,
+  fallback: number,
+  range: { min: number; max: number; what: string },
+): number {
+  const raw = nonEmpty(env[name]);
+  if (raw === undefined) return fallback;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < range.min || value > range.max) {
+    throw new FrontDoorConfigError(`${name} must be ${range.what}, got "${raw}".`);
+  }
+  return value;
+}
 
 function nonEmpty(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
@@ -225,6 +244,22 @@ export function resolveFrontDoorSettings(
       `GITQUIRE_AGENT_TOKEN_DAYS must be a number of days between 1 and 3650, got "${agentDaysRaw}".`,
     );
   }
+  const accessCheckSeconds = numberSetting(
+    env,
+    'GITQUIRE_ACCESS_CHECK_SECONDS',
+    DEFAULT_ACCESS_CHECK_SECONDS,
+    { min: 1, max: 3600, what: 'a number of seconds between 1 and 3600' },
+  );
+  const wikiIdleMinutes = numberSetting(
+    env,
+    'GITQUIRE_WIKI_IDLE_MINUTES',
+    DEFAULT_WIKI_IDLE_MINUTES,
+    {
+      min: 0.01,
+      max: 1440,
+      what: 'a number of minutes between 0.01 and 1440',
+    },
+  );
   const addresses = hostAddresses(env, host);
   return {
     host,
@@ -245,5 +280,7 @@ export function resolveFrontDoorSettings(
     mcpConnectors: ['1', 'on', 'true', 'yes'].includes(
       nonEmpty(env.GITQUIRE_MCP_CONNECTORS)?.toLowerCase() ?? '',
     ),
+    accessCheckMs: Math.round(accessCheckSeconds * 1000),
+    wikiIdleMs: Math.round(wikiIdleMinutes * 60 * 1000),
   };
 }
