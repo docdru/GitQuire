@@ -1,12 +1,16 @@
-name: Prototypes (wikis-hosts)
+name: Forgejo tests (wikis-hosts)
 
 on:
   push:
-    branches: [wh/prototypes]
+    branches: [wikis-hosts]
   pull_request:
     paths:
       - .github/workflows/prototypes.yml
       - .github/prototypes/**
+      - packages/server/src/gitquire/**
+      - packages/cli/src/commands/gitquire-bootstrap.ts
+      - docker/**
+      - Dockerfile
   workflow_dispatch:
 
 permissions:
@@ -207,3 +211,99 @@ jobs:
         run: |
           echo "::group::proxy"; cat /tmp/proxy.out; cat /tmp/proxy-escapes.log 2>/dev/null | tail -100; echo "::endgroup::"
           for c in gq-a gq-b forgejo; do echo "::group::$c"; docker logs --tail 150 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
+
+  forgejo-h5:
+    name: H5 GitQuire on Forgejo (sign-in, sync, drafts, access removed, host down)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      FORGEJO_URL: https://127.0.0.1:3000
+      SSL_CERT_FILE: /tmp/ca/cert.pem
+      GITQUIRE_URL: http://127.0.0.1:8200
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Test certificate authority
+        run: |
+          set -eu
+          mkdir -p /tmp/ca
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj /CN=127.0.0.1 \
+            -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" \
+            -keyout /tmp/ca/key.pem -out /tmp/ca/cert.pem 2>/dev/null
+          chmod 644 /tmp/ca/key.pem /tmp/ca/cert.pem
+
+      - name: Start Forgejo over https
+        run: |
+          set -eu
+          docker run -d --name forgejo --network host -v /tmp/ca:/certs:ro \
+            -e USER_UID=1000 -e USER_GID=1000 \
+            -e FORGEJO__security__INSTALL_LOCK=true \
+            -e FORGEJO__database__DB_TYPE=sqlite3 \
+            -e FORGEJO__server__PROTOCOL=https \
+            -e FORGEJO__server__CERT_FILE=/certs/cert.pem \
+            -e FORGEJO__server__KEY_FILE=/certs/key.pem \
+            -e FORGEJO__server__ROOT_URL=https://127.0.0.1:3000/ \
+            -e FORGEJO__server__HTTP_PORT=3000 \
+            -e FORGEJO__service__NO_REPLY_ADDRESS=noreply.127.0.0.1 \
+            -e FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE=true \
+            -e FORGEJO__repository__DEFAULT_BRANCH=main \
+            "$FORGEJO_IMAGE"
+          for i in $(seq 1 60); do
+            if curl -fsS --cacert /tmp/ca/cert.pem https://127.0.0.1:3000/api/v1/version >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS --cacert /tmp/ca/cert.pem https://127.0.0.1:3000/api/v1/version
+          docker exec -u git forgejo forgejo admin user create --admin --username root \
+            --password "$FORGEJO_ADMIN_PASSWORD" --email root@example.org --must-change-password=false
+          python3 -I .github/prototypes/h5_forgejo.py setup
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: gitquire:ci
+
+      - name: Start check with the bot as writer (R17), then make it admin
+        run: |
+          set +e -u
+          docker volume create gq-h5 >/dev/null
+          out=$(timeout 180 docker run --rm --network host -v gq-h5:/data -v /tmp/ca:/ca:ro \
+            -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
+            -e PORT=8200 -e GITQUIRE_ALLOW_EXTERNAL=1 -e GITQUIRE_EXTERNAL_URL="$GITQUIRE_URL" \
+            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_HOST_REPO_TOKEN="$REPO_TOKEN" \
+            -e GITQUIRE_REPO=team/wiki -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            gitquire:ci 2>&1)
+          code=$?
+          echo "$out" | tail -20
+          START_CHECK_EXIT=$code START_CHECK_OUTPUT="$out" python3 -I .github/prototypes/h5_forgejo.py admin
+
+      - name: Start GitQuire on Forgejo
+        run: |
+          set -eu
+          docker run -d --name gq-h5 --network host -v gq-h5:/data -v gq-h5-drafts:/.gitquire-drafts -v /tmp/ca:/ca:ro \
+            -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
+            -e PORT=8200 -e GITQUIRE_ALLOW_EXTERNAL=1 -e GITQUIRE_EXTERNAL_URL="$GITQUIRE_URL" \
+            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_HOST_REPO_TOKEN="$REPO_TOKEN" \
+            -e GITQUIRE_REPO=team/wiki -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            gitquire:ci >/dev/null
+          for i in $(seq 1 180); do
+            if curl -fsS http://127.0.0.1:8200/readyz >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8200/readyz
+          docker logs gq-h5 2>&1 | grep -E 'entrypoint|Cloned|gitquire-host|gitquire-auth' | cut -c1-240 || true
+
+      - name: H5 rows
+        run: python3 -I .github/prototypes/h5_forgejo.py test
+
+      - name: Logs
+        if: always()
+        run: |
+          for c in gq-h5 forgejo; do echo "::group::$c"; docker logs --tail 200 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
