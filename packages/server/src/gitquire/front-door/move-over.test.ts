@@ -198,6 +198,7 @@ describe('gitquire wikis adopt', () => {
     expect(createChatKeyStore(target, derived).get(11, 'claude')).toBe('sk-ant-secret-key-1234');
     expect(existsSync(join(copy, '.git'))).toBe(true);
     expect(existsSync(`${copy}.partial`)).toBe(false);
+    expect(existsSync(join(`${copy}.interrupted-1`, '.git'))).toBe(true);
   });
 
   it('refuses unpushed or uncommitted edits unless forced, and then moves them along', async () => {

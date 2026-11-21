@@ -152,6 +152,11 @@ function originMatches(dir: string, names: readonly HostRepo[], runGit: RunGit):
 function copyWhole(from: string, to: string): void {
   const partial = `${to}.partial`;
   mkdirSync(dirname(to), { recursive: true });
+  if (existsSync(partial)) {
+    let n = 1;
+    while (existsSync(`${to}.interrupted-${n}`)) n += 1;
+    renameSync(partial, `${to}.interrupted-${n}`);
+  }
   cpSync(from, partial, { recursive: true, preserveTimestamps: true, verbatimSymlinks: true });
   renameSync(partial, to);
 }
