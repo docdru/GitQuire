@@ -6,9 +6,12 @@ import {
   behindFrontDoorFromEnv,
   bindRequestPrefix,
   createRequestPerson,
+  encodeAgentFeatures,
   encodeProxiedUser,
+  FORWARDED_AGENTS_HEADER,
   FORWARDED_PREFIX_HEADER,
   FORWARDED_VIEW_HEADER,
+  forwardedAgentFeatures,
   forwardedPrefix,
   forwardedView,
   PROXIED_PRINCIPAL_HEADER,
@@ -114,5 +117,38 @@ describe('forwarded prefix and draft view', () => {
     bindRequestPrefix(two, '');
     expect(requestPrefix(one)).toBe('/w/team/wiki');
     expect(requestPrefix(two)).toBe('');
+  });
+});
+
+describe('the agent access the front door passes on', () => {
+  const none = { agentToken: false, connector: false, canUseTokens: false, canConnect: false };
+  const all = { agentToken: true, connector: true, canUseTokens: true, canConnect: true };
+
+  it('round-trips with the internal secret behind the front door', () => {
+    const header = encodeAgentFeatures({ ...none, canUseTokens: true, agentToken: true });
+    expect(header).toBe('token,tokens');
+    expect(
+      forwardedAgentFeatures(forwarded(ALICE, { [FORWARDED_AGENTS_HEADER]: header }), true),
+    ).toEqual({ ...none, canUseTokens: true, agentToken: true });
+    expect(
+      forwardedAgentFeatures(
+        forwarded(ALICE, { [FORWARDED_AGENTS_HEADER]: encodeAgentFeatures(all) }),
+        true,
+      ),
+    ).toEqual(all);
+  });
+
+  it('is ignored without the secret or outside the front door', () => {
+    const header = encodeAgentFeatures(all);
+    expect(forwardedAgentFeatures(req({ [FORWARDED_AGENTS_HEADER]: header }), true)).toEqual(none);
+    expect(
+      forwardedAgentFeatures(
+        req({ [INTERNAL_REQUEST_HEADER]: 'wrong', [FORWARDED_AGENTS_HEADER]: header }),
+        true,
+      ),
+    ).toEqual(none);
+    expect(
+      forwardedAgentFeatures(forwarded(ALICE, { [FORWARDED_AGENTS_HEADER]: header }), false),
+    ).toEqual(none);
   });
 });

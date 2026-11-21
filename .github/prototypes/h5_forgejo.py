@@ -352,6 +352,128 @@ def door_round(op, start):
     return status, headers.get("Location", "")
 
 
+def agent_token(op, label):
+    req = urllib.request.Request(WIKIS + "/auth/agents", method="POST",
+                                 data=urllib.parse.urlencode({"label": label}).encode(),
+                                 headers={"Content-Type": "application/x-www-form-urlencoded",
+                                          "Accept": "text/html", "Origin": WIKIS})
+    try:
+        with op.open(req, timeout=60) as resp:
+            status, page = resp.status, resp.read().decode(errors="replace")
+    except urllib.error.HTTPError as err:
+        status, page = err.code, err.read().decode(errors="replace")
+    match = re.search(r"gqa_[0-9a-f]{16}_[A-Za-z0-9_-]{32,}", page)
+    return status, match.group(0) if match else None
+
+
+class Mcp:
+    def __init__(self, token):
+        self.token = token
+        self.session = None
+        self.next_id = 0
+
+    def post(self, message):
+        hdrs = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream"}
+        if self.session:
+            hdrs["Mcp-Session-Id"] = self.session
+        req = urllib.request.Request(WIKIS + "/mcp", data=json.dumps(message).encode(),
+                                     method="POST", headers=hdrs)
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                self.session = resp.headers.get("Mcp-Session-Id") or self.session
+                return resp.status, f.parse(resp.read())
+        except urllib.error.HTTPError as err:
+            return err.code, f.parse(err.read())
+
+    def request(self, method, params=None):
+        self.next_id += 1
+        status, body = self.post({"jsonrpc": "2.0", "id": self.next_id, "method": method,
+                                  "params": params or {}})
+        return status, body.get("result") if isinstance(body, dict) else None
+
+    def start(self):
+        status, result = self.request("initialize", {
+            "protocolVersion": "2025-06-18", "capabilities": {},
+            "clientInfo": {"name": "h5-agent", "version": "1"}})
+        self.post({"jsonrpc": "2.0", "method": "notifications/initialized"})
+        return status, result
+
+    def call(self, name, args):
+        return self.request("tools/call", {"name": name, "arguments": args})
+
+
+def result_text(result):
+    if not isinstance(result, dict):
+        return ""
+    return "\n".join(p.get("text", "") for p in result.get("content", []) if isinstance(p, dict))
+
+
+def wikis_mcp(alice, dave):
+    status, token = agent_token(alice, "h5 agent")
+    check("Wikis MCP", status == 200 and token is not None,
+          f"alice creates an agent token at /auth/agents on the front door -> {status}")
+    status, me, _ = door_call("GET", "/w/team/alpha/auth/me", alice)
+    features = me.get("features", {}) if isinstance(me, dict) else {}
+    check("Wikis MCP", features.get("canUseTokens") is True and features.get("agentToken") is True,
+          f"inside a wiki, /auth/me shows the front door's agent access -> {features}")
+    status, body, _ = door_call("GET", "/w/team/alpha/mcp", alice)
+    check("Wikis MCP", status == 404 and isinstance(body, dict) and body.get("mcp") == WIKIS + "/mcp",
+          f"/mcp under a wiki address names the one /mcp address -> {status} {body}")
+    unsigned = urllib.request.Request(WIKIS + "/mcp", method="POST", data=b"{}",
+                                      headers={"Content-Type": "application/json"})
+    try:
+        urllib.request.urlopen(unsigned, timeout=30)
+        code = 200
+    except urllib.error.HTTPError as err:
+        code = err.code
+    check("Wikis MCP", code == 401, f"/mcp without a token -> {code}")
+    if token is None:
+        return
+    agent = Mcp(token)
+    status, init = agent.start()
+    check("Wikis MCP", status == 200 and agent.session is not None,
+          f"initialize at the root /mcp -> {status} {init.get('serverInfo') if isinstance(init, dict) else init}")
+    status, listed = agent.request("tools/list")
+    tools = {t["name"]: t for t in listed.get("tools", [])} if isinstance(listed, dict) else {}
+    execute = tools.get("exec", {}).get("inputSchema", {})
+    check("Wikis MCP", "list_wikis" in tools and "wiki" in execute.get("properties", {})
+          and "wiki" in execute.get("required", []),
+          f"tools: list_wikis plus the wiki's tools, each with a wiki argument -> {sorted(tools)[:8]}")
+    status, wikis = agent.call("list_wikis", {})
+    names = [w.get("wiki") for w in (wikis or {}).get("structuredContent", {}).get("wikis", [])]
+    check("Wikis MCP", names == ["team/alpha", "team/beta"], f"list_wikis for alice -> {names}")
+    for name, other in (("alpha", "beta"), ("beta", "alpha")):
+        status, result = agent.call("exec", {"wiki": f"team/{name}", "command": "cat README.md"})
+        text = result_text(result)
+        check("Wikis MCP", status == 200 and isinstance(result, dict) and not result.get("isError")
+              and f"# {name}" in text and f"# {other}" not in text,
+              f"exec cat README.md in team/{name} reads that wiki -> {status} {text[:160]}")
+    status, missing = agent.call("exec", {"command": "ls"})
+    check("Wikis MCP", isinstance(missing, dict) and missing.get("isError") is True
+          and "team/alpha, team/beta" in result_text(missing),
+          f"without a wiki, alice (two wikis) is asked to name one -> {result_text(missing)}")
+    status, dave_token = agent_token(dave, "dave agent")
+    if dave_token is None:
+        check("Wikis MCP", False, f"dave creates an agent token -> {status}")
+        return
+    other = Mcp(dave_token)
+    other.start()
+    status, refused = other.call("exec", {"wiki": "team/beta", "command": "ls"})
+    check("Wikis MCP", isinstance(refused, dict) and refused.get("isError") is True
+          and "do not have write access" in result_text(refused),
+          f"dave's agent is refused for beta -> {result_text(refused)}")
+    status, alone = other.call("exec", {"command": "cat README.md"})
+    check("Wikis MCP", isinstance(alone, dict) and not alone.get("isError")
+          and "# alpha" in result_text(alone),
+          f"dave (one wiki) leaves the wiki out and reaches alpha -> {result_text(alone)[:160]}")
+    stores = docker("exec", WIKIS_CONTAINER, "sh", "-c",
+                    "find /data -name agent-tokens.json", check_ok=False).stdout.split()
+    check("Wikis R13", stores == ["/data/server/agent-tokens.json"],
+          f"the agent-token store exists only at the front door -> {stores}")
+
+
+
 def wikis_test():
     alice = f.web_login("alice")
     status, detail = door_round(alice, "/auth/forgejo/login?next=%2F")
@@ -410,6 +532,7 @@ def wikis_test():
                    "echo editor; done", check_ok=False).stdout.split()
     check("Wikis R12", leaks.count("editor") >= 2 and "leak" not in leaks,
           f"editor processes: {leaks.count('editor')}, holding the bot token or a secret: {leaks.count('leak')}")
+    wikis_mcp(alice, dave)
 
 
 def start_check():

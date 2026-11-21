@@ -15,6 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { publishAskComposerHeight } from '@/editor/ask-composer-inset';
 import {
   type AskDestination,
+  askClaudeAddress,
   askDestinations,
   askWorkspace,
   buildClaudePrompt,
@@ -124,7 +125,7 @@ export function GitQuireAskClaude({
       return;
     }
     const prompt = buildClaudePrompt({
-      wikiUrl: `${window.location.origin}${wikiPrefix()}`,
+      ...askClaudeAddress(window.location.origin, wikiPrefix()),
       workspace: askWorkspace(drafts),
       target,
       request: text,

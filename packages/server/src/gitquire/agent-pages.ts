@@ -18,6 +18,7 @@ export interface AgentPagesDeps {
   log: GateLogger;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   connectorsEnabled: boolean;
+  severalWikis?: boolean;
   now?: () => number;
 }
 
@@ -58,6 +59,8 @@ function claudeDesktopConfig(externalUrl: URL, token: string): string {
 export function createAgentPages(deps: AgentPagesDeps) {
   const now = deps.now ?? Date.now;
   const isAdmin = (user: SessionUser) => deps.config.admins.has(user.login.toLowerCase());
+  const several = deps.severalWikis === true;
+  const theWiki = several ? 'your wikis' : 'the wiki';
 
   function row(record: AgentTokenRecord, showOwner: boolean): string {
     const kind = record.kind === 'connector' ? 'Connector' : 'Token';
@@ -89,8 +92,8 @@ export function createAgentPages(deps: AgentPagesDeps) {
       res,
       status,
       'AI agent access',
-      `<p>Signed in as <strong>@${escapeHtml(user.login)}</strong>. <a href="/">Back to the wiki</a></p>
-<p>An agent token lets your own AI agent, such as Claude Code or the Claude desktop app, read and edit the wiki as you. Its edits are credited to you, and each token can be revoked on its own.</p>
+      `<p>Signed in as <strong>@${escapeHtml(user.login)}</strong>. <a href="/">${several ? 'Your wikis' : 'Back to the wiki'}</a></p>
+<p>An agent token lets your own AI agent, such as Claude Code or the Claude desktop app, read and edit ${theWiki} as you. Its edits are credited to you, and each token can be revoked on its own.${several ? ' One address and one token reach every wiki you can open; the agent names the wiki in each call.' : ''}</p>
 ${notice}
 <h2>Create a token</h2>
 <form method="post" action="${AGENTS_PAGE_PATH}">
@@ -135,7 +138,7 @@ ${adminSection}`,
         res,
         user,
         ok
-          ? '<p><strong>Revoked.</strong> That agent can no longer reach the wiki.</p>'
+          ? `<p><strong>Revoked.</strong> That agent can no longer reach ${theWiki}.</p>`
           : '<p><strong>Nothing revoked.</strong> The token was already gone.</p>',
       );
       return;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  askClaudeAddress,
   askDestinations,
   askWorkspace,
   buildClaudePrompt,
@@ -27,6 +28,22 @@ describe('Ask Claude', () => {
         'Turn the action items into a checklist',
       ].join('\n'),
     );
+  });
+
+  it('behind the front door, points at the one /mcp address and names the wiki', () => {
+    const address = askClaudeAddress('https://wiki.example.com', '/w/team/handbook');
+    expect(address).toEqual({ wikiUrl: 'https://wiki.example.com', wiki: 'team/handbook' });
+    const prompt = buildClaudePrompt({
+      ...address,
+      target: { kind: 'page', path: 'index.md' },
+      request: 'Summarise',
+    });
+    expect(prompt.split('\n')[0]).toBe(
+      'Use the GitQuire wiki tools (the MCP server for https://wiki.example.com) for this, in the wiki team/handbook: give "team/handbook" as the wiki argument of every call.',
+    );
+    expect(askClaudeAddress('https://wiki.example.com', '')).toEqual({
+      wikiUrl: 'https://wiki.example.com',
+    });
   });
 
   it('says which draft and branch the request was written in', () => {

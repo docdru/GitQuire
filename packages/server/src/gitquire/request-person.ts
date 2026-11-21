@@ -9,6 +9,7 @@ const BEHIND_FRONT_DOOR_ENV = 'GITQUIRE_BEHIND_FRONT_DOOR';
 export const PROXIED_PRINCIPAL_HEADER = 'x-gitquire-principal';
 export const FORWARDED_PREFIX_HEADER = 'x-gitquire-prefix';
 export const FORWARDED_VIEW_HEADER = 'x-gitquire-view';
+export const FORWARDED_AGENTS_HEADER = 'x-gitquire-agents';
 
 const PREFIX_RE = /^(?:\/[A-Za-z0-9._~-]+)+$/;
 
@@ -69,6 +70,41 @@ export function forwardedView(req: Headers, behind: boolean): string | undefined
   const raw = req.headers[FORWARDED_VIEW_HEADER];
   if (typeof raw !== 'string' || raw === '' || !isInternalRequest(req)) return undefined;
   return raw;
+}
+
+export interface AgentFeatures {
+  agentToken: boolean;
+  connector: boolean;
+  canUseTokens: boolean;
+  canConnect: boolean;
+}
+
+const AGENT_FEATURE_FLAGS: Record<keyof AgentFeatures, string> = {
+  agentToken: 'token',
+  connector: 'connector',
+  canUseTokens: 'tokens',
+  canConnect: 'connect',
+};
+
+export function encodeAgentFeatures(features: AgentFeatures): string {
+  return (Object.keys(AGENT_FEATURE_FLAGS) as (keyof AgentFeatures)[])
+    .filter((name) => features[name])
+    .map((name) => AGENT_FEATURE_FLAGS[name])
+    .join(',');
+}
+
+export function forwardedAgentFeatures(req: Headers, behind: boolean): AgentFeatures {
+  const raw = req.headers[FORWARDED_AGENTS_HEADER];
+  const flags =
+    behind && typeof raw === 'string' && isInternalRequest(req)
+      ? new Set(raw.split(',').map((flag) => flag.trim()))
+      : new Set<string>();
+  return {
+    agentToken: flags.has(AGENT_FEATURE_FLAGS.agentToken),
+    connector: flags.has(AGENT_FEATURE_FLAGS.connector),
+    canUseTokens: flags.has(AGENT_FEATURE_FLAGS.canUseTokens),
+    canConnect: flags.has(AGENT_FEATURE_FLAGS.canConnect),
+  };
 }
 
 export interface RequestPerson {
