@@ -33,6 +33,7 @@ Modules added by the branch are listed here by the pull request that adds them.
 | Stage 1 | `host/github.ts` | The GitHub door host: authorize address, code exchange, `GET /user`, repo `permissions`, collaborator permission with the app token. Moved from `access-gate.ts` and `agent-access.ts` unchanged |
 | Stage 1 | `host/names.ts` | `GITQUIRE_HOST` (only `github` in stage 1), `GITQUIRE_COMMIT_EMAIL_FORMAT`; the process's host names, read by `noreplyEmail` and `principalIdForUser` |
 | Stage 1 | `host/data-folder.ts` | Refuses a data folder recorded for another host, or used by GitHub people when the host is not GitHub; writes nothing for GitHub. Cannot see ids in comment threads committed to the repo |
+| Block 3 | `packages/app/src/lib/gitquire/wiki-prefix.ts` | The app's wiki prefix: the folder the page was loaded from (`/w/team/wiki/` gives `/w/team/wiki`, `/` gives none). Used by the fetch wrapper (`client-fetch.ts` `pathPrefix`: every same-origin address gets the prefix once), the live-editing fallback address (`cc1.ts`), app-built `/api/asset` addresses, Excalidraw's asset path and the Ask Claude wiki address; and as `storageNamespace` (`DocumentContext.tsx`), which scopes `ok-last-observed-branch`, `ok-doc-lineage-epochs` and the replay outbox, plus the tab session key `ok-editor-tabs-v1:<origin><prefix>`. No prefix: every address and key as before. The web manifest and the page's icon links are relative |
 
 ## Contract files
 

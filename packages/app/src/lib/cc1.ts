@@ -18,6 +18,7 @@ import {
   type DerivedViewChannel,
 } from '@gitquire/core/schemas/cc1';
 import type { z } from 'zod';
+import { wikiPrefix } from '@/lib/gitquire/wiki-prefix';
 
 export {
   CC1_CHANNEL_BRANCH_SWITCHED,
@@ -137,5 +138,5 @@ export function defaultCollabWsUrl(): string {
     return 'ws://localhost/collab';
   }
   const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
-  return `${scheme}://${location.host}/collab`;
+  return `${scheme}://${location.host}${wikiPrefix()}/collab`;
 }

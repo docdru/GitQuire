@@ -30,6 +30,7 @@ import { useChatEdits } from '@/lib/gitquire/chat-edit-target';
 import { queueChatRequest } from '@/lib/gitquire/chat-requests';
 import { useDraftState } from '@/lib/gitquire/drafts-store';
 import { useGitQuireFeatures } from '@/lib/gitquire/features';
+import { wikiPrefix } from '@/lib/gitquire/wiki-prefix';
 import { paneVisibilityStore } from '@/lib/pane-visibility-store';
 import { cn } from '@/lib/utils';
 import { docNameToRelativePath } from '@/lib/workspace-paths';
@@ -123,7 +124,7 @@ export function GitQuireAskClaude({
       return;
     }
     const prompt = buildClaudePrompt({
-      wikiUrl: window.location.origin,
+      wikiUrl: `${window.location.origin}${wikiPrefix()}`,
       workspace: askWorkspace(drafts),
       target,
       request: text,

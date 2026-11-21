@@ -1,6 +1,7 @@
 import { IMAGE_EXTENSIONS } from '@gitquire/core/constants/upload';
 import { parseWikiLink } from '@gitquire/core/extensions/wiki-link';
 import { isSafeUrl } from '@gitquire/core/markdown/safe-url';
+import { withWikiPrefix } from '@/lib/gitquire/wiki-prefix';
 
 const MAX_VALUE_LENGTH = 2048;
 
@@ -31,7 +32,7 @@ export function resolvePageIcon(raw: unknown): ResolvedPageIcon {
   if (imageKind === 'path') {
     return {
       kind: 'path',
-      value: `/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`,
+      value: withWikiPrefix(`/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`),
     };
   }
   return { kind: 'unsupported', value: '' };
@@ -77,7 +78,7 @@ export function resolvePageCover(raw: unknown): ResolvedPageCover {
   if (imageKind === 'path') {
     return {
       kind: 'path',
-      value: `/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`,
+      value: withWikiPrefix(`/api/asset?path=${encodeURIComponent(toContentDirRelative(trimmed))}`),
     };
   }
   return { kind: 'unsupported', value: '' };

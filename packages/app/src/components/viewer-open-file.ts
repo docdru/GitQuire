@@ -1,4 +1,5 @@
 import { ASSET_EXTENSIONS } from '@gitquire/core/constants/upload';
+import { withWikiPrefix } from '@/lib/gitquire/wiki-prefix';
 
 export interface ViewerOpenFileTarget {
   readonly projectRelPath: string;
@@ -28,6 +29,6 @@ export function resolveViewerOpenFile({
     projectRelPath: assetPath,
     ext,
     title: fileName,
-    url: `${endpoint}?path=${encodeURIComponent(assetPath)}`,
+    url: withWikiPrefix(`${endpoint}?path=${encodeURIComponent(assetPath)}`),
   };
 }
