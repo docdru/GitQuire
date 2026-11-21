@@ -107,7 +107,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
   };
   const remote: DraftRemote =
     deps.appConfig !== undefined && deps.client !== undefined
-      ? gitHubRemote(deps.client, deps.appConfig.repo)
+      ? gitHubRemote(deps.client, deps.appConfig.repo, deps.appConfig.githubWebUrl)
       : plainGitRemote(deps.projectDir, runGit, authEnv);
   const syncMode = parseAutoSyncMode(deps.env.GITQUIRE_SYNC_MODE);
 
