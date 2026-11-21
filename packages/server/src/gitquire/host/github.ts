@@ -56,7 +56,29 @@ function isAdmin(body: unknown): boolean {
   return permissions?.admin === true || permissions?.maintain === true;
 }
 
+function repoIdOf(repo: HostRepo): number | undefined {
+  const id = (repo as { id?: unknown }).id;
+  return typeof id === 'number' && Number.isSafeInteger(id) ? id : undefined;
+}
+
+function repoAddress(repo: HostRepo): string {
+  const id = repoIdOf(repo);
+  return id === undefined ? repoPath(repo) : `/repositories/${id}`;
+}
+
+export function isRateLimited(status: number, headers: Headers, text: string): boolean {
+  if (status === 429) return true;
+  if (status !== 403) return false;
+  return (
+    headers.get('x-ratelimit-remaining') === '0' ||
+    headers.get('retry-after') !== null ||
+    /rate limit/i.test(text)
+  );
+}
+
 function repoKey(repo: HostRepo): string {
+  const id = repoIdOf(repo);
+  if (id !== undefined) return `#${id}`;
   return `${repo.owner.toLowerCase()}/${repo.name.toLowerCase()}`;
 }
 
@@ -121,8 +143,7 @@ export function createGitHubDoorHost(
     } catch {
       return { status: 'unreachable' };
     }
-    if (response.status >= 500 || response.status === 429) return { status: 'unreachable' };
-    if (response.status === 403 && response.headers.get('x-ratelimit-remaining') === '0') {
+    if (response.status >= 500 || isRateLimited(response.status, response.headers, text)) {
       return { status: 'unreachable' };
     }
     let body: unknown;
@@ -145,7 +166,8 @@ export function createGitHubDoorHost(
   async function mint(app: GitHubAppAuth, repo: HostRepo): Promise<Minted> {
     const jwt = appJwt(app);
     if (jwt === undefined) return { state: 'refused', refusal: 'token' };
-    const installation = await call(`${repoPath(repo)}/installation`, jwt);
+    const repoId = repoIdOf(repo);
+    const installation = await call(`${repoAddress(repo)}/installation`, jwt);
     if (installation.status === 'unreachable') return { state: 'unreachable' };
     if (installation.status === 404) return { state: 'refused', refusal: 'removed' };
     const id = (installation.body as { id?: unknown } | undefined)?.id;
@@ -154,7 +176,7 @@ export function createGitHubDoorHost(
     }
     const minted = await call(`/app/installations/${id}/access_tokens`, jwt, {
       method: 'POST',
-      body: { repositories: [repo.name] },
+      body: repoId === undefined ? { repositories: [repo.name] } : { repository_ids: [repoId] },
     });
     if (minted.status === 'unreachable') return { state: 'unreachable' };
     if (minted.status === 404 || minted.status === 422) {
@@ -267,7 +289,7 @@ export function createGitHubDoorHost(
     }
     const token = deps.installationToken?.();
     if (token === undefined) return 'unreachable';
-    const answer = await call(repoPath(repo), token);
+    const answer = await call(repoAddress(repo), token);
     if (answer.status === 'unreachable') return 'unreachable';
     if (answer.status === 200) return 'ok';
     if (answer.status === 401) return 'refused:token';
@@ -355,20 +377,26 @@ export function createGitHubDoorHost(
     if (minted.state === 'unreachable') return 'unreachable';
     if (minted.state === 'refused') return `refused:${minted.refusal}`;
     const token = minted.token;
-    const url = `${config.apiUrl}${repoPath(repo)}/collaborators/${encodeURIComponent(login)}/permission`;
+    const url = `${config.apiUrl}${repoAddress(repo)}/collaborators/${encodeURIComponent(login)}/permission`;
     let response: Response;
+    let text: string;
     try {
       response = await doFetch(url, { headers: apiHeaders(token) });
+      text = await response.text();
     } catch {
       return 'unreachable';
     }
+    if (isRateLimited(response.status, response.headers, text)) return 'unreachable';
     if (response.status === 404) return 'none';
     if (response.status === 401) return 'refused:token';
     if (response.status === 403) return 'refused:not-admin';
     if (response.status !== 200) return 'unreachable';
-    const body = (await response.json().catch(() => undefined)) as
-      | { permission?: unknown; role_name?: unknown }
-      | undefined;
+    let body: { permission?: unknown; role_name?: unknown } | undefined;
+    try {
+      body = JSON.parse(text) as typeof body;
+    } catch {
+      body = undefined;
+    }
     const role = typeof body?.role_name === 'string' ? body.role_name : body?.permission;
     if (typeof role !== 'string' || !WRITE_ROLES.has(role)) return 'none';
     return ADMIN_ROLES.has(role) ? 'admin' : 'write';
