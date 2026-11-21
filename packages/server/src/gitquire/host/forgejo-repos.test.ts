@@ -170,6 +170,25 @@ describe('Forgejo door host for several repositories', () => {
     expect(await offline.repoById(1)).toEqual({ state: 'unreachable' });
   });
 
+  it('looks a repo up by its name with the bot token, for moving a single wiki over', async () => {
+    const host = door((path, token) =>
+      path === '/repos/team/wiki' && token === 'bot'
+        ? { status: 200, body: repoRecord(1, 'team', 7, 'wiki', { admin: true, push: true }) }
+        : { status: 404, body: { message: 'Not Found' } },
+    );
+    expect(await host.repoByName({ owner: 'team', name: 'wiki' })).toEqual({
+      state: 'found',
+      repo: { host: 'forgejo', id: 1, owner: 'team', ownerId: 7, name: 'wiki' },
+    });
+    expect(await host.repoByName({ owner: 'team', name: 'none' })).toEqual({ state: 'gone' });
+    expect(await door(() => ({ status: 401 })).repoByName({ owner: 'team', name: 'wiki' })).toEqual(
+      { state: 'refused', refusal: 'token' },
+    );
+    expect(await door(() => ({ status: 502 })).repoByName({ owner: 'team', name: 'wiki' })).toEqual(
+      { state: 'unreachable' },
+    );
+  });
+
   it('hands out the wiki own limited token from the store, never the unlimited one (R12)', async () => {
     const host = door(() => ({ status: 404 }), [], tokens);
     expect(await host.tokenFor({ owner: 'team', name: 'wiki' })).toBe('limited-wiki');
