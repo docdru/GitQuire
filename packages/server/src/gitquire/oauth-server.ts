@@ -35,6 +35,7 @@ export interface OAuthServerDeps {
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   checkAccess?: (login: string, id: number) => Promise<AccessVerdict>;
   severalWikis?: boolean;
+  refuseUnknownAtSignIn?: boolean;
   fetch?: typeof fetch;
   now?: () => number;
   randomId?: () => string;
@@ -469,9 +470,20 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     return true;
   }
 
-  async function ensureStillAllowed(person: { login: string; id: number }): Promise<void> {
+  async function ensureStillAllowed(
+    person: { login: string; id: number },
+    signIn = false,
+  ): Promise<void> {
     if (deps.checkAccess === undefined) return;
-    if ((await deps.checkAccess(person.login, person.id)) === 'denied') {
+    const verdict = await deps.checkAccess(person.login, person.id);
+    if (signIn && verdict === 'unknown' && deps.refuseUnknownAtSignIn === true) {
+      throw new OAuthError(
+        503,
+        'temporarily_unavailable',
+        `${hostNames().label} cannot be reached right now, so access cannot be checked. Try again in a moment.`,
+      );
+    }
+    if (verdict === 'denied') {
       throw new OAuthError(
         400,
         'invalid_grant',
@@ -552,7 +564,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     if (!rememberCode(code.j, code.exp)) {
       throw new OAuthError(400, 'invalid_grant', 'The code was already used.');
     }
-    await ensureStillAllowed(code.u);
+    await ensureStillAllowed(code.u, true);
     const owner = code.u;
     tokenResponse(
       res,

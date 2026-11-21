@@ -91,6 +91,7 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
         sessionUser: deps.sessionUser,
         checkAccess: (login, id) => verdict({ id, login }),
         severalWikis: true,
+        refuseUnknownAtSignIn: true,
         fetch: deps.fetch,
         now: deps.now,
       })

@@ -34,6 +34,8 @@ const WIKI_ARGUMENT = 'wiki';
 const MAX_BODY_BYTES = 32 * 1024 * 1024;
 const TOOL_LIST_MAX_AGE_MS = 10 * 60 * 1000;
 const WIKI_CALL_TIMEOUT_MS = 10 * 60 * 1000;
+const MAX_SESSIONS = 80;
+const MAX_SESSIONS_PER_PERSON = 10;
 
 type AgentPerson = AgentTokenRecord['owner'];
 
@@ -46,6 +48,7 @@ interface DoorMcpDeps {
   now?: () => number;
   sessionTtlMs?: number;
   maxSessions?: number;
+  maxSessionsPerPerson?: number;
 }
 
 export interface DoorMcp {
@@ -204,7 +207,8 @@ function closedText(wiki: WikiRecord, decision: Exclude<OpenDecision, { open: tr
 export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
   const now = deps.now ?? Date.now;
   const sessionTtlMs = deps.sessionTtlMs ?? 30 * 60 * 1000;
-  const maxSessions = deps.maxSessions ?? 200;
+  const maxSessions = deps.maxSessions ?? MAX_SESSIONS;
+  const maxPerPerson = deps.maxSessionsPerPerson ?? MAX_SESSIONS_PER_PERSON;
   const sessions = new Map<string, DoorSession>();
   let toolList: { at: number; tools: Tool[] } | undefined;
 
@@ -324,8 +328,8 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
   }
 
   async function wikiTools(session: DoorSession, first: WikiRecord | undefined): Promise<Tool[]> {
+    if (first === undefined) return [];
     if (toolList !== undefined && now() - toolList.at < TOOL_LIST_MAX_AGE_MS) return toolList.tools;
-    if (first === undefined) return toolList?.tools ?? [];
     const open = await opened(session, first);
     if ('refused' in open) return toolList?.tools ?? [];
     try {
@@ -438,14 +442,31 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     session.ttlTimer.unref?.();
   }
 
-  function writePlain(res: ServerResponse, status: number, message: string): void {
+  function writePlain(
+    res: ServerResponse,
+    status: number,
+    message: string,
+    headers: Record<string, string> = {},
+  ): void {
     if (res.writableEnded) return;
-    res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8', ...headers });
     res.end(message);
+  }
+
+  function sessionsOf(person: AgentPerson): number {
+    let count = 0;
+    for (const session of sessions.values()) if (session.person.id === person.id) count += 1;
+    return count;
   }
 
   return {
     async handle(req, res, person) {
+      if (req.method === 'GET') {
+        writePlain(res, 405, 'This server sends no event stream; use POST.', {
+          Allow: 'POST, DELETE',
+        });
+        return;
+      }
       const header = req.headers['mcp-session-id'];
       const sessionId = Array.isArray(header) ? header[0] : header;
       if (sessionId !== undefined && sessionId !== '') {
@@ -469,6 +490,18 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
       }
       if (sessions.size >= maxSessions) {
         writePlain(res, 503, 'Too many active MCP sessions');
+        return;
+      }
+      if (sessionsOf(person) >= maxPerPerson) {
+        writePlain(
+          res,
+          429,
+          `You already have ${maxPerPerson} open MCP connections. Close one, or wait until one expires.`,
+        );
+        return;
+      }
+      if ((await openWikis(person)).length === 0) {
+        writePlain(res, 403, 'You cannot open any wiki on this server.');
         return;
       }
       const partial: Omit<DoorSession, 'server' | 'transport'> & {

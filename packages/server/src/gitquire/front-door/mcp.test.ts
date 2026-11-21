@@ -475,6 +475,41 @@ describe('/mcp at the front door', () => {
     expect(answer).toBe(403);
   });
 
+  it('answers GET with 405, also on an open session, and opens no stream', async () => {
+    const r = await rig();
+    const client = await connect(r, r.token('alice'));
+    await client.listTools();
+    const sessionId = (client.transport as StreamableHTTPClientTransport).sessionId ?? '';
+    const answer = await httpGet(`${r.base}/mcp`, {
+      authorization: `Bearer ${r.token('alice')}`,
+      'mcp-session-id': sessionId,
+      accept: 'text/event-stream',
+    });
+    expect(answer.status).toBe(405);
+  });
+
+  it('opens no session for a person who can open no wiki', async () => {
+    const r = await rig();
+    await expect(connect(r, r.token('carol'))).rejects.toThrow();
+  });
+
+  it('caps the sessions of one person', async () => {
+    const r = await rig();
+    const token = r.token('alice');
+    for (let i = 0; i < 10; i += 1) await connect(r, token);
+    await expect(connect(r, token)).rejects.toThrow();
+    expect((await connect(r, r.token('bob'))).getServerVersion()).toBeDefined();
+  });
+
+  it('lists only list_wikis once the person can open no wiki', async () => {
+    const r = await rig();
+    const client = await connect(r, r.token('bob'));
+    expect((await client.listTools()).tools.length).toBeGreaterThan(1);
+    r.levels.bob.a = 'none';
+    r.advance(ACCESS_TTL_MS + 1);
+    expect((await client.listTools()).tools.map((tool) => tool.name)).toEqual(['list_wikis']);
+  });
+
   it('refuses /mcp under a wiki address and names the one address', async () => {
     const r = await rig();
     const answer = await httpGet(`${r.base}/w/team/a/mcp`);

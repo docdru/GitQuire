@@ -551,7 +551,9 @@ every wiki, and **Ask Claude** names the wiki in the prompt.
 
 Every ten minutes the front door checks the owners of agent tokens and revokes a person's tokens
 only when they can open no wiki on the server any more. While the host cannot be reached, nothing
-is revoked.
+is revoked. A person who can open no wiki gets no connection, and one person can keep at most
+10 connections open at a time. While the host cannot be reached, connectors already approved keep
+working, but a new connector cannot be approved.
 
 AI chat is on inside each wiki. The front door gives each wiki's process a key for the saved AI
 keys that is derived from `GITQUIRE_SESSION_SECRET` and the wiki, never the session secret itself,
