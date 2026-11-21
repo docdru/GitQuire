@@ -248,6 +248,43 @@ def run_tests():
     check("H5 R12", None, f"processes holding GITQUIRE_HOST_TOKEN (main process only expected): {container_env}")
 
 
+def door_setup():
+    repos = {}
+    for name, bot in (("notes", "admin"), ("writer", "write"), ("hidden", None)):
+        status, body, _ = f.call("POST", "/orgs/team/repos", {
+            "name": name, "private": True, "auto_init": True, "default_branch": "main",
+        }, auth=f.ADMIN)
+        if status not in (201, 409):
+            raise RuntimeError(f"create team/{name}: {status} {body}")
+        f.call("PUT", f"/repos/team/{name}/collaborators/alice", {"permission": "admin"}, auth=f.ADMIN)
+        if bot:
+            f.call("PUT", f"/repos/team/{name}/collaborators/gitquire-bot", {"permission": bot}, auth=f.ADMIN)
+        _, record, _ = f.call("GET", f"/repos/team/{name}", auth=f.ADMIN)
+        repos[name] = {"host": "forgejo", "id": record["id"], "owner": record["owner"]["login"],
+                       "ownerId": record["owner"]["id"], "name": record["name"]}
+    status, _, _ = f.call("PATCH", "/repos/team/writer", {"name": "writer2"}, auth=f.ADMIN)
+    if status != 200:
+        raise RuntimeError(f"rename team/writer: {status}")
+    made = [
+        f.make_token("alice", "door-person", ["read:user", "read:repository"]),
+        f.make_token("gitquire-bot", "door-notes", ["write:repository"],
+                     repositories=[{"owner": "team", "name": "notes"}]),
+        f.make_token("gitquire-bot", "door-revoked", ["read:user", "read:repository"]),
+    ]
+    for status, body in made:
+        if status != 201:
+            raise RuntimeError(f"door token: {status} {body}")
+    person, limited, revoked = (body for _, body in made)
+    status, _, _ = f.call("DELETE", "/users/gitquire-bot/tokens/door-revoked", auth=("gitquire-bot", f.PASSWORD))
+    if status != 204:
+        raise RuntimeError(f"revoke token: {status}")
+    for secret in (person["sha1"], limited["sha1"], revoked["sha1"]):
+        print("::add-mask::" + secret)
+    env_out([f"DOOR_PERSON_TOKEN={person['sha1']}", f"DOOR_NOTES_TOKEN={limited['sha1']}",
+             f"DOOR_REVOKED_TOKEN={revoked['sha1']}", f"DOOR_REPOS={json.dumps(repos)}"])
+    print("door set-up done:", json.dumps(repos))
+
+
 def start_check():
     out = os.environ.get("START_CHECK_OUTPUT", "")
     code = os.environ.get("START_CHECK_EXIT", "")
@@ -269,6 +306,8 @@ if __name__ == "__main__":
     step = sys.argv[1]
     if step == "setup":
         setup()
+    elif step == "door":
+        door_setup()
     elif step == "admin":
         start_check()
         make_bot_admin()
