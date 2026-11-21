@@ -291,6 +291,18 @@ def f2_to_f6(bot_token, tmp):
     return work, header_env
 
 
+def merge_with_retry(number, payload, tok, tries=15):
+    import time
+    seen = []
+    for attempt in range(1, tries + 1):
+        s, body, _ = call("POST", f"/repos/team/wiki/pulls/{number}/merge", payload, **tok)
+        seen.append(s)
+        if s != 405 or "try again later" not in str(body).lower():
+            return s, body, seen
+        time.sleep(1)
+    return s, body, seen
+
+
 def f3(bot_token, work, header_env):
     tok = {"token": bot_token}
 
@@ -314,11 +326,11 @@ def f3(bot_token, work, header_env):
     s, body, _ = call("GET", "/repos/team/wiki/pulls?state=open&head=team:draft/one", **tok)
     heads = [p["head"]["ref"] for p in body] if isinstance(body, list) else body
     record("F3", None, f"list pulls with head=team:draft/one -> {s}, heads returned {heads} (filter honoured: {heads == ['draft/one']})")
-    s, body, _ = call("POST", f"/repos/team/wiki/pulls/{n1}/merge", {
+    s, body, seen = merge_with_retry(n1, {
         "Do": "squash", "MergeTitleField": "Publish draft one", "MergeMessageField": "",
         "delete_branch_after_merge": False,
-    }, **tok)
-    record("F3", s == 200, f"squash merge with a title -> {s} {body if s != 200 else ''}")
+    }, tok)
+    record("F3", s == 200, f"squash merge with a title -> {s} after attempts {seen} {body if s != 200 else ''}")
     s, merged, _ = call("GET", f"/repos/team/wiki/pulls/{n1}", **tok)
     record("F3", isinstance(merged, dict) and merged.get("merged") is True,
            f"pull request reads merged: {merged.get('merged') if isinstance(merged, dict) else merged}, merge commit {merged.get('merge_commit_sha') if isinstance(merged, dict) else ''}")
@@ -327,10 +339,10 @@ def f3(bot_token, work, header_env):
     record("F3", title == "Publish draft one", f"squash commit title on main: {title!r}")
     s, body, _ = call("GET", f"/repos/team/wiki/pulls/{n2}", **tok)
     record("F3", None, f"conflicting pull request reads mergeable={body.get('mergeable') if isinstance(body, dict) else body}")
-    s, body, _ = call("POST", f"/repos/team/wiki/pulls/{n2}/merge", {"Do": "squash", "MergeTitleField": "Publish draft two"}, **tok)
-    record("F3", s in (405, 409), f"merging the conflicting pull request -> {s} {str(body)[:160]}")
-    s, body, _ = call("POST", f"/repos/team/wiki/pulls/{n1}/merge", {"Do": "squash", "MergeTitleField": "again"}, **tok)
-    record("F3", None, f"merging an already merged pull request -> {s} {str(body)[:160]}")
+    s, body, seen = merge_with_retry(n2, {"Do": "squash", "MergeTitleField": "Publish draft two"}, tok, tries=20)
+    record("F3", s in (405, 409), f"merging the conflicting pull request -> {s} after attempts {seen} {str(body)[:160]}")
+    s, body, seen = merge_with_retry(n1, {"Do": "squash", "MergeTitleField": "again"}, tok, tries=5)
+    record("F3", None, f"merging an already merged pull request -> {s} after attempts {seen} {str(body)[:160]}")
     s, body, _ = call("PATCH", f"/repos/team/wiki/pulls/{n2}", {"state": "closed"}, **tok)
     record("F3", s == 201 and isinstance(body, dict) and body.get("state") == "closed", f"close a pull request -> {s} state {body.get('state') if isinstance(body, dict) else body}")
     for name in ("draft/one", "draft/two"):
@@ -475,8 +487,9 @@ def f10(limited, unlimited):
             record("F10", pushed and s == 201, f"limited token: push branch {name} -> {pushed}, open pull request -> {s}")
         one, two, three = (made[k] for k in ("draft/limited-one", "draft/limited-two", "draft/limited-three"))
         if one:
-            s, body, _ = call("POST", f"/repos/team/wiki/pulls/{one}/merge", {
-                "Do": "squash", "MergeTitleField": "Publish limited one", "delete_branch_after_merge": False}, **tok)
+            s, body, seen = merge_with_retry(one, {
+                "Do": "squash", "MergeTitleField": "Publish limited one", "delete_branch_after_merge": False}, tok)
+            record("F10", None, f"limited token: merge attempts {seen}")
             s2, pr, _ = call("GET", f"/repos/team/wiki/pulls/{one}", **tok)
             merged = isinstance(pr, dict) and pr.get("merged") is True
             s3, cm, _ = call("GET", "/repos/team/wiki/commits?sha=main&limit=1", **tok)
@@ -496,9 +509,11 @@ def f10(limited, unlimited):
         record("F10", None, f"limited token: collaborators list (people for @mentions) -> {s}")
         s, body, _ = call("GET", "/repos/team/wiki", **tok)
         record("F10", None, f"limited token: repo record (clone address, default branch) -> {s} default_branch {body.get('default_branch') if isinstance(body, dict) else ''}")
-        for label, kw in (("unlimited token", {"token": unlimited}), ("limited token", tok)):
+        s, wu = make_token("gitquire-bot", "f10-write-user", ["write:repository", "write:user", "read:user"])
+        write_user = wu.get("sha1") if isinstance(wu, dict) else ""
+        for label, kw in (("unlimited token", {"token": unlimited}), ("unlimited token with write:user", {"token": write_user}), ("limited token", tok)):
             s, body, _ = call("POST", "/users/gitquire-bot/tokens", {
-                "name": f"minted-by-{label.split()[0]}", "scopes": ["write:repository"],
+                "name": f"minted-by-{label.replace(' ', '-').replace(':', '-')}", "scopes": ["write:repository"],
                 "repositories": [{"owner": "team", "name": "wiki-b"}]}, **kw)
             record("F10", None, f"create a repository-limited token with the bot's {label} (no password) -> {s} {'' if s == 201 else str(body)[:160]}")
         s, body, _ = call("POST", "/users/gitquire-bot/tokens", {
