@@ -68,6 +68,14 @@ when = [
 ]
 send = ["packages/server/src/gitquire/request-person.ts"]
 
+[[related.rules]]
+when = [
+  "packages/server/src/gitquire/front-door/",
+  "packages/server/src/gitquire/door-token.ts",
+  "packages/server/src/gitquire/process-pool/forward.ts",
+]
+send = ["packages/server/src/gitquire/front-door/access.ts"]
+
 [[sections]]
 key = "security"
 title = "🔒 Security and access"

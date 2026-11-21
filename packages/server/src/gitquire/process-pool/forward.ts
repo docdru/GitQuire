@@ -51,6 +51,10 @@ export function proxyRequest(
       status: number,
       headers: IncomingMessage['headers'],
     ) => Record<string, string | string[]> | undefined;
+    unavailable?: { error: string; message: string };
+    rewriteHeaders?: (
+      headers: Record<string, string | string[]>,
+    ) => Record<string, string | string[]>;
   } = {},
 ): void {
   const upstream = request(
@@ -79,7 +83,7 @@ export function proxyRequest(
           headers[name] = value;
         }
       }
-      res.writeHead(status, headers);
+      res.writeHead(status, options.rewriteHeaders?.(headers) ?? headers);
       answer.pipe(res);
     },
   );
@@ -87,7 +91,12 @@ export function proxyRequest(
     if (!res.headersSent) {
       res.writeHead(502, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       res.end(
-        JSON.stringify({ error: 'draft-unavailable', message: 'The draft is not reachable.' }),
+        JSON.stringify(
+          options.unavailable ?? {
+            error: 'draft-unavailable',
+            message: 'The draft is not reachable.',
+          },
+        ),
       );
     } else {
       res.destroy();

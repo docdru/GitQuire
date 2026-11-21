@@ -12,6 +12,7 @@ import {
   resolveBehindFrontDoorSettings,
 } from './behind-front-door-gate.ts';
 import { createChatFromEnv } from './chat/setup.ts';
+import { type DoorSyncConfig, fetchDoorToken, resolveDoorSyncConfig } from './door-token.ts';
 import type { RepoSyncConfig } from './drafts/setup.ts';
 import {
   createDrafts,
@@ -28,6 +29,7 @@ import {
   GitHubAppConfigError,
   GitHubUnavailableError,
   type InstallationTokenManager,
+  type RetryOptions,
   resolveGitHubAppConfig,
   retryWhileUnavailable,
   startInstallationTokenManager,
@@ -64,6 +66,38 @@ import { setAdminResolver } from './settings-admin.ts';
 export type { AccessGate } from './access-gate.ts';
 
 export { GitHubAppConfigError, GitHubUnavailableError } from './github-app.ts';
+
+function doorRepoClient(door: DoorSyncConfig, retry?: RetryOptions): GitHubAppClient {
+  const repoInfo =
+    door.host === 'forgejo'
+      ? createForgejoRepoClient(
+          {
+            repo: door.repo,
+            branch: door.branch,
+            webUrl: door.webUrl,
+            apiUrl: door.apiUrl,
+            gitHost: door.gitHost,
+            botToken: undefined,
+            repoToken: '',
+          },
+          { retry },
+        ).repoInfo
+      : createGitHubAppClient(
+          {
+            appId: '',
+            privateKeyPem: '',
+            repo: door.repo,
+            branch: door.branch,
+            githubApiUrl: door.apiUrl,
+            gitHost: door.gitHost,
+          },
+          { retry },
+        ).repoInfo;
+  return {
+    mintInstallationToken: () => retryWhileUnavailable(() => fetchDoorToken(door.socket), retry),
+    repoInfo,
+  };
+}
 
 function forgejoRepoConfig(env: Env): ForgejoRepoConfig | undefined {
   return resolveForgejoRepoConfig(env, { needBotToken: !isDraftInstance(env) });
@@ -196,6 +230,17 @@ export async function startGitHubAppTokensFromEnv(
   env: Env,
   log: GateLogger,
 ): Promise<InstallationTokenManager | undefined> {
+  const door = resolveDoorSyncConfig(env);
+  if (door !== undefined) {
+    return startInstallationTokenManager(
+      door,
+      doorRepoClient(door, {
+        onRetry: (err, attempt, delayMs) =>
+          log.warn({ attempt, delayMs, reason: err.message }, '[gitquire-host] no token yet'),
+      }),
+      { log, startMessage: "[gitquire-host] using the front door's token for this wiki" },
+    );
+  }
   const forgejo = forgejoRepoConfig(env);
   if (forgejo !== undefined) {
     if (!isDraftInstance(env)) {
@@ -247,11 +292,16 @@ export async function runGitQuireBootstrap(
     onRetry: (err: Error, attempt: number, delayMs: number) =>
       warn(`${err.message} Retrying in ${Math.round(delayMs / 1000)} s (attempt ${attempt}).`),
   };
-  const forgejo = forgejoRepoConfig(env);
-  const github = forgejo === undefined ? resolveGitHubAppConfig(env) : undefined;
-  let config: ForgejoRepoConfig | GitHubAppConfig;
+  const door = resolveDoorSyncConfig(env);
+  const forgejo = door === undefined ? forgejoRepoConfig(env) : undefined;
+  const github =
+    door === undefined && forgejo === undefined ? resolveGitHubAppConfig(env) : undefined;
+  let config: ForgejoRepoConfig | GitHubAppConfig | DoorSyncConfig;
   let client: GitHubAppClient;
-  if (forgejo !== undefined) {
+  if (door !== undefined) {
+    config = door;
+    client = doorRepoClient(door, retry);
+  } else if (forgejo !== undefined) {
     await checkForgejoHost(forgejo, retry.onRetry);
     config = forgejo;
     client = createForgejoRepoClient(forgejo, { retry });
@@ -297,6 +347,30 @@ interface RepoSync {
 }
 
 function repoSyncFromEnv(env: Env): RepoSync | undefined {
+  const door = resolveDoorSyncConfig(env);
+  if (door !== undefined) {
+    return {
+      config: {
+        host: door.host,
+        repo: door.repo,
+        branch: door.branch,
+        gitHost: door.gitHost,
+        webUrl: door.webUrl,
+      },
+      client: (token) =>
+        door.host === 'forgejo'
+          ? createForgejoPullsClient(door.repo, {
+              token,
+              apiUrl: door.apiUrl,
+              retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
+            })
+          : createGitHubPullsClient(door.repo, {
+              token,
+              apiUrl: door.apiUrl,
+              retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
+            }),
+    };
+  }
   const forgejo = forgejoRepoConfig(env);
   if (forgejo !== undefined) {
     return {

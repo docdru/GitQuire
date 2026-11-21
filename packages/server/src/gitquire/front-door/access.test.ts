@@ -1,0 +1,138 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { BotAccess, RepoAccess } from '../host/types.ts';
+import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
+import type { WikiRecord } from './wiki-table.ts';
+
+function wiki(name: string, id: number, state: WikiRecord['state'] = 'on'): WikiRecord {
+  return {
+    host: 'github',
+    id,
+    owner: 'team',
+    ownerId: 7,
+    name,
+    key: `github-${id}`,
+    state,
+    formerNames: [],
+    addedBy: 'alice',
+    addedAt: '',
+  };
+}
+
+const alice = { id: 1, login: 'alice' };
+
+function setup(levels: Record<string, RepoAccess>, bot: () => BotAccess = () => 'write') {
+  let time = 1_000_000;
+  const refused = vi.fn();
+  const accessCall = vi.fn(
+    async (_token: string, repo: { name: string }) => levels[repo.name] ?? 'none',
+  );
+  const botCall = vi.fn(async () => bot());
+  const access = createWikiAccess({
+    host: { access: accessCall, accessByBot: botCall },
+    runnable: () => true,
+    refused,
+    now: () => time,
+  });
+  return {
+    access,
+    accessCall,
+    botCall,
+    refused,
+    advance: (ms: number) => {
+      time += ms;
+    },
+  };
+}
+
+describe('front door access check', () => {
+  it('asks the host with the person token for every turned-on wiki at sign-in, then answers from the cache', async () => {
+    const a = wiki('a', 1);
+    const b = wiki('b', 2);
+    const off = wiki('c', 3, 'disconnected');
+    const { access, accessCall, botCall } = setup({ a: 'admin', b: 'none' });
+    await access.signIn(alice, 'person-token', [a, b, off]);
+    expect(accessCall).toHaveBeenCalledTimes(2);
+    expect(await access.decide(alice, a)).toEqual({ open: true, admin: true });
+    expect(await access.decide(alice, b)).toEqual({ open: false, why: 'no-access' });
+    expect(await access.decide(alice, off)).toEqual({ open: false, why: 'disconnected' });
+    expect(botCall).not.toHaveBeenCalled();
+  });
+
+  it('re-checks with GitQuire own token once the answer is older than five minutes', async () => {
+    const a = wiki('a', 1);
+    let answer: BotAccess = 'none';
+    const { access, botCall, advance } = setup({ a: 'write' }, () => answer);
+    await access.signIn(alice, 't', [a]);
+    advance(ACCESS_TTL_MS + 1);
+    expect(await access.decide(alice, a)).toEqual({ open: false, why: 'no-access' });
+    expect(botCall).toHaveBeenCalledWith('alice', { owner: 'team', name: 'a' });
+    answer = 'admin';
+    advance(ACCESS_TTL_MS + 1);
+    expect(await access.decide(alice, a)).toEqual({ open: true, admin: true });
+  });
+
+  it('keeps people inside while the host is unreachable and lets nobody new in (R14)', async () => {
+    const a = wiki('a', 1);
+    const b = wiki('b', 2);
+    const { access, advance } = setup({ a: 'write' }, () => 'unreachable');
+    await access.signIn(alice, 't', [a]);
+    advance(ACCESS_TTL_MS + 1);
+    expect(await access.decide(alice, a)).toEqual({ open: true, admin: false });
+    expect(await access.decide(alice, b)).toEqual({ open: false, why: 'unreachable' });
+    expect(await access.decide({ id: 2, login: 'bob' }, a)).toEqual({
+      open: false,
+      why: 'unreachable',
+    });
+  });
+
+  it('disconnects the wiki when GitQuire own token is refused (R15)', async () => {
+    const a = wiki('a', 1);
+    const { access, refused, advance } = setup({ a: 'admin' }, () => 'refused:not-admin');
+    await access.signIn(alice, 't', [a]);
+    advance(ACCESS_TTL_MS + 1);
+    expect(await access.decide(alice, a)).toEqual({ open: false, why: 'disconnected' });
+    expect(refused).toHaveBeenCalledWith(a, 'not-admin');
+  });
+
+  it('lists the wikis a person may open, and disconnected ones only to their admins', async () => {
+    const a = wiki('a', 1);
+    const b = wiki('b', 2);
+    const c = wiki('c', 3);
+    const { access } = setup({ a: 'write', b: 'admin', c: 'none' });
+    await access.signIn(alice, 't', [a, b, c]);
+    b.state = 'disconnected';
+    const listed = await access.wikisFor(alice, [a, b, c]);
+    expect(listed.map(({ wiki: w, admin }) => [w.name, admin])).toEqual([
+      ['a', false],
+      ['b', true],
+    ]);
+  });
+
+  it('a failed host call at sign-in leaves the wiki to the re-check instead of opening it', async () => {
+    const a = wiki('a', 1);
+    let time = 0;
+    const access = createWikiAccess({
+      host: {
+        access: async () => {
+          throw new Error('offline');
+        },
+        accessByBot: async () => 'none',
+      },
+      runnable: () => true,
+      refused: () => {},
+      now: () => time++,
+    });
+    await access.signIn(alice, 't', [a]);
+    expect(await access.decide(alice, a)).toEqual({ open: false, why: 'no-access' });
+  });
+
+  it('treats a wiki whose owner is no longer allowed as disconnected (R18)', async () => {
+    const a = wiki('a', 1);
+    const access = createWikiAccess({
+      host: { access: async () => 'admin', accessByBot: async () => 'admin' },
+      runnable: () => false,
+      refused: () => {},
+    });
+    expect(await access.decide(alice, a)).toEqual({ open: false, why: 'disconnected' });
+  });
+});

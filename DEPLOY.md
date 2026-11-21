@@ -449,7 +449,7 @@ changes when you upgrade.
 ## Behind GitQuire's front door
 
 `GITQUIRE_BEHIND_FRONT_DOOR=1` is set by GitQuire itself for the editor process of each wiki once
-several wikis run in one container (planned; see `plans/wikis-and-hosts.md`). Do not set it on a
+several wikis run in one container (see [Several wikis](#several-wikis)). Do not set it on a
 server people open directly: such a process answers only `/healthz` and `/readyz` to anyone else and
 refuses every other request and websocket with 403.
 
@@ -479,6 +479,58 @@ admins in the settings hint, and who is an admin of this wiki comes from the for
 `GITQUIRE_ALLOW_EXTERNAL=1` for the process so those are admitted. It strips any `x-gitquire-*`
 header that comes from a browser, and forwards a request with a person only after its own sign-in
 check.
+
+The editor process gets no host credentials of its own: no GitHub App key and no Forgejo bot
+token. It asks the front door for a token limited to its own repository over a private socket
+(`GITQUIRE_DOOR_TOKEN_SOCKET`, with its own internal secret) and asks again before that token runs
+out.
+
+## Several wikis
+
+**Work in progress on the `wikis-hosts` branch.** The front door's server side is there; the wiki
+list, the Add a wiki page and the menu are not yet (they come next), and moving an existing
+single-wiki volume over is not done yet either.
+
+`GITQUIRE_WIKIS=on` turns the container into a front door for several wikis. Each wiki opens at
+`/w/<owner>/<repo>/` and runs in its own editor process, started when someone opens it and stopped
+after 30 minutes without use, once it says it is pushed and clean.
+
+| Setting | Meaning |
+| --- | --- |
+| `GITQUIRE_WIKIS=on` | Several wikis behind one front door. |
+| `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
+| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it. |
+| `GITQUIRE_ADMINS` | Server administrators. On Forgejo only they can add a wiki, because they enter its token. |
+
+Sign-in, the session and the open-draft cookie are the front door's, at `/`. Everyone signs in with
+the host as before; a person sees and opens a wiki only while they can write to its repository.
+GitQuire asks the host with the person's own token at sign-in, once for each wiki, keeps the answer
+for 5 minutes, and then asks again with its own token. A person who loses access is cut off within
+a few minutes, also in open live editing. While the host cannot be reached, people already inside
+stay and nobody new is let in. When the host refuses GitQuire's own access to a repository (the
+app was uninstalled, the bot was removed or is no longer an administrator, the token was revoked),
+the wiki is **disconnected**: its administrators see why, nobody can open it, and nothing is
+deleted. The same happens when the repository moves to an owner that is not allowed.
+
+A repository becomes a wiki only when one of its administrators chooses **Make this a wiki**;
+GitQuire writes nothing into any other repository. On GitHub any administrator of a repository
+under an allowed owner can do that, as long as the GitHub App is installed on it. On Forgejo a
+server administrator does it and enters a token of GitQuire's bot account limited to that
+repository with `write:repository` (GitQuire cannot create such a token itself); the front door
+keeps these tokens in `/data/server/repo-tokens.json` (mode 0600).
+
+The volume holds `/data/server/` (the wiki table and the Forgejo tokens) and one folder per wiki,
+`/data/wikis/<host>-<repository id>/`, so a renamed repository keeps its folder; its old address
+redirects to the new one.
+
+`GITQUIRE_ALLOWED_USERS` and `GITQUIRE_MCP_TOKEN` cannot be used with `GITQUIRE_WIKIS=on`: both
+skip the check of who may write to a repository and would open every wiki. GitQuire refuses to
+start with either set.
+
+Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET`,
+`GITQUIRE_EXTERNAL_URL` (the root address, without a path), and GitQuire's own access: on GitHub
+`GITHUB_APP_ID` and the private key, on Forgejo `GITQUIRE_HOST_TOKEN` (the bot's token).
+`GITQUIRE_HOST_REPO_TOKEN` is not used.
 
 ## Build the image yourself
 
@@ -575,4 +627,5 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_AI_CHAT`, `GITQUIRE_ANTHROPIC_BASE_URL`, `GITQUIRE_MISTRAL_BASE_URL` | [AI chat](#ai-chat) |
 | `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |
-| `GITQUIRE_BEHIND_FRONT_DOOR` | [Behind GitQuire's front door](#behind-gitquires-front-door) |
+| `GITQUIRE_BEHIND_FRONT_DOOR`, `GITQUIRE_DOOR_TOKEN_SOCKET` | [Behind GitQuire's front door](#behind-gitquires-front-door) |
+| `GITQUIRE_WIKIS`, `GITQUIRE_ALLOWED_OWNERS` | [Several wikis](#several-wikis) |
