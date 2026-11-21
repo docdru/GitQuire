@@ -14,7 +14,14 @@ export function frontDoorCommand(): Command {
     .description('Run the front door for several wikis (GITQUIRE_WIKIS=on, GitQuire container)')
     .argument('[dir]', 'Data directory', '.')
     .action(async (dir: string) => {
-      if (!wikisModeFromEnv(process.env)) {
+      let on: boolean;
+      try {
+        on = wikisModeFromEnv(process.env);
+      } catch (err) {
+        console.error(errorColor(err instanceof Error ? err.message : String(err)));
+        process.exit(78);
+      }
+      if (!on) {
         console.error(errorColor('The front door runs only with GITQUIRE_WIKIS=on.'));
         process.exit(78);
       }

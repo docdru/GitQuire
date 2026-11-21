@@ -8,10 +8,17 @@ if [ -z "$(git config --global user.email || true)" ]; then
   git config --global user.email "${GITQUIRE_GIT_EMAIL:-gitquire@localhost}"
 fi
 
-case "$(printf '%s' "${GITQUIRE_WIKIS:-}" | tr '[:upper:]' '[:lower:]')" in
+wikis=$(printf '%s' "${GITQUIRE_WIKIS:-}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+case "$wikis" in
   1|on|true|yes)
     echo "[entrypoint] Several wikis: starting the front door on /data"
     exec gitquire front-door /data
+    ;;
+  ''|0|off|false|no)
+    ;;
+  *)
+    echo "[entrypoint] GITQUIRE_WIKIS must be on or off, got \"${GITQUIRE_WIKIS}\"" >&2
+    exit 78
     ;;
 esac
 
