@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { type IncomingMessage, request, type ServerResponse } from 'node:http';
 import { Readable } from 'node:stream';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
+import { MCP_SERVER_NAME } from '@gitquire/core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import {
   StreamableHTTPClientTransport,
@@ -15,7 +16,6 @@ import {
   ListToolsRequestSchema,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { MCP_SERVER_NAME } from '../../constants.ts';
 import { RUNTIME_VERSION } from '../../version-constants.ts';
 import type { GateLogger } from '../access-gate.ts';
 import type { AgentTokenRecord } from '../agent-tokens.ts';
