@@ -45,6 +45,14 @@ import {
   ownerAllowed,
   pinAllowedOwner,
 } from './allowed-owners.ts';
+import {
+  ADD_WIKI_PAGE,
+  ADD_WIKI_TOKEN_FORM,
+  type AddWikiHelp,
+  addWikiBody,
+  homeBody,
+  REASON_TEXT,
+} from './pages.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import {
   parseWikiAddress,
@@ -97,16 +105,19 @@ const TOKEN_REFUSED_TEXT: Record<string, string> = {
     "GitQuire cannot check that the token is limited to this repository: give GitQuire's bot account access to one more repository (any, even an empty one) and try again.",
 };
 
-function tokenRefusal(res: ServerResponse, label: string, health: TokenCheck): void {
-  sendJson(res, health === 'unreachable' ? 503 : 400, {
-    error: health === 'unreachable' ? 'host-unreachable' : 'token-refused',
-    refusal: health,
-    message:
-      health === 'unreachable'
-        ? `${label} cannot be reached right now.`
-        : (TOKEN_REFUSED_TEXT[health] ??
-          "The token cannot write to this repository, or GitQuire's account is not its administrator."),
-  });
+function refusalOutcome(label: string, health: TokenCheck): Outcome {
+  return {
+    status: health === 'unreachable' ? 503 : 400,
+    body: {
+      error: health === 'unreachable' ? 'host-unreachable' : 'token-refused',
+      refusal: health,
+      message:
+        health === 'unreachable'
+          ? `${label} cannot be reached right now.`
+          : (TOKEN_REFUSED_TEXT[health] ??
+            "The token cannot write to this repository, or GitQuire's account is not its administrator."),
+    },
+  };
 }
 
 export interface ForgejoTokenChecks {
@@ -124,6 +135,7 @@ export interface FrontDoorDeps {
   processes: WikiProcesses;
   forgejoTokens?: ForgejoTokenChecks;
   agents?: Pick<DoorAgents, 'handle' | 'features'>;
+  addWikiHelp?: () => Promise<AddWikiHelp>;
   log: GateLogger;
   now?: () => number;
   randomState?: () => string;
@@ -167,7 +179,7 @@ function isStatePayload(value: unknown): value is StatePayload {
   );
 }
 
-async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
+async function readText(req: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req) {
@@ -176,7 +188,11 @@ async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> 
     if (size > MAX_JSON_BYTES) throw new Error('body-too-large');
     chunks.push(buffer);
   }
-  const text = Buffer.concat(chunks).toString('utf8');
+  return Buffer.concat(chunks).toString('utf8');
+}
+
+async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
+  const text = await readText(req);
   const parsed: unknown = text === '' ? {} : JSON.parse(text);
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     throw new Error('body-not-an-object');
@@ -189,14 +205,30 @@ function refuseUpgrade(socket: Duplex, status: string): void {
   socket.destroy();
 }
 
-const REASON_TEXT: Record<string, string> = {
-  token: "GitQuire's token for this repository was refused.",
-  'not-admin': "GitQuire's account is not an administrator of this repository.",
-  removed:
-    'GitQuire no longer has access to this repository (the app was uninstalled or the bot removed).',
-  gone: "The repository cannot be found with GitQuire's access; it may have been deleted.",
-  'owner-not-allowed': "The repository's owner is not on this server's list of allowed owners.",
-};
+interface AddableView {
+  id: number;
+  owner: string;
+  name: string;
+  blocked?: 'bot-not-admin';
+  wiki?: string;
+}
+
+interface AddableAnswer {
+  state: 'listed' | 'refused' | 'unreachable';
+  repos: AddableView[];
+  hosts: string;
+  needsToken: boolean;
+  canAdd: boolean;
+}
+
+interface Outcome {
+  status: number;
+  body: Record<string, unknown>;
+}
+
+async function readForm(req: IncomingMessage): Promise<URLSearchParams> {
+  return new URLSearchParams(await readText(req));
+}
 
 export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   const { settings, host, table, access, processes } = deps;
@@ -468,15 +500,16 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       hosts: allowedOwnersSentence(deps.owners),
       defaultWiki: fallback === undefined ? null : `${wikiPrefix(fallback)}/`,
       addWiki: addPath,
+      addWikiPage: ADD_WIKI_PAGE,
     };
   }
 
-  function addableAnswer(user: DoorSessionUser): Record<string, unknown> | undefined {
+  function addableAnswer(user: DoorSessionUser): AddableAnswer | undefined {
     const entry = addable.get(user.id);
     if (entry === undefined || now() - entry.at > ADDABLE_MAX_AGE_MS) return undefined;
     const repos = (entry.repos ?? [])
       .filter((repo) => ownerAllowed(deps.owners, repo))
-      .map((repo) => {
+      .map((repo): AddableView => {
         const existing = table.byId(repo.host, repo.id);
         return {
           id: repo.id,
@@ -495,78 +528,81 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     };
   }
 
-  async function makeWiki(
-    req: IncomingMessage,
-    res: ServerResponse,
-    user: DoorSessionUser,
-  ): Promise<void> {
-    const body = await readJson(req);
-    const id = body.id;
+  async function addWiki(user: DoorSessionUser, id: unknown, given: unknown): Promise<Outcome> {
     if (typeof id !== 'number' || !Number.isSafeInteger(id)) {
-      sendJson(res, 400, { error: 'invalid-id', message: 'Send the repository id as a number.' });
-      return;
+      return {
+        status: 400,
+        body: { error: 'invalid-id', message: 'Send the repository id as a number.' },
+      };
     }
     const entry = addable.get(user.id);
     if (entry === undefined || now() - entry.at > ADDABLE_MAX_AGE_MS || entry.repos === undefined) {
-      sendJson(res, 409, {
-        error: 'sign-in-again',
-        message: `Confirm with ${label} first.`,
-        signIn: addPath,
-      });
-      return;
+      return {
+        status: 409,
+        body: { error: 'sign-in-again', message: `Confirm with ${label} first.`, signIn: addPath },
+      };
     }
     const repo = entry.repos.find((item) => item.id === id);
     if (repo === undefined) {
-      sendJson(res, 403, {
-        error: 'not-addable',
-        message: `Only an administrator of the repository can make it a wiki, and GitQuire must have access to it.`,
-      });
-      return;
+      return {
+        status: 403,
+        body: {
+          error: 'not-addable',
+          message: `Only an administrator of the repository can make it a wiki, and GitQuire must have access to it.`,
+        },
+      };
     }
     if (repo.blocked === 'bot-not-admin') {
-      sendJson(res, 409, {
-        error: 'bot-not-admin',
-        message: "Make GitQuire's account an administrator of the repository first.",
-      });
-      return;
+      return {
+        status: 409,
+        body: {
+          error: 'bot-not-admin',
+          message: "Make GitQuire's account an administrator of the repository first.",
+        },
+      };
     }
     if (!ownerAllowed(deps.owners, repo)) {
-      sendJson(res, 403, {
-        error: 'owner-not-allowed',
-        message: allowedOwnersSentence(deps.owners),
-      });
-      return;
+      return {
+        status: 403,
+        body: { error: 'owner-not-allowed', message: allowedOwnersSentence(deps.owners) },
+      };
     }
     const existing = table.byId(repo.host, repo.id);
     if (existing !== undefined) {
-      sendJson(res, 409, {
-        error: 'already-a-wiki',
-        wiki: wikiView(existing, true),
-      });
-      return;
+      return {
+        status: 409,
+        body: {
+          error: 'already-a-wiki',
+          message: 'This repository is already a wiki.',
+          wiki: wikiView(existing, true),
+        },
+      };
     }
     const key = wikiKey(repo);
     if (deps.forgejoTokens !== undefined) {
       if (!isServerAdmin(user)) {
-        sendJson(res, 403, {
-          error: 'server-admin-only',
-          message: 'On Forgejo, a server administrator adds a wiki and enters its token.',
-        });
-        return;
+        return {
+          status: 403,
+          body: {
+            error: 'server-admin-only',
+            message: 'On Forgejo, a server administrator adds a wiki and enters its token.',
+          },
+        };
       }
-      const token = typeof body.token === 'string' ? body.token.trim() : '';
+      const token = typeof given === 'string' ? given.trim() : '';
       if (token === '' || deps.forgejoTokens.isBotToken(token)) {
-        sendJson(res, 400, {
-          error: 'token-required',
-          message:
-            "Enter a token of GitQuire's account limited to this repository, with write:repository.",
-        });
-        return;
+        return {
+          status: 400,
+          body: {
+            error: 'token-required',
+            message:
+              "Enter a token of GitQuire's account limited to this repository, with write:repository.",
+          },
+        };
       }
       const health = await deps.forgejoTokens.check(repo, token);
       if (health !== 'ok') {
-        tokenRefusal(res, label, health);
-        return;
+        return refusalOutcome(label, health);
       }
       deps.forgejoTokens.save(key, token);
     }
@@ -577,7 +613,34 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       { wiki: wiki.key, repo: `${wiki.owner}/${wiki.name}`, by: user.login },
       '[gitquire-door] a repository became a wiki',
     );
-    sendJson(res, 201, { wiki: wikiView(wiki, true) });
+    return { status: 201, body: { wiki: wikiView(wiki, true) } };
+  }
+
+  async function makeWiki(
+    req: IncomingMessage,
+    res: ServerResponse,
+    user: DoorSessionUser,
+  ): Promise<void> {
+    const body = await readJson(req);
+    const outcome = await addWiki(user, body.id, body.token);
+    sendJson(res, outcome.status, outcome.body);
+  }
+
+  async function newToken(user: DoorSessionUser, key: string, given: unknown): Promise<Outcome> {
+    const wiki = table.byKey(key);
+    if (deps.forgejoTokens === undefined || wiki === undefined) {
+      return { status: 404, body: { error: 'not-found' } };
+    }
+    if (!isServerAdmin(user)) return { status: 403, body: { error: 'server-admin-only' } };
+    const token = typeof given === 'string' ? given.trim() : '';
+    if (token === '' || deps.forgejoTokens.isBotToken(token)) {
+      return { status: 400, body: { error: 'token-required' } };
+    }
+    const health = await deps.forgejoTokens.check(wiki, token);
+    if (health !== 'ok') return refusalOutcome(label, health);
+    deps.forgejoTokens.save(key, token);
+    await processes.check(wiki);
+    return { status: 200, body: { wiki: wikiView(wiki, true) } };
   }
 
   async function replaceToken(
@@ -586,29 +649,13 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     user: DoorSessionUser,
     key: string,
   ): Promise<void> {
-    const wiki = table.byKey(key);
-    if (deps.forgejoTokens === undefined || wiki === undefined) {
+    if (deps.forgejoTokens === undefined || table.byKey(key) === undefined) {
       sendJson(res, 404, { error: 'not-found' });
       return;
     }
-    if (!isServerAdmin(user)) {
-      sendJson(res, 403, { error: 'server-admin-only' });
-      return;
-    }
     const body = await readJson(req);
-    const token = typeof body.token === 'string' ? body.token.trim() : '';
-    if (token === '' || deps.forgejoTokens.isBotToken(token)) {
-      sendJson(res, 400, { error: 'token-required' });
-      return;
-    }
-    const health = await deps.forgejoTokens.check(wiki, token);
-    if (health !== 'ok') {
-      tokenRefusal(res, label, health);
-      return;
-    }
-    deps.forgejoTokens.save(key, token);
-    await processes.check(wiki);
-    sendJson(res, 200, { wiki: wikiView(wiki, true) });
+    const outcome = await newToken(user, key, body.token);
+    sendJson(res, outcome.status, outcome.body);
   }
 
   function handleApi(req: IncomingMessage, res: ServerResponse, path: string): void {
@@ -699,7 +746,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         res,
         404,
         'No wiki here',
-        `<p>There is no wiki at this address.</p><p>${escapeHtml(sentence)}</p><p><a href="/">Your wikis</a></p>`,
+        `<p>There is no wiki at this address.</p><p>If it is a repository under an allowed owner that is not a wiki yet, one of its administrators can make it one at <a href="${ADD_WIKI_PAGE}">Add a wiki</a>.</p><p>${escapeHtml(sentence)}</p><p><a href="/">Your wikis</a></p>`,
       );
     } else {
       sendJson(res, 404, { error: 'not-a-wiki', hosts: sentence });
@@ -808,22 +855,128 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       serverAdmin: isServerAdmin(user),
     });
     const fallback = defaultWiki();
-    const items = listed
-      .map(
-        ({ wiki, admin }) =>
-          `<li><a href="${escapeHtml(`${wikiPrefix(wiki)}/`)}">${escapeHtml(`${wiki.owner}/${wiki.name}`)}</a>${wiki.state === 'on' ? '' : ' <span class="muted">(disconnected)</span>'}${admin ? ' <span class="muted">admin</span>' : ''}</li>`,
-      )
-      .join('');
-    const marker =
-      fallback === undefined || !listed.some(({ wiki }) => wiki.key === fallback.key)
-        ? ''
-        : `<div id="gq-default-wiki" data-address="${escapeHtml(`${wikiPrefix(fallback)}/`)}"></div>`;
     sendHtml(
       res,
       200,
       'Your wikis',
-      `${marker}${items === '' ? '<p>You have no wikis on this server yet.</p>' : `<ul>${items}</ul>`}<p class="muted">${escapeHtml(allowedOwnersSentence(deps.owners))}</p><p><a href="/auth/logout">Sign out</a></p><script src="${OLD_ADDRESS_SCRIPT}" defer></script>`,
+      homeBody({
+        rows: listed,
+        defaultAddress:
+          fallback === undefined || !listed.some(({ wiki }) => wiki.key === fallback.key)
+            ? undefined
+            : `${wikiPrefix(fallback)}/`,
+        hosts: allowedOwnersSentence(deps.owners),
+        canReplaceToken: deps.forgejoTokens !== undefined && isServerAdmin(user),
+        scriptPath: OLD_ADDRESS_SCRIPT,
+      }),
     );
+  }
+
+  async function addWikiHelp(): Promise<AddWikiHelp> {
+    if (deps.addWikiHelp === undefined) return {};
+    return deps.addWikiHelp().catch((): AddWikiHelp => ({}));
+  }
+
+  async function addWikiPage(
+    res: ServerResponse,
+    user: DoorSessionUser,
+    failed?: Outcome,
+  ): Promise<void> {
+    const answer = addableAnswer(user);
+    const reload = `${addPath}?next=${encodeURIComponent(ADD_WIKI_PAGE)}`;
+    if (answer === undefined) {
+      redirect(res, reload);
+      return;
+    }
+    const message = failed?.body.message;
+    sendHtml(
+      res,
+      failed?.status ?? 200,
+      'Add a wiki',
+      addWikiBody({
+        host: settings.host,
+        label,
+        state: answer.state,
+        repos: answer.repos,
+        hosts: answer.hosts,
+        canAdd: answer.canAdd,
+        needsToken: answer.needsToken,
+        help: await addWikiHelp(),
+        reload,
+        ...(typeof message === 'string' ? { message } : {}),
+      }),
+    );
+  }
+
+  async function addWikiForm(
+    req: IncomingMessage,
+    res: ServerResponse,
+    user: DoorSessionUser,
+  ): Promise<void> {
+    const form = await readForm(req);
+    const raw = form.get('id') ?? '';
+    const id = /^[0-9]{1,15}$/.test(raw) ? Number(raw) : undefined;
+    const outcome = await addWiki(user, id, form.get('token') ?? undefined);
+    if (outcome.status === 201) {
+      const wiki = outcome.body.wiki as { address: string };
+      res.writeHead(303, { Location: wiki.address, 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+    if (outcome.body.error === 'sign-in-again') {
+      redirect(res, `${addPath}?next=${encodeURIComponent(ADD_WIKI_PAGE)}`);
+      return;
+    }
+    await addWikiPage(res, user, outcome);
+  }
+
+  async function tokenForm(
+    req: IncomingMessage,
+    res: ServerResponse,
+    user: DoorSessionUser,
+  ): Promise<void> {
+    const form = await readForm(req);
+    const outcome = await newToken(user, form.get('key') ?? '', form.get('token') ?? undefined);
+    if (outcome.status === 200) {
+      res.writeHead(303, { Location: '/', 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+    sendHtml(
+      res,
+      outcome.status,
+      'Token not saved',
+      `<p>${outcome.body.error === 'token-refused' ? 'The token cannot write to this repository.' : 'The token was not saved.'}</p><p><a href="/">Your wikis</a></p>`,
+    );
+  }
+
+  function handlePages(
+    req: IncomingMessage,
+    res: ServerResponse,
+    path: string,
+    user: DoorSessionUser | undefined,
+    fail: (err: unknown) => void,
+  ): boolean {
+    if (path !== ADD_WIKI_PAGE && path !== ADD_WIKI_TOKEN_FORM) return false;
+    const method = req.method ?? 'GET';
+    if (user === undefined) {
+      needSignIn(req, res, ADD_WIKI_PAGE);
+      return true;
+    }
+    if (path === ADD_WIKI_PAGE && (method === 'GET' || method === 'HEAD')) {
+      addWikiPage(res, user).catch(fail);
+      return true;
+    }
+    if (method !== 'POST') {
+      sendJson(res, 405, { error: 'method-not-allowed' });
+      return true;
+    }
+    if (!isSameOriginRequest(req, settings.externalUrl)) {
+      sendJson(res, 403, { error: 'cross-origin' });
+      return true;
+    }
+    (path === ADD_WIKI_PAGE ? addWikiForm(req, res, user) : tokenForm(req, res, user)).catch(fail);
+    return true;
   }
 
   function handleRequest(req: IncomingMessage, res: ServerResponse): void {
@@ -906,6 +1059,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       handleApi(req, res, path);
       return;
     }
+    if (handlePages(req, res, path, user, fail)) return;
     if (path === OLD_ADDRESS_SCRIPT) {
       oldAddressScript(res);
       return;

@@ -778,6 +778,9 @@ msgstr "新增屬性"
 msgid "Add a starter pack"
 msgstr "加入入門套件"
 
+msgid "Add a wiki"
+msgstr "新增 wiki"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "為 GitLab、Gitea、Bitbucket、Azure DevOps 或自架 git 伺服器新增存取權杖。沒有權杖時，git 會使用它已為該主機儲存的憑證；新增權杖後，GitQuire 改用該權杖。"
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "所有標籤"
+
+msgid "All wikis"
+msgstr "所有 wiki"
 
 msgid "Allowed element values (empty = any)"
 msgstr "允許的元素值（留空 = 任意）"
@@ -2355,6 +2361,9 @@ msgstr ""
 
 msgid "Disconnect"
 msgstr "中斷連接"
+
+msgid "Disconnected"
+msgstr "已中斷連線"
 
 msgid "Disconnecting"
 msgstr "正在中斷連接"
@@ -8177,6 +8186,9 @@ msgstr "無法讀取你的使用者設定"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "你的 wiki"
 
 msgid "Zoom in"
 msgstr "放大"

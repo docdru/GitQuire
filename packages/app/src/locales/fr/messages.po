@@ -778,6 +778,9 @@ msgstr "Ajouter une propriété"
 msgid "Add a starter pack"
 msgstr "Ajouter un pack de démarrage"
 
+msgid "Add a wiki"
+msgstr "Ajouter un wiki"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "Ajoutez un jeton d'accès pour un serveur GitLab, Gitea, Bitbucket, Azure DevOps ou git auto-hébergé. Sans jeton, git utilise les identifiants qu'il a déjà enregistrés pour cet hôte ; avec un jeton, GitQuire utilise le jeton à la place."
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "Toutes les étiquettes"
+
+msgid "All wikis"
+msgstr "Tous les wikis"
 
 msgid "Allowed element values (empty = any)"
 msgstr "Valeurs d'élément autorisées (vide = toutes)"
@@ -2355,6 +2361,9 @@ msgstr ""
 
 msgid "Disconnect"
 msgstr "Déconnecter"
+
+msgid "Disconnected"
+msgstr "Déconnecté"
 
 msgid "Disconnecting"
 msgstr "Déconnexion"
@@ -8177,6 +8186,9 @@ msgstr "Impossible de lire vos paramètres utilisateur"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "Vos wikis"
 
 msgid "Zoom in"
 msgstr "Zoom avant"

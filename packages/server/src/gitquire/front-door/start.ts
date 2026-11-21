@@ -8,6 +8,7 @@ import { createGitHubDoorHost } from '../host/github.ts';
 import { hostNamesFromEnv, setHostNames } from '../host/names.ts';
 import type { DoorHost, HostPerson, HostRepo } from '../host/types.ts';
 import { createWikiAccess } from './access.ts';
+import { addWikiHelpFor } from './add-wiki-help.ts';
 import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
@@ -92,6 +93,11 @@ export async function startFrontDoor(
         })
       : undefined;
 
+  const appJwt = (): string => {
+    const app = settings.githubApp;
+    if (app === undefined) throw new Error('No GitHub App key.');
+    return createAppJwt(app.appId, app.privateKeyPem, Date.now());
+  };
   const host: DoorHost =
     settings.host === 'forgejo'
       ? createForgejoDoorHost(
@@ -106,13 +112,7 @@ export async function startFrontDoor(
       : createGitHubDoorHost(
           { webUrl: settings.webUrl, apiUrl: settings.apiUrl, repo: undefined },
           {
-            app: {
-              jwt: () => {
-                const app = settings.githubApp;
-                if (app === undefined) throw new Error('No GitHub App key.');
-                return createAppJwt(app.appId, app.privateKeyPem, Date.now());
-              },
-            },
+            app: { jwt: appJwt },
           },
         );
   await checkHost(host, log);
@@ -206,6 +206,13 @@ export async function startFrontDoor(
     processes,
     forgejoTokens,
     agents,
+    addWikiHelp: addWikiHelpFor({
+      host,
+      kind: settings.host,
+      apiUrl: settings.apiUrl,
+      jwt: appJwt,
+      botToken: () => settings.forgejoBotToken,
+    }),
     log,
   });
   doorSessionUser = door.sessionUser;

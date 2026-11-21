@@ -774,6 +774,9 @@ msgstr "एक प्रॉपर्टी जोड़ें"
 msgid "Add a starter pack"
 msgstr "एक स्टार्टर पैक जोड़ें"
 
+msgid "Add a wiki"
+msgstr "विकी जोड़ें"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab, Gitea, Bitbucket, Azure DevOps या स्व-होस्ट किए गए git सर्वर के लिए पहुँच टोकन जोड़ें। टोकन न होने पर git उस होस्ट के लिए पहले से सहेजे गए क्रेडेंशियल उपयोग करता है; टोकन होने पर GitQuire उनकी जगह टोकन उपयोग करता है।"
 
@@ -932,6 +935,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "सभी टैग"
+
+msgid "All wikis"
+msgstr "सभी विकी"
 
 msgid "Allowed element values (empty = any)"
 msgstr "अनुमत तत्व मान (खाली = कोई भी)"
@@ -2351,6 +2357,9 @@ msgstr ""
 
 msgid "Disconnect"
 msgstr "कनेक्शन तोड़ें"
+
+msgid "Disconnected"
+msgstr "डिस्कनेक्ट है"
 
 msgid "Disconnecting"
 msgstr "कनेक्शन तोड़ा जा रहा है"
@@ -8173,6 +8182,9 @@ msgstr "आपकी उपयोगकर्ता सेटिंग पढ़
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "आपकी विकी"
 
 msgid "Zoom in"
 msgstr "बड़ा करें"

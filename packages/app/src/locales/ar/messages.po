@@ -778,6 +778,9 @@ msgstr "إضافة خاصية"
 msgid "Add a starter pack"
 msgstr "إضافة حزمة بداية"
 
+msgid "Add a wiki"
+msgstr "إضافة ويكي"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "أضف رمز وصول لخادم GitLab أو Gitea أو Bitbucket أو Azure DevOps أو خادم git مستضاف ذاتيًا. بدونه، يستخدم git بيانات الاعتماد المحفوظة لديه لهذا المضيف؛ ومعه، يستخدم GitQuire الرمز بدلًا منها."
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "كل الوسوم"
+
+msgid "All wikis"
+msgstr "كل الويكيات"
 
 msgid "Allowed element values (empty = any)"
 msgstr "قيم العناصر المسموح بها (فارغ = أي قيمة)"
@@ -2355,6 +2361,9 @@ msgstr ""
 
 msgid "Disconnect"
 msgstr "قطع الاتصال"
+
+msgid "Disconnected"
+msgstr "غير متصل"
 
 msgid "Disconnecting"
 msgstr "يجري قطع الاتصال"
@@ -8177,6 +8186,9 @@ msgstr "تعذّرت قراءة إعدادات المستخدم الخاصة ب�
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "الويكيات الخاصة بك"
 
 msgid "Zoom in"
 msgstr "تكبير"

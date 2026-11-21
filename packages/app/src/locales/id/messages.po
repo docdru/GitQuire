@@ -774,6 +774,9 @@ msgstr "Tambahkan properti"
 msgid "Add a starter pack"
 msgstr "Tambahkan paket awal"
 
+msgid "Add a wiki"
+msgstr "Tambahkan wiki"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "Tambahkan token akses untuk server GitLab, Gitea, Bitbucket, Azure DevOps, atau git yang di-host sendiri. Tanpa token, git memakai kredensial yang sudah tersimpan untuk host tersebut; dengan token, GitQuire memakai token itu sebagai gantinya."
 
@@ -932,6 +935,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "Semua tag"
+
+msgid "All wikis"
+msgstr "Semua wiki"
 
 msgid "Allowed element values (empty = any)"
 msgstr "Nilai elemen yang diizinkan (kosong = apa saja)"
@@ -2351,6 +2357,9 @@ msgstr ""
 
 msgid "Disconnect"
 msgstr "Putuskan koneksi"
+
+msgid "Disconnected"
+msgstr "Terputus"
 
 msgid "Disconnecting"
 msgstr "Memutus koneksi"
@@ -8173,6 +8182,9 @@ msgstr "Pengaturan pengguna Anda tidak dapat dibaca"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "Wiki Anda"
 
 msgid "Zoom in"
 msgstr "Perbesar"
