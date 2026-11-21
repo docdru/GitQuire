@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   type AccessGate,
   createAccessGate,
@@ -14,6 +14,7 @@ import {
   safeNextPath,
 } from './access-gate.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
+import { hostNamesFromEnv, resetHostNames, setHostNames } from './host/names.ts';
 import type { DoorHost } from './host/types.ts';
 import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from './internal-request.ts';
 import { encodeSigned } from './signed-cookie.ts';
@@ -665,6 +666,7 @@ describe('sign-in through the host interface', () => {
       },
       accessByBot: async () => 'none',
       tokenFor: async () => undefined,
+      selfCheck: async () => ({ ok: true }),
     };
     const gate = createAccessGate(config, {
       log: silentLog,
@@ -695,5 +697,60 @@ describe('sign-in through the host interface', () => {
       principalId: 'github-7',
       email: '7+dora@users.noreply.github.com',
     });
+  });
+});
+
+describe('Forgejo sign-in settings and routes', () => {
+  const FORGEJO_ENV = {
+    GITQUIRE_HOST: 'forgejo',
+    GITQUIRE_HOST_URL: 'https://git.example.org',
+    GITQUIRE_HOST_CLIENT_ID: 'forgejo-client',
+    GITQUIRE_HOST_CLIENT_SECRET: 'forgejo-secret',
+    GITQUIRE_SESSION_SECRET: SECRET,
+    GITQUIRE_REPO: 'team/wiki',
+  };
+
+  afterEach(() => {
+    resetHostNames();
+  });
+
+  it('reads the GITQUIRE_HOST_* settings and the Forgejo addresses', () => {
+    const config = resolveGitHubAuthConfig(FORGEJO_ENV, { externalUrl: 'https://wiki.example' });
+    expect(config?.clientId).toBe('forgejo-client');
+    expect(config?.githubWebUrl).toBe('https://git.example.org');
+    expect(config?.githubApiUrl).toBe('https://git.example.org/api/v1');
+    expect(() =>
+      resolveGitHubAuthConfig(
+        { ...FORGEJO_ENV, GITQUIRE_HOST_CLIENT_SECRET: '' },
+        { externalUrl: 'https://wiki.example' },
+      ),
+    ).toThrow(
+      'Forgejo sign-in is enabled but these settings are missing: GITQUIRE_HOST_CLIENT_SECRET',
+    );
+  });
+
+  it('serves sign-in under /auth/forgejo/ with the host label', () => {
+    setHostNames(hostNamesFromEnv(FORGEJO_ENV));
+    const config = resolveGitHubAuthConfig(FORGEJO_ENV, { externalUrl: 'https://wiki.example' });
+    if (config === undefined) throw new Error('expected auth to be enabled');
+    const gate = createAccessGate(config, {
+      log: silentLog,
+      fetch: () => Promise.reject(new Error('offline')),
+      now: () => NOW,
+      randomState: () => 'fixed-state',
+    });
+    const page = fakeResponse();
+    gate.handleRequest(fakeRequest('/docs', { headers: { accept: 'text/html' } }), page.res);
+    expect(page.headers.Location).toBe('/auth/forgejo/login?next=%2Fdocs');
+    const login = fakeResponse();
+    gate.handleRequest(fakeRequest('/auth/forgejo/login'), login.res);
+    const authorize = new URL(String(login.headers.Location));
+    expect(authorize.origin).toBe('https://git.example.org');
+    expect(authorize.searchParams.get('redirect_uri')).toBe(
+      'https://wiki.example/auth/forgejo/callback',
+    );
+    const out = fakeResponse();
+    gate.handleRequest(fakeRequest('/auth/logout', { method: 'POST' }), out.res);
+    expect(out.body).toContain('Sign in with Forgejo');
   });
 });

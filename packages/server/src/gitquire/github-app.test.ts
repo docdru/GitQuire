@@ -218,6 +218,22 @@ describe('startInstallationTokenManager', () => {
     expect(detect('git.example.com')).toEqual({ available: true, token: 'fallback' });
   });
 
+  it('serves a host on another port and names it for the credential helper', async () => {
+    const manager = await startInstallationTokenManager(
+      { ...CONFIG, gitHost: 'git.example.org:3000' },
+      fakeClient([{ token: 'repo-token', expiresAt: NOW + 3_600_000 }]),
+      { log: silentLog, now: () => NOW, setTimer: () => ({}) },
+    );
+    const detect = manager.wrapDetectGh(undefined);
+    expect(detect('git.example.org')).toEqual({
+      available: true,
+      token: 'repo-token',
+      credentialHost: 'git.example.org:3000',
+    });
+    expect(detect('git.example.org:3000')).toEqual({ available: true, token: 'repo-token' });
+    expect(detect('github.com')).toEqual({ available: false });
+  });
+
   it('refreshes ten minutes before expiry and retries after a failure', async () => {
     let clock = NOW;
     const timers: Array<{ fn: () => void; ms: number }> = [];

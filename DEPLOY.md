@@ -140,6 +140,74 @@ starts the branch and pushes the first commit. Commits are authored by the peopl
 edits; changes without a signed-in person are authored as `GITQUIRE_GIT_NAME` /
 `GITQUIRE_GIT_EMAIL`.
 
+## Forgejo
+
+GitQuire can use a [Forgejo](https://forgejo.org) server instead of GitHub: people sign in with
+their Forgejo account, and a person may use the wiki when they can write to its repository, as on
+GitHub. Forgejo 15 or later is required; Gitea and Codeberg may work but are not tested. One
+GitQuire server uses one host: GitHub or Forgejo, never both.
+
+Forgejo has no GitHub App, so GitQuire acts through a **bot account** with **two tokens**:
+
+| Token | Setting | Used for | Scopes |
+| --- | --- | --- | --- |
+| The bot's unlimited token | `GITQUIRE_HOST_TOKEN` | Asking Forgejo whether a person still has access (every ten minutes for AI agent tokens). Nothing else | `read:repository`, `read:user` |
+| A token limited to the wiki's repository | `GITQUIRE_HOST_REPO_TOKEN` | Git (clone, pull, push) and drafts (branches and pull requests) | `write:repository`, limited to that one repository |
+
+A token limited to one repository cannot ask about other people's access, which is why there are
+two. Draft processes get only the limited token.
+
+Set up once, as a Forgejo administrator or the repository's owner:
+
+1. Create a user for GitQuire, for example `gitquire-bot`.
+2. Add it to the wiki's repository as a collaborator with **Administrator** access. GitQuire
+   checks this at start: with write access only, Forgejo refuses to tell GitQuire whether someone
+   lost access, and GitQuire would never cut anyone off.
+3. Sign in as the bot, open **Settings → Applications** and create the two tokens above. For the
+   limited one choose **Specific repositories** and pick the wiki's repository. Forgejo creates
+   tokens only for someone signed in as the bot, so GitQuire cannot make them itself.
+4. Under **Settings → Applications → OAuth2 applications** (of any account, or site-wide as an
+   administrator), create an application named GitQuire with the redirect URI
+   `<GITQUIRE_EXTERNAL_URL>/auth/forgejo/callback`. GitQuire asks for `read:user read:repository`
+   at sign-in, uses the token once to see who signed in and whether they may write, and does not
+   keep it.
+
+Then run the container with:
+
+```bash
+  -e GITQUIRE_HOST=forgejo \
+  -e GITQUIRE_HOST_URL=https://git.example.org \
+  -e GITQUIRE_HOST_CLIENT_ID=... -e GITQUIRE_HOST_CLIENT_SECRET=... \
+  -e GITQUIRE_HOST_TOKEN_FILE=/run/secrets/forgejo-bot \
+  -e GITQUIRE_HOST_REPO_TOKEN_FILE=/run/secrets/forgejo-wiki \
+  -e GITQUIRE_REPO=team/wiki \
+  -e GITQUIRE_SESSION_SECRET=... -e GITQUIRE_EXTERNAL_URL=https://wiki.example.org \
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_HOST` | `forgejo`. Unset or `github` for GitHub. |
+| `GITQUIRE_HOST_URL` | The Forgejo server's public address, `https://` only (Git sends the token only over https), with a port if it is not 443. A server under a path (`https://example.org/git`) is not supported yet. |
+| `GITQUIRE_HOST_API_URL` | Optional address for GitQuire's own API calls, for example over the Docker network (`http://forgejo:3000/api/v1`). Default `<GITQUIRE_HOST_URL>/api/v1`. |
+| `GITQUIRE_HOST_CLIENT_ID`, `GITQUIRE_HOST_CLIENT_SECRET` | The OAuth2 application. Setting the client ID turns sign-in on. |
+| `GITQUIRE_HOST_TOKEN` or `GITQUIRE_HOST_TOKEN_FILE` | The bot's unlimited token, for access checks. |
+| `GITQUIRE_HOST_REPO_TOKEN` or `GITQUIRE_HOST_REPO_TOKEN_FILE` | The bot's token limited to `GITQUIRE_REPO`, for Git and drafts. Must differ from the unlimited one. |
+| `GITQUIRE_COMMIT_EMAIL_FORMAT` | Default `{login}@noreply.<host name of GITQUIRE_HOST_URL>`, which matches Forgejo's default `NO_REPLY_ADDRESS`. Set it to `{login}@<your NO_REPLY_ADDRESS>` if yours differs, so Forgejo links commits to people. |
+
+`GITQUIRE_REPO`, `GITQUIRE_BRANCH`, `GITQUIRE_SYNC_MODE`, `GITQUIRE_ADMINS` and
+`GITQUIRE_ALLOWED_USERS` work as for GitHub. At start GitQuire checks the Forgejo version, that
+the bot is an administrator of the repository, and that the limited token can write to it, and
+stops with a message saying what to fix (exit code 78). If Forgejo is unreachable it retries for
+about five minutes (exit code 75).
+
+A data folder belongs to one host: GitQuire records `forgejo` in
+`.gitquire/local/gitquire/host.json` on first start and refuses to start on a folder that GitHub
+people already used, or with a different `GITQUIRE_HOST` later, because people's ids from two
+hosts must not mix. Use a new volume when moving a wiki from GitHub to Forgejo.
+
+If Forgejo uses a certificate from a private authority, mount the authority's certificate and set
+`NODE_EXTRA_CA_CERTS` and `GIT_SSL_CAINFO` to its path.
+
 ## Drafts
 
 People edit the live wiki, or a draft: their own copy that becomes live when someone publishes it
@@ -459,6 +527,8 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_REPO`, `GITQUIRE_ALLOWED_USERS`, `GITQUIRE_ADMINS`, `GITQUIRE_SESSION_DAYS`, `GITQUIRE_AUTH` | [GitHub sign-in](#github-sign-in) |
 | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_FILE`, `GITHUB_APP_PRIVATE_KEY` | [Sync a GitHub repository](#sync-a-github-repository) |
 | `GITQUIRE_BRANCH`, `GITQUIRE_SYNC_MODE`, `GITQUIRE_COMMIT_EMAIL_FORMAT` | [Sync a GitHub repository](#sync-a-github-repository) |
+| `GITQUIRE_HOST`, `GITQUIRE_HOST_URL`, `GITQUIRE_HOST_API_URL`, `GITQUIRE_HOST_CLIENT_ID`, `GITQUIRE_HOST_CLIENT_SECRET` | [Forgejo](#forgejo) |
+| `GITQUIRE_HOST_TOKEN`, `GITQUIRE_HOST_TOKEN_FILE`, `GITQUIRE_HOST_REPO_TOKEN`, `GITQUIRE_HOST_REPO_TOKEN_FILE` | [Forgejo](#forgejo) |
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM`, `GITQUIRE_MAIL_DOMAINS` | [Mention emails](#mention-emails) |
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | [Chat notifications](#chat-notifications) |
 | `GITQUIRE_DRAFTS_DIR` | [Drafts](#drafts) |

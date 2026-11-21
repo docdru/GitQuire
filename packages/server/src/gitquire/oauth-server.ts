@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import type { AccessVerdict } from './agent-access.ts';
 import { type AgentTokenStore, cleanLabel, type IssuedConnectorTokens } from './agent-tokens.ts';
+import { hostNames, signInPath } from './host/names.ts';
 import { escapeHtml, isSameOriginRequest, readForm, redirect, sendHtml } from './http-util.ts';
 import { decodeSigned, encodeSigned, safeEqual } from './signed-cookie.ts';
 
@@ -415,7 +416,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     const request = await parseAuthorize(params);
     const user = deps.sessionUser(req);
     if (user === undefined) {
-      redirect(res, `/auth/github/login?next=${encodeURIComponent(AUTHORIZE_PATH + search)}`);
+      redirect(res, `${signInPath()}?next=${encodeURIComponent(AUTHORIZE_PATH + search)}`);
       return;
     }
     consentPage(res, user, request, params);
@@ -470,7 +471,11 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
   async function ensureStillAllowed(login: string): Promise<void> {
     if (deps.checkAccess === undefined) return;
     if ((await deps.checkAccess(login)) === 'denied') {
-      throw new OAuthError(400, 'invalid_grant', 'This GitHub account no longer has access.');
+      throw new OAuthError(
+        400,
+        'invalid_grant',
+        `This ${hostNames().label} account no longer has access.`,
+      );
     }
   }
 

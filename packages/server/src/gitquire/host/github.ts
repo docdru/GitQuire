@@ -128,5 +128,6 @@ export function createGitHubDoorHost(
       config.repo !== undefined && sameRepo(repo, config.repo)
         ? deps.installationToken?.()
         : undefined,
+    selfCheck: async () => ({ ok: true }),
   };
 }
