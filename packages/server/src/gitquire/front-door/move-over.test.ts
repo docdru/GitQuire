@@ -183,6 +183,23 @@ describe('gitquire wikis adopt', () => {
     expect(tree(vol.data)).toEqual(after);
   });
 
+  it('finishes an interrupted re-seal of the AI keys and an interrupted draft copy', async () => {
+    const vol = volume();
+    await adoptSingleWiki(adoptDeps(vol), run);
+    const target = join(vol.data, 'wikis', KEY);
+    createChatKeyStore(target, SECRET).set(13, 'claude', 'sk-ant-not-yet-resealed');
+    const copy = join(vol.data, 'wikis', '.gitquire-drafts', KEY, 'report', KEY);
+    execFileSync('mv', [copy, `${copy}.partial`]);
+    const again = await adoptSingleWiki(adoptDeps(vol), run);
+    expect(again.changed).toBe(true);
+    expect(again.steps.join('\n')).toContain('Re-sealed 1 AI key.');
+    const derived = deriveChatKeySecret(SECRET, KEY);
+    expect(createChatKeyStore(target, derived).get(13, 'claude')).toBe('sk-ant-not-yet-resealed');
+    expect(createChatKeyStore(target, derived).get(11, 'claude')).toBe('sk-ant-secret-key-1234');
+    expect(existsSync(join(copy, '.git'))).toBe(true);
+    expect(existsSync(`${copy}.partial`)).toBe(false);
+  });
+
   it('refuses unpushed or uncommitted edits unless forced, and then moves them along', async () => {
     const vol = volume();
     writeFileSync(join(vol.data, 'README.md'), '# Wiki, edited\n');

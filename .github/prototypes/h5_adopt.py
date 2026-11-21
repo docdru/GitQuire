@@ -77,7 +77,7 @@ def prepare():
     check("Adopt", status == 302, f"alice signs in to the single wiki before the move -> {status}")
     status, token = h.agent_token(alice, "moved agent")
     check("Adopt", token is not None, f"alice creates an agent token in the single wiki -> {status}")
-    status, created, _ = h.gq("POST", "/api/gitquire/drafts", alice, {"title": "Moved draft", "open": False})
+    status, created, _ = h.gq("POST", "/api/gitquire/drafts", alice, {"title": "Moved draft", "open": True})
     slug = created.get("draft", {}).get("slug") if isinstance(created, dict) else None
     check("Adopt", status == 201 and slug is not None, f"alice creates a draft in the single wiki -> {status} {created}")
     jar = next(handler.cookiejar for handler in alice.handlers if hasattr(handler, "cookiejar"))
@@ -98,6 +98,8 @@ def start(name, wikis):
     env = base_env()
     if wikis:
         env["GITQUIRE_WIKIS"] = "on"
+    else:
+        env["GITQUIRE_ALLOW_EXTERNAL"] = "1"
     drafts_at = "/drafts-unused" if wikis else "/.gitquire-drafts"
     h.docker("run", "-d", "--name", name, "--network", "host", *volumes(drafts_at), *env_args(env), IMAGE)
     return h.wait_ready(180)

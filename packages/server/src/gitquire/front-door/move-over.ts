@@ -149,6 +149,26 @@ function originMatches(dir: string, names: readonly HostRepo[], runGit: RunGit):
   );
 }
 
+function copyWhole(from: string, to: string): void {
+  const partial = `${to}.partial`;
+  mkdirSync(dirname(to), { recursive: true });
+  cpSync(from, partial, { recursive: true, preserveTimestamps: true, verbatimSymlinks: true });
+  renameSync(partial, to);
+}
+
+function keysSealedWith(projectDir: string, secret: string): number {
+  const store = createChatKeyStore(projectDir, secret);
+  let count = 0;
+  for (const file of entries(chatKeysDir(projectDir))) {
+    const match = /^(\d+)\.json$/.exec(file);
+    if (match === null) continue;
+    for (const provider of CHAT_PROVIDERS) {
+      if (store.get(Number(match[1]), provider) !== undefined) count += 1;
+    }
+  }
+  return count;
+}
+
 function resealKeys(projectDir: string, fromSecret: string, toSecret: string): number {
   const dir = chatKeysDir(projectDir);
   const from = createChatKeyStore(projectDir, fromSecret);
@@ -299,7 +319,7 @@ export async function adoptSingleWiki(
   }
 
   const keysBackup = `${chatKeysDir(target)}${KEYS_BEFORE_WIKIS}`;
-  const reseal = existsSync(chatKeysDir(source)) && !existsSync(keysBackup);
+  const reseal = keysSealedWith(source, settings.sessionSecret) > 0;
   const doorTokens = doorAgentTokensFile(dataDir);
   const copyTokens = !existsSync(doorTokens) && existsSync(tokensAt(env, dataDir, source));
   const tokenStoreFile = repoTokensFile(dataDir);
@@ -368,13 +388,9 @@ export async function adoptSingleWiki(
     mkdirSync(join(dataDir, 'wikis'), { recursive: true });
     renameSync(staging, target);
   }
-  for (const draft of drafts) {
-    const to = join(targetDrafts, draft.slug, key);
-    mkdirSync(dirname(to), { recursive: true });
-    cpSync(draft.dir, to, { recursive: true, preserveTimestamps: true, verbatimSymlinks: true });
-  }
+  for (const draft of drafts) copyWhole(draft.dir, join(targetDrafts, draft.slug, key));
   if (reseal) {
-    cpSync(chatKeysDir(target), keysBackup, { recursive: true, preserveTimestamps: true });
+    if (!existsSync(keysBackup)) copyWhole(chatKeysDir(target), keysBackup);
     const count = resealKeys(
       target,
       settings.sessionSecret,
@@ -525,9 +541,10 @@ export async function unadoptWiki(
 
   const keysDir = chatKeysDir(dataDir);
   const keysBackup = `${keysDir}.before-single-wiki-${stamp}`;
-  if (existsSync(keysDir) && !existsSync(keysBackup)) {
-    cpSync(keysDir, keysBackup, { recursive: true, preserveTimestamps: true });
-    resealKeys(dataDir, deriveChatKeySecret(settings.sessionSecret, key), settings.sessionSecret);
+  const derived = deriveChatKeySecret(settings.sessionSecret, key);
+  if (keysSealedWith(dataDir, derived) > 0) {
+    if (!existsSync(keysBackup)) copyWhole(keysDir, keysBackup);
+    resealKeys(dataDir, derived, settings.sessionSecret);
   }
   const doorTokens = doorAgentTokensFile(back);
   const singleTokens = agentTokensFileFor(env, dataDir);
@@ -541,11 +558,11 @@ export async function unadoptWiki(
   for (const draft of draftCopies(draftsDir(from, {}), key)) {
     const to = join(singleDrafts, draft.slug, basename(dataDir));
     const aside = `${join(singleDrafts, draft.slug)}.before-single-wiki-${stamp}`;
-    if (existsSync(aside)) continue;
-    if (existsSync(join(singleDrafts, draft.slug)))
+    if (existsSync(aside) && existsSync(to)) continue;
+    if (!existsSync(aside) && existsSync(join(singleDrafts, draft.slug))) {
       renameSync(join(singleDrafts, draft.slug), aside);
-    mkdirSync(dirname(to), { recursive: true });
-    cpSync(draft.dir, to, { recursive: true, preserveTimestamps: true, verbatimSymlinks: true });
+    }
+    copyWhole(draft.dir, to);
   }
   const kept = join(dataDir, '.gitquire', 'local', 'gitquire', `several-wikis-${stamp}`);
   mkdirSync(dirname(kept), { recursive: true });
