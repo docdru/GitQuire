@@ -13,7 +13,7 @@ import { loginSet, parseGitHubRepo } from './github-auth-config.ts';
 import { pathOf, sendJson } from './http-util.ts';
 import { isInternalRequest } from './internal-request.ts';
 import { bindRequestPrincipal } from './principal-directory.ts';
-import { createRequestPerson } from './request-person.ts';
+import { bindRequestPrefix, createRequestPerson, forwardedPrefix } from './request-person.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -35,6 +35,18 @@ export function resolveBehindFrontDoorSettings(env: Env): BehindFrontDoorSetting
   };
 }
 
+const HEALTH_PATHS = new Set(['/healthz', '/readyz']);
+
+function rawPathOf(req: IncomingMessage): string {
+  const url = req.url ?? '/';
+  const query = url.indexOf('?');
+  return query === -1 ? url : url.slice(0, query);
+}
+
+function isAmbiguousCollabPath(raw: string, path: string): boolean {
+  return raw !== path && (raw.includes('/collab') || path.startsWith('/collab'));
+}
+
 function refuseUpgrade(socket: Duplex, status: string): false {
   socket.write(`HTTP/1.1 ${status}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);
   socket.destroy();
@@ -50,7 +62,12 @@ export function createBehindFrontDoorGate(
 
   function handleRequest(req: IncomingMessage, res: ServerResponse): boolean {
     const { path } = pathOf(req);
-    if (path === '/healthz' || path === '/readyz') return false;
+    const raw = rawPathOf(req);
+    if (HEALTH_PATHS.has(raw)) return false;
+    if (isAmbiguousCollabPath(raw, path)) {
+      sendJson(res, 400, { error: 'ambiguous-path' });
+      return true;
+    }
     if (!isInternalRequest(req)) {
       deps.log.warn(
         { path },
@@ -59,6 +76,7 @@ export function createBehindFrontDoorGate(
       sendJson(res, 403, { error: 'front-door-only' });
       return true;
     }
+    bindRequestPrefix(req, forwardedPrefix(req, true));
     if (isPublicAsset(path, req.method)) return false;
     const user = person.sessionUser(req);
     if (path.startsWith('/auth/')) {
@@ -104,6 +122,10 @@ export function createBehindFrontDoorGate(
 
   function admitUpgrade(req: IncomingMessage, socket: Duplex): boolean {
     const { path } = pathOf(req);
+    if (isAmbiguousCollabPath(rawPathOf(req), path)) {
+      deps.log.warn({ path }, '[gitquire-auth] refused a websocket upgrade with an ambiguous path');
+      return refuseUpgrade(socket, '400 Bad Request');
+    }
     if (!isInternalRequest(req)) {
       deps.log.warn(
         { path },

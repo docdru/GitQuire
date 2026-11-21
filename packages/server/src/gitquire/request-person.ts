@@ -18,12 +18,6 @@ export function behindFrontDoorFromEnv(env: Env): boolean {
   );
 }
 
-const processBehindFrontDoor = behindFrontDoorFromEnv(process.env);
-
-function behindFrontDoor(): boolean {
-  return processBehindFrontDoor;
-}
-
 export function encodeProxiedUser(user: SessionUser): string {
   return Buffer.from(JSON.stringify(user), 'utf8').toString('base64url');
 }
@@ -53,14 +47,25 @@ function isValidPrefix(value: string): boolean {
   return PREFIX_RE.test(value) && !value.split('/').some((part) => part === '.' || part === '..');
 }
 
-export function forwardedPrefix(req: Headers, behind: boolean = behindFrontDoor()): string {
+export function forwardedPrefix(req: Headers, behind: boolean): string {
   if (!behind) return '';
   const raw = req.headers[FORWARDED_PREFIX_HEADER];
   if (typeof raw !== 'string' || !isInternalRequest(req)) return '';
   return isValidPrefix(raw) ? raw : '';
 }
 
-export function forwardedView(req: Headers): string | undefined {
+const requestPrefixes = new WeakMap<object, string>();
+
+export function bindRequestPrefix(req: object, prefix: string): void {
+  if (prefix !== '') requestPrefixes.set(req, prefix);
+}
+
+export function requestPrefix(req: object): string {
+  return requestPrefixes.get(req) ?? '';
+}
+
+export function forwardedView(req: Headers, behind: boolean): string | undefined {
+  if (!behind) return undefined;
   const raw = req.headers[FORWARDED_VIEW_HEADER];
   if (typeof raw !== 'string' || raw === '' || !isInternalRequest(req)) return undefined;
   return raw;

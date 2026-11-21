@@ -1,9 +1,8 @@
 import type { IncomingMessage } from 'node:http';
-import { forwardedPrefix } from './gitquire/request-person.ts';
 
 export function collabUrlFromRequestHeaders(
   headers: IncomingMessage['headers'],
-  prefix: string = forwardedPrefix({ headers }),
+  prefix = '',
 ): string | null {
   const host = headers.host;
   if (!host) return null;
