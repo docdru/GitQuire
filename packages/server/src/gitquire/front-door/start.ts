@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
@@ -75,6 +75,7 @@ export async function startFrontDoor(
   }
   refuseSingleWikiVolume(settings.dataDir);
   mkdirSync(join(settings.dataDir, 'server'), { recursive: true, mode: 0o700 });
+  chmodSync(join(settings.dataDir, 'server'), 0o700);
   mkdirSync(join(settings.dataDir, 'wikis'), { recursive: true });
   const table = openWikiTable(wikiTableFile(settings.dataDir));
   const owners: AllowedOwners = {
