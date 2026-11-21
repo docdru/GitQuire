@@ -171,7 +171,7 @@ def run_tests():
     message = f"Pushed from GitQuire {int(time.time())}"
     docker("exec", CONTAINER, "sh", "-c",
            f"cd /data && echo '{message}' >> pushed.md && git add pushed.md && git commit -q -m '{message}'")
-    push = docker("exec", CONTAINER, "gitquire", "push", check_ok=False)
+    push = docker("exec", "-w", "/data", CONTAINER, "gitquire", "push", check_ok=False)
     pushed = False
     for _ in range(30):
         if any(c.get("commit", {}).get("message", "").startswith(message) for c in main_commits()):
@@ -193,14 +193,12 @@ def run_tests():
             "content": base64.b64encode(b"# From the draft\n").decode(),
             "message": "Edit in the draft", "branch": branch,
         }, auth=f.ADMIN)
-    status, ready, _ = gq("POST", f"/api/gitquire/drafts/{slug}/ready", alice, {"logins": ["bob"], "note": "Please look"})
-    check("H5 drafts", status == 200, f"ask for review (opens a pull request) -> {status} {ready if status != 200 else ''}")
-    status, pulls, _ = f.call("GET", "/repos/team/wiki/pulls?state=open", auth=f.ADMIN)
-    open_pulls = [p for p in pulls if p.get("head", {}).get("ref") == branch] if isinstance(pulls, list) else []
-    check("H5 drafts", len(open_pulls) == 1, f"one open pull request for the draft on Forgejo ({len(open_pulls)})")
     status, published, _ = gq("POST", f"/api/gitquire/drafts/{slug}/publish", alice, {})
     state = published.get("draft", {}).get("status") if isinstance(published, dict) else None
     check("H5 drafts", status == 200 and state == "published", f"publish (squash merge) -> {status} {state} {published if status != 200 else ''}")
+    status, pulls, _ = f.call("GET", "/repos/team/wiki/pulls?state=closed", auth=f.ADMIN)
+    merged = [p for p in pulls if p.get("head", {}).get("ref") == branch and p.get("merged")] if isinstance(pulls, list) else []
+    check("H5 drafts", len(merged) == 1, f"publishing opened a pull request on Forgejo and merged it ({len(merged)})")
     titles = [c.get("commit", {}).get("message", "") for c in main_commits()]
     check("H5 drafts", any(t.startswith("H5 draft (#") for t in titles), f"main has the squash commit with the draft's title: {titles[:3]}")
     status, _, _ = f.call("GET", f"/repos/team/wiki/branches/{branch}", auth=f.ADMIN)
