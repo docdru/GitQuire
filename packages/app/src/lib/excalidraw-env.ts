@@ -1,4 +1,4 @@
-import { wikiPrefix } from '@/lib/gitquire/wiki-prefix';
+import { wikiPrefix } from './gitquire/wiki-prefix';
 
 declare global {
   interface Window {

@@ -18,7 +18,7 @@ import {
   type DerivedViewChannel,
 } from '@gitquire/core/schemas/cc1';
 import type { z } from 'zod';
-import { wikiPrefix } from '@/lib/gitquire/wiki-prefix';
+import { wikiPrefix } from './gitquire/wiki-prefix';
 
 export {
   CC1_CHANNEL_BRANCH_SWITCHED,
