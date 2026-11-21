@@ -1,18 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { createGitHubDoorHost } from './github.ts';
-import { gitHubNames } from './names.ts';
 
 const repo = { owner: 'acme', name: 'notes' };
 
-function host(fetchImpl: typeof fetch, botToken: () => string | undefined = () => 'bot') {
+function host(fetchImpl: typeof fetch, installationToken: () => string | undefined = () => 'bot') {
   return createGitHubDoorHost(
     {
-      names: gitHubNames(),
       webUrl: 'https://github.com',
       apiUrl: 'https://api.github.com',
       repo,
     },
-    { fetch: fetchImpl, botToken },
+    { fetch: fetchImpl, installationToken },
   );
 }
 
@@ -79,8 +77,8 @@ describe('GitHub door host', () => {
       'none',
     );
     expect(await host(answering(404, {})).accessByBot('bob', repo)).toBe('none');
-    expect(await host(answering(401, {})).accessByBot('bob', repo)).toBe('refused');
-    expect(await host(answering(403, {})).accessByBot('bob', repo)).toBe('refused');
+    expect(await host(answering(401, {})).accessByBot('bob', repo)).toBe('refused:token');
+    expect(await host(answering(403, {})).accessByBot('bob', repo)).toBe('refused:not-admin');
     expect(await host(answering(502, {})).accessByBot('bob', repo)).toBe('unreachable');
     const offline = (() => Promise.reject(new Error('offline'))) as typeof fetch;
     expect(await host(offline).accessByBot('bob', repo)).toBe('unreachable');
@@ -89,9 +87,9 @@ describe('GitHub door host', () => {
     );
   });
 
-  it('hands out the bot token only for its own repository', () => {
+  it('hands out the installation token only for its own repository', async () => {
     const door = host(answering(200, {}));
-    expect(door.tokenFor({ owner: 'ACME', name: 'Notes' })).toBe('bot');
-    expect(door.tokenFor({ owner: 'acme', name: 'other' })).toBeUndefined();
+    expect(await door.tokenFor({ owner: 'ACME', name: 'Notes' })).toBe('bot');
+    expect(await door.tokenFor({ owner: 'acme', name: 'other' })).toBeUndefined();
   });
 });

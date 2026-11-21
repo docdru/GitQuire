@@ -21,7 +21,9 @@ export interface HostNames {
 
 export type RepoAccess = 'none' | 'write' | 'admin';
 
-export type BotAccess = RepoAccess | 'refused' | 'unreachable';
+export type Refusal = 'token' | 'not-admin' | 'removed';
+
+export type BotAccess = RepoAccess | 'unreachable' | `refused:${Refusal}`;
 
 export interface AuthorizeInput {
   clientId: string;
@@ -37,11 +39,10 @@ export interface ExchangeInput {
 }
 
 export interface DoorHost {
-  readonly names: HostNames;
   authorizeUrl: (input: AuthorizeInput) => string;
   exchangeCode: (input: ExchangeInput) => Promise<string | undefined>;
   person: (personToken: string) => Promise<HostPerson | undefined>;
   access: (personToken: string, repo: HostRepo) => Promise<RepoAccess>;
   accessByBot: (login: string, repo: HostRepo) => Promise<BotAccess>;
-  tokenFor: (repo: HostRepo) => string | undefined;
+  tokenFor: (repo: HostRepo) => Promise<string | undefined>;
 }

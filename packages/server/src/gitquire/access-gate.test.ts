@@ -14,7 +14,6 @@ import {
   safeNextPath,
 } from './access-gate.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
-import { gitHubNames } from './host/names.ts';
 import type { DoorHost } from './host/types.ts';
 import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from './internal-request.ts';
 import { encodeSigned } from './signed-cookie.ts';
@@ -648,7 +647,6 @@ describe('sign-in through the host interface', () => {
     if (config === undefined) throw new Error('expected auth to be enabled');
     const steps: string[] = [];
     const host: DoorHost = {
-      names: gitHubNames(),
       authorizeUrl: ({ clientId, redirectUri, state }) => {
         steps.push(`authorize ${clientId} ${redirectUri} ${state}`);
         return 'https://host.example/authorize';
@@ -666,7 +664,7 @@ describe('sign-in through the host interface', () => {
         return 'admin';
       },
       accessByBot: async () => 'none',
-      tokenFor: () => undefined,
+      tokenFor: async () => undefined,
     };
     const gate = createAccessGate(config, {
       log: silentLog,
@@ -694,6 +692,7 @@ describe('sign-in through the host interface', () => {
     expect(JSON.parse(me.body)).toMatchObject({
       login: 'dora',
       admin: true,
+      principalId: 'github-7',
       email: '7+dora@users.noreply.github.com',
     });
   });

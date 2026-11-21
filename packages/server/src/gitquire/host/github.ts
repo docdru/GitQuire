@@ -1,11 +1,10 @@
-import type { BotAccess, DoorHost, HostNames, HostPerson, HostRepo, RepoAccess } from './types.ts';
+import type { BotAccess, DoorHost, HostPerson, HostRepo, RepoAccess } from './types.ts';
 
 const GITHUB_API_VERSION = '2022-11-28';
 const WRITE_ROLES = new Set(['admin', 'maintain', 'write']);
 const ADMIN_ROLES = new Set(['admin', 'maintain']);
 
 export interface GitHubDoorConfig {
-  names: HostNames;
   webUrl: string;
   apiUrl: string;
   repo: HostRepo | undefined;
@@ -13,7 +12,7 @@ export interface GitHubDoorConfig {
 
 export interface GitHubDoorDeps {
   fetch?: typeof fetch;
-  botToken?: () => string | undefined;
+  installationToken?: () => string | undefined;
 }
 
 function sameRepo(a: HostRepo, b: HostRepo): boolean {
@@ -74,7 +73,7 @@ export function createGitHubDoorHost(
   }
 
   async function accessByBot(login: string, repo: HostRepo): Promise<BotAccess> {
-    const token = deps.botToken?.();
+    const token = deps.installationToken?.();
     if (token === undefined) return 'unreachable';
     const url = `${config.apiUrl}${repoPath(repo)}/collaborators/${encodeURIComponent(login)}/permission`;
     let response: Response;
@@ -84,7 +83,8 @@ export function createGitHubDoorHost(
       return 'unreachable';
     }
     if (response.status === 404) return 'none';
-    if (response.status === 401 || response.status === 403) return 'refused';
+    if (response.status === 401) return 'refused:token';
+    if (response.status === 403) return 'refused:not-admin';
     if (response.status !== 200) return 'unreachable';
     const body = (await response.json().catch(() => undefined)) as
       | { permission?: unknown; role_name?: unknown }
@@ -95,7 +95,6 @@ export function createGitHubDoorHost(
   }
 
   return {
-    names: config.names,
     authorizeUrl: ({ clientId, redirectUri, state }) => {
       const authorize = new URL(`${config.webUrl}/login/oauth/authorize`);
       authorize.searchParams.set('client_id', clientId);
@@ -125,7 +124,9 @@ export function createGitHubDoorHost(
     person,
     access,
     accessByBot,
-    tokenFor: (repo) =>
-      config.repo !== undefined && sameRepo(repo, config.repo) ? deps.botToken?.() : undefined,
+    tokenFor: async (repo) =>
+      config.repo !== undefined && sameRepo(repo, config.repo)
+        ? deps.installationToken?.()
+        : undefined,
   };
 }

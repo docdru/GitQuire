@@ -30,7 +30,11 @@ function recordedHost(file: string): string | undefined {
   }
 }
 
-export function checkDataFolderHost(projectDir: string, kind: HostKind): void {
+export function checkDataFolderHost(
+  projectDir: string,
+  kind: HostKind,
+  moreStateFiles: readonly string[] = [],
+): void {
   const file = dataFolderHostFile(projectDir);
   const recorded = recordedHost(file);
   if (recorded !== undefined) {
@@ -41,10 +45,12 @@ export function checkDataFolderHost(projectDir: string, kind: HostKind): void {
   }
   if (kind === 'github') return;
   const dir = stateDir(projectDir);
-  const used = STATE_WITH_PERSON_IDS.filter((name) => existsSync(join(dir, name)));
+  const used = [...STATE_WITH_PERSON_IDS.map((name) => join(dir, name)), ...moreStateFiles].filter(
+    (path) => existsSync(path),
+  );
   if (used.length > 0) {
     throw new HostConfigError(
-      `This data folder was used with GitHub (${used.join(', ')} in ${dir}), but GITQUIRE_HOST is ${kind}. People's ids from two hosts must not be mixed: use a new volume for ${kind}.`,
+      `This data folder was used with GitHub (${used.join(', ')}), but GITQUIRE_HOST is ${kind}. People's ids from two hosts must not be mixed: use a new volume for ${kind}.`,
     );
   }
   mkdirSync(dir, { recursive: true });

@@ -25,7 +25,7 @@ import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient } from './github-pulls.ts';
 import { checkDataFolderHost } from './host/data-folder.ts';
 import { createGitHubDoorHost } from './host/github.ts';
-import { hostNames, hostNamesFromEnv, setHostNames } from './host/names.ts';
+import { hostNamesFromEnv, setHostNames } from './host/names.ts';
 import type { HostNames } from './host/types.ts';
 import {
   describeLegacyDataFolderMigration,
@@ -52,8 +52,9 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 export function configureHostFromEnv(env: Env, projectDir: string | undefined): HostNames {
   const names = hostNamesFromEnv(env);
-  if (projectDir !== undefined && !isDraftInstance(env))
-    checkDataFolderHost(projectDir, names.kind);
+  if (projectDir !== undefined && !isDraftInstance(env)) {
+    checkDataFolderHost(projectDir, names.kind, [agentTokensFile(env, projectDir)]);
+  }
   setHostNames(names);
   return names;
 }
@@ -78,12 +79,11 @@ export function createAccessGateFromEnv(
   let agentTokens: AgentTokenStore | undefined;
   const host = createGitHubDoorHost(
     {
-      names: hostNames(),
       webUrl: config.githubWebUrl,
       apiUrl: config.githubApiUrl,
       repo: config.repo,
     },
-    { botToken: options.tokens?.current },
+    { installationToken: options.tokens?.current },
   );
   const check = createRepoAccessCheck(config, { host });
   if (options.projectDir !== undefined && !isDraftInstance(env)) {
@@ -163,7 +163,6 @@ export async function runGitQuireBootstrap(
   if (config === undefined) {
     return { configured: false, message: 'GitHub repository sync is not configured.' };
   }
-  configureHostFromEnv(env, dir);
   const syncMode = parseAutoSyncMode(env.GITQUIRE_SYNC_MODE);
   const client = createGitHubAppClient(config, {
     retry: {
@@ -175,6 +174,7 @@ export async function runGitQuireBootstrap(
   runGitSync(['config', 'fetch.prune', 'true'], dir);
   for (const line of describeLegacyDataFolderMigration(migrateLegacyDataFolders(dir))) warn(line);
   if (!existsSync(join(dir, '.gitquire'))) initProject(dir);
+  configureHostFromEnv(env, dir);
   const sync = ensureAutoSyncMode(dir, syncMode);
   const repo = `${config.repo.owner}/${config.repo.name}`;
   const what =

@@ -2,7 +2,6 @@ import type { GateLogger } from './access-gate.ts';
 import type { AgentTokenStore } from './agent-tokens.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubDoorHost } from './host/github.ts';
-import { hostNames } from './host/names.ts';
 import type { BotAccess, DoorHost } from './host/types.ts';
 
 export type AccessVerdict = 'allowed' | 'denied' | 'unknown';
@@ -28,12 +27,11 @@ export function createRepoAccessCheck(
     deps.host ??
     createGitHubDoorHost(
       {
-        names: hostNames(),
         webUrl: config.githubWebUrl ?? 'https://github.com',
         apiUrl: config.githubApiUrl,
         repo: config.repo,
       },
-      { fetch: deps.fetch, botToken: deps.installationToken },
+      { fetch: deps.fetch, installationToken: deps.installationToken },
     );
   return async (login) => {
     if (config.allowedUsers.has(login.toLowerCase())) return 'allowed';

@@ -41,6 +41,12 @@ describe('data folder host', () => {
     expect(existsSync(dataFolderHostFile(dir))).toBe(false);
   });
 
+  it('also looks at state kept outside the folder', () => {
+    const outside = join(dir, 'tokens.json');
+    writeFileSync(outside, '{}');
+    expect(() => checkDataFolderHost(dir, 'forgejo', [outside])).toThrow('tokens.json');
+  });
+
   it('refuses GitHub on a folder recorded for another host', () => {
     writeFileSync(state('host.json'), JSON.stringify({ host: 'forgejo' }));
     expect(() => checkDataFolderHost(dir, 'github')).toThrow('forgejo');

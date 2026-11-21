@@ -173,7 +173,6 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     deps.host ??
     createGitHubDoorHost(
       {
-        names: hostNames(),
         webUrl: config.githubWebUrl,
         apiUrl: config.githubApiUrl,
         repo: config.repo,
@@ -453,6 +452,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       }
       sendJson(res, 200, {
         ...user,
+        principalId: principalIdForUser(user.id),
         email: noreplyEmail(user),
         admin: isAdmin(user),
         admins: {
