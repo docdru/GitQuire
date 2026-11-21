@@ -210,23 +210,41 @@ def isolation(alice, dave, alpha, beta):
 def drafts(alice, alpha):
     title = f"Two wikis draft {int(time.time())}"
     status, created, headers = call(alice, "POST", "/w/team/alpha/api/gitquire/drafts", {"title": title, "open": True})
-    slug = created.get("draft", {}).get("slug") if isinstance(created, dict) else None
+    draft = created.get("draft", {}) if isinstance(created, dict) else {}
+    slug = draft.get("slug")
     view = cookies_of(alice).get(f"gq_view_{alpha}")
     check("Two wikis drafts", status == 201 and slug and view == slug,
           f"alice opens a new draft in alpha; the front door keeps it in gq_view_{alpha} -> {status} {view}")
-    proc = h.docker("exec", NAME, "sh", "-c", f"ls -d /data/wikis/.gitquire-drafts/{alpha}/{slug}/{alpha}/.git", check_ok=False)
-    check("Two wikis drafts", proc.returncode == 0, f"the draft's working copy is beside the wiki's folder: {proc.stdout.strip()}")
-    status, published, _ = call(alice, "POST", f"/w/team/alpha/api/gitquire/drafts/{slug}/publish", {})
-    state = published.get("draft", {}).get("status") if isinstance(published, dict) else None
-    check("Two wikis drafts", status == 200 and state == "published", f"publish the draft -> {status} {state}")
+    folder = f"/data/wikis/.gitquire-drafts/{alpha}/{slug}/{alpha}"
+    made = False
+    for _ in range(45):
+        call(alice, "GET", "/w/team/alpha/api/config")
+        if h.docker("exec", NAME, "test", "-d", f"{folder}/.git", check_ok=False).returncode == 0:
+            made = True
+            break
+        time.sleep(2)
+    check("Two wikis drafts", made, f"entering the draft makes its working copy beside the wiki's folder: {folder}")
+    branch = draft.get("branch") or f"draft/{slug}"
+    status, _, _ = f.call("POST", "/repos/team/alpha/contents/two-wikis-draft.md", {
+        "content": base64.b64encode(b"# From the draft in alpha\n").decode(),
+        "message": "Edit in the draft", "branch": branch,
+    }, auth=f.ADMIN)
+    check("Two wikis drafts", status == 201, f"a change on the draft branch {branch} -> {status}")
+    published, state = None, None
+    for _ in range(10):
+        status, published, _ = call(alice, "POST", f"/w/team/alpha/api/gitquire/drafts/{slug}/publish", {})
+        state = published.get("draft", {}).get("status") if isinstance(published, dict) else None
+        if status == 200:
+            break
+        time.sleep(3)
+    check("Two wikis drafts", status == 200 and state == "published", f"publish the draft -> {status} {state} {published if status != 200 else ''}")
     status, commits, _ = f.call("GET", "/repos/team/alpha/commits?sha=main&limit=10", auth=f.ADMIN)
     titles = [c.get("commit", {}).get("message", "") for c in commits] if isinstance(commits, list) else []
     check("Two wikis drafts", any(t.startswith(title) for t in titles), f"team/alpha's main has the squash commit -> {titles[:3]}")
     status, beta_commits, _ = f.call("GET", "/repos/team/beta/commits?sha=main&limit=10", auth=f.ADMIN)
     beta_titles = [c.get("commit", {}).get("message", "") for c in beta_commits] if isinstance(beta_commits, list) else []
     check("Two wikis drafts", not any(t.startswith(title) for t in beta_titles), "team/beta has no trace of it")
-    check("Two wikis drafts", f"gq_view_{alpha}" not in cookies_of(alice) or not cookies_of(alice).get(f"gq_view_{alpha}"),
-          "publishing closes the draft view")
+    check("Two wikis drafts", not cookies_of(alice).get(f"gq_view_{alpha}"), "publishing closes the draft view")
 
 
 def cut_off(dave):
@@ -296,12 +314,13 @@ def host_down(alice, dave):
     status, _, _ = call(dave, "GET", "/w/team/alpha/auth/me")
     check("Two wikis R14", status == 200, f"dave stays inside alpha too -> {status}")
     status, _, _ = call(dave, "GET", "/w/team/beta2/auth/me")
-    check("Two wikis R14", status == 404, f"dave is not let into beta2 -> {status}")
+    check("Two wikis R14", status in (404, 503), f"dave, never let into beta2, is not let in now -> {status}")
     h.docker("start", h.FORGEJO_CONTAINER)
     wait_for(lambda: f.call("GET", "/version")[0] == 200, 120)
 
 
-def owners(alice):
+def owners():
+    alice = sign_in("alice")
     f.call("POST", "/orgs", {"username": "other", "visibility": "private"}, auth=f.ADMIN)
     status, body, _ = f.call("POST", "/orgs/other/repos", {"name": "notes", "private": True, "auto_init": True,
                                                            "default_branch": "main"}, auth=f.ADMIN)
@@ -309,9 +328,11 @@ def owners(alice):
     f.call("PUT", "/repos/other/notes/collaborators/gitquire-bot", {"permission": "admin"}, auth=f.ADMIN)
     _, record, _ = f.call("GET", "/repos/other/notes", auth=f.ADMIN)
     status, detail = h.door_round(alice, "/auth/forgejo/add-wiki?next=%2F")
+    check("Two wikis R18", status == 302, f"the Add a wiki round -> {status} {detail}")
     status, addable, _ = call(alice, "GET", "/api/front-door/addable")
     names = [f"{r.get('owner')}/{r.get('name')}" for r in addable.get("repos", [])] if isinstance(addable, dict) else []
-    check("Two wikis R18", "other/notes" not in names, f"Add a wiki does not offer other/notes -> {names}")
+    check("Two wikis R18", "team/alpha" in names and "other/notes" not in names,
+          f"Add a wiki offers team's repositories and not other/notes -> {names}")
     status, refused, _ = call(alice, "POST", "/api/front-door/wikis", {"id": record.get("id"), "token": os.environ["ALPHA_TOKEN"]})
     check("Two wikis R18", status in (403, 404) and isinstance(refused, dict) and refused.get("error") in ("owner-not-allowed", "not-addable"),
           f"Make this a wiki for other/notes is refused -> {status} {refused}")
@@ -329,6 +350,7 @@ def owners(alice):
     check("Two wikis R18", start("team"), "the front door restarts with team allowed again")
     back = wait_for(lambda: call(alice, "GET", "/w/team/alpha/api/config")[0] == 200, 90)
     check("Two wikis R18", back, "team's wikis are connected again")
+    return alice
 
 
 def stop_pushes(alice):
@@ -367,7 +389,7 @@ def main():
     rename(alice, beta)
     bot_removed(alice, dave, beta)
     host_down(alice, dave)
-    owners(alice)
+    alice = owners()
     stop_pushes(alice)
     h.summary()
 
