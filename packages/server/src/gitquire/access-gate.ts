@@ -7,6 +7,9 @@ import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
 import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
 import { isAppIconPath } from './app-icons.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
+import { createGitHubDoorHost } from './host/github.ts';
+import { hostNames } from './host/names.ts';
+import type { DoorHost } from './host/types.ts';
 import {
   bearerToken,
   escapeHtml,
@@ -21,7 +24,7 @@ import { createOAuthServer } from './oauth-server.ts';
 import {
   bindRequestPrincipal,
   type GitQuirePrincipal,
-  principalIdForGitHubUser,
+  principalIdForUser,
   sanitizeDisplayName,
 } from './principal-directory.ts';
 import {
@@ -35,7 +38,6 @@ import {
 export const SESSION_COOKIE = 'gq_session';
 export const STATE_COOKIE = 'gq_oauth_state';
 const STATE_MAX_AGE_SECONDS = 600;
-const GITHUB_API_VERSION = '2022-11-28';
 
 export interface SessionUser {
   id: number;
@@ -65,6 +67,7 @@ export interface AccessGateDeps {
   randomState?: () => string;
   agentTokens?: AgentTokenStore;
   checkAccess?: (login: string) => Promise<AccessVerdict>;
+  host?: DoorHost;
 }
 
 export interface AccessGate {
@@ -130,12 +133,12 @@ export function safeNextPath(raw: string | null | undefined): string {
 }
 
 export function noreplyEmail(user: Pick<SessionUser, 'id' | 'login'>): string {
-  return `${user.id}+${user.login}@users.noreply.github.com`;
+  return hostNames().noreplyEmail(user);
 }
 
 export function principalFromUser(user: SessionUser): GitQuirePrincipal {
   return {
-    id: principalIdForGitHubUser(user.id),
+    id: principalIdForUser(user.id),
     login: user.login,
     name: sanitizeDisplayName(user.name, user.login),
     email: noreplyEmail(user),
@@ -166,6 +169,17 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
   const randomState = deps.randomState ?? (() => randomBytes(24).toString('base64url'));
+  const host =
+    deps.host ??
+    createGitHubDoorHost(
+      {
+        names: hostNames(),
+        webUrl: config.githubWebUrl,
+        apiUrl: config.githubApiUrl,
+        repo: config.repo,
+      },
+      { fetch: doFetch },
+    );
   const secure = config.externalUrl.protocol === 'https:';
   const callbackUrl = new URL('/auth/github/callback', config.externalUrl).toString();
   const repoLabel =
@@ -268,12 +282,12 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       next,
       exp: Math.floor(now() / 1000) + STATE_MAX_AGE_SECONDS,
     };
-    const authorize = new URL(`${config.githubWebUrl}/login/oauth/authorize`);
-    authorize.searchParams.set('client_id', config.clientId);
-    authorize.searchParams.set('redirect_uri', callbackUrl);
-    authorize.searchParams.set('state', state);
-    authorize.searchParams.set('allow_signup', 'false');
-    redirect(res, authorize.toString(), {
+    const authorize = host.authorizeUrl({
+      clientId: config.clientId,
+      redirectUri: callbackUrl,
+      state,
+    });
+    redirect(res, authorize, {
       'Set-Cookie': cookie(
         STATE_COOKIE,
         encodeSigned(config.sessionSecret, statePayload),
@@ -283,73 +297,10 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     deps.log.info({ next, method: req.method }, '[gitquire-auth] redirecting to GitHub sign-in');
   }
 
-  async function githubJson(
-    url: string,
-    init: RequestInit,
-  ): Promise<{ status: number; body: unknown }> {
-    const response = await doFetch(url, init);
-    const text = await response.text();
-    let body: unknown;
-    try {
-      body = text === '' ? undefined : JSON.parse(text);
-    } catch {
-      body = undefined;
-    }
-    return { status: response.status, body };
-  }
-
-  async function exchangeCode(code: string): Promise<string | undefined> {
-    const { body } = await githubJson(`${config.githubWebUrl}/login/oauth/access_token`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'GitQuire',
-      },
-      body: JSON.stringify({
-        client_id: config.clientId,
-        client_secret: config.clientSecret,
-        code,
-        redirect_uri: callbackUrl,
-      }),
-    });
-    const token = (body as { access_token?: unknown } | undefined)?.access_token;
-    return typeof token === 'string' && token !== '' ? token : undefined;
-  }
-
-  function apiHeaders(token: string): Record<string, string> {
-    return {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'User-Agent': 'GitQuire',
-      'X-GitHub-Api-Version': GITHUB_API_VERSION,
-    };
-  }
-
-  async function fetchUser(token: string): Promise<SessionUser | undefined> {
-    const { status, body } = await githubJson(`${config.githubApiUrl}/user`, {
-      headers: apiHeaders(token),
-    });
-    if (status !== 200 || typeof body !== 'object' || body === null) return undefined;
-    const u = body as Record<string, unknown>;
-    if (typeof u.id !== 'number' || typeof u.login !== 'string') return undefined;
-    const name = typeof u.name === 'string' && u.name.trim() !== '' ? u.name : u.login;
-    const avatarUrl = typeof u.avatar_url === 'string' ? u.avatar_url : '';
-    return { id: u.id, login: u.login, name, avatarUrl };
-  }
-
   async function repoAccess(token: string): Promise<{ write: boolean; admin: boolean }> {
-    const none = { write: false, admin: false };
-    if (config.repo === undefined) return none;
-    const owner = encodeURIComponent(config.repo.owner);
-    const name = encodeURIComponent(config.repo.name);
-    const { status, body } = await githubJson(`${config.githubApiUrl}/repos/${owner}/${name}`, {
-      headers: apiHeaders(token),
-    });
-    if (status !== 200 || typeof body !== 'object' || body === null) return none;
-    const permissions = (body as { permissions?: Record<string, unknown> }).permissions;
-    const admin = permissions?.admin === true || permissions?.maintain === true;
-    return { write: admin || permissions?.push === true, admin };
+    if (config.repo === undefined) return { write: false, admin: false };
+    const level = await host.access(token, config.repo);
+    return { write: level !== 'none', admin: level === 'admin' };
   }
 
   async function completeLogin(
@@ -391,8 +342,13 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       return;
     }
 
-    const token = await exchangeCode(code);
-    const user = token === undefined ? undefined : await fetchUser(token);
+    const token = await host.exchangeCode({
+      clientId: config.clientId,
+      clientSecret: config.clientSecret,
+      code,
+      redirectUri: callbackUrl,
+    });
+    const user = token === undefined ? undefined : await host.person(token);
     if (token === undefined || user === undefined) {
       deps.log.warn({ gotToken: token !== undefined }, '[gitquire-auth] GitHub sign-in failed');
       sendHtml(

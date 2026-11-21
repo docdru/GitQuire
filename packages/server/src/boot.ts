@@ -38,6 +38,7 @@ import {
 } from './git-preflight-telemetry.ts';
 import type { LiveServerHandle } from './gitquire/drafts/setup.ts';
 import {
+  configureHostFromEnv,
   createAccessGateFromEnv,
   createGitQuireHttp,
   startGitHubAppTokensFromEnv,
@@ -293,6 +294,7 @@ async function bootServerInner(
   }
 
   const ingressPolicy = buildIngressPolicy({ serverRuntime });
+  configureHostFromEnv(process.env, opts.projectDir ?? opts.contentDir);
   const gitHubAppTokens = await startGitHubAppTokensFromEnv(process.env, log);
   const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log, {
     projectDir: opts.projectDir ?? opts.contentDir,

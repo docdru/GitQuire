@@ -5,6 +5,7 @@ import { pathspecArgs } from '@gitquire/core';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { noreplyEmail } from '../access-gate.ts';
 import type { Mention } from '../mentions.ts';
+import { principalIdForUser } from '../principal-directory.ts';
 import type { RunGit } from '../repo-bootstrap.ts';
 import {
   changedPages,
@@ -543,7 +544,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
           threadId: '',
           commentId: request.id,
           author: {
-            id: `github-${request.by.id}`,
+            id: principalIdForUser(request.by.id),
             login: request.by.login,
             ...(request.by.name ? { name: request.by.name } : {}),
           },

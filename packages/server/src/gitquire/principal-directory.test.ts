@@ -5,7 +5,7 @@ import {
   attributeEdit,
   commitAuthorEnv,
   type GitQuirePrincipal,
-  principalIdForGitHubUser,
+  principalIdForUser,
   rememberPrincipal,
   resetPrincipalDirectory,
   restoreCommitAuthors,
@@ -18,13 +18,13 @@ import {
 } from './principal-directory.ts';
 
 const alice: GitQuirePrincipal = {
-  id: principalIdForGitHubUser(42),
+  id: principalIdForUser(42),
   login: 'alice',
   name: 'Alice A',
   email: '42+alice@users.noreply.github.com',
 };
 const bob: GitQuirePrincipal = {
-  id: principalIdForGitHubUser(7),
+  id: principalIdForUser(7),
   login: 'bob',
   name: 'Bob B',
   email: '7+bob@users.noreply.github.com',
@@ -115,7 +115,7 @@ describe('display name hardening', () => {
 
   it('keeps injected names out of commit trailers and author env', () => {
     const eve: GitQuirePrincipal = {
-      id: principalIdForGitHubUser(9),
+      id: principalIdForUser(9),
       login: 'eve',
       name: 'Eve\nSigned-off-by: Admin <admin@example.com>',
       email: '9+eve@users.noreply.github.com',

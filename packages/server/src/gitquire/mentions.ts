@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { type CommentAuthor, readCommentThreads } from '@gitquire/core/gitquire/comment-threads';
 import { CONFIRMATION_VALID_MS, MAX_CONFIRMATION_ATTEMPTS } from './email-confirmation.ts';
 import { createPageScan, docNameForPath, type PageScan } from './page-scan.ts';
+import { principalIdForUser } from './principal-directory.ts';
 
 export { docNameForPath } from './page-scan.ts';
 
@@ -410,7 +411,7 @@ export function createMentionReadStore(
 }
 
 function authorIdForReader(reader: MentionReader): string {
-  return `github-${reader.id}`;
+  return principalIdForUser(reader.id);
 }
 
 export function mentionsFor(reader: MentionReader, all: readonly Mention[]): Mention[] {

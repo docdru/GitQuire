@@ -23,6 +23,10 @@ import {
 } from './github-app.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient } from './github-pulls.ts';
+import { checkDataFolderHost } from './host/data-folder.ts';
+import { createGitHubDoorHost } from './host/github.ts';
+import { hostNames, hostNamesFromEnv, setHostNames } from './host/names.ts';
+import type { HostNames } from './host/types.ts';
 import {
   describeLegacyDataFolderMigration,
   migrateLegacyDataFolders,
@@ -42,8 +46,17 @@ export type { AccessGate } from './access-gate.ts';
 
 export { GitHubAppConfigError, GitHubUnavailableError } from './github-app.ts';
 export { GitHubAuthConfigError } from './github-auth-config.ts';
+export { HostConfigError } from './host/names.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
+
+export function configureHostFromEnv(env: Env, projectDir: string | undefined): HostNames {
+  const names = hostNamesFromEnv(env);
+  if (projectDir !== undefined && !isDraftInstance(env))
+    checkDataFolderHost(projectDir, names.kind);
+  setHostNames(names);
+  return names;
+}
 
 function agentTokensFile(env: Env, projectDir: string): string {
   const override = env.GITQUIRE_AGENT_TOKENS_FILE?.trim();
@@ -63,7 +76,16 @@ export function createAccessGateFromEnv(
   const config = resolveGitHubAuthConfig(env, runtime);
   if (config === undefined) return undefined;
   let agentTokens: AgentTokenStore | undefined;
-  const check = createRepoAccessCheck(config, { installationToken: options.tokens?.current });
+  const host = createGitHubDoorHost(
+    {
+      names: hostNames(),
+      webUrl: config.githubWebUrl,
+      apiUrl: config.githubApiUrl,
+      repo: config.repo,
+    },
+    { botToken: options.tokens?.current },
+  );
+  const check = createRepoAccessCheck(config, { host });
   if (options.projectDir !== undefined && !isDraftInstance(env)) {
     agentTokens = createAgentTokenStore({ file: agentTokensFile(env, options.projectDir), log });
     const sweep = startAccessSweep(agentTokens, check, { log });
@@ -89,7 +111,7 @@ export function createAccessGateFromEnv(
       '[gitquire-auth] GITQUIRE_MCP_CONNECTORS is on, but Claude and other cloud connectors need an https:// GITQUIRE_EXTERNAL_URL',
     );
   }
-  const gate = createAccessGate(config, { log, agentTokens, checkAccess: check });
+  const gate = createAccessGate(config, { log, agentTokens, checkAccess: check, host });
   setSessionPrincipalResolver((req) => {
     const user = gate.sessionUser(req);
     return user === undefined ? undefined : principalFromUser(user);
@@ -141,6 +163,7 @@ export async function runGitQuireBootstrap(
   if (config === undefined) {
     return { configured: false, message: 'GitHub repository sync is not configured.' };
   }
+  configureHostFromEnv(env, dir);
   const syncMode = parseAutoSyncMode(env.GITQUIRE_SYNC_MODE);
   const client = createGitHubAppClient(config, {
     retry: {
