@@ -10,6 +10,7 @@ export interface GhTokenSource {
 interface CacheEntry {
   token: string | null;
   resolvedLogin?: string;
+  credentialHost?: string;
   expiresAt: number;
 }
 
@@ -36,7 +37,7 @@ export function createGhTokenSource(
     if (entry.token == null) return null;
     return {
       token: entry.token,
-      host,
+      host: entry.credentialHost ?? host,
       ...(entry.resolvedLogin ? { login: entry.resolvedLogin } : {}),
     };
   }
@@ -53,6 +54,7 @@ export function createGhTokenSource(
       const result = detectGh(host, { login });
       const token = result.available && result.token ? result.token : null;
       const resolvedLogin = result.available ? result.resolvedLogin : undefined;
+      const credentialHost = result.available ? result.credentialHost : undefined;
 
       const honored = !login || (token != null && sameGitHubLogin(resolvedLogin, login));
       let entryTtl: number;
@@ -67,6 +69,7 @@ export function createGhTokenSource(
       const entry: CacheEntry = {
         token,
         resolvedLogin,
+        ...(credentialHost === undefined ? {} : { credentialHost }),
         expiresAt: t + entryTtl,
       };
       cache.set(key, entry);

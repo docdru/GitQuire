@@ -42,7 +42,13 @@ export type DetectGhFn = (
   options?: { login?: string },
 ) =>
   | { available: false }
-  | { available: true; token: string; resolvedLogin?: string; fallback?: boolean };
+  | {
+      available: true;
+      token: string;
+      resolvedLogin?: string;
+      fallback?: boolean;
+      credentialHost?: string;
+    };
 
 export type DetectGhAccountsFn = (
   host?: string,

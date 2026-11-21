@@ -61,12 +61,15 @@ describe('Forgejo repository settings', () => {
     expect(() =>
       resolveForgejoRepoConfig({ ...ENV, GITQUIRE_HOST_URL: 'http://git.example.org' }),
     ).toThrow(GitHubAppConfigError);
+    expect(() =>
+      resolveForgejoRepoConfig({ ...ENV, GITQUIRE_HOST_URL: 'https://x.org/git' }),
+    ).toThrow('not supported yet');
   });
 });
 
 describe('Forgejo repository client', () => {
   it('gives Git the limited token and clones from the web address', async () => {
-    const config = resolveForgejoRepoConfig({ ...ENV, GITQUIRE_HOST_URL: 'https://x.org/git' });
+    const config = resolveForgejoRepoConfig({ ...ENV, GITQUIRE_HOST_URL: 'https://x.org:3000' });
     if (config === undefined) throw new Error('expected a config');
     let auth: string | null = null;
     const client = createForgejoRepoClient(config, {
@@ -82,7 +85,7 @@ describe('Forgejo repository client', () => {
     expect(minted.expiresAt).toBeGreaterThan(1000);
     expect(await client.repoInfo(minted.token)).toEqual({
       defaultBranch: 'main',
-      cloneUrl: 'https://x.org/git/team/wiki.git',
+      cloneUrl: 'https://x.org:3000/team/wiki.git',
     });
     expect(auth).toBe('token limited');
   });
