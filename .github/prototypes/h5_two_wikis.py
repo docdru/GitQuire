@@ -208,10 +208,9 @@ def isolation(alice, dave, alpha, beta):
 
 
 def drafts(alice, alpha):
-    title = f"Two wikis draft {int(time.time())}"
-    status, created, headers = call(alice, "POST", "/w/team/alpha/api/gitquire/drafts", {"title": title, "open": True})
-    draft = created.get("draft", {}) if isinstance(created, dict) else {}
-    slug = draft.get("slug")
+    stamp = int(time.time())
+    status, created, _ = call(alice, "POST", "/w/team/alpha/api/gitquire/drafts", {"title": f"Entered draft {stamp}", "open": True})
+    slug = created.get("draft", {}).get("slug") if isinstance(created, dict) else None
     view = cookies_of(alice).get(f"gq_view_{alpha}")
     check("Two wikis drafts", status == 201 and slug and view == slug,
           f"alice opens a new draft in alpha; the front door keeps it in gq_view_{alpha} -> {status} {view}")
@@ -224,27 +223,28 @@ def drafts(alice, alpha):
             break
         time.sleep(2)
     check("Two wikis drafts", made, f"entering the draft makes its working copy beside the wiki's folder: {folder}")
+    status, _, _ = call(alice, "POST", "/w/team/alpha/api/gitquire/view", {"slug": None})
+    check("Two wikis drafts", not cookies_of(alice).get(f"gq_view_{alpha}"), f"leaving the draft clears the view -> {status}")
+
+    title = f"Published draft {stamp}"
+    status, created, _ = call(alice, "POST", "/w/team/alpha/api/gitquire/drafts", {"title": title, "open": False})
+    draft = created.get("draft", {}) if isinstance(created, dict) else {}
+    slug = draft.get("slug")
     branch = draft.get("branch") or f"draft/{slug}"
     status, _, _ = f.call("POST", "/repos/team/alpha/contents/two-wikis-draft.md", {
         "content": base64.b64encode(b"# From the draft in alpha\n").decode(),
         "message": "Edit in the draft", "branch": branch,
     }, auth=f.ADMIN)
-    check("Two wikis drafts", status == 201, f"a change on the draft branch {branch} -> {status}")
-    published, state = None, None
-    for _ in range(10):
-        status, published, _ = call(alice, "POST", f"/w/team/alpha/api/gitquire/drafts/{slug}/publish", {})
-        state = published.get("draft", {}).get("status") if isinstance(published, dict) else None
-        if status == 200:
-            break
-        time.sleep(3)
-    check("Two wikis drafts", status == 200 and state == "published", f"publish the draft -> {status} {state} {published if status != 200 else ''}")
+    check("Two wikis drafts", status == 201, f"a second draft, with a change on its branch {branch} -> {status}")
+    status, published, _ = call(alice, "POST", f"/w/team/alpha/api/gitquire/drafts/{slug}/publish", {})
+    state = published.get("draft", {}).get("status") if isinstance(published, dict) else None
+    check("Two wikis drafts", status == 200 and state == "published", f"publish it -> {status} {state} {published if status != 200 else ''}")
     status, commits, _ = f.call("GET", "/repos/team/alpha/commits?sha=main&limit=10", auth=f.ADMIN)
     titles = [c.get("commit", {}).get("message", "") for c in commits] if isinstance(commits, list) else []
     check("Two wikis drafts", any(t.startswith(title) for t in titles), f"team/alpha's main has the squash commit -> {titles[:3]}")
     status, beta_commits, _ = f.call("GET", "/repos/team/beta/commits?sha=main&limit=10", auth=f.ADMIN)
     beta_titles = [c.get("commit", {}).get("message", "") for c in beta_commits] if isinstance(beta_commits, list) else []
     check("Two wikis drafts", not any(t.startswith(title) for t in beta_titles), "team/beta has no trace of it")
-    check("Two wikis drafts", not cookies_of(alice).get(f"gq_view_{alpha}"), "publishing closes the draft view")
 
 
 def cut_off(dave):
