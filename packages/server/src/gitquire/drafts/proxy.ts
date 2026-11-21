@@ -1,8 +1,19 @@
 import { type IncomingMessage, request, type ServerResponse } from 'node:http';
 import { connect } from 'node:net';
 import type { Duplex } from 'node:stream';
-import { PROXIED_PRINCIPAL_HEADER } from '../access-gate.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
+import {
+  FORWARDED_PREFIX_HEADER,
+  FORWARDED_VIEW_HEADER,
+  PROXIED_PRINCIPAL_HEADER,
+} from '../request-person.ts';
+
+const INTERNAL_ONLY = new Set([
+  INTERNAL_REQUEST_HEADER,
+  PROXIED_PRINCIPAL_HEADER,
+  FORWARDED_PREFIX_HEADER,
+  FORWARDED_VIEW_HEADER,
+]);
 
 const HOP_BY_HOP = new Set([
   'connection',
@@ -24,7 +35,7 @@ function forwardedHeaders(
     if (value === undefined) continue;
     const lower = name.toLowerCase();
     if (HOP_BY_HOP.has(lower)) continue;
-    if (lower === INTERNAL_REQUEST_HEADER || lower === PROXIED_PRINCIPAL_HEADER) continue;
+    if (INTERNAL_ONLY.has(lower)) continue;
     headers[lower] = value;
   }
   return { ...headers, ...extra };
@@ -103,6 +114,7 @@ export function proxyUpgrade(
   head: Buffer,
   port: number,
   onClose: () => void,
+  extraHeaders: Record<string, string> = {},
 ): void {
   const upstream = connect(port, '127.0.0.1');
   let closed = false;
@@ -115,6 +127,7 @@ export function proxyUpgrade(
   };
   upstream.on('connect', () => {
     const headers = forwardedHeaders(req, {
+      ...extraHeaders,
       connection: 'Upgrade',
       upgrade: String(req.headers.upgrade ?? 'websocket'),
     });

@@ -35,6 +35,7 @@ export interface DraftsSetupDeps {
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   agentOwner: (req: IncomingMessage) => SessionUser | undefined;
   secure: boolean;
+  behindFrontDoor?: boolean;
   appConfig: RepoSyncConfig | undefined;
   client: GitHubDraftsClient | undefined;
   token: () => string | undefined;
@@ -192,6 +193,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     sessionUser: deps.sessionUser,
     agentOwner: deps.agentOwner,
     secure: deps.secure,
+    behindFrontDoor: deps.behindFrontDoor,
     log: deps.log,
   });
   const follow = setInterval(() => {

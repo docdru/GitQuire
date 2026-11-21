@@ -18,7 +18,7 @@ import {
   recipientKey,
 } from './email-confirmation.ts';
 import { type MailConfig, type MailMessage, SmtpError } from './mail.ts';
-import { createMentionMailer, mentionMail, pageLink } from './mention-mailer.ts';
+import { createMentionMailer, draftLink, mentionMail, pageLink } from './mention-mailer.ts';
 import {
   buildInbox,
   createMentionIndex,
@@ -505,6 +505,15 @@ describe('mention mailer', () => {
       'https://brain.example.com/#/notes/New%20page',
     );
     expect(pageLink(undefined, 'notes/report')).toBeUndefined();
+  });
+
+  it('keeps the wiki prefix of an external address set by the front door', () => {
+    expect(pageLink('https://wiki.example/w/team/wiki', 'notes/report')).toBe(
+      'https://wiki.example/w/team/wiki/#/notes/report',
+    );
+    expect(draftLink('https://wiki.example/w/team/wiki', 'plan')).toBe(
+      'https://wiki.example/w/team/wiki/?draft=plan',
+    );
   });
 
   it('writes a mail that names the author, the page and the text', () => {

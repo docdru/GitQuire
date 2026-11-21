@@ -441,6 +441,35 @@ Older versions watched the folder. `GITQUIRE_FILE_WATCHER_BACKEND` is now ignore
 `gitquire.env` still sets it, the log says so once at start and you can delete the line. Nothing else
 changes when you upgrade.
 
+## Behind GitQuire's front door
+
+`GITQUIRE_BEHIND_FRONT_DOOR=1` is set by GitQuire itself for the editor process of each wiki once
+several wikis run in one container (planned; see `plans/wikis-and-hosts.md`). Do not set it on a
+server people open directly: such a process answers only `/healthz` and `/readyz` to anyone else and
+refuses every other request and websocket with 403.
+
+With it on, the editor process:
+
+- serves only requests that carry the internal secret (`GITQUIRE_INTERNAL_SECRET`, passed to it by
+  the front door);
+- takes the person from the front door (`x-gitquire-principal`, with the admin flag for this wiki)
+  and never reads the session cookie; `/auth/me` answers for that person, every other `/auth/` route
+  answers 404, and it sets no cookies;
+- hands the open draft back in an `x-gitquire-view` response header instead of the `gq_view` cookie,
+  and reads it from the same request header; the front door keeps the cookie at `/`;
+- adds the address prefix the front door sends (`x-gitquire-prefix`, for example `/w/team/wiki`) to
+  the live-editing address and its own redirects;
+- has no agent tokens, no agent pages and no `/mcp` sign-in of its own.
+
+The front door sets `GITQUIRE_EXTERNAL_URL` of each editor process to the public address **with**
+the wiki's prefix, for example `https://brain.example.com/w/team/wiki`, so links in mention mails and
+chat messages open the right wiki. It also passes `GITQUIRE_REPO` (the wiki's `owner/name`),
+`GITQUIRE_AI_CHAT` and `GITQUIRE_ADMINS`; behind the front door `GITQUIRE_ADMINS` only names the
+admins in the settings hint, and who is an admin of this wiki comes from the forwarded person alone. It forwards the public `Host` and `X-Forwarded-Proto`, and sets
+`GITQUIRE_ALLOW_EXTERNAL=1` for the process so those are admitted. It strips any `x-gitquire-*`
+header that comes from a browser, and forwards a request with a person only after its own sign-in
+check.
+
 ## Build the image yourself
 
 ```bash
@@ -536,3 +565,4 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_AI_CHAT`, `GITQUIRE_ANTHROPIC_BASE_URL`, `GITQUIRE_MISTRAL_BASE_URL` | [AI chat](#ai-chat) |
 | `GITQUIRE_SEMANTIC_SEARCH`, `GITQUIRE_EMBEDDINGS_API_KEY`, `GITQUIRE_EMBEDDINGS_URL`, `GITQUIRE_EMBEDDINGS_MODEL` | [Search by meaning](#search-by-meaning) |
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |
+| `GITQUIRE_BEHIND_FRONT_DOOR` | [Behind GitQuire's front door](#behind-gitquires-front-door) |

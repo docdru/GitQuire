@@ -1,9 +1,16 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
-import type { GateLogger, SessionUser } from '../access-gate.ts';
-import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER } from '../access-gate.ts';
+import { type GateLogger, type SessionUser, safeNextPath } from '../access-gate.ts';
 import { pathOf, redirect, sendJson } from '../http-util.ts';
 import { internalRequestHeaders, isInternalRequest } from '../internal-request.ts';
+import {
+  encodeProxiedUser,
+  FORWARDED_PREFIX_HEADER,
+  FORWARDED_VIEW_HEADER,
+  forwardedPrefix,
+  forwardedView,
+  PROXIED_PRINCIPAL_HEADER,
+} from '../request-person.ts';
 import { isSameOrigin } from '../routes.ts';
 import type { DraftInstances } from './instances.ts';
 import {
@@ -35,6 +42,7 @@ export interface DraftsHttpDeps {
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   agentOwner: (req: IncomingMessage) => SessionUser | undefined;
   secure: boolean;
+  behindFrontDoor?: boolean;
   log: GateLogger;
 }
 
@@ -110,9 +118,26 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
   const lastView = new Map<number, string | null>();
   const sticky = new Map<string, string>();
 
+  const behind = deps.behindFrontDoor === true;
+
   function viewOf(req: IncomingMessage): string | undefined {
-    const value = readCookie(req.headers.cookie, VIEW_COOKIE);
+    const value = behind ? forwardedView(req, true) : readCookie(req.headers.cookie, VIEW_COOKIE);
     return isSlug(value) ? value : undefined;
+  }
+
+  function prefixed(req: IncomingMessage, location: string): string {
+    return behind ? `${forwardedPrefix(req, true)}${location}` : location;
+  }
+
+  function childHeaders(req: IncomingMessage): Record<string, string> {
+    if (!behind) return {};
+    const user = deps.sessionUser(req);
+    const prefix = forwardedPrefix(req, true);
+    return {
+      ...internalRequestHeaders(),
+      ...(user === undefined ? {} : { [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(user) }),
+      ...(prefix === '' ? {} : { [FORWARDED_PREFIX_HEADER]: prefix }),
+    };
   }
 
   function openDraft(slug: string | undefined): DraftRecord | undefined {
@@ -127,8 +152,9 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     return user;
   }
 
-  function cookieFor(slug: string | null): string {
-    return viewCookie(slug, deps.secure);
+  function viewHeaders(slug: string | null): Record<string, string> {
+    if (behind) return { [FORWARDED_VIEW_HEADER]: slug ?? '' };
+    return { 'Set-Cookie': viewCookie(slug, deps.secure) };
   }
 
   function rememberView(req: IncomingMessage, slug: string | null): void {
@@ -166,12 +192,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       const draft = await service.create(user, title);
       const open = body.open !== false;
       if (open) lastView.set(user.id, draft.slug);
-      sendJson(
-        res,
-        201,
-        { draft: service.summary(draft) },
-        open ? { 'Set-Cookie': cookieFor(draft.slug) } : {},
-      );
+      sendJson(res, 201, { draft: service.summary(draft) }, open ? viewHeaders(draft.slug) : {});
       return;
     }
     if (path === '/api/gitquire/drafts/move' && method === 'POST') {
@@ -187,12 +208,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
         throw new DraftError(400, 'invalid-path', 'Choose a page.');
       const draft = await service.moveRecentEdits(user, body.path, title);
       lastView.set(user.id, draft.slug);
-      sendJson(
-        res,
-        201,
-        { draft: service.summary(draft) },
-        { 'Set-Cookie': cookieFor(draft.slug) },
-      );
+      sendJson(res, 201, { draft: service.summary(draft) }, viewHeaders(draft.slug));
       return;
     }
     if (path === '/api/gitquire/drafts/current' && method === 'GET') {
@@ -237,7 +253,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       if (wanted === undefined) throw new DraftError(400, 'invalid-draft', 'Choose a draft.');
       if (wanted !== null) service.requireOpen(wanted);
       lastView.set(user.id, wanted);
-      sendJson(res, 200, { viewing: wanted }, { 'Set-Cookie': cookieFor(wanted) });
+      sendJson(res, 200, { viewing: wanted }, viewHeaders(wanted));
       return;
     }
 
@@ -252,7 +268,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     }
     if (method !== 'POST') throw new DraftError(405, 'method-not-allowed', 'Use POST.');
     const body = await readBody(req);
-    const leave: Record<string, string> = viewing === slug ? { 'Set-Cookie': cookieFor(null) } : {};
+    const leave: Record<string, string> = viewing === slug ? viewHeaders(null) : {};
     switch (action) {
       case 'rename': {
         const title = cleanTitle(body.title);
@@ -328,10 +344,10 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       res.writeHead(503, {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store',
-        'Set-Cookie': cookieFor(null),
+        ...viewHeaders(null),
       });
       res.end(
-        `<!doctype html><meta charset="utf-8"><title>Draft unavailable</title><p>${message.replace(/[<&]/g, '')}</p><p><a href="/">Back to the live wiki</a></p>`,
+        `<!doctype html><meta charset="utf-8"><title>Draft unavailable</title><p>${message.replace(/[<&]/g, '')}</p><p><a href="${prefixed(req, '/')}">Back to the live wiki</a></p>`,
       );
       return;
     }
@@ -412,7 +428,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       url.searchParams.delete('draft');
       const target = openDraft(isSlug(wanted) ? wanted : undefined)?.slug ?? null;
       rememberView(req, target);
-      redirect(res, `${url.pathname}${url.search}`, { 'Set-Cookie': cookieFor(target) });
+      redirect(res, prefixed(req, `${url.pathname}${url.search}`), viewHeaders(target));
       return true;
     }
     if (servedByLive(path)) return false;
@@ -421,7 +437,12 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     const draft = openDraft(slug);
     if (draft === undefined) {
       if (wantsPage(req)) {
-        redirect(res, req.url ?? '/', { 'Set-Cookie': cookieFor(null) });
+        const here = new URL(req.url ?? '/', 'http://gitquire.invalid');
+        redirect(
+          res,
+          prefixed(req, safeNextPath(`${here.pathname}${here.search}`)),
+          viewHeaders(null),
+        );
         return true;
       }
       sendJson(res, 409, {
@@ -434,7 +455,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       .ensure(draft)
       .then((port) => {
         instances.touch(draft.slug);
-        proxyRequest(req, res, port);
+        proxyRequest(req, res, port, { extraHeaders: childHeaders(req) });
       })
       .catch((err: unknown) => unreachable(req, res, err));
     return true;
@@ -462,7 +483,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       .ensure(draft)
       .then((port) => {
         const release = instances.hold(draft.slug);
-        proxyUpgrade(req, socket, head, port, release);
+        proxyUpgrade(req, socket, head, port, release, childHeaders(req));
       })
       .catch((err: unknown) => {
         deps.log.error({ err }, '[gitquire-drafts] could not open a draft for live editing');

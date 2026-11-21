@@ -26,6 +26,21 @@ describe('collabUrlFromRequestHeaders', () => {
     ).toBe('wss://myproject.ngrok.app/collab');
   });
 
+  test('puts the forwarded prefix of the front door into the address', () => {
+    expect(
+      collabUrlFromRequestHeaders(
+        { host: 'wiki.example', 'x-forwarded-proto': 'https' },
+        '/w/team/wiki',
+      ),
+    ).toBe('wss://wiki.example/w/team/wiki/collab');
+  });
+
+  test('ignores a prefix header outside the front-door mode', () => {
+    expect(
+      collabUrlFromRequestHeaders({ host: 'localhost:24550', 'x-gitquire-prefix': '/w/team/wiki' }),
+    ).toBe('ws://localhost:24550/collab');
+  });
+
   test('missing Host yields null (malformed-request floor)', () => {
     expect(collabUrlFromRequestHeaders({})).toBeNull();
   });

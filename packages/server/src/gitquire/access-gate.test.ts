@@ -4,11 +4,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   type AccessGate,
   createAccessGate,
-  encodeProxiedUser,
   isInAppAgentPath,
   isPublicAsset,
   noreplyEmail,
-  PROXIED_PRINCIPAL_HEADER,
   SESSION_COOKIE,
   STATE_COOKIE,
   safeNextPath,
@@ -17,6 +15,7 @@ import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { hostNamesFromEnv, resetHostNames, setHostNames } from './host/names.ts';
 import type { DoorHost } from './host/types.ts';
 import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from './internal-request.ts';
+import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER } from './request-person.ts';
 import { encodeSigned } from './signed-cookie.ts';
 
 const SECRET = 'x'.repeat(40);

@@ -7,6 +7,10 @@ import { createAccessGate, principalFromUser } from './access-gate.ts';
 import { createRepoAccessCheck, startAccessSweep } from './agent-access.ts';
 import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
 import { ensureAgentsFile } from './agents-file.ts';
+import {
+  createBehindFrontDoorGate,
+  resolveBehindFrontDoorSettings,
+} from './behind-front-door-gate.ts';
 import { createChatFromEnv } from './chat/setup.ts';
 import type { RepoSyncConfig } from './drafts/setup.ts';
 import {
@@ -52,6 +56,7 @@ import {
   parseAutoSyncMode,
   runGitSync,
 } from './repo-bootstrap.ts';
+import { behindFrontDoorFromEnv, type RequestPerson } from './request-person.ts';
 import { createGitQuireRoutes } from './routes.ts';
 import { setAdminResolver } from './settings-admin.ts';
 
@@ -133,6 +138,16 @@ export function createAccessGateFromEnv(
     tokens?: InstallationTokenManager;
   } = {},
 ): AccessGate | undefined {
+  if (behindFrontDoorFromEnv(env)) {
+    const settings = resolveBehindFrontDoorSettings(env);
+    log.info(
+      { repo: settings.repo ?? null },
+      '[gitquire-auth] behind the front door: only requests with the internal secret are served, the person comes from the front door',
+    );
+    const gate = createBehindFrontDoorGate(settings, { log });
+    installRequestPerson(gate);
+    return gate;
+  }
   const config = resolveGitHubAuthConfig(env, runtime);
   if (config === undefined) return undefined;
   let agentTokens: AgentTokenStore | undefined;
@@ -164,12 +179,16 @@ export function createAccessGateFromEnv(
     );
   }
   const gate = createAccessGate(config, { log, agentTokens, checkAccess: check, host });
+  installRequestPerson(gate);
+  return gate;
+}
+
+function installRequestPerson(person: Pick<RequestPerson, 'sessionUser' | 'isAdminRequest'>): void {
   setSessionPrincipalResolver((req) => {
-    const user = gate.sessionUser(req);
+    const user = person.sessionUser(req);
     return user === undefined ? undefined : principalFromUser(user);
   });
-  setAdminResolver(gate.isAdminRequest);
-  return gate;
+  setAdminResolver(person.isAdminRequest);
 }
 
 export async function startGitHubAppTokensFromEnv(
@@ -354,6 +373,7 @@ export function createGitQuireHttp(
           sessionUser: gate.sessionUser,
           agentOwner: (req) => gate.agentOwner?.(req),
           secure: (env.GITQUIRE_EXTERNAL_URL ?? '').trim().startsWith('https:'),
+          behindFrontDoor: behindFrontDoorFromEnv(env),
           appConfig,
           client: pulls,
           token: () => options.tokens?.current(),

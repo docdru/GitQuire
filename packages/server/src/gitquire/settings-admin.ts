@@ -7,7 +7,7 @@ import {
 import type { Extension } from '@hocuspocus/server';
 import { parseDocument } from 'yaml';
 import * as Y from 'yjs';
-import { cookieFromBag } from './principal-directory.ts';
+import { requestFromAuthPayload } from './principal-directory.ts';
 
 type AdminResolver = (req: IncomingMessage) => boolean;
 
@@ -34,8 +34,8 @@ interface AuthPayloadLike {
 
 function isMember(payload: AuthPayloadLike): boolean {
   if (resolver === undefined) return false;
-  const cookie = cookieFromBag(payload.requestHeaders) ?? cookieFromBag(payload.request?.headers);
-  return !resolver({ headers: { cookie: cookie ?? '' } } as IncomingMessage);
+  const req = requestFromAuthPayload(payload) ?? ({ headers: {} } as IncomingMessage);
+  return !resolver(req);
 }
 
 export function applySettingsAccess(payload: AuthPayloadLike): void {
