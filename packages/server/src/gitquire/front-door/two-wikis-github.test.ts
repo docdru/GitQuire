@@ -42,7 +42,8 @@ server.on('upgrade', (req, socket) => {
   socket.write('HTTP/1.1 101 Switching Protocols\\r\\nConnection: Upgrade\\r\\nUpgrade: websocket\\r\\n\\r\\n');
   socket.on('data', (chunk) => socket.write(chunk));
 });
-server.listen(process.env.GITQUIRE_SOCKET);
+const socket = process.env.GITQUIRE_SOCKET;
+server.listen(socket);
 process.on('SIGTERM', () => {
   if (fs.existsSync('unpushed')) fs.renameSync('unpushed', 'pushed-on-stop');
   server.closeAllConnections();
