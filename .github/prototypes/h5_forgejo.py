@@ -301,7 +301,7 @@ def wikis_setup():
     f.call("PUT", "/repos/team/alpha/collaborators/dave", {"permission": "write"}, auth=f.ADMIN)
     tokens = {}
     for name in ("alpha", "beta"):
-        status, body = f.make_token("gitquire-bot", f"wiki-{name}", ["write:repository", "read:user"],
+        status, body = f.make_token("gitquire-bot", f"wiki-{name}", ["write:repository"],
                                     repositories=[{"owner": "team", "name": name}])
         if status != 201:
             raise RuntimeError(f"limited token for {name}: {status} {body}")
@@ -376,7 +376,7 @@ def wikis_test():
                                    {"id": repos.get("alpha", {}).get("id"), "token": os.environ["BETA_TOKEN"]})
     check("Wikis add", status == 400 and isinstance(refused, dict) and refused.get("error") == "token-refused",
           f"a token limited to another repository is refused -> {status} {refused}")
-    for label, token, expected in (("an unlimited token of another account", os.environ["ALICE_TOKEN"], "not-the-bot"),
+    for label, token, expected in (("an unlimited token of another account", os.environ["ALICE_TOKEN"], "not-limited"),
                                    ("an unlimited token of the bot", os.environ["WIDE_TOKEN"], "not-limited")):
         status, refused, _ = door_call("POST", "/api/front-door/wikis", alice,
                                        {"id": repos.get("alpha", {}).get("id"), "token": token})
