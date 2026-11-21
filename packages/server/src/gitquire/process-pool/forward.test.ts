@@ -109,7 +109,9 @@ describe('forwarding to a child socket', () => {
         resolve(String(chunk).split('\r\n')[0] ?? '');
         s.destroy();
       });
-      s.write('GET /collab HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n');
+      s.write(
+        'GET /collab HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n',
+      );
     });
     expect(line).toBe('HTTP/1.1 101 Switching Protocols');
     for (let i = 0; i < 50 && closed.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
