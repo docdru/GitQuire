@@ -53,6 +53,8 @@ Modules added by the branch are listed here by the pull request that adds them.
 | Block 2 | `server-factory.ts` (`pushBeforeStop`), `sync-engine.ts` (`pushForStop`), `boot.ts` | On stop, after the last write to disk: wait for a sync cycle in flight, then one push cycle, only with `autoSync.mode: full` and a remote; "pushed" only if the tree is clean and `HEAD` is not ahead afterwards. Behind the front door only, within one stop deadline (`GITQUIRE_STOP_DEADLINE_MS`, 50 s; drafts get 25 s and a 30 s grace): the push gets what is left minus 5 s, at most 15 s. Before that, `boot.ts` stops the drafts and waits for them (R6) |
 | Stage 1 | `host/data-folder.ts` | Refuses a data folder recorded for another host, or used by GitHub people when the host is not GitHub; writes nothing for GitHub. Cannot see ids in comment threads committed to the repo |
 | Block 3 | `packages/app/src/lib/gitquire/wiki-prefix.ts` | The app's wiki prefix: `/w/<owner>/<repo>` when the page's path starts with `/w/<owner>/<repo>/`, otherwise none (`/`, `/docs/plan`, `/w/team` give none). Used by the fetch wrapper (`client-fetch.ts` `pathPrefix`: every same-origin address gets the prefix once), the live-editing fallback address (`cc1.ts`), app-built `/api/asset` addresses, Excalidraw's asset path and the Ask Claude wiki address; and as `storageNamespace` (`DocumentContext.tsx`), which scopes `ok-last-observed-branch`, `ok-doc-lineage-epochs` and the replay outbox, plus the tab session key `ok-editor-tabs-v1:<origin><prefix>`. No prefix: every address and key as before. The web manifest and the page's icon links are relative |
+| Block 5 | `front-door/access.ts` | **Contract.** Who may open which wiki: at sign-in the person's token is asked for every turned-on wiki in parallel (`signIn`), the answer is kept 5 minutes, then re-asked with GitQuire's own token (`accessByBot`). `unreachable` keeps a person with a positive answer inside and lets nobody new in (R14); `refused:*` disconnects the wiki (R15); a disconnected wiki or one whose owner is not allowed opens for nobody (R18) and is listed only to people last seen as its admins. The admin flag is per wiki (R3) |
+| Block 5 | `front-door/wiki-table.ts`, `allowed-owners.ts`, `repo-tokens.ts`, `settings.ts` | Wiki table `/data/server/wikis.json` (records keyed `<host>-<id>`, former names, state, never deleted; R10, R11, R16). Allowed owners pinned to the host's owner id at the first wiki under a listed name. Forgejo per-wiki tokens `/data/server/repo-tokens.json`, mode 0600. Settings refuse `GITQUIRE_ALLOWED_USERS`, `GITQUIRE_MCP_TOKEN` (R7) and a start without allowed owners or `GITQUIRE_REPO` (R18) |
 
 ## Contract files
 
@@ -62,7 +64,7 @@ Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they go
 
 - `packages/server/src/gitquire/request-person.ts` (block 1), for changes to `access-gate.ts`, `behind-front-door-gate.ts`, `internal-request.ts`, `principal-directory.ts`, `settings-admin.ts`, `collab-bootstrap-url.ts` and `drafts/http.ts` and `process-pool/forward.ts`.
 
-Planned: the front door's access check (block 5).
+- `packages/server/src/gitquire/front-door/access.ts` (block 5), for changes under `front-door/`, to `door-token.ts` and to `process-pool/forward.ts`.
 
 ## Seams where a mistake leaks or loses work
 
