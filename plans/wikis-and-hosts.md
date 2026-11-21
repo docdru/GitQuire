@@ -33,7 +33,8 @@ With `GITQUIRE_WIKIS` off and `GITQUIRE_HOST` unset, GitQuire behaves exactly as
 | Who may add a wiki | **Allowed owners is the one mechanism.** Only repos under a listed owner (a user or organisation on the host) can become wikis. Any repo admin may add such a repo. If nothing is set, only the owner of the first wiki (`GITQUIRE_REPO`) is allowed |
 | Who may sign in and edit | The Git host decides. A person sees a wiki only if they can write to its repo |
 | Order | Host interface, then Forgejo for one wiki (M1), then several wikis for both hosts (M2) |
-| GitQuire's identity on Forgejo | A bot account with an access token, added to each wiki repo as **admin** |
+| GitQuire's identity on Forgejo | A bot account, added to each wiki repo as **admin** |
+| Forgejo tokens (2026-11-21, after stage 0) | **Two kinds of token.** The bot's unlimited token stays in the front door (in single-wiki mode, in the one process) and is used only for access checks and host administration. Each wiki has its own **repository-limited** token for Git and pull requests, and only that token reaches the wiki's editor process. This gives Forgejo the same isolation per wiki as GitHub |
 | Hosts supported | GitHub, Forgejo 15 or later. Gitea and Codeberg untested and unpromised. GitLab not planned. SSH transport dropped |
 | Reviews | Every pull request gets the AI review action; the ones marked below also get a review by a separate agent |
 
@@ -79,11 +80,11 @@ Proposed and not objected to: a repo becomes a wiki only when a repo admin click
 | --- | --- | --- | --- |
 | Door | `signIn` | OAuth of the App | OAuth2 application; authorize with `response_type=code` and `scope=read:user read:repository`, exchange with `grant_type=authorization_code` (stage 0); use the token once, never store it |
 | Door | `access(personToken, repo)` → none, write, admin | `permissions` on the repo | Same; no "maintain" |
-| Door | `accessByBot(login, repo)` → none, write, admin, refused, unreachable | Collaborator permission with the app token | Same call with the bot token; bot must be repo admin |
+| Door | `accessByBot(login, repo)` → none, write, admin, refused, unreachable | Collaborator permission with the app token | Same call with the **unlimited** bot token (a limited token gets 403, F5); bot must be repo admin |
 | Door | `addableRepos(personToken)` | Installations and their repos visible to the person | `GET /user/repos` of the person, kept where the person is admin and the bot has access |
 | Door | `repoById(id)` with the owner's name and id | Repo number | Repo `id` |
-| Door | `tokenFor(repo)` | Installation token limited to that repo, renewed hourly | The bot token |
-| Door | `selfCheck()` at start and per wiki | App installed, contents permission | Version at least 15; bot is admin on the repo |
+| Door | `tokenFor(repo)` | Installation token limited to that repo, renewed hourly | The wiki's repository-limited token. Never the unlimited token |
+| Door | `selfCheck()` at start and per wiki | App installed, contents permission | Version at least 15; bot is admin on the repo; the wiki's limited token reaches its own repo and nothing else |
 | Wiki | `repoInfo`, `people`, `reviews` (today's `DraftRemote`) | As today | Pull requests with squash; head-branch filter in GitQuire; branches through Git |
 | Both | `names` | Label, id prefix `github-`, no-reply form | Label, id prefix `forgejo-`, no-reply form from a setting |
 
@@ -96,9 +97,9 @@ In single-wiki mode there is no front door; the one process uses both sides, as 
 | – | Branch set-up (this file, the review map, CI and image for the branch) | |
 | 0 | Prototypes P1–P5, F1–F9; findings appended below. Continue if every row passes | |
 | 1 | H1 host interface, GitHub only, no change in behaviour; H3 id prefix, commit email format, refuse a data folder with another host's ids | yes |
-| 2 | Forgejo, one wiki: H2 adapter with `selfCheck`, H4 wording, H5 tests with a Forgejo container in CI, H6 docs. **M1** | |
+| 2 | Forgejo, one wiki: H2 adapter with `selfCheck` and the two tokens (`GITQUIRE_HOST_TOKEN` for checks, `GITQUIRE_HOST_REPO_TOKEN` for Git and pull requests), H4 wording, H5 tests with a Forgejo container in CI, H6 docs. **M1** | |
 | 3 | Blocks 1–3: behind a proxy, process pool, app under a prefix | yes (1, 2) |
-| 4 | Block 4 for both hosts: `addableRepos`, `repoById` and renames, bot removed or app uninstalled, `tokenFor` | |
+| 4 | Block 4 for both hosts: `addableRepos`, `repoById` and renames, bot removed or app uninstalled, `tokenFor` (Forgejo: the wiki's limited token, its expiry and "token refused" as R15) | |
 | 5 | Blocks 5–8: front door, AI assistants, wiki list and menu, mention badge | yes (5, 6) |
 | 6 | Blocks 10, 11: moving over and docs; two-wiki tests against Forgejo plus the GitHub fake. Final pull request to `main` opened, not merged. **M2** | yes (10) |
 
@@ -108,7 +109,8 @@ The agent merges a pull request into `wikis-hosts` when `ci-ok` is green on the 
 
 ## Known limits, accepted
 
-- Forgejo: one bot token for all wikis, so the per-repo token protects GitHub servers only.
+- Forgejo: the unlimited bot token is in the front door only; editor processes hold their own repository-limited token. A limited token can still read the details (not the files) of other repos the bot belongs to (F5).
+- Forgejo: each wiki needs its own limited token, created on Forgejo and entered by an administrator (how it is made is F10). Single-wiki mode needs two tokens instead of one.
 - Forgejo: the bot is repo admin, more than editing needs.
 - Forgejo sign-in tokens are not limited; GitQuire uses the token once and drops it.
 - One host call per wiki at sign-in; reconsider a list call above roughly 50 wikis.
@@ -133,13 +135,13 @@ Run on 2026-11-20 by `.github/workflows/prototypes.yml` on GitHub Actions: Forge
 | F2 | **pass** | The bot token works as the Git password with any user name, `x-access-token` included |
 | F3 | **pass** | Pull request, squash merge with title, close, branch delete through the API |
 | F4 | **pass** | Writer bot: 403. Admin bot: 200 with `none`, `write` or `admin`; unknown login 404 |
-| F5 | **fail** | A repository-limited token cannot ask for another person's permission (403), so it cannot do the R15 re-check |
+| F5 | **fail** | A repository-limited token cannot ask for another person's permission (403), so it cannot do the R15 re-check. Owner's answer (2026-11-21): two tokens, see the decisions |
 | F6 | **pass** | A commit with `<login>@<NO_REPLY_ADDRESS>` is linked to the account and shows its avatar |
 | F7 | **pass**, one note | Comment threads render as footnotes with the thread as a list; Mermaid and math are marked for the browser to draw; display math loses `\,` |
 | F8 | **pass**, fallback needed | A team-only member passes the sign-in check and the bot re-check, but is **not** in the collaborators list |
 | F9 | **pass** | Removed bot: 404 on the repo and the permission call, Git "Repository not found". Revoked token: 401 everywhere. Both distinct from "unreachable" |
 
-**Gate: F5 fails its "passes when", so by the plan's rule the run stops after stage 0.** The plan already accepts one unlimited bot token per server ("Known limits"), so F5 does not break M1's design; what it removes is the later option of one repository-limited token per wiki, and the analysis' recommended Forgejo set-up. The owner decides whether to continue.
+**Gate: F5 fails its "passes when", so by the plan's rule the run stopped after stage 0. The owner chose two tokens on 2026-11-21 (decisions table); F10 checks what that needs.** The plan already accepts one unlimited bot token per server ("Known limits"), so F5 does not break M1's design; what it removes is the later option of one repository-limited token per wiki, and the analysis' recommended Forgejo set-up. The owner decides whether to continue.
 
 ### Forgejo (F rows, R10, R17, R18)
 
@@ -180,4 +182,12 @@ The prototype (`front-proxy.mjs`) strips `/w/<owner>/<repo>/`, adds it to `Locat
 5. Block 1/5: sign-in, the session and the draft-view cookie live at the root in the front door; editor processes set no cookies of their own.
 6. Block 3: the prefix comes from the app's code, not an injected script; `localStorage` keys get the wiki namespace.
 7. R6: commit and push before stopping.
-8. Forgejo set-up docs (H6): the bot needs an unlimited `write:repository` token and repo admin; repository-limited tokens cannot do the access re-check (F5).
+8. Forgejo set-up docs (H6): the bot is repo admin and has an unlimited token (for checks, kept in the front door) plus one repository-limited token per wiki (for Git and pull requests); a limited token cannot do the access re-check (F5).
+
+### F10, added for the two-token decision
+
+| # | Try | Passes when |
+| --- | --- | --- |
+| F10 | With a token limited to the wiki's repo: push branches, open, squash-merge with a title, close, delete branches through the API and Git, read the collaborators list and the repo record. Then: can GitQuire create such a token without the bot's password (with the unlimited token, with a limited one, as site admin with `Sudo`)? | Every draft step works with the limited token. The token-creation answers are written down; they decide whether Add a wiki can make the token itself or an administrator enters it |
+
+Results: appended when the run of this pull request is in.

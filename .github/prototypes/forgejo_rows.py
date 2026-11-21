@@ -425,6 +425,8 @@ def f5():
     record("F5", s == 201 and bool(token), f"create a token limited to team/wiki ({field}={value}) -> {s} {'' if token else body}")
     if not token:
         return None
+    s, full = make_token("gitquire-bot", "f10-unlimited", ["write:repository", "read:user"])
+    f10(token, full.get("sha1") if isinstance(full, dict) else "")
     tmp = tempfile.mkdtemp()
     try:
         ok = git(["ls-remote", BASE.replace("://", f"://gitquire-bot:{token}@") + "/team/wiki.git"], tmp).returncode == 0
@@ -444,6 +446,67 @@ def f5():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return token
+
+
+def f10(limited, unlimited):
+    tmp = tempfile.mkdtemp()
+    try:
+        auth = base64.b64encode(f"gitquire-bot:{limited}".encode()).decode()
+        env = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "http.extraHeader",
+               "GIT_CONFIG_VALUE_0": f"Authorization: Basic {auth}"}
+        work = os.path.join(tmp, "w")
+        p = git(["clone", "-q", BASE + "/team/wiki.git", work], tmp, env)
+        if p.returncode != 0:
+            record("F10", False, f"clone with the limited token -> {p.returncode} {p.stderr.strip()[-160:]}")
+            return
+        git(["config", "user.name", "Bob"], work)
+        git(["config", "user.email", f"bob@{NO_REPLY}"], work)
+        tok = {"token": limited}
+        made = {}
+        for name, text in (("draft/limited-one", "one"), ("draft/limited-two", "two"), ("draft/limited-three", "three")):
+            git(["checkout", "-q", "-B", name, "origin/main"], work)
+            with open(os.path.join(work, f"{name.split('/')[1]}.md"), "w") as fh:
+                fh.write(f"Draft {text}\n")
+            git(["add", "."], work)
+            git(["commit", "-qm", f"Draft {text}"], work)
+            pushed = git(["push", "-q", "origin", f"HEAD:refs/heads/{name}"], work, env).returncode == 0
+            s, pr, _ = call("POST", "/repos/team/wiki/pulls", {"head": name, "base": "main", "title": f"Draft {text}"}, **tok)
+            made[name] = pr.get("number") if s == 201 and isinstance(pr, dict) else None
+            record("F10", pushed and s == 201, f"limited token: push branch {name} -> {pushed}, open pull request -> {s}")
+        one, two, three = (made[k] for k in ("draft/limited-one", "draft/limited-two", "draft/limited-three"))
+        if one:
+            s, body, _ = call("POST", f"/repos/team/wiki/pulls/{one}/merge", {
+                "Do": "squash", "MergeTitleField": "Publish limited one", "delete_branch_after_merge": False}, **tok)
+            s2, pr, _ = call("GET", f"/repos/team/wiki/pulls/{one}", **tok)
+            merged = isinstance(pr, dict) and pr.get("merged") is True
+            s3, cm, _ = call("GET", "/repos/team/wiki/commits?sha=main&limit=1", **tok)
+            title = cm[0]["commit"]["message"].splitlines()[0] if isinstance(cm, list) and cm else cm
+            record("F10", s == 200 and merged and title == "Publish limited one",
+                   f"limited token: squash merge with a title -> {s} {'' if s == 200 else str(body)[:160]}; reads merged {merged}; title on main {title!r}")
+        if two:
+            s, body, _ = call("PATCH", f"/repos/team/wiki/pulls/{two}", {"state": "closed"}, **tok)
+            record("F10", s == 201 and isinstance(body, dict) and body.get("state") == "closed",
+                   f"limited token: close a pull request -> {s} state {body.get('state') if isinstance(body, dict) else str(body)[:120]}")
+        for name in ("draft/limited-one", "draft/limited-two"):
+            s, body, _ = call("DELETE", f"/repos/team/wiki/branches/{urllib.parse.quote(name, safe='')}", **tok)
+            record("F10", s == 204, f"limited token: delete branch {name} through the API -> {s} {'' if s == 204 else str(body)[:120]}")
+        p = git(["push", "-q", "origin", "--delete", "draft/limited-three"], work, env)
+        record("F10", p.returncode == 0, f"limited token: delete branch draft/limited-three through Git -> exit {p.returncode} {p.stderr.strip()[-120:]}")
+        s, body, _ = call("GET", "/repos/team/wiki/collaborators?limit=50", **tok)
+        record("F10", None, f"limited token: collaborators list (people for @mentions) -> {s}")
+        s, body, _ = call("GET", "/repos/team/wiki", **tok)
+        record("F10", None, f"limited token: repo record (clone address, default branch) -> {s} default_branch {body.get('default_branch') if isinstance(body, dict) else ''}")
+        for label, kw in (("unlimited token", {"token": unlimited}), ("limited token", tok)):
+            s, body, _ = call("POST", "/users/gitquire-bot/tokens", {
+                "name": f"minted-by-{label.split()[0]}", "scopes": ["write:repository"],
+                "repositories": [{"owner": "team", "name": "wiki-b"}]}, **kw)
+            record("F10", None, f"create a repository-limited token with the bot's {label} (no password) -> {s} {'' if s == 201 else str(body)[:160]}")
+        s, body, _ = call("POST", "/users/gitquire-bot/tokens", {
+            "name": "minted-by-site-admin", "scopes": ["write:repository"],
+            "repositories": [{"owner": "team", "name": "wiki-b"}]}, auth=ADMIN, headers={"Sudo": "gitquire-bot"})
+        record("F10", None, f"create one as site admin acting as the bot (Sudo header, admin password) -> {s} {'' if s == 201 else str(body)[:160]}")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def f7(token):
