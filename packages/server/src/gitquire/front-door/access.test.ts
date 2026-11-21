@@ -45,13 +45,13 @@ function setup(levels: Record<string, RepoAccess>, bot: () => BotAccess = () => 
 }
 
 describe('front door access check', () => {
-  it('asks the host with the person token for every turned-on wiki at sign-in, then answers from the cache', async () => {
+  it('asks the host with the person token for every wiki at sign-in, then answers from the cache', async () => {
     const a = wiki('a', 1);
     const b = wiki('b', 2);
     const off = wiki('c', 3, 'disconnected');
     const { access, accessCall, botCall } = setup({ a: 'admin', b: 'none' });
     await access.signIn(alice, 'person-token', [a, b, off]);
-    expect(accessCall).toHaveBeenCalledTimes(2);
+    expect(accessCall).toHaveBeenCalledTimes(3);
     expect(await access.decide(alice, a)).toEqual({ open: true, admin: true });
     expect(await access.decide(alice, b)).toEqual({ open: false, why: 'no-access' });
     expect(await access.decide(alice, off)).toEqual({ open: false, why: 'disconnected' });
@@ -65,7 +65,7 @@ describe('front door access check', () => {
     await access.signIn(alice, 't', [a]);
     advance(ACCESS_TTL_MS + 1);
     expect(await access.decide(alice, a)).toEqual({ open: false, why: 'no-access' });
-    expect(botCall).toHaveBeenCalledWith('alice', { owner: 'team', name: 'a' });
+    expect(botCall).toHaveBeenCalledWith('alice', a);
     answer = 'admin';
     advance(ACCESS_TTL_MS + 1);
     expect(await access.decide(alice, a)).toEqual({ open: true, admin: true });
@@ -134,5 +134,52 @@ describe('front door access check', () => {
       refused: () => {},
     });
     expect(await access.decide(alice, a)).toEqual({ open: false, why: 'disconnected' });
+  });
+
+  it('after a restart, shows a disconnected wiki to its admins from the sign-in answer, and to server administrators (R11)', async () => {
+    const off = wiki('a', 1, 'disconnected');
+    const notAllowed = wiki('b', 2);
+    const access = createWikiAccess({
+      host: {
+        access: async () => 'admin',
+        accessByBot: async () => 'admin',
+      },
+      runnable: (w) => w.name !== 'b',
+      refused: () => {},
+    });
+    await access.signIn(alice, 't', [off, notAllowed]);
+    expect(access.wasAdmin(alice, off)).toBe(true);
+    expect((await access.wikisFor(alice, [off, notAllowed])).map(({ wiki: w }) => w.name)).toEqual([
+      'a',
+      'b',
+    ]);
+    const bob = { id: 2, login: 'bob' };
+    expect(await access.wikisFor(bob, [off])).toEqual([]);
+    expect(await access.wikisFor(bob, [off], { serverAdmin: true })).toEqual([
+      { wiki: off, admin: true },
+    ]);
+    expect(await access.decide(alice, off)).toEqual({ open: false, why: 'disconnected' });
+  });
+
+  it('reports a changed answer so the front door can look the repository up again by id', async () => {
+    const a = wiki('a', 1);
+    const changed: string[] = [];
+    let time = 0;
+    let level: BotAccess = 'write';
+    const access = createWikiAccess({
+      host: { access: async () => 'write', accessByBot: async () => level },
+      runnable: () => true,
+      refused: () => {},
+      changed: (w) => changed.push(w.key),
+      now: () => time,
+    });
+    await access.signIn(alice, 't', [a]);
+    time += ACCESS_TTL_MS + 1;
+    await access.decide(alice, a);
+    expect(changed).toEqual([]);
+    level = 'none';
+    time += ACCESS_TTL_MS + 1;
+    await access.decide(alice, a);
+    expect(changed).toEqual(['github-1']);
   });
 });

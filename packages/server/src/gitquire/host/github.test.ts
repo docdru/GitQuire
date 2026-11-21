@@ -93,3 +93,67 @@ describe('GitHub door host', () => {
     expect(await door.tokenFor({ owner: 'acme', name: 'other' })).toBeUndefined();
   });
 });
+
+describe('GitHub door host: rate limits and repo ids', () => {
+  const app = { jwt: () => 'jwt' };
+
+  function host(answer: (method: string, path: string, body: string) => Response) {
+    const seen: string[] = [];
+    const fake = async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(String(input));
+      const body = typeof init?.body === 'string' ? init.body : '';
+      seen.push(`${init?.method ?? 'GET'} ${url.pathname} ${body}`.trim());
+      return answer(init?.method ?? 'GET', url.pathname, body);
+    };
+    const door = createGitHubDoorHost(
+      { webUrl: 'https://github.com', apiUrl: 'https://api.github.com', repo: undefined },
+      { fetch: fake as typeof fetch, app },
+    );
+    return { door, seen };
+  }
+
+  const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
+    new Response(JSON.stringify(body), { status, headers });
+
+  it('reads 429 and rate-limited 403 answers as unreachable, not as refused (R14)', async () => {
+    for (const limited of [
+      json(429, { message: 'slow down' }),
+      json(403, { message: 'API rate limit exceeded' }, { 'x-ratelimit-remaining': '0' }),
+      json(403, { message: 'You have exceeded a secondary rate limit.' }),
+      json(403, { message: 'wait' }, { 'retry-after': '60' }),
+    ]) {
+      const { door } = host((method, path) => {
+        if (path.endsWith('/installation')) return json(200, { id: 11 });
+        if (method === 'POST') return json(201, { token: 't', expires_at: '2999-01-01T00:00:00Z' });
+        return limited.clone();
+      });
+      expect(await door.accessByBot('alice', { owner: 'acme', name: 'notes' })).toBe('unreachable');
+    }
+    const { door } = host((method, path) => {
+      if (path.endsWith('/installation')) return json(200, { id: 11 });
+      if (method === 'POST') return json(201, { token: 't', expires_at: '2999-01-01T00:00:00Z' });
+      return json(403, { message: 'Must have push access to view collaborator permission.' });
+    });
+    expect(await door.accessByBot('alice', { owner: 'acme', name: 'notes' })).toBe(
+      'refused:not-admin',
+    );
+    const { door: health } = host(() => json(429, {}));
+    expect(await health.health({ owner: 'acme', name: 'notes' })).toBe('unreachable');
+  });
+
+  it('mints by repository id when the repo record carries one, so a reused old name cannot get the token', async () => {
+    const { door, seen } = host((method, path) => {
+      if (path === '/repositories/41/installation') return json(200, { id: 11 });
+      if (method === 'POST') return json(201, { token: 't', expires_at: '2999-01-01T00:00:00Z' });
+      return json(200, { permission: 'write', role_name: 'write' });
+    });
+    const record = { host: 'github' as const, id: 41, owner: 'acme', ownerId: 7, name: 'notes' };
+    expect(await door.tokenFor(record)).toBe('t');
+    expect(await door.accessByBot('alice', record)).toBe('write');
+    expect(seen).toEqual([
+      'GET /repositories/41/installation',
+      'POST /app/installations/11/access_tokens {"repository_ids":[41]}',
+      'GET /repositories/41/collaborators/alice/permission',
+    ]);
+  });
+});
