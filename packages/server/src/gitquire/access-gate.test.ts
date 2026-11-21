@@ -724,7 +724,9 @@ describe('Forgejo sign-in settings and routes', () => {
         { ...FORGEJO_ENV, GITQUIRE_HOST_CLIENT_SECRET: '' },
         { externalUrl: 'https://wiki.example' },
       ),
-    ).toThrow('Forgejo sign-in is enabled but these settings are missing: GITQUIRE_HOST_CLIENT_SECRET');
+    ).toThrow(
+      'Forgejo sign-in is enabled but these settings are missing: GITQUIRE_HOST_CLIENT_SECRET',
+    );
   });
 
   it('serves sign-in under /auth/forgejo/ with the host label', () => {
