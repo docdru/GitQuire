@@ -124,6 +124,7 @@ function isStatePayload(value: unknown): value is StatePayload {
 
 export function safeNextPath(raw: string | null | undefined): string {
   if (raw === null || raw === undefined || raw === '') return '/';
+  if (!/^[\x21-\x7e]+$/.test(raw)) return '/';
   if (!raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return '/';
   if (raw.startsWith('/auth/') && raw !== AGENTS_PAGE_PATH) return '/';
   return raw;

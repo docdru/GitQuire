@@ -260,6 +260,10 @@ describe('safeNextPath', () => {
     ['/\\evil.example', '/'],
     ['https://evil.example', '/'],
     ['/auth/logout', '/'],
+    ['/\t/evil.example', '/'],
+    ['/\n/evil.example', '/'],
+    ['/a b', '/'],
+    ['/docs/My%20Page', '/docs/My%20Page'],
     [null, '/'],
   ])('maps %s to %s', (input, expected) => {
     expect(safeNextPath(input)).toBe(expected);
