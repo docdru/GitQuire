@@ -80,6 +80,14 @@ def prepare():
     status, created, _ = h.gq("POST", "/api/gitquire/drafts", alice, {"title": "Moved draft", "open": True})
     slug = created.get("draft", {}).get("slug") if isinstance(created, dict) else None
     check("Adopt", status == 201 and slug is not None, f"alice creates a draft in the single wiki -> {status} {created}")
+    made = False
+    for _ in range(45):
+        h.gq("GET", "/api/config", alice)
+        if h.docker("exec", h.CONTAINER, "test", "-d", f"/.gitquire-drafts/data/{slug}/data/.git", check_ok=False).returncode == 0:
+            made = True
+            break
+        time.sleep(2)
+    check("Adopt", made, f"opening the draft makes its working copy in /.gitquire-drafts/data/{slug}/data")
     jar = next(handler.cookiejar for handler in alice.handlers if hasattr(handler, "cookiejar"))
     session = next((c.value for c in jar if c.name == "gq_session"), None)
     with open(STATE, "w") as fh:
@@ -151,7 +159,7 @@ def run():
           f"checkout in /data/wikis/{key}/, the wiki table, the agent tokens and the wiki's limited token (0600) are in place -> {output(layout)[-600:]}")
     original = on_copy(f"test -d /.gitquire-drafts/data/{slug}/data/.git").returncode == 0
     copied = on_copy(f"test -d /data/wikis/.gitquire-drafts/{key}/{slug}/{key}/.git").returncode == 0
-    check("Adopt", copied if original else None,
+    check("Adopt", copied and original,
           f"draft working copy: original in /.gitquire-drafts/data/{slug}/data {'kept' if original else 'not made by the single wiki'}, "
           f"copy in /data/wikis/.gitquire-drafts/{key}/{slug}/{key} {'made' if copied else 'missing'}")
     proc = gitquire("wikis", "adopt", "/data")
