@@ -268,7 +268,7 @@ jobs:
 
       - name: Start check with the bot as writer (R17), then make it admin
         run: |
-          set -u
+          set +e -u
           docker volume create gq-h5 >/dev/null
           out=$(timeout 180 docker run --rm --network host -v gq-h5:/data -v /tmp/ca:/ca:ro \
             -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
