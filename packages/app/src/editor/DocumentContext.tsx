@@ -20,6 +20,7 @@ import {
   isSameHash,
 } from '@/lib/doc-hash';
 import { emitBranchChanged, emitDocumentsChanged } from '@/lib/documents-events';
+import { wikiPrefix, wikiStorageNamespace } from '@/lib/gitquire/wiki-prefix';
 import { subscribeLocalMenuAction } from '@/lib/local-menu-action-bus';
 import { mark } from '@/lib/perf';
 import { revealEditor, revealEditorBeforeActing } from '@/lib/reveal-editor';
@@ -229,7 +230,7 @@ let pool: ProviderPool | null = null;
 export function getPool(collabUrl: string): ProviderPool {
   if (!pool) {
     pool = new ProviderPool(MAX_POOL, collabUrl, {
-      storageNamespace: null,
+      storageNamespace: wikiStorageNamespace(),
     });
     subscribePoolEviction(pool);
   }
@@ -254,7 +255,7 @@ const EMPTY_SNAPSHOT: Snapshot = {
 
 function getLocalTabSessionKey(): string | null {
   if (typeof window === 'undefined') return null;
-  return localTabSessionKeyForMode(undefined, window.location.origin);
+  return localTabSessionKeyForMode(undefined, `${window.location.origin}${wikiPrefix()}`);
 }
 
 function readInitialLocalTabSession() {

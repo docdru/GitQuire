@@ -4253,8 +4253,8 @@ msgstr "Me (@{mine})"
 msgid "Medium section heading."
 msgstr "Medium section heading."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr "Mention people by their GitHub name, like @anna."
+msgid "Mention people by their {host} name, like @anna."
+msgstr "Mention people by their {host} name, like @anna."
 
 msgid "Mentions"
 msgstr "Mentions"
@@ -4976,11 +4976,11 @@ msgstr "On — hovering an external link sends its URL to the destination site t
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 
+msgid "On {host}"
+msgstr "On {host}"
+
 msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-
-msgid "On GitHub"
-msgstr "On GitHub"
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
 msgstr "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5027,8 @@ msgstr "Open"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "Open {0} on GitHub (opens in a new tab)"
 
-msgid "Open {fullName} on GitHub"
-msgstr "Open {fullName} on GitHub"
+msgid "Open {fullName} on {host}"
+msgstr "Open {fullName} on {host}"
 
 msgid "Open {keyName} in browser"
 msgstr "Open {keyName} in browser"
@@ -5559,8 +5559,8 @@ msgstr "Published"
 msgid "Published by {publisher}"
 msgstr "Published by {publisher}"
 
-msgid "Published on GitHub"
-msgstr "Published on GitHub"
+msgid "Published on {host}"
+msgstr "Published on {host}"
 
 msgid "Published or discarded"
 msgstr "Published or discarded"

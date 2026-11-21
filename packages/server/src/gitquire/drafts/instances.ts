@@ -89,6 +89,8 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
         cwd: dir(draft.slug),
         env: {
           ...deps.env,
+          GITQUIRE_HOST_TOKEN: undefined,
+          GITQUIRE_HOST_TOKEN_FILE: undefined,
           GITQUIRE_BIND: '127.0.0.1',
           GITQUIRE_BRANCH: draft.branch,
           [DRAFT_INSTANCE_ENV]: draft.slug,

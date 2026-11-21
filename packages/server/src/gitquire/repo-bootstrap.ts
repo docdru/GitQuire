@@ -42,7 +42,7 @@ export interface BootstrapDeps {
 
 export async function bootstrapRepository(
   dir: string,
-  config: GitHubAppConfig,
+  config: Pick<GitHubAppConfig, 'gitHost' | 'branch'>,
   client: GitHubAppClient,
   deps: BootstrapDeps = {},
 ): Promise<BootstrapOutcome> {

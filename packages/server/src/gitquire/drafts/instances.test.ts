@@ -74,7 +74,12 @@ function setup(options: { readyAfter?: number } = {}) {
       polls += 1;
       return { status: polls > (options.readyAfter ?? 0) ? 200 : 503, body: '' };
     },
-    env: { KEEP: 'yes', PORT: '8080' },
+    env: {
+      KEEP: 'yes',
+      PORT: '8080',
+      GITQUIRE_HOST_TOKEN: 'bot-token',
+      GITQUIRE_HOST_TOKEN_FILE: '/run/t',
+    },
   });
   return { instances, spawned, prepared, baseDir };
 }
@@ -100,6 +105,8 @@ describe('draft editors', () => {
       GITQUIRE_INTERNAL_SECRET: 's'.repeat(64),
     });
     expect(spawned[0]?.env).not.toHaveProperty('PORT');
+    expect(spawned[0]?.env.GITQUIRE_HOST_TOKEN).toBeUndefined();
+    expect(spawned[0]?.env.GITQUIRE_HOST_TOKEN_FILE).toBeUndefined();
     expect(instances.isRunning('plan')).toBe(true);
   });
 

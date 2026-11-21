@@ -1,3 +1,6 @@
+import { parseHostKind } from './host/names.ts';
+import type { HostKind } from './host/types.ts';
+
 export interface GitHubRepoRef {
   owner: string;
   name: string;
@@ -69,26 +72,73 @@ export function parseGitHubRepo(value: string | undefined): GitHubRepoRef | unde
   return { owner: match[1], name: match[2] };
 }
 
-function isGitHubAuthRequested(env: Readonly<Record<string, string | undefined>>): boolean {
+interface SignInNames {
+  host: HostKind;
+  clientIdVar: string;
+  clientSecretVar: string;
+}
+
+function signInNames(env: Readonly<Record<string, string | undefined>>): SignInNames {
+  return parseHostKind(env) === 'forgejo'
+    ? {
+        host: 'forgejo',
+        clientIdVar: 'GITQUIRE_HOST_CLIENT_ID',
+        clientSecretVar: 'GITQUIRE_HOST_CLIENT_SECRET',
+      }
+    : {
+        host: 'github',
+        clientIdVar: 'GITHUB_APP_CLIENT_ID',
+        clientSecretVar: 'GITHUB_APP_CLIENT_SECRET',
+      };
+}
+
+function isGitHubAuthRequested(
+  env: Readonly<Record<string, string | undefined>>,
+  names: SignInNames,
+): boolean {
   const mode = nonEmpty(env.GITQUIRE_AUTH)?.toLowerCase();
   if (mode === 'off' || mode === 'none') return false;
-  return mode === 'github' || nonEmpty(env.GITHUB_APP_CLIENT_ID) !== undefined;
+  return mode === names.host || nonEmpty(env[names.clientIdVar]) !== undefined;
+}
+
+function hostAddresses(
+  env: Readonly<Record<string, string | undefined>>,
+  host: HostKind,
+): { web: string; api: string } {
+  if (host === 'github') {
+    return {
+      web: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),
+      api: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_API_URL) ?? 'https://api.github.com'),
+    };
+  }
+  const web = nonEmpty(env.GITQUIRE_HOST_URL);
+  if (web === undefined) {
+    throw new GitHubAuthConfigError(
+      'GITQUIRE_HOST=forgejo needs GITQUIRE_HOST_URL, the address of the Forgejo server.',
+    );
+  }
+  const base = stripTrailingSlash(web);
+  return {
+    web: base,
+    api: stripTrailingSlash(nonEmpty(env.GITQUIRE_HOST_API_URL) ?? `${base}/api/v1`),
+  };
 }
 
 export function resolveGitHubAuthConfig(
   env: Readonly<Record<string, string | undefined>>,
   runtime: { externalUrl: string | undefined },
 ): GitHubAuthConfig | undefined {
-  if (!isGitHubAuthRequested(env)) return undefined;
+  const names = signInNames(env);
+  if (!isGitHubAuthRequested(env, names)) return undefined;
 
-  const clientId = nonEmpty(env.GITHUB_APP_CLIENT_ID);
-  const clientSecret = nonEmpty(env.GITHUB_APP_CLIENT_SECRET);
+  const clientId = nonEmpty(env[names.clientIdVar]);
+  const clientSecret = nonEmpty(env[names.clientSecretVar]);
   const sessionSecret = nonEmpty(env.GITQUIRE_SESSION_SECRET);
   const externalUrlRaw = nonEmpty(runtime.externalUrl) ?? nonEmpty(env.GITQUIRE_EXTERNAL_URL);
 
   const missing: string[] = [];
-  if (clientId === undefined) missing.push('GITHUB_APP_CLIENT_ID');
-  if (clientSecret === undefined) missing.push('GITHUB_APP_CLIENT_SECRET');
+  if (clientId === undefined) missing.push(names.clientIdVar);
+  if (clientSecret === undefined) missing.push(names.clientSecretVar);
   if (sessionSecret === undefined) missing.push('GITQUIRE_SESSION_SECRET');
   if (externalUrlRaw === undefined) missing.push('GITQUIRE_EXTERNAL_URL');
   if (
@@ -98,7 +148,7 @@ export function resolveGitHubAuthConfig(
     externalUrlRaw === undefined
   ) {
     throw new GitHubAuthConfigError(
-      `GitHub sign-in is enabled but these settings are missing: ${missing.join(', ')}.`,
+      `${names.host === 'github' ? 'GitHub' : 'Forgejo'} sign-in is enabled but these settings are missing: ${missing.join(', ')}.`,
     );
   }
 
@@ -124,7 +174,9 @@ export function resolveGitHubAuthConfig(
   const allowedUsers = loginSet(env.GITQUIRE_ALLOWED_USERS);
   if (repo === undefined && allowedUsers.size === 0) {
     throw new GitHubAuthConfigError(
-      'GitHub sign-in needs GITQUIRE_REPO (people with write access may sign in) or GITQUIRE_ALLOWED_USERS (a list of GitHub logins).',
+      names.host === 'github'
+        ? 'GitHub sign-in needs GITQUIRE_REPO (people with write access may sign in) or GITQUIRE_ALLOWED_USERS (a list of GitHub logins).'
+        : 'Forgejo sign-in needs GITQUIRE_REPO (people with write access may sign in) or GITQUIRE_ALLOWED_USERS (a list of Forgejo logins).',
     );
   }
 
@@ -145,6 +197,7 @@ export function resolveGitHubAuthConfig(
     );
   }
 
+  const addresses = hostAddresses(env, names.host);
   return {
     clientId,
     clientSecret,
@@ -158,9 +211,7 @@ export function resolveGitHubAuthConfig(
     mcpConnectors: isOn(env.GITQUIRE_MCP_CONNECTORS),
     aiChat: !isOff(env.GITQUIRE_AI_CHAT),
     sessionMaxAgeSeconds: Math.round(sessionDays * 24 * 60 * 60),
-    githubWebUrl: stripTrailingSlash(nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com'),
-    githubApiUrl: stripTrailingSlash(
-      nonEmpty(env.GITQUIRE_GITHUB_API_URL) ?? 'https://api.github.com',
-    ),
+    githubWebUrl: addresses.web,
+    githubApiUrl: addresses.api,
   };
 }

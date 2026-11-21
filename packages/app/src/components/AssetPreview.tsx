@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { LoadingImage } from '@/components/ui/loading-image';
 import { dispatchAssetClick } from '@/editor/asset-dispatch';
 import { Pdf } from '@/editor/components/Pdf';
+import { withWikiPrefix } from '@/lib/gitquire/wiki-prefix';
 
 interface AssetPreviewProps {
   assetPath: string;
@@ -15,11 +16,11 @@ interface AssetPreviewProps {
 }
 
 function assetUrl(assetPath: string): string {
-  return `/api/asset?path=${encodeURIComponent(assetPath)}`;
+  return withWikiPrefix(`/api/asset?path=${encodeURIComponent(assetPath)}`);
 }
 
 function assetTextUrl(assetPath: string): string {
-  return `/api/asset-text?path=${encodeURIComponent(assetPath)}`;
+  return withWikiPrefix(`/api/asset-text?path=${encodeURIComponent(assetPath)}`);
 }
 
 export function AssetPreview({ assetPath, mediaKind }: AssetPreviewProps) {

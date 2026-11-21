@@ -11,7 +11,7 @@ type Env = Readonly<Record<string, string>>;
 type PublishResult = { ok: true; sha: string } | { ok: false; reason: 'conflict'; message: string };
 
 export interface DraftRemote {
-  readonly kind: 'github' | 'git';
+  readonly kind: 'github' | 'forgejo' | 'git';
   headSha: (branch: string) => Promise<string | undefined>;
   createBranch: (branch: string, sha: string) => Promise<void>;
   deleteBranch: (branch: string) => Promise<void>;
@@ -68,6 +68,21 @@ export function gitHubRemote(
       draft.pull === undefined
         ? undefined
         : `https://github.com/${repo.owner}/${repo.name}/pull/${draft.pull}`,
+  };
+}
+
+export function forgejoRemote(
+  client: GitHubDraftsClient,
+  repo: { owner: string; name: string },
+  webUrl: string,
+): DraftRemote {
+  return {
+    ...gitHubRemote(client, repo),
+    kind: 'forgejo',
+    pullUrl: (draft) =>
+      draft.pull === undefined
+        ? undefined
+        : `${webUrl}/${repo.owner}/${repo.name}/pulls/${draft.pull}`,
   };
 }
 

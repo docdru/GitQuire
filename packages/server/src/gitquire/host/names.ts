@@ -47,17 +47,50 @@ export function gitHubNames(emailFormat: string = GITHUB_EMAIL_FORMAT): HostName
   };
 }
 
+let current: HostNames = gitHubNames();
+
+export function forgejoNames(emailFormat: string): HostNames {
+  return {
+    kind: 'forgejo',
+    label: 'Forgejo',
+    idPrefix: 'forgejo-',
+    noreplyEmail: (person) => emailFromFormat(emailFormat, person),
+  };
+}
+
+function forgejoDefaultEmailFormat(env: Env): string {
+  const raw = nonEmpty(env.GITQUIRE_HOST_URL);
+  if (raw === undefined) {
+    throw new HostConfigError(
+      'GITQUIRE_HOST=forgejo needs GITQUIRE_HOST_URL, the address of the Forgejo server.',
+    );
+  }
+  let hostname: string;
+  try {
+    hostname = new URL(raw).hostname;
+  } catch {
+    throw new HostConfigError(`GITQUIRE_HOST_URL is not a valid URL: "${raw}".`);
+  }
+  return `{login}@noreply.${hostname}`;
+}
+
 export function hostNamesFromEnv(env: Env): HostNames {
   const kind = parseHostKind(env);
   if (kind === 'forgejo') {
-    throw new HostConfigError(
-      'GITQUIRE_HOST=forgejo is not supported by this version of GitQuire yet. Leave GITQUIRE_HOST unset for GitHub.',
+    return forgejoNames(
+      parseEmailFormat(env.GITQUIRE_COMMIT_EMAIL_FORMAT, forgejoDefaultEmailFormat(env)),
     );
   }
   return gitHubNames(parseEmailFormat(env.GITQUIRE_COMMIT_EMAIL_FORMAT, GITHUB_EMAIL_FORMAT));
 }
 
-let current: HostNames = gitHubNames();
+export function signInPath(names: HostNames = current): string {
+  return `/auth/${names.kind}/login`;
+}
+
+export function callbackPath(names: HostNames = current): string {
+  return `/auth/${names.kind}/callback`;
+}
 
 export function hostNames(): HostNames {
   return current;

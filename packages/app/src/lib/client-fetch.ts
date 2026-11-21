@@ -1,7 +1,9 @@
 import { browserClientVersionHeaders } from '@/lib/client-version';
+import { withWikiPrefix } from '@/lib/gitquire/wiki-prefix';
 
 interface ClientFetchConfig {
   apiOrigin?: string;
+  pathPrefix?: string;
 }
 
 const FETCH_WRAPPER_MARKER = Symbol.for('ok.client.fetchWrapper');
@@ -9,6 +11,7 @@ const FETCH_WRAPPER_MARKER = Symbol.for('ok.client.fetchWrapper');
 export function installClientFetchWrapper(config: ClientFetchConfig = {}): void {
   if (typeof window === 'undefined') return;
   const apiOrigin = config.apiOrigin && config.apiOrigin.length > 0 ? config.apiOrigin : undefined;
+  const pathPrefix = config.pathPrefix ?? '';
 
   const current = window.fetch as typeof window.fetch & { [FETCH_WRAPPER_MARKER]?: true };
   if (current[FETCH_WRAPPER_MARKER]) return;
@@ -18,18 +21,34 @@ export function installClientFetchWrapper(config: ClientFetchConfig = {}): void 
 
   const wrapped = ((input: RequestInfo | URL, init?: RequestInit) => {
     const target = resolveApiTarget(input, apiOrigin);
-    if (!target.isApi) return origFetch(input, init);
+    if (!target.isApi) {
+      const moved = pathPrefix === '' ? undefined : prefixedSameOrigin(target.url, pathPrefix);
+      if (moved === undefined || moved === target.url) return origFetch(input, init);
+      return input instanceof Request
+        ? origFetch(new Request(moved, input))
+        : origFetch(moved, init);
+    }
+    const url =
+      pathPrefix === '' ? target.url : (prefixedSameOrigin(target.url, pathPrefix) ?? target.url);
 
     if (input instanceof Request) {
       const headers = mergeHeaders(input.headers, versionHeaders);
-      return origFetch(new Request(target.url, input), { headers });
+      return origFetch(new Request(url, input), { headers });
     }
     const headers = mergeHeaders(init?.headers, versionHeaders);
-    return origFetch(target.url, { ...init, headers });
+    return origFetch(url, { ...init, headers });
   }) as typeof window.fetch & { [FETCH_WRAPPER_MARKER]?: true };
 
   wrapped[FETCH_WRAPPER_MARKER] = true;
   window.fetch = wrapped;
+}
+
+function prefixedSameOrigin(url: string, prefix: string): string | undefined {
+  if (url.startsWith('/') && !url.startsWith('//')) return withWikiPrefix(url, prefix);
+  const parsed = tryParseUrl(url);
+  if (parsed === null || parsed.origin !== window.location.origin) return undefined;
+  parsed.pathname = withWikiPrefix(parsed.pathname, prefix);
+  return parsed.href;
 }
 
 function mergeHeaders(existing: HeadersInit | undefined, extra: Record<string, string>): Headers {

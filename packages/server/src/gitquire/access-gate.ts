@@ -8,7 +8,7 @@ import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
 import { isAppIconPath } from './app-icons.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubDoorHost } from './host/github.ts';
-import { hostNames } from './host/names.ts';
+import { callbackPath, hostNames, signInPath } from './host/names.ts';
 import type { DoorHost } from './host/types.ts';
 import {
   bearerToken,
@@ -221,7 +221,11 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       { fetch: doFetch },
     );
   const secure = config.externalUrl.protocol === 'https:';
-  const callbackUrl = new URL('/auth/github/callback', config.externalUrl).toString();
+  const names = hostNames();
+  const loginPath = signInPath(names);
+  const returnPath = callbackPath(names);
+  const label = names.label;
+  const callbackUrl = new URL(returnPath, config.externalUrl).toString();
   const repoLabel =
     config.repo === undefined ? undefined : `${config.repo.owner}/${config.repo.name}`;
 
@@ -327,7 +331,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         STATE_MAX_AGE_SECONDS,
       ),
     });
-    deps.log.info({ next, method: req.method }, '[gitquire-auth] redirecting to GitHub sign-in');
+    deps.log.info({ next, method: req.method }, `[gitquire-auth] redirecting to ${label} sign-in`);
   }
 
   async function repoAccess(token: string): Promise<{ write: boolean; admin: boolean }> {
@@ -346,14 +350,14 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const state = params.get('state');
     const stored = decodeSigned(config.sessionSecret, readCookie(req, STATE_COOKIE));
     const clearState = clearCookie(STATE_COOKIE);
-    const tryAgain = '<p><a href="/auth/github/login">Sign in with GitHub</a></p>';
+    const tryAgain = `<p><a href="${loginPath}">Sign in with ${label}</a></p>`;
 
     if (params.get('error') !== null) {
       sendHtml(
         res,
         401,
         'Sign-in cancelled',
-        `<p>GitHub did not complete the sign-in.</p>${tryAgain}`,
+        `<p>${label} did not complete the sign-in.</p>${tryAgain}`,
         { 'Set-Cookie': clearState },
       );
       return;
@@ -383,12 +387,12 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     });
     const user = token === undefined ? undefined : await host.person(token);
     if (token === undefined || user === undefined) {
-      deps.log.warn({ gotToken: token !== undefined }, '[gitquire-auth] GitHub sign-in failed');
+      deps.log.warn({ gotToken: token !== undefined }, `[gitquire-auth] ${label} sign-in failed`);
       sendHtml(
         res,
         502,
         'Sign-in failed',
-        `<p>GitHub did not confirm the sign-in.</p>${tryAgain}`,
+        `<p>${label} did not confirm the sign-in.</p>${tryAgain}`,
         { 'Set-Cookie': clearState },
       );
       return;
@@ -406,7 +410,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         res,
         403,
         'No access',
-        `<p>The GitHub account <strong>@${escapeHtml(user.login)}</strong> ${reason}. Ask the owner for access, then try again.</p>${tryAgain}`,
+        `<p>The ${label} account <strong>@${escapeHtml(user.login)}</strong> ${reason}. Ask the owner for access, then try again.</p>${tryAgain}`,
         { 'Set-Cookie': clearState },
       );
       return;
@@ -437,11 +441,11 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     path: string,
     search: string,
   ): void {
-    if (path === '/auth/github/login') {
+    if (path === loginPath) {
       startLogin(req, res, search);
       return;
     }
-    if (path === '/auth/github/callback') {
+    if (path === returnPath) {
       completeLogin(req, res, search).catch((err: unknown) => {
         deps.log.error({ err }, '[gitquire-auth] sign-in callback failed');
         if (!res.headersSent) {
@@ -449,7 +453,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
             res,
             502,
             'Sign-in failed',
-            '<p>Could not reach GitHub. Try again in a moment.</p>',
+            `<p>Could not reach ${label}. Try again in a moment.</p>`,
           );
         } else if (!res.writableEnded) {
           res.end();
@@ -463,7 +467,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
           res,
           200,
           'Signed out',
-          '<p>You are signed out of GitQuire.</p><p><a href="/auth/github/login">Sign in with GitHub</a></p>',
+          `<p>You are signed out of GitQuire.</p><p><a href="${loginPath}">Sign in with ${label}</a></p>`,
           { 'Set-Cookie': clearCookie(SESSION_COOKIE) },
         );
         return;
@@ -528,9 +532,9 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const user = sessionUser(req);
     if (user === undefined) {
       if (wantsHtml(req)) {
-        redirect(res, `/auth/github/login?next=${encodeURIComponent(path + search)}`);
+        redirect(res, `${loginPath}?next=${encodeURIComponent(path + search)}`);
       } else {
-        sendJson(res, 401, { error: 'not-signed-in', signIn: '/auth/github/login' });
+        sendJson(res, 401, { error: 'not-signed-in', signIn: loginPath });
       }
       return true;
     }
