@@ -60,6 +60,7 @@ Modules added by the branch are listed here by the pull request that adds them.
 | Block 5 | `front-door/token-socket.ts`, `door-token.ts`, `index.ts` | The front door's private socket hands a wiki process (and its drafts) the token of its own repository, found by the wiki's secret (R12). Behind the front door the editor takes its token from there for bootstrap, sync and pull requests, and never reads `GITHUB_APP_*` or Forgejo tokens |
 | Block 5 | `process-pool/forward.ts`, `pool.ts` | `rewriteHeaders` and `unavailable` options for the front door; `socketGet` takes the headers so each wiki is asked with its own secret |
 | Block 5 | `cli` `front-door` command, `docker/entrypoint.sh` | With `GITQUIRE_WIKIS` on, the entrypoint runs `gitquire front-door /data` instead of bootstrap and `start`. Off: unchanged |
+| Block 5 | `prototypes.yml` job `forgejo-h5`, `h5_forgejo.py wikis-setup` and `wikis` | After the single-wiki rows: the image with `GITQUIRE_WIKIS=on` against the same Forgejo, two wikis (`team/alpha`, `team/beta`). Sign in once, Add a wiki round, both made wikis by a server administrator with their limited tokens (a token for the other repo refused), both opened, `dave` with one wiki gets "no access" for the other, folders `/data/wikis/forgejo-<id>/`, no editor process holds the bot token or a secret (R12) |
 
 ## Contract files
 
