@@ -515,7 +515,11 @@ deleted. The same happens when the repository moves to an owner that is not allo
 
 `/` lists the wikis the signed-in person can open, with **Add a wiki** and the sentence "This
 server hosts wikis from …" naming the allowed owners. Inside a wiki, the repository name in the
-header opens a menu of the same wikis to switch between. **Add a wiki** (`/add-wiki`) asks the host
+header opens a menu of the same wikis to switch between. The list and the menu show how many
+unread mentions the person has in each wiki they can open, and the menu's badge counts those in
+the other wikis; the front door counts them from each wiki's files and read marks, also for wikis
+whose process is stopped. Mention mails and chat messages name the wiki; mail settings stay per wiki
+for now. **Add a wiki** (`/add-wiki`) asks the host
 once more for the person's repositories and lists those under an allowed owner that the person
 administers and GitQuire can reach.
 

@@ -10,8 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { unreadBadge } from '@/lib/gitquire/mentions-api';
 import { useGitQuireRepository } from '@/lib/gitquire/repository';
-import { type DoorWikis, fetchDoorWikis } from '@/lib/gitquire/wikis';
+import { type DoorWikis, fetchDoorWikis, unreadElsewhere } from '@/lib/gitquire/wikis';
+
+const POLL_MS = 60_000;
+const BADGE_CLASS =
+  'min-w-4 shrink-0 rounded-full bg-primary px-1 text-center text-[10px] text-primary-foreground leading-4 tabular-nums';
 
 const LABEL_CLASS = 'min-w-0 gap-1.5 px-2 font-normal text-foreground text-sm';
 
@@ -29,11 +34,27 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
   };
 
   useEffect(() => {
-    fetchDoorWikis().then(setDoor, () => undefined);
+    let live = true;
+    function poll() {
+      if (document.hidden) return;
+      fetchDoorWikis().then(
+        (next) => {
+          if (live) setDoor(next);
+        },
+        () => undefined,
+      );
+    }
+    poll();
+    const timer = window.setInterval(poll, POLL_MS);
+    return () => {
+      live = false;
+      window.clearInterval(timer);
+    };
   }, []);
 
   const here = `${prefix}/`;
   const host = repository?.host ?? '';
+  const elsewhere = unreadElsewhere(door, here);
   const current = door?.wikis.find((wiki) => wiki.address === here);
   const fullName =
     current === undefined
@@ -65,6 +86,12 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
           >
             {fullName}
           </span>
+          {elsewhere > 0 && (
+            <span className={BADGE_CLASS} data-testid="wiki-menu-badge">
+              <span aria-hidden="true">{unreadBadge(elsewhere)}</span>
+              <span className="sr-only">{t`Other wikis, ${unreadBadge(elsewhere)} unread`}</span>
+            </span>
+          )}
           <ChevronDown aria-hidden="true" className="size-3.5 shrink-0 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
@@ -90,6 +117,12 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
                   className={isHere ? 'size-4 shrink-0' : 'size-4 shrink-0 opacity-0'}
                 />
                 <span className="min-w-0 flex-1 truncate">{name}</span>
+                {wiki.unread > 0 && (
+                  <span className={BADGE_CLASS} data-unread={wiki.unread}>
+                    {unreadBadge(wiki.unread)}
+                    <span className="sr-only"> {t`Unread`}</span>
+                  </span>
+                )}
                 {wiki.state !== 'on' && (
                   <span className="shrink-0 text-muted-foreground text-xs">{t`Disconnected`}</span>
                 )}

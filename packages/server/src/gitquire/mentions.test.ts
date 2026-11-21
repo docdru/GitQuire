@@ -17,7 +17,7 @@ import {
   normalizeConfirmationCode,
   recipientKey,
 } from './email-confirmation.ts';
-import { type MailConfig, type MailMessage, SmtpError } from './mail.ts';
+import { type MailConfig, type MailMessage, resolveMailConfig, SmtpError } from './mail.ts';
 import { createMentionMailer, draftLink, mentionMail, pageLink } from './mention-mailer.ts';
 import {
   buildInbox,
@@ -526,6 +526,27 @@ describe('mention mailer', () => {
     expect(mail.text).toContain('On the text: "quarterly numbers"');
     expect(mail.text).toContain('Can you check, @alice?');
     expect(mail.text).toContain('Open the page: https://brain.example.com/#/notes/report');
+  });
+
+  it('names the wiki behind the front door, and only there', () => {
+    const ask = comment('c1', bob, 'Can you check, @alice?', '2026-11-10T09:00:00Z', ['alice']);
+    const [mention] = mentionsInMarkdown('notes/report.md', page([thread('t1', [ask])]));
+    if (mention === undefined) throw new Error('expected a mention');
+    const mail = mentionMail({ ...config, wiki: 'team/handbook' }, 'alice@example.com', mention);
+    expect(mail.subject).toBe('bob mentioned you in report (team/handbook)');
+    expect(mail.text).toContain('bob mentioned you in "report" in the wiki team/handbook.');
+    const env = {
+      GITQUIRE_SMTP_URL: 'smtp://mail.example.com',
+      GITQUIRE_MAIL_FROM: 'wiki@example.com',
+    };
+    const off = resolveMailConfig({ ...env, GITQUIRE_REPO: 'team/handbook' });
+    const on = resolveMailConfig({
+      ...env,
+      GITQUIRE_REPO: 'team/handbook',
+      GITQUIRE_BEHIND_FRONT_DOOR: 'on',
+    });
+    expect(off.kind === 'on' && off.config.wiki).toBe(undefined);
+    expect(on.kind === 'on' && on.config.wiki).toBe('team/handbook');
   });
 
   function mailerFor(dir: string) {

@@ -17,6 +17,7 @@ export const REASON_TEXT: Record<string, string> = {
 export interface HomeRow {
   wiki: WikiRecord;
   admin: boolean;
+  unread?: number;
 }
 
 export interface HomeInput {
@@ -25,6 +26,12 @@ export interface HomeInput {
   hosts: string;
   canReplaceToken: boolean;
   scriptPath: string;
+}
+
+function unreadText(unread: number | undefined): string {
+  if (unread === undefined || unread === 0) return '';
+  const text = unread === 1 ? '1 unread mention' : `${unread} unread mentions`;
+  return ` <strong class="unread" data-unread="${unread}">${text}</strong>`;
 }
 
 function tokenForm(wiki: WikiRecord): string {
@@ -36,7 +43,7 @@ function homeRow(row: HomeRow, canReplaceToken: boolean): string {
   const label = escapeHtml(`${wiki.owner}/${wiki.name}`);
   const role = admin ? ' <span class="muted">admin</span>' : '';
   if (wiki.state === 'on') {
-    return `<li data-wiki="${escapeHtml(wiki.key)}"><a href="${escapeHtml(`${wikiPrefix(wiki)}/`)}">${label}</a>${role}</li>`;
+    return `<li data-wiki="${escapeHtml(wiki.key)}"><a href="${escapeHtml(`${wikiPrefix(wiki)}/`)}">${label}</a>${role}${unreadText(row.unread)}</li>`;
   }
   const why = admin
     ? `<br><span class="muted">${escapeHtml(REASON_TEXT[wiki.reason ?? ''] ?? '')}</span>`
