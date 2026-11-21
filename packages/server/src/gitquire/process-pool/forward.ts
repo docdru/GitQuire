@@ -170,6 +170,8 @@ export function proxyUpgrade(
   });
   upstream.on('error', close);
   upstream.on('close', close);
+  upstream.on('end', close);
   socket.on('error', close);
   socket.on('close', close);
+  socket.on('end', close);
 }

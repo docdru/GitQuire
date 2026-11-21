@@ -33,19 +33,24 @@ async function rig(extra: Record<string, string>) {
   cleanup.push(() => rmSync(dir, { recursive: true, force: true }));
   const socket = join(dir, 'up.sock');
   const reached: string[] = [];
+  const closed: string[] = [];
   const upstream = createServer((req, res) => {
     reached.push(`http ${req.url}`);
     res.end('ok');
   });
   upstream.on('upgrade', (req, s) => {
     reached.push(`upgrade ${req.url}`);
-    s.end('HTTP/1.1 101 Switching Protocols\r\n\r\n');
+    s.on('end', () => s.end());
+    s.on('error', () => {});
+    s.write('HTTP/1.1 101 Switching Protocols\r\n\r\n');
   });
   await listen(upstream, socket);
   const front = createServer((req, res) => proxyRequest(req, res, socket, { extraHeaders: extra }));
-  front.on('upgrade', (req, s, head) => proxyUpgrade(req, s, head, socket, () => {}, extra));
+  front.on('upgrade', (req, s, head) =>
+    proxyUpgrade(req, s, head, socket, () => closed.push(String(req.url)), extra),
+  );
   const port = await listen(front);
-  return { port, reached };
+  return { port, reached, closed, front };
 }
 
 function upgrade(port: number): Promise<string> {
@@ -94,5 +99,24 @@ describe('forwarding to a child socket', () => {
     expect(await upgrade(port)).toBe('HTTP/1.1 101 Switching Protocols');
     expect(await get(port)).toBe(200);
     expect(reached).toEqual(['upgrade /collab', 'http /page']);
+  });
+
+  it('closes both sides and lets go when the browser ends a live-editing connection', async () => {
+    const { port, closed, front } = await rig({});
+    const line = await new Promise<string>((resolve) => {
+      const s = connect(port, '127.0.0.1');
+      s.once('data', (chunk) => {
+        resolve(String(chunk).split('\r\n')[0] ?? '');
+        s.destroy();
+      });
+      s.write('GET /collab HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n');
+    });
+    expect(line).toBe('HTTP/1.1 101 Switching Protocols');
+    for (let i = 0; i < 50 && closed.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
+    expect(closed).toEqual(['/collab']);
+    const open = await new Promise<number>((resolve) =>
+      front.getConnections((_e, n) => resolve(n)),
+    );
+    expect(open).toBe(0);
   });
 });
