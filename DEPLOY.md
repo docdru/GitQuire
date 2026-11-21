@@ -36,7 +36,9 @@ Behind a real domain, also set `GITQUIRE_EXTERNAL_URL=https://your.domain`. Run 
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.
 
 On `docker stop` GitQuire writes open pages to disk and waits for its draft editors to stop. Give it
-time: `deploy/compose.yaml` sets `stop_grace_period: 60s`; with `docker run`, use `docker stop -t 60`.
+time: `deploy/compose.yaml` sets `stop_grace_period: 60s`; with `docker run`, use `docker stop -t 60`. A
+single-wiki server does not commit or push on stop; edits not pushed yet stay on the volume and are
+pushed by the next sync after the restart.
 
 For nginx, start from [`deploy/nginx/sites-available/gitquire.conf`](./deploy/nginx/sites-available/gitquire.conf).
 It forwards WebSocket upgrades (live editing needs them) and allows uploads up to 50 MB. Publish the
