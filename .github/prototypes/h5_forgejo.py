@@ -285,6 +285,133 @@ def door_setup():
     print("door set-up done:", json.dumps(repos))
 
 
+WIKIS = os.environ.get("WIKIS_URL", "http://127.0.0.1:8300").rstrip("/")
+WIKIS_CONTAINER = os.environ.get("WIKIS_CONTAINER", "gq-wikis")
+
+
+def wikis_setup():
+    for name in ("alpha", "beta"):
+        status, body, _ = f.call("POST", "/orgs/team/repos", {
+            "name": name, "private": True, "auto_init": True, "default_branch": "main",
+        }, auth=f.ADMIN)
+        if status not in (201, 409):
+            raise RuntimeError(f"create team/{name}: {status} {body}")
+        f.call("PUT", f"/repos/team/{name}/collaborators/alice", {"permission": "admin"}, auth=f.ADMIN)
+        f.call("PUT", f"/repos/team/{name}/collaborators/gitquire-bot", {"permission": "admin"}, auth=f.ADMIN)
+    f.call("PUT", "/repos/team/alpha/collaborators/dave", {"permission": "write"}, auth=f.ADMIN)
+    tokens = {}
+    for name in ("alpha", "beta"):
+        status, body = f.make_token("gitquire-bot", f"wiki-{name}", ["write:repository"],
+                                    repositories=[{"owner": "team", "name": name}])
+        if status != 201:
+            raise RuntimeError(f"limited token for {name}: {status} {body}")
+        tokens[name] = body["sha1"]
+    status, app, _ = f.call("POST", "/user/applications/oauth2", {
+        "name": "GitQuire wikis", "redirect_uris": [WIKIS + "/auth/forgejo/callback"], "confidential_client": True,
+    }, auth=f.ADMIN)
+    if status != 201:
+        raise RuntimeError(f"oauth app: {status} {app}")
+    for secret in (*tokens.values(), app["client_secret"]):
+        print("::add-mask::" + secret)
+    env_out([f"ALPHA_TOKEN={tokens['alpha']}", f"BETA_TOKEN={tokens['beta']}",
+             f"WIKIS_CLIENT_ID={app['client_id']}", f"WIKIS_CLIENT_SECRET={app['client_secret']}"])
+    print("two-wiki set-up done")
+
+
+def door_call(method, path, op, body=None, accept="application/json"):
+    data = None
+    hdrs = {"Accept": accept, "Origin": WIKIS}
+    if body is not None:
+        data = json.dumps(body).encode()
+        hdrs["Content-Type"] = "application/json"
+    req = urllib.request.Request(WIKIS + path, data=data, method=method, headers=hdrs)
+    try:
+        with op.open(req, timeout=180) as resp:
+            return resp.status, f.parse(resp.read()), dict(resp.headers)
+    except urllib.error.HTTPError as err:
+        return err.code, f.parse(err.read()), dict(err.headers)
+
+
+def door_round(op, start):
+    status, _, headers = f.get_html(op, WIKIS + start)
+    location = headers.get("Location", "")
+    if status != 302 or not location.startswith(f.BASE):
+        return status, f"start answered {status} {location}"
+    status, page, headers = f.get_html(op, location)
+    if status == 200:
+        grant = next((g for g in f.forms_of(page) if "grant" in g["action"]), None)
+        if grant is None:
+            return 0, "consent page without a grant form"
+        fields = dict(grant["inputs"])
+        fields["granted"] = "true"
+        status, _, headers = f.post_form(op, f.BASE + "/login/oauth/grant", fields)
+    callback = headers.get("Location", "")
+    if not callback.startswith(WIKIS + "/auth/forgejo/callback"):
+        return 0, f"Forgejo did not send the browser back to the front door: {status} {callback}"
+    status, _, headers = f.get_html(op, callback)
+    return status, headers.get("Location", "")
+
+
+def wikis_test():
+    alice = f.web_login("alice")
+    status, detail = door_round(alice, "/auth/forgejo/login?next=%2F")
+    check("Wikis sign-in", status == 302, f"alice signs in once at the front door -> {status} {detail}")
+    status, detail = door_round(alice, "/auth/forgejo/add-wiki?next=%2F")
+    check("Wikis add", status == 302, f"the second host round for Add a wiki -> {status} {detail}")
+    status, addable, _ = door_call("GET", "/api/front-door/addable", alice)
+    repos = {r["name"]: r for r in addable.get("repos", [])} if isinstance(addable, dict) else {}
+    check("Wikis add", status == 200 and "alpha" in repos and "beta" in repos
+          and addable.get("needsToken") is True and addable.get("canAdd") is True,
+          f"addable repos -> {status} {sorted(repos)} {addable if status != 200 else ''}")
+    status, refused, _ = door_call("POST", "/api/front-door/wikis", alice,
+                                   {"id": repos.get("alpha", {}).get("id"), "token": os.environ["BETA_TOKEN"]})
+    check("Wikis add", status == 400 and isinstance(refused, dict) and refused.get("error") == "token-refused",
+          f"a token limited to another repository is refused -> {status} {refused}")
+    keys = {}
+    for name, token in (("alpha", os.environ["ALPHA_TOKEN"]), ("beta", os.environ["BETA_TOKEN"])):
+        status, made, _ = door_call("POST", "/api/front-door/wikis", alice,
+                                    {"id": repos.get(name, {}).get("id"), "token": token})
+        key = made.get("wiki", {}).get("key") if isinstance(made, dict) else None
+        keys[name] = key
+        check("Wikis add", status == 201 and key == f"forgejo-{repos.get(name, {}).get('id')}",
+              f"Make this a wiki team/{name} -> {status} {made}")
+    for name in ("alpha", "beta"):
+        status, page, _ = door_call("GET", f"/w/team/{name}/", alice, accept="text/html")
+        check("Wikis open", status == 200 and "<html" in str(page).lower(),
+              f"alice opens /w/team/{name}/ -> {status}")
+        status, me, _ = door_call("GET", f"/w/team/{name}/auth/me", alice)
+        check("Wikis open", status == 200 and isinstance(me, dict) and me.get("login") == "alice"
+              and me.get("admin") is True,
+              f"/w/team/{name}/auth/me for alice (repo admin) -> {status} {me if status != 200 else ''}")
+        status, config, _ = door_call("GET", f"/w/team/{name}/api/config", alice)
+        check("Wikis open", status == 200, f"/w/team/{name}/api/config -> {status}")
+    dave = f.web_login("dave")
+    status, detail = door_round(dave, "/auth/forgejo/login?next=%2F")
+    check("Wikis sign-in", status == 302, f"dave signs in -> {status} {detail}")
+    status, me, _ = door_call("GET", "/w/team/alpha/auth/me", dave)
+    check("Wikis access", status == 200 and isinstance(me, dict) and me.get("login") == "dave"
+          and me.get("admin") is False, f"dave (writer on alpha) opens alpha -> {status} {me}")
+    status, body, _ = door_call("GET", "/w/team/beta/auth/me", dave)
+    check("Wikis access", status == 403 and isinstance(body, dict) and body.get("error") == "no-access",
+          f"dave has no access to beta -> {status} {body}")
+    status, page, _ = door_call("GET", "/w/team/beta/", dave, accept="text/html")
+    check("Wikis access", status == 403 and "does not have write access" in str(page),
+          f"dave sees the no-access page for beta -> {status}")
+    status, listed, _ = door_call("GET", "/api/front-door/wikis", dave)
+    names = [w.get("name") for w in listed.get("wikis", [])] if isinstance(listed, dict) else []
+    check("Wikis access", status == 200 and names == ["alpha"], f"dave's wiki list -> {status} {names}")
+    for name, key in keys.items():
+        proc = docker("exec", WIKIS_CONTAINER, "test", "-d", f"/data/wikis/{key}/.git", check_ok=False)
+        check("Wikis R10", proc.returncode == 0, f"team/{name} is checked out in /data/wikis/{key}/")
+    leaks = docker("exec", WIKIS_CONTAINER, "sh", "-c",
+                   "for p in /proc/[0-9]*; do e=$(tr '\\0' '\\n' < $p/environ 2>/dev/null) || continue; "
+                   "echo \"$e\" | grep -q '^GITQUIRE_BEHIND_FRONT_DOOR=on' || continue; "
+                   "echo \"$e\" | grep -Eq '^(GITQUIRE_HOST_TOKEN|GITQUIRE_HOST_CLIENT_SECRET|GITQUIRE_SESSION_SECRET)=' && echo leak; "
+                   "echo editor; done", check_ok=False).stdout.split()
+    check("Wikis R12", leaks.count("editor") >= 2 and "leak" not in leaks,
+          f"editor processes: {leaks.count('editor')}, holding the bot token or a secret: {leaks.count('leak')}")
+
+
 def start_check():
     out = os.environ.get("START_CHECK_OUTPUT", "")
     code = os.environ.get("START_CHECK_EXIT", "")
@@ -314,4 +441,9 @@ if __name__ == "__main__":
         summary()
     elif step == "test":
         run_tests()
+        summary()
+    elif step == "wikis-setup":
+        wikis_setup()
+    elif step == "wikis":
+        wikis_test()
         summary()
