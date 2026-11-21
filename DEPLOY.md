@@ -489,7 +489,9 @@ out.
 
 **Work in progress on the `wikis-hosts` branch.** The front door's server side is there; the wiki
 list, the Add a wiki page and the menu are not yet (they come next), and moving an existing
-single-wiki volume over is not done yet either.
+single-wiki volume over is not done yet either. AI chat and AI agents (`/mcp`) are not available
+inside a wiki behind the front door yet: the wiki's process does not get `GITQUIRE_SESSION_SECRET`,
+which AI chat needs for its saved keys.
 
 `GITQUIRE_WIKIS=on` turns the container into a front door for several wikis. Each wiki opens at
 `/w/<owner>/<repo>/` and runs in its own editor process, started when someone opens it and stopped
@@ -527,8 +529,9 @@ redirects to the new one.
 skip the check of who may write to a repository and would open every wiki. GitQuire refuses to
 start with either set.
 
-Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET`,
-`GITQUIRE_EXTERNAL_URL` (the root address, without a path), and GitQuire's own access: on GitHub
+Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET` (at least 32
+characters), optionally `GITQUIRE_SESSION_DAYS`, `GITQUIRE_EXTERNAL_URL` (the root address, without
+a path), and GitQuire's own access: on GitHub
 `GITHUB_APP_ID` and the private key, on Forgejo `GITQUIRE_HOST_TOKEN` (the bot's token).
 `GITQUIRE_HOST_REPO_TOKEN` is not used.
 
