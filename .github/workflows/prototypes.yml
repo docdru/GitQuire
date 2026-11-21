@@ -282,6 +282,18 @@ jobs:
           echo "$out" | tail -20
           START_CHECK_EXIT=$code START_CHECK_OUTPUT="$out" python3 -I .github/prototypes/h5_forgejo.py admin
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Repos and tokens for the door host calls
+        run: python3 -I .github/prototypes/h5_forgejo.py door
+
+      - name: Door host calls for several wikis (addableRepos, repoById, renames, health, tokenFor)
+        env:
+          NODE_EXTRA_CA_CERTS: /tmp/ca/cert.pem
+        run: node .github/prototypes/h5_door.mjs
+
       - name: Start GitQuire on Forgejo
         run: |
           set -eu

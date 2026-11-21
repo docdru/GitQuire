@@ -25,6 +25,31 @@ export type Refusal = 'token' | 'not-admin' | 'removed';
 
 export type BotAccess = RepoAccess | 'unreachable' | `refused:${Refusal}`;
 
+export type HostHealth = 'ok' | 'unreachable' | `refused:${Refusal}`;
+
+export interface HostRepoRecord {
+  host: HostKind;
+  id: number;
+  owner: string;
+  ownerId: number;
+  name: string;
+}
+
+export type RepoLookup =
+  | { state: 'found'; repo: HostRepoRecord }
+  | { state: 'gone' }
+  | { state: 'refused'; refusal: Refusal }
+  | { state: 'unreachable' };
+
+export interface AddableRepo extends HostRepoRecord {
+  blocked?: 'bot-not-admin';
+}
+
+export type AddableRepos =
+  | { state: 'listed'; repos: readonly AddableRepo[] }
+  | { state: 'refused'; whose: 'person' | 'gitquire' }
+  | { state: 'unreachable' };
+
 export interface AuthorizeInput {
   clientId: string;
   redirectUri: string;
@@ -48,6 +73,9 @@ export interface DoorHost {
   person: (personToken: string) => Promise<HostPerson | undefined>;
   access: (personToken: string, repo: HostRepo) => Promise<RepoAccess>;
   accessByBot: (login: string, repo: HostRepo) => Promise<BotAccess>;
+  addableRepos: (personToken: string) => Promise<AddableRepos>;
+  repoById: (id: number) => Promise<RepoLookup>;
+  health: (repo: HostRepo) => Promise<HostHealth>;
   tokenFor: (repo: HostRepo) => Promise<string | undefined>;
   selfCheck: () => Promise<SelfCheck>;
 }

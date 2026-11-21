@@ -665,6 +665,9 @@ describe('sign-in through the host interface', () => {
         return 'admin';
       },
       accessByBot: async () => 'none',
+      addableRepos: async () => ({ state: 'listed', repos: [] }),
+      repoById: async () => ({ state: 'gone' }),
+      health: async () => 'ok',
       tokenFor: async () => undefined,
       selfCheck: async () => ({ ok: true }),
     };
