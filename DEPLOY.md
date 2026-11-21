@@ -487,9 +487,8 @@ out.
 
 ## Several wikis
 
-**Work in progress on the `wikis-hosts` branch.** The front door's server side is there; the wiki
-list, the Add a wiki page and the menu are not yet (they come next), and moving an existing
-single-wiki volume over is not done yet either. AI chat and AI agents (`/mcp`) are not available
+**Work in progress on the `wikis-hosts` branch.** Moving an existing single-wiki volume over is
+not done yet. AI chat and AI agents (`/mcp`) are not available
 inside a wiki behind the front door yet: the wiki's process does not get `GITQUIRE_SESSION_SECRET`,
 which AI chat needs for its saved keys.
 
@@ -513,6 +512,12 @@ stay and nobody new is let in. When the host refuses GitQuire's own access to a 
 app was uninstalled, the bot was removed or is no longer an administrator, the token was revoked),
 the wiki is **disconnected**: its administrators see why, nobody can open it, and nothing is
 deleted. The same happens when the repository moves to an owner that is not allowed.
+
+`/` lists the wikis the signed-in person can open, with **Add a wiki** and the sentence "This
+server hosts wikis from …" naming the allowed owners. Inside a wiki, the repository name in the
+header opens a menu of the same wikis to switch between. **Add a wiki** (`/add-wiki`) asks the host
+once more for the person's repositories and lists those under an allowed owner that the person
+administers and GitQuire can reach.
 
 A repository becomes a wiki only when one of its administrators chooses **Make this a wiki**;
 GitQuire writes nothing into any other repository. On GitHub any administrator of a repository

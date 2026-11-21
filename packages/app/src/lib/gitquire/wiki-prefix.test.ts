@@ -49,6 +49,11 @@ describe('withWikiPrefix', () => {
     );
   });
 
+  it("leaves the front door's own API at the root", () => {
+    expect(withWikiPrefix('/api/front-door/wikis', '/w/team/wiki')).toBe('/api/front-door/wikis');
+    expect(withWikiPrefix('/api/front-doors', '/w/team/wiki')).toBe('/w/team/wiki/api/front-doors');
+  });
+
   it('leaves relative, protocol-relative and absolute addresses alone', () => {
     expect(withWikiPrefix('api/x', '/w/team/wiki')).toBe('api/x');
     expect(withWikiPrefix('//cdn.example/x', '/w/team/wiki')).toBe('//cdn.example/x');
