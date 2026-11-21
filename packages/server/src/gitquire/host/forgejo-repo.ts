@@ -84,6 +84,11 @@ export function resolveForgejoRepoConfig(
       "GITQUIRE_HOST_URL must start with https://: Git only sends GitQuire's token over https.",
     );
   }
+  if (url.pathname !== '/' && url.pathname !== '') {
+    throw new GitHubAppConfigError(
+      `GITQUIRE_HOST_URL must be the server's root address; a Forgejo server under a path (${url.pathname}) is not supported yet.`,
+    );
+  }
   const repo = parseGitHubRepo(repoRaw);
   if (repo === undefined) throw new GitHubAppConfigError('GITQUIRE_REPO is required.');
   const webUrl = web.replace(/\/+$/, '');

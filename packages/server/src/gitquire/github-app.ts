@@ -1,5 +1,6 @@
 import { createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { normalizeGitHostname } from '@gitquire/core/constants/github';
 import type {
   CheckPushPermissionOptions,
   DetectGhFn,
@@ -334,9 +335,15 @@ export async function startInstallationTokenManager(
     return current.expiresAt > now() ? current.token : undefined;
   }
 
+  function isAppHost(host: string): boolean {
+    return (
+      host === config.gitHost || normalizeGitHostname(host) === normalizeGitHostname(config.gitHost)
+    );
+  }
+
   function isAppRepo(opts: CheckPushPermissionOptions): boolean {
     return (
-      (opts.host ?? 'github.com').toLowerCase() === config.gitHost.toLowerCase() &&
+      isAppHost(opts.host ?? 'github.com') &&
       opts.owner.toLowerCase() === config.repo.owner.toLowerCase() &&
       opts.repo.replace(/\.git$/i, '').toLowerCase() === config.repo.name.toLowerCase()
     );
@@ -355,8 +362,12 @@ export async function startInstallationTokenManager(
     },
     wrapDetectGh(fallback) {
       return (host, options) => {
-        const token = host === undefined || host === config.gitHost ? valid() : undefined;
-        if (token !== undefined) return { available: true, token };
+        const token = host === undefined || isAppHost(host) ? valid() : undefined;
+        if (token !== undefined) {
+          return host === undefined || host === config.gitHost
+            ? { available: true, token }
+            : { available: true, token, credentialHost: config.gitHost };
+        }
         return fallback === undefined ? { available: false } : fallback(host, options);
       };
     },
