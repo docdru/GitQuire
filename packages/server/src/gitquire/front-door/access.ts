@@ -21,7 +21,11 @@ interface ListedWiki {
 export interface WikiAccess {
   signIn: (person: DoorPerson, personToken: string, wikis: readonly WikiRecord[]) => Promise<void>;
   decide: (person: DoorPerson, wiki: WikiRecord) => Promise<OpenDecision>;
-  wikisFor: (person: DoorPerson, wikis: readonly WikiRecord[]) => Promise<ListedWiki[]>;
+  wikisFor: (
+    person: DoorPerson,
+    wikis: readonly WikiRecord[],
+    options?: { serverAdmin?: boolean },
+  ) => Promise<ListedWiki[]>;
   wasAdmin: (person: DoorPerson, wiki: WikiRecord) => boolean;
   learn: (person: DoorPerson, wiki: WikiRecord, level: RepoAccess) => void;
   forget: (person: DoorPerson) => void;
@@ -31,6 +35,7 @@ export interface WikiAccessDeps {
   host: Pick<DoorHost, 'access' | 'accessByBot'>;
   runnable: (wiki: WikiRecord) => boolean;
   refused: (wiki: WikiRecord, refusal: Refusal) => void;
+  changed?: (wiki: WikiRecord) => void;
   now?: () => number;
   ttlMs?: number;
 }
@@ -69,7 +74,7 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
     const running = asking.get(id);
     if (running !== undefined) return running;
     const next = deps.host
-      .accessByBot(person.login, { owner: wiki.owner, name: wiki.name })
+      .accessByBot(person.login, wiki)
       .catch((): BotAccess => 'unreachable')
       .finally(() => asking.delete(id));
     asking.set(id, next);
@@ -94,6 +99,7 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
       return { open: false, why: 'disconnected' };
     }
     mine.set(wiki.key, { level: answer, checkedAt: now() });
+    if (entry !== undefined && entry.level !== answer) deps.changed?.(wiki);
     return decisionFor(answer);
   }
 
@@ -102,35 +108,31 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
       const mine = new Map<string, Entry>();
       const previous = entries.get(person.id);
       await Promise.all(
-        wikis
-          .filter((wiki) => wiki.state === 'on' && deps.runnable(wiki))
-          .map(async (wiki) => {
-            try {
-              const level = await deps.host.access(personToken, {
-                owner: wiki.owner,
-                name: wiki.name,
-              });
-              mine.set(wiki.key, { level, checkedAt: now() });
-            } catch {
-              const kept = previous?.get(wiki.key);
-              if (kept !== undefined) mine.set(wiki.key, kept);
-            }
-          }),
+        wikis.map(async (wiki) => {
+          try {
+            const level = await deps.host.access(personToken, {
+              owner: wiki.owner,
+              name: wiki.name,
+            });
+            mine.set(wiki.key, { level, checkedAt: now() });
+          } catch {
+            const kept = previous?.get(wiki.key);
+            if (kept !== undefined) mine.set(wiki.key, kept);
+          }
+        }),
       );
-      for (const [key, entry] of previous ?? []) {
-        if (!mine.has(key) && entry.level === 'admin') mine.set(key, entry);
-      }
       entries.set(person.id, mine);
     },
     decide,
-    wikisFor: async (person, wikis) => {
+    wikisFor: async (person, wikis, options = {}) => {
       const listed = await Promise.all(
         wikis.map(async (wiki): Promise<ListedWiki | undefined> => {
           const decision = await decide(person, wiki);
           if (decision.open) return { wiki, admin: decision.admin };
           if (
             decision.why === 'disconnected' &&
-            entries.get(person.id)?.get(wiki.key)?.level === 'admin'
+            (options.serverAdmin === true ||
+              entries.get(person.id)?.get(wiki.key)?.level === 'admin')
           ) {
             return { wiki, admin: true };
           }

@@ -39,7 +39,10 @@ function nonEmpty(value: string | undefined): string | undefined {
 }
 
 export function wikisModeFromEnv(env: Env): boolean {
-  return ['1', 'on', 'true', 'yes'].includes(nonEmpty(env.GITQUIRE_WIKIS)?.toLowerCase() ?? '');
+  const value = nonEmpty(env.GITQUIRE_WIKIS)?.toLowerCase();
+  if (value === undefined || ['0', 'off', 'false', 'no'].includes(value)) return false;
+  if (['1', 'on', 'true', 'yes'].includes(value)) return true;
+  throw new FrontDoorConfigError(`GITQUIRE_WIKIS must be on or off, got "${value}".`);
 }
 
 function secretFrom(
