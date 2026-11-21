@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { type DraftSummary, reviewState } from '@/lib/gitquire/drafts-api';
 import { refreshDrafts, useDraftState } from '@/lib/gitquire/drafts-store';
+import { useHostLabel } from '@/lib/gitquire/repository';
 import { cn } from '@/lib/utils';
 import { switchView } from './draft-actions';
 import { closeDraftDialog, openDraftDialog } from './draft-dialogs-store';
@@ -100,6 +101,7 @@ export function DraftsOverviewDialog() {
 
 function DraftCard({ draft, viewing }: { draft: DraftSummary; viewing: boolean }) {
   const { t } = useLingui();
+  const host = useHostLabel();
   const open = draft.status === 'draft' || draft.status === 'review';
   const verdict = reviewState(draft);
   const who = draft.agent
@@ -132,7 +134,7 @@ function DraftCard({ draft, viewing }: { draft: DraftSummary; viewing: boolean }
         <div className="text-xs text-muted-foreground">
           {draft.status === 'published'
             ? publisher === undefined
-              ? t`Published on GitHub`
+              ? t`Published on ${host}`
               : t`Published by ${publisher}`
             : t`Discarded`}
         </div>
@@ -162,7 +164,7 @@ function DraftCard({ draft, viewing }: { draft: DraftSummary; viewing: boolean }
           <Button size="sm" variant="ghost" asChild>
             <a href={draft.pullUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink aria-hidden="true" />
-              {t`On GitHub`}
+              {t`On ${host}`}
             </a>
           </Button>
         ) : null}

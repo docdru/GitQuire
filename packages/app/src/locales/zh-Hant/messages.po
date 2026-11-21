@@ -4253,8 +4253,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "中型章節標題。"
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "請使用 {host} 使用者名稱提及他人，例如 @anna。"
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4976,10 @@ msgstr "開啟——把游標停在外部連結上時，會把它的 URL 送到�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "開啟——你的搜尋查詢和相符頁面的內容會送到你的嵌入服務供應商（預設是 OpenAI）來計算嵌入向量。"
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "在 {host} 上"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5027,8 @@ msgstr "開啟"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "在 GitHub 上開啟 {0}（在新分頁中開啟）"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "在 {host} 上開啟 {fullName}"
 
 msgid "Open {keyName} in browser"
 msgstr "在瀏覽器中開啟 {keyName}"
@@ -5559,8 +5559,8 @@ msgstr "已發布"
 msgid "Published by {publisher}"
 msgstr "由 {publisher} 發布"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "已在 {host} 上發布"
 
 msgid "Published or discarded"
 msgstr ""

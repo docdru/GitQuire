@@ -194,7 +194,27 @@ describe('GitQuire routes', () => {
     });
     const out = await call(routes, request('/api/gitquire/repository'));
     expect(out.body).toEqual({
-      repository: { owner: 'acme', name: 'team-wiki', url: 'https://github.com/acme/team-wiki' },
+      repository: {
+        owner: 'acme',
+        name: 'team-wiki',
+        url: 'https://github.com/acme/team-wiki',
+        host: 'GitHub',
+      },
+    });
+  });
+
+  it('links to the Forgejo server when the host is Forgejo', () => {
+    expect(
+      repositoryFromEnv({
+        GITQUIRE_HOST: 'forgejo',
+        GITQUIRE_HOST_URL: 'https://git.example.org/',
+        GITQUIRE_REPO: 'team/wiki',
+      }),
+    ).toEqual({
+      owner: 'team',
+      name: 'wiki',
+      url: 'https://git.example.org/team/wiki',
+      host: 'Forgejo',
     });
   });
 

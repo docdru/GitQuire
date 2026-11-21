@@ -4253,8 +4253,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "عنوان قسم متوسط."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "اذكر الأشخاص باسمهم على {host}، مثل @anna."
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4976,10 @@ msgstr "مفعّل — تمرير المؤشر فوق رابط خارجي يرس
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "مفعّل — تُرسل استعلامات بحثك ونص الصفحات المطابقة إلى مزوّد التضمينات لديك (OpenAI افتراضيًا) لحساب التضمينات."
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "على {host}"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5027,8 @@ msgstr "فتح"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "فتح {0} على GitHub (يفتح في تبويب جديد)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "افتح {fullName} على {host}"
 
 msgid "Open {keyName} in browser"
 msgstr "فتح {keyName} في المتصفح"
@@ -5559,8 +5559,8 @@ msgstr "منشور"
 msgid "Published by {publisher}"
 msgstr "منشور بواسطة {publisher}"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "نُشر على {host}"
 
 msgid "Published or discarded"
 msgstr ""
