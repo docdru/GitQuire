@@ -8,6 +8,13 @@ if [ -z "$(git config --global user.email || true)" ]; then
   git config --global user.email "${GITQUIRE_GIT_EMAIL:-gitquire@localhost}"
 fi
 
+case "$(printf '%s' "${GITQUIRE_WIKIS:-}" | tr '[:upper:]' '[:lower:]')" in
+  1|on|true|yes)
+    echo "[entrypoint] Several wikis: starting the front door on /data"
+    exec gitquire front-door /data
+    ;;
+esac
+
 if [ -n "${GITHUB_APP_ID:-}" ]; then
   echo "[entrypoint] Syncing /data with ${GITQUIRE_REPO:-<GITQUIRE_REPO unset>} through the GitHub App"
   gitquire gitquire-bootstrap /data
