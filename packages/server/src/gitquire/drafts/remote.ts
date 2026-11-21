@@ -25,6 +25,7 @@ export interface DraftRemote {
 export function gitHubRemote(
   client: GitHubDraftsClient,
   repo: { owner: string; name: string },
+  webUrl: string,
 ): DraftRemote {
   async function ensurePull(draft: DraftRecord, body: string): Promise<number> {
     if (draft.pull !== undefined) return draft.pull;
@@ -67,7 +68,7 @@ export function gitHubRemote(
     pullUrl: (draft) =>
       draft.pull === undefined
         ? undefined
-        : `https://github.com/${repo.owner}/${repo.name}/pull/${draft.pull}`,
+        : `${webUrl}/${repo.owner}/${repo.name}/pull/${draft.pull}`,
   };
 }
 
