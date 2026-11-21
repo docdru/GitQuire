@@ -39,6 +39,7 @@ export function createChatFromEnv(
     projectDir: string;
     sessionUser: (req: IncomingMessage) => SessionUser | undefined;
     log: GateLogger;
+    ownPort?: () => number | undefined;
   },
 ): ChatRoutes | undefined {
   if (isOff(env.GITQUIRE_AI_CHAT)) return undefined;
@@ -60,5 +61,6 @@ export function createChatFromEnv(
     sessionUser: options.sessionUser,
     wikiName: () => wikiName,
     log: options.log,
+    ownPort: options.ownPort,
   });
 }

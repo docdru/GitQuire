@@ -3,6 +3,7 @@ import type { Duplex } from 'node:stream';
 import { type GateLogger, type SessionUser, safeNextPath } from '../access-gate.ts';
 import { pathOf, redirect, sendJson } from '../http-util.ts';
 import { internalRequestHeaders, isInternalRequest } from '../internal-request.ts';
+import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
   encodeProxiedUser,
   FORWARDED_PREFIX_HEADER,
@@ -26,7 +27,6 @@ import {
   VIEW_COOKIE,
   viewCookie,
 } from './model.ts';
-import { proxyRequest, proxyUpgrade } from './proxy.ts';
 import { DraftError, type DraftService } from './service.ts';
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
@@ -387,9 +387,9 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     if (target === undefined) return false;
     target
       .then(async (draft) => {
-        const port = await instances.ensure(draft);
+        const socket = await instances.ensure(draft);
         instances.touch(draft.slug);
-        proxyRequest(req, res, port, {
+        proxyRequest(req, res, socket, {
           extraHeaders: {
             ...internalRequestHeaders(),
             [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(owner),
@@ -453,9 +453,9 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     }
     instances
       .ensure(draft)
-      .then((port) => {
+      .then((socket) => {
         instances.touch(draft.slug);
-        proxyRequest(req, res, port, { extraHeaders: childHeaders(req) });
+        proxyRequest(req, res, socket, { extraHeaders: childHeaders(req) });
       })
       .catch((err: unknown) => unreachable(req, res, err));
     return true;
@@ -481,9 +481,9 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     }
     instances
       .ensure(draft)
-      .then((port) => {
+      .then((target) => {
         const release = instances.hold(draft.slug);
-        proxyUpgrade(req, socket, head, port, release, childHeaders(req));
+        proxyUpgrade(req, socket, head, target, release, childHeaders(req));
       })
       .catch((err: unknown) => {
         deps.log.error({ err }, '[gitquire-drafts] could not open a draft for live editing');

@@ -64,7 +64,7 @@ when = [
   "packages/server/src/gitquire/settings-admin.ts",
   "packages/server/src/collab-bootstrap-url.ts",
   "packages/server/src/gitquire/drafts/http.ts",
-  "packages/server/src/gitquire/drafts/proxy.ts",
+  "packages/server/src/gitquire/process-pool/forward.ts",
 ]
 send = ["packages/server/src/gitquire/request-person.ts"]
 

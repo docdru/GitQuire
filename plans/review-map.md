@@ -16,7 +16,7 @@ All paths under `packages/server/src/gitquire/` unless stated.
 | Sign-in, session cookie, access check | `access-gate.ts`, `signed-cookie.ts`, `github-auth-config.ts` | GitHub OAuth, `GET /user`, repo `permissions`; one admin flag per cookie (R3) |
 | GitQuire's own token on the host | `github-app.ts`, `repo-bootstrap.ts` | App JWT, installation token, basic auth `x-access-token` for Git |
 | Agent tokens and `/mcp` sign-in | `agent-tokens.ts`, `agent-access.ts`, `oauth-server.ts`, `agent-pages.ts` | Re-check by collaborator permission; one revocation revokes all (R9, R13) |
-| Drafts | `drafts/` (`service.ts`, `instances.ts`, `proxy.ts`, `http.ts`, `remote.ts`), `github-pulls.ts` | Child processes on free ports (R5); `DraftRemote` is the host seam for reviews |
+| Drafts | `drafts/` (`service.ts`, `instances.ts`, `http.ts`, `remote.ts`), `github-pulls.ts` | Child processes from the shared pool (`process-pool/`), on Unix sockets (R5); `DraftRemote` is the host seam for reviews |
 | Internal calls | `internal-request.ts` | Shared secret between a process and its drafts |
 | People and identity | `people.ts`, `principal-directory.ts`, `board-identity.ts` | Person id `<host prefix><number>` from `host/names.ts`, `github-` on GitHub (R16) |
 | Mentions, mail, chat | `mentions.ts`, `page-scan.ts`, `mention-mailer.ts`, `mail.ts`, `chat-notifier.ts` | Read marks in `mentions.json` |
@@ -44,7 +44,13 @@ Modules added by the branch are listed here by the pull request that adds them.
 | Stage 2 | `drafts/instances.ts` | Draft processes no longer receive `GITQUIRE_HOST_TOKEN` or `GITQUIRE_HOST_TOKEN_FILE` (R12) |
 | Block 1 | `request-person.ts` | **Contract.** "Who is this request" (R2): `createRequestPerson` gives `sessionUser`, `isAdminRequest` and `agentOwner` for pages, live editing, assistants and the two global hooks. Behind the front door (`GITQUIRE_BEHIND_FRONT_DOOR`) only the forwarded person (`x-gitquire-principal`) with its per-wiki admin flag `repoAdmin` (R3), and only with the internal secret; otherwise today's session cookie and forwarded user. Also the internal headers `x-gitquire-prefix` (address prefix) and `x-gitquire-view` (open draft, request and response), trusted only with the secret and only behind the front door. The mode is read once, from the environment the gate is created with; the gate binds the prefix to the request (`requestPrefix`), which `/api/config` reads for the live-editing address |
 | Block 1 | `behind-front-door-gate.ts` | The gate behind the front door: 403 without the internal secret for everything but `/healthz` and `/readyz`, HTTP and upgrades (R4); no sign-in routes, no cookies, `/auth/me` from the forwarded person; health checks only at their exact raw path, and 400 for a request or upgrade whose raw path touches `/collab` and differs from the normalised one; no agent tokens, agent pages or OAuth server |
-| Block 1 | `drafts/http.ts`, `drafts/proxy.ts`, `principal-directory.ts` | Behind the front door: drafts read and hand back the open draft by header, keep the prefix in redirects, and pass the secret, person and prefix on browser and upgrade hops; live-editing auth hands every header, not only the cookie, to the resolvers |
+| Block 1 | `drafts/http.ts`, `process-pool/forward.ts` (was `drafts/proxy.ts`), `principal-directory.ts` | Behind the front door: drafts read and hand back the open draft by header, keep the prefix in redirects, and pass the secret, person and prefix on browser and upgrade hops; live-editing auth hands every header, not only the cookie, to the resolvers |
+| Block 2 | `process-pool/pool.ts` | The shared pool of child processes, moved out of `drafts/instances.ts`: one child per id, each on `<private dir>/<id>.sock` (`mkdtemp`, mode 0700; the id is checked so it cannot leave the folder), `PORT` removed from the child's environment, readiness and "pushed and clean" asked over the socket, `SIGTERM` then `SIGKILL` after the grace, idle sweep; the socket folder is made on the first start and removed by `stopAll` and at exit; once stopping, new starts are refused and `stopAll` waits for starts and queued work, then for every child (R5, R6) |
+| Block 2 | `process-pool/forward.ts` | HTTP and upgrade forwarding to a child's socket (moved from `drafts/proxy.ts`); strips the internal headers a browser could send |
+| Block 2 | `process-pool/socket-listener.ts`, `boot.ts` | `GITQUIRE_SOCKET`: the server also listens on that Unix socket (mode 0600) with the primary server's handlers and binds its TCP listener to a kernel-chosen port; a socket peer counts as loopback for the ingress checks. The container's public port stays TCP |
+| Block 2 | `chat/routes.ts` | The AI chat's tools call back on the server's own TCP port when the chat came in over the Unix socket (`req.socket.localPort` is undefined there) |
+| Block 2 | `process-pool/stop-state.ts` | `GET /api/gitquire/stop-state`, internal only: working tree clean, `HEAD` pushed, every running draft pushed and clean (R6) |
+| Block 2 | `server-factory.ts` (`pushBeforeStop`), `sync-engine.ts` (`pushForStop`), `boot.ts` | On stop, after the last write to disk: wait for a sync cycle in flight, then one push cycle, only with `autoSync.mode: full` and a remote; "pushed" only if the tree is clean and `HEAD` is not ahead afterwards. Behind the front door only, within one stop deadline (`GITQUIRE_STOP_DEADLINE_MS`, 50 s; drafts get 25 s and a 30 s grace): the push gets what is left minus 5 s, at most 15 s. Before that, `boot.ts` stops the drafts and waits for them (R6) |
 | Stage 1 | `host/data-folder.ts` | Refuses a data folder recorded for another host, or used by GitHub people when the host is not GitHub; writes nothing for GitHub. Cannot see ids in comment threads committed to the repo |
 | Block 3 | `packages/app/src/lib/gitquire/wiki-prefix.ts` | The app's wiki prefix: `/w/<owner>/<repo>` when the page's path starts with `/w/<owner>/<repo>/`, otherwise none (`/`, `/docs/plan`, `/w/team` give none). Used by the fetch wrapper (`client-fetch.ts` `pathPrefix`: every same-origin address gets the prefix once), the live-editing fallback address (`cc1.ts`), app-built `/api/asset` addresses, Excalidraw's asset path and the Ask Claude wiki address; and as `storageNamespace` (`DocumentContext.tsx`), which scopes `ok-last-observed-branch`, `ok-doc-lineage-epochs` and the replay outbox, plus the tab session key `ok-editor-tabs-v1:<origin><prefix>`. No prefix: every address and key as before. The web manifest and the page's icon links are relative |
 
@@ -54,7 +60,7 @@ Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they go
 
 - `packages/server/src/gitquire/host/types.ts` (stage 1), for changes under `host/`, to `access-gate.ts`, `agent-access.ts`, `github-app.ts`, `github-pulls.ts` and `drafts/remote.ts`.
 
-- `packages/server/src/gitquire/request-person.ts` (block 1), for changes to `access-gate.ts`, `behind-front-door-gate.ts`, `internal-request.ts`, `principal-directory.ts`, `settings-admin.ts`, `collab-bootstrap-url.ts` and `drafts/` (`http.ts`, `proxy.ts`).
+- `packages/server/src/gitquire/request-person.ts` (block 1), for changes to `access-gate.ts`, `behind-front-door-gate.ts`, `internal-request.ts`, `principal-directory.ts`, `settings-admin.ts`, `collab-bootstrap-url.ts` and `drafts/http.ts` and `process-pool/forward.ts`.
 
 Planned: the front door's access check (block 5).
 
@@ -65,8 +71,8 @@ Planned: the front door's access check (block 5).
 | Header carrying the person from front door to editor process to draft | Trusted without the internal secret; dropped by the forwarding code | R2, R4 |
 | Address translation (prefix, `Location`, cookie `Path`, `Referer` catch-all for images) | A request without a wiki in its address lands in the wrong wiki | P1, block 3 |
 | Browser storage and tab session | Offline edits of one wiki replayed into another | P2, block 3 |
-| Process pool and sockets | Traffic of one wiki handed to another process | R5 |
-| Stopping a wiki or the container | Unpushed commits lost | R6 |
+| Process pool and sockets | Traffic of one wiki handed to another process; a socket outside the private folder | R5 |
+| Stopping a wiki or the container | Unpushed commits lost; a stop that does not wait for its drafts or cuts the final push short | R6 |
 | Access re-check | "Unknown" or "refused" read as "allowed"; one denial revokes everything | R8, R9, R14, R15 |
 | Host token handed to an editor process | A process gets a token for other repos; `tokenFor` returns the Forgejo bot token or anything but a one-repo token | R12 |
 | Folder and id keys | A rename or a second host orphans a folder or mixes ids; `repoChange` reads an owner rename as a move or the reverse | R10, R16, R18 |

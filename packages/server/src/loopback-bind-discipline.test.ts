@@ -47,6 +47,8 @@ function isCommentOnlyLine(line: string): boolean {
 }
 
 const LOOPBACK_HOST_LITERAL = /['"](?:127\.0\.0\.1|::1)['"]/;
+const UNIX_SOCKET_BIND =
+  /\.listen\(\s*(?:(?:[A-Za-z_$][\w$]*)?[Ss]ocket\b|['"`][^'"`]*\.sock['"`])\s*[,)]/;
 
 export function findNonLoopbackListenCalls(lines: string[]): Array<{ line: number; text: string }> {
   const violations: Array<{ line: number; text: string }> = [];
@@ -61,7 +63,7 @@ export function findNonLoopbackListenCalls(lines: string[]): Array<{ line: numbe
     }
     const paren = window.indexOf(')');
     if (paren !== -1) window = window.slice(0, paren + 1);
-    if (!LOOPBACK_HOST_LITERAL.test(window)) {
+    if (!LOOPBACK_HOST_LITERAL.test(window) && !UNIX_SOCKET_BIND.test(window)) {
       violations.push({ line: i + 1, text: line.trim() });
     }
   }
@@ -150,6 +152,11 @@ describe('loopback bind discipline (server test sources)', () => {
     expect(findNonLoopbackListenCalls(['  s.listen(port, host, cb);']).length).toBe(1);
 
     expect(findNonLoopbackListenCalls(["  s.listen(0, '0.0.0.0', cb);"]).length).toBe(1);
+    expect(findNonLoopbackListenCalls(['  server.listen(socket);']).length).toBe(0);
+    expect(findNonLoopbackListenCalls(['  draft.listen(draftSocket, resolve);']).length).toBe(0);
+    expect(findNonLoopbackListenCalls(["  s.listen('/tmp/gq-x/a.sock', cb);"]).length).toBe(0);
+    expect(findNonLoopbackListenCalls(['  s.listen(socketPort, cb);']).length).toBe(1);
+    expect(findNonLoopbackListenCalls(['  s.listen(port, socket);']).length).toBe(1);
   });
 
   test('dial predicate fires on planted violations and not on adjacent negatives', () => {

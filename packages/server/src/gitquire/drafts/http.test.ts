@@ -1,5 +1,4 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
 import { Duplex, Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -92,7 +91,7 @@ let http: DraftsHttp;
 let signedIn: SessionUser | undefined;
 let agent: SessionUser | undefined;
 let draftInstance: Server;
-let draftPort: number;
+let draftSocket: string;
 let haltGate: Promise<void> | undefined;
 
 beforeEach(async () => {
@@ -108,15 +107,15 @@ beforeEach(async () => {
     });
     res.end(`draft instance saw ${req.url}`);
   });
-  await new Promise<void>((resolve) => draftInstance.listen(0, '127.0.0.1', resolve));
-  draftPort = (draftInstance.address() as AddressInfo).port;
   repos = createTestRepos({ 'hello.md': '# Hello\n' });
+  draftSocket = join(repos.root, 'draft.sock');
+  await new Promise<void>((resolve) => draftInstance.listen(draftSocket, resolve));
   const prepared = fakeInstances(repos);
   const instances = {
     ...prepared,
     ensure: async (draft: Parameters<typeof prepared.ensure>[0]) => {
       await prepared.ensure(draft);
-      return draftPort;
+      return draftSocket;
     },
     halt: async (slug: string) => {
       await prepared.halt(slug);
@@ -145,8 +144,8 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  repos.cleanup();
   await new Promise<void>((resolve) => draftInstance.close(() => resolve()));
+  repos.cleanup();
 });
 
 async function call(url: string, init: Parameters<typeof fakeRequest>[1] = {}) {
@@ -396,7 +395,7 @@ describe('drafts HTTP behind the front door', () => {
       service,
       instances: {
         ...fakeInstances(repos),
-        ensure: async () => draftPort,
+        ensure: async () => draftSocket,
       },
       sessionUser: proxiedUser,
       agentOwner: proxiedUser,

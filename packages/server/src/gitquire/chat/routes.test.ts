@@ -1,10 +1,11 @@
 import { mkdtempSync, rmSync } from 'node:fs';
-import { createServer, type Server } from 'node:http';
+import { createServer, request, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { SessionUser } from '../access-gate.ts';
+import { listenOnUnixSocket } from '../process-pool/socket-listener.ts';
 import { createChatHistoryStore } from './history.ts';
 import { createChatKeyStore } from './key-store.ts';
 import { type ChatProviders, ProviderError, type ProviderTurn } from './providers.ts';
@@ -22,6 +23,8 @@ interface Harness {
   toolCalls: { user: string; name: string; input: Record<string, unknown> }[];
   checkedKeys: string[];
   opened: (string | undefined)[];
+  ports: number[];
+  server: Server;
 }
 
 const cleanups: (() => Promise<void> | void)[] = [];
@@ -34,6 +37,7 @@ async function harness(options: {
   turns?: ProviderTurn[];
   checkKey?: (key: string) => void;
   writeResult?: { output: string; isError: boolean };
+  ownPort?: number;
 }): Promise<Harness> {
   const dir = mkdtempSync(join(tmpdir(), 'gq-chat-routes-'));
   cleanups.push(() => rmSync(dir, { recursive: true, force: true }));
@@ -52,8 +56,10 @@ async function harness(options: {
     },
   };
   const opened: Harness['opened'] = [];
-  const openTools: OpenWikiTools = async (user, _port, _signal, edits) => {
+  const ports: number[] = [];
+  const openTools: OpenWikiTools = async (user, port, _signal, edits) => {
     opened.push(edits);
+    ports.push(port);
     return openedTools(user);
   };
   const openedTools = (user: Parameters<OpenWikiTools>[0]) => ({
@@ -78,6 +84,7 @@ async function harness(options: {
     wikiName: () => 'acme/wiki',
     log: silentLog,
     now: () => new Date('2026-11-14T09:00:00.000Z'),
+    ownPort: () => options.ownPort,
   });
   const server: Server = createServer((req, res) => {
     if (!routes.handle(req, res)) {
@@ -94,7 +101,7 @@ async function harness(options: {
       }),
   );
   const { port } = server.address() as AddressInfo;
-  return { url: `http://127.0.0.1:${port}`, routes, toolCalls, checkedKeys, opened };
+  return { url: `http://127.0.0.1:${port}`, routes, toolCalls, checkedKeys, opened, ports, server };
 }
 
 function call(h: Harness, path: string, init: RequestInit & { user?: string } = {}) {
@@ -114,7 +121,64 @@ async function events(response: Response): Promise<Record<string, unknown>[]> {
     .map((line) => JSON.parse(line) as Record<string, unknown>);
 }
 
+function postOverSocket(
+  socketPath: string,
+  path: string,
+  user: string,
+  body: unknown,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const req = request(
+      {
+        socketPath,
+        path,
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-test-user': user },
+      },
+      (res) => {
+        let text = '';
+        res.on('data', (chunk) => {
+          text += String(chunk);
+        });
+        res.on('end', () => resolve(text));
+      },
+    );
+    req.on('error', reject);
+    req.end(JSON.stringify(body));
+  });
+}
+
 describe('AI chat routes', () => {
+  it('reaches the wiki tools through the server’s own port when the chat came in over a unix socket', async () => {
+    const answer = {
+      text: 'Done.',
+      toolCalls: [],
+      usage: { inputTokens: 1, outputTokens: 1 },
+      stopReason: 'end' as const,
+    };
+    const h = await harness({ turns: [answer], ownPort: 4321 });
+    await call(h, '/api/gitquire/chat/keys/claude', {
+      method: 'PUT',
+      user: 'alice',
+      body: JSON.stringify({ key: 'sk-ant-key-1234' }),
+    });
+    const dir = mkdtempSync(join(tmpdir(), 'gq-chat-socket-'));
+    cleanups.push(() => rmSync(dir, { recursive: true, force: true }));
+    const socketServer = await listenOnUnixSocket(h.server, join(dir, 'editor.sock'), createServer);
+    cleanups.push(() => new Promise<void>((resolve) => socketServer.close(() => resolve())));
+    const text = await postOverSocket(
+      join(dir, 'editor.sock'),
+      '/api/gitquire/chat/chats/new/messages',
+      'alice',
+      {
+        text: 'Hello',
+        provider: 'claude',
+      },
+    );
+    expect(text).toContain('Done.');
+    expect(h.ports).toEqual([4321]);
+  });
+
   it('needs a signed-in person', async () => {
     const h = await harness({});
     const response = await call(h, '/api/gitquire/chat');
