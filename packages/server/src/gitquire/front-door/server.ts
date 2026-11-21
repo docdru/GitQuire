@@ -2,8 +2,15 @@ import { randomBytes } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { type GateLogger, safeNextPath } from '../access-gate.ts';
+import { isSlug } from '../drafts/model.ts';
 import { callbackPath, hostNames, signInPath } from '../host/names.ts';
-import type { AddableRepo, DoorHost, HostHealth, HostPerson, HostRepo } from '../host/types.ts';
+import type {
+  AddableRepo,
+  DoorHost,
+  HostHealth,
+  HostPerson,
+  HostRepoRecord,
+} from '../host/types.ts';
 import {
   escapeHtml,
   isSameOriginRequest,
@@ -81,8 +88,29 @@ interface AddableEntry {
   answer: 'listed' | 'refused' | 'unreachable';
 }
 
+export type TokenCheck = HostHealth | 'not-limited' | 'cannot-confirm';
+
+const TOKEN_REFUSED_TEXT: Record<string, string> = {
+  'not-limited':
+    'The token reaches other repositories too. Create one limited to this repository only.',
+  'cannot-confirm':
+    "GitQuire cannot check that the token is limited to this repository: give GitQuire's bot account access to one more repository (any, even an empty one) and try again.",
+};
+
+function tokenRefusal(res: ServerResponse, label: string, health: TokenCheck): void {
+  sendJson(res, health === 'unreachable' ? 503 : 400, {
+    error: health === 'unreachable' ? 'host-unreachable' : 'token-refused',
+    refusal: health,
+    message:
+      health === 'unreachable'
+        ? `${label} cannot be reached right now.`
+        : (TOKEN_REFUSED_TEXT[health] ??
+          "The token cannot write to this repository, or GitQuire's account is not its administrator."),
+  });
+}
+
 export interface ForgejoTokenChecks {
-  check: (repo: HostRepo, token: string) => Promise<HostHealth>;
+  check: (repo: HostRepoRecord, token: string) => Promise<TokenCheck>;
   save: (key: string, token: string) => void;
   isBotToken: (token: string) => boolean;
 }
@@ -322,7 +350,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       exp: Math.floor(now() / 1000) + settings.sessionMaxAgeSeconds,
     };
     deps.log.info({ login: person.login, purpose: stored.purpose }, '[gitquire-door] signed in');
-    redirect(res, stored.next, {
+    redirect(res, safeNextPath(stored.next), {
       'Set-Cookie': [
         clearState,
         cookie(
@@ -369,6 +397,10 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       return;
     }
     if (path === '/auth/logout') {
+      if (req.method === 'POST' && !isSameOriginRequest(req, settings.externalUrl)) {
+        sendJson(res, 403, { error: 'cross-origin' });
+        return;
+      }
       if (req.method === 'POST') {
         const user = sessionUser(req);
         if (user !== undefined) {
@@ -427,7 +459,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   async function listWikis(user: DoorSessionUser): Promise<Record<string, unknown>> {
-    const listed = await access.wikisFor(user, table.list());
+    const listed = await access.wikisFor(user, table.list(), {
+      serverAdmin: isServerAdmin(user),
+    });
     const fallback = defaultWiki();
     return {
       wikis: listed.map(({ wiki, admin }) => wikiView(wiki, admin)),
@@ -531,14 +565,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       }
       const health = await deps.forgejoTokens.check(repo, token);
       if (health !== 'ok') {
-        sendJson(res, health === 'unreachable' ? 503 : 400, {
-          error: health === 'unreachable' ? 'host-unreachable' : 'token-refused',
-          refusal: health,
-          message:
-            health === 'unreachable'
-              ? `${label} cannot be reached right now.`
-              : "The token cannot write to this repository, or GitQuire's account is not its administrator.",
-        });
+        tokenRefusal(res, label, health);
         return;
       }
       deps.forgejoTokens.save(key, token);
@@ -576,10 +603,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     }
     const health = await deps.forgejoTokens.check(wiki, token);
     if (health !== 'ok') {
-      sendJson(res, health === 'unreachable' ? 503 : 400, {
-        error: 'token-refused',
-        refusal: health,
-      });
+      tokenRefusal(res, label, health);
       return;
     }
     deps.forgejoTokens.save(key, token);
@@ -627,6 +651,10 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     sendJson(res, 404, { error: 'not-found' });
   }
 
+  function seesWhy(user: DoorSessionUser, wiki: WikiRecord): boolean {
+    return access.wasAdmin(user, wiki) || isServerAdmin(user);
+  }
+
   function closedAnswer(
     req: IncomingMessage,
     res: ServerResponse,
@@ -634,28 +662,33 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     user: DoorSessionUser,
     decision: Exclude<OpenDecision, { open: true }>,
   ): void {
-    const repo = `${wiki.owner}/${wiki.name}`;
-    const status = decision.why === 'unreachable' ? 503 : 403;
-    if (!wantsHtml(req)) {
-      sendJson(res, status, {
-        error: decision.why === 'no-access' ? 'no-access' : decision.why,
-        ...(decision.why === 'disconnected' && access.wasAdmin(user, wiki)
-          ? { reason: wiki.reason ?? null }
-          : {}),
-      });
+    if (decision.why === 'unreachable') {
+      if (wantsHtml(req)) {
+        sendHtml(
+          res,
+          503,
+          'Try again in a moment',
+          `<p>${label} cannot be reached right now, so GitQuire cannot check your access. Try again in a moment.</p><p><a href="/">Your wikis</a></p>`,
+        );
+      } else {
+        sendJson(res, 503, { error: 'unreachable' });
+      }
       return;
     }
-    const body =
-      decision.why === 'no-access'
-        ? `<p>The ${label} account <strong>@${escapeHtml(user.login)}</strong> does not have write access to <code>${escapeHtml(repo)}</code>. Ask its owner for access, then <a href="${signInAddress(`${wikiPrefix(wiki)}/`)}">sign in again</a>.</p>`
-        : decision.why === 'unreachable'
-          ? `<p>${label} cannot be reached right now, so GitQuire cannot check your access to <code>${escapeHtml(repo)}</code>. Try again in a moment.</p>`
-          : `<p>The wiki <code>${escapeHtml(repo)}</code> is disconnected.</p>${access.wasAdmin(user, wiki) ? `<p>${escapeHtml(REASON_TEXT[wiki.reason ?? ''] ?? '')}</p>` : ''}`;
+    if (decision.why === 'no-access' || !seesWhy(user, wiki)) {
+      notAWiki(req, res);
+      return;
+    }
+    const repo = `${wiki.owner}/${wiki.name}`;
+    if (!wantsHtml(req)) {
+      sendJson(res, 403, { error: 'disconnected', reason: wiki.reason ?? null });
+      return;
+    }
     sendHtml(
       res,
-      status,
-      decision.why === 'no-access' ? 'No access' : 'Wiki unavailable',
-      `${body}<p><a href="/">Your wikis</a></p>`,
+      403,
+      'Wiki unavailable',
+      `<p>The wiki <code>${escapeHtml(repo)}</code> is disconnected.</p><p>${escapeHtml(REASON_TEXT[wiki.reason ?? ''] ?? '')}</p><p><a href="/">Your wikis</a></p>`,
     );
   }
 
@@ -724,8 +757,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     wiki: WikiRecord,
     path: string,
     view: string | undefined,
+    decided?: OpenDecision,
   ): Promise<void> {
-    const decision = await access.decide(user, wiki);
+    const decision = decided ?? (await access.decide(user, wiki));
     if (!decision.open) {
       closedAnswer(req, res, wiki, user, decision);
       return;
@@ -770,7 +804,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   async function homePage(res: ServerResponse, user: DoorSessionUser): Promise<void> {
-    const listed = await access.wikisFor(user, table.list());
+    const listed = await access.wikisFor(user, table.list(), {
+      serverAdmin: isServerAdmin(user),
+    });
     const fallback = defaultWiki();
     const items = listed
       .map(
@@ -802,7 +838,10 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     }
     const user = sessionUser(req);
     const address = parseWikiAddress(req.url);
-    const viewFor = (key: string): string | undefined => readCookie(req, viewCookieName(key));
+    const viewFor = (key: string): string | undefined => {
+      const value = readCookie(req, viewCookieName(key));
+      return isSlug(value) ? value : undefined;
+    };
     const fail = (err: unknown): void => {
       deps.log.error({ err, path: rawPath }, '[gitquire-door] request failed');
       if (!res.headersSent) sendJson(res, 500, { error: 'front-door-error' });
@@ -831,22 +870,29 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         notAWiki(req, res);
         return;
       }
-      if (!match.current || address.rest === '') {
-        res.writeHead(match.current ? 302 : 301, {
-          Location: `${wikiPrefix(match.wiki)}${address.rest === '' ? '/' : address.rest}${address.search}`,
-          'Cache-Control': 'no-store',
-        });
-        res.end();
-        return;
-      }
-      toWiki(
-        req,
-        res,
-        user,
-        match.wiki,
-        `${address.rest}${address.search}`,
-        viewFor(match.wiki.key),
-      ).catch(fail);
+      const view = viewFor(match.wiki.key);
+      access
+        .decide(user, match.wiki)
+        .then((decision) => {
+          if (decision.open && (!match.current || address.rest === '')) {
+            res.writeHead(match.current ? 302 : 301, {
+              Location: `${wikiPrefix(match.wiki)}${address.rest === '' ? '/' : address.rest}${address.search}`,
+              'Cache-Control': 'no-store',
+            });
+            res.end();
+            return undefined;
+          }
+          return toWiki(
+            req,
+            res,
+            user,
+            match.wiki,
+            `${address.rest}${address.search}`,
+            view,
+            decision,
+          );
+        })
+        .catch(fail);
       return;
     }
 
@@ -909,13 +955,14 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       return;
     }
     const wiki = match.wiki;
-    const viewSlug = readCookie(cookies, viewCookieName(wiki.key));
+    const cookieView = readCookie(cookies, viewCookieName(wiki.key));
+    const viewSlug = isSlug(cookieView) ? cookieView : undefined;
     void (async () => {
       const decision = await access.decide(user, wiki);
       if (!decision.open) {
         refuseUpgrade(
           socket,
-          decision.why === 'unreachable' ? '503 Service Unavailable' : '403 Forbidden',
+          decision.why === 'unreachable' ? '503 Service Unavailable' : '404 Not Found',
         );
         return;
       }

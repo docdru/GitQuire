@@ -1,4 +1,4 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
@@ -10,6 +10,7 @@ import type { DoorHost, HostPerson, HostRepo } from '../host/types.ts';
 import { createWikiAccess } from './access.ts';
 import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
+import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
 import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
 import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.ts';
 import {
@@ -19,7 +20,7 @@ import {
 } from './settings.ts';
 import { listenTokenSocket } from './token-socket.ts';
 import { createWikiProcesses } from './wiki-processes.ts';
-import { openWikiTable, wikiTableFile } from './wiki-table.ts';
+import { openWikiTable, type WikiRecord, wikiTableFile } from './wiki-table.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -33,6 +34,14 @@ interface RunningFrontDoor {
 
 function nameKey(repo: HostRepo): string {
   return `${repo.owner.toLowerCase()}/${repo.name.toLowerCase()}`;
+}
+
+export function refuseSingleWikiVolume(dataDir: string): void {
+  if (existsSync(join(dataDir, '.git'))) {
+    throw new FrontDoorConfigError(
+      `${dataDir} holds the checkout of a single wiki (it has .git). GITQUIRE_WIKIS=on needs a volume of its own; moving a single-wiki volume over is not supported yet.`,
+    );
+  }
 }
 
 async function checkHost(host: DoorHost, log: GateLogger): Promise<void> {
@@ -64,6 +73,7 @@ export async function startFrontDoor(
       "[gitquire-door] GITQUIRE_HOST_REPO_TOKEN is not used with GITQUIRE_WIKIS=on; a server administrator enters each wiki's token when adding it",
     );
   }
+  refuseSingleWikiVolume(settings.dataDir);
   mkdirSync(join(settings.dataDir, 'server'), { recursive: true, mode: 0o700 });
   mkdirSync(join(settings.dataDir, 'wikis'), { recursive: true });
   const table = openWikiTable(wikiTableFile(settings.dataDir));
@@ -106,8 +116,10 @@ export async function startFrontDoor(
         );
   await checkHost(host, log);
 
+  const later = { check: (_wiki: WikiRecord): void => {} };
   const access = createWikiAccess({
     host,
+    changed: (wiki) => later.check(wiki),
     runnable: (wiki) => ownerAllowed(owners, wiki),
     refused: (wiki, refusal) => {
       log.warn(
@@ -130,6 +142,13 @@ export async function startFrontDoor(
     tokenSocket: () => tokenSocketPath,
     log,
   });
+  later.check = (wiki) => {
+    processes
+      .check(wiki)
+      .catch((err: unknown) =>
+        log.warn({ err, wiki: wiki.key }, '[gitquire-door] wiki check failed'),
+      );
+  };
   const tokenSocket = await listenTokenSocket({
     wikiOfSecret: processes.wikiOfSecret,
     repoOf: (key) => {
@@ -141,17 +160,25 @@ export async function startFrontDoor(
   });
   tokenSocketPath = tokenSocket.path;
 
+  const tokenScope = createForgejoTokenScopeCheck({
+    apiUrl: settings.apiUrl,
+    botToken: () => settings.forgejoBotToken,
+  });
   const forgejoTokens: ForgejoTokenChecks | undefined =
     store === undefined
       ? undefined
       : {
           check: async (repo, token) => {
             trial.set(nameKey(repo), token);
+            let health: Awaited<ReturnType<DoorHost['health']>>;
             try {
-              return await host.health(repo);
+              health = await host.health(repo);
             } finally {
               trial.delete(nameKey(repo));
             }
+            if (health !== 'ok') return health;
+            const scope = await tokenScope(repo, token);
+            return scope === 'limited' ? 'ok' : scope;
           },
           save: store.set,
           isBotToken: (token) => token === settings.forgejoBotToken,

@@ -30,7 +30,9 @@ describe('front door settings', () => {
   it('is on only for an on value', () => {
     expect(wikisModeFromEnv({})).toBe(false);
     expect(wikisModeFromEnv({ GITQUIRE_WIKIS: 'off' })).toBe(false);
-    expect(wikisModeFromEnv({ GITQUIRE_WIKIS: 'ON' })).toBe(true);
+    expect(wikisModeFromEnv({ GITQUIRE_WIKIS: ' ON ' })).toBe(true);
+    expect(wikisModeFromEnv({ GITQUIRE_WIKIS: ' ' })).toBe(false);
+    expect(() => wikisModeFromEnv({ GITQUIRE_WIKIS: 'maybe' })).toThrow(/must be on or off/);
   });
 
   it('takes the owner of GITQUIRE_REPO as the only allowed owner when none is listed (R18)', () => {

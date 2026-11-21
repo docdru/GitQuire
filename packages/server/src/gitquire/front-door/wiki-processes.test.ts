@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
   if (req.url === '/api/gitquire/stop-state') {
     const ok = req.headers['x-gitquire-internal'] === process.env.GITQUIRE_INTERNAL_SECRET;
     res.writeHead(ok ? 200 : 403, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ pushedAndClean: process.env.DIRTY !== '1' }));
+    res.end(JSON.stringify({ pushedAndClean: !require('node:fs').existsSync('DIRTY') }));
     return;
   }
   res.writeHead(200);
@@ -66,6 +66,11 @@ describe('wiki process environment (R12)', () => {
         GITQUIRE_MCP_CONNECTORS: 'on',
         GITQUIRE_INTERNAL_SECRET: 'front-door-secret',
         PORT: '8080',
+        NODE_OPTIONS: '--require /tmp/x.js',
+        LD_PRELOAD: '/tmp/x.so',
+        LC_ALL: 'C.UTF-8',
+        HTTPS_PROXY: 'http://proxy:3128',
+        SOMETHING_ELSE: 'x',
         GITQUIRE_HOST: 'forgejo',
         GITQUIRE_HOST_URL: 'https://code.example.org',
         GITQUIRE_AI_CHAT: 'off',
@@ -82,7 +87,8 @@ describe('wiki process environment (R12)', () => {
       PATH: '/bin',
       HOME: '/home/gq',
       NODE_EXTRA_CA_CERTS: '/ca.pem',
-      PORT: '8080',
+      LC_ALL: 'C.UTF-8',
+      HTTPS_PROXY: 'http://proxy:3128',
       GITQUIRE_HOST: 'forgejo',
       GITQUIRE_HOST_URL: 'https://code.example.org',
       GITQUIRE_AI_CHAT: 'off',
@@ -146,7 +152,7 @@ function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHea
   const processes = createWikiProcesses({
     dataDir: data,
     externalUrl: new URL('https://wiki.example.org'),
-    env: { PATH: process.env.PATH, ...(options.dirty ? { DIRTY: '1' } : {}) },
+    env: { PATH: process.env.PATH },
     cli: [process.execPath, script],
     host,
     table,
@@ -155,6 +161,7 @@ function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHea
     log: silentLog,
     bootstrap: async (dir) => {
       bootstrapped.push(dir);
+      if (options.dirty) writeFileSync(join(dir, 'DIRTY'), '');
     },
     now: () => time,
   });
@@ -252,9 +259,24 @@ describe('wiki processes', () => {
     expect(table.byKey('github-5')?.reason).toBe('gone');
   });
 
-  it('starts a wiki while the host is unreachable (R14)', async () => {
-    const { wiki, processes } = setup({ lookup: { state: 'unreachable' } });
+  it('starts a wiki while the host is unreachable once its owner was confirmed by id (R14)', async () => {
+    const { table, wiki, processes } = setup({ lookup: { state: 'unreachable' } });
     expect(await processes.check(wiki)).toBe('unreachable');
+    await expect(processes.ensure(wiki)).rejects.toThrow(/never confirmed/);
+    expect(processes.isRunning('github-5')).toBe(false);
+    table.pinOwner('team', 7);
     await expect(processes.ensure(wiki)).resolves.toContain('github-5.sock');
+  });
+
+  it('forgets the secret of a wiki whose process has stopped', async () => {
+    const { wiki, processes, advance } = setup();
+    await processes.ensure(wiki);
+    const secret = processes.secretOf('github-5') ?? '';
+    expect(processes.wikiOfSecret(secret)).toBe('github-5');
+    advance(WIKI_IDLE_MS + 1);
+    await processes.sweep();
+    expect(processes.isRunning('github-5')).toBe(false);
+    expect(processes.secretOf('github-5')).toBeUndefined();
+    expect(processes.wikiOfSecret(secret)).toBeUndefined();
   });
 });
