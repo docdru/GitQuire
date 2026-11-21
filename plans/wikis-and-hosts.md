@@ -110,7 +110,7 @@ The agent merges a pull request into `wikis-hosts` when `ci-ok` is green on the 
 ## Known limits, accepted
 
 - Forgejo: the unlimited bot token is in the front door only; editor processes hold their own repository-limited token. A limited token can still read the details (not the files) of other repos the bot belongs to (F5).
-- Forgejo: each wiki needs its own limited token, created on Forgejo and entered by an administrator (how it is made is F10). Single-wiki mode needs two tokens instead of one.
+- Forgejo: each wiki needs its own limited token, which GitQuire cannot create (F10); a person who can sign in as the bot creates it and a server administrator enters it at Add a wiki. On Forgejo only server administrators add wikis. Single-wiki mode needs two tokens instead of one.
 - Forgejo: the bot is repo admin, more than editing needs.
 - Forgejo sign-in tokens are not limited; GitQuire uses the token once and drops it.
 - One host call per wiki at sign-in; reconsider a list call above roughly 50 wikis.
@@ -176,7 +176,7 @@ The prototype (`front-proxy.mjs`) strips `/w/<owner>/<repo>/`, adds it to `Locat
 ### Changes to the plan from stage 0
 
 1. H2: authorize with `response_type=code` and `scope=read:user read:repository`; exchange with `grant_type=authorization_code`. Harmless for GitHub, which ignores both.
-2. H2: tell a conflict from "already merged" by reading the pull request, not by the 405.
+2. H2: on a 405, retry for a few seconds (Forgejo checks mergeability after a pull request opens), then read the pull request: `merged` → already published, `mergeable` false → conflict (F10).
 3. H3: the commit email in `/auth/me` and in commits must use the host's no-reply form.
 4. R15 mapping as above (401, 403, 404, network or 5xx).
 5. Block 1/5: sign-in, the session and the draft-view cookie live at the root in the front door; editor processes set no cookies of their own.
@@ -190,4 +190,8 @@ The prototype (`front-proxy.mjs`) strips `/w/<owner>/<repo>/`, adds it to `Locat
 | --- | --- | --- |
 | F10 | With a token limited to the wiki's repo: push branches, open, squash-merge with a title, close, delete branches through the API and Git, read the collaborators list and the repo record. Then: can GitQuire create such a token without the bot's password (with the unlimited token, with a limited one, as site admin with `Sudo`)? | Every draft step works with the limited token. The token-creation answers are written down; they decide whether Add a wiki can make the token itself or an administrator enters it |
 
-Results: appended when the run of this pull request is in.
+Results (Forgejo 15.0.12, two runs on #187):
+
+- **Draft steps with a limited token: pass.** Push, open, squash merge with a title (the title lands on `main`), close (201), delete branches through the API (204) and through Git, collaborators list (200) and repo record (200) all work. Two tokens are enough for everything GitQuire does.
+- **GitQuire cannot create the per-wiki token itself.** Token creation refuses every token: without `write:user` 403, with `write:user` 401 "auth method not allowed". It works only with a password: the bot's own, or a site admin's with the `Sudo` header (201). GitQuire stores neither, so **a person who can sign in as the bot creates each wiki's token on Forgejo and enters it at Add a wiki.** On Forgejo, adding a wiki is therefore a server administrator's step, unlike on GitHub, where any repo admin under an allowed owner can add one.
+- **Correction to F3:** merging a pull request right after opening it can answer 405 "Please try again later" while Forgejo is still checking mergeability (it passed in the earlier runs only by timing). A conflicting pull request answers the same 405 with the same message, every second for 20 s. Merging an already merged one answers 405 with an empty message. So H2 retries a 405 for a few seconds, then reads the pull request: `merged` true means already published, `mergeable` false after the retries means a conflict.
