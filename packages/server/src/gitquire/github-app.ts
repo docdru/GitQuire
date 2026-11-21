@@ -280,13 +280,14 @@ export interface InstallationTokenManager {
 
 export interface TokenManagerDeps {
   log: GateLogger;
+  startMessage?: string;
   now?: () => number;
   setTimer?: (fn: () => void, ms: number) => { unref?: () => void };
   clearTimer?: (timer: unknown) => void;
 }
 
 export async function startInstallationTokenManager(
-  config: GitHubAppConfig,
+  config: Pick<GitHubAppConfig, 'repo' | 'gitHost'>,
   client: GitHubAppClient,
   deps: TokenManagerDeps,
 ): Promise<InstallationTokenManager> {
@@ -326,7 +327,7 @@ export async function startInstallationTokenManager(
   schedule(current.expiresAt - now() - REFRESH_BEFORE_EXPIRY_MS);
   deps.log.info(
     { repo: `${config.repo.owner}/${config.repo.name}` },
-    '[gitquire-app] using GitHub App installation token for git sync',
+    deps.startMessage ?? '[gitquire-app] using GitHub App installation token for git sync',
   );
 
   function valid(): string | undefined {

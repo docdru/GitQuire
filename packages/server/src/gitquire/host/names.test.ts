@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { principalIdForUser } from '../principal-directory.ts';
 import {
+  callbackPath,
   gitHubNames,
   HostConfigError,
   hostNames,
   hostNamesFromEnv,
   resetHostNames,
   setHostNames,
+  signInPath,
 } from './names.ts';
 
 afterEach(() => {
@@ -47,9 +49,35 @@ describe('host names', () => {
     );
   });
 
-  it('refuses an unknown host and a host this version does not support', () => {
+  it('refuses an unknown host, and Forgejo without its address', () => {
     expect(() => hostNamesFromEnv({ GITQUIRE_HOST: 'gitlab' })).toThrow('github or forgejo');
     expect(() => hostNamesFromEnv({ GITQUIRE_HOST: 'forgejo' })).toThrow(HostConfigError);
+  });
+
+  it('names Forgejo people and their no-reply email after the server', () => {
+    const names = hostNamesFromEnv({
+      GITQUIRE_HOST: 'forgejo',
+      GITQUIRE_HOST_URL: 'https://git.example.org/forgejo/',
+    });
+    expect(names.kind).toBe('forgejo');
+    expect(names.label).toBe('Forgejo');
+    expect(names.idPrefix).toBe('forgejo-');
+    expect(names.noreplyEmail({ id: 3, login: 'bob' })).toBe('bob@noreply.git.example.org');
+    setHostNames(names);
+    expect(principalIdForUser(3)).toBe('forgejo-3');
+    expect(signInPath()).toBe('/auth/forgejo/login');
+    expect(callbackPath()).toBe('/auth/forgejo/callback');
+    const custom = hostNamesFromEnv({
+      GITQUIRE_HOST: 'forgejo',
+      GITQUIRE_HOST_URL: 'https://git.example.org',
+      GITQUIRE_COMMIT_EMAIL_FORMAT: '{login}@users.example.org',
+    });
+    expect(custom.noreplyEmail({ id: 3, login: 'bob' })).toBe('bob@users.example.org');
+  });
+
+  it('keeps the GitHub sign-in paths', () => {
+    expect(signInPath()).toBe('/auth/github/login');
+    expect(callbackPath()).toBe('/auth/github/callback');
   });
 
   it('gives person ids the prefix of the configured host', () => {

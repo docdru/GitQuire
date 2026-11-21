@@ -38,6 +38,10 @@ export interface ExchangeInput {
   redirectUri: string;
 }
 
+export type SelfCheck =
+  | { ok: true }
+  | { ok: false; unreachable: boolean; problems: readonly string[] };
+
 export interface DoorHost {
   authorizeUrl: (input: AuthorizeInput) => string;
   exchangeCode: (input: ExchangeInput) => Promise<string | undefined>;
@@ -45,4 +49,5 @@ export interface DoorHost {
   access: (personToken: string, repo: HostRepo) => Promise<RepoAccess>;
   accessByBot: (login: string, repo: HostRepo) => Promise<BotAccess>;
   tokenFor: (repo: HostRepo) => Promise<string | undefined>;
+  selfCheck: () => Promise<SelfCheck>;
 }

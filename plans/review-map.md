@@ -32,6 +32,10 @@ Modules added by the branch are listed here by the pull request that adds them.
 | Stage 1 (H1, H3) | `host/types.ts` | **Contract.** The host interface: `DoorHost` (sign-in, `access`, `accessByBot` with `refused:token` (401), `refused:not-admin` (403), `refused:removed` (bot no longer reaches the repo) and `unreachable`, async `tokenFor`), `HostNames` (label, id prefix, no-reply email) |
 | Stage 1 | `host/github.ts` | The GitHub door host: authorize address, code exchange, `GET /user`, repo `permissions`, collaborator permission with the app token. Moved from `access-gate.ts` and `agent-access.ts` unchanged |
 | Stage 1 | `host/names.ts` | `GITQUIRE_HOST` (only `github` in stage 1), `GITQUIRE_COMMIT_EMAIL_FORMAT`; the process's host names, read by `noreplyEmail` and `principalIdForUser` |
+| Stage 2 (H2) | `host/forgejo.ts` | The Forgejo door host: sign-in with `response_type=code`, scope `read:user read:repository`, `grant_type`; access re-check with the **unlimited** bot token (404 then asks whether the bot still reaches the repo: `refused:removed`); `tokenFor` returns only the **repository-limited** token; `selfCheck` (version 15+, bot is repo admin, limited token can write; R17) |
+| Stage 2 | `host/forgejo-repo.ts` | `GITQUIRE_HOST_*` settings and both tokens; the repo client for bootstrap and sync (limited token only, `https://` only) |
+| Stage 2 | `forgejo-pulls.ts` | Drafts on Forgejo: pull requests, squash merge with title and the 405 retry (F10), branches by API, head filter done in GitQuire |
+| Stage 2 | `drafts/instances.ts` | Draft processes no longer receive `GITQUIRE_HOST_TOKEN` or `GITQUIRE_HOST_TOKEN_FILE` (R12) |
 | Stage 1 | `host/data-folder.ts` | Refuses a data folder recorded for another host, or used by GitHub people when the host is not GitHub; writes nothing for GitHub. Cannot see ids in comment threads committed to the repo |
 
 ## Contract files

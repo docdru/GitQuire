@@ -31,14 +31,14 @@ export interface CreatePullRequestInput {
   draft?: boolean;
 }
 
-interface PullRequestState {
+export interface PullRequestState {
   number: number;
   state: 'open' | 'closed';
   merged: boolean;
   mergeable: boolean | null;
 }
 
-type MergeOutcome =
+export type MergeOutcome =
   | { merged: true; sha: string }
   | { merged: false; reason: 'conflict' | 'not-mergeable'; message: string };
 
@@ -73,7 +73,7 @@ export interface GitHubPullsDeps {
   retry?: RetryOptions;
 }
 
-function toSummary(raw: Record<string, unknown>): PullRequestSummary | undefined {
+export function toSummary(raw: Record<string, unknown>): PullRequestSummary | undefined {
   const head = raw.head as { ref?: unknown } | undefined;
   const base = raw.base as { ref?: unknown } | undefined;
   const user = raw.user as { login?: unknown } | undefined;

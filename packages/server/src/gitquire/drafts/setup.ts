@@ -5,6 +5,7 @@ import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { markDraftsAvailable } from '../edit-destination.ts';
 import type { GitHubAppConfig } from '../github-app.ts';
 import type { GitHubDraftsClient } from '../github-pulls.ts';
+import type { HostKind } from '../host/types.ts';
 import { internalRequestHeaders, internalSecret } from '../internal-request.ts';
 import { migrateLegacyDataFolders } from '../legacy-data-folder.ts';
 import {
@@ -17,7 +18,7 @@ import {
 import { createDraftsHttp, type DraftsHttp } from './http.ts';
 import { createDraftInstances, DRAFT_INSTANCE_ENV, type DraftInstances } from './instances.ts';
 import { type DraftRecord, isOpen } from './model.ts';
-import { type DraftRemote, gitHubRemote, plainGitRemote } from './remote.ts';
+import { type DraftRemote, forgejoRemote, gitHubRemote, plainGitRemote } from './remote.ts';
 import { createDraftService, type DraftService } from './service.ts';
 import { createDraftStore, draftsDir, draftsStatePath } from './store.ts';
 
@@ -34,12 +35,17 @@ export interface DraftsSetupDeps {
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   agentOwner: (req: IncomingMessage) => SessionUser | undefined;
   secure: boolean;
-  appConfig: GitHubAppConfig | undefined;
+  appConfig: RepoSyncConfig | undefined;
   client: GitHubDraftsClient | undefined;
   token: () => string | undefined;
   cli: readonly string[];
   initProject: (dir: string) => void;
   runGit?: RunGit;
+}
+
+export interface RepoSyncConfig extends Pick<GitHubAppConfig, 'repo' | 'branch' | 'gitHost'> {
+  host: HostKind;
+  webUrl: string;
 }
 
 export interface Drafts {
@@ -107,7 +113,9 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
   };
   const remote: DraftRemote =
     deps.appConfig !== undefined && deps.client !== undefined
-      ? gitHubRemote(deps.client, deps.appConfig.repo)
+      ? deps.appConfig.host === 'forgejo'
+        ? forgejoRemote(deps.client, deps.appConfig.repo, deps.appConfig.webUrl)
+        : gitHubRemote(deps.client, deps.appConfig.repo)
       : plainGitRemote(deps.projectDir, runGit, authEnv);
   const syncMode = parseAutoSyncMode(deps.env.GITQUIRE_SYNC_MODE);
 
