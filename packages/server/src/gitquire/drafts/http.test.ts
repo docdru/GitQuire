@@ -212,6 +212,16 @@ describe('drafts HTTP', () => {
     });
   });
 
+  it('sends a page in a closed draft back to its own path, never to another host', async () => {
+    const draft = await service.create(ALICE, 'Plan');
+    await service.discard(draft.slug, ALICE);
+    const out = await call('//evil.example/x?y=1', {
+      headers: { cookie: 'gq_view=plan', accept: 'text/html' },
+    });
+    expect(out.status).toBe(302);
+    expect(out.headers.Location).toBe('/x?y=1');
+  });
+
   it('says a draft is closing while it is being published, and turns away new editors', async () => {
     const draft = await service.create(ALICE, 'Plan');
     await call('/api/documents', { headers: { cookie: 'gq_view=plan' } });

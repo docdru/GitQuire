@@ -4,6 +4,7 @@ import type { SessionUser } from './access-gate.ts';
 import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from './internal-request.ts';
 import {
   behindFrontDoorFromEnv,
+  bindRequestPrefix,
   createRequestPerson,
   encodeProxiedUser,
   FORWARDED_PREFIX_HEADER,
@@ -11,6 +12,7 @@ import {
   forwardedPrefix,
   forwardedView,
   PROXIED_PRINCIPAL_HEADER,
+  requestPrefix,
 } from './request-person.ts';
 
 const ALICE: SessionUser = { id: 42, login: 'alice', name: 'Alice', avatarUrl: '' };
@@ -86,6 +88,11 @@ describe('forwarded prefix and draft view', () => {
     expect(forwardedPrefix(req({ [FORWARDED_PREFIX_HEADER]: '/w/team/wiki' }), true)).toBe('');
   });
 
+  it('takes a repo whose name starts with a dot, as the app does', () => {
+    const headers = { ...internalRequestHeaders(), [FORWARDED_PREFIX_HEADER]: '/w/team/.github' };
+    expect(forwardedPrefix(req(headers), true)).toBe('/w/team/.github');
+  });
+
   it('refuses a prefix that is not a plain path', () => {
     for (const bad of ['w/team', '/w/team/', '//evil.example', '/w/../x', '/w/a b', '/w/"x']) {
       const headers = { ...internalRequestHeaders(), [FORWARDED_PREFIX_HEADER]: bad };
@@ -93,10 +100,19 @@ describe('forwarded prefix and draft view', () => {
     }
   });
 
-  it('takes the open draft only with the secret', () => {
-    expect(
-      forwardedView(req({ ...internalRequestHeaders(), [FORWARDED_VIEW_HEADER]: 'plan' })),
-    ).toBe('plan');
-    expect(forwardedView(req({ [FORWARDED_VIEW_HEADER]: 'plan' }))).toBeUndefined();
+  it('takes the open draft only behind the front door and only with the secret', () => {
+    const withView = { ...internalRequestHeaders(), [FORWARDED_VIEW_HEADER]: 'plan' };
+    expect(forwardedView(req(withView), true)).toBe('plan');
+    expect(forwardedView(req(withView), false)).toBeUndefined();
+    expect(forwardedView(req({ [FORWARDED_VIEW_HEADER]: 'plan' }), true)).toBeUndefined();
+  });
+
+  it('remembers the prefix the gate bound to a request', () => {
+    const one = req({});
+    const two = req({});
+    bindRequestPrefix(one, '/w/team/wiki');
+    bindRequestPrefix(two, '');
+    expect(requestPrefix(one)).toBe('/w/team/wiki');
+    expect(requestPrefix(two)).toBe('');
   });
 });

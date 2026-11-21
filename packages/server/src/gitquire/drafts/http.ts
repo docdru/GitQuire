@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
-import type { GateLogger, SessionUser } from '../access-gate.ts';
+import { type GateLogger, type SessionUser, safeNextPath } from '../access-gate.ts';
 import { pathOf, redirect, sendJson } from '../http-util.ts';
 import { internalRequestHeaders, isInternalRequest } from '../internal-request.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
@@ -121,7 +121,7 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
   const behind = deps.behindFrontDoor === true;
 
   function viewOf(req: IncomingMessage): string | undefined {
-    const value = behind ? forwardedView(req) : readCookie(req.headers.cookie, VIEW_COOKIE);
+    const value = behind ? forwardedView(req, true) : readCookie(req.headers.cookie, VIEW_COOKIE);
     return isSlug(value) ? value : undefined;
   }
 
@@ -437,7 +437,12 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     const draft = openDraft(slug);
     if (draft === undefined) {
       if (wantsPage(req)) {
-        redirect(res, prefixed(req, req.url ?? '/'), viewHeaders(null));
+        const here = new URL(req.url ?? '/', 'http://gitquire.invalid');
+        redirect(
+          res,
+          prefixed(req, safeNextPath(`${here.pathname}${here.search}`)),
+          viewHeaders(null),
+        );
         return true;
       }
       sendJson(res, 409, {

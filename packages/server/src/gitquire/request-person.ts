@@ -10,18 +10,12 @@ export const PROXIED_PRINCIPAL_HEADER = 'x-gitquire-principal';
 export const FORWARDED_PREFIX_HEADER = 'x-gitquire-prefix';
 export const FORWARDED_VIEW_HEADER = 'x-gitquire-view';
 
-const PREFIX_RE = /^(?:\/[A-Za-z0-9_~-][A-Za-z0-9._~-]*)+$/;
+const PREFIX_RE = /^(?:\/[A-Za-z0-9._~-]+)+$/;
 
 export function behindFrontDoorFromEnv(env: Env): boolean {
   return ['1', 'on', 'true', 'yes'].includes(
     env[BEHIND_FRONT_DOOR_ENV]?.trim().toLowerCase() ?? '',
   );
-}
-
-const processBehindFrontDoor = behindFrontDoorFromEnv(process.env);
-
-function behindFrontDoor(): boolean {
-  return processBehindFrontDoor;
 }
 
 export function encodeProxiedUser(user: SessionUser): string {
@@ -53,14 +47,25 @@ function isValidPrefix(value: string): boolean {
   return PREFIX_RE.test(value) && !value.split('/').some((part) => part === '.' || part === '..');
 }
 
-export function forwardedPrefix(req: Headers, behind: boolean = behindFrontDoor()): string {
+export function forwardedPrefix(req: Headers, behind: boolean): string {
   if (!behind) return '';
   const raw = req.headers[FORWARDED_PREFIX_HEADER];
   if (typeof raw !== 'string' || !isInternalRequest(req)) return '';
   return isValidPrefix(raw) ? raw : '';
 }
 
-export function forwardedView(req: Headers): string | undefined {
+const requestPrefixes = new WeakMap<object, string>();
+
+export function bindRequestPrefix(req: object, prefix: string): void {
+  if (prefix !== '') requestPrefixes.set(req, prefix);
+}
+
+export function requestPrefix(req: object): string {
+  return requestPrefixes.get(req) ?? '';
+}
+
+export function forwardedView(req: Headers, behind: boolean): string | undefined {
+  if (!behind) return undefined;
   const raw = req.headers[FORWARDED_VIEW_HEADER];
   if (typeof raw !== 'string' || raw === '' || !isInternalRequest(req)) return undefined;
   return raw;

@@ -27,7 +27,7 @@ import {
   principalIdForUser,
   sanitizeDisplayName,
 } from './principal-directory.ts';
-import { createRequestPerson, proxiedUser } from './request-person.ts';
+import { createRequestPerson } from './request-person.ts';
 import {
   decodeSigned,
   encodeSigned,
@@ -253,18 +253,12 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   }
 
   function admitAgent(req: IncomingMessage): boolean {
-    const token = bearerToken(req);
-    const record = agentTokenRecord(token);
-    if (record !== undefined) {
-      bindRequestPrincipal(req, principalFromUser(record.owner));
+    const owner = person.agentOwner(req);
+    if (owner !== undefined) {
+      bindRequestPrincipal(req, principalFromUser(owner));
       return true;
     }
-    const forwarded = proxiedUser(req);
-    if (forwarded !== undefined) {
-      bindRequestPrincipal(req, principalFromUser(forwarded));
-      return true;
-    }
-    return sharedMcpTokenAccepted(token);
+    return sharedMcpTokenAccepted(bearerToken(req));
   }
 
   const person = createRequestPerson({

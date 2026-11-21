@@ -15,8 +15,8 @@ import { sessionPrincipal, setSessionPrincipalResolver } from './principal-direc
 import {
   encodeProxiedUser,
   FORWARDED_PREFIX_HEADER,
-  forwardedPrefix,
   PROXIED_PRINCIPAL_HEADER,
+  requestPrefix,
 } from './request-person.ts';
 import { setAdminResolver } from './settings-admin.ts';
 import { encodeSigned } from './signed-cookie.ts';
@@ -48,7 +48,7 @@ function editorHandler(req: IncomingMessage, res: ServerResponse): void {
       path: req.url,
       principal: sessionPrincipal(req)?.login ?? null,
       admin: gate.isAdminRequest(req),
-      collabUrl: collabUrlFromRequestHeaders(req.headers, forwardedPrefix(req, true)),
+      collabUrl: collabUrlFromRequestHeaders(req.headers, requestPrefix(req)),
     }),
   );
 }
@@ -103,6 +103,25 @@ async function get(
     headers: Object.fromEntries(res.headers),
     json: text === '' ? {} : (JSON.parse(text) as Record<string, unknown>),
   };
+}
+
+function rawRequest(port: number, path: string, headers: Record<string, string>): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const socket = connect(port, '127.0.0.1', () => {
+      const lines = Object.entries({
+        host: `127.0.0.1:${port}`,
+        connection: 'close',
+        ...headers,
+      }).map(([name, value]) => `${name}: ${value}`);
+      socket.write(`GET ${path} HTTP/1.1\r\n${lines.join('\r\n')}\r\n\r\n`);
+    });
+    let answer = '';
+    socket.on('data', (chunk) => {
+      answer += chunk.toString();
+    });
+    socket.on('close', () => resolve(answer.split('\r\n')[0] ?? ''));
+    socket.on('error', reject);
+  });
 }
 
 function upgrade(port: number, path: string, headers: Record<string, string>): Promise<string> {
@@ -182,6 +201,21 @@ describe('an editor process behind the front door', () => {
       [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(PEOPLE.boss),
     });
     expect(forged.status).toBe(403);
+  });
+
+  it('passes health checks only at their exact address', async () => {
+    expect((await get(editorPort, '/healthz?x=1')).status).toBe(200);
+    for (const path of ['//x/healthz', '/a/../healthz', '/healthz/']) {
+      const out = await rawRequest(editorPort, path, {});
+      expect(out).not.toContain('200');
+    }
+  });
+
+  it('refuses a /collab address that reads differently once normalised', async () => {
+    for (const path of ['/x/../collab', '//collab', '/collab/../api/documents']) {
+      expect(await rawRequest(editorPort, path, {})).toContain('400');
+      expect(await upgrade(editorPort, path, {})).toContain('400');
+    }
   });
 
   it('refuses a websocket upgrade that does not come through the front door', async () => {
