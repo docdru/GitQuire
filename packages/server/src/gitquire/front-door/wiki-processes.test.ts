@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import { CHAT_KEY_SECRET_ENV, deriveChatKeySecret } from '../chat/key-secret.ts';
 import type { DoorHost, HostHealth, RepoLookup } from '../host/types.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
 import { createWikiProcesses, WIKI_IDLE_MS, WikiClosedError, wikiEnv } from './wiki-processes.ts';
@@ -100,6 +101,30 @@ describe('wiki process environment (R12)', () => {
       GITQUIRE_INTERNAL_SECRET: 's'.repeat(64),
       GITQUIRE_DOOR_TOKEN_SOCKET: '/tmp/d/door.sock',
     });
+  });
+});
+
+describe('AI chat key inside a wiki', () => {
+  const base = { PATH: '/bin', GITQUIRE_SESSION_SECRET: 'x'.repeat(40) };
+  const options = {
+    externalUrl: new URL('https://wiki.example.org'),
+    secret: 's'.repeat(64),
+    tokenSocket: '/tmp/d/door.sock',
+  };
+
+  it('passes a key derived for this wiki, never the session secret', () => {
+    const env = wikiEnv(base, record(), options);
+    const other = wikiEnv(base, { ...record(), key: 'github-6', id: 6 }, options);
+    expect(env.GITQUIRE_SESSION_SECRET).toBeUndefined();
+    expect(env[CHAT_KEY_SECRET_ENV]).toBe(deriveChatKeySecret('x'.repeat(40), 'github-5'));
+    expect(env[CHAT_KEY_SECRET_ENV]).toMatch(/^[0-9a-f]{64}$/);
+    expect(other[CHAT_KEY_SECRET_ENV]).not.toBe(env[CHAT_KEY_SECRET_ENV]);
+    expect(Object.values(env)).not.toContain('x'.repeat(40));
+  });
+
+  it('passes no key when AI chat is off', () => {
+    const env = wikiEnv({ ...base, GITQUIRE_AI_CHAT: 'off' }, record(), options);
+    expect(env[CHAT_KEY_SECRET_ENV]).toBeUndefined();
   });
 });
 

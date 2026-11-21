@@ -25,6 +25,7 @@ import { principalIdForUser } from '../principal-directory.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
   encodeProxiedUser,
+  FORWARDED_AGENTS_HEADER,
   FORWARDED_PREFIX_HEADER,
   FORWARDED_VIEW_HEADER,
   PROXIED_PRINCIPAL_HEADER,
@@ -37,6 +38,7 @@ import {
   serializeCookie,
 } from '../signed-cookie.ts';
 import type { DoorPerson, OpenDecision, WikiAccess } from './access.ts';
+import type { DoorAgents } from './agents.ts';
 import {
   type AllowedOwners,
   allowedOwnersSentence,
@@ -132,6 +134,7 @@ export interface FrontDoorDeps {
   access: WikiAccess;
   processes: WikiProcesses;
   forgejoTokens?: ForgejoTokenChecks;
+  agents?: Pick<DoorAgents, 'handle' | 'features'>;
   addWikiHelp?: () => Promise<AddWikiHelp>;
   log: GateLogger;
   now?: () => number;
@@ -143,6 +146,7 @@ export interface FrontDoor {
   handleUpgrade: (req: IncomingMessage, socket: Duplex, head: Buffer) => void;
   recheckConnections: () => Promise<void>;
   setReady: (ready: boolean) => void;
+  sessionUser: (req: IncomingMessage) => HostPerson | undefined;
 }
 
 interface OpenConnection {
@@ -450,7 +454,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         res,
         200,
         'Sign out',
-        `<p>You are signed in${who}.</p><form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>`,
+        `<p>You are signed in${who}.</p>${deps.agents === undefined ? '' : '<p><a href="/auth/agents">AI agent access</a></p>'}<form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>`,
       );
       return;
     }
@@ -754,6 +758,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     wiki: WikiRecord,
     admin: boolean,
     view: string | undefined,
+    agentFeatures?: string,
   ): Record<string, string> {
     const secret = processes.secretOf(wiki.key) ?? '';
     return {
@@ -764,6 +769,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       }),
       [FORWARDED_PREFIX_HEADER]: wikiPrefix(wiki),
       ...(view === undefined || view === '' ? {} : { [FORWARDED_VIEW_HEADER]: view }),
+      ...(agentFeatures === undefined ? {} : { [FORWARDED_AGENTS_HEADER]: agentFeatures }),
     };
   }
 
@@ -815,8 +821,15 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     processes.touch(wiki.key);
     stripBrowserHeaders(req);
     req.url = path;
+    const asksForMe = rawPathAndSearch(path).path === '/auth/me';
     proxyRequest(req, res, socket, {
-      extraHeaders: forwardHeaders(user, wiki, decision.admin, view),
+      extraHeaders: forwardHeaders(
+        user,
+        wiki,
+        decision.admin,
+        view,
+        asksForMe ? deps.agents?.features(user) : undefined,
+      ),
       unavailable: { error: 'wiki-unavailable', message: 'The wiki is not reachable.' },
       rewriteHeaders: (headers) =>
         translateResponseHeaders(headers, { prefix: wikiPrefix(wiki), key: wiki.key, secure }),
@@ -989,6 +1002,18 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     };
 
     if (address !== undefined) {
+      if (
+        deps.agents !== undefined &&
+        (address.rest === '/mcp' || address.rest.startsWith('/mcp/'))
+      ) {
+        sendJson(res, 404, {
+          error: 'mcp-at-root',
+          mcp: new URL('/mcp', settings.externalUrl).toString(),
+          message:
+            'AI assistants connect to the one /mcp address of this server and name the wiki in each call.',
+        });
+        return;
+      }
       const match = lookup(address.owner, address.name);
       if (user === undefined) {
         needSignIn(req, res, `${rawPath}${search}`);
@@ -1025,6 +1050,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     }
 
     const { path } = pathOf(req);
+    if (deps.agents?.handle(req, res, path, search) === true) return;
     if (path.startsWith('/auth/')) {
       handleAuth(req, res, path, search);
       return;
@@ -1139,6 +1165,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     handleRequest,
     handleUpgrade,
     recheckConnections,
+    sessionUser,
     setReady: (value) => {
       ready = value;
     },

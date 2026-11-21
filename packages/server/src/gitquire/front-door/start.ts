@@ -1,14 +1,15 @@
 import { chmodSync, existsSync, mkdirSync } from 'node:fs';
-import { createServer, type Server } from 'node:http';
+import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
 import { createForgejoDoorHost } from '../host/forgejo.ts';
 import { createGitHubDoorHost } from '../host/github.ts';
 import { hostNamesFromEnv, setHostNames } from '../host/names.ts';
-import type { DoorHost, HostRepo } from '../host/types.ts';
+import type { DoorHost, HostPerson, HostRepo } from '../host/types.ts';
 import { createWikiAccess } from './access.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
+import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
 import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
@@ -184,6 +185,18 @@ export async function startFrontDoor(
           isBotToken: (token) => token === settings.forgejoBotToken,
         };
 
+  let doorSessionUser: (req: IncomingMessage) => HostPerson | undefined = () => undefined;
+  const agents = createDoorAgents({
+    settings,
+    table,
+    access,
+    processes,
+    sessionUser: (req) => doorSessionUser(req),
+    log,
+  });
+  agents.sweep.runOnce().catch((err: unknown) => {
+    log.warn({ err }, '[gitquire-agents] initial access check failed');
+  });
   const door = createFrontDoor({
     settings,
     host,
@@ -192,6 +205,7 @@ export async function startFrontDoor(
     access,
     processes,
     forgejoTokens,
+    agents,
     addWikiHelp: addWikiHelpFor({
       host,
       kind: settings.host,
@@ -201,6 +215,13 @@ export async function startFrontDoor(
     }),
     log,
   });
+  doorSessionUser = door.sessionUser;
+  if (settings.mcpConnectors && settings.externalUrl.protocol !== 'https:') {
+    log.warn(
+      { externalUrl: settings.externalUrl.toString() },
+      '[gitquire-door] GITQUIRE_MCP_CONNECTORS is on, but Claude and other cloud connectors need an https:// GITQUIRE_EXTERNAL_URL',
+    );
+  }
   const server = createServer(door.handleRequest);
   server.on('upgrade', door.handleUpgrade);
   const port = Number(env.PORT ?? '') || 8080;
@@ -255,6 +276,7 @@ export async function startFrontDoor(
         server.close(() => resolve());
         server.closeAllConnections();
       });
+      await agents.close();
       await processes.stopAll();
       await tokenSocket.close();
     },

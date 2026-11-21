@@ -8,7 +8,12 @@ import { createAccessGate, SESSION_COOKIE } from './access-gate.ts';
 import type { AccessVerdict } from './agent-access.ts';
 import { type AgentTokenStore, createAgentTokenStore } from './agent-tokens.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
-import { isAllowedRedirectUri, isMetadataDocumentClientId, pkceChallenge } from './oauth-server.ts';
+import {
+  createOAuthServer,
+  isAllowedRedirectUri,
+  isMetadataDocumentClientId,
+  pkceChallenge,
+} from './oauth-server.ts';
 import { encodeSigned } from './signed-cookie.ts';
 
 const SECRET = 'y'.repeat(40);
@@ -84,6 +89,8 @@ function metadataFetch(): typeof fetch {
   }) as typeof fetch;
 }
 
+type Gate = Pick<ReturnType<typeof createAccessGate>, 'handleRequest'>;
+
 interface SetupOptions {
   env?: Record<string, string>;
   access?: AccessVerdict;
@@ -108,7 +115,7 @@ function setup(options: SetupOptions = {}): {
 }
 
 async function send(
-  gate: ReturnType<typeof createAccessGate>,
+  gate: Gate,
   url: string,
   init: { method?: string; headers?: Record<string, string>; body?: string } = {},
 ): Promise<FakeResponse> {
@@ -131,7 +138,7 @@ function authorizeQuery(clientId: string): string {
   }).toString();
 }
 
-async function approve(gate: ReturnType<typeof createAccessGate>, clientId: string) {
+async function approve(gate: Gate, clientId: string) {
   const consent = await send(gate, `/oauth/authorize?${authorizeQuery(clientId)}`, {
     headers: { cookie },
   });
@@ -149,10 +156,7 @@ async function approve(gate: ReturnType<typeof createAccessGate>, clientId: stri
   return new URL(String(approved.headers.Location));
 }
 
-async function exchange(
-  gate: ReturnType<typeof createAccessGate>,
-  fields: Record<string, string>,
-): Promise<FakeResponse> {
+async function exchange(gate: Gate, fields: Record<string, string>): Promise<FakeResponse> {
   return send(gate, '/oauth/token', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -357,6 +361,56 @@ describe('OAuth sign-in for connectors', () => {
       code_verifier: VERIFIER,
     });
     expect(JSON.parse(res.body).error).toBe('invalid_grant');
+  });
+
+  it('at the front door, refuses a new connection while access is unknown, but renews one', async () => {
+    const file = join(mkdtempSync(join(tmpdir(), 'gq-oauth-')), 'tokens.json');
+    const store = createAgentTokenStore({ file, log: silentLog, now: () => NOW });
+    let verdict: AccessVerdict = 'unknown';
+    const oauth = createOAuthServer({
+      externalUrl: new URL(EXTERNAL),
+      secret: SECRET,
+      store,
+      log: silentLog,
+      sessionUser: (req) => (req.headers.cookie === cookie ? ALICE : undefined),
+      checkAccess: async () => verdict,
+      severalWikis: true,
+      refuseUnknownAtSignIn: true,
+      fetch: metadataFetch(),
+      now: () => NOW,
+    });
+    const gate: Gate = {
+      handleRequest: (req, res) => {
+        const url = new URL(req.url ?? '/', EXTERNAL);
+        return oauth.handle(req, res, url.pathname, url.search);
+      },
+    };
+    const code = async () => (await approve(gate, CIMD)).searchParams.get('code') ?? '';
+    const refused = await exchange(gate, {
+      grant_type: 'authorization_code',
+      code: await code(),
+      client_id: CIMD,
+      code_verifier: VERIFIER,
+    });
+    expect(refused.status).toBe(503);
+    expect(JSON.parse(refused.body).error).toBe('temporarily_unavailable');
+    expect(store.list()).toEqual([]);
+
+    verdict = 'allowed';
+    const issued = await exchange(gate, {
+      grant_type: 'authorization_code',
+      code: await code(),
+      client_id: CIMD,
+      code_verifier: VERIFIER,
+    });
+    expect(issued.status).toBe(200);
+    verdict = 'unknown';
+    const renewed = await exchange(gate, {
+      grant_type: 'refresh_token',
+      refresh_token: JSON.parse(issued.body).refresh_token,
+      client_id: CIMD,
+    });
+    expect(renewed.status).toBe(200);
   });
 
   it('sends signed-out people through GitHub sign-in first', async () => {
