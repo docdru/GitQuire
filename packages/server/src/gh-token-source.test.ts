@@ -33,6 +33,18 @@ function makeRecordingDetectGh(
 }
 
 describe('createGhTokenSource', () => {
+  test('relays the token for the host the detector names, such as one with a port', () => {
+    const { fn } = makeDetectGh({
+      available: true,
+      token: 'repo-token',
+      credentialHost: 'git.example.org:3000',
+    });
+    expect(createGhTokenSource(fn).get('git.example.org')).toEqual({
+      token: 'repo-token',
+      host: 'git.example.org:3000',
+    });
+  });
+
   test('returns null throughout when no detectGh is injected', () => {
     const source = createGhTokenSource(undefined);
     expect(source.get('github.com')).toBeNull();

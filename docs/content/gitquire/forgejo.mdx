@@ -49,7 +49,7 @@ Then run the container with:
 | Variable | Meaning |
 | --- | --- |
 | `GITQUIRE_HOST` | `forgejo`. Unset or `github` for GitHub. |
-| `GITQUIRE_HOST_URL` | The Forgejo server's public address, `https://` only (Git sends the token only over https). May include a path such as `/git`. |
+| `GITQUIRE_HOST_URL` | The Forgejo server's public address, `https://` only (Git sends the token only over https), with a port if it is not 443. A server under a path (`https://example.org/git`) is not supported yet. |
 | `GITQUIRE_HOST_API_URL` | Optional address for GitQuire's own API calls, for example over the Docker network (`http://forgejo:3000/api/v1`). Default `<GITQUIRE_HOST_URL>/api/v1`. |
 | `GITQUIRE_HOST_CLIENT_ID`, `GITQUIRE_HOST_CLIENT_SECRET` | The OAuth2 application. Setting the client ID turns sign-in on. |
 | `GITQUIRE_HOST_TOKEN` or `GITQUIRE_HOST_TOKEN_FILE` | The bot's unlimited token, for access checks. |
