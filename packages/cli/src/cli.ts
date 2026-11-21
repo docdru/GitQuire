@@ -39,6 +39,7 @@ import { commentsCommand } from './commands/comments.ts';
 import { configCommand, shouldAnnounceRemovedKeys } from './commands/config.ts';
 import { diagnoseCommand } from './commands/diagnose.ts';
 import { embeddingsCommand } from './commands/embeddings/index.ts';
+import { frontDoorCommand } from './commands/front-door.ts';
 import { gitquireBootstrapCommand } from './commands/gitquire-bootstrap.ts';
 import { initCommand } from './commands/init.ts';
 import { lintCommand } from './commands/lint.ts';
@@ -198,6 +199,8 @@ program.addCommand(cleanCommand(() => resolvedConfig));
 program.addCommand(statusCommand(() => resolvedConfig));
 
 program.addCommand(gitquireBootstrapCommand(), { hidden: true });
+
+program.addCommand(frontDoorCommand(), { hidden: true });
 
 program.addCommand(psCommand());
 

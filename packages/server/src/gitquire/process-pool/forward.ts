@@ -41,6 +41,16 @@ function forwardedHeaders(
   return { ...headers, ...extra };
 }
 
+const UNSAFE_HEADER_TEXT = /[\r\n\0]/;
+
+export function hasUnsafeHeader(headers: Record<string, string | string[]>): boolean {
+  return Object.entries(headers).some(
+    ([name, value]) =>
+      UNSAFE_HEADER_TEXT.test(name) ||
+      (Array.isArray(value) ? value : [value]).some((item) => UNSAFE_HEADER_TEXT.test(item)),
+  );
+}
+
 export function proxyRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -51,14 +61,24 @@ export function proxyRequest(
       status: number,
       headers: IncomingMessage['headers'],
     ) => Record<string, string | string[]> | undefined;
+    unavailable?: { error: string; message: string };
+    rewriteHeaders?: (
+      headers: Record<string, string | string[]>,
+    ) => Record<string, string | string[]>;
   } = {},
 ): void {
+  const sent = forwardedHeaders(req, options.extraHeaders);
+  if (hasUnsafeHeader(sent)) {
+    res.writeHead(400, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ error: 'bad-header' }));
+    return;
+  }
   const upstream = request(
     {
       socketPath,
       method: req.method,
       path: req.url,
-      headers: forwardedHeaders(req, options.extraHeaders),
+      headers: sent,
     },
     (answer) => {
       const status = answer.statusCode ?? 502;
@@ -79,7 +99,7 @@ export function proxyRequest(
           headers[name] = value;
         }
       }
-      res.writeHead(status, headers);
+      res.writeHead(status, options.rewriteHeaders?.(headers) ?? headers);
       answer.pipe(res);
     },
   );
@@ -87,7 +107,12 @@ export function proxyRequest(
     if (!res.headersSent) {
       res.writeHead(502, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       res.end(
-        JSON.stringify({ error: 'draft-unavailable', message: 'The draft is not reachable.' }),
+        JSON.stringify(
+          options.unavailable ?? {
+            error: 'draft-unavailable',
+            message: 'The draft is not reachable.',
+          },
+        ),
       );
     } else {
       res.destroy();
@@ -115,6 +140,17 @@ export function proxyUpgrade(
   onClose: () => void,
   extraHeaders: Record<string, string> = {},
 ): void {
+  const headers = forwardedHeaders(req, {
+    ...extraHeaders,
+    connection: 'Upgrade',
+    upgrade: String(req.headers.upgrade ?? 'websocket'),
+  });
+  if (hasUnsafeHeader(headers) || UNSAFE_HEADER_TEXT.test(`${req.method ?? ''}${req.url ?? ''}`)) {
+    socket.write('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+    socket.destroy();
+    onClose();
+    return;
+  }
   const upstream = connect(socketPath);
   let closed = false;
   const close = () => {
@@ -125,11 +161,6 @@ export function proxyUpgrade(
     onClose();
   };
   upstream.on('connect', () => {
-    const headers = forwardedHeaders(req, {
-      ...extraHeaders,
-      connection: 'Upgrade',
-      upgrade: String(req.headers.upgrade ?? 'websocket'),
-    });
     upstream.write(
       `${req.method ?? 'GET'} ${req.url ?? '/'} HTTP/1.1\r\n${headerLines(headers)}\r\n\r\n`,
     );
@@ -139,6 +170,8 @@ export function proxyUpgrade(
   });
   upstream.on('error', close);
   upstream.on('close', close);
+  upstream.on('end', close);
   socket.on('error', close);
   socket.on('close', close);
+  socket.on('end', close);
 }
