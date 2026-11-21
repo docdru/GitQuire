@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -36,7 +36,7 @@ function tempDir(): string {
   return dir;
 }
 
-function pool(): ProcessPool {
+function pool(made: string[] = []): ProcessPool {
   const scripts = tempDir();
   const script = join(scripts, 'child.cjs');
   writeFileSync(script, CHILD);
@@ -45,10 +45,15 @@ function pool(): ProcessPool {
     cli: [process.execPath, script],
     log: silentLog,
     stopGraceMs: 5000,
+    makeSocketDir: () => {
+      const dir = createPrivateSocketDir();
+      made.push(dir);
+      return dir;
+    },
   });
   cleanup.push(async () => {
     await created.stopAll();
-    rmSync(created.socketDir, { recursive: true, force: true });
+    for (const dir of made) rmSync(dir, { recursive: true, force: true });
   });
   return created;
 }
@@ -67,7 +72,7 @@ describe('process pool', () => {
       cwd,
       env: { ...process.env, PORT: '8080' },
     }));
-    expect(socket).toBe(join(children.socketDir, 'alpha.sock'));
+    expect(socket).toBe(children.socketPath('alpha'));
     const answer = await socketGet(socket, '/hello');
     expect(JSON.parse(answer.body)).toEqual({ url: '/hello', port: null, args: ['start'] });
     expect(children.isRunning('alpha')).toBe(true);
@@ -90,6 +95,35 @@ describe('process pool', () => {
     await children.stopAll();
     expect(children.isRunning('alpha')).toBe(false);
     await expect(socketGet(socket, '/hello')).rejects.toThrow();
+  });
+
+  it('makes its socket folder only when it starts a child, and removes it when it stops', async () => {
+    const made: string[] = [];
+    const children = pool(made);
+    expect(made).toEqual([]);
+    const cwd = tempDir();
+    await children.ensure('alpha', async () => ({ cwd, env: { ...process.env } }));
+    expect(made).toHaveLength(1);
+    await children.stopAll();
+    expect(existsSync(made[0] ?? '')).toBe(false);
+  });
+
+  it('waits for a start that is under way, and refuses new starts once stopping', async () => {
+    const children = pool();
+    const cwd = tempDir();
+    const gate = Promise.withResolvers<void>();
+    const starting = children.ensure('slow', async () => {
+      await gate.promise;
+      return { cwd, env: { ...process.env } };
+    });
+    const stopping = children.stopAll();
+    gate.resolve();
+    await expect(starting).rejects.toThrow('cannot start while GitQuire stops');
+    await stopping;
+    expect(children.isRunning('slow')).toBe(false);
+    await expect(
+      children.ensure('later', async () => ({ cwd, env: { ...process.env } })),
+    ).rejects.toThrow('cannot start while GitQuire stops');
   });
 
   it('refuses an id that cannot name a socket', async () => {

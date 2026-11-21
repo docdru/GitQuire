@@ -240,6 +240,7 @@ export function createGitQuireHttp(
     log: GateLogger;
     cli?: readonly string[];
     liveServer?: LiveServerHandle;
+    ownPort?: () => number | undefined;
   },
 ): GitQuireHttp {
   const appConfig = options.tokens === undefined ? undefined : resolveGitHubAppConfig(env);
@@ -291,6 +292,7 @@ export function createGitQuireHttp(
           projectDir: options.projectDir,
           sessionUser: gate.sessionUser,
           log: options.log,
+          ownPort: options.ownPort,
         });
   const stopState = createStopStateRoute(() =>
     projectStopState(

@@ -16,6 +16,9 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 export const DRAFT_INSTANCE_ENV = DRAFT_SLUG_ENV;
 const STOP_GRACE_MS = 20_000;
+export const STOP_DEADLINE_ENV = 'GITQUIRE_STOP_DEADLINE_MS';
+const BEHIND_DRAFT_STOP_DEADLINE_MS = 25_000;
+const BEHIND_DRAFT_STOP_GRACE_MS = 30_000;
 
 export interface DraftInstancesDeps {
   baseDir: string;
@@ -24,6 +27,7 @@ export interface DraftInstancesDeps {
   env: Env;
   internalSecret: string;
   log: GateLogger;
+  behindFrontDoor?: boolean;
   prepare: (draft: DraftRecord, dir: string) => Promise<void>;
   stillOpen?: (slug: string) => boolean;
   spawn?: SpawnFn;
@@ -58,7 +62,7 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
     spawn: deps.spawn,
     get: deps.get,
     idleMs: deps.idleMs,
-    stopGraceMs: STOP_GRACE_MS,
+    stopGraceMs: deps.behindFrontDoor === true ? BEHIND_DRAFT_STOP_GRACE_MS : STOP_GRACE_MS,
     now: deps.now,
   });
   const folder = deps.projectName ?? 'wiki';
@@ -91,6 +95,9 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
           [DRAFT_TITLE_ENV]: draft.title,
           [DRAFT_BASE_ENV]: draft.base,
           [INTERNAL_SECRET_ENV]: deps.internalSecret,
+          ...(deps.behindFrontDoor === true
+            ? { [STOP_DEADLINE_ENV]: String(BEHIND_DRAFT_STOP_DEADLINE_MS) }
+            : {}),
         },
       };
     });
@@ -120,9 +127,6 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
     erase: remove,
     exclusive: pool.exclusive,
     stopState,
-    stopAll: async () => {
-      await pool.stopAll();
-      rmSync(pool.socketDir, { recursive: true, force: true });
-    },
+    stopAll: pool.stopAll,
   };
 }

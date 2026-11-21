@@ -210,6 +210,8 @@ import type {
 } from './github-permissions.ts';
 import { createGitHubTokenResolver } from './github-reference/token-resolver.ts';
 import { sessionPrincipalForAuthPayload } from './gitquire/principal-directory.ts';
+import { projectStopState } from './gitquire/process-pool/stop-state.ts';
+import { runGitSync } from './gitquire/repo-bootstrap.ts';
 import { applySettingsAccess, createSettingsWriteGuard } from './gitquire/settings-admin.ts';
 import { errnoCode } from './http/handler-utils.ts';
 import type { NativeApiHandle } from './http/http-app.ts';
@@ -425,7 +427,7 @@ export interface ServerOptions {
   shadowRepo?: ShadowHandle;
   contentRoot?: string;
   destroyTimeoutMs?: number;
-  finalPushTimeoutMs?: number;
+  finalPushTimeoutMs?: number | (() => number);
   authorityRegistryPath?: string;
   onAgentWrite?: () => void;
   localOpCliArgs?: string[];
@@ -499,24 +501,27 @@ export interface ServerInstance {
 export type FinalPushOutcome = 'pushed' | 'skipped' | 'failed' | 'timeout';
 
 export async function pushBeforeStop(
-  engine: Pick<SyncEngine, 'getStatus' | 'pushOnce'>,
+  engine: Pick<SyncEngine, 'getStatus' | 'pushForStop'>,
   timeoutMs: number,
+  pushedAndClean: () => Promise<boolean>,
 ): Promise<FinalPushOutcome> {
   const status = engine.getStatus();
   if (status.syncMode !== 'full' || !status.hasRemote) return 'skipped';
+  if (timeoutMs <= 0) return 'timeout';
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<'timeout'>((resolve) => {
     timer = setTimeout(() => resolve('timeout'), timeoutMs);
   });
   try {
-    return await Promise.race([
-      engine.pushOnce().then(
-        () =>
-          engine.getStatus().pushError === undefined ? ('pushed' as const) : ('failed' as const),
-        () => 'failed' as const,
+    const ran = await Promise.race([
+      engine.pushForStop().then(
+        () => 'ran' as const,
+        () => 'ran' as const,
       ),
       timeout,
     ]);
+    if (ran === 'timeout') return 'timeout';
+    return (await pushedAndClean().catch(() => false)) ? 'pushed' : 'failed';
   } finally {
     if (timer !== undefined) clearTimeout(timer);
   }
@@ -5326,8 +5331,15 @@ export function createServer(options: ServerOptions): ServerInstance {
           } finally {
             if (l2TimeoutId !== undefined) clearTimeout(l2TimeoutId);
           }
-          if (syncEngine && finalPushTimeoutMs > 0) {
-            const outcome = await pushBeforeStop(syncEngine, finalPushTimeoutMs);
+          const finalPushMs =
+            typeof finalPushTimeoutMs === 'function' ? finalPushTimeoutMs() : finalPushTimeoutMs;
+          if (syncEngine && finalPushTimeoutMs !== 0) {
+            const outcome = await pushBeforeStop(syncEngine, finalPushMs, async () => {
+              const state = await projectStopState(projectDir, runGitSync, async () => ({
+                pushedAndClean: true,
+              }));
+              return state.pushedAndClean;
+            });
             if (outcome === 'failed' || outcome === 'timeout') {
               phaseErrors.push({ phase: 'final-push', error: outcome });
               log.error({ outcome }, '[server] shutdown final push did not finish');

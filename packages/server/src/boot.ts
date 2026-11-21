@@ -126,8 +126,15 @@ function computeWorktreeAttributes(projectDir: string): {
 
 const DEFAULT_IDLE_THRESHOLD_MS = 30 * 60 * 1000;
 const DESTROY_STEP_TIMEOUT_MS = Number(process.env.GITQUIRE_DESTROY_STEP_TIMEOUT_MS) || 5000;
-const FINAL_PUSH_TIMEOUT_MS = 15_000;
-const CHILDREN_STOP_BUDGET_MS = 25_000;
+const FINAL_PUSH_MAX_MS = 15_000;
+const STOP_DEADLINE_MS = 50_000;
+const STOP_RESERVE_MS = 5_000;
+const NORMAL_CHILDREN_STOP_BUDGET_MS = 25_000;
+
+function stopDeadlineMsFromEnv(env: NodeJS.ProcessEnv): number {
+  const value = Number(env.GITQUIRE_STOP_DEADLINE_MS);
+  return Number.isFinite(value) && value > 0 ? value : STOP_DEADLINE_MS;
+}
 
 export interface BootServerOptions
   extends Pick<
@@ -300,7 +307,13 @@ async function bootServerInner(
   const ingressPolicy = buildIngressPolicy({ serverRuntime });
   const unixSocket = unixSocketFromEnv(process.env);
   const tcpPort = unixSocket === undefined ? opts.port : undefined;
-  const finalPushTimeoutMs = behindFrontDoorFromEnv(process.env) ? FINAL_PUSH_TIMEOUT_MS : 0;
+  const behindFrontDoor = behindFrontDoorFromEnv(process.env);
+  const stopDeadlineMs = stopDeadlineMsFromEnv(process.env);
+  let stopDeadline = Number.POSITIVE_INFINITY;
+  const timeLeftToStop = (): number => Math.max(0, stopDeadline - Date.now());
+  const finalPushTimeoutMs = behindFrontDoor
+    ? () => Math.min(FINAL_PUSH_MAX_MS, Math.max(0, timeLeftToStop() - STOP_RESERVE_MS))
+    : 0;
   configureHostFromEnv(process.env, opts.projectDir ?? opts.contentDir);
   const gitHubAppTokens = await startGitHubAppTokensFromEnv(process.env, log);
   const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log, {
@@ -315,6 +328,7 @@ async function bootServerInner(
     gate: accessGate,
     tokens: gitHubAppTokens,
     log,
+    ownPort: () => (boundPort > 0 ? boundPort : undefined),
   });
   if (
     serverRuntime.allowExternal &&
@@ -716,6 +730,7 @@ async function bootServerInner(
       `[server] shutdown initiated (${reason})`,
     );
     readinessState = 'draining';
+    stopDeadline = Date.now() + stopDeadlineMs;
     const errors: unknown[] = [];
     const runStep = async (
       name: string,
@@ -792,9 +807,14 @@ async function bootServerInner(
       'gitquire.stopChildren',
       () => gitquireHttp.stopChildren(),
       undefined,
-      CHILDREN_STOP_BUDGET_MS,
+      behindFrontDoor ? timeLeftToStop() : NORMAL_CHILDREN_STOP_BUDGET_MS,
     );
-    await runStep('destroyHocuspocus', () => destroyHocuspocus(), hocuspocus, finalPushTimeoutMs);
+    await runStep(
+      'destroyHocuspocus',
+      () => destroyHocuspocus(),
+      hocuspocus,
+      behindFrontDoor ? timeLeftToStop() : 0,
+    );
     await runStep('shutdownTelemetry', () => shutdownTelemetry());
     await runStep('teardownToleranceTelemetry', () => teardownToleranceTelemetryWriter());
     await runStep('flushLogFileSinks', () => loggerFactory.flushAllFileSinks());

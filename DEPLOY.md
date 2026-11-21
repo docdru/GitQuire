@@ -397,8 +397,9 @@ With it on, the editor process:
 - adds the address prefix the front door sends (`x-gitquire-prefix`, for example `/w/team/wiki`) to
   the live-editing address and its own redirects;
 - has no agent tokens, no agent pages and no `/mcp` sign-in of its own;
-- on `SIGTERM`, commits and pushes what is not pushed yet (up to 15 seconds, only with
-  `autoSync.mode: full` and a remote) before it stops, after stopping its drafts, which do the same.
+- on `SIGTERM`, stops its drafts (which do the same), then commits and pushes what is not pushed
+  yet (only with `autoSync.mode: full` and a remote), all within 50 seconds; the push gets at most
+  15 seconds and only the time that is left, so a slow stop may leave edits unpushed on the volume.
   `GET /api/gitquire/stop-state` with the internal secret answers whether the wiki and its running
   drafts are pushed and clean (`{"pushedAndClean": true, …}`); the front door stops a wiki only then.
 

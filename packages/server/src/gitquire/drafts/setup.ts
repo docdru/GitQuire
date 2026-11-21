@@ -161,6 +161,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     env: deps.env,
     internalSecret: internalSecret(),
     log: deps.log,
+    behindFrontDoor: deps.behindFrontDoor,
     prepare,
     stillOpen: (slug) => {
       const draft = store.get(slug);

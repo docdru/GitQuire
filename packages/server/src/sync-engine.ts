@@ -972,6 +972,27 @@ export class SyncEngine {
     await this.pullOnce('sync');
   }
 
+  async pushForStop(): Promise<void> {
+    this.clearCycleTimers();
+    await this.drainInFlightCycles();
+    try {
+      await this.pushOnce();
+    } finally {
+      this.clearCycleTimers();
+    }
+  }
+
+  private clearCycleTimers(): void {
+    if (this.pullTimer !== null) {
+      clearTimeout(this.pullTimer);
+      this.pullTimer = null;
+    }
+    if (this.pushTimer !== null) {
+      clearTimeout(this.pushTimer);
+      this.pushTimer = null;
+    }
+  }
+
   async pushOnce(): Promise<void> {
     if (this.mode === 'full') {
       await this.runPushCycle();

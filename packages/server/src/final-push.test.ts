@@ -52,7 +52,11 @@ function projectWithRemote(): { project: string; origin: string } {
   return { project, origin };
 }
 
-async function editAndStop(project: string, finalPushTimeoutMs: number): Promise<void> {
+async function editAndStop(
+  project: string,
+  finalPushTimeoutMs: number,
+  options: { cycleInFlight?: boolean } = {},
+): Promise<void> {
   const server = createServer({
     contentDir: project,
     projectDir: project,
@@ -69,7 +73,9 @@ async function editAndStop(project: string, finalPushTimeoutMs: number): Promise
     doc.getXmlFragment('default').insert(0, [paragraph]);
   });
   server.hocuspocus.documents.get('last-words')?.removeDirectConnection();
+  const running = options.cycleInFlight === true ? server.syncEngine?.pushOnce() : undefined;
   await server.destroy();
+  await running;
 }
 
 function originFiles(origin: string): string {
@@ -83,6 +89,12 @@ describe('commit and push, then stop', () => {
     expect(originFiles(origin)).toContain('last-words.md');
   }, 60_000);
 
+  test('waits for a push cycle in flight, then pushes the last edits', async () => {
+    const { project, origin } = projectWithRemote();
+    await editAndStop(project, 20_000, { cycleInFlight: true });
+    expect(originFiles(origin)).toContain('last-words.md');
+  }, 60_000);
+
   test('stops without pushing when no final push is asked for, as before', async () => {
     const { project, origin } = projectWithRemote();
     await editAndStop(project, 0);
@@ -91,34 +103,36 @@ describe('commit and push, then stop', () => {
 });
 
 describe('pushBeforeStop', () => {
-  const status = (syncMode: string, hasRemote: boolean, pushError?: string) => ({
-    syncMode,
-    hasRemote,
-    ...(pushError === undefined ? {} : { pushError }),
-  });
+  const status = (syncMode: string, hasRemote: boolean) => ({ syncMode, hasRemote });
+  type Engine = Parameters<typeof pushBeforeStop>[0];
+  const engine = (s: ReturnType<typeof status>, push: () => Promise<void>): Engine =>
+    ({ getStatus: () => s, pushForStop: push }) as unknown as Engine;
 
   test('pushes only in full sync with a remote', async () => {
     let pushes = 0;
-    const engine = (s: ReturnType<typeof status>) =>
-      ({
-        getStatus: () => s,
-        pushOnce: async () => {
-          pushes++;
-        },
-      }) as unknown as Parameters<typeof pushBeforeStop>[0];
-    expect(await pushBeforeStop(engine(status('follow', true)), 1000)).toBe('skipped');
-    expect(await pushBeforeStop(engine(status('full', false)), 1000)).toBe('skipped');
+    const push = async () => {
+      pushes++;
+    };
+    const done = async () => true;
+    expect(await pushBeforeStop(engine(status('follow', true), push), 1000, done)).toBe('skipped');
+    expect(await pushBeforeStop(engine(status('full', false), push), 1000, done)).toBe('skipped');
     expect(pushes).toBe(0);
-    expect(await pushBeforeStop(engine(status('full', true)), 1000)).toBe('pushed');
-    expect(await pushBeforeStop(engine(status('full', true, 'rejected')), 1000)).toBe('failed');
-    expect(pushes).toBe(2);
+    expect(await pushBeforeStop(engine(status('full', true), push), 1000, done)).toBe('pushed');
+    expect(pushes).toBe(1);
   });
 
-  test('gives up after its time', async () => {
-    const engine = {
-      getStatus: () => status('full', true),
-      pushOnce: () => new Promise<void>(() => {}),
-    } as unknown as Parameters<typeof pushBeforeStop>[0];
-    expect(await pushBeforeStop(engine, 20)).toBe('timeout');
+  test('reports a push that left work behind as failed, even when the push returned normally', async () => {
+    const quiet = engine(status('full', true), async () => {});
+    expect(await pushBeforeStop(quiet, 1000, async () => false)).toBe('failed');
+    const throwing = engine(status('full', true), async () => {
+      throw new Error('rejected');
+    });
+    expect(await pushBeforeStop(throwing, 1000, async () => false)).toBe('failed');
+  });
+
+  test('gives up after its time, and at once when no time is left', async () => {
+    const stuck = engine(status('full', true), () => new Promise<void>(() => {}));
+    expect(await pushBeforeStop(stuck, 20, async () => true)).toBe('timeout');
+    expect(await pushBeforeStop(stuck, 0, async () => true)).toBe('timeout');
   });
 });

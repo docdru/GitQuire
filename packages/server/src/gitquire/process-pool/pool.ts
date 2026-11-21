@@ -40,6 +40,7 @@ export interface ProcessPoolDeps {
   cli: readonly string[];
   log: GateLogger;
   socketDir?: string;
+  makeSocketDir?: () => string;
   spawn?: SpawnFn;
   get?: SocketGet;
   idleMs?: number;
@@ -61,7 +62,7 @@ export interface StopState {
 }
 
 export interface ProcessPool {
-  socketDir: string;
+  socketPath: (id: string) => string;
   ensure: (id: string, start: () => Promise<ChildSpec>) => Promise<string>;
   touch: (id: string) => void;
   hold: (id: string) => () => void;
@@ -120,15 +121,32 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
   const idleMs = deps.idleMs ?? DEFAULT_IDLE_MS;
   const stopGraceMs = deps.stopGraceMs ?? DEFAULT_STOP_GRACE_MS;
   const now = deps.now ?? Date.now;
-  const socketDir = deps.socketDir ?? createPrivateSocketDir();
+  let socketDir = deps.socketDir;
+  const ownsSocketDir = deps.socketDir === undefined;
+  let closing = false;
   const entries = new Map<string, Running>();
   const queues = new Map<string, Promise<unknown>>();
   const pending = new Map<string, Promise<string>>();
   const tag = `[gitquire-${deps.label}]`;
 
+  function socketFolder(): string {
+    socketDir ??= (deps.makeSocketDir ?? createPrivateSocketDir)();
+    return socketDir;
+  }
+
   function socketFor(id: string): string {
     if (!ID_RE.test(id)) throw new Error(`"${id}" cannot name a process.`);
-    return join(socketDir, `${id}.sock`);
+    return join(socketFolder(), `${id}.sock`);
+  }
+
+  function removeSocketDir(): void {
+    if (ownsSocketDir && socketDir !== undefined)
+      rmSync(socketDir, { recursive: true, force: true });
+  }
+
+  function refuseWhenClosing(id: string): void {
+    if (closing)
+      throw new Error(`The ${deps.label} process "${id}" cannot start while GitQuire stops.`);
   }
 
   function exclusive<T>(id: string, work: () => Promise<T>): Promise<T> {
@@ -171,8 +189,10 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
   }
 
   async function start(id: string, spec: () => Promise<ChildSpec>): Promise<string> {
+    refuseWhenClosing(id);
     const socket = socketFor(id);
     const { cwd, env } = await spec();
+    refuseWhenClosing(id);
     const [command, ...args] = deps.cli;
     if (command === undefined)
       throw new Error(`GitQuire does not know how to start a ${deps.label} process.`);
@@ -209,6 +229,11 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
   }
 
   function ensure(id: string, spec: () => Promise<ChildSpec>): Promise<string> {
+    if (closing) {
+      return Promise.reject(
+        new Error(`The ${deps.label} process "${id}" cannot start while GitQuire stops.`),
+      );
+    }
     const existing = entries.get(id);
     if (existing !== undefined) {
       existing.lastUsed = now();
@@ -246,6 +271,7 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
       if (entry.child.exitCode === null && entry.child.signalCode === null)
         entry.child.kill('SIGTERM');
     }
+    removeSocketDir();
   });
 
   const sweep = setInterval(() => {
@@ -259,7 +285,7 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
   sweep.unref();
 
   return {
-    socketDir,
+    socketPath: socketFor,
     ensure,
     touch: (id) => {
       const entry = entries.get(id);
@@ -284,8 +310,11 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
     exclusive,
     stopState,
     stopAll: async () => {
+      closing = true;
       clearInterval(sweep);
+      await Promise.allSettled([...pending.values(), ...queues.values()]);
       await Promise.all([...entries.keys()].map((id) => halt(id)));
+      removeSocketDir();
     },
   };
 }
