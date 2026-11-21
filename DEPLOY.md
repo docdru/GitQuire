@@ -395,7 +395,9 @@ With it on, the editor process:
 
 The front door sets `GITQUIRE_EXTERNAL_URL` of each editor process to the public address **with**
 the wiki's prefix, for example `https://brain.example.com/w/team/wiki`, so links in mention mails and
-chat messages open the right wiki. It forwards the public `Host` and `X-Forwarded-Proto`, and sets
+chat messages open the right wiki. It also passes `GITQUIRE_REPO` (the wiki's `owner/name`),
+`GITQUIRE_AI_CHAT` and `GITQUIRE_ADMINS`; behind the front door `GITQUIRE_ADMINS` only names the
+admins in the settings hint, and who is an admin of this wiki comes from the forwarded person alone. It forwards the public `Host` and `X-Forwarded-Proto`, and sets
 `GITQUIRE_ALLOW_EXTERNAL=1` for the process so those are admitted. It strips any `x-gitquire-*`
 header that comes from a browser, and forwards a request with a person only after its own sign-in
 check.
