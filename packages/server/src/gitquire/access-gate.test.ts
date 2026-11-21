@@ -14,6 +14,7 @@ import {
   safeNextPath,
 } from './access-gate.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
+import type { DoorHost } from './host/types.ts';
 import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from './internal-request.ts';
 import { encodeSigned } from './signed-cookie.ts';
 
@@ -637,5 +638,62 @@ describe('in-app agent routes', () => {
       expect(out.status).toBe(403);
       expect(JSON.parse(out.body).error).toBe('in-app-agents-removed');
     }
+  });
+});
+
+describe('sign-in through the host interface', () => {
+  it('uses the host given to the gate for every sign-in step', async () => {
+    const config = resolveGitHubAuthConfig(BASE_ENV, { externalUrl: 'https://brain.example.com' });
+    if (config === undefined) throw new Error('expected auth to be enabled');
+    const steps: string[] = [];
+    const host: DoorHost = {
+      authorizeUrl: ({ clientId, redirectUri, state }) => {
+        steps.push(`authorize ${clientId} ${redirectUri} ${state}`);
+        return 'https://host.example/authorize';
+      },
+      exchangeCode: async ({ code }) => {
+        steps.push(`exchange ${code}`);
+        return 'person-token';
+      },
+      person: async (token) => {
+        steps.push(`person ${token}`);
+        return { id: 7, login: 'dora', name: 'Dora', avatarUrl: '' };
+      },
+      access: async (token, repo) => {
+        steps.push(`access ${token} ${repo.owner}/${repo.name}`);
+        return 'admin';
+      },
+      accessByBot: async () => 'none',
+      tokenFor: async () => undefined,
+    };
+    const gate = createAccessGate(config, {
+      log: silentLog,
+      fetch: () => Promise.reject(new Error('the gate must not call the network itself')),
+      now: () => NOW,
+      randomState: () => 'fixed-state',
+      host,
+    });
+    const callback = await signIn(gate);
+    expect(steps).toEqual([
+      'authorize Iv1.client https://brain.example.com/auth/github/callback fixed-state',
+      'exchange abc',
+      'person person-token',
+      'access person-token acme/notes',
+    ]);
+    expect(callback.status).toBe(302);
+    const session = cookiesFrom(callback.headers['Set-Cookie']).get(SESSION_COOKIE) ?? '';
+    const me = fakeResponse();
+    gate.handleRequest(
+      fakeRequest('/auth/me', {
+        headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(session)}` },
+      }),
+      me.res,
+    );
+    expect(JSON.parse(me.body)).toMatchObject({
+      login: 'dora',
+      admin: true,
+      principalId: 'github-7',
+      email: '7+dora@users.noreply.github.com',
+    });
   });
 });

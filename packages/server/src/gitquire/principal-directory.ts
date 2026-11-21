@@ -1,4 +1,5 @@
 import type { IncomingMessage } from 'node:http';
+import { hostNames } from './host/names.ts';
 
 export interface GitQuirePrincipal {
   id: string;
@@ -32,8 +33,8 @@ export function sanitizeDisplayName(raw: string, fallback: string): string {
   return cleaned === '' ? fallback : cleaned;
 }
 
-export function principalIdForGitHubUser(githubUserId: number): string {
-  return `github-${githubUserId}`;
+export function principalIdForUser(userId: number): string {
+  return `${hostNames().idPrefix}${userId}`;
 }
 
 export function setSessionPrincipalResolver(next: SessionResolver | undefined): void {

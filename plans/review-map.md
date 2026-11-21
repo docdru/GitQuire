@@ -18,7 +18,7 @@ All paths under `packages/server/src/gitquire/` unless stated.
 | Agent tokens and `/mcp` sign-in | `agent-tokens.ts`, `agent-access.ts`, `oauth-server.ts`, `agent-pages.ts` | Re-check by collaborator permission; one revocation revokes all (R9, R13) |
 | Drafts | `drafts/` (`service.ts`, `instances.ts`, `proxy.ts`, `http.ts`, `remote.ts`), `github-pulls.ts` | Child processes on free ports (R5); `DraftRemote` is the host seam for reviews |
 | Internal calls | `internal-request.ts` | Shared secret between a process and its drafts |
-| People and identity | `people.ts`, `principal-directory.ts`, `board-identity.ts` | Person id `github-<number>` (R16) |
+| People and identity | `people.ts`, `principal-directory.ts`, `board-identity.ts` | Person id `<host prefix><number>` from `host/names.ts`, `github-` on GitHub (R16) |
 | Mentions, mail, chat | `mentions.ts`, `page-scan.ts`, `mention-mailer.ts`, `mail.ts`, `chat-notifier.ts` | Read marks in `mentions.json` |
 | Settings | `personal-settings.ts`, `settings-admin.ts`, `workspace.ts` | |
 | App, server calls | `packages/app/src/lib/client-fetch.ts` (`apiOrigin`), `packages/app/src/editor/DocumentContext.tsx` (`storageNamespace`) | Prefix and per-wiki storage (block 3) |
@@ -29,10 +29,18 @@ Modules added by the branch are listed here by the pull request that adds them.
 | Added | Module | Notes |
 | --- | --- | --- |
 | Stage 0 | `.github/workflows/prototypes.yml`, `.github/prototypes/` | Forgejo 15 in a container, the prototype front door (`front-proxy.mjs`) and the P and F rows; throwaway code kept as the base of H5. Not part of the product |
+| Stage 1 (H1, H3) | `host/types.ts` | **Contract.** The host interface: `DoorHost` (sign-in, `access`, `accessByBot` with `refused:token` (401), `refused:not-admin` (403), `refused:removed` (bot no longer reaches the repo) and `unreachable`, async `tokenFor`), `HostNames` (label, id prefix, no-reply email) |
+| Stage 1 | `host/github.ts` | The GitHub door host: authorize address, code exchange, `GET /user`, repo `permissions`, collaborator permission with the app token. Moved from `access-gate.ts` and `agent-access.ts` unchanged |
+| Stage 1 | `host/names.ts` | `GITQUIRE_HOST` (only `github` in stage 1), `GITQUIRE_COMMIT_EMAIL_FORMAT`; the process's host names, read by `noreplyEmail` and `principalIdForUser` |
+| Stage 1 | `host/data-folder.ts` | Refuses a data folder recorded for another host, or used by GitHub people when the host is not GitHub; writes nothing for GitHub. Cannot see ids in comment threads committed to the repo |
 
 ## Contract files
 
-Sent with every review as reference docs (later as `[[related.rules]]`): none yet. Planned: the host interface types (stage 1), the "who is this request" function (block 1), the front door's access check (block 5).
+Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they govern changes:
+
+- `packages/server/src/gitquire/host/types.ts` (stage 1), for changes under `host/`, to `access-gate.ts`, `agent-access.ts`, `github-app.ts`, `github-pulls.ts` and `drafts/remote.ts`.
+
+Planned: the "who is this request" function (block 1), the front door's access check (block 5).
 
 ## Seams where a mistake leaks or loses work
 

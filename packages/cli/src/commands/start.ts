@@ -451,7 +451,8 @@ export async function runStartCommand(config: Config, opts: StartCommandOptions)
     if (
       err instanceof serverModule.ExposureConsentError ||
       err instanceof serverModule.GitHubAuthConfigError ||
-      err instanceof serverModule.GitHubAppConfigError
+      err instanceof serverModule.GitHubAppConfigError ||
+      err instanceof serverModule.HostConfigError
     ) {
       console.error(error(err.message));
       process.exit(78);

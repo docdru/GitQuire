@@ -131,6 +131,7 @@ and make sure it is installed on the repository with **Contents: read and write*
 | `GITQUIRE_REPO` | The repository to sync, `owner/name`. |
 | `GITQUIRE_BRANCH` | Branch to edit; defaults to the repository's default branch. |
 | `GITQUIRE_SYNC_MODE` | `full` (pull and push, default), `follow` (pull only) or `off`. Applied on first start; later changes are made in the app. |
+| `GITQUIRE_COMMIT_EMAIL_FORMAT` | Optional. The email address commits are authored with, built from `{login}` and `{id}` of the person's account. Default `{id}+{login}@users.noreply.github.com`, which GitHub links to the account; set it for GitHub Enterprise Server's no-reply domain. |
 
 If GitHub is unreachable at start, GitQuire retries for about five minutes before giving up
 (exit code 75, so a restart policy can try again); configuration problems stop it immediately
@@ -457,7 +458,7 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET`, `GITQUIRE_SESSION_SECRET` | [GitHub sign-in](#github-sign-in) |
 | `GITQUIRE_REPO`, `GITQUIRE_ALLOWED_USERS`, `GITQUIRE_ADMINS`, `GITQUIRE_SESSION_DAYS`, `GITQUIRE_AUTH` | [GitHub sign-in](#github-sign-in) |
 | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_FILE`, `GITHUB_APP_PRIVATE_KEY` | [Sync a GitHub repository](#sync-a-github-repository) |
-| `GITQUIRE_BRANCH`, `GITQUIRE_SYNC_MODE` | [Sync a GitHub repository](#sync-a-github-repository) |
+| `GITQUIRE_BRANCH`, `GITQUIRE_SYNC_MODE`, `GITQUIRE_COMMIT_EMAIL_FORMAT` | [Sync a GitHub repository](#sync-a-github-repository) |
 | `GITQUIRE_SMTP_URL`, `GITQUIRE_MAIL_FROM`, `GITQUIRE_MAIL_DOMAINS` | [Mention emails](#mention-emails) |
 | `GITQUIRE_CHAT_WEBHOOK_URL`, `GITQUIRE_CHAT_FORMAT` | [Chat notifications](#chat-notifications) |
 | `GITQUIRE_DRAFTS_DIR` | [Drafts](#drafts) |

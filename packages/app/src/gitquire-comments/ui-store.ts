@@ -74,7 +74,7 @@ export function setActiveThread(activeThreadId: string | null): void {
 }
 
 interface MeResponse {
-  id?: unknown;
+  principalId?: unknown;
   login?: unknown;
   name?: unknown;
 }
@@ -90,9 +90,9 @@ async function loadIdentity(): Promise<Author> {
   const me = await fetch('/auth/me', { credentials: 'same-origin' }).catch(() => undefined);
   if (me?.ok) {
     const body = (await me.json()) as MeResponse;
-    if (typeof body.id === 'number' && typeof body.login === 'string') {
+    if (typeof body.principalId === 'string' && typeof body.login === 'string') {
       return {
-        id: `github-${body.id}`,
+        id: body.principalId,
         login: body.login,
         name: typeof body.name === 'string' && body.name !== '' ? body.name : body.login,
       };

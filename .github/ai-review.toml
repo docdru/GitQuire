@@ -44,6 +44,17 @@ tests = true
 imports = true
 nearby = true
 
+[[related.rules]]
+when = [
+  "packages/server/src/gitquire/host/",
+  "packages/server/src/gitquire/access-gate.ts",
+  "packages/server/src/gitquire/agent-access.ts",
+  "packages/server/src/gitquire/github-app.ts",
+  "packages/server/src/gitquire/github-pulls.ts",
+  "packages/server/src/gitquire/drafts/remote.ts",
+]
+send = ["packages/server/src/gitquire/host/types.ts"]
+
 [[sections]]
 key = "security"
 title = "🔒 Security and access"
