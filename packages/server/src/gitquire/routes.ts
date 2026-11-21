@@ -29,6 +29,7 @@ import {
 import { GitHubUnavailableError } from './github-app.ts';
 import { parseGitHubRepo } from './github-auth-config.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
+import { parseHostKind } from './host/names.ts';
 import {
   isAllowedRecipient,
   isEmailAddress,
@@ -109,11 +110,16 @@ class HttpError extends Error {
 
 export function repositoryFromEnv(
   env: Readonly<Record<string, string | undefined>>,
-): { owner: string; name: string; url: string } | null {
+): { owner: string; name: string; url: string; host: string } | null {
   try {
     const repo = parseGitHubRepo(env.GITQUIRE_REPO);
     if (repo === undefined) return null;
-    return { ...repo, url: `https://github.com/${repo.owner}/${repo.name}` };
+    if (parseHostKind(env) === 'forgejo') {
+      const web = (env.GITQUIRE_HOST_URL ?? '').trim().replace(/\/+$/, '');
+      if (web === '') return null;
+      return { ...repo, url: `${web}/${repo.owner}/${repo.name}`, host: 'Forgejo' };
+    }
+    return { ...repo, url: `https://github.com/${repo.owner}/${repo.name}`, host: 'GitHub' };
   } catch {
     return null;
   }

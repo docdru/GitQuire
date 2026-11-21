@@ -12,25 +12,38 @@ import {
   resolveBehindFrontDoorSettings,
 } from './behind-front-door-gate.ts';
 import { createChatFromEnv } from './chat/setup.ts';
+import type { RepoSyncConfig } from './drafts/setup.ts';
 import {
   createDrafts,
   type Drafts,
   isDraftInstance,
   type LiveServerHandle,
 } from './drafts/setup.ts';
+import { createForgejoPullsClient } from './forgejo-pulls.ts';
 import {
   type CheckPushPermissionFn,
   createGitHubAppClient,
+  type GitHubAppClient,
+  type GitHubAppConfig,
+  GitHubAppConfigError,
+  GitHubUnavailableError,
   type InstallationTokenManager,
   resolveGitHubAppConfig,
+  retryWhileUnavailable,
   startInstallationTokenManager,
 } from './github-app.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
-import { createGitHubPullsClient } from './github-pulls.ts';
+import { createGitHubPullsClient, type GitHubDraftsClient } from './github-pulls.ts';
 import { checkDataFolderHost } from './host/data-folder.ts';
+import { createForgejoDoorHost } from './host/forgejo.ts';
+import {
+  createForgejoRepoClient,
+  type ForgejoRepoConfig,
+  resolveForgejoRepoConfig,
+} from './host/forgejo-repo.ts';
 import { createGitHubDoorHost } from './host/github.ts';
-import { hostNamesFromEnv, setHostNames } from './host/names.ts';
-import type { HostNames } from './host/types.ts';
+import { hostNamesFromEnv, parseHostKind, setHostNames } from './host/names.ts';
+import type { DoorHost, HostNames } from './host/types.ts';
 import {
   describeLegacyDataFolderMigration,
   migrateLegacyDataFolders,
@@ -50,6 +63,52 @@ import { setAdminResolver } from './settings-admin.ts';
 export type { AccessGate } from './access-gate.ts';
 
 export { GitHubAppConfigError, GitHubUnavailableError } from './github-app.ts';
+
+function forgejoRepoConfig(env: Env): ForgejoRepoConfig | undefined {
+  return resolveForgejoRepoConfig(env, { needBotToken: !isDraftInstance(env) });
+}
+
+function doorHostFor(
+  env: Env,
+  config: {
+    githubWebUrl: string;
+    githubApiUrl: string;
+    repo: { owner: string; name: string } | undefined;
+  },
+  tokens: InstallationTokenManager | undefined,
+): DoorHost {
+  if (parseHostKind(env) === 'forgejo') {
+    const forgejo = forgejoRepoConfig(env);
+    return createForgejoDoorHost(
+      { webUrl: config.githubWebUrl, apiUrl: config.githubApiUrl, repo: config.repo },
+      { botToken: () => forgejo?.botToken, repoToken: () => forgejo?.repoToken },
+    );
+  }
+  return createGitHubDoorHost(
+    { webUrl: config.githubWebUrl, apiUrl: config.githubApiUrl, repo: config.repo },
+    { installationToken: tokens?.current },
+  );
+}
+
+async function checkForgejoHost(
+  config: ForgejoRepoConfig,
+  onRetry: (err: Error, attempt: number, delayMs: number) => void,
+): Promise<void> {
+  const door = createForgejoDoorHost(
+    { webUrl: config.webUrl, apiUrl: config.apiUrl, repo: config.repo },
+    { botToken: () => config.botToken, repoToken: () => config.repoToken },
+  );
+  await retryWhileUnavailable(
+    async () => {
+      const result = await door.selfCheck();
+      if (result.ok) return;
+      if (result.unreachable) throw new GitHubUnavailableError(result.problems.join(' '));
+      throw new GitHubAppConfigError(result.problems.join(' '));
+    },
+    { onRetry },
+  );
+}
+
 export { GitHubAuthConfigError } from './github-auth-config.ts';
 export { HostConfigError } from './host/names.ts';
 
@@ -92,14 +151,7 @@ export function createAccessGateFromEnv(
   const config = resolveGitHubAuthConfig(env, runtime);
   if (config === undefined) return undefined;
   let agentTokens: AgentTokenStore | undefined;
-  const host = createGitHubDoorHost(
-    {
-      webUrl: config.githubWebUrl,
-      apiUrl: config.githubApiUrl,
-      repo: config.repo,
-    },
-    { installationToken: options.tokens?.current },
-  );
+  const host = doorHostFor(env, config, options.tokens);
   const check = createRepoAccessCheck(config, { host });
   if (options.projectDir !== undefined && !isDraftInstance(env)) {
     agentTokens = createAgentTokenStore({ file: agentTokensFile(env, options.projectDir), log });
@@ -143,6 +195,18 @@ export async function startGitHubAppTokensFromEnv(
   env: Env,
   log: GateLogger,
 ): Promise<InstallationTokenManager | undefined> {
+  const forgejo = forgejoRepoConfig(env);
+  if (forgejo !== undefined) {
+    if (!isDraftInstance(env)) {
+      await checkForgejoHost(forgejo, (err, attempt, delayMs) =>
+        log.warn({ attempt, delayMs, reason: err.message }, '[gitquire-host] Forgejo unavailable'),
+      );
+    }
+    return startInstallationTokenManager(forgejo, createForgejoRepoClient(forgejo), {
+      log,
+      startMessage: '[gitquire-host] using the Forgejo repository token for git sync',
+    });
+  }
   const config = resolveGitHubAppConfig(env);
   if (config === undefined) return undefined;
   const client = createGitHubAppClient(config, {
@@ -178,17 +242,25 @@ export async function runGitQuireBootstrap(
   initProject: (dir: string) => void,
   warn: (message: string) => void = () => {},
 ): Promise<GitQuireBootstrapResult> {
-  const config = resolveGitHubAppConfig(env);
-  if (config === undefined) {
+  const retry = {
+    onRetry: (err: Error, attempt: number, delayMs: number) =>
+      warn(`${err.message} Retrying in ${Math.round(delayMs / 1000)} s (attempt ${attempt}).`),
+  };
+  const forgejo = forgejoRepoConfig(env);
+  const github = forgejo === undefined ? resolveGitHubAppConfig(env) : undefined;
+  let config: ForgejoRepoConfig | GitHubAppConfig;
+  let client: GitHubAppClient;
+  if (forgejo !== undefined) {
+    await checkForgejoHost(forgejo, retry.onRetry);
+    config = forgejo;
+    client = createForgejoRepoClient(forgejo, { retry });
+  } else if (github !== undefined) {
+    config = github;
+    client = createGitHubAppClient(github, { retry });
+  } else {
     return { configured: false, message: 'GitHub repository sync is not configured.' };
   }
   const syncMode = parseAutoSyncMode(env.GITQUIRE_SYNC_MODE);
-  const client = createGitHubAppClient(config, {
-    retry: {
-      onRetry: (err, attempt, delayMs) =>
-        warn(`${err.message} Retrying in ${Math.round(delayMs / 1000)} s (attempt ${attempt}).`),
-    },
-  });
   const outcome = await bootstrapRepository(dir, config, client);
   runGitSync(['config', 'fetch.prune', 'true'], dir);
   for (const line of describeLegacyDataFolderMigration(migrateLegacyDataFolders(dir))) warn(line);
@@ -218,6 +290,49 @@ export function initProjectWithCli(cliArgs: readonly string[]): (dir: string) =>
 
 const INTERACTIVE_RETRY_DELAYS_MS = [500, 2000] as const;
 
+interface RepoSync {
+  config: RepoSyncConfig;
+  client: (token: () => string | undefined) => GitHubDraftsClient;
+}
+
+function repoSyncFromEnv(env: Env): RepoSync | undefined {
+  const forgejo = forgejoRepoConfig(env);
+  if (forgejo !== undefined) {
+    return {
+      config: {
+        host: 'forgejo',
+        repo: forgejo.repo,
+        branch: forgejo.branch,
+        gitHost: forgejo.gitHost,
+        webUrl: forgejo.webUrl,
+      },
+      client: (token) =>
+        createForgejoPullsClient(forgejo.repo, {
+          token,
+          apiUrl: forgejo.apiUrl,
+          retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
+        }),
+    };
+  }
+  const github = resolveGitHubAppConfig(env);
+  if (github === undefined) return undefined;
+  return {
+    config: {
+      host: 'github',
+      repo: github.repo,
+      branch: github.branch,
+      gitHost: github.gitHost,
+      webUrl: `https://${github.gitHost}`,
+    },
+    client: (token) =>
+      createGitHubPullsClient(github.repo, {
+        token,
+        apiUrl: github.githubApiUrl,
+        retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
+      }),
+  };
+}
+
 function writeAgentsFile(env: Env, dir: string, log: GateLogger): void {
   try {
     const outcome = ensureAgentsFile(dir, env);
@@ -241,15 +356,12 @@ export function createGitQuireHttp(
     liveServer?: LiveServerHandle;
   },
 ): GitQuireHttp {
-  const appConfig = options.tokens === undefined ? undefined : resolveGitHubAppConfig(env);
+  const repoSync = options.tokens === undefined ? undefined : repoSyncFromEnv(env);
   const pulls =
-    appConfig === undefined || options.tokens === undefined
+    repoSync === undefined || options.tokens === undefined
       ? undefined
-      : createGitHubPullsClient(appConfig.repo, {
-          token: options.tokens.current,
-          apiUrl: appConfig.githubApiUrl,
-          retry: { delaysMs: INTERACTIVE_RETRY_DELAYS_MS },
-        });
+      : repoSync.client(options.tokens.current);
+  const appConfig = repoSync?.config;
   const gate = options.gate;
   const drafts: Drafts | undefined =
     gate === undefined

@@ -14,6 +14,8 @@ export const GIT_ALLOWED_ENVIRONMENT: readonly string[] = [
   'GIT_TERMINAL_PROMPT',
   'GIT_MERGE_AUTOEDIT',
   'GIT_OPTIONAL_LOCKS',
+  'GIT_SSL_CAINFO',
+  'GIT_SSL_CAPATH',
 ];
 
 function withDefaults(options: Partial<SimpleGitOptions>): Partial<SimpleGitOptions> {

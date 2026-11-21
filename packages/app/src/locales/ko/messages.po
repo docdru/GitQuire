@@ -4253,8 +4253,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "중간 크기 섹션 제목입니다."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "사람을 {host} 이름으로 언급하세요. 예: @anna"
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4976,10 @@ msgstr "켜짐, 외부 링크 위에 마우스를 올리면 미리보기를 가�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "켜짐, 검색어와 일치하는 페이지의 텍스트가 임베딩 제공업체(OpenAI가 기본값)로 전송되어 임베딩을 계산합니다."
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "{host}에서"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5027,8 @@ msgstr "열기"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "GitHub에서 {0} 열기 (새 탭에서 열림)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "{host}에서 {fullName} 열기"
 
 msgid "Open {keyName} in browser"
 msgstr "브라우저에서 {keyName} 열기"
@@ -5559,8 +5559,8 @@ msgstr "게시됨"
 msgid "Published by {publisher}"
 msgstr "게시자: {publisher}"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "{host}에 게시됨"
 
 msgid "Published or discarded"
 msgstr ""

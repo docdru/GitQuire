@@ -33,7 +33,13 @@ type CredentialHelperUnsafeGitOptions = SimpleGitOptions & {
   };
 };
 
-const GIT_AUTH_ENV_KEYS = ['HOME', 'TMPDIR', 'SSH_AUTH_SOCK'] as const;
+const GIT_AUTH_ENV_KEYS = [
+  'HOME',
+  'TMPDIR',
+  'SSH_AUTH_SOCK',
+  'GIT_SSL_CAINFO',
+  'GIT_SSL_CAPATH',
+] as const;
 
 export function buildGitEnv(ghToken?: RelayGhToken): Record<string, string> {
   const env: Record<string, string> = {

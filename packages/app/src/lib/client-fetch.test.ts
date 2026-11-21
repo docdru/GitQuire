@@ -49,6 +49,38 @@ describe('installClientFetchWrapper', () => {
     delete g.fetch;
   });
 
+  test('under a wiki prefix, puts the prefix in front of same-origin addresses once', async () => {
+    const { calls } = stubWindowFetch();
+    installClientFetchWrapper({ pathPrefix: '/w/team/wiki' });
+    await window.fetch('/api/documents');
+    await window.fetch('/auth/me', { credentials: 'same-origin' });
+    await window.fetch('http://localhost:5173/api/pages?depth=1');
+    await window.fetch('/w/team/wiki/api/tags');
+    await window.fetch('https://api.example.com/v1/x');
+    await window.fetch(new URL('http://localhost:5173/collab-thread'));
+    expect(
+      calls.map((call) => String(call.input instanceof Request ? call.input.url : call.input)),
+    ).toEqual([
+      '/w/team/wiki/api/documents',
+      '/w/team/wiki/auth/me',
+      'http://localhost:5173/w/team/wiki/api/pages?depth=1',
+      '/w/team/wiki/api/tags',
+      'https://api.example.com/v1/x',
+      'http://localhost:5173/w/team/wiki/collab-thread',
+    ]);
+    expect(header(calls[0], PROTOCOL)).toBe('2');
+    expect(calls[1]?.init?.credentials).toBe('same-origin');
+    expect(header(calls[1], PROTOCOL)).toBeUndefined();
+  });
+
+  test('with an empty prefix, passes non-API addresses through untouched', async () => {
+    const { calls } = stubWindowFetch();
+    installClientFetchWrapper({ pathPrefix: '' });
+    await window.fetch('/auth/me');
+    expect(calls[0]?.input).toBe('/auth/me');
+    expect(calls[0]?.init).toBeUndefined();
+  });
+
   test('web mode injects version headers on relative /api/* without rewriting', async () => {
     const { calls } = stubWindowFetch();
     installClientFetchWrapper();

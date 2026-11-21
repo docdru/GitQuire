@@ -7,7 +7,22 @@ describe('parseRepository', () => {
       parseRepository({
         repository: { owner: 'acme', name: 'team-wiki', url: 'https://github.com/acme/team-wiki' },
       }),
-    ).toEqual({ owner: 'acme', name: 'team-wiki', url: 'https://github.com/acme/team-wiki' });
+    ).toEqual({
+      owner: 'acme',
+      name: 'team-wiki',
+      url: 'https://github.com/acme/team-wiki',
+      host: 'GitHub',
+    });
+    expect(
+      parseRepository({
+        repository: {
+          owner: 'team',
+          name: 'wiki',
+          url: 'https://git.example.org/team/wiki',
+          host: 'Forgejo',
+        },
+      })?.host,
+    ).toBe('Forgejo');
   });
 
   test('returns null without a usable repository', () => {

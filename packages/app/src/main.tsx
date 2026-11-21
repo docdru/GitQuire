@@ -17,6 +17,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { installClientFetchWrapper } from '@/lib/client-fetch';
 import { installContactEmailStore } from '@/lib/contact-email-store';
+import { wikiPrefix } from '@/lib/gitquire/wiki-prefix';
 import { i18n } from '@/lib/i18n';
 import { installClientLogForwarder } from '@/lib/install-client-log-forwarder';
 import { initWebVitals } from '@/lib/perf';
@@ -32,7 +33,7 @@ import 'react-medium-image-zoom/dist/styles.css';
 import 'katex/dist/katex.min.css';
 import './globals.css';
 
-installClientFetchWrapper({});
+installClientFetchWrapper({ pathPrefix: wikiPrefix() });
 
 installClientLogForwarder();
 

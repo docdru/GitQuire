@@ -14,6 +14,7 @@ export function WebProjectName() {
 
   if (repository !== null) {
     const fullName = `${repository.owner}/${repository.name}`;
+    const host = repository.host;
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -36,7 +37,7 @@ export function WebProjectName() {
           </a>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs break-all">
-          {t`Open ${fullName} on GitHub`}
+          {t`Open ${fullName} on ${host}`}
         </TooltipContent>
       </Tooltip>
     );
