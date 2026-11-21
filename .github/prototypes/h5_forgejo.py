@@ -415,6 +415,31 @@ def wikis_test():
     status, listed, _ = door_call("GET", "/api/front-door/wikis", dave)
     names = [w.get("name") for w in listed.get("wikis", [])] if isinstance(listed, dict) else []
     check("Wikis access", status == 200 and names == ["alpha"], f"dave's wiki list -> {status} {names}")
+    status, page, _ = door_call("GET", "/", alice, accept="text/html")
+    page = str(page)
+    check("Wikis list", status == 200 and 'href="/w/team/alpha/"' in page and 'href="/w/team/beta/"' in page
+          and "This server hosts wikis from team." in page and 'href="/add-wiki"' in page,
+          f"alice's list page at / shows both wikis, Add a wiki and the allowed owners -> {status}")
+    status, page, _ = door_call("GET", "/", dave, accept="text/html")
+    page = str(page)
+    check("Wikis list", status == 200 and 'href="/w/team/alpha/"' in page and "team/beta" not in page,
+          f"dave's list page shows alpha only -> {status}")
+    status, listed, _ = door_call("GET", "/api/front-door/wikis", alice)
+    check("Wikis list", status == 200 and isinstance(listed, dict) and listed.get("addWikiPage") == "/add-wiki"
+          and sorted(w.get("name") for w in listed.get("wikis", [])) == ["alpha", "beta"],
+          f"the menu's list for alice -> {status}")
+    door_round(alice, "/auth/forgejo/add-wiki?next=%2Fadd-wiki")
+    status, page, _ = door_call("GET", "/add-wiki", alice, accept="text/html")
+    page = str(page)
+    check("Wikis add page", status == 200 and page.count("Open the wiki") >= 2 and "@gitquire-bot" in page
+          and "write:repository" in page,
+          f"alice's Add a wiki page: both repos are wikis, the bot is named -> {status}")
+    door_round(dave, "/auth/forgejo/add-wiki?next=%2Fadd-wiki")
+    status, page, _ = door_call("GET", "/add-wiki", dave, accept="text/html")
+    page = str(page)
+    check("Wikis add page", status == 200 and "only server administrators add wikis" in page
+          and 'name="token"' not in page,
+          f"dave (no server administrator) gets the explanation, no token field -> {status}")
     for name, key in keys.items():
         proc = docker("exec", WIKIS_CONTAINER, "test", "-d", f"/data/wikis/{key}/.git", check_ok=False)
         check("Wikis R10", proc.returncode == 0, f"team/{name} is checked out in /data/wikis/{key}/")
