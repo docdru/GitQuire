@@ -299,6 +299,12 @@ def wikis_setup():
         f.call("PUT", f"/repos/team/{name}/collaborators/alice", {"permission": "admin"}, auth=f.ADMIN)
         f.call("PUT", f"/repos/team/{name}/collaborators/gitquire-bot", {"permission": "admin"}, auth=f.ADMIN)
     f.call("PUT", "/repos/team/alpha/collaborators/dave", {"permission": "write"}, auth=f.ADMIN)
+    status, body, _ = f.call("POST", "/user/repos", {
+        "name": "journal", "private": True, "auto_init": True, "default_branch": "main",
+    }, auth=("alice", f.PASSWORD))
+    if status not in (201, 409):
+        raise RuntimeError(f"create alice/journal: {status} {body}")
+    f.call("PUT", "/repos/alice/journal/collaborators/gitquire-bot", {"permission": "admin"}, auth=f.ADMIN)
     tokens = {}
     for name in ("alpha", "beta"):
         status, body = f.make_token("gitquire-bot", f"wiki-{name}", ["write:repository"],
@@ -504,6 +510,10 @@ def wikis_test():
                                        {"id": repos.get("alpha", {}).get("id"), "token": token})
         check("Wikis add", status == 400 and isinstance(refused, dict) and refused.get("refusal") == expected,
               f"{label} is refused -> {status} {refused}")
+    seen, _, _ = f.call("GET", "/repos/alice/journal/contents", token=os.environ["BOT_TOKEN"])
+    probe, _, _ = f.call("GET", "/repos/alice/journal/contents", token=os.environ["ALPHA_TOKEN"])
+    check("Wikis add", seen == 200 and probe in (403, 404),
+          f"on alice's private repo, which the bot administers: bot -> {seen}, token limited to team/alpha -> {probe}")
     keys = {}
     for name, token in (("alpha", os.environ["ALPHA_TOKEN"]), ("beta", os.environ["BETA_TOKEN"])):
         status, made, _ = door_call("POST", "/api/front-door/wikis", alice,

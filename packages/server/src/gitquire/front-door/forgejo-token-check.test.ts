@@ -40,7 +40,7 @@ describe('Forgejo token scope check (F10)', () => {
       path === '/user' ? [200, { login: 'mallory' }] : [404, {}],
     );
     expect(await readsPerson(repo, 'x')).toBe('not-limited');
-    for (const probe of [200, 404]) {
+    for (const probe of [200, 401]) {
       const reaches = check((token, path) => {
         if (path === '/user') return token === 'bot' ? [200, {}] : [403, {}];
         if (path.startsWith('/user/repos')) return [200, otherRepos];
@@ -48,6 +48,29 @@ describe('Forgejo token scope check (F10)', () => {
       });
       expect(await reaches(repo, 'x')).toBe('not-limited');
     }
+  });
+
+  it('accepts a token that gets not found on a repository of a person that the bot can read', async () => {
+    const personRepos = [
+      { id: 5, name: 'alpha', owner: { login: 'drueffer' } },
+      { id: 6, name: 'beta', owner: { login: 'drueffer' } },
+    ];
+    const result = await check((token, path) => {
+      if (path === '/user') return token === 'bot' ? [200, {}] : [403, {}];
+      if (path.startsWith('/user/repos')) return [200, personRepos];
+      if (path === '/repos/drueffer/beta/contents') return [token === 'bot' ? 200 : 404, {}];
+      return [404, {}];
+    })({ ...repo, owner: 'drueffer' }, 'limited');
+    expect(result).toBe('limited');
+  });
+
+  it('cannot confirm the token when the bot gets not found on that repository too', async () => {
+    const result = await check((token, path) => {
+      if (path === '/user') return token === 'bot' ? [200, {}] : [403, {}];
+      if (path.startsWith('/user/repos')) return [200, otherRepos];
+      return [404, {}];
+    })(repo, 'x');
+    expect(result).toBe('cannot-confirm');
   });
 
   it('cannot confirm the token when the bot reaches no other repository', async () => {

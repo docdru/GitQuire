@@ -60,12 +60,14 @@ export function createForgejoTokenScopeCheck(deps: {
       .slice(0, PROBES);
     if (others.length === 0) return 'cannot-confirm';
     for (const other of others) {
-      const probe = await call(
-        `${repoPath(String(other.owner?.login), String(other.name))}/contents`,
-        token,
-      );
+      const path = `${repoPath(String(other.owner?.login), String(other.name))}/contents`;
+      const probe = await call(path, token);
       if (probe.status === 'unreachable') return 'unreachable';
-      if (probe.status !== 403) return 'not-limited';
+      if (probe.status === 403) continue;
+      if (probe.status !== 404) return 'not-limited';
+      const seen = await call(path, bot);
+      if (seen.status === 'unreachable') return 'unreachable';
+      if (seen.status !== 200) return 'cannot-confirm';
     }
     return 'limited';
   };
