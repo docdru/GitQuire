@@ -30,13 +30,24 @@ export function gitHubRemote(
 ): DraftRemote {
   async function ensurePull(draft: DraftRecord, body: string): Promise<number> {
     if (draft.pull !== undefined) return draft.pull;
-    const pull = await client.createPullRequest({
-      title: draft.title,
-      body,
-      head: draft.branch,
-      base: draft.base,
-    });
-    return pull.number;
+    try {
+      const pull = await client.createPullRequest({
+        title: draft.title,
+        body,
+        head: draft.branch,
+        base: draft.base,
+      });
+      return pull.number;
+    } catch (err) {
+      const open = await openPullFor(draft).catch(() => undefined);
+      if (open === undefined) throw err;
+      return open;
+    }
+  }
+
+  async function openPullFor(draft: DraftRecord): Promise<number | undefined> {
+    const pulls = await client.listOpenPullRequests();
+    return pulls.find((pull) => pull.head === draft.branch && pull.base === draft.base)?.number;
   }
 
   return {
@@ -55,7 +66,8 @@ export function gitHubRemote(
       return result;
     },
     close: async (draft) => {
-      if (draft.pull !== undefined) await client.closePull(draft.pull);
+      const pull = draft.pull ?? (await openPullFor(draft).catch(() => undefined));
+      if (pull !== undefined) await client.closePull(pull);
       await client.deleteBranch(draft.branch);
     },
     closedElsewhere: async (draft) => {

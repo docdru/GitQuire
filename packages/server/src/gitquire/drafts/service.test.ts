@@ -254,3 +254,31 @@ describe('drafts', () => {
     expect(service.get(draft.slug)?.status).toBe('discarded');
   });
 });
+
+describe('a publish that fails after opening the pull request', () => {
+  it('keeps the pull request number so discarding can close it', async () => {
+    const plain = plainGitRemote(repos.live, runGitSync, () => ({}));
+    const storePath = join(repos.root, 'drafts-failing.json');
+    const failing = createDraftService({
+      projectDir: repos.live,
+      store: createDraftStore(storePath),
+      instances,
+      remote: {
+        ...plain,
+        publish: async (draft) => {
+          draft.pull = 5;
+          throw new Error('push refused');
+        },
+      },
+      runGit: runGitSync,
+      authEnv: () => ({}),
+      baseBranch: async () => 'main',
+      log: silentLog,
+    });
+    const draft = await failing.create(ALICE, 'Stuck');
+    await instances.ensure(draft);
+    writeFileSync(join(instances.dir(draft.slug), 'hello.md'), '# Hello\n\nStuck.\n');
+    await expect(failing.publish(draft.slug, BOB)).rejects.toThrow('push refused');
+    expect(createDraftStore(storePath).get(draft.slug)).toMatchObject({ status: 'draft', pull: 5 });
+  });
+});
