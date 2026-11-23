@@ -18,6 +18,7 @@ import {
   askClaudeAddress,
   askDestinations,
   askWorkspace,
+  askWorkspaceChoice,
   buildClaudePrompt,
   claudeLink,
   defaultAskDestination,
@@ -28,6 +29,7 @@ import {
   storeDestination,
 } from '@/lib/gitquire/ask-claude';
 import { type ChatOverview, fetchChatOverview } from '@/lib/gitquire/chat-api';
+import { useChatEdits } from '@/lib/gitquire/chat-edit-target';
 import { queueChatRequest } from '@/lib/gitquire/chat-requests';
 import { useDraftState } from '@/lib/gitquire/drafts-store';
 import { useGitQuireFeatures } from '@/lib/gitquire/features';
@@ -59,6 +61,7 @@ export function GitQuireAskClaude({
   const { t } = useLingui();
   const features = useGitQuireFeatures();
   const drafts = useDraftState();
+  const chatEdits = useChatEdits();
   const folderMode = folderPath !== undefined;
   const [text, setText] = useState('');
   const [chosen, setChosen] = useState<string | null>(() => loadStoredDestination());
@@ -111,6 +114,8 @@ export function GitQuireAskClaude({
 
   const canSend = text.trim() !== '';
   const toChat = destination === 'gitquire-chat';
+  const address = askClaudeAddress(window.location.origin, wikiPrefix());
+  const choosesPlace = toChat || address.wiki !== undefined;
   const placeholder = toChat
     ? folderMode
       ? t`Ask the AI chat about this folder…`
@@ -137,8 +142,11 @@ export function GitQuireAskClaude({
       return;
     }
     const prompt = buildClaudePrompt({
-      ...askClaudeAddress(window.location.origin, wikiPrefix()),
-      workspace: askWorkspace(drafts),
+      ...address,
+      workspace:
+        address.wiki !== undefined && chatEdits.available
+          ? askWorkspaceChoice(drafts, chatEdits.value)
+          : askWorkspace(drafts),
       target,
       request: text,
     });
@@ -186,7 +194,7 @@ export function GitQuireAskClaude({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2">
-        {toChat ? <ChatEditsToggle /> : null}
+        {choosesPlace ? <ChatEditsToggle /> : null}
         {toChat && chatOverview !== null ? <ChatModelSelect overview={chatOverview} /> : null}
         <Select
           value={destination}

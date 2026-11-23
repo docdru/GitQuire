@@ -609,6 +609,13 @@ as that person; the edits are credited to them. `/w/<owner>/<repo>/mcp` is not a
 answers 404 and names the one `/mcp` address. **Settings → Connect AI** shows that address in
 every wiki, and **Ask Claude** names the wiki in the prompt.
 
+Each wiki tool also takes an optional `workspace` argument: `live`, `draft` (the draft the person
+has open, otherwise the assistant's own draft for them) or `draft:<name>` for one named draft. The
+front door keeps one connection per wiki and workspace, so a single conversation can work in the
+live wiki and in a draft. A named draft that is not open is refused, never sent to the live wiki.
+Without the argument a call follows the person's setting, as with one wiki. **Ask Claude** shows the
+**Edits go to** switch and puts the choice into the prompt.
+
 Every ten minutes the front door checks the owners of agent tokens and revokes a person's tokens
 only when they can open no wiki on the server any more. While the host cannot be reached, nothing
 is revoked. A person who can open no wiki gets no connection, and one person can keep at most
