@@ -9,6 +9,7 @@ const toasts = vi.hoisted(() => ({
   info: vi.fn(),
   error: vi.fn(),
   dismiss: vi.fn(),
+  loading: vi.fn(),
 }));
 
 const api = vi.hoisted(() => ({
@@ -79,9 +80,9 @@ async function load() {
   const toastsModule = await import('@/presence/use-sync-toasts');
   const actions = await import('@/components/gitquire-drafts/draft-actions');
   const handover = await import('./draft-handover');
-  const render = () =>
+  const render = (first: Phase = 'synced') =>
     renderHook(({ s }: { s: Phase }) => toastsModule.useSyncToasts(s, 'notes.md'), {
-      initialProps: { s: 'synced' as Phase },
+      initialProps: { s: first },
     });
   return { actions, handover, render };
 }
@@ -262,5 +263,54 @@ describe('a real connection loss', () => {
 
     expect(store.reloadIntoView).not.toHaveBeenCalled();
     expect(lostConnectionToasts()[0]).toContain('Connection lost');
+  });
+});
+
+describe('arriving in a draft after the reload', () => {
+  test('switching into a draft marks the arrival before the page reloads', async () => {
+    store.viewing = null;
+    const { actions, handover } = await load();
+    await act(async () => {
+      await actions.switchView('plan');
+    });
+    expect(store.reloadIntoView).toHaveBeenCalledTimes(1);
+    expect(handover.arrivingView()).toBeNull();
+    expect(window.sessionStorage.getItem('gitquire:arriving-view')).toMatch(/^draft:\d+$/);
+  });
+
+  test('the reloaded page shows a loading notice and no lost connection until it is synced', async () => {
+    window.sessionStorage.setItem('gitquire:arriving-view', `draft:${Date.now()}`);
+    const { handover, render } = await load();
+    expect(handover.arrivingView()).toBe('draft');
+    expect(window.sessionStorage.getItem('gitquire:arriving-view')).toBeNull();
+
+    const hook = render('connecting');
+    expect(String(toasts.loading.mock.calls[0]?.[0])).toContain('Opening the draft');
+    act(() => hook.rerender({ s: 'disconnected' }));
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(lostConnectionToasts()).toEqual([]);
+
+    act(() => hook.rerender({ s: 'synced' }));
+    expect(handover.arrivingView()).toBeNull();
+    expect(toasts.dismiss).toHaveBeenCalledWith('arriving-view');
+  });
+
+  test('a stale arrival marker is ignored', async () => {
+    window.sessionStorage.setItem('gitquire:arriving-view', `draft:${Date.now() - 120_000}`);
+    const { handover } = await load();
+    expect(handover.arrivingView()).toBeNull();
+  });
+
+  test('the loading notice gives way after the arrival wait if the page never syncs', async () => {
+    window.sessionStorage.setItem('gitquire:arriving-view', `live:${Date.now()}`);
+    store.viewing = null;
+    const { handover, render } = await load();
+    const hook = render('connecting');
+    expect(String(toasts.loading.mock.calls[0]?.[0])).toContain('Opening the live wiki');
+    act(() => hook.rerender({ s: 'disconnected' }));
+    act(() => vi.advanceTimersByTime(61_000));
+    expect(handover.arrivingView()).toBeNull();
+    expect(handover.handoverState()).toBe('none');
+    expect(toasts.dismiss).toHaveBeenCalledWith('arriving-view');
   });
 });

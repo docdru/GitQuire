@@ -24,14 +24,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Spinner } from '@/components/ui/spinner';
-import { leaveClosedDraft, takeLeaveNotice } from '@/lib/gitquire/draft-handover';
+import { leaveClosedDraft, reloadInto, takeLeaveNotice } from '@/lib/gitquire/draft-handover';
 import { type DraftSummary, markDraft, reviewState, updateDraft } from '@/lib/gitquire/drafts-api';
-import {
-  onDraftClosed,
-  refreshDrafts,
-  reloadIntoView,
-  useDraftState,
-} from '@/lib/gitquire/drafts-store';
+import { onDraftClosed, refreshDrafts, useDraftState } from '@/lib/gitquire/drafts-store';
 import { DraftDialogs } from './DraftDialogs';
 import { failureCopy, switchView } from './draft-actions';
 import { openDraftDialog } from './draft-dialogs-store';
@@ -112,7 +107,7 @@ function DraftBarContent({
         ? t`The draft now includes the latest live wiki.`
         : t`The draft was already up to date.`,
     );
-    reloadIntoView();
+    reloadInto('draft');
   }
 
   async function backToDraft() {

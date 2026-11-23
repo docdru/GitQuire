@@ -2,10 +2,17 @@ import { useLingui } from '@lingui/react/macro';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { FORCE_SYNC_INTERVAL_MS } from '@/editor/provider-pool';
-import { noteConnected, noteDisconnected, useDraftHandover } from '@/lib/gitquire/draft-handover';
+import {
+  noteConnected,
+  noteDisconnected,
+  noteSynced,
+  useArrivingView,
+  useDraftHandover,
+} from '@/lib/gitquire/draft-handover';
 import type { SyncStatus } from './use-sync-status';
 
 const TOAST_ID = 'sync-status';
+const ARRIVING_TOAST_ID = 'arriving-view';
 
 const DISCONNECT_PRESUMED_DEAD_MS = 10_000;
 export const SYNC_CATCHUP_GRACE_MS = FORCE_SYNC_INTERVAL_MS + 3_000;
@@ -17,6 +24,7 @@ type CatchupClaim = 'idle' | 'armed' | 'asserted' | 'dismissed';
 export function useSyncToasts(status: SyncStatus, activeDocName: string | null) {
   const { t } = useLingui();
   const handover = useDraftHandover();
+  const arriving = useArrivingView();
   const hasConnectedRef = useRef(false);
   const wasDisconnectedRef = useRef(false);
   const downgradeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,6 +49,17 @@ export function useSyncToasts(status: SyncStatus, activeDocName: string | null) 
   );
 
   useEffect(() => {
+    if (arriving === null) return;
+    toast.loading(arriving === 'draft' ? t`Opening the draft…` : t`Opening the live wiki…`, {
+      id: ARRIVING_TOAST_ID,
+      duration: Infinity,
+    });
+    return () => {
+      toast.dismiss(ARRIVING_TOAST_ID);
+    };
+  }, [arriving, t]);
+
+  useEffect(() => {
     const clearDowngradeTimer = () => {
       if (downgradeTimerRef.current !== null) {
         clearTimeout(downgradeTimerRef.current);
@@ -60,6 +79,7 @@ export function useSyncToasts(status: SyncStatus, activeDocName: string | null) 
 
     if (status === 'synced') {
       hasConnectedRef.current = true;
+      noteSynced();
     }
     if (status === 'connected' || status === 'synced') noteConnected();
 

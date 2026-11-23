@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { docNameOfPath } from '@/lib/gitquire/draft-diff';
+import { reloadInto } from '@/lib/gitquire/draft-handover';
 import {
   type ConflictChunk,
   type DraftSummary,
@@ -20,7 +21,6 @@ import {
   resolveConflict,
   updateDraft,
 } from '@/lib/gitquire/drafts-api';
-import { reloadIntoView } from '@/lib/gitquire/drafts-store';
 import { cn } from '@/lib/utils';
 import { failureCopy } from './draft-actions';
 import { closeDraftDialog, openDraftDialog } from './draft-dialogs-store';
@@ -97,7 +97,7 @@ export function DraftConflictsDialog({
       }
       closeDraftDialog();
       toast.success(t`The draft now includes the latest live wiki.`);
-      reloadIntoView();
+      reloadInto('draft');
     } catch (failure) {
       setBusy(false);
       toast.error(t`Couldn't update the draft.`, { description: failureCopy(failure) });
