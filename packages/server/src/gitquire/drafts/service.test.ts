@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { SERVICE_WRITER } from '../../shadow-repo.ts';
 import type { SessionUser } from '../access-gate.ts';
 import { runGitSync } from '../repo-bootstrap.ts';
 import { plainGitRemote } from './remote.ts';
@@ -127,6 +128,35 @@ describe('drafts', () => {
     const author = git(['log', '-1', '--format=%an <%ae>', 'main'], repos.origin).trim();
     expect(author).toBe('Bob B <43+bob@users.noreply.github.com>');
     await expect(service.publish(draft.slug, BOB)).rejects.toMatchObject({ code: 'draft-closed' });
+  });
+
+  it('credits everyone who edited the draft as co-authors of the published commit', async () => {
+    const draft = await draftWith('Credits', { 'hello.md': '# Hello\n\nCarol wrote this.\n' });
+    const dir = instances.dir(draft.slug);
+    git(['add', '-A'], dir);
+    git(
+      [
+        '-c',
+        'user.name=Carol C',
+        '-c',
+        'user.email=carol@example.org',
+        'commit',
+        '--quiet',
+        '-m',
+        'Carol edits',
+        '-m',
+        `Co-authored-by: Dave D <dave@example.org>\nCo-authored-by: Agent (1234) <agent-1234${SERVICE_WRITER.email.slice(SERVICE_WRITER.email.indexOf('@'))}>`,
+      ],
+      dir,
+    );
+    writeFileSync(join(dir, 'hello.md'), '# Hello\n\nCarol wrote this. Bob fixed it.\n');
+    await service.publish(draft.slug, BOB);
+    const head = git(['log', '-1', '--format=%an <%ae>%n%B', 'main'], repos.origin);
+    expect(head.split('\n')[0]).toBe('Bob B <43+bob@users.noreply.github.com>');
+    expect(head).toContain('Co-authored-by: Carol C <carol@example.org>');
+    expect(head).toContain('Co-authored-by: Dave D <dave@example.org>');
+    expect(head).not.toContain('Agent (1234)');
+    expect(head).not.toContain('Co-authored-by: Bob B');
   });
 
   it('refuses to publish over conflicting live changes, and updating shows the conflict', async () => {

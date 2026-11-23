@@ -197,10 +197,15 @@ def run_tests():
     state = published.get("draft", {}).get("status") if isinstance(published, dict) else None
     check("H5 drafts", status == 200 and state == "published", f"publish (squash merge) -> {status} {state} {published if status != 200 else ''}")
     status, pulls, _ = f.call("GET", "/repos/team/wiki/pulls?state=closed", auth=f.ADMIN)
-    merged = [p for p in pulls if p.get("title") == "H5 draft" and p.get("merged")] if isinstance(pulls, list) else []
-    check("H5 drafts", len(merged) == 1, f"publishing opened a pull request on Forgejo and merged it: {[(p.get('number'), p.get('head', {}).get('ref'), p.get('merged')) for p in pulls] if isinstance(pulls, list) else pulls}")
-    titles = [c.get("commit", {}).get("message", "") for c in main_commits()]
-    check("H5 drafts", any(t.startswith("H5 draft (#") for t in titles), f"main has the squash commit with the draft's title: {titles[:3]}")
+    closed = [p for p in pulls if p.get("title") == "H5 draft"] if isinstance(pulls, list) else []
+    check("H5 drafts", len(closed) == 1, f"publishing opened a pull request on Forgejo and closed it: {[(p.get('number'), p.get('head', {}).get('ref'), p.get('merged')) for p in pulls] if isinstance(pulls, list) else pulls}")
+    squash = next((c.get("commit", {}) for c in main_commits()
+                   if c.get("commit", {}).get("message", "").startswith("H5 draft (#")), {})
+    message = squash.get("message", "")
+    author = squash.get("author", {})
+    check("H5 drafts", squash != {}, f"main has the squash commit with the draft's title: {message[:60]!r}")
+    check("H5 drafts", author.get("email", "").startswith("alice@") and "Co-authored-by: " in message,
+          f"the squash commit is alice's, the draft's other author is a co-author: {author.get('name')} <{author.get('email')}>, {message!r}")
     status, _, _ = f.call("GET", f"/repos/team/wiki/branches/{branch}", auth=f.ADMIN)
     check("H5 drafts", status == 404, f"the draft branch is deleted after publishing -> {status}")
 

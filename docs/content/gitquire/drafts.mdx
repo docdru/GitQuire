@@ -71,8 +71,11 @@ makes ends with a line saying whether it went into a draft (and which) or into t
 ## How it works
 
 Each draft is a branch named `draft/<name>` on GitHub. When the draft is ready for review, GitQuire
-opens a pull request for it; publishing squash-merges that pull request and deletes the branch. A draft
-merged or closed on GitHub is closed in GitQuire too (checked every two minutes).
+opens a pull request for it. Publishing squashes the draft into one commit on the live branch, with
+the person who publishes as its author and everyone else who edited the draft as co-authors
+(`Co-authored-by:`), then closes the pull request and deletes the branch. The pull request therefore
+shows as closed, not merged. A draft merged or closed on GitHub is closed in GitQuire too (checked
+every two minutes).
 
 The server runs one extra editor process for each draft that is in use, with its own working copy.
 It starts when someone opens the draft (a few seconds), and stops after 30 minutes without anyone in

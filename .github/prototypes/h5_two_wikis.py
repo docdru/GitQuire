@@ -242,6 +242,10 @@ def drafts(alice, alpha):
     status, commits, _ = f.call("GET", "/repos/team/alpha/commits?sha=main&limit=10", auth=f.ADMIN)
     titles = [c.get("commit", {}).get("message", "") for c in commits] if isinstance(commits, list) else []
     check("Two wikis drafts", any(t.startswith(title) for t in titles), f"team/alpha's main has the squash commit -> {titles[:3]}")
+    authors = [c.get("commit", {}).get("author", {}).get("email", "") for c in commits
+               if c.get("commit", {}).get("message", "").startswith(title)] if isinstance(commits, list) else []
+    check("Two wikis drafts", authors != [] and authors[0].startswith("alice@"),
+          f"the squash commit is by alice, who published it -> {authors[:1]}")
     status, beta_commits, _ = f.call("GET", "/repos/team/beta/commits?sha=main&limit=10", auth=f.ADMIN)
     beta_titles = [c.get("commit", {}).get("message", "") for c in beta_commits] if isinstance(beta_commits, list) else []
     check("Two wikis drafts", not any(t.startswith(title) for t in beta_titles), "team/beta has no trace of it")
