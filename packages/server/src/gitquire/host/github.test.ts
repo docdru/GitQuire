@@ -59,6 +59,13 @@ describe('GitHub door host', () => {
     expect(await host(answering(404, {})).access('t', repo)).toBe('none');
   });
 
+  it('asks for the person’s access by repository id when the wiki record carries one', async () => {
+    const calls: string[] = [];
+    const answer = answering(200, { permissions: { admin: true } }, calls);
+    expect(await host(answer).access('t', { ...repo, id: 42 })).toBe('admin');
+    expect(calls).toEqual(['GET https://api.github.com/repositories/42 Bearer t']);
+  });
+
   it('asks for a collaborator role with the bot token and tells refused from unreachable', async () => {
     const calls: string[] = [];
     expect(

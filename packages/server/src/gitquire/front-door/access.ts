@@ -110,10 +110,7 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
       await Promise.all(
         wikis.map(async (wiki) => {
           try {
-            const level = await deps.host.access(personToken, {
-              owner: wiki.owner,
-              name: wiki.name,
-            });
+            const level = await deps.host.access(personToken, wiki);
             mine.set(wiki.key, { level, checkedAt: now() });
           } catch {
             const kept = previous?.get(wiki.key);

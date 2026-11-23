@@ -5,6 +5,8 @@ export interface HostRepo {
   name: string;
 }
 
+export type HostRepoRef = HostRepo & { readonly id?: number };
+
 export interface HostPerson {
   id: number;
   login: string;
@@ -71,12 +73,12 @@ export interface DoorHost {
   authorizeUrl: (input: AuthorizeInput) => string;
   exchangeCode: (input: ExchangeInput) => Promise<string | undefined>;
   person: (personToken: string) => Promise<HostPerson | undefined>;
-  access: (personToken: string, repo: HostRepo) => Promise<RepoAccess>;
-  accessByBot: (login: string, repo: HostRepo) => Promise<BotAccess>;
+  access: (personToken: string, repo: HostRepoRef) => Promise<RepoAccess>;
+  accessByBot: (login: string, repo: HostRepoRef) => Promise<BotAccess>;
   addableRepos: (personToken: string) => Promise<AddableRepos>;
   repoById: (id: number) => Promise<RepoLookup>;
   repoByName: (repo: HostRepo) => Promise<RepoLookup>;
-  health: (repo: HostRepo) => Promise<HostHealth>;
-  tokenFor: (repo: HostRepo) => Promise<string | undefined>;
+  health: (repo: HostRepoRef) => Promise<HostHealth>;
+  tokenFor: (repo: HostRepoRef) => Promise<string | undefined>;
   selfCheck: () => Promise<SelfCheck>;
 }

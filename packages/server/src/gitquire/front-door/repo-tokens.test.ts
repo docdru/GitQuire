@@ -2,7 +2,8 @@ import { mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
+import { openRepoTokenStore, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
+import type { WikiRecord } from './wiki-table.ts';
 
 const dirs: string[] = [];
 afterEach(() => {
@@ -24,5 +25,36 @@ describe('repo token store', () => {
     expect(again.tokenFor({ owner: 'team', name: 'wiki' })).toBe('limited');
     expect(again.tokenFor({ owner: 'team', name: 'other' })).toBeUndefined();
     expect(again.has('forgejo-3')).toBe(true);
+  });
+
+  it('finds a wiki’s token by its repository id, not by a name another repository may now have', () => {
+    const old: WikiRecord = {
+      host: 'forgejo',
+      id: 3,
+      owner: 'team',
+      ownerId: 1,
+      name: 'old',
+      key: 'forgejo-3',
+      state: 'on',
+      formerNames: [],
+      addedBy: 'alice',
+      addedAt: '',
+    };
+    const impostor: WikiRecord = { ...old, id: 9, key: 'forgejo-9' };
+    const wikis = [old, impostor];
+    const keyOf = repoTokenKey(
+      {
+        byId: (host, id) => wikis.find((wiki) => wiki.host === host && wiki.id === id),
+        byAddress: (owner, name) => {
+          const wiki = wikis.find((w) => w.owner === owner && w.name === name);
+          return wiki === undefined ? undefined : { wiki, current: true };
+        },
+      },
+      'forgejo',
+    );
+    expect(keyOf(impostor)).toBe('forgejo-9');
+    expect(keyOf(old)).toBe('forgejo-3');
+    expect(keyOf({ owner: 'team', name: 'old' })).toBe('forgejo-3');
+    expect(keyOf({ owner: 'team', name: 'old', id: 42 })).toBeUndefined();
   });
 });

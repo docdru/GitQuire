@@ -654,6 +654,15 @@ describe('wiki list and Add a wiki pages', () => {
     expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
   });
 
+  it('refuses to add a repository under a name an existing wiki still has', async () => {
+    const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    r.table.rename('github-1', { owner: 'team', name: 'c' });
+    const refused = await postForm('/add-wiki', session, { id: '3' });
+    expect(refused.status).toBe(409);
+    expect(await refused.text()).toContain('A wiki already has the name team/c');
+    expect(r.table.byKey('github-3')).toBeUndefined();
+  });
+
   it('answers an address that is no wiki, and a wiki without access, with the same page pointing to Add a wiki', async () => {
     const bob = await signIn(r, 'bob');
     const unknown = await get(r, '/w/team/zzz/', bob, { accept: 'text/html' });

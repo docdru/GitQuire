@@ -182,4 +182,10 @@ describe('front door access check', () => {
     await access.decide(alice, a);
     expect(changed).toEqual(['github-1']);
   });
+
+  it('checks access at sign-in by the wiki record, so the host can go by repository id', async () => {
+    const { access, accessCall } = setup({ a: 'write' });
+    await access.signIn(alice, 't', [wiki('a', 11)]);
+    expect(accessCall).toHaveBeenCalledWith('t', expect.objectContaining({ id: 11, name: 'a' }));
+  });
 });
