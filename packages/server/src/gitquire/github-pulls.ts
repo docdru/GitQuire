@@ -31,16 +31,12 @@ export interface CreatePullRequestInput {
   draft?: boolean;
 }
 
-interface PullRequestState {
+export interface PullRequestState {
   number: number;
   state: 'open' | 'closed';
   merged: boolean;
   mergeable: boolean | null;
 }
-
-type MergeOutcome =
-  | { merged: true; sha: string }
-  | { merged: false; reason: 'conflict' | 'not-mergeable'; message: string };
 
 export interface GitHubPullsClient {
   listOpenPullRequests: () => Promise<PullRequestSummary[]>;
@@ -62,7 +58,6 @@ export interface GitHubDraftsClient extends GitHubPullsClient {
   createBranchAt: (branch: string, sha: string) => Promise<void>;
   deleteBranch: (branch: string) => Promise<void>;
   pullState: (number: number) => Promise<PullRequestState>;
-  mergePull: (number: number, title: string) => Promise<MergeOutcome>;
   closePull: (number: number) => Promise<void>;
 }
 
@@ -73,7 +68,7 @@ export interface GitHubPullsDeps {
   retry?: RetryOptions;
 }
 
-function toSummary(raw: Record<string, unknown>): PullRequestSummary | undefined {
+export function toSummary(raw: Record<string, unknown>): PullRequestSummary | undefined {
   const head = raw.head as { ref?: unknown } | undefined;
   const base = raw.base as { ref?: unknown } | undefined;
   const user = raw.user as { login?: unknown } | undefined;
@@ -250,20 +245,6 @@ export function createGitHubPullsClient(
     };
   }
 
-  async function mergePull(number: number, title: string): Promise<MergeOutcome> {
-    const { status, body } = await call(`${repoPath}/pulls/${number}/merge`, {
-      method: 'PUT',
-      body: { merge_method: 'squash', commit_title: title },
-    });
-    const sha = (body as { sha?: unknown } | undefined)?.sha;
-    if (status === 200 && typeof sha === 'string') return { merged: true, sha };
-    const raw = (body as { message?: unknown } | undefined)?.message;
-    const message = typeof raw === 'string' ? raw : `HTTP ${status}`;
-    if (status === 409) return { merged: false, reason: 'conflict', message };
-    if (status === 405) return { merged: false, reason: 'not-mergeable', message };
-    return fail(status, body, 'Merging the pull request');
-  }
-
   async function closePull(number: number): Promise<void> {
     const { status, body } = await call(`${repoPath}/pulls/${number}`, {
       method: 'PATCH',
@@ -312,7 +293,6 @@ export function createGitHubPullsClient(
       retryWhileUnavailable(() => createBranchAt(branch, sha), deps.retry),
     deleteBranch: (branch) => retryWhileUnavailable(() => deleteBranch(branch), deps.retry),
     pullState: (number) => retryWhileUnavailable(() => pullState(number), deps.retry),
-    mergePull: (number, title) => mergePull(number, title),
     closePull: (number) => retryWhileUnavailable(() => closePull(number), deps.retry),
   };
 }

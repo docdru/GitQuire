@@ -42,15 +42,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { hashFromDocName } from '@/lib/doc-hash';
@@ -59,7 +50,6 @@ import {
   type ChatEvent,
   type ChatMessage,
   type ChatOverview,
-  type ChatProvider,
   type ChatSummary,
   deleteChat,
   fetchChat,
@@ -72,14 +62,15 @@ import {
   toolActivity,
 } from '@/lib/gitquire/chat-api';
 import { chooseChatEdits, useChatEdits } from '@/lib/gitquire/chat-edit-target';
+import { pickSelection, useChosenChatModel } from '@/lib/gitquire/chat-model';
 import { onChatRequest, takeChatRequest } from '@/lib/gitquire/chat-requests';
 import { useCurrentDocName } from '@/lib/gitquire/use-current-doc';
 import { openAiChatSettings } from '@/lib/use-settings-route';
 import { cn } from '@/lib/utils';
+import { ChatEditsToggle, ChatModelSelect } from './ChatChoices';
 import { ChatMarkdown, ChatPlainText } from './ChatMarkdown';
 import { onChatKeysChanged } from './chat-keys-events';
 
-const MODEL_STORAGE_KEY = 'gitquire.aiChat.model';
 const MAX_INPUT_HEIGHT_PX = 200;
 
 type Item =
@@ -94,11 +85,6 @@ type Item =
     }
   | { kind: 'error'; key: string; code: string; message: string }
   | { kind: 'notice'; key: string; text: string };
-
-interface Selection {
-  provider: ChatProvider;
-  model: string;
-}
 
 function itemsFromMessages(messages: readonly ChatMessage[]): Item[] {
   const items: Item[] = [];
@@ -127,36 +113,6 @@ function itemsFromMessages(messages: readonly ChatMessage[]): Item[] {
     }
   });
   return items;
-}
-
-function loadSelection(): Selection | null {
-  try {
-    const raw = window.localStorage.getItem(MODEL_STORAGE_KEY);
-    if (raw === null) return null;
-    const parsed = JSON.parse(raw) as Selection;
-    return parsed.provider === 'claude' || parsed.provider === 'mistral' ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function storeSelection(selection: Selection): void {
-  try {
-    window.localStorage.setItem(MODEL_STORAGE_KEY, JSON.stringify(selection));
-  } catch {}
-}
-
-export function pickSelection(overview: ChatOverview, stored: Selection | null): Selection | null {
-  const usable = overview.providers.filter((provider) => provider.key.configured);
-  const storedProvider = usable.find((provider) => provider.id === stored?.provider);
-  if (storedProvider !== undefined && stored !== null) {
-    const model = storedProvider.models.some((entry) => entry.id === stored.model)
-      ? stored.model
-      : storedProvider.defaultModel;
-    return { provider: storedProvider.id, model };
-  }
-  const first = usable[0];
-  return first === undefined ? null : { provider: first.id, model: first.defaultModel };
 }
 
 function ToolLine({ item }: { item: Item & { kind: 'tool' } }) {
@@ -337,7 +293,7 @@ export function ChatPanel() {
   const chatEdits = useChatEdits();
   const [overview, setOverview] = useState<ChatOverview | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
-  const [selection, setSelection] = useState<Selection | null>(null);
+  const chosenModel = useChosenChatModel();
   const [chatId, setChatId] = useState<string | null>(null);
   const [title, setTitle] = useState<string | null>(null);
   const [items, setItems] = useState<Item[]>([]);
@@ -354,12 +310,13 @@ export function ChatPanel() {
   const counter = useRef(0);
   const streamingKey = useRef<string | null>(null);
 
+  const selection = overview === null ? null : pickSelection(overview, chosenModel);
+
   const loadOverview = useEffectEvent(() => {
     fetchChatOverview().then(
       (value) => {
         setOverview(value);
         setLoadFailed(false);
-        setSelection((current) => pickSelection(value, current ?? loadSelection()));
       },
       () => setLoadFailed(true),
     );
@@ -804,46 +761,9 @@ export function ChatPanel() {
             </Button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <Select
-            value={selection === null ? undefined : `${selection.provider}:${selection.model}`}
-            onValueChange={(value) => {
-              const [provider, ...rest] = value.split(':');
-              if (provider !== 'claude' && provider !== 'mistral') return;
-              const next = { provider, model: rest.join(':') } as Selection;
-              setSelection(next);
-              storeSelection(next);
-            }}
-            disabled={sending}
-          >
-            <SelectTrigger
-              size="sm"
-              className="h-7 min-w-0 max-w-[60%] text-xs"
-              aria-label={t`Model`}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {usableProviders.map((provider) => (
-                <SelectGroup key={provider.id}>
-                  <SelectLabel>{provider.label}</SelectLabel>
-                  {provider.models.map((model) => (
-                    <SelectItem key={model.id} value={`${provider.id}:${model.id}`}>
-                      {model.label}
-                      <span className="ms-1 text-muted-foreground">
-                        ·{' '}
-                        {model.tier === 'capable'
-                          ? t`Most capable, costs more`
-                          : model.tier === 'fast'
-                            ? t`Fastest, cheapest`
-                            : t`Balanced`}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          <ChatModelSelect overview={overview} disabled={sending} className="max-w-[45%]" />
+          <ChatEditsToggle compact />
           <p
             className="min-w-0 flex-1 truncate text-end text-muted-foreground text-xs"
             title={t`Tokens sent and received in this chat, billed to your ${providerLabel} key`}

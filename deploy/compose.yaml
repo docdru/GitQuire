@@ -3,7 +3,7 @@ services:
     image: ghcr.io/docdru/gitquire:latest
     container_name: gitquire
     restart: unless-stopped
-    stop_grace_period: 30s
+    stop_grace_period: 60s
     env_file: gitquire.env
     ports:
       - "127.0.0.1:8080:8080"

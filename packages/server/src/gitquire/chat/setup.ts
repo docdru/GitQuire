@@ -3,6 +3,7 @@ import { basename } from 'node:path';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { parseGitHubRepo } from '../github-auth-config.ts';
 import { createChatHistoryStore } from './history.ts';
+import { chatKeySecretFromEnv } from './key-secret.ts';
 import { createChatKeyStore } from './key-store.ts';
 import { createChatProviders } from './providers.ts';
 import { type ChatRoutes, createChatRoutes } from './routes.ts';
@@ -39,11 +40,12 @@ export function createChatFromEnv(
     projectDir: string;
     sessionUser: (req: IncomingMessage) => SessionUser | undefined;
     log: GateLogger;
+    ownPort?: () => number | undefined;
   },
 ): ChatRoutes | undefined {
   if (isOff(env.GITQUIRE_AI_CHAT)) return undefined;
-  const secret = env.GITQUIRE_SESSION_SECRET?.trim() ?? '';
-  if (secret.length < 32) return undefined;
+  const secret = chatKeySecretFromEnv(env);
+  if (secret === undefined) return undefined;
   const wikiName = wikiNameFrom(env, options.projectDir);
   const anthropic = baseUrl(env.GITQUIRE_ANTHROPIC_BASE_URL);
   const mistral = baseUrl(env.GITQUIRE_MISTRAL_BASE_URL);
@@ -60,5 +62,6 @@ export function createChatFromEnv(
     sessionUser: options.sessionUser,
     wikiName: () => wikiName,
     log: options.log,
+    ownPort: options.ownPort,
   });
 }

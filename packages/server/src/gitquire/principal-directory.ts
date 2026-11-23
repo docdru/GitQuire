@@ -1,4 +1,5 @@
 import type { IncomingMessage } from 'node:http';
+import { hostNames } from './host/names.ts';
 
 export interface GitQuirePrincipal {
   id: string;
@@ -32,8 +33,8 @@ export function sanitizeDisplayName(raw: string, fallback: string): string {
   return cleaned === '' ? fallback : cleaned;
 }
 
-export function principalIdForGitHubUser(githubUserId: number): string {
-  return `github-${githubUserId}`;
+export function principalIdForUser(userId: number): string {
+  return `${hostNames().idPrefix}${userId}`;
 }
 
 export function setSessionPrincipalResolver(next: SessionResolver | undefined): void {
@@ -83,23 +84,32 @@ export function sessionPrincipal(req: IncomingMessage | undefined): GitQuirePrin
   return principal;
 }
 
-export function cookieFromBag(bag: unknown): string | undefined {
-  if (typeof bag !== 'object' || bag === null) return undefined;
-  const maybeHeaders = bag as { get?: unknown };
-  if (typeof maybeHeaders.get === 'function') {
-    const value = (bag as Headers).get('cookie');
-    return value === null ? undefined : value;
+function headersFromBag(bag: unknown): Record<string, string> {
+  if (typeof bag !== 'object' || bag === null) return {};
+  const out: Record<string, string> = {};
+  if (typeof (bag as { forEach?: unknown }).forEach === 'function' && 'get' in bag) {
+    (bag as Headers).forEach((value, name) => {
+      out[name.toLowerCase()] = value;
+    });
+    return out;
   }
-  const value = (bag as Record<string, unknown>).cookie;
-  return typeof value === 'string' ? value : undefined;
+  for (const [name, value] of Object.entries(bag as Record<string, unknown>)) {
+    if (typeof value === 'string') out[name.toLowerCase()] = value;
+  }
+  return out;
+}
+
+export function requestFromAuthPayload(payload: unknown): IncomingMessage | undefined {
+  if (typeof payload !== 'object' || payload === null) return undefined;
+  const p = payload as { requestHeaders?: unknown; request?: { headers?: unknown } };
+  const headers = { ...headersFromBag(p.request?.headers), ...headersFromBag(p.requestHeaders) };
+  return { headers } as unknown as IncomingMessage;
 }
 
 export function sessionPrincipalForAuthPayload(payload: unknown): GitQuirePrincipal | undefined {
-  if (typeof payload !== 'object' || payload === null) return undefined;
-  const p = payload as { requestHeaders?: unknown; request?: { headers?: unknown } };
-  const cookie = cookieFromBag(p.requestHeaders) ?? cookieFromBag(p.request?.headers);
-  if (cookie === undefined) return undefined;
-  return sessionPrincipal({ headers: { cookie } } as IncomingMessage);
+  const req = requestFromAuthPayload(payload);
+  if (req === undefined || Object.keys(req.headers).length === 0) return undefined;
+  return sessionPrincipal(req);
 }
 
 const requestPrincipals = new WeakMap<object, GitQuirePrincipal>();

@@ -1,0 +1,378 @@
+name: Forgejo tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - .github/workflows/prototypes.yml
+      - .github/prototypes/**
+      - packages/server/src/gitquire/**
+      - packages/cli/src/commands/gitquire-bootstrap.ts
+      - packages/cli/src/commands/front-door.ts
+      - packages/cli/src/commands/wikis.ts
+      - docker/**
+      - Dockerfile
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prototypes-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORGEJO_IMAGE: codeberg.org/forgejo/forgejo:15
+  FORGEJO_ADMIN_PASSWORD: root-password-1
+
+jobs:
+  forgejo-rows:
+    name: Forgejo rows F1-F9
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      forgejo:
+        image: codeberg.org/forgejo/forgejo:15
+        ports:
+          - 3000:3000
+        env:
+          USER_UID: '1000'
+          USER_GID: '1000'
+          FORGEJO__security__INSTALL_LOCK: 'true'
+          FORGEJO__database__DB_TYPE: sqlite3
+          FORGEJO__server__ROOT_URL: http://127.0.0.1:3000/
+          FORGEJO__server__HTTP_PORT: '3000'
+          FORGEJO__service__NO_REPLY_ADDRESS: noreply.example.org
+          FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE: 'true'
+          FORGEJO__repository__DEFAULT_BRANCH: main
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Wait for Forgejo and create the admin
+        env:
+          FORGEJO_ID: ${{ job.services.forgejo.id }}
+        run: |
+          set -eu
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/v1/version >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:3000/api/v1/version
+          docker exec -u git "$FORGEJO_ID" forgejo admin user create --admin --username root \
+            --password "$FORGEJO_ADMIN_PASSWORD" --email root@example.org --must-change-password=false
+
+      - name: F1-F9
+        run: python3 -I .github/prototypes/forgejo_rows.py
+
+      - name: Forgejo logs
+        if: always()
+        env:
+          FORGEJO_ID: ${{ job.services.forgejo.id }}
+        run: docker logs "$FORGEJO_ID" 2>&1 | tail -80
+
+  gitquire-rows:
+    name: GitQuire rows P1-P4
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PROXY_URL: http://127.0.0.1:9000
+      PROXY_LOG: /tmp/proxy-escapes.log
+      PLAYWRIGHT_VERSION: 1.63.0
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start Forgejo
+        run: |
+          set -eu
+          docker run -d --name forgejo --network host \
+            -e USER_UID=1000 -e USER_GID=1000 \
+            -e FORGEJO__security__INSTALL_LOCK=true \
+            -e FORGEJO__database__DB_TYPE=sqlite3 \
+            -e FORGEJO__server__ROOT_URL=http://127.0.0.1:3000/ \
+            -e FORGEJO__server__HTTP_PORT=3000 \
+            -e FORGEJO__service__NO_REPLY_ADDRESS=noreply.example.org \
+            -e FORGEJO__repository__DEFAULT_BRANCH=main \
+            "$FORGEJO_IMAGE"
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/v1/version >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          docker exec -u git forgejo forgejo admin user create --admin --username root \
+            --password "$FORGEJO_ADMIN_PASSWORD" --email root@example.org --must-change-password=false
+          python3 -I .github/prototypes/forgejo_setup.py
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: gitquire:ci
+
+      - name: Prepare two wikis and start them
+        run: |
+          set -eu
+          for w in a:wiki:8101 b:wiki-b:8102; do
+            id=${w%%:*}; rest=${w#*:}; repo=${rest%%:*}; port=${rest#*:}
+            docker volume create "gq-$id" >/dev/null
+            docker run --rm --network host -v "gq-$id:/data" --entrypoint sh gitquire:ci -c "
+              set -eu
+              git config --global user.name GitQuire && git config --global user.email gitquire@localhost
+              git clone -q http://gitquire-bot:$BOT_TOKEN@127.0.0.1:3000/team/$repo.git /tmp/c
+              cp -a /tmp/c/. /data/ && cd /data && gitquire init < /dev/null > /dev/null
+              mkdir -p .gitquire/local
+              if ! grep -q '^autoSync:' .gitquire/local/config.yml 2>/dev/null; then printf 'autoSync:\n  mode: full\n' >> .gitquire/local/config.yml; fi
+              echo '--- .gitquire/local/config.yml'; cat .gitquire/local/config.yml; git remote -v | sed 's/:[^:@]*@/:***@/'"
+            start=$(date +%s.%N)
+            docker run -d --name "gq-$id" --network host -v "gq-$id:/data" -v "gq-$id-drafts:/.gitquire-drafts" \
+              -e PORT="$port" -e GITQUIRE_ALLOW_EXTERNAL=1 \
+              -e GITQUIRE_EXTERNAL_URL="$PROXY_URL/w/team/$repo" \
+              -e GITHUB_APP_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITHUB_APP_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+              -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+              -e GITQUIRE_REPO="team/$repo" \
+              -e GITQUIRE_GITHUB_WEB_URL=http://127.0.0.1:9001 \
+              -e GITQUIRE_GITHUB_API_URL=http://127.0.0.1:3000/api/v1 \
+              gitquire:ci >/dev/null
+            for i in $(seq 1 120); do
+              if curl -fsS "http://127.0.0.1:$port/readyz" >/dev/null 2>&1; then break; fi
+              sleep 0.5
+            done
+            curl -fsS "http://127.0.0.1:$port/readyz" >/dev/null
+            echo "[P4] INFO: gq-$id first start to /readyz: $(echo "$(date +%s.%N) - $start" | bc) s"
+          done
+
+      - name: Front proxy
+        run: |
+          HOST_SHIM_PORT=9001 PROXY_HOST_AUTHORIZE=http://127.0.0.1:9001/login/oauth/authorize PROXY_OAUTH_SCOPE='read:user read:repository' PROXY_WIKIS='{"/w/team/wiki/":8101,"/w/team/wiki-b/":8102}' nohup node .github/prototypes/front-proxy.mjs > /tmp/proxy.out 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -s -o /dev/null http://127.0.0.1:9000/healthz-proxy; then break; fi
+            sleep 0.5
+          done
+          cat /tmp/proxy.out
+          curl -s -o /dev/null -w 'GET /w/team/wiki/ -> %{http_code} %{redirect_url}\n' -H 'Accept: text/html' "$PROXY_URL/w/team/wiki/"
+
+      - name: Install Playwright
+        run: |
+          set -eu
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "playwright@$PLAYWRIGHT_VERSION" >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: P1 and P2
+        run: |
+          cp .github/prototypes/p_rows.mjs /tmp/pw/
+          cd /tmp/pw && node p_rows.mjs
+
+      - name: P3 stop with unpushed work
+        run: |
+          set -u
+          sentinel=$(cat /tmp/p3-sentinel.txt 2>/dev/null || echo none)
+          echo "[P3] INFO: sentinel '$sentinel'"
+          for id in a b; do
+            echo "[P3] INFO: gq-$id before stop: status=$(docker exec gq-$id git -C /data status --porcelain | wc -l) files, unpushed=$(docker exec gq-$id git -C /data log --oneline '@{u}..HEAD' 2>&1 | wc -l) commits"
+            echo "[P3] INFO: gq-$id processes: $(docker exec gq-$id sh -c 'ps -eo pid,rss,args --no-headers | grep -c node')"
+          done
+          docker exec gq-a ps -eo pid,rss,etimes,args --no-headers | cut -c1-160
+          start=$(date +%s.%N)
+          docker stop gq-a gq-b
+          echo "[P3] INFO: docker stop of both took $(echo "$(date +%s.%N) - $start" | bc) s (default 10 s grace)"
+          docker inspect -f '{{.Name}} exit {{.State.ExitCode}} oom {{.State.OOMKilled}}' gq-a gq-b
+          docker logs --tail 30 gq-a 2>&1 | cut -c1-240
+          for id in a:wiki b:wiki-b; do
+            v=${id%%:*}; repo=${id#*:}
+            docker run --rm --network host -v "gq-$v:/data" --entrypoint sh gitquire:ci -c "
+              cd /data
+              git fetch -q origin 2>/dev/null
+              echo \"[P3] INFO: gq-$v volume after stop: uncommitted=\$(git status --porcelain | wc -l) unpushed=\$(git log --oneline origin/main..HEAD | wc -l) last sentinel on volume=\$(grep -c '$sentinel' index.md)\"
+              echo \"[P3] INFO: gq-$v on Forgejo main: last sentinel=\$(git show origin/main:index.md | grep -c '$sentinel') commits=\$(git rev-list --count origin/main)\"
+              git log --oneline -5 origin/main"
+          done
+          drafts=$(docker run --rm -v gq-a-drafts:/d alpine sh -c 'ls -A /d; find /d -maxdepth 3 -name index.md | head')
+          echo "[P3] INFO: draft volume of gq-a: $drafts"
+          curl -s -u "root:$FORGEJO_ADMIN_PASSWORD" "http://127.0.0.1:3000/api/v1/repos/team/wiki/branches" | python3 -c 'import json,sys; print("[P3] INFO: branches on Forgejo:", [b["name"] for b in json.load(sys.stdin)])'
+
+      - name: P4 start time and memory
+        run: |
+          set -eu
+          start=$(date +%s.%N)
+          docker start gq-a >/dev/null
+          for i in $(seq 1 240); do
+            if curl -fsS http://127.0.0.1:8101/readyz >/dev/null 2>&1; then break; fi
+            sleep 0.25
+          done
+          echo "[P4] INFO: restart of gq-a to /readyz: $(echo "$(date +%s.%N) - $start" | bc) s"
+          sleep 20
+          docker stats --no-stream --format '[P4] INFO: {{.Name}} memory {{.MemUsage}} cpu {{.CPUPerc}} pids {{.PIDs}}' gq-a
+          docker exec gq-a ps -eo rss,etimes,args --no-headers | awk '{printf "[P4] INFO: rss %.0f MB, up %s s: ", $1/1024, $2; $1=""; $2=""; print substr($0,1,140)}'
+
+      - name: Logs
+        if: always()
+        run: |
+          echo "::group::proxy"; cat /tmp/proxy.out; cat /tmp/proxy-escapes.log 2>/dev/null | tail -100; echo "::endgroup::"
+          for c in gq-a gq-b forgejo; do echo "::group::$c"; docker logs --tail 150 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
+
+  forgejo-h5:
+    name: H5 GitQuire on Forgejo (sign-in, sync, drafts, access removed, host down)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      FORGEJO_URL: https://127.0.0.1:3000
+      SSL_CERT_FILE: /tmp/ca/cert.pem
+      GITQUIRE_URL: http://127.0.0.1:8200
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Test certificate authority
+        run: |
+          set -eu
+          mkdir -p /tmp/ca
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj /CN=127.0.0.1 \
+            -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" \
+            -keyout /tmp/ca/key.pem -out /tmp/ca/cert.pem 2>/dev/null
+          chmod 644 /tmp/ca/key.pem /tmp/ca/cert.pem
+
+      - name: Start Forgejo over https
+        run: |
+          set -eu
+          docker run -d --name forgejo --network host -v /tmp/ca:/certs:ro \
+            -e USER_UID=1000 -e USER_GID=1000 \
+            -e FORGEJO__security__INSTALL_LOCK=true \
+            -e FORGEJO__database__DB_TYPE=sqlite3 \
+            -e FORGEJO__server__PROTOCOL=https \
+            -e FORGEJO__server__CERT_FILE=/certs/cert.pem \
+            -e FORGEJO__server__KEY_FILE=/certs/key.pem \
+            -e FORGEJO__server__ROOT_URL=https://127.0.0.1:3000/ \
+            -e FORGEJO__server__HTTP_PORT=3000 \
+            -e FORGEJO__service__NO_REPLY_ADDRESS=noreply.127.0.0.1 \
+            -e FORGEJO__service__DEFAULT_KEEP_EMAIL_PRIVATE=true \
+            -e FORGEJO__repository__DEFAULT_BRANCH=main \
+            "$FORGEJO_IMAGE"
+          for i in $(seq 1 60); do
+            if curl -fsS --cacert /tmp/ca/cert.pem https://127.0.0.1:3000/api/v1/version >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS --cacert /tmp/ca/cert.pem https://127.0.0.1:3000/api/v1/version
+          docker exec -u git forgejo forgejo admin user create --admin --username root \
+            --password "$FORGEJO_ADMIN_PASSWORD" --email root@example.org --must-change-password=false
+          python3 -I .github/prototypes/h5_forgejo.py setup
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: gitquire:ci
+
+      - name: Start check with the bot as writer (R17), then make it admin
+        run: |
+          set +e -u
+          docker volume create gq-h5 >/dev/null
+          out=$(timeout 180 docker run --rm --network host -v gq-h5:/data -v /tmp/ca:/ca:ro \
+            -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
+            -e PORT=8200 -e GITQUIRE_ALLOW_EXTERNAL=1 -e GITQUIRE_EXTERNAL_URL="$GITQUIRE_URL" \
+            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_HOST_REPO_TOKEN="$REPO_TOKEN" \
+            -e GITQUIRE_REPO=team/wiki -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            gitquire:ci 2>&1)
+          code=$?
+          echo "$out" | tail -20
+          START_CHECK_EXIT=$code START_CHECK_OUTPUT="$out" python3 -I .github/prototypes/h5_forgejo.py admin
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Repos and tokens for the door host calls
+        run: python3 -I .github/prototypes/h5_forgejo.py door
+
+      - name: Door host calls for several wikis (addableRepos, repoById, renames, health, tokenFor)
+        env:
+          NODE_EXTRA_CA_CERTS: /tmp/ca/cert.pem
+        run: node .github/prototypes/h5_door.mjs
+
+      - name: Start GitQuire on Forgejo
+        run: |
+          set -eu
+          docker run -d --name gq-h5 --network host -v gq-h5:/data -v gq-h5-drafts:/.gitquire-drafts -v /tmp/ca:/ca:ro \
+            -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
+            -e PORT=8200 -e GITQUIRE_ALLOW_EXTERNAL=1 -e GITQUIRE_EXTERNAL_URL="$GITQUIRE_URL" \
+            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_HOST_REPO_TOKEN="$REPO_TOKEN" \
+            -e GITQUIRE_REPO=team/wiki -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            gitquire:ci >/dev/null
+          for i in $(seq 1 180); do
+            if curl -fsS http://127.0.0.1:8200/readyz >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8200/readyz
+          docker logs gq-h5 2>&1 | grep -E 'entrypoint|Cloned|gitquire-host|gitquire-auth' | cut -c1-240 || true
+
+      - name: H5 rows
+        run: python3 -I .github/prototypes/h5_forgejo.py test
+
+      - name: Before moving the single wiki over (alice's agent token and a draft)
+        run: python3 -I .github/prototypes/h5_adopt.py prepare
+
+      - name: Move a copy of the single-wiki volume over and back (gitquire wikis adopt, unadopt)
+        run: |
+          set -eu
+          docker stop -t 60 gq-h5 >/dev/null
+          python3 -I .github/prototypes/h5_adopt.py run
+
+      - name: Logs of the moved volume
+        if: always()
+        run: |
+          for c in gq-adopted gq-unadopted; do echo "::group::$c"; docker logs --tail 200 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
+
+      - name: Two wikis behind the front door (repos, tokens, OAuth app)
+        run: |
+          set -eu
+          docker stop gq-h5 >/dev/null
+          for i in $(seq 1 60); do
+            if curl -fsS --cacert /tmp/ca/cert.pem "$FORGEJO_URL/api/v1/version" >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          python3 -I .github/prototypes/h5_forgejo.py wikis-setup
+
+      - name: Start GitQuire with GITQUIRE_WIKIS=on
+        run: |
+          set -eu
+          docker run -d --name gq-wikis --network host -v gq-wikis:/data -v /tmp/ca:/ca:ro \
+            -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
+            -e PORT=8300 -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8300 \
+            -e GITQUIRE_WIKIS=on -e GITQUIRE_ALLOWED_OWNERS=team -e GITQUIRE_ADMINS=alice \
+            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_CLIENT_ID="$WIKIS_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$WIKIS_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            gitquire:ci >/dev/null
+          for i in $(seq 1 120); do
+            if curl -fsS http://127.0.0.1:8300/readyz >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8300/readyz
+
+      - name: Two-wiki rows (sign in once, open both, no access for the other)
+        run: python3 -I .github/prototypes/h5_forgejo.py wikis
+
+      - name: Two wikis in depth (every address, drafts, R6, R8, R10, R11, R14, R18, sleep and wake)
+        run: |
+          set -eu
+          docker stop -t 60 gq-wikis >/dev/null
+          python3 -I .github/prototypes/h5_two_wikis.py
+
+      - name: Logs of the two-wiki run
+        if: always()
+        run: |
+          echo "::group::gq-two"; docker logs --tail 300 gq-two 2>&1 | cut -c1-300 || true; echo "::endgroup::"
+
+      - name: Logs
+        if: always()
+        run: |
+          for c in gq-h5 gq-wikis forgejo; do echo "::group::$c"; docker logs --tail 200 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done

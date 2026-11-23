@@ -5,6 +5,7 @@ import { pathspecArgs } from '@gitquire/core';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { noreplyEmail } from '../access-gate.ts';
 import type { Mention } from '../mentions.ts';
+import { principalIdForUser } from '../principal-directory.ts';
 import type { RunGit } from '../repo-bootstrap.ts';
 import {
   changedPages,
@@ -51,6 +52,7 @@ export interface DraftServiceDeps {
   remote: DraftRemote;
   runGit: RunGit;
   authEnv: () => Env;
+  beforeRemote?: () => Promise<void>;
   baseBranch: () => Promise<string>;
   log: GateLogger;
   now?: () => Date;
@@ -315,6 +317,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
   }
 
   async function saveAndPush(draft: DraftRecord, who: GitIdentity): Promise<void> {
+    await deps.beforeRemote?.();
     const dir = instances.dir(draft.slug);
     if (!existsSync(join(dir, '.git'))) return;
     await instances.halt(draft.slug);
@@ -410,8 +413,13 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
     const slug = draft.slug;
     const who = identityOf(user);
     await saveAndPush(draft, who);
-    const result = await remote.publish(draft, draft.title, who);
+    const pullBefore = draft.pull;
+    const result = await remote.publish(draft, draft.title, who).catch((err: unknown) => {
+      if (draft.pull !== pullBefore) save(draft);
+      throw err;
+    });
     if (!result.ok) {
+      if (draft.pull !== pullBefore) save(draft);
       throw new DraftError(
         409,
         'conflict',
@@ -447,6 +455,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
     user: SessionUser,
     resolved?: Record<string, string>,
   ): Promise<UpdateResult> {
+    await deps.beforeRemote?.();
     return instances.exclusive(slug, async () => {
       const draft = requireOpen(slug);
       const dir = instances.dir(slug);
@@ -472,6 +481,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
     title: string,
   ): Promise<DraftRecord> {
     if (!isPagePath(path)) throw new DraftError(400, 'invalid-path', 'Choose a page.');
+    await deps.beforeRemote?.();
     const live = deps.projectDir;
     const mine = noreplyEmail(user).toLowerCase();
     const commits = commitsTouching(runGit, live, path);
@@ -543,7 +553,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
           threadId: '',
           commentId: request.id,
           author: {
-            id: `github-${request.by.id}`,
+            id: principalIdForUser(request.by.id),
             login: request.by.login,
             ...(request.by.name ? { name: request.by.name } : {}),
           },

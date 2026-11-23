@@ -1,19 +1,28 @@
 import { useLingui } from '@lingui/react/macro';
 import { Folder } from 'lucide-react';
+import { GitQuireWikiMenu } from '@/components/GitQuireWikiMenu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useGitQuireRepository } from '@/lib/gitquire/repository';
+import { wikiPrefix } from '@/lib/gitquire/wiki-prefix';
 import { extractFolderBasename } from '@/lib/path-utils';
 import { useWorkspace } from '@/lib/use-workspace';
 
 const CENTRE_LABEL_CLASS = 'flex min-w-0 items-center gap-1.5 px-2 text-foreground text-sm';
 
 export function WebProjectName() {
+  const prefix = wikiPrefix();
+  if (prefix !== '') return <GitQuireWikiMenu prefix={prefix} />;
+  return <SingleWikiProjectName />;
+}
+
+function SingleWikiProjectName() {
   const { t } = useLingui();
   const workspace = useWorkspace();
   const repository = useGitQuireRepository();
 
   if (repository !== null) {
     const fullName = `${repository.owner}/${repository.name}`;
+    const host = repository.host;
     return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -36,7 +45,7 @@ export function WebProjectName() {
           </a>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs break-all">
-          {t`Open ${fullName} on GitHub`}
+          {t`Open ${fullName} on ${host}`}
         </TooltipContent>
       </Tooltip>
     );

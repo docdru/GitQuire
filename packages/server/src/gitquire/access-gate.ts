@@ -7,6 +7,9 @@ import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
 import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
 import { isAppIconPath } from './app-icons.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
+import { createGitHubDoorHost } from './host/github.ts';
+import { callbackPath, hostNames, signInPath } from './host/names.ts';
+import type { DoorHost } from './host/types.ts';
 import {
   bearerToken,
   escapeHtml,
@@ -21,9 +24,10 @@ import { createOAuthServer } from './oauth-server.ts';
 import {
   bindRequestPrincipal,
   type GitQuirePrincipal,
-  principalIdForGitHubUser,
+  principalIdForUser,
   sanitizeDisplayName,
 } from './principal-directory.ts';
+import { createRequestPerson } from './request-person.ts';
 import {
   decodeSigned,
   encodeSigned,
@@ -35,7 +39,6 @@ import {
 export const SESSION_COOKIE = 'gq_session';
 export const STATE_COOKIE = 'gq_oauth_state';
 const STATE_MAX_AGE_SECONDS = 600;
-const GITHUB_API_VERSION = '2022-11-28';
 
 export interface SessionUser {
   id: number;
@@ -65,6 +68,7 @@ export interface AccessGateDeps {
   randomState?: () => string;
   agentTokens?: AgentTokenStore;
   checkAccess?: (login: string) => Promise<AccessVerdict>;
+  host?: DoorHost;
 }
 
 export interface AccessGate {
@@ -74,33 +78,6 @@ export interface AccessGate {
   isAdminRequest: (req: IncomingMessage) => boolean;
   agentOwner?: (req: IncomingMessage) => SessionUser | undefined;
   routeUpgrade?: (req: IncomingMessage, socket: Duplex, head: Buffer) => boolean;
-}
-
-export const PROXIED_PRINCIPAL_HEADER = 'x-gitquire-principal';
-
-export function encodeProxiedUser(user: SessionUser): string {
-  return Buffer.from(JSON.stringify(user), 'utf8').toString('base64url');
-}
-
-export function proxiedUser(req: IncomingMessage): SessionUser | undefined {
-  const raw = req.headers[PROXIED_PRINCIPAL_HEADER];
-  if (typeof raw !== 'string' || !isInternalRequest(req)) return undefined;
-  try {
-    const value = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8')) as Record<
-      string,
-      unknown
-    >;
-    if (typeof value.id !== 'number' || typeof value.login !== 'string') return undefined;
-    return {
-      id: value.id,
-      login: value.login,
-      name: typeof value.name === 'string' ? value.name : value.login,
-      avatarUrl: typeof value.avatarUrl === 'string' ? value.avatarUrl : '',
-      ...(value.repoAdmin === true ? { repoAdmin: true } : {}),
-    };
-  } catch {
-    return undefined;
-  }
 }
 
 function isSessionPayload(value: unknown): value is SessionPayload {
@@ -131,12 +108,12 @@ export function safeNextPath(raw: string | null | undefined): string {
 }
 
 export function noreplyEmail(user: Pick<SessionUser, 'id' | 'login'>): string {
-  return `${user.id}+${user.login}@users.noreply.github.com`;
+  return hostNames().noreplyEmail(user);
 }
 
 export function principalFromUser(user: SessionUser): GitQuirePrincipal {
   return {
-    id: principalIdForGitHubUser(user.id),
+    id: principalIdForUser(user.id),
     login: user.login,
     name: sanitizeDisplayName(user.name, user.login),
     email: noreplyEmail(user),
@@ -163,12 +140,93 @@ function isAdminOnlyApi(path: string, method: string | undefined): boolean {
   return ADMIN_ONLY_WRITE_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
+export function refuseForPerson(
+  req: IncomingMessage,
+  res: ServerResponse,
+  path: string,
+  user: SessionUser,
+  admin: boolean,
+  now: () => number,
+): boolean {
+  if (path === '/api/principal' && req.method === 'GET') {
+    const principal = principalFromUser(user);
+    sendJson(res, 200, {
+      id: principal.id,
+      display_name: principal.name,
+      display_email: principal.email,
+      source: 'git-config',
+      created_at: new Date(now()).toISOString(),
+    });
+    return true;
+  }
+  if (isInAppAgentPath(path)) {
+    sendJson(res, 403, { error: 'in-app-agents-removed' });
+    return true;
+  }
+  if (isAdminOnlyApi(path, req.method) && !admin) {
+    sendJson(res, 403, { error: 'admin-only' });
+    return true;
+  }
+  if (path.startsWith('/api/local-op/')) {
+    const readOnlyStatus = path === '/api/local-op/auth/status' && req.method === 'GET';
+    if (!readOnlyStatus && !admin) {
+      sendJson(res, 403, { error: 'admin-only' });
+      return true;
+    }
+  }
+  return false;
+}
+
+interface MeFeatures {
+  aiChat: boolean;
+  agentToken: boolean;
+  connector: boolean;
+  canUseTokens: boolean;
+  canConnect: boolean;
+}
+
+export function meBody(
+  user: SessionUser,
+  details: {
+    admin: boolean;
+    adminLogins: ReadonlySet<string>;
+    repo: string | undefined;
+    features: MeFeatures;
+  },
+): Record<string, unknown> {
+  return {
+    ...user,
+    principalId: principalIdForUser(user.id),
+    email: noreplyEmail(user),
+    admin: details.admin,
+    admins: {
+      logins: [...details.adminLogins].sort(),
+      repo: details.repo ?? null,
+    },
+    features: details.features,
+  };
+}
+
 export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps): AccessGate {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
   const randomState = deps.randomState ?? (() => randomBytes(24).toString('base64url'));
+  const host =
+    deps.host ??
+    createGitHubDoorHost(
+      {
+        webUrl: config.githubWebUrl,
+        apiUrl: config.githubApiUrl,
+        repo: config.repo,
+      },
+      { fetch: doFetch },
+    );
   const secure = config.externalUrl.protocol === 'https:';
-  const callbackUrl = new URL('/auth/github/callback', config.externalUrl).toString();
+  const names = hostNames();
+  const loginPath = signInPath(names);
+  const returnPath = callbackPath(names);
+  const label = names.label;
+  const callbackUrl = new URL(returnPath, config.externalUrl).toString();
   const repoLabel =
     config.repo === undefined ? undefined : `${config.repo.owner}/${config.repo.name}`;
 
@@ -176,7 +234,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     serializeCookie(name, value, { maxAgeSeconds, secure });
   const clearCookie = (name: string): string => cookie(name, '', 0);
 
-  function sessionUser(req: IncomingMessage): SessionUser | undefined {
+  function cookieUser(req: IncomingMessage): SessionUser | undefined {
     const decoded = decodeSigned(config.sessionSecret, readCookie(req, SESSION_COOKIE));
     if (!isSessionPayload(decoded)) return undefined;
     if (decoded.exp * 1000 <= now()) return undefined;
@@ -200,23 +258,21 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
   }
 
   function admitAgent(req: IncomingMessage): boolean {
-    const token = bearerToken(req);
-    const record = agentTokenRecord(token);
-    if (record !== undefined) {
-      bindRequestPrincipal(req, principalFromUser(record.owner));
+    const owner = person.agentOwner(req);
+    if (owner !== undefined) {
+      bindRequestPrincipal(req, principalFromUser(owner));
       return true;
     }
-    const forwarded = proxiedUser(req);
-    if (forwarded !== undefined) {
-      bindRequestPrincipal(req, principalFromUser(forwarded));
-      return true;
-    }
-    return sharedMcpTokenAccepted(token);
+    return sharedMcpTokenAccepted(bearerToken(req));
   }
 
-  function agentOwner(req: IncomingMessage): SessionUser | undefined {
-    return agentTokenRecord(bearerToken(req))?.owner ?? proxiedUser(req);
-  }
+  const person = createRequestPerson({
+    behindFrontDoor: false,
+    cookieUser,
+    agentTokenOwner: (req) => agentTokenRecord(bearerToken(req))?.owner,
+    isAdmin,
+  });
+  const { sessionUser, isAdminRequest, agentOwner } = person;
 
   function agentAccess(user: SessionUser): { agentToken: boolean; connector: boolean } {
     const records = deps.agentTokens?.list(user.id) ?? [];
@@ -256,11 +312,6 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     return config.admins.has(user.login.toLowerCase()) || user.repoAdmin === true;
   }
 
-  function isAdminRequest(req: IncomingMessage): boolean {
-    const user = sessionUser(req);
-    return user !== undefined && isAdmin(user);
-  }
-
   function startLogin(req: IncomingMessage, res: ServerResponse, search: string): void {
     const next = safeNextPath(new URLSearchParams(search).get('next'));
     const state = randomState();
@@ -269,88 +320,25 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       next,
       exp: Math.floor(now() / 1000) + STATE_MAX_AGE_SECONDS,
     };
-    const authorize = new URL(`${config.githubWebUrl}/login/oauth/authorize`);
-    authorize.searchParams.set('client_id', config.clientId);
-    authorize.searchParams.set('redirect_uri', callbackUrl);
-    authorize.searchParams.set('state', state);
-    authorize.searchParams.set('allow_signup', 'false');
-    redirect(res, authorize.toString(), {
+    const authorize = host.authorizeUrl({
+      clientId: config.clientId,
+      redirectUri: callbackUrl,
+      state,
+    });
+    redirect(res, authorize, {
       'Set-Cookie': cookie(
         STATE_COOKIE,
         encodeSigned(config.sessionSecret, statePayload),
         STATE_MAX_AGE_SECONDS,
       ),
     });
-    deps.log.info({ next, method: req.method }, '[gitquire-auth] redirecting to GitHub sign-in');
-  }
-
-  async function githubJson(
-    url: string,
-    init: RequestInit,
-  ): Promise<{ status: number; body: unknown }> {
-    const response = await doFetch(url, init);
-    const text = await response.text();
-    let body: unknown;
-    try {
-      body = text === '' ? undefined : JSON.parse(text);
-    } catch {
-      body = undefined;
-    }
-    return { status: response.status, body };
-  }
-
-  async function exchangeCode(code: string): Promise<string | undefined> {
-    const { body } = await githubJson(`${config.githubWebUrl}/login/oauth/access_token`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'GitQuire',
-      },
-      body: JSON.stringify({
-        client_id: config.clientId,
-        client_secret: config.clientSecret,
-        code,
-        redirect_uri: callbackUrl,
-      }),
-    });
-    const token = (body as { access_token?: unknown } | undefined)?.access_token;
-    return typeof token === 'string' && token !== '' ? token : undefined;
-  }
-
-  function apiHeaders(token: string): Record<string, string> {
-    return {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'User-Agent': 'GitQuire',
-      'X-GitHub-Api-Version': GITHUB_API_VERSION,
-    };
-  }
-
-  async function fetchUser(token: string): Promise<SessionUser | undefined> {
-    const { status, body } = await githubJson(`${config.githubApiUrl}/user`, {
-      headers: apiHeaders(token),
-    });
-    if (status !== 200 || typeof body !== 'object' || body === null) return undefined;
-    const u = body as Record<string, unknown>;
-    if (typeof u.id !== 'number' || typeof u.login !== 'string') return undefined;
-    const name = typeof u.name === 'string' && u.name.trim() !== '' ? u.name : u.login;
-    const avatarUrl = typeof u.avatar_url === 'string' ? u.avatar_url : '';
-    return { id: u.id, login: u.login, name, avatarUrl };
+    deps.log.info({ next, method: req.method }, `[gitquire-auth] redirecting to ${label} sign-in`);
   }
 
   async function repoAccess(token: string): Promise<{ write: boolean; admin: boolean }> {
-    const none = { write: false, admin: false };
-    if (config.repo === undefined) return none;
-    const owner = encodeURIComponent(config.repo.owner);
-    const name = encodeURIComponent(config.repo.name);
-    const { status, body } = await githubJson(`${config.githubApiUrl}/repos/${owner}/${name}`, {
-      headers: apiHeaders(token),
-    });
-    if (status !== 200 || typeof body !== 'object' || body === null) return none;
-    const permissions = (body as { permissions?: Record<string, unknown> }).permissions;
-    const admin = permissions?.admin === true || permissions?.maintain === true;
-    return { write: admin || permissions?.push === true, admin };
+    if (config.repo === undefined) return { write: false, admin: false };
+    const level = await host.access(token, config.repo);
+    return { write: level !== 'none', admin: level === 'admin' };
   }
 
   async function completeLogin(
@@ -363,14 +351,14 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const state = params.get('state');
     const stored = decodeSigned(config.sessionSecret, readCookie(req, STATE_COOKIE));
     const clearState = clearCookie(STATE_COOKIE);
-    const tryAgain = '<p><a href="/auth/github/login">Sign in with GitHub</a></p>';
+    const tryAgain = `<p><a href="${loginPath}">Sign in with ${label}</a></p>`;
 
     if (params.get('error') !== null) {
       sendHtml(
         res,
         401,
         'Sign-in cancelled',
-        `<p>GitHub did not complete the sign-in.</p>${tryAgain}`,
+        `<p>${label} did not complete the sign-in.</p>${tryAgain}`,
         { 'Set-Cookie': clearState },
       );
       return;
@@ -392,15 +380,20 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       return;
     }
 
-    const token = await exchangeCode(code);
-    const user = token === undefined ? undefined : await fetchUser(token);
+    const token = await host.exchangeCode({
+      clientId: config.clientId,
+      clientSecret: config.clientSecret,
+      code,
+      redirectUri: callbackUrl,
+    });
+    const user = token === undefined ? undefined : await host.person(token);
     if (token === undefined || user === undefined) {
-      deps.log.warn({ gotToken: token !== undefined }, '[gitquire-auth] GitHub sign-in failed');
+      deps.log.warn({ gotToken: token !== undefined }, `[gitquire-auth] ${label} sign-in failed`);
       sendHtml(
         res,
         502,
         'Sign-in failed',
-        `<p>GitHub did not confirm the sign-in.</p>${tryAgain}`,
+        `<p>${label} did not confirm the sign-in.</p>${tryAgain}`,
         { 'Set-Cookie': clearState },
       );
       return;
@@ -418,7 +411,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         res,
         403,
         'No access',
-        `<p>The GitHub account <strong>@${escapeHtml(user.login)}</strong> ${reason}. Ask the owner for access, then try again.</p>${tryAgain}`,
+        `<p>The ${label} account <strong>@${escapeHtml(user.login)}</strong> ${reason}. Ask the owner for access, then try again.</p>${tryAgain}`,
         { 'Set-Cookie': clearState },
       );
       return;
@@ -449,11 +442,11 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     path: string,
     search: string,
   ): void {
-    if (path === '/auth/github/login') {
+    if (path === loginPath) {
       startLogin(req, res, search);
       return;
     }
-    if (path === '/auth/github/callback') {
+    if (path === returnPath) {
       completeLogin(req, res, search).catch((err: unknown) => {
         deps.log.error({ err }, '[gitquire-auth] sign-in callback failed');
         if (!res.headersSent) {
@@ -461,7 +454,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
             res,
             502,
             'Sign-in failed',
-            '<p>Could not reach GitHub. Try again in a moment.</p>',
+            `<p>Could not reach ${label}. Try again in a moment.</p>`,
           );
         } else if (!res.writableEnded) {
           res.end();
@@ -475,7 +468,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
           res,
           200,
           'Signed out',
-          '<p>You are signed out of GitQuire.</p><p><a href="/auth/github/login">Sign in with GitHub</a></p>',
+          `<p>You are signed out of GitQuire.</p><p><a href="${loginPath}">Sign in with ${label}</a></p>`,
           { 'Set-Cookie': clearCookie(SESSION_COOKIE) },
         );
         return;
@@ -496,21 +489,21 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
         sendJson(res, 401, { error: 'not-signed-in' });
         return;
       }
-      sendJson(res, 200, {
-        ...user,
-        email: noreplyEmail(user),
-        admin: isAdmin(user),
-        admins: {
-          logins: [...config.admins].sort(),
-          repo: repoLabel ?? null,
-        },
-        features: {
-          aiChat: config.aiChat,
-          ...agentAccess(user),
-          canUseTokens: agentPages !== undefined,
-          canConnect: oauth !== undefined,
-        },
-      });
+      sendJson(
+        res,
+        200,
+        meBody(user, {
+          admin: isAdmin(user),
+          adminLogins: config.admins,
+          repo: repoLabel,
+          features: {
+            aiChat: config.aiChat,
+            ...agentAccess(user),
+            canUseTokens: agentPages !== undefined,
+            canConnect: oauth !== undefined,
+          },
+        }),
+      );
       return;
     }
     if (agentPages?.handle(req, res, path) === true) return;
@@ -541,39 +534,13 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     const user = sessionUser(req);
     if (user === undefined) {
       if (wantsHtml(req)) {
-        redirect(res, `/auth/github/login?next=${encodeURIComponent(path + search)}`);
+        redirect(res, `${loginPath}?next=${encodeURIComponent(path + search)}`);
       } else {
-        sendJson(res, 401, { error: 'not-signed-in', signIn: '/auth/github/login' });
+        sendJson(res, 401, { error: 'not-signed-in', signIn: loginPath });
       }
       return true;
     }
-    if (path === '/api/principal' && req.method === 'GET') {
-      const principal = principalFromUser(user);
-      sendJson(res, 200, {
-        id: principal.id,
-        display_name: principal.name,
-        display_email: principal.email,
-        source: 'git-config',
-        created_at: new Date(now()).toISOString(),
-      });
-      return true;
-    }
-    if (isInAppAgentPath(path)) {
-      sendJson(res, 403, { error: 'in-app-agents-removed' });
-      return true;
-    }
-    if (isAdminOnlyApi(path, req.method) && !isAdmin(user)) {
-      sendJson(res, 403, { error: 'admin-only' });
-      return true;
-    }
-    if (path.startsWith('/api/local-op/')) {
-      const readOnlyStatus = path === '/api/local-op/auth/status' && req.method === 'GET';
-      if (!readOnlyStatus && !isAdmin(user)) {
-        sendJson(res, 403, { error: 'admin-only' });
-        return true;
-      }
-    }
-    return false;
+    return refuseForPerson(req, res, path, user, isAdmin(user), now);
   }
 
   function admitUpgrade(req: IncomingMessage, socket: Duplex): boolean {

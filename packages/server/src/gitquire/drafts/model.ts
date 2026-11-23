@@ -1,6 +1,7 @@
 export const DRAFT_BRANCH_PREFIX = 'draft/';
 export const VIEW_COOKIE = 'gq_view';
 export const EDITS_HEADER = 'x-gitquire-edits';
+export const EDITS_DRAFT_HEADER = 'x-gitquire-edits-draft';
 const MAX_DRAFT_TITLE = 120;
 const MAX_SLUG = 48;
 

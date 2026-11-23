@@ -33,7 +33,11 @@ export function defaultAskDestination(
 export const MAX_REQUEST_CHARS = 4000;
 const DESTINATION_STORAGE_KEY = 'gitquire.askClaude.destination';
 
-export type AskWorkspace = { kind: 'live' } | { kind: 'draft'; title: string; branch: string };
+export type AskWorkspace = (
+  | { kind: 'live' }
+  | { kind: 'draft'; title: string; branch: string }
+  | { kind: 'own-draft' }
+) & { argument?: string };
 
 export function askWorkspace(drafts: {
   list: { enabled: boolean } | null;
@@ -46,13 +50,46 @@ export function askWorkspace(drafts: {
     : { kind: 'draft', title: viewing.title, branch: viewing.branch };
 }
 
+export function askWorkspaceChoice(
+  drafts: {
+    list: { enabled: boolean } | null;
+    current: { viewing: { slug: string; title: string; branch: string } | null } | null;
+  },
+  edits: 'live' | 'draft',
+): AskWorkspace | undefined {
+  if (drafts.list?.enabled !== true) return undefined;
+  if (edits === 'live') return { kind: 'live', argument: 'live' };
+  const viewing = drafts.current?.viewing ?? null;
+  if (viewing === null) return { kind: 'own-draft', argument: 'draft' };
+  return {
+    kind: 'draft',
+    title: viewing.title,
+    branch: viewing.branch,
+    argument: `draft:${viewing.slug}`,
+  };
+}
+
+const CHECK_PLACE =
+  'Check with the workspace tool before changing anything; if it reports a different place, stop and tell me.';
+
 function workspaceLine(workspace: AskWorkspace): string {
-  if (workspace.kind === 'live') return 'Workspace: the live wiki';
-  return `Workspace: the draft "${workspace.title}" (branch ${workspace.branch}), not the live wiki. Check with the workspace tool before changing anything; if it reports a different place, stop and tell me.`;
+  const argument =
+    workspace.argument === undefined
+      ? ''
+      : ` Give "${workspace.argument}" as the workspace argument of every call.`;
+  switch (workspace.kind) {
+    case 'live':
+      return argument === '' ? 'Workspace: the live wiki' : `Workspace: the live wiki.${argument}`;
+    case 'own-draft':
+      return `Workspace: a draft of your own for me to review, not the live wiki.${argument} ${CHECK_PLACE}`;
+    case 'draft':
+      return `Workspace: the draft "${workspace.title}" (branch ${workspace.branch}), not the live wiki.${argument} ${CHECK_PLACE}`;
+  }
 }
 
 export interface ClaudePromptInput {
   wikiUrl: string;
+  wiki?: string;
   workspace?: AskWorkspace;
   target: { kind: 'page' | 'folder'; path: string };
   request: string;
@@ -65,7 +102,9 @@ export function buildClaudePrompt(input: ClaudePromptInput): string {
       : `Folder: ${input.target.path === '' ? '(the whole wiki)' : input.target.path}`;
   const request = input.request.trim().slice(0, MAX_REQUEST_CHARS);
   return [
-    `Use the GitQuire wiki tools (the MCP server for ${input.wikiUrl}) for this.`,
+    input.wiki === undefined
+      ? `Use the GitQuire wiki tools (the MCP server for ${input.wikiUrl}) for this.`
+      : `Use the GitQuire wiki tools (the MCP server for ${input.wikiUrl}) for this, in the wiki ${input.wiki}: give "${input.wiki}" as the wiki argument of every call.`,
     '',
     ...(input.workspace === undefined ? [] : [workspaceLine(input.workspace)]),
     where,
@@ -122,4 +161,12 @@ export function openClaudeLink(url: string): void {
     return;
   }
   window.location.assign(url);
+}
+
+export function askClaudeAddress(
+  origin: string,
+  prefix: string,
+): { wikiUrl: string; wiki?: string } {
+  if (!prefix.startsWith('/w/')) return { wikiUrl: `${origin}${prefix}` };
+  return { wikiUrl: origin, wiki: prefix.slice('/w/'.length) };
 }

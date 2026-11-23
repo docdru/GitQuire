@@ -774,6 +774,9 @@ msgstr "Tambahkan properti"
 msgid "Add a starter pack"
 msgstr "Tambahkan paket awal"
 
+msgid "Add a wiki"
+msgstr "Tambahkan wiki"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "Tambahkan token akses untuk server GitLab, Gitea, Bitbucket, Azure DevOps, atau git yang di-host sendiri. Tanpa token, git memakai kredensial yang sudah tersimpan untuk host tersebut; dengan token, GitQuire memakai token itu sebagai gantinya."
 
@@ -932,6 +935,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "Semua tag"
+
+msgid "All wikis"
+msgstr "Semua wiki"
 
 msgid "Allowed element values (empty = any)"
 msgstr "Nilai elemen yang diizinkan (kosong = apa saja)"
@@ -2352,6 +2358,9 @@ msgstr ""
 msgid "Disconnect"
 msgstr "Putuskan koneksi"
 
+msgid "Disconnected"
+msgstr "Terputus"
+
 msgid "Disconnecting"
 msgstr "Memutus koneksi"
 
@@ -3529,9 +3538,6 @@ msgstr "Sembunyikan Agen"
 msgid "Hide document panel"
 msgstr "Sembunyikan panel dokumen"
 
-msgid "Hide Editor"
-msgstr "Sembunyikan Penyunting"
-
 msgid "Hide external URL nodes"
 msgstr "Sembunyikan simpul URL eksternal"
 
@@ -4249,8 +4255,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "Judul bagian sedang."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "Sebut orang dengan nama {host} mereka, seperti @anna."
 
 msgid "Mentions"
 msgstr ""
@@ -4972,10 +4978,10 @@ msgstr "Aktif — mengarahkan kursor ke tautan eksternal mengirim URL-nya ke sit
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Aktif — kueri pencarian Anda dan teks halaman yang cocok dikirim ke penyedia embedding Anda (OpenAI secara bawaan) untuk menghitung embedding."
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "Di {host}"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5023,8 +5029,8 @@ msgstr "Buka"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "Buka {0} di GitHub (terbuka di tab baru)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "Buka {fullName} di {host}"
 
 msgid "Open {keyName} in browser"
 msgstr "Buka {keyName} di peramban"
@@ -5140,6 +5146,12 @@ msgstr "Membuka pencarian penyunting visual dengan kendali penggantian terbentan
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "Membuka, menelusuri, menerima, atau menutup saran pelengkapan CodeMirror."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Membuka pemilih folder untuk memilih tempat mengkloning repositorinya."
 
@@ -5184,6 +5196,9 @@ msgstr "Lainnya"
 
 msgid "Other Git hosts"
 msgstr "Host Git lainnya"
+
+msgid "Other wikis, {0} unread"
+msgstr "Wiki lain, {0} belum dibaca"
 
 msgid "Out"
 msgstr ""
@@ -5555,8 +5570,8 @@ msgstr "Diterbitkan"
 msgid "Published by {publisher}"
 msgstr "Diterbitkan oleh {publisher}"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "Diterbitkan di {host}"
 
 msgid "Published or discarded"
 msgstr ""
@@ -6431,9 +6446,6 @@ msgstr "Tampilkan panel dokumen"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "Tampilkan Penyunting"
 
 msgid "Show external URL nodes"
 msgstr "Tampilkan simpul URL eksternal"
@@ -8173,6 +8185,9 @@ msgstr "Pengaturan pengguna Anda tidak dapat dibaca"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "Wiki Anda"
 
 msgid "Zoom in"
 msgstr "Perbesar"

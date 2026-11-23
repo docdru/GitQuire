@@ -218,10 +218,15 @@ export {
   emitPreflightFailureSpan,
   GIT_PREFLIGHT_FAIL_SPAN_NAME,
 } from './git-preflight-telemetry.ts';
+export { MoveOverError } from './gitquire/front-door/move-over.ts';
+export { moveOverFromEnv } from './gitquire/front-door/move-over-env.ts';
+export { FrontDoorConfigError, wikisModeFromEnv } from './gitquire/front-door/settings.ts';
+export { startFrontDoor } from './gitquire/front-door/start.ts';
 export {
   GitHubAppConfigError,
   GitHubAuthConfigError,
   GitHubUnavailableError,
+  HostConfigError,
   initProjectWithCli,
   runGitQuireBootstrap,
 } from './gitquire/index.ts';

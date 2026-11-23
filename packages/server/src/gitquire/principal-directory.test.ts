@@ -1,11 +1,13 @@
 import type { IncomingMessage } from 'node:http';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { __resetContributorsForTests, recordContributor } from '../contributor-tracker.ts';
 import { resolveWriterFromOrigin } from '../persistence.ts';
 import {
   attributeEdit,
+  bindAgentConnection,
   commitAuthorEnv,
   type GitQuirePrincipal,
-  principalIdForGitHubUser,
+  principalIdForUser,
   rememberPrincipal,
   resetPrincipalDirectory,
   restoreCommitAuthors,
@@ -18,13 +20,13 @@ import {
 } from './principal-directory.ts';
 
 const alice: GitQuirePrincipal = {
-  id: principalIdForGitHubUser(42),
+  id: principalIdForUser(42),
   login: 'alice',
   name: 'Alice A',
   email: '42+alice@users.noreply.github.com',
 };
 const bob: GitQuirePrincipal = {
-  id: principalIdForGitHubUser(7),
+  id: principalIdForUser(7),
   login: 'bob',
   name: 'Bob B',
   email: '7+bob@users.noreply.github.com',
@@ -60,6 +62,27 @@ describe('session principals', () => {
     expect(sessionPrincipalForAuthPayload(undefined)).toBeUndefined();
   });
 
+  it('hands every header of a live-editing auth payload to the resolver', () => {
+    setSessionPrincipalResolver((req) =>
+      req.headers['x-gitquire-principal'] === 'p' && req.headers['x-gitquire-internal'] === 's'
+        ? alice
+        : undefined,
+    );
+    const fetchStyle = {
+      request: {
+        headers: new Headers({ 'X-GitQuire-Principal': 'p', 'x-gitquire-internal': 's' }),
+      },
+    };
+    const nodeStyle = {
+      request: { headers: { 'x-gitquire-principal': 'p', 'x-gitquire-internal': 's' } },
+    };
+    expect(sessionPrincipalForAuthPayload(fetchStyle)).toEqual(alice);
+    expect(sessionPrincipalForAuthPayload(nodeStyle)).toEqual(alice);
+    expect(
+      sessionPrincipalForAuthPayload({ request: { headers: { 'x-gitquire-principal': 'p' } } }),
+    ).toBeUndefined();
+  });
+
   it('stays inert without a resolver', () => {
     expect(sessionPrincipal({ headers: {} } as IncomingMessage)).toBeUndefined();
     expect(attributeEdit('github-42')).toBeUndefined();
@@ -79,6 +102,14 @@ describe('commit authors', () => {
     attributeEdit(alice.id);
     attributeEdit(bob.id);
     expect(takeCommitAuthors()).toEqual([alice, bob]);
+  });
+
+  it("credits an agent's write to the person who connected it", () => {
+    bindAgentConnection('conn-1', alice);
+    recordContributor('plan', 'agent-conn-1', 'Claude');
+    recordContributor('notes', 'agent-unknown', 'Someone else');
+    __resetContributorsForTests();
+    expect(takeCommitAuthors()).toEqual([alice]);
   });
 
   it('puts authors back when a commit does not happen', () => {
@@ -115,7 +146,7 @@ describe('display name hardening', () => {
 
   it('keeps injected names out of commit trailers and author env', () => {
     const eve: GitQuirePrincipal = {
-      id: principalIdForGitHubUser(9),
+      id: principalIdForUser(9),
       login: 'eve',
       name: 'Eve\nSigned-off-by: Admin <admin@example.com>',
       email: '9+eve@users.noreply.github.com',

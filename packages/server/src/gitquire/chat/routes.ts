@@ -84,6 +84,7 @@ export interface ChatRoutesDeps {
   usage: ChatUsageStore;
   providers: ChatProviders;
   openTools: OpenWikiTools;
+  ownPort?: () => number | undefined;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   wikiName: () => string;
   log: GateLogger;
@@ -238,7 +239,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
     if (running.has(user.id)) {
       throw new ChatHttpError(409, 'busy', 'Wait for the current answer, or stop it first.');
     }
-    const port = req.socket.localPort;
+    const port = req.socket.localPort ?? deps.ownPort?.();
     if (port === undefined) throw new ChatHttpError(503, 'tools-unavailable', 'Try again.');
 
     running.add(user.id);
@@ -352,7 +353,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       }
       throw err;
     }
-    const port = req.socket.localPort;
+    const port = req.socket.localPort ?? deps.ownPort?.();
     if (port === undefined) throw new ChatHttpError(503, 'tools-unavailable', 'Try again.');
     const tools = await deps.openTools(user, port, undefined, chat.edits);
     try {

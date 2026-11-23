@@ -774,6 +774,9 @@ msgstr "একটি প্রপার্টি যোগ করুন"
 msgid "Add a starter pack"
 msgstr "একটি স্টার্টার প্যাক যোগ করুন"
 
+msgid "Add a wiki"
+msgstr "উইকি যোগ করুন"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab, Gitea, Bitbucket, Azure DevOps বা স্ব-হোস্ট করা git সার্ভারের জন্য একটি প্রবেশ টোকেন যোগ করুন। টোকেন না থাকলে git ওই হোস্টের জন্য আগে থেকে সংরক্ষিত শংসাপত্র ব্যবহার করে; টোকেন থাকলে GitQuire তার বদলে টোকেনটি ব্যবহার করে।"
 
@@ -932,6 +935,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "সব ট্যাগ"
+
+msgid "All wikis"
+msgstr "সব উইকি"
 
 msgid "Allowed element values (empty = any)"
 msgstr "অনুমোদিত উপাদান মান (খালি = যেকোনো)"
@@ -2352,6 +2358,9 @@ msgstr ""
 msgid "Disconnect"
 msgstr "সংযোগ বিচ্ছিন্ন করুন"
 
+msgid "Disconnected"
+msgstr "সংযোগ বিচ্ছিন্ন"
+
 msgid "Disconnecting"
 msgstr "সংযোগ বিচ্ছিন্ন করা হচ্ছে"
 
@@ -3529,9 +3538,6 @@ msgstr "Agents লুকান"
 msgid "Hide document panel"
 msgstr "নথি প্যানেল লুকান"
 
-msgid "Hide Editor"
-msgstr "সম্পাদক লুকান"
-
 msgid "Hide external URL nodes"
 msgstr "বাইরের URL নোড লুকান"
 
@@ -4249,8 +4255,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "মাঝারি বিভাগ শিরোনাম।"
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "মানুষদের তাদের {host} নাম দিয়ে উল্লেখ করুন, যেমন @anna।"
 
 msgid "Mentions"
 msgstr ""
@@ -4972,10 +4978,10 @@ msgstr "চালু — কোনো বাইরের লিংকের উ�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "চালু — আপনার অনুসন্ধানের প্রশ্ন ও মিলে যাওয়া পাতাগুলোর লেখা এমবেডিং হিসাব করতে আপনার এমবেডিং সরবরাহকারীর (ডিফল্টে OpenAI) কাছে পাঠানো হয়।"
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "{host}-এ"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5023,8 +5029,8 @@ msgstr "খুলুন"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "{0} GitHub-এ খুলুন (নতুন ট্যাবে খোলে)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "{host}-এ {fullName} খুলুন"
 
 msgid "Open {keyName} in browser"
 msgstr "{keyName} ব্রাউজারে খুলুন"
@@ -5140,6 +5146,12 @@ msgstr "দৃশ্য-সম্পাদকের খোঁজা বদলা
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror-এর সম্পূর্ণকরণ পরামর্শ খুলুন, তাতে চলাচল করুন, গ্রহণ করুন, বা সরিয়ে দিন।"
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "রিপোজিটরিটি কোথায় ক্লোন করবেন তা বাছতে একটি ফোল্ডার নির্বাচক খোলে।"
 
@@ -5184,6 +5196,9 @@ msgstr "অন্যান্য"
 
 msgid "Other Git hosts"
 msgstr "অন্যান্য Git হোস্ট"
+
+msgid "Other wikis, {0} unread"
+msgstr "অন্যান্য উইকি, {0}টি অপঠিত"
 
 msgid "Out"
 msgstr ""
@@ -5555,8 +5570,8 @@ msgstr "প্রকাশিত"
 msgid "Published by {publisher}"
 msgstr "{publisher} প্রকাশ করেছে"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "{host}-এ প্রকাশিত"
 
 msgid "Published or discarded"
 msgstr ""
@@ -6431,9 +6446,6 @@ msgstr "নথি প্যানেল দেখান"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "সম্পাদক দেখান"
 
 msgid "Show external URL nodes"
 msgstr "বাইরের URL নোড দেখান"
@@ -8173,6 +8185,9 @@ msgstr "আপনার ব্যবহারকারী সেটিং পড
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "আপনার উইকি"
 
 msgid "Zoom in"
 msgstr "বড় করুন"

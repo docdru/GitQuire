@@ -275,9 +275,18 @@ function withCacheBreakpoint(messages: unknown[]): unknown[] {
   return [...messages.slice(0, -1), { ...last, content: blocks }];
 }
 
+function isThinking(block: unknown): boolean {
+  const type = (block as { type?: unknown } | null)?.type;
+  return type === 'thinking' || type === 'redacted_thinking';
+}
+
 export function toAnthropicMessages(messages: readonly ChatMessage[]): unknown[] {
   const converted: { role: 'user' | 'assistant'; content: unknown[] }[] = [];
-  for (const message of messages) {
+  let lastUser = -1;
+  messages.forEach((message, index) => {
+    if (message.role === 'user') lastUser = index;
+  });
+  for (const [index, message] of messages.entries()) {
     if (message.role === 'user') {
       converted.push({
         role: 'user',
@@ -285,7 +294,11 @@ export function toAnthropicMessages(messages: readonly ChatMessage[]): unknown[]
       });
     } else if (message.role === 'assistant') {
       if (message.claudeContent !== undefined && message.claudeContent.length > 0) {
-        converted.push({ role: 'assistant', content: [...message.claudeContent] });
+        const content =
+          index < lastUser
+            ? message.claudeContent.filter((block) => !isThinking(block))
+            : [...message.claudeContent];
+        if (content.length > 0) converted.push({ role: 'assistant', content });
         continue;
       }
       const content: unknown[] = [];

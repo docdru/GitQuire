@@ -1,8 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER, type SessionUser } from '../access-gate.ts';
+import type { SessionUser } from '../access-gate.ts';
 import { EDITS_HEADER, type EditTarget } from '../drafts/model.ts';
 import { internalRequestHeaders } from '../internal-request.ts';
+import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER } from '../request-person.ts';
 import type { ToolSpec } from './providers.ts';
 
 const WIKI_TOOL_NAMES = [

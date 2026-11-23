@@ -404,47 +404,22 @@ describe('EditorPane pane visibility for the header', () => {
     });
   });
 
-  test('a project window shows the editor by default and applies header hide and show requests', async () => {
+  test('a project window always shows the editor and ignores a request to hide it', async () => {
     await renderEditorPane();
     const editorArea = screen.getByTestId('editor-area');
     expect(editorArea.getAttribute('data-editor-visible')).toBe('true');
     expect(paneVisibilityStore.getSnapshot().editor).toEqual({ open: true, onScreen: true });
 
     act(() => paneVisibilityStore.request('editor', false));
-    expect(editorArea.getAttribute('data-editor-visible')).toBe('false');
-    expect(paneVisibilityStore.getSnapshot().editor).toEqual({ open: false, onScreen: false });
-
-    act(() => paneVisibilityStore.request('editor', true));
     expect(editorArea.getAttribute('data-editor-visible')).toBe('true');
     expect(paneVisibilityStore.getSnapshot().editor).toEqual({ open: true, onScreen: true });
   });
-});
 
-describe('EditorPane saves and restores whether the editor is shown', () => {
-  afterEach(() => {
-    cleanup();
-    localStorage.clear();
-    __resetPaneVisibilityStoreForTests();
-  });
-
-  const editorVisibleAttr = () =>
-    screen.getByTestId('editor-area').getAttribute('data-editor-visible');
-
-  test('web: the editor level survives a reload in both directions, under its own key', async () => {
+  test('an editor hidden before is shown again', async () => {
     localStorage.setItem('ok-editor-visible-v1', 'false');
     await renderEditorPane();
-    expect(editorVisibleAttr()).toBe('false');
-
-    act(() => paneVisibilityStore.request('editor', true));
-    cleanup();
-    await renderEditorPane();
-    expect(editorVisibleAttr()).toBe('true');
-
-    act(() => paneVisibilityStore.request('editor', false));
-    cleanup();
-    await renderEditorPane();
-    expect(editorVisibleAttr()).toBe('false');
-    expect(localStorage.getItem('ok-editor-visible-v1')).toBe('false');
+    expect(screen.getByTestId('editor-area').getAttribute('data-editor-visible')).toBe('true');
+    localStorage.clear();
   });
 });
 

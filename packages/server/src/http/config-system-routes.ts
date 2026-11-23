@@ -34,6 +34,7 @@ import {
 } from '../embeddings/index.ts';
 import type { FileIndexEntry } from '../file-watcher.ts';
 import { tracedRmdirSync, tracedUnlinkSync } from '../fs-traced.ts';
+import { requestPrefix } from '../gitquire/request-person.ts';
 import type { PinoLogger } from '../logger.ts';
 import { isWithinDir } from '../path-utils.ts';
 import { readServerLock } from '../server-lock.ts';
@@ -263,7 +264,7 @@ export function createConfigSystemRoutes(deps: ConfigSystemRouteDeps): ConfigSys
   async function handleApiConfig(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (req.method === 'GET' || req.method === 'HEAD') {
       try {
-        const collabUrl = collabUrlFromRequestHeaders(req.headers);
+        const collabUrl = collabUrlFromRequestHeaders(req.headers, requestPrefix(req));
         const port = lockDir ? (readServerLock(lockDir)?.port ?? 0) : 0;
         const payload = { collabUrl, previewUrl: null, port };
         if (req.method === 'HEAD') {

@@ -6,6 +6,7 @@ import { FrontmatterSchemaFieldEditor } from '@/components/settings/frontmatter-
 import { TextViewer } from '@/components/TextViewer';
 import { useProjectLintConfig } from '@/editor/lint-config-client';
 import { type LintConfigViewMode, useLintConfigViewMode } from '@/editor/useLintConfigViewMode';
+import { withWikiPrefix } from '@/lib/gitquire/wiki-prefix';
 import {
   consumeSchemaFieldsView,
   subscribeSchemaFieldsView,
@@ -16,7 +17,7 @@ interface SchemaConfigEditorProps {
 }
 
 function assetTextUrl(assetPath: string): string {
-  return `/api/asset-text?path=${encodeURIComponent(assetPath)}`;
+  return withWikiPrefix(`/api/asset-text?path=${encodeURIComponent(assetPath)}`);
 }
 
 export function SchemaConfigEditor({ assetPath }: SchemaConfigEditorProps) {

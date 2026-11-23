@@ -1,4 +1,5 @@
 model = "mistral-large-2512"
+max_output_tokens = 32_000
 
 project = """
 'GitQuire', a self-hosted collaborative Markdown wiki stored in Git (TypeScript
@@ -25,6 +26,8 @@ reference_docs = [
   { path = "AGENTS.md", role = "binding project rules for contributors and agents", max_chars = 40_000 },
   { path = "CONTRIBUTING.md", role = "pull request rules, naming rules and what CI runs", max_chars = 60_000 },
   { path = "DEPLOY.md", role = "operator documentation: settings and environment variables", max_chars = 80_000 },
+  { path = "plans/wikis-and-hosts.md", role = "plan of the wikis-hosts branch: decisions, requirements R1-R18, host interface, order", max_chars = 60_000 },
+  { path = "plans/review-map.md", role = "review map: which module owns what, contract files, seams where one wiki leaks into another or work is lost", max_chars = 30_000 },
 ]
 
 generated_files = [
@@ -41,6 +44,38 @@ generated_suffixes = [".po"]
 tests = true
 imports = true
 nearby = true
+
+[[related.rules]]
+when = [
+  "packages/server/src/gitquire/host/",
+  "packages/server/src/gitquire/access-gate.ts",
+  "packages/server/src/gitquire/agent-access.ts",
+  "packages/server/src/gitquire/github-app.ts",
+  "packages/server/src/gitquire/github-pulls.ts",
+  "packages/server/src/gitquire/drafts/remote.ts",
+]
+send = ["packages/server/src/gitquire/host/types.ts"]
+
+[[related.rules]]
+when = [
+  "packages/server/src/gitquire/access-gate.ts",
+  "packages/server/src/gitquire/behind-front-door-gate.ts",
+  "packages/server/src/gitquire/internal-request.ts",
+  "packages/server/src/gitquire/principal-directory.ts",
+  "packages/server/src/gitquire/settings-admin.ts",
+  "packages/server/src/collab-bootstrap-url.ts",
+  "packages/server/src/gitquire/drafts/http.ts",
+  "packages/server/src/gitquire/process-pool/forward.ts",
+]
+send = ["packages/server/src/gitquire/request-person.ts"]
+
+[[related.rules]]
+when = [
+  "packages/server/src/gitquire/front-door/",
+  "packages/server/src/gitquire/door-token.ts",
+  "packages/server/src/gitquire/process-pool/forward.ts",
+]
+send = ["packages/server/src/gitquire/front-door/access.ts"]
 
 [[sections]]
 key = "security"
@@ -72,3 +107,22 @@ does the change follow AGENTS.md and CONTRIBUTING.md (no code comments, GitQuire
 names, user-facing text through Lingui, one topic per pull request, Docker
 only)? Does a new or changed setting or environment variable appear in
 DEPLOY.md, and does DEPLOY.md still describe what the code does?"""
+
+[[sections]]
+key = "plan"
+title = "🗺️ Plan consistency"
+reference = true
+checklist = """
+does the change match plans/wikis-and-hosts.md, in particular the requirements
+R1-R18 and the owner's decisions? Does it implement what the pull request's
+"Context for the reviewer" says it implements, and does plans/review-map.md
+still describe the modules and seams the change touches?"""
+
+[[sections]]
+key = "switched_off"
+title = "🔌 Unchanged when switched off"
+checklist = """
+with GITQUIRE_WIKIS off and GITQUIRE_HOST unset, can anything behave differently
+from main: a changed default, a new required setting, a renamed route, cookie,
+header, file or folder, a different id or commit email, a new network call, a
+changed error message or status code, a changed order of start-up steps?"""

@@ -778,6 +778,9 @@ msgstr "خصوصیت شامل کریں"
 msgid "Add a starter pack"
 msgstr "ابتدائی پیک شامل کریں"
 
+msgid "Add a wiki"
+msgstr "وکی شامل کریں"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab، Gitea، Bitbucket، Azure DevOps یا خود میزبانی والے git سرور کے لیے رسائی ٹوکن شامل کریں۔ ٹوکن کے بغیر git اس ہوسٹ کے لیے پہلے سے محفوظ اسناد استعمال کرتا ہے؛ ٹوکن ہونے پر GitQuire ان کی جگہ ٹوکن استعمال کرتا ہے۔"
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "تمام ٹیگز"
+
+msgid "All wikis"
+msgstr "تمام وکی"
 
 msgid "Allowed element values (empty = any)"
 msgstr "اجازت شدہ عنصری اقدار (خالی = کوئی بھی)"
@@ -2356,6 +2362,9 @@ msgstr ""
 msgid "Disconnect"
 msgstr "منقطع کریں"
 
+msgid "Disconnected"
+msgstr "منقطع"
+
 msgid "Disconnecting"
 msgstr "منقطع کیا جا رہا ہے"
 
@@ -3533,9 +3542,6 @@ msgstr "ایجنٹس چھپائیں"
 msgid "Hide document panel"
 msgstr "دستاویز کا پینل چھپائیں"
 
-msgid "Hide Editor"
-msgstr "ایڈیٹر چھپائیں"
-
 msgid "Hide external URL nodes"
 msgstr "بیرونی URL نوڈز چھپائیں"
 
@@ -4253,8 +4259,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "درمیانہ سیکشن عنوان۔"
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "لوگوں کا ذکر ان کے {host} نام سے کریں، جیسے @anna۔"
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4982,10 @@ msgstr "فعال — بیرونی لنک پر ماؤس لے جانے سے اس �
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "فعال — آپ کے تلاش استفسارات اور مماثل صفحات کا متن ایمبیڈنگز شمار کرنے کے لیے آپ کے ایمبیڈنگز فراہم کنندہ (طے شدہ طور پر OpenAI) کو بھیجے جاتے ہیں۔"
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "{host} پر"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5033,8 @@ msgstr "کھولیں"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "{0} کو GitHub پر کھولیں (نئے ٹیب میں کھلتا ہے)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "{fullName} کو {host} پر کھولیں"
 
 msgid "Open {keyName} in browser"
 msgstr "{keyName} براؤزر میں کھولیں"
@@ -5144,6 +5150,12 @@ msgstr "بصری ایڈیٹر کی تلاش تبدیلی کے کنٹرولز ک�
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror کی تکمیلی تجاویز کھولیں، ان میں گھومیں، قبول کریں یا برخاست کریں۔"
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "ریپازٹری کہاں کلون کرنی ہے، یہ منتخب کرنے کے لیے فولڈر منتخب کنندہ کھولتا ہے۔"
 
@@ -5188,6 +5200,9 @@ msgstr "دیگر"
 
 msgid "Other Git hosts"
 msgstr "دیگر Git ہوسٹس"
+
+msgid "Other wikis, {0} unread"
+msgstr "دیگر وکی، {0} غیر پڑھی ہوئی"
 
 msgid "Out"
 msgstr ""
@@ -5559,8 +5574,8 @@ msgstr "شائع شدہ"
 msgid "Published by {publisher}"
 msgstr "{publisher} کی طرف سے شائع کردہ"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "{host} پر شائع کیا گیا"
 
 msgid "Published or discarded"
 msgstr ""
@@ -6435,9 +6450,6 @@ msgstr "دستاویز کا پینل دکھائیں"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "ایڈیٹر دکھائیں"
 
 msgid "Show external URL nodes"
 msgstr "بیرونی URL نوڈز دکھائیں"
@@ -8177,6 +8189,9 @@ msgstr "آپ کی صارف ترتیبات پڑھی نہیں جا سکیں"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "آپ کی وکی"
 
 msgid "Zoom in"
 msgstr "بڑا کریں"

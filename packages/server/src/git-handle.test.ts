@@ -69,6 +69,14 @@ describe('buildGitEnv', () => {
     );
   });
 
+  test('passes a private certificate authority on to Git', () => {
+    withEnvEntries({ GIT_SSL_CAINFO: '/ca/cert.pem', GIT_SSL_CAPATH: '/ca' }, () => {
+      const env = buildGitEnv();
+      expect(env.GIT_SSL_CAINFO).toBe('/ca/cert.pem');
+      expect(env.GIT_SSL_CAPATH).toBe('/ca');
+    });
+  });
+
   test('does not pass through GIT_SSH_COMMAND without explicit simple-git opt-in', () => {
     withEnvEntries({ GIT_SSH_COMMAND: 'ssh -vv' }, () => {
       expect('GIT_SSH_COMMAND' in buildGitEnv()).toBe(false);

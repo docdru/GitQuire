@@ -5,13 +5,14 @@ import { MarkdownlintRuleBrowser } from '@/components/settings/markdownlint-rule
 import { TextViewer } from '@/components/TextViewer';
 import { useProjectLintConfig } from '@/editor/lint-config-client';
 import { useLintConfigViewMode } from '@/editor/useLintConfigViewMode';
+import { withWikiPrefix } from '@/lib/gitquire/wiki-prefix';
 
 interface LintConfigEditorProps {
   assetPath: string;
 }
 
 function assetTextUrl(assetPath: string): string {
-  return `/api/asset-text?path=${encodeURIComponent(assetPath)}`;
+  return withWikiPrefix(`/api/asset-text?path=${encodeURIComponent(assetPath)}`);
 }
 
 export function LintConfigEditor({ assetPath }: LintConfigEditorProps) {

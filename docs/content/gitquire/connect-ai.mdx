@@ -18,7 +18,9 @@ Your connector address is your wiki's address with `/mcp` at the end, for exampl
 ## Claude
 
 1. In Claude, open **Customize → Connectors**, click **+** and choose **Add custom connector**.
-2. Name it GitQuire, paste the connector address and click **Add**.
+2. Name it GitQuire, paste the connector address and click **Add**. Leave the request headers
+   empty: the connector signs in on its own, and an agent token from `/auth/agents` does not work
+   there.
 3. Click **Connect**, sign in with GitHub and approve access.
 
 On a Team or Enterprise plan, an owner adds the connector once under **Organization settings →
@@ -41,6 +43,11 @@ account owner. Turn the connector on in a chat to let Le Chat use the wiki there
 An assistant works where you are when its conversation starts: in the draft you have open, or in
 the live wiki. Ask Claude adds that place and its branch to the request, and the assistant can check
 it with the `workspace` tool. A conversation stays in the place it started in.
+
+With several wikis on one server, **Ask Claude** has an **Edits go to** switch for Claude too: the
+request then tells Claude to give that place (`live`, `draft` or `draft:<name>`) as the `workspace`
+argument of every call, so the choice holds even in a conversation that started elsewhere. Without
+it, your setting below decides.
 
 Turn on **Put my AI assistant's edits into a draft** in **Settings → Connect AI** to review what your
 assistant changes before it goes live. When you are on the live wiki, it then works in its own draft

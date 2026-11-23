@@ -1,8 +1,19 @@
 import { type IncomingMessage, request, type ServerResponse } from 'node:http';
 import { connect } from 'node:net';
 import type { Duplex } from 'node:stream';
-import { PROXIED_PRINCIPAL_HEADER } from '../access-gate.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
+import {
+  FORWARDED_PREFIX_HEADER,
+  FORWARDED_VIEW_HEADER,
+  PROXIED_PRINCIPAL_HEADER,
+} from '../request-person.ts';
+
+const INTERNAL_ONLY = new Set([
+  INTERNAL_REQUEST_HEADER,
+  PROXIED_PRINCIPAL_HEADER,
+  FORWARDED_PREFIX_HEADER,
+  FORWARDED_VIEW_HEADER,
+]);
 
 const HOP_BY_HOP = new Set([
   'connection',
@@ -24,31 +35,50 @@ function forwardedHeaders(
     if (value === undefined) continue;
     const lower = name.toLowerCase();
     if (HOP_BY_HOP.has(lower)) continue;
-    if (lower === INTERNAL_REQUEST_HEADER || lower === PROXIED_PRINCIPAL_HEADER) continue;
+    if (INTERNAL_ONLY.has(lower)) continue;
     headers[lower] = value;
   }
   return { ...headers, ...extra };
 }
 
+const UNSAFE_HEADER_TEXT = /[\r\n\0]/;
+
+export function hasUnsafeHeader(headers: Record<string, string | string[]>): boolean {
+  return Object.entries(headers).some(
+    ([name, value]) =>
+      UNSAFE_HEADER_TEXT.test(name) ||
+      (Array.isArray(value) ? value : [value]).some((item) => UNSAFE_HEADER_TEXT.test(item)),
+  );
+}
+
 export function proxyRequest(
   req: IncomingMessage,
   res: ServerResponse,
-  port: number,
+  socketPath: string,
   options: {
     extraHeaders?: Record<string, string>;
     onResponse?: (
       status: number,
       headers: IncomingMessage['headers'],
     ) => Record<string, string | string[]> | undefined;
+    unavailable?: { error: string; message: string };
+    rewriteHeaders?: (
+      headers: Record<string, string | string[]>,
+    ) => Record<string, string | string[]>;
   } = {},
 ): void {
+  const sent = forwardedHeaders(req, options.extraHeaders);
+  if (hasUnsafeHeader(sent)) {
+    res.writeHead(400, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ error: 'bad-header' }));
+    return;
+  }
   const upstream = request(
     {
-      host: '127.0.0.1',
-      port,
+      socketPath,
       method: req.method,
       path: req.url,
-      headers: forwardedHeaders(req, options.extraHeaders),
+      headers: sent,
     },
     (answer) => {
       const status = answer.statusCode ?? 502;
@@ -69,7 +99,7 @@ export function proxyRequest(
           headers[name] = value;
         }
       }
-      res.writeHead(status, headers);
+      res.writeHead(status, options.rewriteHeaders?.(headers) ?? headers);
       answer.pipe(res);
     },
   );
@@ -77,7 +107,12 @@ export function proxyRequest(
     if (!res.headersSent) {
       res.writeHead(502, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       res.end(
-        JSON.stringify({ error: 'draft-unavailable', message: 'The draft is not reachable.' }),
+        JSON.stringify(
+          options.unavailable ?? {
+            error: 'draft-unavailable',
+            message: 'The draft is not reachable.',
+          },
+        ),
       );
     } else {
       res.destroy();
@@ -101,10 +136,22 @@ export function proxyUpgrade(
   req: IncomingMessage,
   socket: Duplex,
   head: Buffer,
-  port: number,
+  socketPath: string,
   onClose: () => void,
+  extraHeaders: Record<string, string> = {},
 ): void {
-  const upstream = connect(port, '127.0.0.1');
+  const headers = forwardedHeaders(req, {
+    ...extraHeaders,
+    connection: 'Upgrade',
+    upgrade: String(req.headers.upgrade ?? 'websocket'),
+  });
+  if (hasUnsafeHeader(headers) || UNSAFE_HEADER_TEXT.test(`${req.method ?? ''}${req.url ?? ''}`)) {
+    socket.write('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+    socket.destroy();
+    onClose();
+    return;
+  }
+  const upstream = connect(socketPath);
   let closed = false;
   const close = () => {
     if (closed) return;
@@ -114,10 +161,6 @@ export function proxyUpgrade(
     onClose();
   };
   upstream.on('connect', () => {
-    const headers = forwardedHeaders(req, {
-      connection: 'Upgrade',
-      upgrade: String(req.headers.upgrade ?? 'websocket'),
-    });
     upstream.write(
       `${req.method ?? 'GET'} ${req.url ?? '/'} HTTP/1.1\r\n${headerLines(headers)}\r\n\r\n`,
     );
@@ -127,6 +170,8 @@ export function proxyUpgrade(
   });
   upstream.on('error', close);
   upstream.on('close', close);
+  upstream.on('end', close);
   socket.on('error', close);
   socket.on('close', close);
+  socket.on('end', close);
 }

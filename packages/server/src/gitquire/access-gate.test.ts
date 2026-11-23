@@ -1,20 +1,21 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   type AccessGate,
   createAccessGate,
-  encodeProxiedUser,
   isInAppAgentPath,
   isPublicAsset,
   noreplyEmail,
-  PROXIED_PRINCIPAL_HEADER,
   SESSION_COOKIE,
   STATE_COOKIE,
   safeNextPath,
 } from './access-gate.ts';
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
+import { hostNamesFromEnv, resetHostNames, setHostNames } from './host/names.ts';
+import type { DoorHost } from './host/types.ts';
 import { INTERNAL_REQUEST_HEADER, internalRequestHeaders } from './internal-request.ts';
+import { encodeProxiedUser, PROXIED_PRINCIPAL_HEADER } from './request-person.ts';
 import { encodeSigned } from './signed-cookie.ts';
 
 const SECRET = 'x'.repeat(40);
@@ -668,5 +669,121 @@ describe('in-app agent routes', () => {
       expect(out.status).toBe(403);
       expect(JSON.parse(out.body).error).toBe('in-app-agents-removed');
     }
+  });
+});
+
+describe('sign-in through the host interface', () => {
+  it('uses the host given to the gate for every sign-in step', async () => {
+    const config = resolveGitHubAuthConfig(BASE_ENV, { externalUrl: 'https://brain.example.com' });
+    if (config === undefined) throw new Error('expected auth to be enabled');
+    const steps: string[] = [];
+    const host: DoorHost = {
+      authorizeUrl: ({ clientId, redirectUri, state }) => {
+        steps.push(`authorize ${clientId} ${redirectUri} ${state}`);
+        return 'https://host.example/authorize';
+      },
+      exchangeCode: async ({ code }) => {
+        steps.push(`exchange ${code}`);
+        return 'person-token';
+      },
+      person: async (token) => {
+        steps.push(`person ${token}`);
+        return { id: 7, login: 'dora', name: 'Dora', avatarUrl: '' };
+      },
+      access: async (token, repo) => {
+        steps.push(`access ${token} ${repo.owner}/${repo.name}`);
+        return 'admin';
+      },
+      accessByBot: async () => 'none',
+      addableRepos: async () => ({ state: 'listed', repos: [] }),
+      repoById: async () => ({ state: 'gone' }),
+      health: async () => 'ok',
+      tokenFor: async () => undefined,
+      selfCheck: async () => ({ ok: true }),
+    };
+    const gate = createAccessGate(config, {
+      log: silentLog,
+      fetch: () => Promise.reject(new Error('the gate must not call the network itself')),
+      now: () => NOW,
+      randomState: () => 'fixed-state',
+      host,
+    });
+    const callback = await signIn(gate);
+    expect(steps).toEqual([
+      'authorize Iv1.client https://brain.example.com/auth/github/callback fixed-state',
+      'exchange abc',
+      'person person-token',
+      'access person-token acme/notes',
+    ]);
+    expect(callback.status).toBe(302);
+    const session = cookiesFrom(callback.headers['Set-Cookie']).get(SESSION_COOKIE) ?? '';
+    const me = fakeResponse();
+    gate.handleRequest(
+      fakeRequest('/auth/me', {
+        headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(session)}` },
+      }),
+      me.res,
+    );
+    expect(JSON.parse(me.body)).toMatchObject({
+      login: 'dora',
+      admin: true,
+      principalId: 'github-7',
+      email: '7+dora@users.noreply.github.com',
+    });
+  });
+});
+
+describe('Forgejo sign-in settings and routes', () => {
+  const FORGEJO_ENV = {
+    GITQUIRE_HOST: 'forgejo',
+    GITQUIRE_HOST_URL: 'https://git.example.org',
+    GITQUIRE_HOST_CLIENT_ID: 'forgejo-client',
+    GITQUIRE_HOST_CLIENT_SECRET: 'forgejo-secret',
+    GITQUIRE_SESSION_SECRET: SECRET,
+    GITQUIRE_REPO: 'team/wiki',
+  };
+
+  afterEach(() => {
+    resetHostNames();
+  });
+
+  it('reads the GITQUIRE_HOST_* settings and the Forgejo addresses', () => {
+    const config = resolveGitHubAuthConfig(FORGEJO_ENV, { externalUrl: 'https://wiki.example' });
+    expect(config?.clientId).toBe('forgejo-client');
+    expect(config?.githubWebUrl).toBe('https://git.example.org');
+    expect(config?.githubApiUrl).toBe('https://git.example.org/api/v1');
+    expect(() =>
+      resolveGitHubAuthConfig(
+        { ...FORGEJO_ENV, GITQUIRE_HOST_CLIENT_SECRET: '' },
+        { externalUrl: 'https://wiki.example' },
+      ),
+    ).toThrow(
+      'Forgejo sign-in is enabled but these settings are missing: GITQUIRE_HOST_CLIENT_SECRET',
+    );
+  });
+
+  it('serves sign-in under /auth/forgejo/ with the host label', () => {
+    setHostNames(hostNamesFromEnv(FORGEJO_ENV));
+    const config = resolveGitHubAuthConfig(FORGEJO_ENV, { externalUrl: 'https://wiki.example' });
+    if (config === undefined) throw new Error('expected auth to be enabled');
+    const gate = createAccessGate(config, {
+      log: silentLog,
+      fetch: () => Promise.reject(new Error('offline')),
+      now: () => NOW,
+      randomState: () => 'fixed-state',
+    });
+    const page = fakeResponse();
+    gate.handleRequest(fakeRequest('/docs', { headers: { accept: 'text/html' } }), page.res);
+    expect(page.headers.Location).toBe('/auth/forgejo/login?next=%2Fdocs');
+    const login = fakeResponse();
+    gate.handleRequest(fakeRequest('/auth/forgejo/login'), login.res);
+    const authorize = new URL(String(login.headers.Location));
+    expect(authorize.origin).toBe('https://git.example.org');
+    expect(authorize.searchParams.get('redirect_uri')).toBe(
+      'https://wiki.example/auth/forgejo/callback',
+    );
+    const out = fakeResponse();
+    gate.handleRequest(fakeRequest('/auth/logout', { method: 'POST' }), out.res);
+    expect(out.body).toContain('Sign in with Forgejo');
   });
 });

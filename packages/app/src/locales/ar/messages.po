@@ -778,6 +778,9 @@ msgstr "إضافة خاصية"
 msgid "Add a starter pack"
 msgstr "إضافة حزمة بداية"
 
+msgid "Add a wiki"
+msgstr "إضافة ويكي"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "أضف رمز وصول لخادم GitLab أو Gitea أو Bitbucket أو Azure DevOps أو خادم git مستضاف ذاتيًا. بدونه، يستخدم git بيانات الاعتماد المحفوظة لديه لهذا المضيف؛ ومعه، يستخدم GitQuire الرمز بدلًا منها."
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "كل الوسوم"
+
+msgid "All wikis"
+msgstr "كل الويكيات"
 
 msgid "Allowed element values (empty = any)"
 msgstr "قيم العناصر المسموح بها (فارغ = أي قيمة)"
@@ -2356,6 +2362,9 @@ msgstr ""
 msgid "Disconnect"
 msgstr "قطع الاتصال"
 
+msgid "Disconnected"
+msgstr "غير متصل"
+
 msgid "Disconnecting"
 msgstr "يجري قطع الاتصال"
 
@@ -3533,9 +3542,6 @@ msgstr "إخفاء الوكلاء"
 msgid "Hide document panel"
 msgstr "إخفاء لوحة المستند"
 
-msgid "Hide Editor"
-msgstr "إخفاء المحرر"
-
 msgid "Hide external URL nodes"
 msgstr "إخفاء عقد الروابط الخارجية"
 
@@ -4253,8 +4259,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "عنوان قسم متوسط."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "اذكر الأشخاص باسمهم على {host}، مثل @anna."
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4982,10 @@ msgstr "مفعّل — تمرير المؤشر فوق رابط خارجي يرس
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "مفعّل — تُرسل استعلامات بحثك ونص الصفحات المطابقة إلى مزوّد التضمينات لديك (OpenAI افتراضيًا) لحساب التضمينات."
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "على {host}"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5033,8 @@ msgstr "فتح"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "فتح {0} على GitHub (يفتح في تبويب جديد)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "افتح {fullName} على {host}"
 
 msgid "Open {keyName} in browser"
 msgstr "فتح {keyName} في المتصفح"
@@ -5144,6 +5150,12 @@ msgstr "افتح بحث المحرر المرئي مع توسيع عناصر ا�
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "افتح اقتراحات الإكمال في CodeMirror وتنقّل بينها واقبلها أو تجاهلها."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "يفتح منتقي مجلدات لاختيار مكان استنساخ المستودع."
 
@@ -5188,6 +5200,9 @@ msgstr "أخرى"
 
 msgid "Other Git hosts"
 msgstr "مضيفات Git أخرى"
+
+msgid "Other wikis, {0} unread"
+msgstr "ويكيات أخرى، {0} غير مقروءة"
 
 msgid "Out"
 msgstr ""
@@ -5559,8 +5574,8 @@ msgstr "منشور"
 msgid "Published by {publisher}"
 msgstr "منشور بواسطة {publisher}"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "نُشر على {host}"
 
 msgid "Published or discarded"
 msgstr ""
@@ -6435,9 +6450,6 @@ msgstr "إظهار لوحة المستند"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "إظهار المحرر"
 
 msgid "Show external URL nodes"
 msgstr "إظهار عقد الروابط الخارجية"
@@ -8177,6 +8189,9 @@ msgstr "تعذّرت قراءة إعدادات المستخدم الخاصة ب�
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "الويكيات الخاصة بك"
 
 msgid "Zoom in"
 msgstr "تكبير"

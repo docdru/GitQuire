@@ -778,6 +778,9 @@ msgstr "添加属性"
 msgid "Add a starter pack"
 msgstr "添加入门包"
 
+msgid "Add a wiki"
+msgstr "添加 wiki"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "为 GitLab、Gitea、Bitbucket、Azure DevOps 或自托管 git 服务器添加访问令牌。没有令牌时，git 会使用它已为该主机保存的凭据；添加令牌后，GitQuire 改用该令牌。"
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "所有标签"
+
+msgid "All wikis"
+msgstr "所有 wiki"
 
 msgid "Allowed element values (empty = any)"
 msgstr "允许的元素值（留空 = 任意）"
@@ -2356,6 +2362,9 @@ msgstr ""
 msgid "Disconnect"
 msgstr "断开连接"
 
+msgid "Disconnected"
+msgstr "已断开"
+
 msgid "Disconnecting"
 msgstr "正在断开连接"
 
@@ -3533,9 +3542,6 @@ msgstr "隐藏「智能体」"
 msgid "Hide document panel"
 msgstr "隐藏文档面板"
 
-msgid "Hide Editor"
-msgstr "隐藏编辑器"
-
 msgid "Hide external URL nodes"
 msgstr "隐藏外部 URL 节点"
 
@@ -4253,8 +4259,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "中号章节标题。"
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "请使用 {host} 用户名提及他人，例如 @anna。"
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4982,10 @@ msgstr "开启——把鼠标悬停在外部链接上时，会把它的 URL 发�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "开启——你的搜索查询和匹配页面的文本会发送到你的嵌入服务提供方（默认是 OpenAI）来计算嵌入向量。"
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "在 {host} 上"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5033,8 @@ msgstr "打开"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "在 GitHub 上打开 {0}（在新标签页中打开）"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "在 {host} 上打开 {fullName}"
 
 msgid "Open {keyName} in browser"
 msgstr "在浏览器中打开 {keyName}"
@@ -5144,6 +5150,12 @@ msgstr "打开可视化编辑器的查找，并展开替换控件。"
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "打开、浏览、接受或关闭 CodeMirror 的补全建议。"
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "打开文件夹选择器，选择把仓库克隆到哪里。"
 
@@ -5188,6 +5200,9 @@ msgstr "其他"
 
 msgid "Other Git hosts"
 msgstr "其他 Git 主机"
+
+msgid "Other wikis, {0} unread"
+msgstr "其他 wiki，{0} 条未读"
 
 msgid "Out"
 msgstr ""
@@ -5559,8 +5574,8 @@ msgstr "已发布"
 msgid "Published by {publisher}"
 msgstr "由 {publisher} 发布"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "已在 {host} 上发布"
 
 msgid "Published or discarded"
 msgstr ""
@@ -6435,9 +6450,6 @@ msgstr "显示文档面板"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "显示编辑器"
 
 msgid "Show external URL nodes"
 msgstr "显示外部 URL 节点"
@@ -8177,6 +8189,9 @@ msgstr "无法读取你的用户设置"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "你的 wiki"
 
 msgid "Zoom in"
 msgstr "放大"

@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from './access-gate.ts';
 import type { AccessVerdict } from './agent-access.ts';
 import { type AgentTokenStore, cleanLabel, type IssuedConnectorTokens } from './agent-tokens.ts';
+import { hostNames, signInPath } from './host/names.ts';
 import { escapeHtml, isSameOriginRequest, readForm, redirect, sendHtml } from './http-util.ts';
 import { decodeSigned, encodeSigned, safeEqual } from './signed-cookie.ts';
 
@@ -32,7 +33,9 @@ export interface OAuthServerDeps {
   store: AgentTokenStore;
   log: GateLogger;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
-  checkAccess?: (login: string) => Promise<AccessVerdict>;
+  checkAccess?: (login: string, id: number) => Promise<AccessVerdict>;
+  severalWikis?: boolean;
+  refuseUnknownAtSignIn?: boolean;
   fetch?: typeof fetch;
   now?: () => number;
   randomId?: () => string;
@@ -394,7 +397,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
       res,
       200,
       'Connect an AI app',
-      `<p><strong>${escapeHtml(request.client.name)}</strong> wants to read and edit this wiki as <strong>@${escapeHtml(user.login)}</strong>. Its edits will be credited to you.</p>
+      `<p><strong>${escapeHtml(request.client.name)}</strong> wants to read and edit ${deps.severalWikis === true ? 'your wikis on this server' : 'this wiki'} as <strong>@${escapeHtml(user.login)}</strong>. Its edits will be credited to you.</p>
 <p class="muted">After you allow it, you go back to <code>${escapeHtml(host)}</code>. You can revoke access any time at <a href="/auth/agents">AI agent access</a>.</p>
 <form method="post" action="${AUTHORIZE_PATH}">${hidden}<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
 <p><button type="submit" name="decision" value="allow">Allow</button> <button type="submit" name="decision" value="deny">Cancel</button></p>
@@ -415,7 +418,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     const request = await parseAuthorize(params);
     const user = deps.sessionUser(req);
     if (user === undefined) {
-      redirect(res, `/auth/github/login?next=${encodeURIComponent(AUTHORIZE_PATH + search)}`);
+      redirect(res, `${signInPath()}?next=${encodeURIComponent(AUTHORIZE_PATH + search)}`);
       return;
     }
     consentPage(res, user, request, params);
@@ -467,10 +470,25 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     return true;
   }
 
-  async function ensureStillAllowed(login: string): Promise<void> {
+  async function ensureStillAllowed(
+    person: { login: string; id: number },
+    signIn = false,
+  ): Promise<void> {
     if (deps.checkAccess === undefined) return;
-    if ((await deps.checkAccess(login)) === 'denied') {
-      throw new OAuthError(400, 'invalid_grant', 'This GitHub account no longer has access.');
+    const verdict = await deps.checkAccess(person.login, person.id);
+    if (signIn && verdict === 'unknown' && deps.refuseUnknownAtSignIn === true) {
+      throw new OAuthError(
+        503,
+        'temporarily_unavailable',
+        `${hostNames().label} cannot be reached right now, so access cannot be checked. Try again in a moment.`,
+      );
+    }
+    if (verdict === 'denied') {
+      throw new OAuthError(
+        400,
+        'invalid_grant',
+        `This ${hostNames().label} account no longer has access.`,
+      );
     }
   }
 
@@ -505,7 +523,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
         throw new OAuthError(400, 'invalid_grant', 'The refresh token is not valid.');
       }
       try {
-        await ensureStillAllowed(issued.record.owner.login);
+        await ensureStillAllowed(issued.record.owner);
       } catch (err) {
         deps.store.revoke(issued.record.id, 'admin');
         throw err;
@@ -546,7 +564,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     if (!rememberCode(code.j, code.exp)) {
       throw new OAuthError(400, 'invalid_grant', 'The code was already used.');
     }
-    await ensureStillAllowed(code.u.login);
+    await ensureStillAllowed(code.u, true);
     const owner = code.u;
     tokenResponse(
       res,

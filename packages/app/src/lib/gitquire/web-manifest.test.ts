@@ -12,6 +12,7 @@ const publicDir = new URL('../../../public/', import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL('manifest.webmanifest', publicDir), 'utf8')) as {
   id?: string;
   start_url: string;
+  scope?: string;
   display: string;
   icons: ManifestIcon[];
 };
@@ -57,10 +58,23 @@ describe('home-screen icons', () => {
     }
   });
 
-  it('keeps a stable app id and opens standalone', () => {
-    expect(manifest.id).toBe('/');
-    expect(manifest.start_url).toBe('/');
+  it('keeps the app id of a server at the root and opens standalone', () => {
+    const atRoot = 'https://wiki.example/manifest.webmanifest';
+    expect(manifest.id).toBeUndefined();
+    expect(new URL(manifest.start_url, atRoot).href).toBe('https://wiki.example/');
+    expect(new URL(manifest.scope ?? '', atRoot).href).toBe('https://wiki.example/');
     expect(manifest.display).toBe('standalone');
+  });
+
+  it('stays inside the wiki when it is served under a prefix', () => {
+    const underPrefix = 'https://wiki.example/w/team/wiki/manifest.webmanifest';
+    expect(new URL(manifest.start_url, underPrefix).href).toBe('https://wiki.example/w/team/wiki/');
+    expect(new URL(manifest.scope ?? '', underPrefix).href).toBe(
+      'https://wiki.example/w/team/wiki/',
+    );
+    for (const icon of manifest.icons) {
+      expect(new URL(icon.src, underPrefix).pathname.startsWith('/w/team/wiki/icons/')).toBe(true);
+    }
   });
 
   it('gives iPhones a full-bleed 180 pixel icon', () => {

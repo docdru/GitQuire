@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  askClaudeAddress,
   askDestinations,
   askWorkspace,
+  askWorkspaceChoice,
   buildClaudePrompt,
   claudeLink,
   defaultAskDestination,
@@ -27,6 +29,22 @@ describe('Ask Claude', () => {
         'Turn the action items into a checklist',
       ].join('\n'),
     );
+  });
+
+  it('behind the front door, points at the one /mcp address and names the wiki', () => {
+    const address = askClaudeAddress('https://wiki.example.com', '/w/team/handbook');
+    expect(address).toEqual({ wikiUrl: 'https://wiki.example.com', wiki: 'team/handbook' });
+    const prompt = buildClaudePrompt({
+      ...address,
+      target: { kind: 'page', path: 'index.md' },
+      request: 'Summarise',
+    });
+    expect(prompt.split('\n')[0]).toBe(
+      'Use the GitQuire wiki tools (the MCP server for https://wiki.example.com) for this, in the wiki team/handbook: give "team/handbook" as the wiki argument of every call.',
+    );
+    expect(askClaudeAddress('https://wiki.example.com', '')).toEqual({
+      wikiUrl: 'https://wiki.example.com',
+    });
   });
 
   it('says which draft and branch the request was written in', () => {
@@ -70,6 +88,56 @@ describe('Ask Claude', () => {
     });
     expect(askWorkspace({ list: { enabled: false }, current: null })).toBeUndefined();
     expect(askWorkspace({ list: null, current: null })).toBeUndefined();
+  });
+
+  it('names the workspace argument behind the front door, from the choice made', () => {
+    const viewing = { slug: 'pricing-page', title: 'Pricing page', branch: 'draft/pricing-page' };
+    const on = { enabled: true };
+    expect(askWorkspaceChoice({ list: on, current: { viewing } }, 'live')).toEqual({
+      kind: 'live',
+      argument: 'live',
+    });
+    expect(askWorkspaceChoice({ list: on, current: { viewing } }, 'draft')).toEqual({
+      kind: 'draft',
+      title: 'Pricing page',
+      branch: 'draft/pricing-page',
+      argument: 'draft:pricing-page',
+    });
+    expect(askWorkspaceChoice({ list: on, current: { viewing: null } }, 'draft')).toEqual({
+      kind: 'own-draft',
+      argument: 'draft',
+    });
+    expect(
+      askWorkspaceChoice({ list: { enabled: false }, current: null }, 'draft'),
+    ).toBeUndefined();
+
+    const base = {
+      wikiUrl: 'https://w',
+      wiki: 'team/a',
+      target: { kind: 'page' as const, path: 'a.md' },
+      request: 'x',
+    };
+    expect(buildClaudePrompt({ ...base, workspace: { kind: 'live', argument: 'live' } })).toContain(
+      'Workspace: the live wiki. Give "live" as the workspace argument of every call.\nPage: a.md',
+    );
+    expect(
+      buildClaudePrompt({ ...base, workspace: { kind: 'own-draft', argument: 'draft' } }),
+    ).toContain(
+      'Workspace: a draft of your own for me to review, not the live wiki. Give "draft" as the workspace argument of every call. Check with the workspace tool',
+    );
+    expect(
+      buildClaudePrompt({
+        ...base,
+        workspace: {
+          kind: 'draft',
+          title: 'Pricing page',
+          branch: 'draft/pricing-page',
+          argument: 'draft:pricing-page',
+        },
+      }),
+    ).toContain(
+      'not the live wiki. Give "draft:pricing-page" as the workspace argument of every call.',
+    );
   });
 
   it('describes a folder, or the whole wiki at the root', () => {

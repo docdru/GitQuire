@@ -39,6 +39,7 @@ import { commentsCommand } from './commands/comments.ts';
 import { configCommand, shouldAnnounceRemovedKeys } from './commands/config.ts';
 import { diagnoseCommand } from './commands/diagnose.ts';
 import { embeddingsCommand } from './commands/embeddings/index.ts';
+import { frontDoorCommand } from './commands/front-door.ts';
 import { gitquireBootstrapCommand } from './commands/gitquire-bootstrap.ts';
 import { initCommand } from './commands/init.ts';
 import { lintCommand } from './commands/lint.ts';
@@ -55,6 +56,7 @@ import { runStartCommand, startCommand } from './commands/start.ts';
 import { statusCommand } from './commands/status.ts';
 import { stopCommand } from './commands/stop.ts';
 import { syncCommand } from './commands/sync.ts';
+import { wikisCommand } from './commands/wikis.ts';
 import { writesFilesForARunningServer } from './commands/writes-files.ts';
 import { PACKAGE_VERSION } from './constants.ts';
 import { loadConfig } from './index.ts';
@@ -198,6 +200,9 @@ program.addCommand(cleanCommand(() => resolvedConfig));
 program.addCommand(statusCommand(() => resolvedConfig));
 
 program.addCommand(gitquireBootstrapCommand(), { hidden: true });
+
+program.addCommand(frontDoorCommand(), { hidden: true });
+program.addCommand(wikisCommand());
 
 program.addCommand(psCommand());
 

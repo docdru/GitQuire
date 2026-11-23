@@ -778,6 +778,9 @@ msgstr "속성 추가"
 msgid "Add a starter pack"
 msgstr "스타터 팩 추가"
 
+msgid "Add a wiki"
+msgstr "위키 추가"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "GitLab, Gitea, Bitbucket, Azure DevOps 또는 자체 호스팅 git 서버용 액세스 토큰을 추가합니다. 토큰이 없으면 git은 해당 호스트에 이미 저장된 자격 증명을 사용하고, 토큰이 있으면 GitQuire가 대신 토큰을 사용합니다."
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "모든 태그"
+
+msgid "All wikis"
+msgstr "모든 위키"
 
 msgid "Allowed element values (empty = any)"
 msgstr "허용되는 요소 값 (비워 두면 모두 허용)"
@@ -2356,6 +2362,9 @@ msgstr ""
 msgid "Disconnect"
 msgstr "연결 해제"
 
+msgid "Disconnected"
+msgstr "연결 끊김"
+
 msgid "Disconnecting"
 msgstr "연결 해제 중"
 
@@ -3533,9 +3542,6 @@ msgstr "에이전트 가리기"
 msgid "Hide document panel"
 msgstr "문서 패널 가리기"
 
-msgid "Hide Editor"
-msgstr "편집기 가리기"
-
 msgid "Hide external URL nodes"
 msgstr "외부 URL 노드 숨기기"
 
@@ -4253,8 +4259,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "중간 크기 섹션 제목입니다."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "사람을 {host} 이름으로 언급하세요. 예: @anna"
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4982,10 @@ msgstr "켜짐, 외부 링크 위에 마우스를 올리면 미리보기를 가�
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "켜짐, 검색어와 일치하는 페이지의 텍스트가 임베딩 제공업체(OpenAI가 기본값)로 전송되어 임베딩을 계산합니다."
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "{host}에서"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5033,8 @@ msgstr "열기"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "GitHub에서 {0} 열기 (새 탭에서 열림)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "{host}에서 {fullName} 열기"
 
 msgid "Open {keyName} in browser"
 msgstr "브라우저에서 {keyName} 열기"
@@ -5144,6 +5150,12 @@ msgstr "교체 컨트롤을 확장한 상태로 비주얼 편집기 찾기를 �
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror 자동 완성 제안을 열고 탐색하고 수락하거나 닫습니다."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "저장소를 클론할 위치를 선택하는 폴더 선택기를 엽니다."
 
@@ -5188,6 +5200,9 @@ msgstr "기타"
 
 msgid "Other Git hosts"
 msgstr "기타 Git 호스트"
+
+msgid "Other wikis, {0} unread"
+msgstr "다른 위키, 읽지 않음 {0}개"
 
 msgid "Out"
 msgstr ""
@@ -5559,8 +5574,8 @@ msgstr "게시됨"
 msgid "Published by {publisher}"
 msgstr "게시자: {publisher}"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "{host}에 게시됨"
 
 msgid "Published or discarded"
 msgstr ""
@@ -6435,9 +6450,6 @@ msgstr "문서 패널 표시"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "편집기 표시"
 
 msgid "Show external URL nodes"
 msgstr "외부 URL 노드 보기"
@@ -8177,6 +8189,9 @@ msgstr "사용자 설정을 읽을 수 없습니다"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "내 위키"
 
 msgid "Zoom in"
 msgstr "확대"

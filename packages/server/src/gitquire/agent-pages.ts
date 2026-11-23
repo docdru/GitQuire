@@ -7,6 +7,7 @@ import {
   cleanLabel,
 } from './agent-tokens.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
+import { hostNames, signInPath } from './host/names.ts';
 import { escapeHtml, isSameOriginRequest, readForm, redirect, sendHtml } from './http-util.ts';
 
 export const AGENTS_PAGE_PATH = '/auth/agents';
@@ -17,6 +18,7 @@ export interface AgentPagesDeps {
   log: GateLogger;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   connectorsEnabled: boolean;
+  severalWikis?: boolean;
   now?: () => number;
 }
 
@@ -57,6 +59,8 @@ function claudeDesktopConfig(externalUrl: URL, token: string): string {
 export function createAgentPages(deps: AgentPagesDeps) {
   const now = deps.now ?? Date.now;
   const isAdmin = (user: SessionUser) => deps.config.admins.has(user.login.toLowerCase());
+  const several = deps.severalWikis === true;
+  const theWiki = several ? 'your wikis' : 'the wiki';
 
   function row(record: AgentTokenRecord, showOwner: boolean): string {
     const kind = record.kind === 'connector' ? 'Connector' : 'Token';
@@ -79,8 +83,8 @@ export function createAgentPages(deps: AgentPagesDeps) {
       ? deps.store.list().filter((record) => record.owner.id !== user.id)
       : [];
     const connectorHelp = deps.connectorsEnabled
-      ? `<h2>Claude on the web and on your phone</h2><p>In Claude's settings, add a custom connector with this address, then sign in with GitHub when asked:</p><pre>${escapeHtml(mcpUrl(deps.config.externalUrl))}</pre><p class="muted">Connectors you authorize show up in the list above, and you can revoke them here.</p>`
-      : '';
+      ? `<h2>Claude on the web and on your phone</h2><p>In Claude's settings, add a custom connector with this address, then sign in with ${hostNames().label} when asked:</p><pre>${escapeHtml(mcpUrl(deps.config.externalUrl))}</pre><p class="muted">No token is needed there: leave the request headers empty. Connectors you authorize show up in the list above, and you can revoke them here.</p>`
+      : `<h2>Claude on the web and on your phone</h2><p class="muted">Not turned on for this server, and an agent token does not work there: Claude's connectors sign in on their own. ${isAdmin(user) ? 'To turn them on, set <code>GITQUIRE_MCP_CONNECTORS=on</code> and restart GitQuire.' : 'An administrator of this server can turn them on.'}</p>`;
     const adminSection = isAdmin(user)
       ? `<h2>Everyone's agent access</h2><p class="muted">You are an admin, so you can revoke anyone's tokens.</p>${table(others, true, 'Nobody else has agent access.')}`
       : '';
@@ -88,8 +92,8 @@ export function createAgentPages(deps: AgentPagesDeps) {
       res,
       status,
       'AI agent access',
-      `<p>Signed in as <strong>@${escapeHtml(user.login)}</strong>. <a href="/">Back to the wiki</a></p>
-<p>An agent token lets your own AI agent, such as Claude Code or the Claude desktop app, read and edit the wiki as you. Its edits are credited to you, and each token can be revoked on its own.</p>
+      `<p>Signed in as <strong>@${escapeHtml(user.login)}</strong>. <a href="/">${several ? 'Your wikis' : 'Back to the wiki'}</a></p>
+<p>An agent token lets your own AI agent, such as Claude Code or the Claude desktop app, read and edit ${theWiki} as you. Its edits are credited to you, and each token can be revoked on its own.${several ? ' One address and one token reach every wiki you can open; the agent names the wiki in each call.' : ''}</p>
 ${notice}
 <h2>Create a token</h2>
 <form method="post" action="${AGENTS_PAGE_PATH}">
@@ -134,7 +138,7 @@ ${adminSection}`,
         res,
         user,
         ok
-          ? '<p><strong>Revoked.</strong> That agent can no longer reach the wiki.</p>'
+          ? `<p><strong>Revoked.</strong> That agent can no longer reach ${theWiki}.</p>`
           : '<p><strong>Nothing revoked.</strong> The token was already gone.</p>',
       );
       return;
@@ -159,7 +163,7 @@ ${adminSection}`,
     if (path !== AGENTS_PAGE_PATH && path !== `${AGENTS_PAGE_PATH}/revoke`) return false;
     const user = deps.sessionUser(req);
     if (user === undefined) {
-      redirect(res, `/auth/github/login?next=${encodeURIComponent(AGENTS_PAGE_PATH)}`);
+      redirect(res, `${signInPath()}?next=${encodeURIComponent(AGENTS_PAGE_PATH)}`);
       return true;
     }
     if (req.method === 'POST') {

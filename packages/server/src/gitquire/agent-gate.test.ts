@@ -190,6 +190,28 @@ describe('the agent access page', () => {
     expect(again.body).not.toContain(token);
   });
 
+  it('explains Claude on the web: no token there, and how it is turned on', async () => {
+    const BOSS = { id: 7, login: 'boss', name: 'Boss', avatarUrl: '' };
+    const view = async (env: Record<string, string>, user: typeof ALICE): Promise<string> => {
+      const { gate } = setup(env);
+      const res = fakeResponse();
+      gate.handleRequest(
+        fakeRequest('/auth/agents', { headers: { cookie: sessionCookie(user) } }),
+        res.res,
+      );
+      await res.done;
+      return res.body;
+    };
+    const off = await view(ENV, ALICE);
+    expect(off).toContain('an agent token does not work there');
+    expect(off).toContain('An administrator of this server can turn them on.');
+    expect(off).not.toContain('GITQUIRE_MCP_CONNECTORS');
+    expect(await view(ENV, BOSS)).toContain('<code>GITQUIRE_MCP_CONNECTORS=on</code>');
+    const on = await view({ ...ENV, GITQUIRE_MCP_CONNECTORS: 'on' }, ALICE);
+    expect(on).toContain('add a custom connector with this address');
+    expect(on).toContain('leave the request headers empty');
+  });
+
   it('refuses a form posted from another site', async () => {
     const { store, gate } = setup();
     const res = fakeResponse();

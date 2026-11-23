@@ -5,6 +5,7 @@ import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { markDraftsAvailable } from '../edit-destination.ts';
 import type { GitHubAppConfig } from '../github-app.ts';
 import type { GitHubDraftsClient } from '../github-pulls.ts';
+import type { HostKind } from '../host/types.ts';
 import { internalRequestHeaders, internalSecret } from '../internal-request.ts';
 import { migrateLegacyDataFolders } from '../legacy-data-folder.ts';
 import {
@@ -14,10 +15,11 @@ import {
   type RunGit,
   runGitSync,
 } from '../repo-bootstrap.ts';
+import { type RepoPin, withGitConfig } from '../repo-pin.ts';
 import { createDraftsHttp, type DraftsHttp } from './http.ts';
 import { createDraftInstances, DRAFT_INSTANCE_ENV, type DraftInstances } from './instances.ts';
 import { type DraftRecord, isOpen } from './model.ts';
-import { type DraftRemote, gitHubRemote, plainGitRemote } from './remote.ts';
+import { type DraftRemote, forgejoRemote, gitHubRemote, plainGitRemote } from './remote.ts';
 import { createDraftService, type DraftService } from './service.ts';
 import { createDraftStore, draftsDir, draftsStatePath } from './store.ts';
 
@@ -28,18 +30,25 @@ const PROJECT_FILES = ['.gitquire/config.yml', '.okignore'];
 
 export interface DraftsSetupDeps {
   liveServer?: LiveServerHandle;
+  repoPin?: RepoPin;
   env: Env;
   projectDir: string;
   log: GateLogger;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   agentOwner: (req: IncomingMessage) => SessionUser | undefined;
   secure: boolean;
-  appConfig: GitHubAppConfig | undefined;
+  behindFrontDoor?: boolean;
+  appConfig: RepoSyncConfig | undefined;
   client: GitHubDraftsClient | undefined;
   token: () => string | undefined;
   cli: readonly string[];
   initProject: (dir: string) => void;
   runGit?: RunGit;
+}
+
+export interface RepoSyncConfig extends Pick<GitHubAppConfig, 'repo' | 'branch' | 'gitHost'> {
+  host: HostKind;
+  webUrl: string;
 }
 
 export interface Drafts {
@@ -86,6 +95,26 @@ export function isDraftInstance(env: Env): boolean {
   return value !== undefined && value.trim() !== '';
 }
 
+export function pinnedRemote(remote: DraftRemote, beforeRemote: () => Promise<void>): DraftRemote {
+  const first =
+    <A extends unknown[], R>(call: (...args: A) => Promise<R>) =>
+    async (...args: A): Promise<R> => {
+      await beforeRemote();
+      return call(...args);
+    };
+  return {
+    kind: remote.kind,
+    headSha: first(remote.headSha),
+    createBranch: first(remote.createBranch),
+    deleteBranch: first(remote.deleteBranch),
+    openReview: first(remote.openReview),
+    publish: first(remote.publish),
+    close: first(remote.close),
+    closedElsewhere: first(remote.closedElsewhere),
+    pullUrl: remote.pullUrl,
+  };
+}
+
 function hasOrigin(runGit: RunGit, dir: string): boolean {
   try {
     return runGit(['remote'], dir)
@@ -99,19 +128,37 @@ function hasOrigin(runGit: RunGit, dir: string): boolean {
 export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
   const runGit = deps.runGit ?? runGitSync;
   if (isDraftInstance(deps.env) || !hasOrigin(runGit, deps.projectDir)) return undefined;
+  const pin = deps.repoPin;
   const authEnv = (): Record<string, string> => {
     const token = deps.token();
-    return deps.appConfig === undefined || token === undefined
-      ? {}
-      : authHeaderEnv(deps.appConfig.gitHost, token);
+    const auth =
+      deps.appConfig === undefined || token === undefined
+        ? {}
+        : authHeaderEnv(deps.appConfig.gitHost, token);
+    return pin === undefined ? auth : withGitConfig(auth, pin.current());
   };
-  const remote: DraftRemote =
+  const beforeRemote = async (): Promise<void> => {
+    await pin?.refresh();
+  };
+  const hostRemote: DraftRemote =
     deps.appConfig !== undefined && deps.client !== undefined
-      ? gitHubRemote(deps.client, deps.appConfig.repo, deps.appConfig.githubWebUrl)
+      ? deps.appConfig.host === 'forgejo'
+        ? forgejoRemote(deps.client, deps.appConfig.repo, deps.appConfig.webUrl, {
+            projectDir: deps.projectDir,
+            runGit,
+            authEnv,
+          })
+        : gitHubRemote(deps.client, deps.appConfig.repo, deps.appConfig.webUrl, {
+            projectDir: deps.projectDir,
+            runGit,
+            authEnv,
+          })
       : plainGitRemote(deps.projectDir, runGit, authEnv);
+  const remote = pin === undefined ? hostRemote : pinnedRemote(hostRemote, beforeRemote);
   const syncMode = parseAutoSyncMode(deps.env.GITQUIRE_SYNC_MODE);
 
   async function prepare(draft: DraftRecord, dir: string): Promise<void> {
+    await beforeRemote();
     mkdirSync(dir, { recursive: true });
     const origin = runGit(['remote', 'get-url', 'origin'], deps.projectDir).trim();
     runGit(
@@ -160,6 +207,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     env: deps.env,
     internalSecret: internalSecret(),
     log: deps.log,
+    behindFrontDoor: deps.behindFrontDoor,
     prepare,
     stillOpen: (slug) => {
       const draft = store.get(slug);
@@ -173,6 +221,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     remote,
     runGit,
     authEnv,
+    beforeRemote,
     baseBranch,
     log: deps.log,
     onPublished: () => pullLiveSoon(deps.env, deps.liveServer),
@@ -184,6 +233,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     sessionUser: deps.sessionUser,
     agentOwner: deps.agentOwner,
     secure: deps.secure,
+    behindFrontDoor: deps.behindFrontDoor,
     log: deps.log,
   });
   const follow = setInterval(() => {

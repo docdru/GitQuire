@@ -1,11 +1,21 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
 import { Duplex, Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { SessionUser } from '../access-gate.ts';
-import { internalRequestHeaders } from '../internal-request.ts';
+import {
+  INTERNAL_REQUEST_HEADER,
+  internalRequestHeaders,
+  isInternalRequest,
+} from '../internal-request.ts';
 import { runGitSync } from '../repo-bootstrap.ts';
+import {
+  encodeProxiedUser,
+  FORWARDED_PREFIX_HEADER,
+  FORWARDED_VIEW_HEADER,
+  PROXIED_PRINCIPAL_HEADER,
+  proxiedUser,
+} from '../request-person.ts';
 import { createDraftsHttp, type DraftsHttp } from './http.ts';
 import { plainGitRemote } from './remote.ts';
 import { createDraftService, type DraftService } from './service.ts';
@@ -81,25 +91,31 @@ let http: DraftsHttp;
 let signedIn: SessionUser | undefined;
 let agent: SessionUser | undefined;
 let draftInstance: Server;
-let draftPort: number;
+let draftSocket: string;
 let haltGate: Promise<void> | undefined;
 
 beforeEach(async () => {
   agent = undefined;
   haltGate = undefined;
   draftInstance = createServer((req, res) => {
-    res.writeHead(200, { 'content-type': 'text/plain', 'mcp-session-id': 'session-in-draft' });
+    res.writeHead(200, {
+      'content-type': 'text/plain',
+      'mcp-session-id': 'session-in-draft',
+      'x-seen-internal': String(isInternalRequest(req)),
+      'x-seen-person': proxiedUser(req)?.login ?? '',
+      'x-seen-prefix': String(req.headers[FORWARDED_PREFIX_HEADER] ?? ''),
+    });
     res.end(`draft instance saw ${req.url}`);
   });
-  await new Promise<void>((resolve) => draftInstance.listen(0, '127.0.0.1', resolve));
-  draftPort = (draftInstance.address() as AddressInfo).port;
   repos = createTestRepos({ 'hello.md': '# Hello\n' });
+  draftSocket = join(repos.root, 'draft.sock');
+  await new Promise<void>((resolve) => draftInstance.listen(draftSocket, resolve));
   const prepared = fakeInstances(repos);
   const instances = {
     ...prepared,
     ensure: async (draft: Parameters<typeof prepared.ensure>[0]) => {
       await prepared.ensure(draft);
-      return draftPort;
+      return draftSocket;
     },
     halt: async (slug: string) => {
       await prepared.halt(slug);
@@ -128,8 +144,8 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  repos.cleanup();
   await new Promise<void>((resolve) => draftInstance.close(() => resolve()));
+  repos.cleanup();
 });
 
 async function call(url: string, init: Parameters<typeof fakeRequest>[1] = {}) {
@@ -194,6 +210,16 @@ describe('drafts HTTP', () => {
       viewing: null,
       closed: { slug: 'plan', status: 'discarded' },
     });
+  });
+
+  it('sends a page in a closed draft back to its own path, never to another host', async () => {
+    const draft = await service.create(ALICE, 'Plan');
+    await service.discard(draft.slug, ALICE);
+    const out = await call('//evil.example/x?y=1', {
+      headers: { cookie: 'gq_view=plan', accept: 'text/html' },
+    });
+    expect(out.status).toBe(302);
+    expect(out.headers.Location).toBe('/x?y=1');
   });
 
   it('says a draft is closing while it is being published, and turns away new editors', async () => {
@@ -341,6 +367,60 @@ describe('drafts HTTP', () => {
     expect(service.list().some((draft) => draft.agent)).toBe(false);
   });
 
+  it('puts a session into the draft the front door names, while its person is elsewhere', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    await call('/api/gitquire/drafts');
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: {
+        ...internalRequestHeaders(),
+        'x-gitquire-edits': 'draft',
+        'x-gitquire-edits-draft': 'plan',
+      },
+    });
+    expect(out.body).toBe('draft instance saw /mcp');
+    expect(service.list().some((draft) => draft.agent)).toBe(false);
+  });
+
+  it('refuses a named draft that is not open instead of sending it to the live wiki', async () => {
+    agent = ALICE;
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: {
+        ...internalRequestHeaders(),
+        'x-gitquire-edits': 'draft',
+        'x-gitquire-edits-draft': 'nothing-here',
+      },
+    });
+    expect(out.handled).toBe(true);
+    expect(out.status).toBe(409);
+    expect(service.list()).toEqual([]);
+  });
+
+  it('ignores a named draft that is not shaped like a draft name', async () => {
+    agent = ALICE;
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: {
+        ...internalRequestHeaders(),
+        'x-gitquire-edits': 'live',
+        'x-gitquire-edits-draft': '../plan',
+      },
+    });
+    expect(out.handled).toBe(false);
+  });
+
+  it('ignores a named draft that does not come from GitQuire itself', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: { 'x-gitquire-edits-draft': 'plan' },
+    });
+    expect(out.handled).toBe(false);
+  });
+
   it('ignores an edit choice that does not come from GitQuire itself', async () => {
     agent = ALICE;
     const out = await call('/mcp', { method: 'POST', headers: { 'x-gitquire-edits': 'draft' } });
@@ -353,5 +433,120 @@ describe('drafts HTTP', () => {
     const out = await call('/mcp', { method: 'POST' });
     expect(out.handled).toBe(true);
     expect(service.list().some((draft) => draft.agent)).toBe(true);
+  });
+});
+
+describe('drafts HTTP behind the front door', () => {
+  const fromFrontDoor = (extra: Record<string, string> = {}): Record<string, string> => ({
+    ...internalRequestHeaders(),
+    [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser(ALICE),
+    [FORWARDED_PREFIX_HEADER]: '/w/team/wiki',
+    ...extra,
+  });
+
+  beforeEach(() => {
+    http = createDraftsHttp({
+      service,
+      instances: {
+        ...fakeInstances(repos),
+        ensure: async () => draftSocket,
+      },
+      sessionUser: proxiedUser,
+      agentOwner: proxiedUser,
+      secure: true,
+      behindFrontDoor: true,
+      log: silentLog,
+    });
+  });
+
+  it('hands the chosen draft back in a header and sets no cookie', async () => {
+    const out = await call('/api/gitquire/drafts', {
+      method: 'POST',
+      body: { title: 'Plan' },
+      headers: fromFrontDoor(),
+    });
+    expect(out.status).toBe(201);
+    expect(out.headers['Set-Cookie']).toBeUndefined();
+    expect(out.headers[FORWARDED_VIEW_HEADER]).toBe('plan');
+    const leave = await call('/api/gitquire/view', {
+      method: 'POST',
+      body: { slug: null },
+      headers: fromFrontDoor({ [FORWARDED_VIEW_HEADER]: 'plan' }),
+    });
+    expect(leave.headers['Set-Cookie']).toBeUndefined();
+    expect(leave.headers[FORWARDED_VIEW_HEADER]).toBe('');
+  });
+
+  it('reads the open draft from the front door, not from the cookie', async () => {
+    await service.create(ALICE, 'Plan');
+    const byCookie = await call('/api/gitquire/drafts', {
+      headers: fromFrontDoor({ cookie: 'gq_view=plan' }),
+    });
+    expect(byCookie.json()).toMatchObject({ viewing: null });
+    const byHeader = await call('/api/gitquire/drafts', {
+      headers: fromFrontDoor({ [FORWARDED_VIEW_HEADER]: 'plan' }),
+    });
+    expect(byHeader.json()).toMatchObject({ viewing: 'plan' });
+    const forged = await call('/api/gitquire/drafts', {
+      headers: {
+        ...fromFrontDoor(),
+        [INTERNAL_REQUEST_HEADER]: 'guess',
+        [FORWARDED_VIEW_HEADER]: 'plan',
+      },
+    });
+    expect(forged.status).toBe(401);
+  });
+
+  it('keeps the address prefix in its redirects', async () => {
+    await service.create(ALICE, 'Plan');
+    const out = await call('/notes?draft=plan&x=1', {
+      headers: fromFrontDoor({ accept: 'text/html' }),
+    });
+    expect(out.status).toBe(302);
+    expect(out.headers.Location).toBe('/w/team/wiki/notes?x=1');
+    expect(out.headers[FORWARDED_VIEW_HEADER]).toBe('plan');
+  });
+
+  it('passes the person, the secret and the prefix on to the draft', async () => {
+    await service.create(ALICE, 'Plan');
+    const out = await call('/api/documents', {
+      headers: fromFrontDoor({ [FORWARDED_VIEW_HEADER]: 'plan' }),
+    });
+    expect(out.body).toBe('draft instance saw /api/documents');
+    expect(out.headers['x-seen-internal']).toBe('true');
+    expect(out.headers['x-seen-person']).toBe('alice');
+    expect(out.headers['x-seen-prefix']).toBe('/w/team/wiki');
+  });
+
+  it('passes the person and the secret on a live-editing upgrade', async () => {
+    await service.create(ALICE, 'Plan');
+    const seen = Promise.withResolvers<IncomingMessage>();
+    draftInstance.on('upgrade', (req, socket) => {
+      seen.resolve(req);
+      socket.destroy();
+    });
+    const socket = new Duplex({
+      read() {},
+      write(_chunk, _encoding, done) {
+        done();
+      },
+    });
+    const handled = http.handleUpgrade(
+      fakeRequest('/collab', {
+        headers: fromFrontDoor({
+          [FORWARDED_VIEW_HEADER]: 'plan',
+          upgrade: 'websocket',
+          connection: 'Upgrade',
+        }),
+      }),
+      socket,
+      Buffer.alloc(0),
+    );
+    expect(handled).toBe(true);
+    const upstream = await seen.promise;
+    expect(isInternalRequest(upstream)).toBe(true);
+    expect(proxiedUser(upstream)?.login).toBe('alice');
+    expect(upstream.headers[FORWARDED_PREFIX_HEADER]).toBe('/w/team/wiki');
+    expect(upstream.headers[FORWARDED_VIEW_HEADER]).toBeUndefined();
   });
 });

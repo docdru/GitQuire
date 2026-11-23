@@ -242,19 +242,22 @@ describe('HeaderPaneButtons', () => {
   );
 
   test('pressed buttons carry the tinted look, a hover tint of their own and a high-contrast outline', () => {
-    paneVisibilityStore.publish({ editor: HIDDEN, agents: SHOWN });
+    paneVisibilityStore.publish({ editor: SHOWN, agents: SHOWN });
     renderButtons();
 
-    const on = screen.getByRole('button', { name: 'Agents' });
-    const off = screen.getByRole('button', { name: 'Editor' });
-    expectVisualClassTokens(on.className, [
+    const agents = screen.getByRole('button', { name: 'Agents' });
+    expectVisualClassTokens(agents.className, [
       ...PRESSED_LOOK,
       ...PRESSED_HOVER_LOOK,
       ...HIGH_CONTRAST_OUTLINE,
     ]);
-    expectVisualClassTokensAbsent(on.className, ['hover:bg-muted', 'text-muted-foreground']);
-    expectVisualClassTokens(off.className, ['text-muted-foreground', 'hover:bg-muted']);
-    expectVisualClassTokensAbsent(off.className, [
+    expectVisualClassTokensAbsent(agents.className, ['hover:bg-muted', 'text-muted-foreground']);
+
+    act(() => {
+      paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
+    });
+    expectVisualClassTokens(agents.className, ['text-muted-foreground', 'hover:bg-muted']);
+    expectVisualClassTokensAbsent(agents.className, [
       ...PRESSED_LOOK,
       ...PRESSED_HOVER_LOOK,
       ...HIGH_CONTRAST_OUTLINE,
@@ -283,11 +286,13 @@ describe('HeaderPaneButtons', () => {
     expect(requests).toEqual([{ pane: 'agents', open: true, reason: 'user' }]);
 
     act(() => {
-      paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN }, false);
+      paneVisibilityStore.publish({ editor: SHOWN, agents: SHOWN }, false);
     });
     expectVisualClassTokensAbsent(group.className, SWITCHER_TRACK);
-    expectVisualClassTokens(shown.className, PRESSED_LOOK);
-    expectVisualClassTokensAbsent(shown.className, RAISED_SEGMENT);
+    expect(paneButtonNames()).toEqual(['Agents']);
+    const agents = screen.getByRole('button', { name: 'Agents' });
+    expectVisualClassTokens(agents.className, PRESSED_LOOK);
+    expectVisualClassTokensAbsent(agents.className, RAISED_SEGMENT);
   });
 
   test('useHeaderPaneButtonSet lists the panes to render in header order', () => {
@@ -317,63 +322,41 @@ describe('the Editor header button', () => {
     setPlatform(ORIGINAL_PLATFORM);
   });
 
-  test('a project window lists Editor first, then Agents', () => {
+  test('is not there when panes sit side by side: the editor is always shown', () => {
     paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
+    renderButtons();
+
+    expect(paneButtonNames()).toEqual(['Agents']);
+    expect(screen.queryByTestId('header-pane-button-editor')).toBeNull();
+  });
+
+  test('with one pane at a time, Editor comes first and leads back from the chat', async () => {
+    const user = userEvent.setup();
+    const requests = recordRequests();
+    paneVisibilityStore.publish({ editor: HIDDEN, agents: SHOWN }, true);
     renderButtons();
 
     expect(paneButtonNames()).toEqual(['Editor', 'Agents']);
     const editor = screen.getByTestId('header-pane-button-editor');
     expect(editor.getAttribute('data-size')).toBe('icon-sm');
     expect(editor.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(editor.getAttribute('aria-pressed')).toBe('false');
+
+    await user.click(editor);
+    expect(requests).toEqual([{ pane: 'editor', open: true, reason: 'user' }]);
   });
 
   test('no Editor button appears where the snapshot has no editor pane', () => {
-    paneVisibilityStore.publish({ editor: null, agents: HIDDEN });
+    paneVisibilityStore.publish({ editor: null, agents: HIDDEN }, true);
     renderButtons();
 
     expect(screen.queryByRole('button', { name: 'Editor' })).toBeNull();
   });
 
-  test('its pressed state follows whether the editor is shown and it keeps its name', () => {
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
-    renderButtons();
-    const editor = screen.getByRole('button', { name: 'Editor' });
-    expect(editor.getAttribute('aria-pressed')).toBe('true');
-    expectVisualClassTokens(editor.className, PRESSED_LOOK);
-
-    act(() => {
-      paneVisibilityStore.publish({ editor: HIDDEN, agents: HIDDEN });
-    });
-    expect(editor.getAttribute('aria-pressed')).toBe('false');
-    expect(editor.getAttribute('aria-label')).toBe('Editor');
-    expectVisualClassTokensAbsent(editor.className, PRESSED_LOOK);
-  });
-
-  test('a click asks to hide a shown editor and show a hidden one, leaving focus on the button', async () => {
-    const user = userEvent.setup();
-    const requests: PaneVisibilityRequest[] = [];
-    paneVisibilityStore.subscribeRequests((request) => requests.push(request));
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
-    renderButtons();
-    const editor = screen.getByRole('button', { name: 'Editor' });
-
-    await user.click(editor);
-    act(() => {
-      paneVisibilityStore.publish({ editor: HIDDEN, agents: HIDDEN });
-    });
-    await user.keyboard('{Enter}');
-
-    expect(requests).toEqual([
-      { pane: 'editor', open: false, reason: 'user' },
-      { pane: 'editor', open: true, reason: 'user' },
-    ]);
-    expect(document.activeElement).toBe(editor);
-  });
-
   test('its tooltip names it with no shortcut, on hover and on keyboard focus', async () => {
     setPlatform('MacIntel');
     const user = userEvent.setup();
-    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN });
+    paneVisibilityStore.publish({ editor: SHOWN, agents: HIDDEN }, true);
     renderButtons();
 
     await user.tab();

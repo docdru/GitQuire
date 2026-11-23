@@ -778,6 +778,9 @@ msgstr "Añadir una propiedad"
 msgid "Add a starter pack"
 msgstr "Añadir un paquete inicial"
 
+msgid "Add a wiki"
+msgstr "Añadir una wiki"
+
 msgid "Add an access token for a GitLab, Gitea, Bitbucket, Azure DevOps or self-hosted git server. Without one, git uses the credentials it already has saved for that host; with one, GitQuire uses the token instead."
 msgstr "Añade un token de acceso para un servidor GitLab, Gitea, Bitbucket, Azure DevOps o git autoalojado. Sin él, git usa las credenciales que ya tiene guardadas para ese host; con él, GitQuire usa el token en su lugar."
 
@@ -936,6 +939,9 @@ msgstr ""
 
 msgid "All tags"
 msgstr "Todas las etiquetas"
+
+msgid "All wikis"
+msgstr "Todas las wikis"
 
 msgid "Allowed element values (empty = any)"
 msgstr "Valores de elemento permitidos (vacío = cualquiera)"
@@ -2356,6 +2362,9 @@ msgstr ""
 msgid "Disconnect"
 msgstr "Desconectar"
 
+msgid "Disconnected"
+msgstr "Desconectada"
+
 msgid "Disconnecting"
 msgstr "Desconectando"
 
@@ -3533,9 +3542,6 @@ msgstr "Ocultar Agentes"
 msgid "Hide document panel"
 msgstr "Ocultar el panel del documento"
 
-msgid "Hide Editor"
-msgstr "Ocultar Editor"
-
 msgid "Hide external URL nodes"
 msgstr "Ocultar los nodos de URL externas"
 
@@ -4253,8 +4259,8 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "Encabezado de sección mediano."
 
-msgid "Mention people by their GitHub name, like @anna."
-msgstr ""
+msgid "Mention people by their {host} name, like @anna."
+msgstr "Menciona a las personas por su nombre de {host}, como @anna."
 
 msgid "Mentions"
 msgstr ""
@@ -4976,10 +4982,10 @@ msgstr "Activada: al pasar el cursor por un enlace externo se envía su URL al s
 msgid "On — your search queries and the text of matching pages are sent to your embeddings provider (OpenAI by default) to compute embeddings."
 msgstr "Activada: tus consultas de búsqueda y el texto de las páginas que coinciden se envían a tu proveedor de embeddings (OpenAI por defecto) para calcular los embeddings."
 
-msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
-msgstr ""
+msgid "On {host}"
+msgstr "En {host}"
 
-msgid "On GitHub"
+msgid "On a Team or Enterprise plan, an owner adds the connector once under Organization settings → Connectors, then everyone clicks Connect."
 msgstr ""
 
 msgid "On the root index, okf_version is written as a quoted string like \"0.2\". Unquoted, YAML reads it as a number and 0.10 silently becomes 0.1."
@@ -5027,8 +5033,8 @@ msgstr "Abrir"
 msgid "Open {0} on GitHub (opens in a new tab)"
 msgstr "Abrir {0} en GitHub (se abre en una pestaña nueva)"
 
-msgid "Open {fullName} on GitHub"
-msgstr ""
+msgid "Open {fullName} on {host}"
+msgstr "Abrir {fullName} en {host}"
 
 msgid "Open {keyName} in browser"
 msgstr "Abrir {keyName} en el navegador"
@@ -5144,6 +5150,12 @@ msgstr "Abre la búsqueda del editor visual con los controles de reemplazo despl
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "Abre, recorre, acepta o descarta las sugerencias de autocompletado de CodeMirror."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Abre un selector de carpetas para elegir dónde clonar el repositorio."
 
@@ -5188,6 +5200,9 @@ msgstr "Otro"
 
 msgid "Other Git hosts"
 msgstr "Otros hosts de Git"
+
+msgid "Other wikis, {0} unread"
+msgstr "Otras wikis, {0} sin leer"
 
 msgid "Out"
 msgstr ""
@@ -5559,8 +5574,8 @@ msgstr "Publicado"
 msgid "Published by {publisher}"
 msgstr "Publicado por {publisher}"
 
-msgid "Published on GitHub"
-msgstr ""
+msgid "Published on {host}"
+msgstr "Publicado en {host}"
 
 msgid "Published or discarded"
 msgstr ""
@@ -6435,9 +6450,6 @@ msgstr "Mostrar el panel del documento"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "Mostrar Editor"
 
 msgid "Show external URL nodes"
 msgstr "Mostrar los nodos de URL externas"
@@ -8177,6 +8189,9 @@ msgstr "No se pudieron leer tus ajustes de usuario"
 
 msgid "Your version"
 msgstr ""
+
+msgid "Your wikis"
+msgstr "Tus wikis"
 
 msgid "Zoom in"
 msgstr "Acercar"
