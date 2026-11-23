@@ -26,6 +26,7 @@ export interface DraftRemote {
 export function gitHubRemote(
   client: GitHubDraftsClient,
   repo: { owner: string; name: string },
+  webUrl: string,
   git: GitAccess,
 ): DraftRemote {
   async function ensurePull(draft: DraftRecord, body: string): Promise<number> {
@@ -82,7 +83,7 @@ export function gitHubRemote(
     pullUrl: (draft) =>
       draft.pull === undefined
         ? undefined
-        : `https://github.com/${repo.owner}/${repo.name}/pull/${draft.pull}`,
+        : `${webUrl}/${repo.owner}/${repo.name}/pull/${draft.pull}`,
   };
 }
 
@@ -93,7 +94,7 @@ export function forgejoRemote(
   git: GitAccess,
 ): DraftRemote {
   return {
-    ...gitHubRemote(client, repo, git),
+    ...gitHubRemote(client, repo, webUrl, git),
     kind: 'forgejo',
     pullUrl: (draft) =>
       draft.pull === undefined

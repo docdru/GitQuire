@@ -19,6 +19,7 @@ export interface GitHubAppConfig {
   repo: GitHubRepoRef;
   branch: string | undefined;
   githubApiUrl: string;
+  githubWebUrl: string;
   gitHost: string;
 }
 
@@ -91,6 +92,10 @@ export function resolveGitHubAppConfig(
     repo,
     branch: nonEmpty(env.GITQUIRE_BRANCH),
     githubApiUrl: (nonEmpty(env.GITQUIRE_GITHUB_API_URL) ?? 'https://api.github.com').replace(
+      /\/+$/,
+      '',
+    ),
+    githubWebUrl: (nonEmpty(env.GITQUIRE_GITHUB_WEB_URL) ?? 'https://github.com').replace(
       /\/+$/,
       '',
     ),

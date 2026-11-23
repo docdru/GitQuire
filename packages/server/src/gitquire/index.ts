@@ -91,6 +91,7 @@ function doorRepoClient(door: DoorSyncConfig, retry?: RetryOptions): GitHubAppCl
             repo: door.repo,
             branch: door.branch,
             githubApiUrl: door.apiUrl,
+            githubWebUrl: door.webUrl,
             gitHost: door.gitHost,
           },
           { retry },
@@ -446,7 +447,7 @@ function repoSyncFromEnv(env: Env): RepoSync | undefined {
       repo: github.repo,
       branch: github.branch,
       gitHost: github.gitHost,
-      webUrl: `https://${github.gitHost}`,
+      webUrl: github.githubWebUrl,
     },
     client: (token) =>
       createGitHubPullsClient(github.repo, {

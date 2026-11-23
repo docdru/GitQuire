@@ -65,6 +65,7 @@ describe('draft remote pull requests', () => {
     const remote = gitHubRemote(
       client([summary(7, 'draft/test-author', 'main')], refusal),
       repo,
+      'https://github.com',
       git,
     );
     expect(await remote.openReview(draft(), 'body')).toBe(7);
@@ -75,6 +76,7 @@ describe('draft remote pull requests', () => {
     const remote = gitHubRemote(
       client([summary(7, 'draft/test-author', 'develop')], refusal),
       repo,
+      'https://github.com',
       git,
     );
     await expect(remote.openReview(draft(), 'body')).rejects.toBe(refusal);
@@ -104,5 +106,19 @@ describe('closing a draft whose pull request number was lost', () => {
     );
     await remote.close(draft());
     expect(calls).toEqual(['close 2', 'delete draft/test-author']);
+  });
+});
+
+describe('gitHubRemote pullUrl', () => {
+  const withPull: DraftRecord = { ...draft(), pull: 7 };
+
+  it('links to the configured GitHub web address', () => {
+    const remote = gitHubRemote({} as GitHubDraftsClient, repo, 'https://github.example.com', git);
+    expect(remote.pullUrl(withPull)).toBe('https://github.example.com/alice/wiki/pull/7');
+  });
+
+  it('has no link before a pull request exists', () => {
+    const remote = gitHubRemote({} as GitHubDraftsClient, repo, 'https://github.com', git);
+    expect(remote.pullUrl(draft())).toBeUndefined();
   });
 });

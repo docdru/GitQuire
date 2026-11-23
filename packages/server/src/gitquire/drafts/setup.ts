@@ -148,7 +148,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
             runGit,
             authEnv,
           })
-        : gitHubRemote(deps.client, deps.appConfig.repo, {
+        : gitHubRemote(deps.client, deps.appConfig.repo, deps.appConfig.webUrl, {
             projectDir: deps.projectDir,
             runGit,
             authEnv,

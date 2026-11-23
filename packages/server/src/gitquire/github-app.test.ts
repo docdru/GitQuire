@@ -36,6 +36,7 @@ const CONFIG: GitHubAppConfig = {
   repo: { owner: 'acme', name: 'notes' },
   branch: undefined,
   githubApiUrl: 'https://api.github.com',
+  githubWebUrl: 'https://github.com',
   gitHost: 'github.com',
 };
 
@@ -454,6 +455,7 @@ describe('retrying while GitHub is unavailable', () => {
       GITQUIRE_GITHUB_WEB_URL: 'https://github.example.com/',
     });
     expect(config?.gitHost).toBe('github.example.com');
+    expect(config?.githubWebUrl).toBe('https://github.example.com');
   });
 });
 
