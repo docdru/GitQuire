@@ -164,7 +164,8 @@ export function createForgejoDoorHost(
     const answer = await call(`/repositories/${encodeURIComponent(String(repo.id))}`, token);
     if (answer.status === 'unreachable') return 'unreachable';
     if (answer.status === 401) return 'refused:token';
-    if (answer.status === 403 || answer.status === 404) return 'refused:removed';
+    if (answer.status === 403) return 'refused:not-admin';
+    if (answer.status === 404) return 'refused:removed';
     const found = answer.status === 200 ? forgejoRepoRecord(answer.body) : undefined;
     return found === undefined ? 'unreachable' : { owner: found.owner, name: found.name };
   }

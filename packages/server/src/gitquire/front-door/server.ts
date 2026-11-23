@@ -620,13 +620,19 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         },
       };
     }
-    const sameName = table.byAddress(repo.owner, repo.name);
+    let sameName = table.byAddress(repo.owner, repo.name);
     if (sameName?.current === true) {
+      await processes.check(sameName.wiki).catch(() => undefined);
+      sameName = table.byAddress(repo.owner, repo.name);
+    }
+    if (sameName?.current === true) {
+      const gone = sameName.wiki.state === 'disconnected' && sameName.wiki.reason === 'gone';
       deps.log.warn(
         {
           repo: `${repo.owner}/${repo.name}`,
           id: repo.id,
           wiki: sameName.wiki.key,
+          gone,
           by: user.login,
         },
         '[gitquire-door] Add a wiki refused a name an existing wiki still has',
@@ -635,7 +641,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         status: 409,
         body: {
           error: 'name-in-use',
-          message: `A wiki already has the name ${repo.owner}/${repo.name}; it was probably renamed on ${label} a moment ago. Try again in ten minutes, once GitQuire has noticed the new name.`,
+          message: gone
+            ? `The wiki of a repository that no longer exists on ${label} still has the name ${repo.owner}/${repo.name}, so this repository cannot become a wiki under it. Rename one of the two repositories on ${label}, or ask the person who runs GitQuire to remove the old wiki (${sameName.wiki.key}) from server/wikis.json.`
+            : `A wiki already has the name ${repo.owner}/${repo.name}, and ${label} could not tell GitQuire its new name just now. Try again in a few minutes.`,
         },
       };
     }

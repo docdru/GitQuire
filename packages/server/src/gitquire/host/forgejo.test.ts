@@ -148,8 +148,12 @@ describe('Forgejo door host', () => {
     expect(await host.health(renamed)).toBe('ok');
     expect(calls.some((call) => call.includes('/repos/team/old'))).toBe(false);
 
-    const gone = door((path) => (path === '/repositories/7' ? { status: 404 } : { status: 200 }));
-    expect(await gone.accessByBot('bob', renamed)).toBe('refused:removed');
+    const byId = (status: number) =>
+      door((path) => (path === '/repositories/7' ? { status } : { status: 200 }));
+    expect(await byId(404).accessByBot('bob', renamed)).toBe('refused:removed');
+    expect(await byId(403).accessByBot('bob', renamed)).toBe('refused:not-admin');
+    expect(await byId(401).accessByBot('bob', renamed)).toBe('refused:token');
+    expect(await byId(502).accessByBot('bob', renamed)).toBe('unreachable');
   });
 
   it('hands out only the limited token, and only for its repository', async () => {

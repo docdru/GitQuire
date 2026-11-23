@@ -7,6 +7,7 @@ import type {
   HostPerson,
   HostRepo,
   HostRepoRecord,
+  HostRepoRef,
   Refusal,
   RepoAccess,
   RepoLookup,
@@ -303,7 +304,7 @@ export function createGitHubDoorHost(
     return found === undefined ? { state: 'unreachable' } : { state: 'found', repo: found };
   }
 
-  async function health(repo: HostRepo): Promise<HostHealth> {
+  async function health(repo: HostRepoRef): Promise<HostHealth> {
     if (deps.app !== undefined) {
       const minted = await repoToken(deps.app, repo);
       if (minted.state === 'ok') return 'ok';
@@ -384,7 +385,7 @@ export function createGitHubDoorHost(
     return { id: u.id, login: u.login, name, avatarUrl };
   }
 
-  async function access(token: string, repo: HostRepo): Promise<RepoAccess> {
+  async function access(token: string, repo: HostRepoRef): Promise<RepoAccess> {
     const { status, body } = await json(`${config.apiUrl}${repoAddress(repo)}`, {
       headers: apiHeaders(token),
     });
@@ -394,7 +395,7 @@ export function createGitHubDoorHost(
     return permissions?.push === true ? 'write' : 'none';
   }
 
-  async function accessByBot(login: string, repo: HostRepo): Promise<BotAccess> {
+  async function accessByBot(login: string, repo: HostRepoRef): Promise<BotAccess> {
     const minted = await botToken(repo);
     if (minted.state === 'unreachable') return 'unreachable';
     if (minted.state === 'refused') return `refused:${minted.refusal}`;
