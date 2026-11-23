@@ -757,6 +757,56 @@ describe('front door on Forgejo', () => {
     expect(saved.status).toBe(303);
   });
 
+  it('keeps the list of repositories 30 minutes, then carries the entered token through a new sign-in', async () => {
+    const r = await rig({ host: 'forgejo' });
+    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const page = await (await get(r, '/add-wiki', alice, { accept: 'text/html' })).text();
+    expect(page).toContain('GitQuire keeps this list for 30 minutes');
+    r.advance(29 * 60 * 1000);
+    expect((await get(r, '/add-wiki', alice, { accept: 'text/html' })).status).toBe(200);
+
+    r.advance(2 * 60 * 1000);
+    const sent = await httpFetch(`${r.base}/add-wiki`, {
+      method: 'POST',
+      redirect: 'manual',
+      headers: {
+        cookie: alice,
+        origin: r.base,
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ id: '3', token: 'good' }).toString(),
+    });
+    expect(sent.status).toBe(302);
+    expect(sent.headers.get('location')).toBe('/auth/github/add-wiki?next=%2Fadd-wiki');
+    expect(r.table.byKey('github-3')).toBeUndefined();
+
+    const again = await get(r, '/auth/github/add-wiki?next=%2Fadd-wiki', alice);
+    const state = cookiesOf(again).find((c) => c.startsWith('gq_oauth_state='));
+    const back = await httpFetch(`${r.base}/auth/github/callback?code=alice&state=state-1`, {
+      redirect: 'manual',
+      headers: { cookie: state ?? '' },
+    });
+    expect(back.headers.get('location')).toBe('/add-wiki');
+    const fresh = cookiesOf(back).find((c) => c.startsWith('gq_session=')) ?? '';
+    const done = await get(r, '/add-wiki', fresh, { accept: 'text/html' });
+    expect(done.status).toBe(303);
+    expect(done.headers.get('location')).toBe('/w/team/c/');
+    expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
+    const after = await (await get(r, '/add-wiki', fresh, { accept: 'text/html' })).text();
+    expect(after).not.toContain('role="status"');
+  });
+
+  it('says why it asked the host again when the list had expired', async () => {
+    const r = await rig({ host: 'forgejo' });
+    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    r.advance(31 * 60 * 1000);
+    expect((await get(r, '/add-wiki', alice, { accept: 'text/html' })).status).toBe(302);
+    const fresh = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const page = await (await get(r, '/add-wiki', fresh, { accept: 'text/html' })).text();
+    expect(page).toContain('again for your repositories: the list is kept for 30 minutes.');
+    expect(page).not.toContain('carried over');
+  });
+
   it('lets only a server administrator add a wiki, with a token that works for the repository (F10)', async () => {
     const r = await rig({ host: 'forgejo' });
     const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2F');

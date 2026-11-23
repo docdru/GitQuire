@@ -69,7 +69,8 @@ import { type WikiRecord, type WikiTable, wikiKey, wikiPrefix } from './wiki-tab
 const DOOR_SESSION_COOKIE = 'gq_session';
 const DOOR_STATE_COOKIE = 'gq_oauth_state';
 const STATE_MAX_AGE_SECONDS = 600;
-const ADDABLE_MAX_AGE_MS = 10 * 60 * 1000;
+export const ADDABLE_MAX_AGE_MS = 30 * 60 * 1000;
+export const PENDING_ADD_MAX_AGE_MS = 10 * 60 * 1000;
 export const RECHECK_MS = 60 * 1000;
 const MAX_JSON_BYTES = 16 * 1024;
 const FRONT_DOOR_API = '/api/front-door';
@@ -89,6 +90,12 @@ interface StatePayload {
   next: string;
   purpose: Purpose;
   exp: number;
+}
+
+interface PendingAdd {
+  id: number;
+  token: string | undefined;
+  at: number;
 }
 
 interface AddableEntry {
@@ -250,6 +257,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   const addPath = `/auth/${names.kind}/add-wiki`;
   const callbackUrl = new URL(returnPath, settings.externalUrl).toString();
   const addable = new Map<number, AddableEntry>();
+  const pendingAdds = new Map<number, PendingAdd>();
+  const renewed = new Set<number>();
+  const keptMinutes = Math.round(ADDABLE_MAX_AGE_MS / 60_000);
   const connections = new Set<OpenConnection>();
   let ready = false;
 
@@ -446,6 +456,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         if (user !== undefined) {
           access.forget(user);
           addable.delete(user.id);
+          pendingAdds.delete(user.id);
+          renewed.delete(user.id);
         }
         sendHtml(
           res,
@@ -905,6 +917,29 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     return deps.addWikiHelp().catch((): AddWikiHelp => ({}));
   }
 
+  function askHostAgain(res: ServerResponse, user: DoorSessionUser, adding: boolean): void {
+    const entry = addable.get(user.id);
+    deps.log.info(
+      {
+        login: user.login,
+        reason: entry === undefined ? 'no-list-since-sign-in' : 'list-expired',
+        ...(entry === undefined ? {} : { ageMinutes: Math.floor((now() - entry.at) / 60_000) }),
+        keptMinutes,
+        adding,
+      },
+      `[gitquire-door] Add a wiki asks ${label} again for the repositories`,
+    );
+    if (entry !== undefined || adding) renewed.add(user.id);
+    redirect(res, `${addPath}?next=${encodeURIComponent(ADD_WIKI_PAGE)}`);
+  }
+
+  function takePendingAdd(user: DoorSessionUser): PendingAdd | undefined {
+    const pending = pendingAdds.get(user.id);
+    pendingAdds.delete(user.id);
+    if (pending === undefined || now() - pending.at > PENDING_ADD_MAX_AGE_MS) return undefined;
+    return pending;
+  }
+
   async function addWikiPage(
     res: ServerResponse,
     user: DoorSessionUser,
@@ -913,9 +948,24 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     const answer = addableAnswer(user);
     const reload = `${addPath}?next=${encodeURIComponent(ADD_WIKI_PAGE)}`;
     if (answer === undefined) {
-      redirect(res, reload);
+      askHostAgain(res, user, false);
       return;
     }
+    const pending = failed === undefined ? takePendingAdd(user) : undefined;
+    if (pending !== undefined) {
+      const outcome = await addWiki(user, pending.id, pending.token);
+      if (outcome.status === 201) {
+        renewed.delete(user.id);
+        const wiki = outcome.body.wiki as { address: string };
+        res.writeHead(303, { Location: wiki.address, 'Cache-Control': 'no-store' });
+        res.end();
+        return;
+      }
+      failed = outcome;
+    }
+    const notice = renewed.delete(user.id)
+      ? `GitQuire asked ${label} again for your repositories: the list is kept for ${keptMinutes} minutes.${pending === undefined ? '' : ' Your request to make a repository a wiki was carried over.'}`
+      : undefined;
     const message = failed?.body.message;
     sendHtml(
       res,
@@ -931,7 +981,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         needsToken: answer.needsToken,
         help: await addWikiHelp(),
         reload,
+        keptMinutes,
         ...(typeof message === 'string' ? { message } : {}),
+        ...(notice === undefined ? {} : { notice }),
       }),
     );
   }
@@ -951,8 +1003,14 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       res.end();
       return;
     }
-    if (outcome.body.error === 'sign-in-again') {
-      redirect(res, `${addPath}?next=${encodeURIComponent(ADD_WIKI_PAGE)}`);
+    if (outcome.body.error === 'sign-in-again' && id !== undefined) {
+      const token = form.get('token');
+      pendingAdds.set(user.id, {
+        id,
+        token: token === null || token === '' ? undefined : token,
+        at: now(),
+      });
+      askHostAgain(res, user, true);
       return;
     }
     await addWikiPage(res, user, outcome);
