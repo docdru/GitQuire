@@ -3,7 +3,6 @@ import {
   type CreatePullRequestInput,
   type GitHubDraftsClient,
   GitHubRequestError,
-  type MergeOutcome,
   type PullRequestState,
   type PullRequestSummary,
   type RepoCollaborator,
@@ -11,15 +10,11 @@ import {
 } from './github-pulls.ts';
 import type { HostRepo } from './host/types.ts';
 
-const MERGE_RETRY_DELAYS_MS: readonly number[] = [500, 1000, 1000, 2000, 2000, 2000];
-
 export interface ForgejoPullsDeps {
   token: () => string | undefined;
   apiUrl: string;
   fetch?: typeof fetch;
   retry?: RetryOptions;
-  mergeDelaysMs?: readonly number[];
-  sleep?: (ms: number) => Promise<void>;
 }
 
 function segments(branch: string): string {
@@ -33,8 +28,6 @@ export function createForgejoPullsClient(
   const doFetch = deps.fetch ?? fetch;
   const apiUrl = deps.apiUrl.replace(/\/+$/, '');
   const repoPath = `/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.name)}`;
-  const sleep =
-    deps.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
 
   async function call(
     path: string,
@@ -143,51 +136,15 @@ export function createForgejoPullsClient(
     if (status !== 204 && status !== 404) fail(status, body, 'Deleting the branch');
   }
 
-  async function readPull(number: number): Promise<{
-    state: PullRequestState;
-    mergeSha: string | undefined;
-  }> {
+  async function readPull(number: number): Promise<PullRequestState> {
     const { status, body } = await call(`${repoPath}/pulls/${number}`);
-    const raw = body as
-      | { state?: unknown; merged?: unknown; mergeable?: unknown; merge_commit_sha?: unknown }
-      | undefined;
+    const raw = body as { state?: unknown; merged?: unknown; mergeable?: unknown } | undefined;
     if (status !== 200 || raw === undefined) fail(status, body, 'Reading the pull request');
     return {
-      state: {
-        number,
-        state: raw.state === 'closed' ? 'closed' : 'open',
-        merged: raw.merged === true,
-        mergeable: typeof raw.mergeable === 'boolean' ? raw.mergeable : null,
-      },
-      mergeSha: typeof raw.merge_commit_sha === 'string' ? raw.merge_commit_sha : undefined,
-    };
-  }
-
-  async function mergePull(number: number, title: string): Promise<MergeOutcome> {
-    const delays = deps.mergeDelaysMs ?? MERGE_RETRY_DELAYS_MS;
-    let lastMessage = '';
-    for (let attempt = 0; ; attempt += 1) {
-      const { status, body } = await call(`${repoPath}/pulls/${number}/merge`, {
-        method: 'POST',
-        body: { Do: 'squash', MergeTitleField: title, delete_branch_after_merge: false },
-      });
-      if (status === 200) break;
-      const raw = (body as { message?: unknown } | undefined)?.message;
-      lastMessage = typeof raw === 'string' && raw !== '' ? raw : `HTTP ${status}`;
-      if (status === 409) return { merged: false, reason: 'conflict', message: lastMessage };
-      if (status !== 405) return fail(status, body, 'Merging the pull request');
-      const delay = delays.at(attempt);
-      if (delay === undefined) break;
-      await sleep(delay);
-    }
-    const after = await readPull(number);
-    if (after.state.merged && after.mergeSha !== undefined) {
-      return { merged: true, sha: after.mergeSha };
-    }
-    return {
-      merged: false,
-      reason: after.state.mergeable === false ? 'conflict' : 'not-mergeable',
-      message: lastMessage === '' ? 'Forgejo did not merge the pull request.' : lastMessage,
+      number,
+      state: raw.state === 'closed' ? 'closed' : 'open',
+      merged: raw.merged === true,
+      mergeable: typeof raw.mergeable === 'boolean' ? raw.mergeable : null,
     };
   }
 
@@ -236,9 +193,7 @@ export function createForgejoPullsClient(
     createBranchAt: (branch, sha) =>
       retryWhileUnavailable(() => createBranchAt(branch, sha), deps.retry),
     deleteBranch: (branch) => retryWhileUnavailable(() => deleteBranch(branch), deps.retry),
-    pullState: (number) =>
-      retryWhileUnavailable(async () => (await readPull(number)).state, deps.retry),
-    mergePull: (number, title) => mergePull(number, title),
+    pullState: (number) => retryWhileUnavailable(() => readPull(number), deps.retry),
     closePull: (number) => retryWhileUnavailable(() => closePull(number), deps.retry),
   };
 }
