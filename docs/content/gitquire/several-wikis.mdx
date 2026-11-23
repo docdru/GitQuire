@@ -26,7 +26,8 @@ GitQuire's own access to the host are needed as for one wiki. `GITQUIRE_ALLOWED_
 
 `/` lists your wikis, with **Add a wiki**. It lists the repositories you administer under an
 allowed owner that GitQuire can reach; **Make this a wiki** turns one on. GitQuire writes nothing
-into any other repository.
+into any other repository. The list is kept for 30 minutes; after that GitQuire asks the host again
+when you open or send the page, and a request you sent, token included, is carried out after that.
 
 - **GitHub:** any administrator of the repository can add it, once the GitHub App is installed on it.
 - **Forgejo:** a server administrator makes GitQuire's bot an administrator of the repository,

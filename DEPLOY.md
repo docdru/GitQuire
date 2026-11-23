@@ -555,7 +555,10 @@ for now.
 **Add a wiki** (`/add-wiki`) asks the host once more for the person's repositories and lists those
 under an allowed owner that the person administers and GitQuire can reach. A repository becomes a
 wiki only when one of its administrators chooses **Make this a wiki**; GitQuire writes nothing into
-any other repository.
+any other repository. The list is kept for 30 minutes. After that the page asks the host again
+(a new sign-in, usually without a prompt) and says so; a **Make this a wiki** sent on an expired list,
+with the token entered, is kept in memory for ten minutes and carried out after that sign-in. The
+log line "Add a wiki asks … again" gives the reason.
 
 **On GitHub** any administrator of such a repository can make it a wiki, as long as the GitHub App
 is installed on it. The page links the App's installation page for repositories it cannot reach
