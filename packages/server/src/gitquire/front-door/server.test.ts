@@ -811,9 +811,19 @@ describe('front door on Forgejo', () => {
     r.table.disconnect('github-1', 'token');
     const home = await (await get(r, '/', alice, { accept: 'text/html' })).text();
     expect(home).toContain('action="/add-wiki/token"');
-    expect((await form(bob, { key: 'github-1', token: 'good' }, '/add-wiki/token')).status).toBe(
-      403,
-    );
+    const asBob = await form(bob, { key: 'github-1', token: 'good' }, '/add-wiki/token');
+    const unknownAsBob = await form(bob, { key: 'github-99', token: 'good' }, '/add-wiki/token');
+    expect(asBob.status).toBe(404);
+    expect(await asBob.text()).toBe(await unknownAsBob.text());
+    const put = (key: string) =>
+      httpFetch(`${r.base}/api/front-door/wikis/${key}/token`, {
+        method: 'PUT',
+        headers: { cookie: bob, origin: r.base, 'content-type': 'application/json' },
+        body: JSON.stringify({ token: 'good' }),
+      });
+    const known = await put('github-1');
+    const unknown = await put('github-99');
+    expect([known.status, await known.text()]).toEqual([unknown.status, await unknown.text()]);
     const saved = await form(alice, { key: 'github-1', token: 'good' }, '/add-wiki/token');
     expect(saved.status).toBe(303);
   });
