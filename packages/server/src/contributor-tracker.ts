@@ -1,3 +1,5 @@
+import { attributeAgentEdit } from './gitquire/principal-directory.ts';
+
 interface ActorMetadata {
   principalId?: string;
   agentType?: string;
@@ -17,6 +19,8 @@ export interface ContributorEntry {
   previousPaths: Array<{ from: string; to: string }>;
 }
 
+const AGENT_WRITER_PREFIX = 'agent-';
+
 let pendingContributors = new Map<string, ContributorEntry>();
 
 export function recordContributor(
@@ -29,6 +33,9 @@ export function recordContributor(
   summary?: string,
   previousPaths?: Array<{ from: string; to: string }>,
 ): void {
+  if (writerId.startsWith(AGENT_WRITER_PREFIX)) {
+    attributeAgentEdit(writerId.slice(AGENT_WRITER_PREFIX.length));
+  }
   let entry = pendingContributors.get(writerId);
   if (!entry) {
     entry = {
