@@ -38,7 +38,6 @@ function client(open: PullRequestSummary[], refusal: GitHubRequestError): GitHub
     createBranchAt: fail,
     deleteBranch: fail,
     pullState: fail,
-    mergePull: fail,
     closePull: fail,
   };
 }

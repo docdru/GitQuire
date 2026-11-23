@@ -28,8 +28,6 @@ function client(answers: (call: Call) => { status: number; body?: unknown }, cal
           status: answer.status,
         });
       }) as typeof fetch,
-      mergeDelaysMs: [1, 1, 1],
-      sleep: async () => {},
       retry: { delaysMs: [] },
     },
   );
@@ -84,52 +82,6 @@ describe('Forgejo pulls client', () => {
       ],
     }));
     expect(await forgejo.mergedPullHeads?.('gitquire/draft/notes')).toEqual(['h1']);
-  });
-
-  it('squash-merges with the title and retries 405 while Forgejo checks mergeability', async () => {
-    const calls: Call[] = [];
-    let merges = 0;
-    const forgejo = client((call) => {
-      if (call.path === '/repos/team/wiki/pulls/4/merge') {
-        merges += 1;
-        return merges < 3
-          ? { status: 405, body: { message: 'Please try again later' } }
-          : { status: 200 };
-      }
-      if (call.path === '/repos/team/wiki/pulls/4') {
-        return { status: 200, body: { state: 'closed', merged: true, merge_commit_sha: 'm1' } };
-      }
-      return { status: 404 };
-    }, calls);
-    expect(await forgejo.mergePull(4, 'Notes (#4)')).toEqual({ merged: true, sha: 'm1' });
-    expect(calls[0]?.body).toEqual({
-      Do: 'squash',
-      MergeTitleField: 'Notes (#4)',
-      delete_branch_after_merge: false,
-    });
-    expect(merges).toBe(3);
-  });
-
-  it('reads a lasting 405 as a conflict when the pull request is not mergeable', async () => {
-    const forgejo = client((call) =>
-      call.path.endsWith('/merge')
-        ? { status: 405, body: { message: 'Please try again later' } }
-        : { status: 200, body: { state: 'open', merged: false, mergeable: false } },
-    );
-    expect(await forgejo.mergePull(4, 'Notes')).toEqual({
-      merged: false,
-      reason: 'conflict',
-      message: 'Please try again later',
-    });
-  });
-
-  it('reads a 405 on an already merged pull request as published', async () => {
-    const forgejo = client((call) =>
-      call.path.endsWith('/merge')
-        ? { status: 405, body: { message: '' } }
-        : { status: 200, body: { state: 'closed', merged: true, merge_commit_sha: 'm2' } },
-    );
-    expect(await forgejo.mergePull(4, 'Notes')).toEqual({ merged: true, sha: 'm2' });
   });
 
   it('deletes branches and lists collaborators', async () => {
