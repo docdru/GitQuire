@@ -689,10 +689,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
 
   async function newToken(user: DoorSessionUser, key: string, given: unknown): Promise<Outcome> {
     const wiki = table.byKey(key);
-    if (deps.forgejoTokens === undefined || wiki === undefined) {
+    if (deps.forgejoTokens === undefined || wiki === undefined || !isServerAdmin(user)) {
       return { status: 404, body: { error: 'not-found' } };
     }
-    if (!isServerAdmin(user)) return { status: 403, body: { error: 'server-admin-only' } };
     const token = typeof given === 'string' ? given.trim() : '';
     if (token === '' || deps.forgejoTokens.isBotToken(token)) {
       return { status: 400, body: { error: 'token-required' } };
@@ -710,7 +709,11 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     user: DoorSessionUser,
     key: string,
   ): Promise<void> {
-    if (deps.forgejoTokens === undefined || table.byKey(key) === undefined) {
+    if (
+      deps.forgejoTokens === undefined ||
+      table.byKey(key) === undefined ||
+      !isServerAdmin(user)
+    ) {
       sendJson(res, 404, { error: 'not-found' });
       return;
     }
