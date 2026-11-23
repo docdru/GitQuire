@@ -4,6 +4,7 @@ import { type WikiRecord, wikiPrefix } from './wiki-table.ts';
 
 export const ADD_WIKI_PAGE = '/add-wiki';
 export const ADD_WIKI_TOKEN_FORM = '/add-wiki/token';
+export const REMOVE_WIKI_FORM = '/add-wiki/remove';
 
 export const REASON_TEXT: Record<string, string> = {
   token: "GitQuire's token for this repository was refused.",
@@ -25,6 +26,7 @@ export interface HomeInput {
   defaultAddress: string | undefined;
   hosts: string;
   canReplaceToken: boolean;
+  canRemove: boolean;
   scriptPath: string;
 }
 
@@ -38,7 +40,11 @@ function tokenForm(wiki: WikiRecord): string {
   return `<form method="post" action="${ADD_WIKI_TOKEN_FORM}"><input type="hidden" name="key" value="${escapeHtml(wiki.key)}"><label>New token limited to <code>${escapeHtml(`${wiki.owner}/${wiki.name}`)}</code> <input type="password" name="token" autocomplete="off" required></label> <button type="submit">Save the token</button></form>`;
 }
 
-function homeRow(row: HomeRow, canReplaceToken: boolean): string {
+function removeForm(wiki: WikiRecord): string {
+  return `<form method="post" action="${REMOVE_WIKI_FORM}"><input type="hidden" name="key" value="${escapeHtml(wiki.key)}"><label><input type="checkbox" name="confirm" value="yes" required> Remove <code>${escapeHtml(`${wiki.owner}/${wiki.name}`)}</code> from GitQuire; its files are kept in <code>wikis-removed/</code></label> <button type="submit">Remove the wiki</button></form>`;
+}
+
+function homeRow(row: HomeRow, canReplaceToken: boolean, canRemove: boolean): string {
   const { wiki, admin } = row;
   const label = escapeHtml(`${wiki.owner}/${wiki.name}`);
   const role = admin ? ' <span class="muted">admin</span>' : '';
@@ -49,11 +55,14 @@ function homeRow(row: HomeRow, canReplaceToken: boolean): string {
     ? `<br><span class="muted">${escapeHtml(REASON_TEXT[wiki.reason ?? ''] ?? '')}</span>`
     : '';
   const replace = admin && canReplaceToken && wiki.reason === 'token' ? tokenForm(wiki) : '';
-  return `<li data-wiki="${escapeHtml(wiki.key)}">${label}${role} <span class="muted">(disconnected)</span>${why}${replace}</li>`;
+  const remove = canRemove ? removeForm(wiki) : '';
+  return `<li data-wiki="${escapeHtml(wiki.key)}">${label}${role} <span class="muted">(disconnected)</span>${why}${replace}${remove}</li>`;
 }
 
 export function homeBody(input: HomeInput): string {
-  const items = input.rows.map((row) => homeRow(row, input.canReplaceToken)).join('');
+  const items = input.rows
+    .map((row) => homeRow(row, input.canReplaceToken, input.canRemove))
+    .join('');
   const marker =
     input.defaultAddress === undefined
       ? ''

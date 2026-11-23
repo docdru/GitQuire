@@ -200,6 +200,7 @@ export async function startFrontDoor(
             return scope === 'limited' ? 'ok' : scope;
           },
           save: store.set,
+          forget: store.forget,
           isBotToken: (token) => token === settings.forgejoBotToken,
         };
 

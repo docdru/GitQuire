@@ -27,6 +27,7 @@ export interface WikiTable {
   rename: (key: string, to: HostRepo, ownerId?: number) => WikiRecord | undefined;
   connect: (key: string) => WikiRecord | undefined;
   disconnect: (key: string, reason: DisconnectReason) => WikiRecord | undefined;
+  remove: (key: string) => WikiRecord | undefined;
   ownerIds: () => Readonly<Record<string, number>>;
   pinOwner: (owner: string, id: number) => void;
 }
@@ -145,6 +146,13 @@ export function openWikiTable(file: string): WikiTable {
         addedAt: new Date(now).toISOString(),
       };
       state.wikis.push(wiki);
+      save();
+      return wiki;
+    },
+    remove: (key) => {
+      const wiki = byKey(key);
+      if (wiki === undefined) return undefined;
+      state.wikis = state.wikis.filter((other) => other.key !== key);
       save();
       return wiki;
     },

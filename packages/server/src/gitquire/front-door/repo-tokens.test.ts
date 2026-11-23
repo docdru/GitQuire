@@ -25,6 +25,8 @@ describe('repo token store', () => {
     expect(again.tokenFor({ owner: 'team', name: 'wiki' })).toBe('limited');
     expect(again.tokenFor({ owner: 'team', name: 'other' })).toBeUndefined();
     expect(again.has('forgejo-3')).toBe(true);
+    again.forget('forgejo-3');
+    expect(openRepoTokenStore(file, keyOf).has('forgejo-3')).toBe(false);
   });
 
   it('finds a wiki’s token by its repository id, not by a name another repository may now have', () => {

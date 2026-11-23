@@ -42,7 +42,8 @@ minutes and also cuts off open live editing. Someone without access is told ther
 that address, for every page, file, image, draft, assistant call and mention count of it. If
 GitQuire loses its own access to a repository (the app was uninstalled, the bot removed), or the
 owner is taken off the allowed list, the wiki is **disconnected**: its administrators see why,
-nobody can open it, and nothing is deleted. Inside a wiki, the repository name in the header
+nobody can open it, and nothing is deleted. A server administrator can remove a disconnected wiki
+on the wiki list; its files are moved to `wikis-removed/` and its name is free again. Inside a wiki, the repository name in the header
 switches between your wikis and shows unread mentions in the others.
 
 AI agents use one address for all wikis, `https://<server>/mcp`; every tool takes a `wiki`

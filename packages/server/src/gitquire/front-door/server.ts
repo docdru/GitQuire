@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto';
+import { existsSync, mkdirSync, renameSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { join } from 'node:path';
 import type { Duplex } from 'node:stream';
 import { type GateLogger, safeNextPath } from '../access-gate.ts';
 import { isSlug } from '../drafts/model.ts';
@@ -53,6 +55,7 @@ import {
   addWikiBody,
   homeBody,
   REASON_TEXT,
+  REMOVE_WIKI_FORM,
 } from './pages.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import {
@@ -64,7 +67,7 @@ import {
   viewCookieName,
 } from './translate.ts';
 import { WikiClosedError, type WikiProcesses } from './wiki-processes.ts';
-import { type WikiRecord, type WikiTable, wikiKey, wikiPrefix } from './wiki-table.ts';
+import { type WikiRecord, type WikiTable, wikiDir, wikiKey, wikiPrefix } from './wiki-table.ts';
 
 const DOOR_SESSION_COOKIE = 'gq_session';
 const DOOR_STATE_COOKIE = 'gq_oauth_state';
@@ -131,6 +134,7 @@ function refusalOutcome(label: string, health: TokenCheck): Outcome {
 export interface ForgejoTokenChecks {
   check: (repo: HostRepoRecord, token: string) => Promise<TokenCheck>;
   save: (key: string, token: string) => void;
+  forget: (key: string) => void;
   isBotToken: (token: string) => boolean;
 }
 
@@ -642,7 +646,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         body: {
           error: 'name-in-use',
           message: gone
-            ? `The wiki of a repository that no longer exists on ${label} still has the name ${repo.owner}/${repo.name}, so this repository cannot become a wiki under it. Rename one of the two repositories on ${label}, or ask the person who runs GitQuire to remove the old wiki (${sameName.wiki.key}) from server/wikis.json.`
+            ? `The wiki of a repository that no longer exists on ${label} still has the name ${repo.owner}/${repo.name}, so this repository cannot become a wiki under it. A server administrator can remove the old wiki on the wiki list (Remove the wiki); then try again.`
             : `A wiki already has the name ${repo.owner}/${repo.name}, and ${label} could not tell GitQuire its new name just now. Try again in a few minutes.`,
         },
       };
@@ -931,6 +935,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
             : `${wikiPrefix(fallback)}/`,
         hosts: allowedOwnersSentence(deps.owners),
         canReplaceToken: deps.forgejoTokens !== undefined && isServerAdmin(user),
+        canRemove: isServerAdmin(user),
         scriptPath: OLD_ADDRESS_SCRIPT,
       }),
     );
@@ -1040,6 +1045,77 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     await addWikiPage(res, user, outcome);
   }
 
+  async function removeWiki(user: DoorSessionUser, key: string): Promise<Outcome> {
+    if (!isServerAdmin(user)) return { status: 404, body: { error: 'not-found' } };
+    const wiki = table.byKey(key);
+    if (wiki === undefined) return { status: 404, body: { error: 'not-found' } };
+    if (wiki.state === 'on') {
+      return {
+        status: 409,
+        body: {
+          error: 'still-connected',
+          message: 'Only a disconnected wiki can be removed.',
+        },
+      };
+    }
+    await processes.retire(key);
+    const dir = wikiDir(settings.dataDir, wiki);
+    let keptIn: string | undefined;
+    if (existsSync(dir)) {
+      const removedDir = join(settings.dataDir, 'wikis-removed');
+      mkdirSync(removedDir, { recursive: true });
+      keptIn = join(removedDir, `${key}-${new Date(now()).toISOString().replace(/[:.]/g, '-')}`);
+      renameSync(dir, keptIn);
+    }
+    table.remove(key);
+    deps.forgejoTokens?.forget(key);
+    deps.log.warn(
+      {
+        wiki: key,
+        repo: `${wiki.owner}/${wiki.name}`,
+        reason: wiki.reason,
+        by: user.login,
+        keptIn,
+      },
+      '[gitquire-door] a disconnected wiki was removed',
+    );
+    return { status: 200, body: { removed: key, ...(keptIn === undefined ? {} : { keptIn }) } };
+  }
+
+  async function removeForm(
+    req: IncomingMessage,
+    res: ServerResponse,
+    user: DoorSessionUser,
+  ): Promise<void> {
+    const form = await readForm(req);
+    if (form.get('confirm') !== 'yes') {
+      sendHtml(
+        res,
+        400,
+        'Wiki not removed',
+        '<p>Tick the box to confirm the removal.</p><p><a href="/">Your wikis</a></p>',
+      );
+      return;
+    }
+    const outcome = await removeWiki(user, form.get('key') ?? '');
+    if (outcome.status === 200) {
+      res.writeHead(303, { Location: '/', 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+    if (outcome.status === 404) {
+      notAWiki(req, res);
+      return;
+    }
+    const message = outcome.body.message;
+    sendHtml(
+      res,
+      outcome.status,
+      'Wiki not removed',
+      `<p>${escapeHtml(typeof message === 'string' ? message : 'The wiki was not removed.')}</p><p><a href="/">Your wikis</a></p>`,
+    );
+  }
+
   async function tokenForm(
     req: IncomingMessage,
     res: ServerResponse,
@@ -1067,7 +1143,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     user: DoorSessionUser | undefined,
     fail: (err: unknown) => void,
   ): boolean {
-    if (path !== ADD_WIKI_PAGE && path !== ADD_WIKI_TOKEN_FORM) return false;
+    if (path !== ADD_WIKI_PAGE && path !== ADD_WIKI_TOKEN_FORM && path !== REMOVE_WIKI_FORM) {
+      return false;
+    }
     const method = req.method ?? 'GET';
     if (user === undefined) {
       needSignIn(req, res, ADD_WIKI_PAGE);
@@ -1085,7 +1163,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       sendJson(res, 403, { error: 'cross-origin' });
       return true;
     }
-    (path === ADD_WIKI_PAGE ? addWikiForm(req, res, user) : tokenForm(req, res, user)).catch(fail);
+    const handler =
+      path === ADD_WIKI_PAGE ? addWikiForm : path === REMOVE_WIKI_FORM ? removeForm : tokenForm;
+    handler(req, res, user).catch(fail);
     return true;
   }
 

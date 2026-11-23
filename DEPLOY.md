@@ -538,6 +538,13 @@ app was uninstalled, the bot was removed or is no longer an administrator, the t
 the wiki is **disconnected**: its administrators see why, nobody can open it, and nothing is
 deleted.
 
+A server administrator can **remove** a disconnected wiki on the wiki list (**Remove the wiki**,
+with a box to tick), for example when its repository was deleted and its name should be free for a
+new one. GitQuire stops the wiki's process, moves its folder from `wikis/<key>` to
+`wikis-removed/<key>-<time>` (unpushed edits stay there), drops its Forgejo token and removes its
+record; the log line "a disconnected wiki was removed" names where the files went. A wiki that is
+still connected cannot be removed. Delete the kept folder by hand when it is no longer needed.
+
 A person who cannot open a wiki is told there is no wiki at that address, whether it exists or
 not; only its administrators see that it is disconnected. That holds for every address of the
 wiki: its pages, files and images (also images that the editor loads from the root, which the front
