@@ -4,6 +4,7 @@ import { parseGitHubRepo } from './github-auth-config.ts';
 import { parseHostKind } from './host/names.ts';
 import type { HostKind, HostRepo } from './host/types.ts';
 import { internalRequestHeaders } from './internal-request.ts';
+import { parseRepoId, REPO_ID_ENV } from './repo-pin.ts';
 import { behindFrontDoorFromEnv } from './request-person.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -14,6 +15,7 @@ export const DOOR_TOKEN_PATH = '/token';
 export interface DoorSyncConfig {
   host: HostKind;
   repo: HostRepo;
+  repoId: number | undefined;
   branch: string | undefined;
   webUrl: string;
   apiUrl: string;
@@ -54,6 +56,7 @@ export function resolveDoorSyncConfig(env: Env): DoorSyncConfig | undefined {
   return {
     host,
     repo,
+    repoId: parseRepoId(env[REPO_ID_ENV]),
     branch: nonEmpty(env.GITQUIRE_BRANCH),
     webUrl,
     apiUrl,

@@ -59,6 +59,7 @@ import {
   parseAutoSyncMode,
   runGitSync,
 } from './repo-bootstrap.ts';
+import { createRepoPin } from './repo-pin.ts';
 import { behindFrontDoorFromEnv, type RequestPerson } from './request-person.ts';
 import { createGitQuireRoutes } from './routes.ts';
 import { setAdminResolver } from './settings-admin.ts';
@@ -281,6 +282,34 @@ export async function startGitHubAppTokensFromEnv(
     },
   });
   return startInstallationTokenManager(config, client, { log });
+}
+
+export function doorSyncPinFromEnv(
+  env: Env,
+  manager: InstallationTokenManager | undefined,
+  projectDir: string,
+  log: GateLogger,
+): (() => Promise<string[]>) | undefined {
+  const door = resolveDoorSyncConfig(env);
+  if (door === undefined || door.repoId === undefined || manager === undefined) return undefined;
+  return createRepoPin(
+    {
+      repoId: door.repoId,
+      repo: door.repo,
+      apiUrl: door.apiUrl,
+      originUrl: () => readOriginUrl(projectDir),
+    },
+    { token: () => manager.current(), log },
+  );
+}
+
+function readOriginUrl(projectDir: string): string | undefined {
+  try {
+    const url = runGitSync(['config', '--get', 'remote.origin.url'], projectDir).trim();
+    return url === '' ? undefined : url;
+  } catch {
+    return undefined;
+  }
 }
 
 export function withGitHubAppPushCheck(
