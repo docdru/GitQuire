@@ -35,7 +35,6 @@ export type GqMenuAction =
   | 'collapse-all-tree'
   | 'toggle-doc-panel'
   | 'toggle-agent-panel'
-  | 'toggle-editor'
   | 'new-worktree'
   | 'switch-worktree'
   | 'send-feedback';

@@ -329,21 +329,6 @@ export const COMMAND_IDENTITIES: readonly CommandIdentity[] = [
     palette: { group: 'view', visibility: 'search-only' },
   },
   {
-    id: 'toggle-editor',
-    menuActionId: 'toggle-editor',
-    labelKey: 'editorShow',
-    keywords: ['editor', 'document', 'pane', 'panel', 'show editor', 'hide editor'],
-    stateToggle: {
-      showKey: 'editorShow',
-      hideKey: 'editorHide',
-      stateField: 'editorVisible',
-      defaultVisible: true,
-    },
-    availability: {},
-    palette: { group: 'view', visibility: 'search-only' },
-    menu: [{ section: 'view-panels', order: 2 }],
-  },
-  {
     id: 'toggle-agent-panel',
     menuActionId: 'toggle-agent-panel',
     labelKey: 'agentPanelShow',

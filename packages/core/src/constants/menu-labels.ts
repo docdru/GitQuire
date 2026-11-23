@@ -28,8 +28,6 @@ export const MENU_LABELS = {
   swapEditorSidebars: 'Swap file sidebar and document panel',
   chatHistoryMoveLeft: 'Move chat history to the left',
   chatHistoryMoveRight: 'Move chat history to the right',
-  editorShow: 'Show Editor',
-  editorHide: 'Hide Editor',
   agentPanelShow: 'Show Agents',
   agentPanelHide: 'Hide Agents',
   editorMoveToLeftEdge: 'Move Editor to the left edge of the window',

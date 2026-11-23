@@ -3542,9 +3542,6 @@ msgstr "إخفاء الوكلاء"
 msgid "Hide document panel"
 msgstr "إخفاء لوحة المستند"
 
-msgid "Hide Editor"
-msgstr "إخفاء المحرر"
-
 msgid "Hide external URL nodes"
 msgstr "إخفاء عقد الروابط الخارجية"
 
@@ -6447,9 +6444,6 @@ msgstr "إظهار لوحة المستند"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "إظهار المحرر"
 
 msgid "Show external URL nodes"
 msgstr "إظهار عقد الروابط الخارجية"

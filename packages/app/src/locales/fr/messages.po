@@ -3542,9 +3542,6 @@ msgstr "Masquer les agents"
 msgid "Hide document panel"
 msgstr "Masquer le panneau du document"
 
-msgid "Hide Editor"
-msgstr "Masquer l’éditeur"
-
 msgid "Hide external URL nodes"
 msgstr "Masquer les nœuds d'URL externes"
 
@@ -6447,9 +6444,6 @@ msgstr "Afficher le panneau du document"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "Afficher l’éditeur"
 
 msgid "Show external URL nodes"
 msgstr "Afficher les nœuds d'URL externes"

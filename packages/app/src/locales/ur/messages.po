@@ -3542,9 +3542,6 @@ msgstr "ایجنٹس چھپائیں"
 msgid "Hide document panel"
 msgstr "دستاویز کا پینل چھپائیں"
 
-msgid "Hide Editor"
-msgstr "ایڈیٹر چھپائیں"
-
 msgid "Hide external URL nodes"
 msgstr "بیرونی URL نوڈز چھپائیں"
 
@@ -6447,9 +6444,6 @@ msgstr "دستاویز کا پینل دکھائیں"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "ایڈیٹر دکھائیں"
 
 msgid "Show external URL nodes"
 msgstr "بیرونی URL نوڈز دکھائیں"

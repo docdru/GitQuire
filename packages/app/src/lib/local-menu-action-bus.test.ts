@@ -32,8 +32,8 @@ describe('local menu-action bus', () => {
     const handler = vi.fn(() => {});
     subscribeLocalMenuAction(handler);
 
-    emitLocalMenuAction('toggle-editor');
-    emitLocalMenuAction('toggle-editor');
+    emitLocalMenuAction('toggle-agent-panel');
+    emitLocalMenuAction('toggle-agent-panel');
 
     expect(handler).toHaveBeenCalledTimes(2);
   });

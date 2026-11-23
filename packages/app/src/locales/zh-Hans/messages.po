@@ -3542,9 +3542,6 @@ msgstr "隐藏「智能体」"
 msgid "Hide document panel"
 msgstr "隐藏文档面板"
 
-msgid "Hide Editor"
-msgstr "隐藏编辑器"
-
 msgid "Hide external URL nodes"
 msgstr "隐藏外部 URL 节点"
 
@@ -6447,9 +6444,6 @@ msgstr "显示文档面板"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "显示编辑器"
 
 msgid "Show external URL nodes"
 msgstr "显示外部 URL 节点"

@@ -3538,9 +3538,6 @@ msgstr "Agents छिपाएँ"
 msgid "Hide document panel"
 msgstr "दस्तावेज़ पैनल छिपाएँ"
 
-msgid "Hide Editor"
-msgstr "संपादक छिपाएँ"
-
 msgid "Hide external URL nodes"
 msgstr "बाहरी URL नोड छिपाएँ"
 
@@ -6443,9 +6440,6 @@ msgstr "दस्तावेज़ पैनल दिखाएँ"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "संपादक दिखाएँ"
 
 msgid "Show external URL nodes"
 msgstr "बाहरी URL नोड दिखाएँ"

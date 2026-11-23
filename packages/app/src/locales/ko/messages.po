@@ -3542,9 +3542,6 @@ msgstr "에이전트 가리기"
 msgid "Hide document panel"
 msgstr "문서 패널 가리기"
 
-msgid "Hide Editor"
-msgstr "편집기 가리기"
-
 msgid "Hide external URL nodes"
 msgstr "외부 URL 노드 숨기기"
 
@@ -6447,9 +6444,6 @@ msgstr "문서 패널 표시"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "편집기 표시"
 
 msgid "Show external URL nodes"
 msgstr "외부 URL 노드 보기"
