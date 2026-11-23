@@ -37,6 +37,8 @@ const LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 const MCP_SESSION_HEADER = 'mcp-session-id';
 const MAX_STICKY = 500;
 
+const DRAFT_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export interface DraftsHttpDeps {
   service: DraftService;
   instances: DraftInstances;
@@ -362,7 +364,9 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
 
   function chosenDraft(req: IncomingMessage): string | undefined {
     const value = req.headers[EDITS_DRAFT_HEADER];
-    return isInternalRequest(req) && typeof value === 'string' && value !== '' ? value : undefined;
+    return isInternalRequest(req) && typeof value === 'string' && DRAFT_SLUG.test(value)
+      ? value
+      : undefined;
   }
 
   function agentTarget(

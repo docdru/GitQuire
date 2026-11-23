@@ -398,6 +398,19 @@ describe('drafts HTTP', () => {
     expect(service.list()).toEqual([]);
   });
 
+  it('ignores a named draft that is not shaped like a draft name', async () => {
+    agent = ALICE;
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: {
+        ...internalRequestHeaders(),
+        'x-gitquire-edits': 'live',
+        'x-gitquire-edits-draft': '../plan',
+      },
+    });
+    expect(out.handled).toBe(false);
+  });
+
   it('ignores a named draft that does not come from GitQuire itself', async () => {
     agent = ALICE;
     await service.create(ALICE, 'Plan');
