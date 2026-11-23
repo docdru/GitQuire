@@ -261,6 +261,10 @@ describe('safeNextPath', () => {
     ['/\\evil.example', '/'],
     ['https://evil.example', '/'],
     ['/auth/logout', '/'],
+    ['/\t/evil.example', '/'],
+    ['/\n/evil.example', '/'],
+    ['/a b', '/'],
+    ['/docs/My%20Page', '/docs/My%20Page'],
     [null, '/'],
   ])('maps %s to %s', (input, expected) => {
     expect(safeNextPath(input)).toBe(expected);
@@ -570,7 +574,34 @@ describe('createAccessGate requests', () => {
   });
 });
 
+describe('health checks', () => {
+  it('answers /healthz without a session, but not a path that only reads as /healthz', () => {
+    const gate = makeGate();
+    expect(gate.handleRequest(fakeRequest('/healthz'), fakeResponse().res)).toBe(false);
+    const odd = fakeResponse();
+    expect(gate.handleRequest(fakeRequest('//x/healthz'), odd.res)).toBe(true);
+    expect(odd.status).toBe(401);
+  });
+});
+
 describe('createAccessGate upgrades', () => {
+  it.each(['/collab/../x', '/collab/%2e%2e/x', '/x/../collab', '/collab/./doc'])(
+    'refuses a live-editing socket at %s, whose path only normalises to /collab',
+    (url) => {
+      const gate = makeGate();
+      const sock = fakeSocket();
+      expect(
+        gate.admitUpgrade(fakeRequest(url, { headers: { cookie: sessionCookie() } }), sock.socket),
+      ).toBe(false);
+      expect(sock.written).toContain('400 Bad Request');
+      expect(sock.destroyed).toBe(true);
+    },
+  );
+
+  it('still lets other upgrades through without a session', () => {
+    expect(makeGate().admitUpgrade(fakeRequest('/other/../path'), fakeSocket().socket)).toBe(true);
+  });
+
   it('refuses a live-editing socket without a session', () => {
     const gate = makeGate();
     const sock = fakeSocket();
