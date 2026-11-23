@@ -82,3 +82,42 @@ describe('where the AI chat puts its edits', () => {
     expect(screen.queryByTestId('gitquire-chat-edits')).toBeNull();
   });
 });
+
+describe('the model for the AI chat', () => {
+  test('can be chosen in the ask box when a key is set', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) =>
+        url === '/api/gitquire/chat'
+          ? new Response(
+              JSON.stringify({
+                available: true,
+                retentionDays: 90,
+                providers: [
+                  {
+                    id: 'claude',
+                    label: 'Claude (Anthropic)',
+                    models: [
+                      { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5', tier: 'balanced' },
+                    ],
+                    defaultModel: 'claude-sonnet-5-5',
+                    keyUrl: '',
+                    limitsUrl: '',
+                    key: { configured: true, hint: '…1234', savedAt: null },
+                  },
+                ],
+              }),
+              { headers: { 'content-type': 'application/json' } },
+            )
+          : new Response('{}', { status: 404 }),
+      ),
+    );
+    try {
+      await load();
+      const picker = await screen.findByRole('combobox', { name: 'Model' });
+      expect(picker.textContent).toContain('Claude Sonnet 5.5');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});

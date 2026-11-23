@@ -2,9 +2,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { ChatOverview } from '@/lib/gitquire/chat-api';
+import { pickSelection } from '@/lib/gitquire/chat-model';
 import { queueChatRequest } from '@/lib/gitquire/chat-requests';
 import { ChatMarkdown } from './ChatMarkdown';
-import { ChatPanel, pickSelection } from './ChatPanel';
+import { ChatPanel } from './ChatPanel';
 
 const openAiChatSettings = vi.fn();
 vi.mock('@/lib/use-settings-route', () => ({ openAiChatSettings: () => openAiChatSettings() }));

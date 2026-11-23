@@ -1,6 +1,6 @@
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowUp, ArrowUpRight, X } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,8 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { publishAskComposerHeight } from '@/editor/ask-composer-inset';
+import { ChatEditsToggle, ChatModelSelect } from '@/gitquire-chat/ChatChoices';
 import {
   type AskDestination,
   askClaudeAddress,
@@ -27,7 +27,7 @@ import {
   openClaudeLink,
   storeDestination,
 } from '@/lib/gitquire/ask-claude';
-import { useChatEdits } from '@/lib/gitquire/chat-edit-target';
+import { type ChatOverview, fetchChatOverview } from '@/lib/gitquire/chat-api';
 import { queueChatRequest } from '@/lib/gitquire/chat-requests';
 import { useDraftState } from '@/lib/gitquire/drafts-store';
 import { useGitQuireFeatures } from '@/lib/gitquire/features';
@@ -37,8 +37,6 @@ import { cn } from '@/lib/utils';
 import { docNameToRelativePath } from '@/lib/workspace-paths';
 
 const HEIGHT_RESERVE_PX = 56;
-const SELECTED_TOGGLE_CLASS =
-  'text-xs data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90';
 const MAX_INPUT_HEIGHT_PX = 200;
 
 function fitHeight(input: HTMLTextAreaElement | null): void {
@@ -61,8 +59,6 @@ export function GitQuireAskClaude({
   const { t } = useLingui();
   const features = useGitQuireFeatures();
   const drafts = useDraftState();
-  const chatEdits = useChatEdits();
-  const editsLabelId = useId();
   const folderMode = folderPath !== undefined;
   const [text, setText] = useState('');
   const [chosen, setChosen] = useState<string | null>(() => loadStoredDestination());
@@ -71,7 +67,23 @@ export function GitQuireAskClaude({
     isAskDestination(chosen) && destinations.includes(chosen)
       ? chosen
       : defaultAskDestination(features, chosen);
+  const [chatOverview, setChatOverview] = useState<ChatOverview | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const wantsOverview = destination === 'gitquire-chat' && !dismissed;
+
+  useEffect(() => {
+    if (!wantsOverview) return;
+    let stale = false;
+    fetchChatOverview().then(
+      (value) => {
+        if (!stale) setChatOverview(value);
+      },
+      () => undefined,
+    );
+    return () => {
+      stale = true;
+    };
+  }, [wantsOverview]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -174,30 +186,8 @@ export function GitQuireAskClaude({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2">
-        {toChat && chatEdits.available ? (
-          <div className="flex items-center gap-1.5" data-testid="gitquire-chat-edits">
-            <span id={editsLabelId} className="text-muted-foreground text-xs">
-              {t`Edits go to:`}
-            </span>
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              size="sm"
-              value={chatEdits.value}
-              onValueChange={(value) => {
-                if (value === 'live' || value === 'draft') chatEdits.choose(value);
-              }}
-              aria-labelledby={editsLabelId}
-            >
-              <ToggleGroupItem value="live" className={SELECTED_TOGGLE_CLASS}>
-                {t`Live wiki`}
-              </ToggleGroupItem>
-              <ToggleGroupItem value="draft" className={SELECTED_TOGGLE_CLASS}>
-                {t`Draft`}
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        ) : null}
+        {toChat ? <ChatEditsToggle /> : null}
+        {toChat && chatOverview !== null ? <ChatModelSelect overview={chatOverview} /> : null}
         <Select
           value={destination}
           onValueChange={(value) => {
