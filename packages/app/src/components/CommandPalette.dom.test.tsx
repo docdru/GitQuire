@@ -696,7 +696,6 @@ describe('Cmd+K menu-parity backfill', () => {
     },
     { testid: 'command-palette-expand-all-tree', query: 'expand all', id: 'expand-all-tree' },
     { testid: 'command-palette-collapse-all-tree', query: 'collapse all', id: 'collapse-all-tree' },
-    { testid: 'command-palette-toggle-editor', query: 'hide editor', id: 'toggle-editor' },
   ];
 
   for (const { testid, query, id } of ID_BACKED) {

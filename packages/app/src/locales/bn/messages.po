@@ -3538,9 +3538,6 @@ msgstr "Agents লুকান"
 msgid "Hide document panel"
 msgstr "নথি প্যানেল লুকান"
 
-msgid "Hide Editor"
-msgstr "সম্পাদক লুকান"
-
 msgid "Hide external URL nodes"
 msgstr "বাইরের URL নোড লুকান"
 
@@ -6443,9 +6440,6 @@ msgstr "নথি প্যানেল দেখান"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "সম্পাদক দেখান"
 
 msgid "Show external URL nodes"
 msgstr "বাইরের URL নোড দেখান"

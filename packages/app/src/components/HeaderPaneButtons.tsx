@@ -124,8 +124,8 @@ function HeaderPaneButton({
 
 export function HeaderPaneButtons() {
   const { t } = useLingui();
-  const buttons = useHeaderPaneButtonStates();
   const switcher = useOnePaneAtATime();
+  const buttons = useHeaderPaneButtonStates().filter(({ pane }) => switcher || pane !== 'editor');
   if (buttons.length === 0) return null;
 
   return (

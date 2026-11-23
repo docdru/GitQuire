@@ -3538,9 +3538,6 @@ msgstr "Sembunyikan Agen"
 msgid "Hide document panel"
 msgstr "Sembunyikan panel dokumen"
 
-msgid "Hide Editor"
-msgstr "Sembunyikan Penyunting"
-
 msgid "Hide external URL nodes"
 msgstr "Sembunyikan simpul URL eksternal"
 
@@ -6443,9 +6440,6 @@ msgstr "Tampilkan panel dokumen"
 
 msgid "Show done"
 msgstr ""
-
-msgid "Show Editor"
-msgstr "Tampilkan Penyunting"
 
 msgid "Show external URL nodes"
 msgstr "Tampilkan simpul URL eksternal"

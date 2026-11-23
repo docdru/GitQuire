@@ -26,7 +26,6 @@ import { useNoPushPermissionToast } from '@/hooks/use-no-push-permission-toast';
 import { useSyncAuthPrompt } from '@/hooks/use-sync-auth-prompt';
 import { useWorktreeAutoSyncNotice } from '@/hooks/use-worktree-autosync-notice';
 import type { AuthPromptStep } from '@/lib/auth-prompt-store';
-import { loadBoolPref, saveBoolPref } from '@/lib/bool-pref';
 import { useConfigContext } from '@/lib/config-provider';
 import {
   type DockArrangement,
@@ -194,9 +193,6 @@ function usePaneVisibilityHandlers(state: PaneVisibilityState) {
   const [selectPane] = useState(() => (pane: PaneId) => {
     selectPaneForState(current.current.selection, pane);
   });
-  const [hidePane] = useState(() => (pane: PaneId) => {
-    hidePaneForState(current.current.selection, pane);
-  });
   const [applyPaneRequest] = useState(() => (pane: PaneId, open: boolean) => {
     const currentState = current.current;
     if (open) {
@@ -220,7 +216,7 @@ function usePaneVisibilityHandlers(state: PaneVisibilityState) {
       else hidePaneForState(selection, 'agents');
     },
   );
-  return { selectPane, hidePane, applyPaneRequest, handleAgentsVisibleChange };
+  return { selectPane, applyPaneRequest, handleAgentsVisibleChange };
 }
 
 type PaneExtentPublisherState = {
@@ -285,7 +281,6 @@ function renderWorkspaceHeader(tabs: ReactNode, chrome: WorkspaceHeaderChrome) {
   );
 }
 
-const WEB_EDITOR_VISIBLE_KEY = 'ok-editor-visible-v1';
 const NARROW_WORKSPACE_QUERY = '(width < 48rem)';
 
 function subscribeNarrowWorkspace(listener: () => void): () => void {
@@ -343,8 +338,6 @@ export function EditorPane() {
   const initialExclusiveRef = useRef(exclusive);
   const layoutRestoreFocusHoldRef = useRef(false);
   const wasExclusiveRef = useRef(exclusive);
-  const [editorShown, setEditorShown] = useState(() => loadBoolPref(WEB_EDITOR_VISIBLE_KEY, true));
-  const editorChosenSinceMountRef = useRef(false);
   const narrowSessionKey =
     workspace === null ? null : narrowWorkspaceSessionKey(workspace.contentDir, 'web');
   useEffect(() => {
@@ -434,7 +427,7 @@ export function EditorPane() {
     }
     wasExclusiveRef.current = exclusive;
   }, [exclusive, agentsVisible]);
-  const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : editorShown;
+  const effectiveEditorVisible = exclusive ? narrowSelection === 'editor' : true;
   const effectiveAgentsVisible = exclusive ? narrowSelection === 'agents' : agentsVisible;
   const [placements, setPlacements] = useState<SessionPlacements>({
     agents: { container: null, isShowing: false },
@@ -455,11 +448,10 @@ export function EditorPane() {
     setNarrowSelection,
   };
 
-  const { selectPane, hidePane, applyPaneRequest, handleAgentsVisibleChange } =
-    usePaneVisibilityHandlers({
-      selection: paneSelectionState,
-      setAgentsVisible,
-    });
+  const { selectPane, applyPaneRequest, handleAgentsVisibleChange } = usePaneVisibilityHandlers({
+    selection: paneSelectionState,
+    setAgentsVisible,
+  });
 
   useEffect(() => {
     if (exclusive) return;
@@ -505,9 +497,7 @@ export function EditorPane() {
       }
       switch (pane) {
         case 'editor':
-          applyPaneRequest(pane, open);
-          editorChosenSinceMountRef.current = true;
-          setEditorShown(open);
+          if (open) applyPaneRequest(pane, open);
           return;
         case 'agents':
           applyPaneRequest(pane, open);
@@ -547,17 +537,6 @@ export function EditorPane() {
     return () => window.removeEventListener(RAW_MDX_NAV_EVENT, onRawMdxNav);
   }, [activeDocName]);
 
-  const toggleEditorEvent = useEffectEvent(() => {
-    if (exclusive) {
-      if (effectiveEditorVisible) hidePane('editor');
-      else selectPane('editor');
-      return;
-    }
-    editorChosenSinceMountRef.current = true;
-    if (editorShown) hidePane('editor');
-    else selectPane('editor');
-    setEditorShown(!editorShown);
-  });
   const toggleAgentsEvent = useEffectEvent(() => {
     handleAgentsVisibleChange(!effectiveAgentsVisible);
   });
@@ -567,8 +546,6 @@ export function EditorPane() {
       if (action === 'toggle-agent-panel') {
         if (!agentsAvailable) return;
         toggleAgentsEvent();
-      } else if (action === 'toggle-editor') {
-        toggleEditorEvent();
       }
     });
   }, [agentsAvailable]);
@@ -584,10 +561,6 @@ export function EditorPane() {
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, [agentsAvailable]);
-
-  useEffect(() => {
-    saveBoolPref(WEB_EDITOR_VISIBLE_KEY, editorShown, true);
-  }, [editorShown]);
 
   useEffect(() => {
     setViewMenuState({
