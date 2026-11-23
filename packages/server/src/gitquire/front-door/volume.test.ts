@@ -31,4 +31,12 @@ describe('one volume, one mode', () => {
     writeFileSync(join(dir, 'server', 'wikis.json'), '{}');
     expect(() => refuseFrontDoorVolume(dir)).toThrow(/Start it with GITQUIRE_WIKIS=on/);
   });
+
+  it('a single wiki whose own repository has a top-level server/wikis.json still starts', () => {
+    const dir = volume();
+    mkdirSync(join(dir, '.git'));
+    mkdirSync(join(dir, 'server'));
+    writeFileSync(join(dir, 'server', 'wikis.json'), '{}');
+    expect(() => refuseFrontDoorVolume(dir)).not.toThrow();
+  });
 });

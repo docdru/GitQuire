@@ -23,6 +23,9 @@ case "$wikis" in
 esac
 
 for marker in server/wikis.json .gitquire-moving-in .gitquire-moving-back; do
+  if [ "$marker" = server/wikis.json ] && [ -e /data/.git ]; then
+    continue
+  fi
   if [ -e "/data/$marker" ]; then
     echo "[entrypoint] /data holds several wikis or an unfinished move (/data/$marker). Start it with GITQUIRE_WIKIS=on, or finish the move with gitquire wikis adopt or unadopt." >&2
     exit 78

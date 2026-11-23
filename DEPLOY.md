@@ -590,7 +590,8 @@ its old address redirects to the new one. A wiki's drafts are kept beside it, in
 `/data/wikis/.gitquire-drafts/<host>-<repository id>/`; `GITQUIRE_DRAFTS_DIR` and the `/drafts`
 volume of `deploy/compose.yaml` are not used with several wikis. A volume is either one wiki or
 several: the front door refuses a volume that holds a single wiki's checkout, and a single wiki
-refuses a volume with `server/wikis.json`.
+refuses a volume with `server/wikis.json` but no `.git` (a wiki's own repository may have a
+`server/wikis.json`).
 
 `docker stop` gives each wiki's process the time to commit and push what is not pushed yet
 (within 50 seconds), so keep `stop_grace_period: 60s` as in `deploy/compose.yaml`.
@@ -717,8 +718,8 @@ the front door (the wiki table, the Forgejo tokens, the drafts folder) in
 `GITQUIRE_WIKIS` off and, on Forgejo, with `GITQUIRE_HOST_REPO_TOKEN` again. It also takes
 `--dry-run`, and an interrupted run is finished by running it again.
 
-A volume that holds several wikis (`server/wikis.json`) or an unfinished move is refused when the
-container starts with `GITQUIRE_WIKIS` off, before anything is written to it.
+A volume that holds several wikis (`server/wikis.json` without `.git`) or an unfinished move is
+refused when the container starts with `GITQUIRE_WIKIS` off, before anything is written to it.
 
 ### Known limits
 
