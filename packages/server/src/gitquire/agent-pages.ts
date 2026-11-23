@@ -83,8 +83,8 @@ export function createAgentPages(deps: AgentPagesDeps) {
       ? deps.store.list().filter((record) => record.owner.id !== user.id)
       : [];
     const connectorHelp = deps.connectorsEnabled
-      ? `<h2>Claude on the web and on your phone</h2><p>In Claude's settings, add a custom connector with this address, then sign in with ${hostNames().label} when asked:</p><pre>${escapeHtml(mcpUrl(deps.config.externalUrl))}</pre><p class="muted">Connectors you authorize show up in the list above, and you can revoke them here.</p>`
-      : '';
+      ? `<h2>Claude on the web and on your phone</h2><p>In Claude's settings, add a custom connector with this address, then sign in with ${hostNames().label} when asked:</p><pre>${escapeHtml(mcpUrl(deps.config.externalUrl))}</pre><p class="muted">No token is needed there: leave the request headers empty. Connectors you authorize show up in the list above, and you can revoke them here.</p>`
+      : `<h2>Claude on the web and on your phone</h2><p class="muted">Not turned on for this server, and an agent token does not work there: Claude's connectors sign in on their own. ${isAdmin(user) ? 'To turn them on, set <code>GITQUIRE_MCP_CONNECTORS=on</code> and restart GitQuire.' : 'An administrator of this server can turn them on.'}</p>`;
     const adminSection = isAdmin(user)
       ? `<h2>Everyone's agent access</h2><p class="muted">You are an admin, so you can revoke anyone's tokens.</p>${table(others, true, 'Nobody else has agent access.')}`
       : '';
