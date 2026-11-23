@@ -19,7 +19,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddableRepo, BotAccess, DoorHost, HostRepo, RepoAccess } from '../host/types.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
+import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
 import { createMentionCounts } from './mention-counts.ts';
+import type { ForgejoTokenChecks } from './server.ts';
 import { createFrontDoor, type FrontDoor } from './server.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import { createWikiProcesses, type WikiProcesses } from './wiki-processes.ts';
@@ -53,10 +55,34 @@ server.listen(socket);
 process.on('SIGTERM', () => { server.closeAllConnections(); server.close(() => process.exit(0)); });
 `;
 
-const repoA = { host: 'github' as const, id: 1, owner: 'team', ownerId: 7, name: 'a' };
-const repoB = { host: 'github' as const, id: 2, owner: 'team', ownerId: 7, name: 'b' };
-const repoC = { host: 'github' as const, id: 3, owner: 'team', ownerId: 7, name: 'c' };
-const repoD = { host: 'github' as const, id: 4, owner: 'other', ownerId: 9, name: 'd' };
+const baseA = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 1,
+  owner: 'team',
+  ownerId: 7,
+  name: 'a',
+};
+const baseB = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 2,
+  owner: 'team',
+  ownerId: 7,
+  name: 'b',
+};
+const baseC = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 3,
+  owner: 'team',
+  ownerId: 7,
+  name: 'c',
+};
+const baseD = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 4,
+  owner: 'other',
+  ownerId: 9,
+  name: 'd',
+};
 
 const people: Record<string, { id: number; login: string; name: string; avatarUrl: string }> = {
   'token-alice': { id: 11, login: 'alice', name: 'Alice', avatarUrl: '' },
@@ -69,6 +95,7 @@ afterEach(async () => {
 });
 
 interface Rig {
+  kind: 'github' | 'forgejo';
   base: string;
   data: string;
   door: FrontDoor;
@@ -97,6 +124,11 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
   };
   const bot: Rig['bot'] = { answer: undefined };
   const gone = new Set<number>();
+  const kind = options.host ?? 'github';
+  const [repoA, repoB, repoC, repoD] = [baseA, baseB, baseC, baseD].map((repo) => ({
+    ...repo,
+    host: kind,
+  })) as [typeof baseA, typeof baseB, typeof baseC, typeof baseD];
   const host: DoorHost = {
     authorizeUrl: ({ state }) => `https://host.example/authorize?state=${state}`,
     exchangeCode: async ({ code }) => `token-${code}`,
@@ -152,9 +184,8 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
     externalUrl: settings.externalUrl,
     env: { PATH: process.env.PATH, GITHUB_APP_PRIVATE_KEY: 'key' },
     cli: [process.execPath, script],
-    host,
+    hostOf: () => ({ host, owners }),
     table,
-    owners,
     tokenSocket: () => '/tmp/none.sock',
     log: silentLog,
     bootstrap: async () => {},
@@ -162,31 +193,38 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
   });
   cleanup.push(() => processes.stopAll());
   const saved: Record<string, string> = {};
+  const forgejoTokens: ForgejoTokenChecks | undefined =
+    options.host === 'forgejo'
+      ? {
+          check: async (_repo: HostRepo, token: string) =>
+            token === 'good' ? 'ok' : 'refused:token',
+          save: (key, token) => {
+            saved[key] = token;
+          },
+          forget: (key) => {
+            delete saved[key];
+          },
+          isBotToken: (token) => token === 'bot',
+        }
+      : undefined;
+  const hosts = hostsForTest(
+    entryForTest({
+      settings: hostSettingsForTest(settings),
+      host,
+      access,
+      owners,
+      ...(forgejoTokens === undefined ? {} : { forgejoTokens }),
+      addWikiHelp: async () =>
+        options.host === 'forgejo'
+          ? { botLogin: 'gq-bot' }
+          : { installUrl: 'https://github.com/apps/gq/installations/new' },
+    }),
+  );
   const door = createFrontDoor({
     settings,
-    host,
+    hosts,
     table,
-    owners,
-    access,
     processes,
-    forgejoTokens:
-      options.host === 'forgejo'
-        ? {
-            check: async (_repo: HostRepo, token: string) =>
-              token === 'good' ? 'ok' : 'refused:token',
-            save: (key, token) => {
-              saved[key] = token;
-            },
-            forget: (key) => {
-              delete saved[key];
-            },
-            isBotToken: (token) => token === 'bot',
-          }
-        : undefined,
-    addWikiHelp: async () =>
-      options.host === 'forgejo'
-        ? { botLogin: 'gq-bot' }
-        : { installUrl: 'https://github.com/apps/gq/installations/new' },
     mentionCounts: createMentionCounts(data, now),
     log: silentLog,
     now,
@@ -207,6 +245,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
   const port = typeof address === 'object' && address !== null ? address.port : 0;
   settings.externalUrl = new URL(`http://127.0.0.1:${port}`);
   return {
+    kind,
     base: `http://127.0.0.1:${port}`,
     data,
     door,
@@ -266,14 +305,15 @@ function cookiesOf(response: Answer): string[] {
   return response.headers.getSetCookie().map((line) => line.split(';')[0] ?? '');
 }
 
-async function signIn(r: Rig, who: string, path = '/auth/github/login?next=%2F'): Promise<string> {
+async function signIn(r: Rig, who: string, given?: string): Promise<string> {
+  const path = given ?? `/auth/${r.kind}/login?next=%2F`;
   const first = path.includes('add-wiki') ? await signIn(r, who) : '';
   const start = await httpFetch(`${r.base}${path}`, {
     redirect: 'manual',
     headers: { cookie: first },
   });
   const state = cookiesOf(start).find((c) => c.startsWith('gq_oauth_state='));
-  const back = await httpFetch(`${r.base}/auth/github/callback?code=${who}&state=state-1`, {
+  const back = await httpFetch(`${r.base}/auth/${r.kind}/callback?code=${who}&state=state-1`, {
     redirect: 'manual',
     headers: { cookie: state ?? '' },
   });
@@ -846,15 +886,22 @@ describe('mention counts across wikis', () => {
 });
 
 describe('front door on Forgejo', () => {
+  it('names the person by the host it holds, not by the process-wide host (S9)', async () => {
+    const r = await rig({ host: 'forgejo' });
+    const alice = await signIn(r, 'alice');
+    const me = await (await get(r, '/auth/me', alice)).json();
+    expect(me).toMatchObject({ login: 'alice', principalId: 'forgejo-11' });
+  });
+
   it('explains on Add a wiki that the bot must be repo admin and a server administrator enters the token', async () => {
     const r = await rig({ host: 'forgejo' });
-    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const alice = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const page = await (await get(r, '/add-wiki', alice, { accept: 'text/html' })).text();
     expect(page).toContain('<strong>@gq-bot</strong>');
     expect(page).toContain('make that account an administrator of the repository');
     expect(page).toContain('a server administrator signs in to');
     expect(page).toContain('<input type="password" name="token"');
-    const bob = await signIn(r, 'bob', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const bob = await signIn(r, 'bob', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const his = await (await get(r, '/add-wiki', bob, { accept: 'text/html' })).text();
     expect(his).toContain('A server administrator can add it.');
     expect(his).toContain('only server administrators add wikis');
@@ -870,11 +917,11 @@ describe('front door on Forgejo', () => {
     expect((await form(alice, { id: '3', token: 'good' })).headers.get('location')).toBe(
       '/w/team/c/',
     );
-    r.table.disconnect('github-1', 'token');
+    r.table.disconnect('forgejo-1', 'token');
     const home = await (await get(r, '/', alice, { accept: 'text/html' })).text();
     expect(home).toContain('action="/add-wiki/token"');
-    const asBob = await form(bob, { key: 'github-1', token: 'good' }, '/add-wiki/token');
-    const unknownAsBob = await form(bob, { key: 'github-99', token: 'good' }, '/add-wiki/token');
+    const asBob = await form(bob, { key: 'forgejo-1', token: 'good' }, '/add-wiki/token');
+    const unknownAsBob = await form(bob, { key: 'forgejo-99', token: 'good' }, '/add-wiki/token');
     expect(asBob.status).toBe(404);
     expect(await asBob.text()).toBe(await unknownAsBob.text());
     const put = (key: string) =>
@@ -883,16 +930,16 @@ describe('front door on Forgejo', () => {
         headers: { cookie: bob, origin: r.base, 'content-type': 'application/json' },
         body: JSON.stringify({ token: 'good' }),
       });
-    const known = await put('github-1');
-    const unknown = await put('github-99');
+    const known = await put('forgejo-1');
+    const unknown = await put('forgejo-99');
     expect([known.status, await known.text()]).toEqual([unknown.status, await unknown.text()]);
-    const saved = await form(alice, { key: 'github-1', token: 'good' }, '/add-wiki/token');
+    const saved = await form(alice, { key: 'forgejo-1', token: 'good' }, '/add-wiki/token');
     expect(saved.status).toBe(303);
   });
 
   it('keeps the list of repositories 30 minutes, then carries the entered token through a new sign-in', async () => {
     const r = await rig({ host: 'forgejo' });
-    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const alice = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const page = await (await get(r, '/add-wiki', alice, { accept: 'text/html' })).text();
     expect(page).toContain('GitQuire keeps this list for 30 minutes');
     r.advance(29 * 60 * 1000);
@@ -910,12 +957,12 @@ describe('front door on Forgejo', () => {
       body: new URLSearchParams({ id: '3', token: 'good' }).toString(),
     });
     expect(sent.status).toBe(302);
-    expect(sent.headers.get('location')).toBe('/auth/github/add-wiki?next=%2Fadd-wiki');
-    expect(r.table.byKey('github-3')).toBeUndefined();
+    expect(sent.headers.get('location')).toBe('/auth/forgejo/add-wiki?next=%2Fadd-wiki');
+    expect(r.table.byKey('forgejo-3')).toBeUndefined();
 
-    const again = await get(r, '/auth/github/add-wiki?next=%2Fadd-wiki', alice);
+    const again = await get(r, '/auth/forgejo/add-wiki?next=%2Fadd-wiki', alice);
     const state = cookiesOf(again).find((c) => c.startsWith('gq_oauth_state='));
-    const back = await httpFetch(`${r.base}/auth/github/callback?code=alice&state=state-1`, {
+    const back = await httpFetch(`${r.base}/auth/forgejo/callback?code=alice&state=state-1`, {
       redirect: 'manual',
       headers: { cookie: state ?? '' },
     });
@@ -924,17 +971,17 @@ describe('front door on Forgejo', () => {
     const done = await get(r, '/add-wiki', fresh, { accept: 'text/html' });
     expect(done.status).toBe(303);
     expect(done.headers.get('location')).toBe('/w/team/c/');
-    expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
+    expect(r.table.byKey('forgejo-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
     const after = await (await get(r, '/add-wiki', fresh, { accept: 'text/html' })).text();
     expect(after).not.toContain('role="status"');
   });
 
   it('says why it asked the host again when the list had expired', async () => {
     const r = await rig({ host: 'forgejo' });
-    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const alice = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     r.advance(31 * 60 * 1000);
     expect((await get(r, '/add-wiki', alice, { accept: 'text/html' })).status).toBe(302);
-    const fresh = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const fresh = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const page = await (await get(r, '/add-wiki', fresh, { accept: 'text/html' })).text();
     expect(page).toContain('again for your repositories: the list is kept for 30 minutes.');
     expect(page).not.toContain('carried over');
@@ -942,7 +989,7 @@ describe('front door on Forgejo', () => {
 
   it('lets only a server administrator add a wiki, with a token that works for the repository (F10)', async () => {
     const r = await rig({ host: 'forgejo' });
-    const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2F');
+    const session = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2F');
     const post = (body: unknown) =>
       httpFetch(`${r.base}/api/front-door/wikis`, {
         method: 'POST',
@@ -955,7 +1002,7 @@ describe('front door on Forgejo', () => {
       error: 'token-refused',
     });
     expect((await post({ id: 3, token: 'good' })).status).toBe(201);
-    const bob = await signIn(r, 'bob', '/auth/github/add-wiki?next=%2F');
+    const bob = await signIn(r, 'bob', '/auth/forgejo/add-wiki?next=%2F');
     const answer = (await (await get(r, '/api/front-door/addable', bob)).json()) as {
       canAdd: boolean;
     };

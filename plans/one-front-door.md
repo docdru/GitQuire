@@ -91,3 +91,10 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 - A single wiki (`GITQUIRE_WIKIS` off) refuses `GITQUIRE_HOSTS`, so nobody believes a second host is active when it is not.
 - Not yet used: B1 only reads and checks the list; the front door still uses the first host until B2–B4.
 
+### B2 (front door without the process-wide host)
+
+- The front door holds one entry per host (`front-door/door-hosts.ts`) and no longer calls `setHostNames`. Code shared with the single wiki (`oauth-server.ts`, `agent-pages.ts`, `mentions.ts`) takes the label, sign-in path and own person id as optional arguments and keeps the process-wide value when called without them, so a single wiki is unchanged.
+- A record without `hostKey` belongs to the host keyed by its kind; one with `hostKey` to that host. If no host with that key and the record's kind is configured (a host taken out of the settings), the wiki is closed for everybody and answers like an unknown address.
+- Editor processes stay one-host; a process for a further host is told its host through its environment (`GITQUIRE_HOST`, addresses, admins, e-mail format, `GITQUIRE_HOST_KEY`, `GITQUIRE_HOST_LABEL`).
+- Allowed-owner pins of further hosts are kept in `wikis.json` under `hostOwners`; the first host's stay under `owners`, so a one-host table file is written exactly as before.
+

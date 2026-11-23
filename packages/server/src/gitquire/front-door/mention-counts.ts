@@ -17,7 +17,7 @@ interface ScannedValue {
 }
 
 export interface MentionCounts {
-  unread: (reader: MentionReader, wiki: WikiRecord) => number;
+  unread: (reader: MentionReader, wiki: WikiRecord, selfId: string) => number;
 }
 
 function factsOrNone(path: string, markdown: string): PageFacts | undefined {
@@ -56,7 +56,7 @@ export function createMentionCounts(dataDir: string, now: () => number = Date.no
   }
 
   return {
-    unread: (reader, wiki) => {
+    unread: (reader, wiki, selfId) => {
       const dir = wikiDir(dataDir, wiki);
       const pages = scanOf(wiki).all();
       const comments = pages.flatMap((page) => page.value.mentions);
@@ -67,7 +67,7 @@ export function createMentionCounts(dataDir: string, now: () => number = Date.no
         ),
       );
       const read = createMentionReadStore(mentionStatePath(dir)).readIds(reader.id);
-      return buildInbox(reader, [...comments, ...tasks], read).unread;
+      return buildInbox(reader, [...comments, ...tasks], read, selfId).unread;
     },
   };
 }

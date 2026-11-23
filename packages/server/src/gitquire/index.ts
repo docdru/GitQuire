@@ -21,6 +21,7 @@ import {
   type LiveServerHandle,
 } from './drafts/setup.ts';
 import { createForgejoPullsClient } from './forgejo-pulls.ts';
+import { furtherHostKeys } from './front-door/hosts.ts';
 import {
   type CheckPushPermissionFn,
   createGitHubAppClient,
@@ -37,7 +38,6 @@ import {
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient, type GitHubDraftsClient } from './github-pulls.ts';
 import { checkDataFolderHost } from './host/data-folder.ts';
-import { furtherHostKeys } from './front-door/hosts.ts';
 import { createForgejoDoorHost } from './host/forgejo.ts';
 import {
   createForgejoRepoClient,
