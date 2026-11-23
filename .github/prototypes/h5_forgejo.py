@@ -494,8 +494,8 @@ def wikis_mcp(alice, dave):
     other.start()
     status, refused = other.call("exec", {"wiki": "team/beta", "command": "ls"})
     check("Wikis MCP", isinstance(refused, dict) and refused.get("isError") is True
-          and "do not have write access" in result_text(refused),
-          f"dave's agent is refused for beta -> {result_text(refused)}")
+          and 'There is no wiki called "team/beta"' in result_text(refused),
+          f"dave's agent is refused for beta like an unknown name -> {result_text(refused)}")
     status, alone = other.call("exec", {"command": "cat README.md"})
     check("Wikis MCP", isinstance(alone, dict) and not alone.get("isError")
           and "# alpha" in result_text(alone),

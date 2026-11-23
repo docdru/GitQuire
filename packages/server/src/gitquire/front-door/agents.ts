@@ -24,7 +24,7 @@ export interface DoorAgentsDeps {
     | 'mcpConnectors'
   >;
   table: Pick<WikiTable, 'list' | 'byAddress'>;
-  access: Pick<WikiAccess, 'decide'>;
+  access: Pick<WikiAccess, 'decide' | 'wasAdmin'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   log: GateLogger;
@@ -102,6 +102,8 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
     table,
     access,
     processes: deps.processes,
+    seesWhy: (person, wiki) =>
+      access.wasAdmin(person, wiki) || settings.serverAdmins.has(person.login.toLowerCase()),
     log,
     now: deps.now,
   });
