@@ -1,7 +1,7 @@
 import { useLingui } from '@lingui/react/macro';
 import type { Editor } from '@tiptap/react';
 import { AtSign, Bell, ListChecks, MessageSquarePlus, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -229,11 +229,13 @@ function mentionElement(target: EventTarget | null): HTMLElement | null {
 export function PageMentionLayer({ editor, docName }: { editor: Editor; docName: string }) {
   const [opened, setOpened] = useState<Opened | null>(null);
   const openedRef = useRef<Opened | null>(null);
-  openedRef.current = opened;
   const { people } = usePeople();
   const known = knownLogins(people);
   const knownRef = useRef(known);
-  knownRef.current = known;
+  useLayoutEffect(() => {
+    openedRef.current = opened;
+    knownRef.current = known;
+  });
 
   useEffect(() => {
     const dom = editor.view.dom;
