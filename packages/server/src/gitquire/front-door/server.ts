@@ -1189,7 +1189,17 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       }
       const fallback = defaultWiki();
       if (fallback !== undefined && wantsHtml(req) && !path.startsWith('/api/')) {
-        redirect(res, `${wikiPrefix(fallback)}${rawPath}${search}`);
+        if (user === undefined) {
+          needSignIn(req, res, `${rawPath}${search}`);
+          return;
+        }
+        access
+          .decide(user, fallback)
+          .then((decision) => {
+            if (decision.open) redirect(res, `${wikiPrefix(fallback)}${rawPath}${search}`);
+            else notAWiki(req, res);
+          })
+          .catch(fail);
         return;
       }
     }

@@ -499,7 +499,7 @@ after 30 minutes without use, once it says it is pushed and clean. This is new o
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. `off` or empty: one wiki, exactly as before. Any other value stops the container. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
-| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it. `gitquire wikis adopt` moves this repository's single-wiki volume over. |
+| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it, after sign-in and only for people who can open it (others get the no-wiki page, so its name is never shown). `gitquire wikis adopt` moves this repository's single-wiki volume over. |
 | `GITQUIRE_ADMINS` | Server administrators. They see every disconnected wiki and why, can revoke anyone's agent tokens, and on Forgejo they are the only ones who add a wiki, because they enter its token. |
 
 Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET` (at least 32

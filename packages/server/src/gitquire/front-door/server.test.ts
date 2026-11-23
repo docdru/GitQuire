@@ -419,6 +419,19 @@ describe('front door', () => {
     expect((await get(r, '/_door/old-address.js', '')).status).toBe(200);
   });
 
+  it('sends old addresses to the default wiki only after sign-in, and only for people who can open it', async () => {
+    const anonymous = await get(r, '/docs/plan', '', { accept: 'text/html' });
+    expect(anonymous.status).toBe(302);
+    expect(anonymous.headers.get('location') ?? '').not.toContain('team/a');
+    expect(anonymous.headers.get('location')).toContain('/auth/github/');
+    r.levels.bob = { a: 'none', b: 'write' };
+    const bob = await signIn(r, 'bob');
+    const refused = await get(r, '/docs/plan', bob, { accept: 'text/html' });
+    expect(refused.status).toBe(404);
+    expect(refused.headers.get('location')).toBeNull();
+    expect(await refused.text()).not.toContain('team/a');
+  });
+
   it('redirects a renamed wiki to its new address only for people with access', async () => {
     const bob = await signIn(r, 'bob');
     r.table.rename('github-2', { owner: 'team', name: 'handbook' });
