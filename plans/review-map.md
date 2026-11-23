@@ -1,10 +1,12 @@
-# Review map for the `wikis-hosts` branch
+# Review map
 
-One page for reviewers: who owns what, the requirements in one line each, and the seams where a mistake leaks one wiki into another or loses work. Updated in the pull request that changes what it describes. The plan is `plans/wikis-and-hosts.md`.
+One page for reviewers: who owns what, the requirements in one line each, and the seams where a mistake leaks one wiki into another or loses work. Updated in the pull request that changes what it describes. Written for the `wikis-hosts` branch (plan `plans/wikis-and-hosts.md`, R1–R18, merged in #209); the `hosts-one-door` branch (plan `plans/one-front-door.md`, S1–S9) adds the section "One front door for several hosts" at the end.
 
 ## Switches
 
 `GITQUIRE_WIKIS` off and `GITQUIRE_HOST` unset must behave exactly as `main`. Any code path that runs with both off and differs from `main` is a finding.
+
+On `hosts-one-door`: a front door with one host (no `GITQUIRE_HOSTS`) must behave as `main` except that wiki addresses and names carry the host key (S8).
 
 ## Who owns what
 
@@ -112,3 +114,26 @@ Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they go
 ## Requirements in one line
 
 R1 nothing written into a repo not turned on · R2 one "who is this request", passed on every hop · R3 admin flag per wiki · R4 internal secret required behind the front door · R5 Unix sockets · R6 stop only when pushed and clean · R7 allowed-users and MCP token refused in several-wiki mode · R8 live connections re-checked on a timer · R9 agent tokens revoked only with no wiki left · R10 folders keyed by host and repo id · R11 uninstalled or bot removed means "disconnected", never deleted · R12 host credentials only in the front door · R13 one writer for agent tokens · R14 host unreachable (network, 5xx): inside stay, nobody new · R15 own token refused (401, 403): wiki disconnected · R16 host in every record and id, addresses looked up · R17 Forgejo version and bot admin checked at start · R18 only allowed owners' repos run as wikis, checked in the front door.
+
+## One front door for several hosts (`hosts-one-door`)
+
+Plan `plans/one-front-door.md`. Requirements in one line:
+
+| # | One line |
+| --- | --- |
+| S1 | Never match people across hosts (login or number) |
+| S2 | Admin and allowed-owner lists per host; unqualified ones are the first host's |
+| S3 | Not signed in on the wiki's host, or no access: the unknown-address answer |
+| S4 | A host's secrets only go to that host's address |
+| S5 | Sign-in state binds the callback to its host |
+| S6 | Two accounts fit in the cookie; one expiring leaves the other |
+| S7 | One host down leaves the other working |
+| S8 | One host: as `main`, except host in addresses and names |
+| S9 | No process-wide host names in the front door |
+
+Modules added or changed by the branch are listed here by the pull request that changes them.
+
+| Block | Module | Notes |
+| --- | --- | --- |
+
+| B0 | `.github/workflows/checks.yml`, `docker.yml`, `prototypes.yml`, `scripts/ci-plan.mjs`, `.github/ai-review.toml` | Pull requests against the branch and pushes to it run everything; a push publishes the `hosts-one-door` image; `forgejo-h5` on pushes. Removed in B9 |
