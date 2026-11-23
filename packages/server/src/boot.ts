@@ -51,6 +51,7 @@ import {
 } from './gitquire/legacy-data-folder.ts';
 import { listenOnUnixSocket, unixSocketFromEnv } from './gitquire/process-pool/socket-listener.ts';
 import { behindFrontDoorFromEnv } from './gitquire/request-person.ts';
+import { stopWikiAndDrafts } from './gitquire/stop-order.ts';
 import { createShellHeaderSetter } from './http/shell-csp.ts';
 import {
   attachCollabClientCounter,
@@ -803,18 +804,22 @@ async function bootServerInner(
           );
         }),
     );
-    await runStep(
-      'gitquire.stopChildren',
-      () => gitquireHttp.stopChildren(),
-      undefined,
-      behindFrontDoor ? timeLeftToStop() : NORMAL_CHILDREN_STOP_BUDGET_MS,
-    );
-    await runStep(
-      'destroyHocuspocus',
-      () => destroyHocuspocus(),
-      hocuspocus,
-      behindFrontDoor ? timeLeftToStop() : 0,
-    );
+    await stopWikiAndDrafts(behindFrontDoor, {
+      stopDrafts: () =>
+        runStep(
+          'gitquire.stopChildren',
+          () => gitquireHttp.stopChildren(),
+          undefined,
+          behindFrontDoor ? timeLeftToStop() : NORMAL_CHILDREN_STOP_BUDGET_MS,
+        ),
+      flushWiki: () =>
+        runStep(
+          'destroyHocuspocus',
+          () => destroyHocuspocus(),
+          hocuspocus,
+          behindFrontDoor ? timeLeftToStop() : 0,
+        ),
+    });
     await runStep('shutdownTelemetry', () => shutdownTelemetry());
     await runStep('teardownToleranceTelemetry', () => teardownToleranceTelemetryWriter());
     await runStep('flushLogFileSinks', () => loggerFactory.flushAllFileSinks());
