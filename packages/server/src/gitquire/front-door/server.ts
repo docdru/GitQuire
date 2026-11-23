@@ -771,19 +771,12 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     decision: Exclude<OpenDecision, { open: true }>,
   ): void {
     if (decision.why === 'unreachable') {
-      if (wantsHtml(req)) {
-        sendHtml(
-          res,
-          503,
-          'Try again in a moment',
-          `<p>${label} cannot be reached right now, so GitQuire cannot check your access. Try again in a moment.</p><p><a href="/">Your wikis</a></p>`,
-        );
-      } else {
-        sendJson(res, 503, { error: 'unreachable' });
-      }
-      return;
+      deps.log.info(
+        { wiki: wiki.key, login: user.login },
+        `[gitquire-door] ${label} cannot be reached to check a person's access; answered as no wiki`,
+      );
     }
-    if (decision.why === 'no-access' || !seesWhy(user, wiki)) {
+    if (decision.why !== 'disconnected' || !seesWhy(user, wiki)) {
       notAWiki(req, res);
       return;
     }
@@ -807,7 +800,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         res,
         404,
         'No wiki here',
-        `<p>There is no wiki at this address.</p><p>If it is a repository under an allowed owner that is not a wiki yet, one of its administrators can make it one at <a href="${ADD_WIKI_PAGE}">Add a wiki</a>.</p><p>${escapeHtml(sentence)}</p><p><a href="/">Your wikis</a></p>`,
+        `<p>There is no wiki at this address.</p><p>If it is a repository under an allowed owner that is not a wiki yet, one of its administrators can make it one at <a href="${ADD_WIKI_PAGE}">Add a wiki</a>.</p><p>${escapeHtml(sentence)}</p><p>If you expected a wiki here, ${escapeHtml(label)} may not be reachable right now; try again in a moment.</p><p><a href="/">Your wikis</a></p>`,
       );
     } else {
       sendJson(res, 404, { error: 'not-a-wiki', hosts: sentence });
@@ -1219,10 +1212,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     void (async () => {
       const decision = await access.decide(user, wiki);
       if (!decision.open) {
-        refuseUpgrade(
-          socket,
-          decision.why === 'unreachable' ? '503 Service Unavailable' : '404 Not Found',
-        );
+        refuseUpgrade(socket, '404 Not Found');
         return;
       }
       const target = await processes.ensure(wiki);

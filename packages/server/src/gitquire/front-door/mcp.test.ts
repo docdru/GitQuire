@@ -637,6 +637,17 @@ describe('agent tokens at the front door (R9)', () => {
     expect(r.agents.store.owners()).toEqual([]);
   });
 
+  it('answers like an unknown name while the host cannot confirm a person’s access', async () => {
+    const r = await rig();
+    const client = await connect(r, r.token('bob'));
+    r.bot.answer = 'unreachable';
+    r.advance(ACCESS_TTL_MS + 1);
+    const closed = await client.callTool({ name: 'read', arguments: { wiki: 'team/b' } });
+    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'team/zz' } });
+    expect(closed.isError).toBe(true);
+    expect(textOf(closed)).toBe(textOf(unknown).replace('team/zz', 'team/b'));
+  });
+
   it('answers allowed, unknown or denied for a person across all wikis', async () => {
     const r = await rig();
     expect(await r.agents.verdict(people.bob)).toBe('allowed');
