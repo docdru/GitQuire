@@ -167,7 +167,10 @@ export function refuseFrontDoorVolume(projectDir: string): void {
       `${projectDir} is in the middle of "${move}", which was interrupted. Run "${move}" again to finish it before starting GitQuire.`,
     );
   }
-  if (existsSync(join(projectDir, 'server', 'wikis.json'))) {
+  if (
+    !existsSync(join(projectDir, '.git')) &&
+    existsSync(join(projectDir, 'server', 'wikis.json'))
+  ) {
     throw new HostConfigError(
       `${projectDir} holds several wikis (server/wikis.json). Start it with GITQUIRE_WIKIS=on, or give this single wiki a volume of its own.`,
     );
