@@ -411,8 +411,13 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
     const slug = draft.slug;
     const who = identityOf(user);
     await saveAndPush(draft, who);
-    const result = await remote.publish(draft, draft.title, who);
+    const pullBefore = draft.pull;
+    const result = await remote.publish(draft, draft.title, who).catch((err: unknown) => {
+      if (draft.pull !== pullBefore) save(draft);
+      throw err;
+    });
     if (!result.ok) {
+      if (draft.pull !== pullBefore) save(draft);
       throw new DraftError(
         409,
         'conflict',
