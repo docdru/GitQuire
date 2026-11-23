@@ -1,4 +1,12 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { createServer, request, type Server } from 'node:http';
 import { connect } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -168,6 +176,9 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
               token === 'good' ? 'ok' : 'refused:token',
             save: (key, token) => {
               saved[key] = token;
+            },
+            forget: (key) => {
+              delete saved[key];
             },
             isBotToken: (token) => token === 'bot',
           }
@@ -691,6 +702,57 @@ describe('wiki list and Add a wiki pages', () => {
     expect(made.status).toBe(303);
     expect(made.headers.get('location')).toBe('/w/team/c/');
     expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
+  });
+
+  it('lets a server administrator remove a disconnected wiki, keeping its files, which frees its name', async () => {
+    const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    r.table.rename('github-1', { owner: 'team', name: 'c' });
+    r.gone.add(1);
+    expect((await postForm('/add-wiki', session, { id: '3' })).status).toBe(409);
+    mkdirSync(join(r.data, 'wikis', 'github-1'), { recursive: true });
+    writeFileSync(join(r.data, 'wikis', 'github-1', 'unpushed.md'), 'kept');
+
+    const list = await (await get(r, '/', session, { accept: 'text/html' })).text();
+    expect(list).toContain('Remove the wiki');
+    expect((await postForm('/add-wiki/remove', session, { key: 'github-1' })).status).toBe(400);
+    const removed = await postForm('/add-wiki/remove', session, {
+      key: 'github-1',
+      confirm: 'yes',
+    });
+    expect(removed.status).toBe(303);
+    expect(r.table.byKey('github-1')).toBeUndefined();
+    expect(existsSync(join(r.data, 'wikis', 'github-1'))).toBe(false);
+    const kept = readdirSync(join(r.data, 'wikis-removed'));
+    expect(kept).toHaveLength(1);
+    expect(kept[0]).toMatch(/^github-1-/);
+    expect(readFileSync(join(r.data, 'wikis-removed', kept[0] ?? '', 'unpushed.md'), 'utf8')).toBe(
+      'kept',
+    );
+
+    expect((await postForm('/add-wiki', session, { id: '3' })).status).toBe(303);
+    expect(r.table.byKey('github-3')).toMatchObject({ name: 'c', state: 'on' });
+  });
+
+  it('removes only disconnected wikis, and only for server administrators', async () => {
+    const alice = await signIn(r, 'alice');
+    const connected = await postForm('/add-wiki/remove', alice, {
+      key: 'github-1',
+      confirm: 'yes',
+    });
+    expect(connected.status).toBe(409);
+    expect(r.table.byKey('github-1')).toBeDefined();
+
+    r.table.disconnect('github-2', 'gone');
+    r.levels.bob = { a: 'admin', b: 'admin' };
+    const bob = await signIn(r, 'bob');
+    const asBob = await postForm('/add-wiki/remove', bob, { key: 'github-2', confirm: 'yes' });
+    const unknown = await postForm('/add-wiki/remove', bob, { key: 'github-99', confirm: 'yes' });
+    expect(asBob.status).toBe(404);
+    expect(await asBob.text()).toBe(await unknown.text());
+    expect(r.table.byKey('github-2')).toBeDefined();
+    expect(await (await get(r, '/', bob, { accept: 'text/html' })).text()).not.toContain(
+      'Remove the wiki',
+    );
   });
 
   it('adds a repository whose name a renamed wiki still has, once the host gives that wiki its new name', async () => {

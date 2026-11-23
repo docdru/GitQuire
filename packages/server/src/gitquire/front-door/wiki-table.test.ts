@@ -72,4 +72,16 @@ describe('wiki table', () => {
     expect(table.list()).toHaveLength(1);
     expect(table.add(repo, 'bob', 0).addedBy).toBe('alice');
   });
+
+  it('removes a record, freeing its name and former names', () => {
+    const file = tableFile();
+    const table = openWikiTable(file);
+    table.add(repo, 'alice', 0);
+    table.rename('github-41', { owner: 'team', name: 'new' });
+    expect(table.remove('github-41')?.key).toBe('github-41');
+    expect(table.byAddress('team', 'new')).toBeUndefined();
+    expect(table.byAddress('team', 'wiki')).toBeUndefined();
+    expect(table.remove('github-41')).toBeUndefined();
+    expect(openWikiTable(file).byKey('github-41')).toBeUndefined();
+  });
 });

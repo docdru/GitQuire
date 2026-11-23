@@ -137,6 +137,7 @@ export interface WikiProcesses {
   isRunning: (key: string) => boolean;
   sweep: () => Promise<void>;
   stopAll: () => Promise<void>;
+  retire: (key: string) => Promise<void>;
 }
 
 export interface WikiProcessesDeps {
@@ -375,6 +376,17 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
     stopAll: async () => {
       clearInterval(timer);
       await pool.stopAll();
+    },
+    retire: async (key) => {
+      if (pool.isRunning(key)) {
+        deps.log.info({ wiki: key }, '[gitquire-wikis] stopping a wiki process: removed');
+        await pool.stop(key);
+      }
+      secrets.delete(key);
+      bySocket.delete(pool.socketPath(key));
+      startedAs.delete(key);
+      lastUsed.delete(key);
+      holds.delete(key);
     },
   };
 }

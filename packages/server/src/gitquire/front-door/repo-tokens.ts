@@ -7,6 +7,7 @@ import type { WikiTable } from './wiki-table.ts';
 export interface RepoTokenStore extends ForgejoRepoTokens {
   has: (key: string) => boolean;
   set: (key: string, token: string) => void;
+  forget: (key: string) => void;
 }
 
 export function repoTokensFile(dataDir: string): string {
@@ -61,6 +62,11 @@ export function openRepoTokenStore(
       return key === undefined ? undefined : tokens[key];
     },
     has: (key) => tokens[key] !== undefined,
+    forget: (key) => {
+      if (tokens[key] === undefined) return;
+      delete tokens[key];
+      save();
+    },
     set: (key, token) => {
       tokens[key] = token;
       save();
