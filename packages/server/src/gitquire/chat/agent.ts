@@ -53,7 +53,22 @@ export function systemPrompt(options: {
   ].join('\n');
 }
 
-export function compactHistory(messages: readonly ChatMessage[]): ChatMessage[] {
+export function currentTurnStart(messages: readonly ChatMessage[]): number {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index]?.role === 'user') return index;
+  }
+  return 0;
+}
+
+export function compactHistory(
+  messages: readonly ChatMessage[],
+  turnStart = messages.length,
+): ChatMessage[] {
+  const earlier = compactEarlier(messages.slice(0, turnStart));
+  return [...earlier, ...messages.slice(turnStart)];
+}
+
+function compactEarlier(messages: readonly ChatMessage[]): ChatMessage[] {
   let toolMessagesSeen = 0;
   const out: ChatMessage[] = [];
   for (let index = messages.length - 1; index >= 0; index -= 1) {
@@ -124,6 +139,8 @@ export async function runChatTurn(options: {
     });
   };
 
+  const turnStart = currentTurnStart(chat.messages);
+  const earlier = compactHistory(chat.messages.slice(0, turnStart));
   for (let step = 0; step < maxSteps; step += 1) {
     if (signal?.aborted) return finish('aborted');
     let turn: Awaited<ReturnType<ChatProviders['turn']>>;
@@ -131,7 +148,7 @@ export async function runChatTurn(options: {
       turn = await options.providers.turn(chat.provider, options.apiKey, {
         model: chat.model,
         system: options.system,
-        messages: compactHistory(chat.messages),
+        messages: [...earlier, ...chat.messages.slice(turnStart)],
         tools: options.tools.specs,
         maxTokens: MAX_REPLY_TOKENS,
         signal,

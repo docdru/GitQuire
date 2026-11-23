@@ -639,3 +639,83 @@ describe('saving a chat as a page', () => {
     expect(() => normalizePagePath('a/b<c')).toThrow();
   });
 });
+
+describe('thinking blocks across tool steps', () => {
+  const thinkingStep = (id: string): ProviderTurn => ({
+    text: '',
+    toolCalls: [{ id, name: 'exec', input: { command: 'cat page.md' } }],
+    claudeContent: [
+      { type: 'thinking', thinking: `about ${id}`, signature: `sig-${id}` },
+      { type: 'tool_use', id, name: 'exec', input: { command: 'cat page.md' } },
+    ],
+    usage: { inputTokens: 1, outputTokens: 1 },
+    stopReason: 'tool_use',
+  });
+
+  it('sends everything before a thinking block unchanged in every step of one answer', async () => {
+    const chat = chatRecord();
+    const { providers, requests } = scriptedProviders([
+      thinkingStep('t1'),
+      thinkingStep('t2'),
+      thinkingStep('t3'),
+      {
+        text: 'Done.',
+        toolCalls: [],
+        usage: { inputTokens: 1, outputTokens: 1 },
+        stopReason: 'end',
+      },
+    ]);
+    const big = 'x'.repeat(OLD_TOOL_OUTPUT_CHARS + 500);
+    const tools: WikiTools = {
+      specs: [{ name: 'exec', description: 'Run', inputSchema: { type: 'object' } }],
+      async call() {
+        return { output: big, isError: false };
+      },
+      async close() {},
+    };
+    await runChatTurn({
+      chat,
+      apiKey: 'k',
+      providers,
+      tools,
+      system: 'sys',
+      emit: () => {},
+      persist: () => {},
+    });
+    expect(requests).toHaveLength(4);
+    const sent = requests.map((request) =>
+      toAnthropicMessages((request as { messages: ChatMessage[] }).messages),
+    );
+    for (let index = 1; index < sent.length; index += 1) {
+      const before = sent[index - 1] as unknown[];
+      expect((sent[index] as unknown[]).slice(0, before.length - 1)).toEqual(
+        before.slice(0, before.length - 1),
+      );
+    }
+    const last = (requests.at(-1) as { messages: ChatMessage[] }).messages;
+    for (const message of last) {
+      if (message.role === 'tool') expect(message.results[0]?.output).toBe(big);
+    }
+  });
+
+  it('leaves out thinking blocks of earlier answers, whose history may since be shortened', () => {
+    const withThinking = (text: string): ChatMessage => ({
+      role: 'assistant',
+      text,
+      toolCalls: [],
+      at: AT,
+      claudeContent: [
+        { type: 'thinking', thinking: 'hm', signature: 's' },
+        { type: 'text', text },
+      ],
+    });
+    const sent = toAnthropicMessages([
+      { role: 'user', text: 'First', at: AT },
+      withThinking('One.'),
+      { role: 'user', text: 'Second', at: AT },
+      withThinking('Two.'),
+    ]) as { role: string; content: { type: string }[] }[];
+    expect(sent[1]?.content.map((block) => block.type)).toEqual(['text']);
+    expect(sent[3]?.content.map((block) => block.type)).toEqual(['thinking', 'text']);
+  });
+});
