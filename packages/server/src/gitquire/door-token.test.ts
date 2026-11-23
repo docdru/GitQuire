@@ -18,12 +18,24 @@ describe('token from the front door', () => {
     ).toEqual({
       host: 'github',
       repo: { owner: 'team', name: 'wiki' },
+      repoId: undefined,
       branch: undefined,
       webUrl: 'https://github.com',
       apiUrl: 'https://api.github.com',
       gitHost: 'github.com',
       socket: '/s',
     });
+  });
+
+  it('reads the repository id the front door passes', () => {
+    expect(
+      resolveDoorSyncConfig({
+        GITQUIRE_BEHIND_FRONT_DOOR: 'on',
+        GITQUIRE_REPO: 'team/wiki',
+        GITQUIRE_REPO_ID: '42',
+        GITQUIRE_DOOR_TOKEN_SOCKET: '/s',
+      })?.repoId,
+    ).toBe(42);
   });
 
   it('reads the Forgejo addresses', () => {

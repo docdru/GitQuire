@@ -95,6 +95,7 @@ describe('wiki process environment (R12)', () => {
       GITQUIRE_ADMINS: 'alice',
       GITQUIRE_BEHIND_FRONT_DOOR: 'on',
       GITQUIRE_REPO: 'team/wiki',
+      GITQUIRE_REPO_ID: '5',
       GITQUIRE_EXTERNAL_URL: 'https://wiki.example.org/w/team/wiki',
       GITQUIRE_ALLOW_EXTERNAL: '1',
       GITQUIRE_BIND: '127.0.0.1',

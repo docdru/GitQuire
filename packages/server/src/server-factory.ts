@@ -404,6 +404,7 @@ function gitMoveKind(oldBranch: string | null, newBranch: string | null): GitMov
 }
 
 export interface ServerOptions {
+  extraSyncGitConfig?: () => Promise<string[]>;
   ingressPolicy?: IngressPolicy;
   port?: number;
   host?: string;
@@ -668,12 +669,17 @@ export function createServer(options: ServerOptions): ServerInstance {
     component: 'server-factory',
   });
   const declaredGitHubHosts = readDeclaredGitHubHosts(configHomedirOverride);
-  const resolveSyncCredentialConfig = createSyncCredentialConfigResolver({
+  const resolveBaseSyncCredentialConfig = createSyncCredentialConfigResolver({
     projectDir,
     tokenStore: options.tokenStore,
     localOpCliArgs,
     declaredGitHubHosts,
   });
+  const extraSyncGitConfig = options.extraSyncGitConfig;
+  const resolveSyncCredentialConfig =
+    extraSyncGitConfig === undefined
+      ? resolveBaseSyncCredentialConfig
+      : async () => [...(await resolveBaseSyncCredentialConfig()), ...(await extraSyncGitConfig())];
 
   const log = getLogger('server');
   noteRemovedWatcherSetting(process.env);
