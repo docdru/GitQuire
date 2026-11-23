@@ -155,7 +155,34 @@ describe('the host list', () => {
       { GITQUIRE_HOSTS: 'forgejo', GITQUIRE_HOST_FORGEJO_KIND: 'github' },
       /names the other kind of host/,
     ],
-    [{ GITQUIRE_HOSTS: 'a,a-api' }, /would share the variable GITQUIRE_HOST_A_API_URL/],
+    [{ GITQUIRE_HOSTS: 'a,a-api' }, /begins with "a-", the key of another host/],
+    [{ GITQUIRE_HOSTS: 'forgejo,forgejo-2' }, /begins with "forgejo-"/],
+    [{ GITQUIRE_HOSTS: 'github-lab' }, /begins with "github-"/],
+    [{ GITQUIRE_HOSTS: 'agents' }, /already uses \/auth\/agents/],
+    [
+      { GITQUIRE_HOST_FORGEJO_URL: 'https://code.example.org/?x=1' },
+      /plain address, without a user, query/,
+    ],
+    [
+      { GITQUIRE_HOST_FORGEJO_URL: 'https://u:p@code.example.org' },
+      /plain address, without a user, query/,
+    ],
+    [
+      { GITQUIRE_HOST_FORGEJO_API_URL: 'http://code.example.org/api/v1' },
+      /must start with https:\/\//,
+    ],
+    [
+      {
+        GITQUIRE_HOSTS: 'forgejo,lab',
+        GITQUIRE_HOST_LAB_KIND: 'github',
+        GITQUIRE_HOST_LAB_CLIENT_ID: 'x',
+        GITQUIRE_HOST_LAB_CLIENT_SECRET: 'y',
+        GITQUIRE_HOST_LAB_APP_ID: '1',
+        GITQUIRE_HOST_LAB_APP_PRIVATE_KEY: PEM,
+        GITQUIRE_HOST_LAB_ALLOWED_OWNERS: 'z',
+      },
+      /The hosts "github" and "lab" have the same address https:\/\/github.com/,
+    ],
   ])('refuses %j', (extra, message) => {
     expect(() => resolveFrontDoorSettings({ ...plusForgejo, ...extra }, '/data')).toThrow(message);
   });
@@ -187,6 +214,41 @@ describe('the host list', () => {
     expect(() =>
       resolveFrontDoorSettings({ ...plusForgejo, GITQUIRE_HOST_FORGEJO_LABEL: 'github' }, '/data'),
     ).toThrow(/Two hosts are labelled "github"/);
+  });
+
+  it('sends a GitHub Enterprise host its own API address, not github.com', () => {
+    const settings = resolveFrontDoorSettings(
+      {
+        ...plusForgejo,
+        GITQUIRE_HOSTS: 'forgejo,ghe',
+        GITQUIRE_HOST_GHE_KIND: 'github',
+        GITQUIRE_HOST_GHE_URL: 'https://ghe.example.org/',
+        GITQUIRE_HOST_GHE_CLIENT_ID: 'x',
+        GITQUIRE_HOST_GHE_CLIENT_SECRET: 'y',
+        GITQUIRE_HOST_GHE_APP_ID: '1',
+        GITQUIRE_HOST_GHE_APP_PRIVATE_KEY: PEM.replaceAll('\n', '\\n'),
+        GITQUIRE_HOST_GHE_ALLOWED_OWNERS: 'z',
+      },
+      '/data',
+    );
+    const ghe = hostByKey(settings.hosts, 'ghe');
+    expect(ghe?.webUrl).toBe('https://ghe.example.org');
+    expect(ghe?.apiUrl).toBe('https://ghe.example.org/api/v3');
+    expect(ghe?.githubApp?.privateKeyPem).toBe(PEM);
+  });
+
+  it('says which secret file it could not read', () => {
+    expect(() =>
+      resolveFrontDoorSettings(
+        {
+          ...plusForgejo,
+          GITQUIRE_HOST_FORGEJO_TOKEN: '',
+          GITQUIRE_HOST_FORGEJO_TOKEN_FILE: '/run/missing',
+        },
+        '/data',
+        read({}),
+      ),
+    ).toThrow('Could not read GITQUIRE_HOST_FORGEJO_TOKEN_FILE (/run/missing): ENOENT');
   });
 
   it('names variables and record keys by the host key', () => {

@@ -12,15 +12,15 @@ export class HostListError extends Error {
 }
 
 export interface HostSettings {
-  key: string;
-  kind: HostKind;
-  label: string;
-  primary: boolean;
-  webUrl: string;
-  apiUrl: string;
-  clientId: string;
-  clientSecret: string;
-  githubApp: { appId: string; privateKeyPem: string } | undefined;
+  readonly key: string;
+  readonly kind: HostKind;
+  readonly label: string;
+  readonly primary: boolean;
+  readonly webUrl: string;
+  readonly apiUrl: string;
+  readonly clientId: string;
+  readonly clientSecret: string;
+  readonly githubApp: { appId: string; privateKeyPem: string } | undefined;
   forgejoBotToken: string | undefined;
   allowedOwners: ReadonlySet<string>;
   serverAdmins: ReadonlySet<string>;
@@ -30,7 +30,25 @@ export interface HostSettings {
 export const HOST_KEY_RE = /^[a-z](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
 const KINDS: readonly HostKind[] = ['github', 'forgejo'];
 const KIND_LABEL: Record<HostKind, string> = { github: 'GitHub', forgejo: 'Forgejo' };
-const RESERVED_FIRST_SEGMENTS = new Set(['url', 'api', 'client', 'token', 'repo', 'key']);
+const FIRST_HOST_VARIABLES = [
+  'GITQUIRE_HOST_URL',
+  'GITQUIRE_HOST_API_URL',
+  'GITQUIRE_HOST_CLIENT_ID',
+  'GITQUIRE_HOST_CLIENT_SECRET',
+  'GITQUIRE_HOST_CLIENT_SECRET_FILE',
+  'GITQUIRE_HOST_TOKEN',
+  'GITQUIRE_HOST_TOKEN_FILE',
+  'GITQUIRE_HOST_REPO_TOKEN',
+  'GITQUIRE_HOST_REPO_TOKEN_FILE',
+  'GITQUIRE_HOST_KEY',
+  'GITQUIRE_HOST_LABEL',
+];
+const RESERVED_FIRST_SEGMENTS = new Set(
+  FIRST_HOST_VARIABLES.map((name) =>
+    (name.slice('GITQUIRE_HOST_'.length).split('_')[0] as string).toLowerCase(),
+  ),
+);
+const RESERVED_KEYS = new Set(['agents', 'logout', 'me', 'login', 'callback', 'add-wiki', 'w']);
 const SUFFIXES = [
   'KIND',
   'LABEL',
@@ -48,7 +66,8 @@ const SUFFIXES = [
   'ADMINS',
   'COMMIT_EMAIL_FORMAT',
 ] as const;
-type Suffix = (typeof SUFFIXES)[number];
+export type HostVariableSuffix = (typeof SUFFIXES)[number];
+type Suffix = HostVariableSuffix;
 
 export function hostKeyOf(record: { host: HostKind; hostKey?: string }): string {
   return record.hostKey ?? record.host;
@@ -93,7 +112,10 @@ function httpsBase(raw: string, name: string): string {
       `${name} must start with https://: GitQuire only sends a host's tokens over https.`,
     );
   }
-  return stripTrailingSlash(raw);
+  if (url.username !== '' || url.password !== '' || url.search !== '' || url.hash !== '') {
+    throw new HostListError(`${name} must be a plain address, without a user, query or #part.`);
+  }
+  return stripTrailingSlash(`${url.origin}${url.pathname}`);
 }
 
 export function furtherHostKeys(env: Env): string[] {
@@ -113,6 +135,11 @@ function checkKeys(primary: HostSettings, keys: readonly string[]): void {
         `"${key}" in GITQUIRE_HOSTS is not a host key: use lowercase letters, digits and dashes, starting with a letter, at most 32 characters.`,
       );
     }
+    if (RESERVED_KEYS.has(key)) {
+      throw new HostListError(
+        `"${key}" cannot be a host key: GitQuire already uses /auth/${key}. Choose another key.`,
+      );
+    }
     if (RESERVED_FIRST_SEGMENTS.has(key.split('-')[0] as string)) {
       throw new HostListError(
         `"${key}" cannot be a host key: its variables would be mistaken for the first host's (GITQUIRE_HOST_URL and the like). Choose another key.`,
@@ -126,6 +153,18 @@ function checkKeys(primary: HostSettings, keys: readonly string[]): void {
       );
     }
     seen.add(key);
+  }
+  const all = [primary.key, ...keys, ...KINDS];
+  for (const key of keys) {
+    const parts = key.split('-');
+    for (let end = 1; end < parts.length; end += 1) {
+      const head = parts.slice(0, end).join('-');
+      if (all.includes(head)) {
+        throw new HostListError(
+          `The host key "${key}" begins with "${head}-", the key of another host or a kind: people of the two hosts would get ids that start alike. Choose a key that does not.`,
+        );
+      }
+    }
   }
   const names = new Map<string, string>();
   for (const key of keys) {
@@ -194,20 +233,27 @@ function furtherHost(
   let forgejoBotToken: string | undefined;
   if (kind === 'github') {
     webUrl = httpsBase(nonEmpty(env[name('URL')]) ?? 'https://github.com', name('URL'));
-    apiUrl = httpsBase(nonEmpty(env[name('API_URL')]) ?? 'https://api.github.com', name('API_URL'));
+    const givenApi = nonEmpty(env[name('API_URL')]);
+    apiUrl =
+      givenApi !== undefined
+        ? httpsBase(givenApi, name('API_URL'))
+        : webUrl === 'https://github.com'
+          ? 'https://api.github.com'
+          : `${webUrl}/api/v3`;
     const appId = nonEmpty(env[name('APP_ID')]);
-    const pem = secret(
-      env,
-      name('APP_PRIVATE_KEY'),
-      readFile,
-      name('APP_PRIVATE_KEY_FILE'),
-      (text) => (text.trim() === '' ? undefined : text),
-    )?.replace(/\\n/g, '\n');
+    const inlinePem = nonEmpty(env[name('APP_PRIVATE_KEY')])?.replace(/\\n/g, '\n');
+    const pem =
+      inlinePem ??
+      secret(env, '', readFile, name('APP_PRIVATE_KEY_FILE'), (text) =>
+        text.trim() === '' ? undefined : text,
+      );
     if (appId === undefined) missing.push(name('APP_ID'));
-    if (pem === undefined) missing.push(name('APP_PRIVATE_KEY_FILE'));
+    if (pem === undefined) {
+      missing.push(`${name('APP_PRIVATE_KEY_FILE')} (or ${name('APP_PRIVATE_KEY')})`);
+    }
     if (pem !== undefined && !pem.includes('PRIVATE KEY-----')) {
       throw new HostListError(
-        `${name('APP_PRIVATE_KEY_FILE')} is not a PEM file. Download the key from the GitHub App's settings page.`,
+        `The private key of the GitHub host "${key}" is not a PEM file. Download it from the GitHub App's settings page.`,
       );
     }
     if (appId !== undefined && pem !== undefined) githubApp = { appId, privateKeyPem: pem };
@@ -279,7 +325,21 @@ export function hostList(
   const keys = furtherHostKeys(env);
   checkKeys(primary, keys);
   const labels = new Set([primary.label.toLowerCase()]);
-  return [primary, ...keys.map((key) => furtherHost(env, key, readFile, labels))];
+  const hosts = [primary, ...keys.map((key) => furtherHost(env, key, readFile, labels))];
+  const origins = new Map<string, string>();
+  for (const host of hosts) {
+    for (const address of [host.webUrl, host.apiUrl]) {
+      const origin = new URL(address).origin;
+      const other = origins.get(origin);
+      if (other !== undefined && other !== host.key) {
+        throw new HostListError(
+          `The hosts "${other}" and "${host.key}" have the same address ${origin}. Configure each Git server once.`,
+        );
+      }
+      origins.set(origin, host.key);
+    }
+  }
+  return hosts;
 }
 
 export function hostByKey(hosts: readonly HostSettings[], key: string): HostSettings | undefined {

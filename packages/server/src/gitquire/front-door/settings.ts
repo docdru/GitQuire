@@ -297,7 +297,7 @@ export function resolveFrontDoorSettings(
     apiUrl: addresses.api,
     defaultWiki,
     allowedOwners,
-    serverAdmins: loginSet(env.GITQUIRE_ADMINS),
+    serverAdmins: primary.serverAdmins,
     githubApp,
     forgejoBotToken,
     agentTokenDays,

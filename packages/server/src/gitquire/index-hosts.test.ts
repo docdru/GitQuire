@@ -7,11 +7,11 @@ afterEach(() => resetHostNames());
 describe('a single wiki and the host list', () => {
   it('refuses GITQUIRE_HOSTS, which only the front door reads', () => {
     expect(() => configureHostFromEnv({ GITQUIRE_HOSTS: 'forgejo' }, undefined)).toThrow(
-      /needs GITQUIRE_WIKIS=on/,
+      /adds Git hosts to the front door/,
     );
   });
 
   it('starts as before without it', () => {
-    expect(configureHostFromEnv({ GITQUIRE_HOSTS: ' ' }, undefined).kind).toBe('github');
+    expect(configureHostFromEnv({ GITQUIRE_HOSTS: ' , ' }, undefined).kind).toBe('github');
   });
 });

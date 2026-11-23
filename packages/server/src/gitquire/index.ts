@@ -37,6 +37,7 @@ import {
 import { resolveGitHubAuthConfig } from './github-auth-config.ts';
 import { createGitHubPullsClient, type GitHubDraftsClient } from './github-pulls.ts';
 import { checkDataFolderHost } from './host/data-folder.ts';
+import { furtherHostKeys } from './front-door/hosts.ts';
 import { createForgejoDoorHost } from './host/forgejo.ts';
 import {
   createForgejoRepoClient,
@@ -153,9 +154,9 @@ export { HostConfigError } from './host/names.ts';
 type Env = Readonly<Record<string, string | undefined>>;
 
 export function configureHostFromEnv(env: Env, projectDir: string | undefined): HostNames {
-  if (!behindFrontDoorFromEnv(env) && (env.GITQUIRE_HOSTS ?? '').trim() !== '') {
+  if (!behindFrontDoorFromEnv(env) && furtherHostKeys(env).length > 0) {
     throw new HostConfigError(
-      'GITQUIRE_HOSTS adds Git hosts to the front door and needs GITQUIRE_WIKIS=on. A single wiki has one host (GITQUIRE_HOST); remove GITQUIRE_HOSTS or turn GITQUIRE_WIKIS on.',
+      'GITQUIRE_HOSTS adds Git hosts to the front door (GITQUIRE_WIKIS=on). A single wiki has one host (GITQUIRE_HOST); remove GITQUIRE_HOSTS.',
     );
   }
   if (projectDir !== undefined && !behindFrontDoorFromEnv(env)) refuseFrontDoorVolume(projectDir);
