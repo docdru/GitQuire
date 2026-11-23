@@ -385,7 +385,7 @@ export function createGitHubDoorHost(
   }
 
   async function access(token: string, repo: HostRepo): Promise<RepoAccess> {
-    const { status, body } = await json(`${config.apiUrl}${repoPath(repo)}`, {
+    const { status, body } = await json(`${config.apiUrl}${repoAddress(repo)}`, {
       headers: apiHeaders(token),
     });
     if (status !== 200 || typeof body !== 'object' || body === null) return 'none';

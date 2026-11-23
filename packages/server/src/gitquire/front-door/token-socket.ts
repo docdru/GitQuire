@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { DOOR_TOKEN_PATH } from '../door-token.ts';
-import type { HostRepo } from '../host/types.ts';
+import type { HostRepoRef } from '../host/types.ts';
 import { pathOf, sendJson } from '../http-util.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
 
@@ -12,8 +12,8 @@ export const DOOR_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
 
 export interface TokenSocketDeps {
   wikiOfSecret: (secret: string) => string | undefined;
-  repoOf: (key: string) => HostRepo | undefined;
-  tokenFor: (repo: HostRepo) => Promise<string | undefined>;
+  repoOf: (key: string) => HostRepoRef | undefined;
+  tokenFor: (repo: HostRepoRef) => Promise<string | undefined>;
   log: GateLogger;
   now?: () => number;
 }

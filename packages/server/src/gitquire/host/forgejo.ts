@@ -7,6 +7,8 @@ import type {
   HostPerson,
   HostRepo,
   HostRepoRecord,
+  HostRepoRef,
+  Refusal,
   RepoAccess,
   RepoLookup,
   SelfCheck,
@@ -26,7 +28,7 @@ export interface ForgejoDoorConfig {
 }
 
 export interface ForgejoRepoTokens {
-  tokenFor: (repo: HostRepo) => string | undefined | Promise<string | undefined>;
+  tokenFor: (repo: HostRepoRef) => string | undefined | Promise<string | undefined>;
 }
 
 export interface ForgejoDoorDeps {
@@ -44,6 +46,12 @@ function sameRepo(a: HostRepo, b: HostRepo): boolean {
 
 function repoPath(repo: HostRepo): string {
   return `/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.name)}`;
+}
+
+function repoAddress(repo: HostRepoRef): string {
+  return repo.id === undefined
+    ? repoPath(repo)
+    : `/repositories/${encodeURIComponent(String(repo.id))}`;
 }
 
 export function forgejoMajorVersion(version: string): number | undefined {
@@ -133,14 +141,14 @@ export function createForgejoDoorHost(
     return permissions?.push === true ? 'write' : 'none';
   }
 
-  async function access(token: string, repo: HostRepo): Promise<RepoAccess> {
-    const { status, body } = await strictCall(repoPath(repo), token);
+  async function access(token: string, repo: HostRepoRef): Promise<RepoAccess> {
+    const { status, body } = await strictCall(repoAddress(repo), token);
     if (status !== 200 || typeof body !== 'object' || body === null) return 'none';
     return levelFrom((body as { permissions?: Record<string, unknown> }).permissions);
   }
 
-  async function botReachesRepo(repo: HostRepo, token: string): Promise<BotAccess> {
-    const answer = await call(repoPath(repo), token);
+  async function botReachesRepo(repo: HostRepoRef, token: string): Promise<BotAccess> {
+    const answer = await call(repoAddress(repo), token);
     if (answer.status === 'unreachable') return 'unreachable';
     if (answer.status === 200) return 'none';
     if (answer.status === 401) return 'refused:token';
@@ -148,11 +156,26 @@ export function createForgejoDoorHost(
     return 'unreachable';
   }
 
-  async function accessByBot(login: string, repo: HostRepo): Promise<BotAccess> {
+  async function currentName(
+    repo: HostRepoRef,
+    token: string,
+  ): Promise<HostRepo | `refused:${Refusal}` | 'unreachable'> {
+    if (repo.id === undefined) return repo;
+    const answer = await call(`/repositories/${encodeURIComponent(String(repo.id))}`, token);
+    if (answer.status === 'unreachable') return 'unreachable';
+    if (answer.status === 401) return 'refused:token';
+    if (answer.status === 403 || answer.status === 404) return 'refused:removed';
+    const found = answer.status === 200 ? forgejoRepoRecord(answer.body) : undefined;
+    return found === undefined ? 'unreachable' : { owner: found.owner, name: found.name };
+  }
+
+  async function accessByBot(login: string, repo: HostRepoRef): Promise<BotAccess> {
     const token = deps.botToken?.();
     if (token === undefined) return 'unreachable';
+    const named = await currentName(repo, token);
+    if (typeof named === 'string') return named;
     const answer = await call(
-      `${repoPath(repo)}/collaborators/${encodeURIComponent(login)}/permission`,
+      `${repoPath(named)}/collaborators/${encodeURIComponent(login)}/permission`,
       token,
     );
     if (answer.status === 'unreachable') return 'unreachable';
@@ -165,7 +188,7 @@ export function createForgejoDoorHost(
     return ADMIN_PERMISSIONS.has(permission) ? 'admin' : 'write';
   }
 
-  async function tokenFor(repo: HostRepo): Promise<string | undefined> {
+  async function tokenFor(repo: HostRepoRef): Promise<string | undefined> {
     if (deps.repoTokens === undefined) {
       return config.repo !== undefined && sameRepo(repo, config.repo)
         ? deps.repoToken?.()
@@ -198,10 +221,10 @@ export function createForgejoDoorHost(
     return found === undefined ? { state: 'unreachable' } : { state: 'found', repo: found };
   }
 
-  async function health(repo: HostRepo): Promise<HostHealth> {
+  async function health(repo: HostRepoRef): Promise<HostHealth> {
     const bot = deps.botToken?.();
     if (bot === undefined) return 'refused:token';
-    const byBot = await call(repoPath(repo), bot);
+    const byBot = await call(repoAddress(repo), bot);
     if (byBot.status === 'unreachable') return 'unreachable';
     if (byBot.status === 401) return 'refused:token';
     if (byBot.status === 403 || byBot.status === 404) return 'refused:removed';
@@ -209,7 +232,7 @@ export function createForgejoDoorHost(
     if (permissionsOf(byBot.body)?.admin !== true) return 'refused:not-admin';
     const limited = await tokenFor(repo);
     if (limited === undefined) return 'refused:token';
-    const byLimited = await call(repoPath(repo), limited);
+    const byLimited = await call(repoAddress(repo), limited);
     if (byLimited.status === 'unreachable') return 'unreachable';
     if (byLimited.status !== 200) return 'refused:token';
     return permissionsOf(byLimited.body)?.push === true ? 'ok' : 'refused:token';

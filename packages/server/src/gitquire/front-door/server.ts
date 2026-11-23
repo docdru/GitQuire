@@ -620,6 +620,25 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         },
       };
     }
+    const sameName = table.byAddress(repo.owner, repo.name);
+    if (sameName?.current === true) {
+      deps.log.warn(
+        {
+          repo: `${repo.owner}/${repo.name}`,
+          id: repo.id,
+          wiki: sameName.wiki.key,
+          by: user.login,
+        },
+        '[gitquire-door] Add a wiki refused a name an existing wiki still has',
+      );
+      return {
+        status: 409,
+        body: {
+          error: 'name-in-use',
+          message: `A wiki already has the name ${repo.owner}/${repo.name}; it was probably renamed on ${label} a moment ago. Try again in ten minutes, once GitQuire has noticed the new name.`,
+        },
+      };
+    }
     const key = wikiKey(repo);
     if (deps.forgejoTokens !== undefined) {
       if (!isServerAdmin(user)) {

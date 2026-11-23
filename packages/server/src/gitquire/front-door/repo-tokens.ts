@@ -1,7 +1,8 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { ForgejoRepoTokens } from '../host/forgejo.ts';
-import type { HostRepo } from '../host/types.ts';
+import type { HostKind, HostRepoRef } from '../host/types.ts';
+import type { WikiTable } from './wiki-table.ts';
 
 export interface RepoTokenStore extends ForgejoRepoTokens {
   has: (key: string) => boolean;
@@ -29,9 +30,20 @@ function load(file: string): Record<string, string> {
   return tokens;
 }
 
+export function repoTokenKey(
+  table: Pick<WikiTable, 'byId' | 'byAddress'>,
+  host: HostKind,
+): (repo: HostRepoRef) => string | undefined {
+  return (repo) => {
+    if (repo.id !== undefined) return table.byId(host, repo.id)?.key;
+    const match = table.byAddress(repo.owner, repo.name);
+    return match?.current === true ? match.wiki.key : undefined;
+  };
+}
+
 export function openRepoTokenStore(
   file: string,
-  keyOf: (repo: HostRepo) => string | undefined,
+  keyOf: (repo: HostRepoRef) => string | undefined,
 ): RepoTokenStore {
   const tokens = load(file);
 

@@ -113,6 +113,45 @@ describe('Forgejo door host', () => {
     expect(calls.every((call) => call.endsWith(' bot'))).toBe(true);
   });
 
+  it('goes by repository id where it has one, so a new repository under an old name is not asked', async () => {
+    const calls: string[] = [];
+    const renamed = { owner: 'team', name: 'old', id: 7 };
+    const host = createForgejoDoorHost(
+      { webUrl: 'https://git.example.org', apiUrl: API, repo: undefined },
+      {
+        botToken: () => 'bot',
+        repoTokens: { tokenFor: (asked) => (asked.id === 7 ? 'limited' : undefined) },
+        fetch: fetchFrom((path, token) => {
+          if (path === '/repositories/7') {
+            return {
+              status: 200,
+              body: {
+                id: 7,
+                name: 'new',
+                owner: { id: 1, login: 'team' },
+                permissions: token === 'person' ? { admin: true } : { admin: true, push: true },
+              },
+            };
+          }
+          if (path === '/repos/team/new/collaborators/bob/permission') {
+            return { status: 200, body: { permission: 'write' } };
+          }
+          if (path.startsWith('/repos/team/old')) {
+            return { status: 200, body: { permissions: { admin: true, push: true } } };
+          }
+          return { status: 404 };
+        }, calls),
+      },
+    );
+    expect(await host.access('person', renamed)).toBe('admin');
+    expect(await host.accessByBot('bob', renamed)).toBe('write');
+    expect(await host.health(renamed)).toBe('ok');
+    expect(calls.some((call) => call.includes('/repos/team/old'))).toBe(false);
+
+    const gone = door((path) => (path === '/repositories/7' ? { status: 404 } : { status: 200 }));
+    expect(await gone.accessByBot('bob', renamed)).toBe('refused:removed');
+  });
+
   it('hands out only the limited token, and only for its repository', async () => {
     const host = door(() => ({ status: 404 }));
     expect(await host.tokenFor({ owner: 'Team', name: 'Wiki' })).toBe('limited');

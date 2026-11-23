@@ -15,7 +15,7 @@ import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
 import { createMentionCounts } from './mention-counts.ts';
-import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
+import { openRepoTokenStore, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
 import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.ts';
 import {
   FrontDoorConfigError,
@@ -120,10 +120,7 @@ export async function startFrontDoor(
   const trial = new Map<string, string>();
   const store =
     settings.host === 'forgejo'
-      ? openRepoTokenStore(repoTokensFile(settings.dataDir), (repo) => {
-          const match = table.byAddress(repo.owner, repo.name);
-          return match?.current === true ? match.wiki.key : undefined;
-        })
+      ? openRepoTokenStore(repoTokensFile(settings.dataDir), repoTokenKey(table, settings.host))
       : undefined;
 
   const appJwt = (): string => {
