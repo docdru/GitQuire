@@ -311,6 +311,11 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
           persist: (record) => deps.history.save(user.id, record),
           now,
           signal: controller.signal,
+          onThinkingRejected: (detail) =>
+            deps.log.warn(
+              { login: user.login, provider, model, detail },
+              '[gitquire-chat] the provider rejected earlier thinking; answered without it',
+            ),
         });
         deps.log.info(
           {

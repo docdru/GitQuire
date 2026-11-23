@@ -719,3 +719,43 @@ describe('thinking blocks across tool steps', () => {
     expect(sent[3]?.content.map((block) => block.type)).toEqual(['thinking', 'text']);
   });
 });
+
+describe('thinking the provider rejected', () => {
+  it('keeps dropping it for the rest of the answer and reports it once per rejection', async () => {
+    const chat = chatRecord();
+    const step = (id: string, thinkingRejection?: string): ProviderTurn => ({
+      text: '',
+      toolCalls: [{ id, name: 'exec', input: { command: 'ls' } }],
+      usage: { inputTokens: 1, outputTokens: 1 },
+      stopReason: 'tool_use',
+      ...(thinkingRejection === undefined ? {} : { thinkingRejection }),
+    });
+    const { providers, requests } = scriptedProviders([
+      step('t1'),
+      step('t2', 'messages.3.content.0: bound to a different conversation'),
+      {
+        text: 'Done.',
+        toolCalls: [],
+        usage: { inputTokens: 1, outputTokens: 1 },
+        stopReason: 'end',
+      },
+    ]);
+    const reported: string[] = [];
+    await runChatTurn({
+      chat,
+      apiKey: 'k',
+      providers,
+      tools: fakeTools(),
+      system: 'sys',
+      emit: () => {},
+      persist: () => {},
+      onThinkingRejected: (detail) => reported.push(detail),
+    });
+    expect(
+      requests.map(
+        (request) => (request as { dropRejectedThinking: boolean }).dropRejectedThinking,
+      ),
+    ).toEqual([false, false, true]);
+    expect(reported).toEqual(['messages.3.content.0: bound to a different conversation']);
+  });
+});

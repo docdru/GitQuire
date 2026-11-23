@@ -374,3 +374,76 @@ describe('streamed answers', () => {
     ]);
   });
 });
+
+describe('thinking blocks the provider rejects', () => {
+  const rejection =
+    'messages.3.content.0: Invalid `signature` in `thinking` block. The block is bound to a different conversation. Remove the block, or set `thinking.block_binding.prefix_mismatch_behavior` to "drop_block".';
+  const answer = () =>
+    new Response(
+      JSON.stringify({
+        content: [{ type: 'text', text: 'ok' }],
+        usage: { input_tokens: 1, output_tokens: 1 },
+        stop_reason: 'end_turn',
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    );
+  const refusal = () =>
+    new Response(
+      JSON.stringify({
+        type: 'error',
+        error: { type: 'invalid_request_error', message: rejection },
+      }),
+      { status: 400, headers: { 'content-type': 'application/json' } },
+    );
+
+  function recording(responses: Array<() => Response>) {
+    const calls: Array<{ headers: Record<string, string>; body: Record<string, unknown> }> = [];
+    const providers = createChatProviders({
+      fetch: (async (_url: string, init: RequestInit) => {
+        calls.push({
+          headers: init.headers as Record<string, string>,
+          body: JSON.parse(String(init.body)),
+        });
+        return (responses[calls.length - 1] ?? answer)();
+      }) as unknown as typeof fetch,
+    });
+    return { providers, calls };
+  }
+
+  it('asks once more with the rejected blocks dropped, and says so', async () => {
+    const { providers, calls } = recording([refusal, answer]);
+    const turn = await providers.turn('claude', 'k', request);
+    expect(turn.text).toBe('ok');
+    expect(turn.thinkingRejection).toContain('messages.3.content.0');
+    expect(calls).toHaveLength(2);
+    expect(calls[0]?.body.thinking).toBeUndefined();
+    expect(calls[0]?.headers['anthropic-beta']).toBeUndefined();
+    expect(calls[1]?.headers['anthropic-beta']).toBe('thinking-binding-controls-2026-08-01');
+    expect(calls[1]?.body.thinking).toEqual({
+      type: 'adaptive',
+      block_binding: { prefix_mismatch_behavior: 'drop_block' },
+    });
+    expect(calls[1]?.body.messages).toEqual(calls[0]?.body.messages);
+  });
+
+  it('drops from the first request when asked to, and does not ask a third time', async () => {
+    const { providers, calls } = recording([refusal]);
+    await expect(
+      providers.turn('claude', 'k', { ...request, dropRejectedThinking: true }),
+    ).rejects.toMatchObject({ code: 'bad-request' });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.headers['anthropic-beta']).toBe('thinking-binding-controls-2026-08-01');
+  });
+
+  it('leaves other refusals alone', async () => {
+    const { providers, calls } = recording([
+      () =>
+        new Response(JSON.stringify({ error: { message: 'max_tokens: too large' } }), {
+          status: 400,
+          headers: { 'content-type': 'application/json' },
+        }),
+    ]);
+    await expect(providers.turn('claude', 'k', request)).rejects.toBeInstanceOf(ProviderError);
+    expect(calls).toHaveLength(1);
+  });
+});

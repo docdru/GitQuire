@@ -17,6 +17,7 @@ interface ProviderTurnRequest {
   signal?: AbortSignal;
   onText?: (delta: string) => void;
   onUnfinishedUsage?: (usage: ChatUsage) => void;
+  dropRejectedThinking?: boolean;
 }
 
 type StopReason = 'end' | 'tool_use' | 'max_tokens' | 'context_full' | 'other';
@@ -27,6 +28,7 @@ export interface ProviderTurn {
   usage: ChatUsage;
   stopReason: StopReason;
   claudeContent?: unknown[];
+  thinkingRejection?: string;
 }
 
 export type ProviderErrorCode =
@@ -65,7 +67,16 @@ const DEFAULT_ENDPOINTS: ProviderEndpoints = {
 };
 
 const ANTHROPIC_VERSION = '2023-06-01';
-const MAX_ERROR_DETAIL = 300;
+const THINKING_BINDING_BETA = 'thinking-binding-controls-2026-08-01';
+const MAX_ERROR_DETAIL = 600;
+
+function isThinkingRejection(err: unknown): err is ProviderError {
+  return (
+    err instanceof ProviderError &&
+    err.status === 400 &&
+    err.message.includes('bound to a different conversation')
+  );
+}
 
 function pageNote(page: string | undefined): string {
   return page === undefined ? '' : `[I am looking at the page "${page}".]\n\n`;
@@ -533,20 +544,50 @@ async function anthropicTurn(
     input_schema: tool.inputSchema,
     ...(index === request.tools.length - 1 ? { cache_control: { type: 'ephemeral' } } : {}),
   }));
-  const response = await post(
-    doFetch,
-    `${base}/v1/messages`,
-    { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-    {
-      model: request.model,
-      max_tokens: request.maxTokens,
-      stream: true,
-      system: [{ type: 'text', text: request.system, cache_control: { type: 'ephemeral' } }],
-      messages: withCacheBreakpoint(toAnthropicMessages(request.messages)),
-      ...(tools.length > 0 ? { tools } : {}),
-    },
-    request.signal,
-  );
+  const send = (dropRejectedThinking: boolean) =>
+    post(
+      doFetch,
+      `${base}/v1/messages`,
+      {
+        'x-api-key': apiKey,
+        'anthropic-version': ANTHROPIC_VERSION,
+        ...(dropRejectedThinking ? { 'anthropic-beta': THINKING_BINDING_BETA } : {}),
+      },
+      {
+        model: request.model,
+        max_tokens: request.maxTokens,
+        stream: true,
+        ...(dropRejectedThinking
+          ? {
+              thinking: {
+                type: 'adaptive',
+                block_binding: { prefix_mismatch_behavior: 'drop_block' },
+              },
+            }
+          : {}),
+        system: [{ type: 'text', text: request.system, cache_control: { type: 'ephemeral' } }],
+        messages: withCacheBreakpoint(toAnthropicMessages(request.messages)),
+        ...(tools.length > 0 ? { tools } : {}),
+      },
+      request.signal,
+    );
+  let thinkingRejection: string | undefined;
+  let response: Response;
+  try {
+    response = await send(request.dropRejectedThinking === true);
+  } catch (err) {
+    if (request.dropRejectedThinking === true || !isThinkingRejection(err)) throw err;
+    thinkingRejection = err.message;
+    response = await send(true);
+  }
+  const turn = await anthropicTurnFrom(response, request);
+  return thinkingRejection === undefined ? turn : { ...turn, thinkingRejection };
+}
+
+async function anthropicTurnFrom(
+  response: Response,
+  request: ProviderTurnRequest,
+): Promise<ProviderTurn> {
   if (isEventStream(response)) return anthropicFromStream(response, request);
   const record = ((await response.json().catch(() => undefined)) ?? {}) as Record<string, unknown>;
   const content = (Array.isArray(record.content) ? record.content : []) as Record<
