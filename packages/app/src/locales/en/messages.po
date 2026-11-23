@@ -5150,6 +5150,12 @@ msgstr "Open visual-editor find with replace controls expanded."
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 
+msgid "Opening the draft…"
+msgstr "Opening the draft…"
+
+msgid "Opening the live wiki…"
+msgstr "Opening the live wiki…"
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Opens a folder picker to choose where to clone the repository."
 

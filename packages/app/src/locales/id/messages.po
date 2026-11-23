@@ -5146,6 +5146,12 @@ msgstr "Membuka pencarian penyunting visual dengan kendali penggantian terbentan
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "Membuka, menelusuri, menerima, atau menutup saran pelengkapan CodeMirror."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Membuka pemilih folder untuk memilih tempat mengkloning repositorinya."
 

@@ -5150,6 +5150,12 @@ msgstr "打开可视化编辑器的查找，并展开替换控件。"
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "打开、浏览、接受或关闭 CodeMirror 的补全建议。"
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "打开文件夹选择器，选择把仓库克隆到哪里。"
 
