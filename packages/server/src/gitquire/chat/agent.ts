@@ -112,6 +112,7 @@ export async function runChatTurn(options: {
   now?: () => Date;
   signal?: AbortSignal;
   maxSteps?: number;
+  onThinkingRejected?: (detail: string) => void;
 }): Promise<ChatEvent & { type: 'done' }> {
   const { chat, emit, signal } = options;
   const now = options.now ?? (() => new Date());
@@ -141,6 +142,7 @@ export async function runChatTurn(options: {
 
   const turnStart = currentTurnStart(chat.messages);
   const earlier = compactHistory(chat.messages.slice(0, turnStart));
+  let dropRejectedThinking = false;
   for (let step = 0; step < maxSteps; step += 1) {
     if (signal?.aborted) return finish('aborted');
     let turn: Awaited<ReturnType<ChatProviders['turn']>>;
@@ -152,6 +154,7 @@ export async function runChatTurn(options: {
         tools: options.tools.specs,
         maxTokens: MAX_REPLY_TOKENS,
         signal,
+        dropRejectedThinking,
         onText: (delta) => emit({ type: 'text-delta', text: delta }),
         onUnfinishedUsage: (usage) => {
           if (usage.inputTokens === 0 && usage.outputTokens === 0) return;
@@ -169,6 +172,10 @@ export async function runChatTurn(options: {
       return finish('error');
     }
     countUsage(turn.usage);
+    if (turn.thinkingRejection !== undefined) {
+      dropRejectedThinking = true;
+      options.onThinkingRejected?.(turn.thinkingRejection);
+    }
     if (turn.text !== '') emit({ type: 'text', text: turn.text });
     append({
       role: 'assistant',
