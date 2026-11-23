@@ -74,7 +74,7 @@ export function ChatModelSelect({
     >
       <SelectTrigger
         size="sm"
-        className={cn('h-7 min-w-0 text-xs', className)}
+        className={cn('h-7 w-auto min-w-0 text-xs', className)}
         aria-label={t`Model`}
       >
         <SelectValue />
