@@ -477,8 +477,6 @@ def wikis_mcp(alice, dave):
         time.sleep(5)
     check("Wikis MCP", isinstance(author, dict) and author.get("email", "").startswith("alice@"),
           f"the agent's edit is committed with alice as author -> {author}")
-    status, history = agent.call("history", {"wiki": "team/alpha", "document": "agent-note", "limit": 3})
-    check("Wikis MCP", None, f"history of agent-note in GitQuire -> {result_text(history)[:600]}")
     status, missing = agent.call("exec", {"command": "ls"})
     check("Wikis MCP", isinstance(missing, dict) and missing.get("isError") is True
           and "team/alpha, team/beta" in result_text(missing),

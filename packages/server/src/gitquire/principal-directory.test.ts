@@ -1,8 +1,10 @@
 import type { IncomingMessage } from 'node:http';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { __resetContributorsForTests, recordContributor } from '../contributor-tracker.ts';
 import { resolveWriterFromOrigin } from '../persistence.ts';
 import {
   attributeEdit,
+  bindAgentConnection,
   commitAuthorEnv,
   type GitQuirePrincipal,
   principalIdForUser,
@@ -100,6 +102,14 @@ describe('commit authors', () => {
     attributeEdit(alice.id);
     attributeEdit(bob.id);
     expect(takeCommitAuthors()).toEqual([alice, bob]);
+  });
+
+  it("credits an agent's write to the person who connected it", () => {
+    bindAgentConnection('conn-1', alice);
+    recordContributor('plan', 'agent-conn-1', 'Claude');
+    recordContributor('notes', 'agent-unknown', 'Someone else');
+    __resetContributorsForTests();
+    expect(takeCommitAuthors()).toEqual([alice]);
   });
 
   it('puts authors back when a commit does not happen', () => {
