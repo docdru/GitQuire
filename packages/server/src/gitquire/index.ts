@@ -59,7 +59,7 @@ import {
   parseAutoSyncMode,
   runGitSync,
 } from './repo-bootstrap.ts';
-import { createRepoPin } from './repo-pin.ts';
+import { createRepoPin, type RepoPin } from './repo-pin.ts';
 import { behindFrontDoorFromEnv, type RequestPerson } from './request-person.ts';
 import { createGitQuireRoutes } from './routes.ts';
 import { setAdminResolver } from './settings-admin.ts';
@@ -289,7 +289,7 @@ export function doorSyncPinFromEnv(
   manager: InstallationTokenManager | undefined,
   projectDir: string,
   log: GateLogger,
-): (() => Promise<string[]>) | undefined {
+): RepoPin | undefined {
   const door = resolveDoorSyncConfig(env);
   if (door === undefined || door.repoId === undefined || manager === undefined) return undefined;
   return createRepoPin(
@@ -479,6 +479,7 @@ export function createGitQuireHttp(
     cli?: readonly string[];
     liveServer?: LiveServerHandle;
     ownPort?: () => number | undefined;
+    repoPin?: RepoPin;
   },
 ): GitQuireHttp {
   const repoSync = options.tokens === undefined ? undefined : repoSyncFromEnv(env);
@@ -505,6 +506,7 @@ export function createGitQuireHttp(
           cli: options.cli ?? [process.execPath, process.argv[1] ?? ''],
           initProject: initProjectWithCli(options.cli ?? [process.execPath, process.argv[1] ?? '']),
           liveServer: options.liveServer,
+          repoPin: options.repoPin,
         });
   if (!isDraftInstance(env))
     writeAgentsFile(env, options.contentDir ?? options.projectDir, options.log);
