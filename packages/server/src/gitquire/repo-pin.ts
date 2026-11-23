@@ -47,9 +47,32 @@ function renamedUrl(origin: string, from: HostRepo, to: HostRepo): string | unde
   return `${origin.slice(0, origin.length - suffix.length)}/${to.owner}/${to.name}.git`;
 }
 
-export function createRepoPin(config: RepoPinConfig, deps: RepoPinDeps): () => Promise<string[]> {
+export interface RepoPin {
+  refresh: () => Promise<string[]>;
+  current: () => string[];
+}
+
+export function withGitConfig(
+  env: Record<string, string>,
+  entries: readonly string[],
+): Record<string, string> {
+  if (entries.length === 0) return env;
+  const out = { ...env };
+  let count = Number(out.GIT_CONFIG_COUNT ?? '0');
+  for (const entry of entries) {
+    const at = entry.indexOf('=');
+    out[`GIT_CONFIG_KEY_${count}`] = entry.slice(0, at);
+    out[`GIT_CONFIG_VALUE_${count}`] = entry.slice(at + 1);
+    count += 1;
+  }
+  out.GIT_CONFIG_COUNT = String(count);
+  return out;
+}
+
+export function createRepoPin(config: RepoPinConfig, deps: RepoPinDeps): RepoPin {
   const doFetch = deps.fetch ?? fetch;
   let lastNote = '';
+  let last: string[] | undefined;
 
   function note(level: 'info' | 'warn', key: string, fields: object, message: string): void {
     if (lastNote === key) return;
@@ -57,7 +80,7 @@ export function createRepoPin(config: RepoPinConfig, deps: RepoPinDeps): () => P
     deps.log[level]({ ...fields, repoId: config.repoId }, message);
   }
 
-  return async () => {
+  async function check(): Promise<string[]> {
     const origin = config.originUrl();
     if (origin === undefined) return [];
     const token = deps.token();
@@ -110,5 +133,17 @@ export function createRepoPin(config: RepoPinConfig, deps: RepoPinDeps): () => P
       '[gitquire-sync] the repository was renamed; syncing with it under its new name until the front door restarts this wiki',
     );
     return [`url.${url}.insteadOf=${origin}`];
+  }
+
+  return {
+    refresh: async () => {
+      last = await check();
+      return last;
+    },
+    current: () => {
+      if (last !== undefined) return last;
+      const origin = config.originUrl();
+      return origin === undefined ? [] : blocked(origin, config.repoId);
+    },
   };
 }

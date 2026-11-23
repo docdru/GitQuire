@@ -52,6 +52,7 @@ export interface DraftServiceDeps {
   remote: DraftRemote;
   runGit: RunGit;
   authEnv: () => Env;
+  beforeRemote?: () => Promise<void>;
   baseBranch: () => Promise<string>;
   log: GateLogger;
   now?: () => Date;
@@ -316,6 +317,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
   }
 
   async function saveAndPush(draft: DraftRecord, who: GitIdentity): Promise<void> {
+    await deps.beforeRemote?.();
     const dir = instances.dir(draft.slug);
     if (!existsSync(join(dir, '.git'))) return;
     await instances.halt(draft.slug);
@@ -453,6 +455,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
     user: SessionUser,
     resolved?: Record<string, string>,
   ): Promise<UpdateResult> {
+    await deps.beforeRemote?.();
     return instances.exclusive(slug, async () => {
       const draft = requireOpen(slug);
       const dir = instances.dir(slug);
@@ -478,6 +481,7 @@ export function createDraftService(deps: DraftServiceDeps): DraftService {
     title: string,
   ): Promise<DraftRecord> {
     if (!isPagePath(path)) throw new DraftError(400, 'invalid-path', 'Choose a page.');
+    await deps.beforeRemote?.();
     const live = deps.projectDir;
     const mine = noreplyEmail(user).toLowerCase();
     const commits = commitsTouching(runGit, live, path);

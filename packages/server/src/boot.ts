@@ -318,6 +318,12 @@ async function bootServerInner(
     : 0;
   configureHostFromEnv(process.env, opts.projectDir ?? opts.contentDir);
   const gitHubAppTokens = await startGitHubAppTokensFromEnv(process.env, log);
+  const repoPin = doorSyncPinFromEnv(
+    process.env,
+    gitHubAppTokens,
+    opts.projectDir ?? opts.contentDir,
+    log,
+  );
   const accessGate = createAccessGateFromEnv(process.env, serverRuntime, log, {
     projectDir: opts.projectDir ?? opts.contentDir,
     tokens: gitHubAppTokens,
@@ -331,6 +337,7 @@ async function bootServerInner(
     tokens: gitHubAppTokens,
     log,
     ownPort: () => (boundPort > 0 ? boundPort : undefined),
+    repoPin,
   });
   if (
     serverRuntime.allowExternal &&
@@ -456,12 +463,7 @@ async function bootServerInner(
     lockKind,
     capabilities: opts.reactShellDistDir ? ['http', 'ws', 'ui'] : ['http', 'ws'],
     skipStateManifestCheck: opts.skipStateManifestCheck,
-    extraSyncGitConfig: doorSyncPinFromEnv(
-      process.env,
-      gitHubAppTokens,
-      opts.projectDir ?? opts.contentDir,
-      log,
-    ),
+    extraSyncGitConfig: repoPin?.refresh,
     detectGh: withGitHubAppToken(gitHubAppTokens, opts.detectGh),
     checkPushPermissionFn: withGitHubAppPushCheck(gitHubAppTokens),
     detectGhAccounts: opts.detectGhAccounts,
