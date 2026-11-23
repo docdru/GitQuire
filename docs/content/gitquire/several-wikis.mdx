@@ -15,7 +15,7 @@ copy of your volume first.
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. Off or empty: one wiki, as before. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. |
-| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it. |
+| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it, after sign-in and only for people who can open it. |
 | `GITQUIRE_ADMINS` | Server administrators. On Forgejo only they add wikis. |
 
 The sign-in settings, `GITQUIRE_SESSION_SECRET`, `GITQUIRE_EXTERNAL_URL` (the root address) and

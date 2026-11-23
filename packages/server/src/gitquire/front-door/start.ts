@@ -7,7 +7,7 @@ import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../
 import { createForgejoDoorHost, type ForgejoRepoTokens } from '../host/forgejo.ts';
 import { createGitHubDoorHost } from '../host/github.ts';
 import { hostNamesFromEnv, setHostNames } from '../host/names.ts';
-import type { DoorHost, HostPerson, HostRepo } from '../host/types.ts';
+import type { DoorHost, HostPerson, HostRepoRef } from '../host/types.ts';
 import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
@@ -36,8 +36,10 @@ interface RunningFrontDoor {
   stop: () => Promise<void>;
 }
 
-function nameKey(repo: HostRepo): string {
-  return `${repo.owner.toLowerCase()}/${repo.name.toLowerCase()}`;
+function trialKey(repo: HostRepoRef): string {
+  return repo.id === undefined
+    ? `name:${repo.owner.toLowerCase()}/${repo.name.toLowerCase()}`
+    : `id:${repo.id}`;
 }
 
 export function refuseSingleWikiVolume(dataDir: string): void {
@@ -128,7 +130,7 @@ export async function startFrontDoor(
     if (app === undefined) throw new Error('No GitHub App key.');
     return createAppJwt(app.appId, app.privateKeyPem, Date.now());
   };
-  const host = doorHostFor(settings, (repo) => trial.get(nameKey(repo)) ?? store?.tokenFor(repo));
+  const host = doorHostFor(settings, (repo) => trial.get(trialKey(repo)) ?? store?.tokenFor(repo));
   await checkHost(host, log);
 
   const later = { check: (_wiki: WikiRecord): void => {} };
@@ -186,12 +188,12 @@ export async function startFrontDoor(
       ? undefined
       : {
           check: async (repo, token) => {
-            trial.set(nameKey(repo), token);
+            trial.set(trialKey(repo), token);
             let health: Awaited<ReturnType<DoorHost['health']>>;
             try {
               health = await host.health(repo);
             } finally {
-              trial.delete(nameKey(repo));
+              trial.delete(trialKey(repo));
             }
             if (health !== 'ok') return health;
             const scope = await tokenScope(repo, token);

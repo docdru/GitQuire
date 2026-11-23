@@ -68,6 +68,7 @@ interface Rig {
   processes: WikiProcesses;
   levels: Record<string, Record<string, RepoAccess>>;
   bot: { answer: BotAccess | undefined };
+  gone: Set<number>;
   advance: (ms: number) => void;
 }
 
@@ -87,6 +88,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
     bob: { a: 'write', b: 'none' },
   };
   const bot: Rig['bot'] = { answer: undefined };
+  const gone = new Set<number>();
   const host: DoorHost = {
     authorizeUrl: ({ state }) => `https://host.example/authorize?state=${state}`,
     exchangeCode: async ({ code }) => `token-${code}`,
@@ -98,6 +100,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
       repos: [repoA, repoC, repoD] as AddableRepo[],
     }),
     repoById: async (id) => {
+      if (gone.has(id)) return { state: 'gone' };
       const found = [repoA, repoB, repoC, repoD].find((r) => r.id === id);
       return found === undefined ? { state: 'gone' } : { state: 'found', repo: found };
     },
@@ -199,6 +202,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
     table,
     processes,
     levels,
+    gone,
     bot,
     advance: (ms) => {
       time += ms;
@@ -415,6 +419,19 @@ describe('front door', () => {
     expect((await get(r, '/_door/old-address.js', '')).status).toBe(200);
   });
 
+  it('sends old addresses to the default wiki only after sign-in, and only for people who can open it', async () => {
+    const anonymous = await get(r, '/docs/plan', '', { accept: 'text/html' });
+    expect(anonymous.status).toBe(302);
+    expect(anonymous.headers.get('location') ?? '').not.toContain('team/a');
+    expect(anonymous.headers.get('location')).toContain('/auth/github/');
+    r.levels.bob = { a: 'none', b: 'write' };
+    const bob = await signIn(r, 'bob');
+    const refused = await get(r, '/docs/plan', bob, { accept: 'text/html' });
+    expect(refused.status).toBe(404);
+    expect(refused.headers.get('location')).toBeNull();
+    expect(await refused.text()).not.toContain('team/a');
+  });
+
   it('redirects a renamed wiki to its new address only for people with access', async () => {
     const bob = await signIn(r, 'bob');
     r.table.rename('github-2', { owner: 'team', name: 'handbook' });
@@ -587,6 +604,28 @@ describe('front door', () => {
   });
 });
 
+describe('a person whose access the host cannot confirm', () => {
+  it('gets the same answer as for an address that is no wiki while the host is down', async () => {
+    const r = await rig();
+    r.levels.bob = { a: 'none' };
+    const bob = await signIn(r, 'bob');
+    r.bot.answer = 'unreachable';
+    r.advance(ACCESS_TTL_MS + 1);
+
+    const page = await get(r, '/w/team/a/', bob, { accept: 'text/html' });
+    const none = await get(r, '/w/team/zz/', bob, { accept: 'text/html' });
+    expect(page.status).toBe(404);
+    expect(await page.text()).toBe(await none.text());
+    const api = await get(r, '/w/team/a/api/gitquire/repository', bob);
+    expect(api.status).toBe(404);
+    expect(await api.json()).toEqual(await (await get(r, '/w/team/zz/api/x', bob)).json());
+
+    const alice = await signIn(r, 'alice');
+    r.advance(ACCESS_TTL_MS + 1);
+    expect((await get(r, '/w/team/a/', alice)).status).toBe(200);
+  });
+});
+
 describe('wiki list and Add a wiki pages', () => {
   let r: Rig;
   beforeEach(async () => {
@@ -654,12 +693,25 @@ describe('wiki list and Add a wiki pages', () => {
     expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
   });
 
-  it('refuses to add a repository under a name an existing wiki still has', async () => {
+  it('adds a repository whose name a renamed wiki still has, once the host gives that wiki its new name', async () => {
     const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
     r.table.rename('github-1', { owner: 'team', name: 'c' });
+    const added = await postForm('/add-wiki', session, { id: '3' });
+    expect(added.status).toBe(303);
+    expect(r.table.byKey('github-1')).toMatchObject({ name: 'a' });
+    expect(r.table.byKey('github-3')).toMatchObject({ name: 'c', state: 'on' });
+  });
+
+  it('refuses a name a wiki still has while the host cannot name it, and says why when its repository is gone', async () => {
+    const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    r.table.rename('github-1', { owner: 'team', name: 'c' });
+    r.gone.add(1);
     const refused = await postForm('/add-wiki', session, { id: '3' });
     expect(refused.status).toBe(409);
-    expect(await refused.text()).toContain('A wiki already has the name team/c');
+    expect(r.table.byKey('github-1')).toMatchObject({ state: 'disconnected', reason: 'gone' });
+    expect(await refused.text()).toContain(
+      'The wiki of a repository that no longer exists on GitHub still has the name team/c',
+    );
     expect(r.table.byKey('github-3')).toBeUndefined();
   });
 

@@ -499,7 +499,7 @@ after 30 minutes without use, once it says it is pushed and clean. This is new o
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. `off` or empty: one wiki, exactly as before. Any other value stops the container. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
-| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it. `gitquire wikis adopt` moves this repository's single-wiki volume over. |
+| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it, after sign-in and only for people who can open it (others get the no-wiki page, so its name is never shown). `gitquire wikis adopt` moves this repository's single-wiki volume over. |
 | `GITQUIRE_ADMINS` | Server administrators. They see every disconnected wiki and why, can revoke anyone's agent tokens, and on Forgejo they are the only ones who add a wiki, because they enter its token. |
 
 Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET` (at least 32
@@ -531,7 +531,9 @@ the host as before; a person sees and opens a wiki only while they can write to 
 GitQuire asks the host with the person's own token at sign-in, once for each wiki, keeps the answer
 for 5 minutes, and then asks again with its own token. A person who loses access is cut off within
 a few minutes, also in open live editing. While the host cannot be reached, people already inside
-stay and nobody new is let in. When the host refuses GitQuire's own access to a repository (the
+stay and nobody new is let in; someone whose access is not confirmed gets the same "no wiki here"
+answer as for any other address (page, API, live editing and `/mcp`), and the log line "cannot be
+reached to check a person's access" names the wiki. When the host refuses GitQuire's own access to a repository (the
 app was uninstalled, the bot was removed or is no longer an administrator, the token was revoked),
 the wiki is **disconnected**: its administrators see why, nobody can open it, and nothing is
 deleted.
