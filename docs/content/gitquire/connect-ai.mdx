@@ -18,7 +18,9 @@ Your connector address is your wiki's address with `/mcp` at the end, for exampl
 ## Claude
 
 1. In Claude, open **Customize → Connectors**, click **+** and choose **Add custom connector**.
-2. Name it GitQuire, paste the connector address and click **Add**.
+2. Name it GitQuire, paste the connector address and click **Add**. Leave the request headers
+   empty: the connector signs in on its own, and an agent token from `/auth/agents` does not work
+   there.
 3. Click **Connect**, sign in with GitHub and approve access.
 
 On a Team or Enterprise plan, an owner adds the connector once under **Organization settings →
