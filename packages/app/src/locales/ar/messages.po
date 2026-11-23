@@ -5150,6 +5150,12 @@ msgstr "افتح بحث المحرر المرئي مع توسيع عناصر ا�
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "افتح اقتراحات الإكمال في CodeMirror وتنقّل بينها واقبلها أو تجاهلها."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "يفتح منتقي مجلدات لاختيار مكان استنساخ المستودع."
 

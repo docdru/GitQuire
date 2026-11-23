@@ -5150,6 +5150,12 @@ msgstr "Ouvre la recherche de l'éditeur visuel avec les contrôles de remplacem
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "Ouvre, parcourt, accepte ou ferme les suggestions de complétion de CodeMirror."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "Ouvre un sélecteur de dossier pour choisir où cloner le dépôt."
 

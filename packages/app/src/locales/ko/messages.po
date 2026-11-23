@@ -5150,6 +5150,12 @@ msgstr "교체 컨트롤을 확장한 상태로 비주얼 편집기 찾기를 �
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror 자동 완성 제안을 열고 탐색하고 수락하거나 닫습니다."
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "저장소를 클론할 위치를 선택하는 폴더 선택기를 엽니다."
 

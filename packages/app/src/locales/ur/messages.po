@@ -5150,6 +5150,12 @@ msgstr "بصری ایڈیٹر کی تلاش تبدیلی کے کنٹرولز ک�
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror کی تکمیلی تجاویز کھولیں، ان میں گھومیں، قبول کریں یا برخاست کریں۔"
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "ریپازٹری کہاں کلون کرنی ہے، یہ منتخب کرنے کے لیے فولڈر منتخب کنندہ کھولتا ہے۔"
 

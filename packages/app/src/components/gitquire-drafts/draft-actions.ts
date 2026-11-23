@@ -1,7 +1,7 @@
 import { t } from '@lingui/core/macro';
 import { toast } from 'sonner';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
-import { beginHandover, endHandover, leaveDraft } from '@/lib/gitquire/draft-handover';
+import { beginHandover, endHandover, leaveDraft, reloadInto } from '@/lib/gitquire/draft-handover';
 import {
   type DraftSummary,
   discardDraft,
@@ -10,7 +10,7 @@ import {
   publishDraft,
   updateDraft,
 } from '@/lib/gitquire/drafts-api';
-import { draftSnapshot, refreshDrafts, reloadIntoView } from '@/lib/gitquire/drafts-store';
+import { draftSnapshot, refreshDrafts } from '@/lib/gitquire/drafts-store';
 import { hostLabel } from '@/lib/gitquire/repository';
 
 export function failureCopy(failure: unknown): string {
@@ -44,14 +44,12 @@ export function failureCopy(failure: unknown): string {
 }
 
 export async function switchView(slug: string | null): Promise<void> {
-  const leavingDraft = draftSnapshot().current?.viewing != null;
-  if (leavingDraft) beginHandover();
+  beginHandover();
   try {
     await openView(slug);
-    if (leavingDraft) leaveDraft();
-    else reloadIntoView();
+    reloadInto(slug === null ? 'live' : 'draft');
   } catch (failure) {
-    if (leavingDraft) endHandover();
+    endHandover();
     toast.error(t`Couldn't switch views.`, { description: failureCopy(failure) });
   }
 }

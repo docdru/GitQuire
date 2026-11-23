@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { extractMentions } from '@/gitquire-comments/thread-ops';
+import { reloadInto } from '@/lib/gitquire/draft-handover';
 import {
   createDraft,
   type DraftSummary,
@@ -33,7 +34,7 @@ import {
   renameDraft,
   reviewDraft,
 } from '@/lib/gitquire/drafts-api';
-import { refreshDrafts, reloadIntoView } from '@/lib/gitquire/drafts-store';
+import { refreshDrafts } from '@/lib/gitquire/drafts-store';
 import { DraftChangesDialog } from './DraftChangesDialog';
 import { DraftConflictsDialog } from './DraftConflictsDialog';
 import { DraftsOverviewDialog } from './DraftsOverviewDialog';
@@ -119,7 +120,7 @@ function NameDialog({
         await createDraft(trimmed);
       }
       closeDraftDialog();
-      reloadIntoView();
+      reloadInto('draft');
     } catch (failure) {
       toast.error(t`Couldn't save the draft.`, { description: failureCopy(failure) });
       setBusy(false);

@@ -5146,6 +5146,12 @@ msgstr "दृश्य-संपादक की खोज फैले हु�
 msgid "Open, navigate, accept, or dismiss CodeMirror completion suggestions."
 msgstr "CodeMirror के पूर्णता सुझाव खोलें, उनमें जाएँ, स्वीकारें या ख़ारिज करें।"
 
+msgid "Opening the draft…"
+msgstr ""
+
+msgid "Opening the live wiki…"
+msgstr ""
+
 msgid "Opens a folder picker to choose where to clone the repository."
 msgstr "रिपॉज़िटरी कहाँ क्लोन करनी है यह चुनने के लिए फ़ोल्डर चयनकर्ता खोलता है।"
 

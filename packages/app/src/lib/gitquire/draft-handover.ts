@@ -4,16 +4,39 @@ import { type ClosedDraft, type CurrentDraft, fetchCurrentDraft, openView } from
 import { draftSnapshot, reloadIntoView } from './drafts-store';
 
 export type HandoverState = 'none' | 'checking' | 'planned';
+export type ArrivingView = 'draft' | 'live';
 
 const NOTICE_KEY = 'gitquire:draft-notice';
+const ARRIVING_KEY = 'gitquire:arriving-view';
+const ARRIVING_MAX_MS = 60_000;
 const CHECK_TIMEOUT_MS = 3_000;
 const CLOSING_POLL_MS = 1_000;
 const CLOSING_MAX_POLLS = 120;
 
-let state: HandoverState = 'none';
+function takeArriving(): ArrivingView | null {
+  try {
+    const raw = window.sessionStorage.getItem(ARRIVING_KEY);
+    if (raw === null) return null;
+    window.sessionStorage.removeItem(ARRIVING_KEY);
+    const [view, at] = raw.split(':');
+    if (view !== 'draft' && view !== 'live') return null;
+    return Date.now() - Number(at) < ARRIVING_MAX_MS ? view : null;
+  } catch {
+    return null;
+  }
+}
+
+let arriving: ArrivingView | null = typeof window === 'undefined' ? null : takeArriving();
+let state: HandoverState = arriving === null ? 'none' : 'planned';
 let checkedThisOutage = false;
 let leaving = false;
 const listeners = new Set<() => void>();
+
+if (arriving !== null) {
+  setTimeout(() => {
+    if (arriving !== null) noteSynced();
+  }, ARRIVING_MAX_MS);
+}
 
 function set(next: HandoverState): void {
   if (state === next) return;
@@ -32,6 +55,30 @@ export function handoverState(): HandoverState {
 
 export function useDraftHandover(): HandoverState {
   return useSyncExternalStore(subscribe, handoverState, () => 'none');
+}
+
+export function arrivingView(): ArrivingView | null {
+  return arriving;
+}
+
+export function useArrivingView(): ArrivingView | null {
+  return useSyncExternalStore(subscribe, arrivingView, () => null);
+}
+
+export function noteSynced(): void {
+  if (arriving === null) return;
+  arriving = null;
+  if (!leaving) state = 'none';
+  for (const listener of listeners) listener();
+}
+
+export function reloadInto(view: ArrivingView): void {
+  leaving = true;
+  set('planned');
+  try {
+    window.sessionStorage.setItem(ARRIVING_KEY, `${view}:${Date.now()}`);
+  } catch {}
+  reloadIntoView();
 }
 
 export function beginHandover(): void {
@@ -59,11 +106,9 @@ export function takeLeaveNotice(): string | null {
   }
 }
 
-export function leaveDraft(notice?: string): void {
-  leaving = true;
-  set('planned');
+export function leaveDraft(notice?: string, to: ArrivingView = 'live'): void {
   if (notice !== undefined) storeNotice(notice);
-  reloadIntoView();
+  reloadInto(to);
 }
 
 export function closedNotice(closed: ClosedDraft): string {
