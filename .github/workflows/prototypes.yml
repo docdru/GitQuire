@@ -1,8 +1,8 @@
-name: Forgejo tests (wikis-hosts)
+name: Forgejo tests
 
 on:
   push:
-    branches: [wikis-hosts]
+    branches: [main]
   pull_request:
     paths:
       - .github/workflows/prototypes.yml

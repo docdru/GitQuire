@@ -3,7 +3,7 @@ name: Checks
 on:
   pull_request:
   push:
-    branches: [main, wikis-hosts]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
