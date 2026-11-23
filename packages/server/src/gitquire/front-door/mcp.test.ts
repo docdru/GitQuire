@@ -404,12 +404,13 @@ describe('/mcp at the front door', () => {
     expect(result.person).toMatchObject({ login: 'bob' });
   });
 
-  it('checks access for the named wiki on every call', async () => {
+  it('checks access for the named wiki on every call, answering like an unknown name', async () => {
     const r = await rig();
     const client = await connect(r, r.token('bob'));
     const refused = await client.callTool({ name: 'read', arguments: { wiki: 'team/b' } });
     expect(refused.isError).toBe(true);
-    expect(textOf(refused)).toContain('do not have write access to team/b');
+    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'team/zz' } });
+    expect(textOf(refused)).toBe(textOf(unknown).replace('team/zz', 'team/b'));
 
     expect(
       echoOf(await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } })).repo,
@@ -418,12 +419,13 @@ describe('/mcp at the front door', () => {
     r.advance(ACCESS_TTL_MS + 1);
     const lost = await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
     expect(lost.isError).toBe(true);
-    expect(textOf(lost)).toContain('do not have write access to team/a');
+    expect(textOf(lost)).toContain('There is no wiki called "team/a"');
   });
 
-  it('keeps a person inside while the host is unreachable, and closes a refused wiki', async () => {
+  it('keeps a person inside while the host is unreachable, and closes a refused wiki, saying so only to admins', async () => {
     const r = await rig();
     const client = await connect(r, r.token('bob'));
+    const admin = await connect(r, r.token('alice'));
     await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
     r.bot.answer = 'unreachable';
     r.advance(ACCESS_TTL_MS + 1);
@@ -434,8 +436,11 @@ describe('/mcp at the front door', () => {
     r.advance(ACCESS_TTL_MS + 1);
     const closed = await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
     expect(closed.isError).toBe(true);
-    expect(textOf(closed)).toContain('disconnected');
+    expect(textOf(closed)).toContain('There is no wiki called "team/a"');
     expect(r.table.byKey('github-1')?.state).toBe('disconnected');
+    const told = await admin.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
+    expect(told.isError).toBe(true);
+    expect(textOf(told)).toBe('The wiki team/a is disconnected.');
   });
 
   it('opens a new session with the wiki when the wiki forgot the old one', async () => {

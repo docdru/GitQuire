@@ -44,6 +44,7 @@ interface DoorMcpDeps {
   table: Pick<WikiTable, 'list' | 'byAddress'>;
   access: Pick<WikiAccess, 'decide'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
+  seesWhy?: (person: AgentPerson, wiki: WikiRecord) => boolean;
   log: GateLogger;
   now?: () => number;
   sessionTtlMs?: number;
@@ -195,9 +196,19 @@ function refusal(text: string): CallToolResult {
   return { content: [{ type: 'text', text }], isError: true };
 }
 
-function closedText(wiki: WikiRecord, decision: Exclude<OpenDecision, { open: true }>): string {
+function unknownWikiText(asked: unknown): string {
+  return `There is no wiki called ${JSON.stringify(asked)} on this server. Call ${LIST_WIKIS_TOOL} for the names.`;
+}
+
+function closedText(
+  wiki: WikiRecord,
+  decision: Exclude<OpenDecision, { open: true }>,
+  asked: unknown,
+  seesWhy: boolean,
+): string {
   const name = `${wiki.owner}/${wiki.name}`;
-  if (decision.why === 'no-access') return `You do not have write access to ${name}.`;
+  if (decision.why === 'no-access') return unknownWikiText(asked);
+  if (decision.why === 'disconnected' && !seesWhy) return unknownWikiText(asked);
   if (decision.why === 'unreachable') {
     return `The Git host cannot be reached right now, so GitQuire cannot check your access to ${name}. Try again in a moment.`;
   }
@@ -308,9 +319,13 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
   async function opened(
     session: DoorSession,
     wiki: WikiRecord,
+    asked: unknown = `${wiki.owner}/${wiki.name}`,
   ): Promise<{ target: WikiTarget } | { refused: string }> {
     const decision = await deps.access.decide(session.person, wiki);
-    if (!decision.open) return { refused: closedText(wiki, decision) };
+    if (!decision.open) {
+      const seesWhy = deps.seesWhy?.(session.person, wiki) ?? false;
+      return { refused: closedText(wiki, decision, asked, seesWhy) };
+    }
     let socket: string;
     try {
       socket = await deps.processes.ensure(wiki);
@@ -379,11 +394,7 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     }
     const parsed = typeof named === 'string' ? wikiNameOf(named, deps.externalUrl) : null;
     const match = parsed === null ? undefined : deps.table.byAddress(parsed.owner, parsed.name);
-    if (match === undefined) {
-      return {
-        refused: `There is no wiki called ${JSON.stringify(named)} on this server. Call ${LIST_WIKIS_TOOL} for the names.`,
-      };
-    }
+    if (match === undefined) return { refused: unknownWikiText(named) };
     return { wiki: match.wiki };
   }
 
@@ -407,7 +418,11 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
       const chosen = await chooseWiki(full.person, named);
       if ('refused' in chosen) return refusal(chosen.refused);
       const wiki = chosen.wiki;
-      const open = await opened(full, wiki);
+      const open = await opened(
+        full,
+        wiki,
+        named === undefined || named === null || named === '' ? undefined : named,
+      );
       if ('refused' in open) return refusal(open.refused);
       deps.log.info(
         { wiki: wiki.key, login: full.person.login, tool: name },
