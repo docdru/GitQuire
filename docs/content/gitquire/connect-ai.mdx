@@ -44,6 +44,11 @@ An assistant works where you are when its conversation starts: in the draft you 
 the live wiki. Ask Claude adds that place and its branch to the request, and the assistant can check
 it with the `workspace` tool. A conversation stays in the place it started in.
 
+With several wikis on one server, **Ask Claude** has an **Edits go to** switch for Claude too: the
+request then tells Claude to give that place (`live`, `draft` or `draft:<name>`) as the `workspace`
+argument of every call, so the choice holds even in a conversation that started elsewhere. Without
+it, your setting below decides.
+
 Turn on **Put my AI assistant's edits into a draft** in **Settings → Connect AI** to review what your
 assistant changes before it goes live. When you are on the live wiki, it then works in its own draft
 instead. See [Drafts](./drafts.mdx).

@@ -19,6 +19,7 @@ import {
 import { RUNTIME_VERSION } from '../../version-constants.ts';
 import type { GateLogger } from '../access-gate.ts';
 import type { AgentTokenRecord } from '../agent-tokens.ts';
+import { EDITS_DRAFT_HEADER, EDITS_HEADER } from '../drafts/model.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
 import {
   encodeProxiedUser,
@@ -31,6 +32,7 @@ import { type WikiRecord, type WikiTable, wikiPrefix } from './wiki-table.ts';
 
 const LIST_WIKIS_TOOL = 'list_wikis';
 const WIKI_ARGUMENT = 'wiki';
+const WORKSPACE_ARGUMENT = 'workspace';
 const MAX_BODY_BYTES = 32 * 1024 * 1024;
 const TOOL_LIST_MAX_AGE_MS = 10 * 60 * 1000;
 const WIKI_CALL_TIMEOUT_MS = 10 * 60 * 1000;
@@ -84,6 +86,34 @@ const WIKI_ARGUMENT_SCHEMA = {
   type: 'string',
   description: `The wiki, as ${LIST_WIKIS_TOOL} names it (owner/repository, for example team/handbook). May be left out when you can open exactly one wiki.`,
 };
+
+const WORKSPACE_ARGUMENT_SCHEMA = {
+  type: 'string',
+  description:
+    'Where this call reads and writes: "live" for the live wiki, "draft" for the draft the person has open or else a draft of your own for them to review, or "draft:<name>" for one named draft. Leave it out to follow the person\'s setting. Give the same value on every call of one task.',
+};
+
+export type WorkspaceChoice = { edits: 'live' } | { edits: 'draft'; draft?: string };
+
+export function workspaceChoiceOf(raw: unknown): WorkspaceChoice | undefined | 'invalid' {
+  if (raw === undefined || raw === null || raw === '') return undefined;
+  if (raw === 'live') return { edits: 'live' };
+  if (raw === 'draft') return { edits: 'draft' };
+  if (typeof raw === 'string' && raw.startsWith('draft:')) {
+    const slug = raw.slice('draft:'.length);
+    if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return { edits: 'draft', draft: slug };
+  }
+  return 'invalid';
+}
+
+function workspaceKey(choice: WorkspaceChoice | undefined): string {
+  if (choice === undefined) return '';
+  return choice.edits === 'live' ? 'live' : `draft:${choice.draft ?? ''}`;
+}
+
+function connectionKey(wiki: WikiRecord, choice: WorkspaceChoice | undefined): string {
+  return `${wiki.key}#${workspaceKey(choice)}`;
+}
 
 const LIST_WIKIS: Tool = {
   name: LIST_WIKIS_TOOL,
@@ -176,7 +206,11 @@ export function wikiNameOf(raw: string, externalUrl: URL): { owner: string; name
 
 export function withWikiArgument(tool: Tool, required: boolean): Tool {
   const schema = tool.inputSchema;
-  const properties = { ...schema.properties, [WIKI_ARGUMENT]: WIKI_ARGUMENT_SCHEMA };
+  const properties = {
+    ...schema.properties,
+    [WIKI_ARGUMENT]: WIKI_ARGUMENT_SCHEMA,
+    [WORKSPACE_ARGUMENT]: WORKSPACE_ARGUMENT_SCHEMA,
+  };
   const listed = Array.isArray(schema.required)
     ? schema.required.filter((name) => name !== WIKI_ARGUMENT)
     : undefined;
@@ -220,8 +254,17 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     return decisions.filter(({ decision }) => decision.open).map(({ wiki }) => wiki);
   }
 
-  function headersFor(session: DoorSession, wiki: WikiRecord, target: WikiTarget) {
+  function headersFor(
+    session: DoorSession,
+    wiki: WikiRecord,
+    target: WikiTarget,
+    choice: WorkspaceChoice | undefined,
+  ) {
     return {
+      ...(choice === undefined ? {} : { [EDITS_HEADER]: choice.edits }),
+      ...(choice?.edits === 'draft' && choice.draft !== undefined
+        ? { [EDITS_DRAFT_HEADER]: choice.draft }
+        : {}),
       [INTERNAL_REQUEST_HEADER]: deps.processes.secretOf(wiki.key) ?? '',
       [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser({
         ...session.person,
@@ -235,11 +278,12 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     session: DoorSession,
     wiki: WikiRecord,
     target: WikiTarget,
+    choice: WorkspaceChoice | undefined,
   ): Promise<WikiConnection> {
     const transport = new StreamableHTTPClientTransport(new URL('http://127.0.0.1/mcp'), {
       fetch: socketFetch(() => ({
         socket: target.socket,
-        headers: headersFor(session, wiki, target),
+        headers: headersFor(session, wiki, target, choice),
       })),
       reconnectionOptions: {
         maxReconnectionDelay: 1000,
@@ -271,19 +315,25 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     session: DoorSession,
     wiki: WikiRecord,
     target: WikiTarget,
+    choice: WorkspaceChoice | undefined,
   ): Promise<WikiConnection> {
-    let pending = session.wikis.get(wiki.key);
+    const key = connectionKey(wiki, choice);
+    let pending = session.wikis.get(key);
     if (pending === undefined) {
-      pending = connectWiki(session, wiki, target);
-      session.wikis.set(wiki.key, pending);
+      pending = connectWiki(session, wiki, target, choice);
+      session.wikis.set(key, pending);
       pending.catch(() => {
-        if (session.wikis.get(wiki.key) === pending) session.wikis.delete(wiki.key);
+        if (session.wikis.get(key) === pending) session.wikis.delete(key);
       });
     }
     const connection = await pending;
     connection.target.socket = target.socket;
     connection.target.admin = target.admin;
     return connection;
+  }
+
+  function draftNotOpen(err: unknown): boolean {
+    return err instanceof StreamableHTTPError && err.code === 409;
   }
 
   function sessionGone(err: unknown): boolean {
@@ -294,14 +344,15 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     session: DoorSession,
     wiki: WikiRecord,
     target: WikiTarget,
+    choice: WorkspaceChoice | undefined,
     work: (client: Client) => Promise<T>,
   ): Promise<T> {
     try {
-      return await work((await wikiConnection(session, wiki, target)).client);
+      return await work((await wikiConnection(session, wiki, target, choice)).client);
     } catch (err) {
       if (!sessionGone(err)) throw err;
-      await dropWiki(session, wiki.key);
-      return work((await wikiConnection(session, wiki, target)).client);
+      await dropWiki(session, connectionKey(wiki, choice));
+      return work((await wikiConnection(session, wiki, target, choice)).client);
     }
   }
 
@@ -333,7 +384,9 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     const open = await opened(session, first);
     if ('refused' in open) return toolList?.tools ?? [];
     try {
-      const listed = await withWiki(session, first, open.target, (client) => client.listTools());
+      const listed = await withWiki(session, first, open.target, undefined, (client) =>
+        client.listTools(),
+      );
       const tools = listed.tools.filter((tool) => tool.name !== LIST_WIKIS_TOOL);
       toolList = { at: now(), tools };
       return tools;
@@ -403,23 +456,42 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     server.server.setRequestHandler(CallToolRequestSchema, async (call, extra) => {
       const name = call.params.name;
       if (name === LIST_WIKIS_TOOL) return listWikisResult(full.person);
-      const { [WIKI_ARGUMENT]: named, ...rest } = call.params.arguments ?? {};
+      const {
+        [WIKI_ARGUMENT]: named,
+        [WORKSPACE_ARGUMENT]: place,
+        ...rest
+      } = call.params.arguments ?? {};
+      const choice = workspaceChoiceOf(place);
+      if (choice === 'invalid') {
+        return refusal(
+          `"${WORKSPACE_ARGUMENT}" takes "live", "draft" or "draft:<name>"; got ${JSON.stringify(place)}.`,
+        );
+      }
       const chosen = await chooseWiki(full.person, named);
       if ('refused' in chosen) return refusal(chosen.refused);
       const wiki = chosen.wiki;
       const open = await opened(full, wiki);
       if ('refused' in open) return refusal(open.refused);
       deps.log.info(
-        { wiki: wiki.key, login: full.person.login, tool: name },
+        { wiki: wiki.key, login: full.person.login, tool: name, workspace: workspaceKey(choice) },
         '[gitquire-door] agent call',
       );
-      const result = await withWiki(full, wiki, open.target, (client) =>
-        client.callTool({ name, arguments: rest }, undefined, {
-          signal: extra.signal,
-          timeout: WIKI_CALL_TIMEOUT_MS,
-        }),
-      );
-      return result as CallToolResult;
+      try {
+        const result = await withWiki(full, wiki, open.target, choice, (client) =>
+          client.callTool({ name, arguments: rest }, undefined, {
+            signal: extra.signal,
+            timeout: WIKI_CALL_TIMEOUT_MS,
+          }),
+        );
+        return result as CallToolResult;
+      } catch (err) {
+        if (choice?.edits === 'draft' && choice.draft !== undefined && draftNotOpen(err)) {
+          return refusal(
+            `The draft "${choice.draft}" is not open in ${wiki.owner}/${wiki.name}: it was published, discarded or never existed. Ask the person where to work instead.`,
+          );
+        }
+        throw err;
+      }
     });
     return server;
   }

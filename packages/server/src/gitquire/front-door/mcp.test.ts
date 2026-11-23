@@ -44,6 +44,7 @@ const server = http.createServer((req, res) => {
   req.on('end', () => {
     const msg = JSON.parse(Buffer.concat(chunks).toString('utf8'));
     if (msg.method === 'initialize') {
+      if (req.headers['x-gitquire-edits-draft'] === 'gone') { send(res, 409, { error: 'draft-not-open' }); return; }
       count += 1;
       const id = process.env.GITQUIRE_REPO.replace('/', '-') + '-' + count;
       sessions.add(id);
@@ -72,6 +73,8 @@ const server = http.createServer((req, res) => {
         args: msg.params.arguments,
         person,
         prefix: req.headers['x-gitquire-prefix'],
+        edits: req.headers['x-gitquire-edits'],
+        draft: req.headers['x-gitquire-edits-draft'],
         session,
       });
       send(res, 200, { jsonrpc: '2.0', id: msg.id, result: { content: [{ type: 'text', text }] } });
@@ -266,6 +269,8 @@ function echoOf(result: unknown): {
   args: Record<string, unknown>;
   person: Record<string, unknown>;
   prefix: string;
+  edits?: string;
+  draft?: string;
   session: string;
 } {
   return JSON.parse(textOf(result));
@@ -308,7 +313,7 @@ describe('wiki argument helpers', () => {
     expect(wikiNameOf('team/a b', origin)).toBeNull();
   });
 
-  it('adds the wiki argument, required only when asked', () => {
+  it('adds the wiki argument, required only when asked, and the optional workspace', () => {
     const tool = {
       name: 'read',
       inputSchema: {
@@ -322,6 +327,7 @@ describe('wiki argument helpers', () => {
     expect(Object.keys(withWikiArgument(tool, false).inputSchema.properties ?? {})).toEqual([
       'path',
       'wiki',
+      'workspace',
     ]);
     expect(tool.inputSchema.required).toEqual(['path']);
   });
@@ -379,6 +385,69 @@ describe('/mcp at the front door', () => {
       await client.callTool({ name: 'read', arguments: { wiki: 'team/a', path: 'z' } }),
     );
     expect(again.session).toBe(inA.session);
+  });
+
+  it('routes each call to the workspace it names, on its own connection', async () => {
+    const r = await rig();
+    const client = await connect(r, r.token('alice'));
+    const read = (await client.listTools()).tools.find((tool) => tool.name === 'read');
+    expect(Object.keys(read?.inputSchema.properties ?? {})).toContain('workspace');
+    expect(read?.inputSchema.required).not.toContain('workspace');
+
+    const plain = echoOf(
+      await client.callTool({ name: 'read', arguments: { wiki: 'team/a', path: 'x' } }),
+    );
+    expect(plain).toMatchObject({ args: { path: 'x' } });
+    expect(plain.edits).toBeUndefined();
+    expect(plain.draft).toBeUndefined();
+
+    const live = echoOf(
+      await client.callTool({
+        name: 'read',
+        arguments: { wiki: 'team/a', workspace: 'live', path: 'x' },
+      }),
+    );
+    expect(live).toMatchObject({ edits: 'live', args: { path: 'x' } });
+    expect(live.session).not.toBe(plain.session);
+
+    const named = echoOf(
+      await client.callTool({
+        name: 'read',
+        arguments: { wiki: 'team/a', workspace: 'draft:pricing-page', path: 'x' },
+      }),
+    );
+    expect(named).toMatchObject({ edits: 'draft', draft: 'pricing-page' });
+    const again = echoOf(
+      await client.callTool({
+        name: 'read',
+        arguments: { wiki: 'team/a', workspace: 'draft:pricing-page', path: 'y' },
+      }),
+    );
+    expect(again.session).toBe(named.session);
+
+    const own = echoOf(
+      await client.callTool({ name: 'read', arguments: { wiki: 'team/a', workspace: 'draft' } }),
+    );
+    expect(own.edits).toBe('draft');
+    expect(own.draft).toBeUndefined();
+  });
+
+  it('refuses a workspace it cannot read and a draft that is not open', async () => {
+    const r = await rig();
+    const client = await connect(r, r.token('alice'));
+    const odd = await client.callTool({
+      name: 'read',
+      arguments: { wiki: 'team/a', workspace: 'main' },
+    });
+    expect(odd.isError).toBe(true);
+    expect(textOf(odd)).toContain('"live", "draft" or "draft:<name>"');
+
+    const gone = await client.callTool({
+      name: 'read',
+      arguments: { wiki: 'team/a', workspace: 'draft:gone' },
+    });
+    expect(gone.isError).toBe(true);
+    expect(textOf(gone)).toContain('The draft "gone" is not open in team/a');
   });
 
   it('asks for the wiki when the person has several and none is named', async () => {

@@ -367,6 +367,60 @@ describe('drafts HTTP', () => {
     expect(service.list().some((draft) => draft.agent)).toBe(false);
   });
 
+  it('puts a session into the draft the front door names, while its person is elsewhere', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    await call('/api/gitquire/drafts');
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: {
+        ...internalRequestHeaders(),
+        'x-gitquire-edits': 'draft',
+        'x-gitquire-edits-draft': 'plan',
+      },
+    });
+    expect(out.body).toBe('draft instance saw /mcp');
+    expect(service.list().some((draft) => draft.agent)).toBe(false);
+  });
+
+  it('refuses a named draft that is not open instead of sending it to the live wiki', async () => {
+    agent = ALICE;
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: {
+        ...internalRequestHeaders(),
+        'x-gitquire-edits': 'draft',
+        'x-gitquire-edits-draft': 'nothing-here',
+      },
+    });
+    expect(out.handled).toBe(true);
+    expect(out.status).toBe(409);
+    expect(service.list()).toEqual([]);
+  });
+
+  it('ignores a named draft that is not shaped like a draft name', async () => {
+    agent = ALICE;
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: {
+        ...internalRequestHeaders(),
+        'x-gitquire-edits': 'live',
+        'x-gitquire-edits-draft': '../plan',
+      },
+    });
+    expect(out.handled).toBe(false);
+  });
+
+  it('ignores a named draft that does not come from GitQuire itself', async () => {
+    agent = ALICE;
+    await service.create(ALICE, 'Plan');
+    const out = await call('/mcp', {
+      method: 'POST',
+      headers: { 'x-gitquire-edits-draft': 'plan' },
+    });
+    expect(out.handled).toBe(false);
+  });
+
   it('ignores an edit choice that does not come from GitQuire itself', async () => {
     agent = ALICE;
     const out = await call('/mcp', { method: 'POST', headers: { 'x-gitquire-edits': 'draft' } });

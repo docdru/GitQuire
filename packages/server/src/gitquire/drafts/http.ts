@@ -17,6 +17,7 @@ import type { DraftInstances } from './instances.ts';
 import {
   cleanTitle,
   type DraftRecord,
+  EDITS_DRAFT_HEADER,
   EDITS_HEADER,
   type EditTarget,
   isEditTarget,
@@ -35,6 +36,8 @@ const MAX_LOGINS = 20;
 const LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 const MCP_SESSION_HEADER = 'mcp-session-id';
 const MAX_STICKY = 500;
+
+const DRAFT_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export interface DraftsHttpDeps {
   service: DraftService;
@@ -359,14 +362,26 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
     return isInternalRequest(req) && isEditTarget(value) ? value : undefined;
   }
 
+  function chosenDraft(req: IncomingMessage): string | undefined {
+    const value = req.headers[EDITS_DRAFT_HEADER];
+    return isInternalRequest(req) && typeof value === 'string' && DRAFT_SLUG.test(value)
+      ? value
+      : undefined;
+  }
+
   function agentTarget(
     owner: SessionUser,
     session: string | undefined,
     chosen: EditTarget | undefined,
-  ): Promise<DraftRecord> | undefined {
+    named: string | undefined,
+  ): Promise<DraftRecord> | 'not-open' | undefined {
     if (session !== undefined) {
       const stuck = openDraft(sticky.get(session));
       return stuck === undefined ? undefined : Promise.resolve(stuck);
+    }
+    if (named !== undefined) {
+      const draft = openDraft(named);
+      return draft === undefined ? 'not-open' : Promise.resolve(draft);
     }
     if (chosen === 'live') return undefined;
     const viewed = openDraft(lastView.get(owner.id) ?? undefined);
@@ -383,8 +398,16 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       owner,
       typeof session === 'string' ? session : undefined,
       chosenTarget(req),
+      chosenDraft(req),
     );
     if (target === undefined) return false;
+    if (target === 'not-open') {
+      sendJson(res, 409, {
+        error: 'draft-not-open',
+        message: 'That draft is not open: it was published, discarded or never existed.',
+      });
+      return true;
+    }
     target
       .then(async (draft) => {
         const socket = await instances.ensure(draft);
