@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { SERVICE_WRITER } from '../../shadow-repo.ts';
 import type { GitHubDraftsClient } from '../github-pulls.ts';
 import type { RunGit } from '../repo-bootstrap.ts';
 import type { GitIdentity } from './git-ops.ts';
@@ -96,7 +97,7 @@ interface GitAccess {
 }
 
 const AUTHOR_LINE = /^(.+?) <([^<>\s]+@[^<>\s]+)>$/;
-const SYSTEM_EMAIL = /@openknowledge\.local$/i;
+const SYSTEM_DOMAIN = SERVICE_WRITER.email.slice(SERVICE_WRITER.email.indexOf('@')).toLowerCase();
 
 function draftCoAuthors(log: string, publisher: GitIdentity): GitIdentity[] {
   const seen = new Set([publisher.email.toLowerCase()]);
@@ -105,7 +106,8 @@ function draftCoAuthors(log: string, publisher: GitIdentity): GitIdentity[] {
     const match = AUTHOR_LINE.exec(line.trim());
     if (match === null) continue;
     const [, name, email] = match;
-    if (name === undefined || email === undefined || SYSTEM_EMAIL.test(email)) continue;
+    if (name === undefined || email === undefined || email.toLowerCase().endsWith(SYSTEM_DOMAIN))
+      continue;
     const key = email.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);

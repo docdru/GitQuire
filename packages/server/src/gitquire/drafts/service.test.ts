@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { SERVICE_WRITER } from '../../shadow-repo.ts';
 import type { SessionUser } from '../access-gate.ts';
 import { runGitSync } from '../repo-bootstrap.ts';
 import { plainGitRemote } from './remote.ts';
@@ -144,7 +145,7 @@ describe('drafts', () => {
         '-m',
         'Carol edits',
         '-m',
-        'Co-authored-by: Dave D <dave@example.org>\nCo-authored-by: Agent (1234) <agent-1234@openknowledge.local>',
+        `Co-authored-by: Dave D <dave@example.org>\nCo-authored-by: Agent (1234) <agent-1234${SERVICE_WRITER.email.slice(SERVICE_WRITER.email.indexOf('@'))}>`,
       ],
       dir,
     );
@@ -154,7 +155,7 @@ describe('drafts', () => {
     expect(head.split('\n')[0]).toBe('Bob B <43+bob@users.noreply.github.com>');
     expect(head).toContain('Co-authored-by: Carol C <carol@example.org>');
     expect(head).toContain('Co-authored-by: Dave D <dave@example.org>');
-    expect(head).not.toContain('openknowledge.local');
+    expect(head).not.toContain('Agent (1234)');
     expect(head).not.toContain('Co-authored-by: Bob B');
   });
 
