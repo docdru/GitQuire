@@ -241,11 +241,7 @@ function closedText(
   seesWhy: boolean,
 ): string {
   const name = `${wiki.owner}/${wiki.name}`;
-  if (decision.why === 'no-access') return unknownWikiText(asked);
-  if (decision.why === 'disconnected' && !seesWhy) return unknownWikiText(asked);
-  if (decision.why === 'unreachable') {
-    return `The Git host cannot be reached right now, so GitQuire cannot check your access to ${name}. Try again in a moment.`;
-  }
+  if (decision.why !== 'disconnected' || !seesWhy) return unknownWikiText(asked);
   return `The wiki ${name} is disconnected.`;
 }
 

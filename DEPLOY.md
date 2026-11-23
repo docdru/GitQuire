@@ -531,7 +531,9 @@ the host as before; a person sees and opens a wiki only while they can write to 
 GitQuire asks the host with the person's own token at sign-in, once for each wiki, keeps the answer
 for 5 minutes, and then asks again with its own token. A person who loses access is cut off within
 a few minutes, also in open live editing. While the host cannot be reached, people already inside
-stay and nobody new is let in. When the host refuses GitQuire's own access to a repository (the
+stay and nobody new is let in; someone whose access is not confirmed gets the same "no wiki here"
+answer as for any other address (page, API, live editing and `/mcp`), and the log line "cannot be
+reached to check a person's access" names the wiki. When the host refuses GitQuire's own access to a repository (the
 app was uninstalled, the bot was removed or is no longer an administrator, the token was revoked),
 the wiki is **disconnected**: its administrators see why, nobody can open it, and nothing is
 deleted.

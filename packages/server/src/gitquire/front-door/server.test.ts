@@ -587,6 +587,28 @@ describe('front door', () => {
   });
 });
 
+describe('a person whose access the host cannot confirm', () => {
+  it('gets the same answer as for an address that is no wiki while the host is down', async () => {
+    const r = await rig();
+    r.levels.bob = { a: 'none' };
+    const bob = await signIn(r, 'bob');
+    r.bot.answer = 'unreachable';
+    r.advance(ACCESS_TTL_MS + 1);
+
+    const page = await get(r, '/w/team/a/', bob, { accept: 'text/html' });
+    const none = await get(r, '/w/team/zz/', bob, { accept: 'text/html' });
+    expect(page.status).toBe(404);
+    expect(await page.text()).toBe(await none.text());
+    const api = await get(r, '/w/team/a/api/gitquire/repository', bob);
+    expect(api.status).toBe(404);
+    expect(await api.json()).toEqual(await (await get(r, '/w/team/zz/api/x', bob)).json());
+
+    const alice = await signIn(r, 'alice');
+    r.advance(ACCESS_TTL_MS + 1);
+    expect((await get(r, '/w/team/a/', alice)).status).toBe(200);
+  });
+});
+
 describe('wiki list and Add a wiki pages', () => {
   let r: Rig;
   beforeEach(async () => {
