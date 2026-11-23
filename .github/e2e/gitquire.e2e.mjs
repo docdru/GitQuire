@@ -8,6 +8,12 @@ function inContainer(...args) {
   return execFileSync('docker', ['exec', container, ...args], { encoding: 'utf8' });
 }
 
+function writeOnDisk(path, text) {
+  execFileSync('docker', ['exec', '-i', container, 'sh', '-c', `cat > ${dataDir}/${path}`], {
+    input: text,
+  });
+}
+
 function existsOnDisk(path) {
   try {
     inContainer('test', '-e', `${dataDir}/${path}`);
@@ -129,4 +135,23 @@ test('two windows see each other edit live', async ({ browser }) => {
   const fromSecond = `From the second window ${Date.now()}`;
   await typeAtEnd(second, fromSecond);
   await expect(editor(first)).toContainText(fromSecond);
+});
+
+test('Views → Mentions opens a page at the mention', async ({ page }) => {
+  writeOnDisk(
+    'mention-plan.md',
+    '# Mention plan\n\nAsk @alice about the budget.\n\n## Later\n\nAnd @alice again, near the end.\n',
+  );
+  await openApp(page);
+  await expect(treeItem(page, 'mention-plan.md')).toBeVisible({ timeout: 30_000 });
+  await page.getByRole('button', { name: 'Views', exact: true }).click();
+  await page.getByRole('tab', { name: 'Mentions', exact: true }).click();
+  const view = page.getByTestId('page-mentions-view');
+  const row = view.getByRole('button', { name: /And @alice again/ });
+  await expect(row).toBeVisible();
+  await expect(view).toContainText('Later');
+  await row.click();
+  await expect(editor(page)).toContainText('Mention plan');
+  await expect(page.locator('.gq-mention-flash')).toHaveText('@alice');
+  expect(readOnDisk('mention-plan.md')).toContain('Ask @alice about the budget.');
 });

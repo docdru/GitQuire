@@ -13,6 +13,9 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+msgid " (notified)"
+msgstr " (notified)"
+
 msgid " or "
 msgstr " or "
 
@@ -527,6 +530,9 @@ msgstr "{who} published \"{0}\". You are now on the live wiki."
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {word} other {words}}"
 
+msgid "@{login} ({count})"
+msgstr "@{login} ({count})"
+
 msgid "@{login} ({open} open)"
 msgstr "@{login} ({open} open)"
 
@@ -645,6 +651,9 @@ msgstr "A knowledge base that follows Google's Open Knowledge Format, a shared w
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
+
+msgid "A mention in the page text does not notify @{login}."
+msgstr "A mention in the page text does not notify @{login}."
 
 msgid "a new pane to the left of {0}"
 msgstr "a new pane to the left of {0}"
@@ -934,6 +943,9 @@ msgstr "All files"
 msgid "All files are hidden by view filters."
 msgstr "All files are hidden by view filters."
 
+msgid "All mentions of @{login}"
+msgstr "All mentions of @{login}"
+
 msgid "All pages with properties"
 msgstr "All pages with properties"
 
@@ -993,6 +1005,9 @@ msgstr "any doc named {0}"
 
 msgid "Any value"
 msgstr "Any value"
+
+msgid "Anyone"
+msgstr "Anyone"
 
 msgid "Anyone can see"
 msgstr "Anyone can see"
@@ -1380,6 +1395,9 @@ msgstr "Changes save automatically."
 msgid "Changes saved automatically."
 msgstr "Changes saved automatically."
 
+msgid "Changes the page: this line becomes an action item for @{login}."
+msgstr "Changes the page: this line becomes an action item for @{login}."
+
 msgid "changes this page"
 msgstr "changes this page"
 
@@ -1647,6 +1665,9 @@ msgstr "Comment thread"
 
 msgid "Comment threads"
 msgstr "Comment threads"
+
+msgid "Comment to @{login}"
+msgstr "Comment to @{login}"
 
 msgid "Comments"
 msgstr "Comments"
@@ -1969,6 +1990,9 @@ msgstr "Couldn't load starter packs: {error}"
 msgid "Couldn't load templates"
 msgstr "Couldn't load templates"
 
+msgid "Couldn't load the mentions in pages."
+msgstr "Couldn't load the mentions in pages."
+
 msgid "Couldn't load the pages for this view."
 msgstr "Couldn't load the pages for this view."
 
@@ -2080,11 +2104,17 @@ msgstr "Couldn't save the view."
 msgid "Couldn't save your review."
 msgstr "Couldn't save your review."
 
+msgid "Couldn't start a comment here."
+msgstr "Couldn't start a comment here."
+
 msgid "Couldn't switch to {language}."
 msgstr "Couldn't switch to {language}."
 
 msgid "Couldn't switch views."
 msgstr "Couldn't switch views."
+
+msgid "Couldn't turn this line into an action item."
+msgstr "Couldn't turn this line into an action item."
 
 msgid "Couldn't update the draft."
 msgstr "Couldn't update the draft."
@@ -3722,6 +3752,12 @@ msgstr "In Git projects, GitQuire also adds a scoped .gitattributes rule so conc
 msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 msgstr "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 
+msgid "In pages"
+msgstr "In pages"
+
+msgid "Inbox"
+msgstr "Inbox"
+
 msgid "Indent"
 msgstr "Indent"
 
@@ -4193,6 +4229,9 @@ msgstr "Maintain generated indexes in every folder?"
 msgid "Maintain index.md"
 msgstr "Maintain index.md"
 
+msgid "Make it an action item"
+msgstr "Make it an action item"
+
 msgid "Malformed apply response"
 msgstr "Malformed apply response"
 
@@ -4259,11 +4298,17 @@ msgstr "Me (@{mine})"
 msgid "Medium section heading."
 msgstr "Medium section heading."
 
+msgid "Mention of @{login}"
+msgstr "Mention of @{login}"
+
 msgid "Mention people by their {host} name, like @anna."
 msgstr "Mention people by their {host} name, like @anna."
 
 msgid "Mentions"
 msgstr "Mentions"
+
+msgid "Mentions in the text of pages. They do not notify anyone; mentions in comments and action items do."
+msgstr "Mentions in the text of pages. They do not notify anyone; mentions in comments and action items do."
 
 msgid "Mentions, {0} unread"
 msgstr "Mentions, {0} unread"
@@ -4754,6 +4799,9 @@ msgstr "No matching paths"
 msgid "No matching repositories."
 msgstr "No matching repositories."
 
+msgid "No mentions in pages match."
+msgstr "No mentions in pages match."
+
 msgid "No Mirror Source block in {docName} matches the text in this field. Clear it to see them all."
 msgstr "No Mirror Source block in {docName} matches the text in this field. Clear it to see them all."
 
@@ -4771,6 +4819,12 @@ msgstr "No page has properties yet. Open a page, choose \"Add properties\" and g
 
 msgid "No page matches."
 msgstr "No page matches."
+
+msgid "No page mentions @{person}."
+msgstr "No page mentions @{person}."
+
+msgid "No page mentions you in its text."
+msgstr "No page mentions you in its text."
 
 msgid "No pages are missing incoming graph links."
 msgstr "No pages are missing incoming graph links."
@@ -4868,8 +4922,8 @@ msgstr "No value"
 msgid "No workspace"
 msgstr "No workspace"
 
-msgid "Nobody has mentioned you yet. Mentions in comments show up here."
-msgstr "Nobody has mentioned you yet. Mentions in comments show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments and action items show up here."
+msgstr "Nobody has mentioned you yet. Mentions in comments and action items show up here."
 
 msgid "Nobody has reviewed it yet."
 msgstr "Nobody has reviewed it yet."
@@ -5132,6 +5186,9 @@ msgstr "Open the draft to review it."
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Open the insert menu in an empty or active text position."
 
+msgid "Open the page at this mention"
+msgstr "Open the page at this mention"
+
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Open this document in the editor and collapse the graph."
 
@@ -5276,8 +5333,8 @@ msgstr "Pages indexed: {semanticIndexedCount} of {semanticTotalCount}."
 msgid "Pages to link"
 msgstr "Pages to link"
 
-msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
-msgstr "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgid "Pages with properties as a table, a board or a timeline, and the action items and mentions of all pages."
+msgstr "Pages with properties as a table, a board or a timeline, and the action items and mentions of all pages."
 
 msgid "Pan down"
 msgstr "Pan down"
@@ -6505,6 +6562,9 @@ msgstr "Show source"
 msgid "Show thumbnails"
 msgstr "Show thumbnails"
 
+msgid "Show where I am mentioned"
+msgstr "Show where I am mentioned"
+
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "Showing results for \"{semanticResultsLabel}\""
 
@@ -7075,6 +7135,9 @@ msgstr "The key could not be saved."
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 
+msgid "The list is cut off."
+msgstr "The list is cut off."
+
 msgid "The live wiki changed in the same places. Update the draft first."
 msgstr "The live wiki changed in the same places. Update the draft first."
 
@@ -7221,6 +7284,9 @@ msgstr "These rules come from your project's <0>{configFile}</0> file, which ful
 
 msgid "Thinking…"
 msgstr "Thinking…"
+
+msgid "This action item notifies @{login}."
+msgstr "This action item notifies @{login}."
 
 msgid "This agent doesn't offer slash commands"
 msgstr "This agent doesn't offer slash commands"
@@ -7413,6 +7479,9 @@ msgstr "This theme file couldn’t be read"
 
 msgid "This theme file is too large"
 msgstr "This theme file is too large"
+
+msgid "This wiki has more mentions than the list can show; it is cut off."
+msgstr "This wiki has more mentions than the list can show; it is cut off."
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr "This wiki has more pages than a view can show; the list is cut off."
@@ -7992,11 +8061,17 @@ msgstr "When this is on, your assistant works in the draft you have open, or in 
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 
+msgid "Where @{person} is mentioned in the text of a page. These do not notify anyone."
+msgstr "Where @{person} is mentioned in the text of a page. These do not notify anyone."
+
 msgid "Where should it live?"
 msgstr "Where should it live?"
 
 msgid "Where to ask"
 msgstr "Where to ask"
+
+msgid "Where you are mentioned in the text of a page. These do not notify you."
+msgstr "Where you are mentioned in the text of a page. These do not notify you."
 
 msgid "Whitespace"
 msgstr "Whitespace"

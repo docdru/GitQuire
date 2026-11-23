@@ -13,6 +13,9 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+msgid " (notified)"
+msgstr ""
+
 msgid " or "
 msgstr " یا "
 
@@ -527,6 +530,9 @@ msgstr ""
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {لفظ} other {الفاظ}}"
 
+msgid "@{login} ({count})"
+msgstr ""
+
 msgid "@{login} ({open} open)"
 msgstr ""
 
@@ -645,6 +651,9 @@ msgstr "ایک نالج بیس جو Google کے Open Knowledge Format کی پی�
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "ایک سطر جس میں فٹ نوٹ<0><1>[1]</1></0> اور نیچے دکھائی گئی تعریف ہے۔"
+
+msgid "A mention in the page text does not notify @{login}."
+msgstr ""
 
 msgid "a new pane to the left of {0}"
 msgstr "{0} کے بائیں جانب ایک نیا پین"
@@ -934,6 +943,9 @@ msgstr "تمام فائلیں"
 msgid "All files are hidden by view filters."
 msgstr "تمام فائلیں ویو فلٹرز سے چھپی ہوئی ہیں۔"
 
+msgid "All mentions of @{login}"
+msgstr ""
+
 msgid "All pages with properties"
 msgstr ""
 
@@ -992,6 +1004,9 @@ msgid "any doc named {0}"
 msgstr "{0} نام کی کوئی بھی دستاویز"
 
 msgid "Any value"
+msgstr ""
+
+msgid "Anyone"
 msgstr ""
 
 msgid "Anyone can see"
@@ -1380,6 +1395,9 @@ msgstr "تبدیلیاں خودکار طور پر محفوظ ہو جاتی ہی�
 msgid "Changes saved automatically."
 msgstr "تبدیلیاں خودکار طور پر محفوظ ہو گئیں۔"
 
+msgid "Changes the page: this line becomes an action item for @{login}."
+msgstr ""
+
 msgid "changes this page"
 msgstr ""
 
@@ -1646,6 +1664,9 @@ msgid "Comment thread"
 msgstr ""
 
 msgid "Comment threads"
+msgstr ""
+
+msgid "Comment to @{login}"
 msgstr ""
 
 msgid "Comments"
@@ -1969,6 +1990,9 @@ msgstr "ابتدائی پیکس لوڈ نہیں ہو سکے: {error}"
 msgid "Couldn't load templates"
 msgstr "ٹیمپلیٹس لوڈ نہیں ہو سکے"
 
+msgid "Couldn't load the mentions in pages."
+msgstr ""
+
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2080,10 +2104,16 @@ msgstr ""
 msgid "Couldn't save your review."
 msgstr ""
 
+msgid "Couldn't start a comment here."
+msgstr ""
+
 msgid "Couldn't switch to {language}."
 msgstr "{language} پر تبدیل نہیں کیا جا سکا۔"
 
 msgid "Couldn't switch views."
+msgstr ""
+
+msgid "Couldn't turn this line into an action item."
 msgstr ""
 
 msgid "Couldn't update the draft."
@@ -3722,6 +3752,12 @@ msgstr "Git پروجیکٹس میں، GitQuire ایک دائرہ کار .gitattr
 msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 msgstr ""
 
+msgid "In pages"
+msgstr ""
+
+msgid "Inbox"
+msgstr ""
+
 msgid "Indent"
 msgstr ""
 
@@ -4193,6 +4229,9 @@ msgstr "ہر فولڈر میں generated اشاریہ جات کو برقرار �
 msgid "Maintain index.md"
 msgstr "برقرار رکھیں index.md"
 
+msgid "Make it an action item"
+msgstr ""
+
 msgid "Malformed apply response"
 msgstr "اپلائی کا جواب بگڑا ہوا ہے"
 
@@ -4259,10 +4298,16 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "درمیانہ سیکشن عنوان۔"
 
+msgid "Mention of @{login}"
+msgstr ""
+
 msgid "Mention people by their {host} name, like @anna."
 msgstr "لوگوں کا ذکر ان کے {host} نام سے کریں، جیسے @anna۔"
 
 msgid "Mentions"
+msgstr ""
+
+msgid "Mentions in the text of pages. They do not notify anyone; mentions in comments and action items do."
 msgstr ""
 
 msgid "Mentions, {0} unread"
@@ -4754,6 +4799,9 @@ msgstr "کوئی مماثل راستہ نہیں"
 msgid "No matching repositories."
 msgstr "کوئی مماثل ریپازٹری نہیں۔"
 
+msgid "No mentions in pages match."
+msgstr ""
+
 msgid "No Mirror Source block in {docName} matches the text in this field. Clear it to see them all."
 msgstr "{docName} میں اس فیلڈ کے متن سے ملتا ہوا مرر کا کوئی ماخذ بلاک نہیں ہے۔ سب دیکھنے کے لیے اسے خالی کریں۔"
 
@@ -4770,6 +4818,12 @@ msgid "No page has properties yet. Open a page, choose \"Add properties\" and gi
 msgstr ""
 
 msgid "No page matches."
+msgstr ""
+
+msgid "No page mentions @{person}."
+msgstr ""
+
+msgid "No page mentions you in its text."
 msgstr ""
 
 msgid "No pages are missing incoming graph links."
@@ -4868,7 +4922,7 @@ msgstr ""
 msgid "No workspace"
 msgstr "کوئی ورک اسپیس نہیں"
 
-msgid "Nobody has mentioned you yet. Mentions in comments show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments and action items show up here."
 msgstr ""
 
 msgid "Nobody has reviewed it yet."
@@ -5132,6 +5186,9 @@ msgstr ""
 msgid "Open the insert menu in an empty or active text position."
 msgstr "خالی یا فعال متن کی جگہ پر داخل کرنے کا مینو کھولیں۔"
 
+msgid "Open the page at this mention"
+msgstr ""
+
 msgid "Open this document in the editor and collapse the graph."
 msgstr "یہ دستاویز ایڈیٹر میں کھولیں اور گراف سکیڑ دیں۔"
 
@@ -5276,7 +5333,7 @@ msgstr "انڈیکس شدہ صفحات: {semanticTotalCount} میں سے {semant
 msgid "Pages to link"
 msgstr ""
 
-msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgid "Pages with properties as a table, a board or a timeline, and the action items and mentions of all pages."
 msgstr ""
 
 msgid "Pan down"
@@ -6505,6 +6562,9 @@ msgstr "سورس دکھائیں"
 msgid "Show thumbnails"
 msgstr "تھمب نیلز دکھائیں"
 
+msgid "Show where I am mentioned"
+msgstr ""
+
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "«{semanticResultsLabel}» کے نتائج دکھائے جا رہے ہیں"
 
@@ -7075,6 +7135,9 @@ msgstr ""
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "وہ زبان جو GitQuire بولتا ہے؛ سسٹم آپ کے آپریٹنگ سسٹم کی پیروی کرتا ہے۔ آپ کے اپنے نوٹس اسی زبان میں رہیں گے جس میں آپ نے لکھے تھے۔"
 
+msgid "The list is cut off."
+msgstr ""
+
 msgid "The live wiki changed in the same places. Update the draft first."
 msgstr ""
 
@@ -7221,6 +7284,9 @@ msgstr "یہ قواعد آپ کے پروجیکٹ کی <0>{configFile}</0> فائ
 
 msgid "Thinking…"
 msgstr "سوچا جا رہا ہے…"
+
+msgid "This action item notifies @{login}."
+msgstr ""
 
 msgid "This agent doesn't offer slash commands"
 msgstr "یہ ایجنٹ سلیش کمانڈ پیش نہیں کرتا"
@@ -7413,6 +7479,9 @@ msgstr "یہ تھیم فائل پڑھی نہیں جا سکی"
 
 msgid "This theme file is too large"
 msgstr "یہ تھیم فائل بہت بڑی ہے"
+
+msgid "This wiki has more mentions than the list can show; it is cut off."
+msgstr ""
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -7992,10 +8061,16 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "جب آپ کسی بیرونی لنک پر ماؤس لے جاتے ہیں تو صفحے کا پیش منظر ڈیٹا لانے کے لیے اس کا URL منزل کی سائٹ کو بھیجا جاتا ہے — ہر پیش منظر والے لنک کے لیے ایک درخواست۔"
 
+msgid "Where @{person} is mentioned in the text of a page. These do not notify anyone."
+msgstr ""
+
 msgid "Where should it live?"
 msgstr "یہ کہاں رہنا چاہیے؟"
 
 msgid "Where to ask"
+msgstr ""
+
+msgid "Where you are mentioned in the text of a page. These do not notify you."
 msgstr ""
 
 msgid "Whitespace"

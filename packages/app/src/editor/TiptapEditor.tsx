@@ -43,6 +43,7 @@ import { DiscussionLayer } from '@/gitquire-comments/DiscussionLayer';
 import { DiscussionPanel } from '@/gitquire-comments/DiscussionPanel';
 import { GitQuireRelationFields } from '@/gitquire-links/relation-editor';
 import { TouchEditToolbar } from '@/gitquire-mobile/TouchEditToolbar';
+import { PageMentionLayer } from '@/gitquire-people/PageMentionCard';
 import { GitQuirePeopleMentions } from '@/gitquire-people/people-mention';
 import { emitDiagnosticBreadcrumb } from '@/lib/diagnostic-breadcrumb';
 import { anchorFromHash } from '@/lib/doc-hash';
@@ -1258,6 +1259,9 @@ const TiptapEditorChrome: FC<TiptapEditorChromeProps> = ({
       )}
       {!isSourceMode && docName === activeDocName && (
         <DiscussionPanel editor={editor} docName={docName} />
+      )}
+      {!isSourceMode && docName === activeDocName && (
+        <PageMentionLayer editor={editor} docName={docName} />
       )}
       {!isSourceMode && <TableCellHandles editor={editor} />}
       <div ref={portalSlotRef} style={{ display: 'contents' }} />

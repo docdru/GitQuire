@@ -13,6 +13,9 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+msgid " (notified)"
+msgstr ""
+
 msgid " or "
 msgstr " 또는 "
 
@@ -527,6 +530,9 @@ msgstr ""
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, other {단어}}"
 
+msgid "@{login} ({count})"
+msgstr ""
+
 msgid "@{login} ({open} open)"
 msgstr ""
 
@@ -645,6 +651,9 @@ msgstr "Google의 Open Knowledge Format을 따르는 지식 베이스입니다. 
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "각주<0><1>[1]</1></0>와 아래에 표시되는 정의가 있는 줄입니다."
+
+msgid "A mention in the page text does not notify @{login}."
+msgstr ""
 
 msgid "a new pane to the left of {0}"
 msgstr "{0} 왼쪽의 새 패널"
@@ -934,6 +943,9 @@ msgstr "모든 파일"
 msgid "All files are hidden by view filters."
 msgstr "보기 필터로 모든 파일이 숨겨져 있습니다."
 
+msgid "All mentions of @{login}"
+msgstr ""
+
 msgid "All pages with properties"
 msgstr ""
 
@@ -992,6 +1004,9 @@ msgid "any doc named {0}"
 msgstr "이름이 {0}인 문서"
 
 msgid "Any value"
+msgstr ""
+
+msgid "Anyone"
 msgstr ""
 
 msgid "Anyone can see"
@@ -1380,6 +1395,9 @@ msgstr "변경사항이 자동으로 저장됩니다."
 msgid "Changes saved automatically."
 msgstr "변경사항이 자동으로 저장되었습니다."
 
+msgid "Changes the page: this line becomes an action item for @{login}."
+msgstr ""
+
 msgid "changes this page"
 msgstr ""
 
@@ -1646,6 +1664,9 @@ msgid "Comment thread"
 msgstr ""
 
 msgid "Comment threads"
+msgstr ""
+
+msgid "Comment to @{login}"
 msgstr ""
 
 msgid "Comments"
@@ -1969,6 +1990,9 @@ msgstr "스타터 팩을 불러오지 못했습니다: {error}"
 msgid "Couldn't load templates"
 msgstr "템플릿을 불러오지 못했습니다"
 
+msgid "Couldn't load the mentions in pages."
+msgstr ""
+
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2080,10 +2104,16 @@ msgstr ""
 msgid "Couldn't save your review."
 msgstr ""
 
+msgid "Couldn't start a comment here."
+msgstr ""
+
 msgid "Couldn't switch to {language}."
 msgstr "언어를 {language}로 전환하지 못했습니다."
 
 msgid "Couldn't switch views."
+msgstr ""
+
+msgid "Couldn't turn this line into an action item."
 msgstr ""
 
 msgid "Couldn't update the draft."
@@ -3722,6 +3752,12 @@ msgstr "Git 프로젝트에서 GitQuire는 다음 재빌드 전에 동시에 변
 msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 msgstr ""
 
+msgid "In pages"
+msgstr ""
+
+msgid "Inbox"
+msgstr ""
+
 msgid "Indent"
 msgstr ""
 
@@ -4193,6 +4229,9 @@ msgstr "모든 폴더에서 생성된 인덱스를 유지하시겠습니까?"
 msgid "Maintain index.md"
 msgstr "index.md 유지"
 
+msgid "Make it an action item"
+msgstr ""
+
 msgid "Malformed apply response"
 msgstr "잘못된 apply 응답"
 
@@ -4259,10 +4298,16 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "중간 크기 섹션 제목입니다."
 
+msgid "Mention of @{login}"
+msgstr ""
+
 msgid "Mention people by their {host} name, like @anna."
 msgstr "사람을 {host} 이름으로 언급하세요. 예: @anna"
 
 msgid "Mentions"
+msgstr ""
+
+msgid "Mentions in the text of pages. They do not notify anyone; mentions in comments and action items do."
 msgstr ""
 
 msgid "Mentions, {0} unread"
@@ -4754,6 +4799,9 @@ msgstr "일치하는 경로 없음"
 msgid "No matching repositories."
 msgstr "일치하는 저장소가 없습니다."
 
+msgid "No mentions in pages match."
+msgstr ""
+
 msgid "No Mirror Source block in {docName} matches the text in this field. Clear it to see them all."
 msgstr "{docName}에 이 입력란의 텍스트와 일치하는 미러 소스 블록이 없습니다. 모두 보려면 입력란을 비우세요."
 
@@ -4770,6 +4818,12 @@ msgid "No page has properties yet. Open a page, choose \"Add properties\" and gi
 msgstr ""
 
 msgid "No page matches."
+msgstr ""
+
+msgid "No page mentions @{person}."
+msgstr ""
+
+msgid "No page mentions you in its text."
 msgstr ""
 
 msgid "No pages are missing incoming graph links."
@@ -4868,7 +4922,7 @@ msgstr ""
 msgid "No workspace"
 msgstr "워크스페이스 없음"
 
-msgid "Nobody has mentioned you yet. Mentions in comments show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments and action items show up here."
 msgstr ""
 
 msgid "Nobody has reviewed it yet."
@@ -5132,6 +5186,9 @@ msgstr ""
 msgid "Open the insert menu in an empty or active text position."
 msgstr "비어 있거나 활성화된 텍스트 위치에서 삽입 메뉴를 엽니다."
 
+msgid "Open the page at this mention"
+msgstr ""
+
 msgid "Open this document in the editor and collapse the graph."
 msgstr "이 문서를 편집기에서 열고 그래프를 접습니다."
 
@@ -5276,7 +5333,7 @@ msgstr "인덱싱된 페이지: {semanticTotalCount}개 중 {semanticIndexedCoun
 msgid "Pages to link"
 msgstr ""
 
-msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgid "Pages with properties as a table, a board or a timeline, and the action items and mentions of all pages."
 msgstr ""
 
 msgid "Pan down"
@@ -6505,6 +6562,9 @@ msgstr "소스 보기"
 msgid "Show thumbnails"
 msgstr "썸네일 표시"
 
+msgid "Show where I am mentioned"
+msgstr ""
+
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "“{semanticResultsLabel}”에 대한 결과 표시"
 
@@ -7075,6 +7135,9 @@ msgstr ""
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "GitQuire가 사용하는 언어입니다. 시스템은 운영 체제를 따릅니다. 작성한 노트는 작성한 언어로 유지됩니다."
 
+msgid "The list is cut off."
+msgstr ""
+
 msgid "The live wiki changed in the same places. Update the draft first."
 msgstr ""
 
@@ -7221,6 +7284,9 @@ msgstr "이 규칙은 프로젝트의 <0>{configFile}</0> 파일에서 가져오
 
 msgid "Thinking…"
 msgstr "생각 중…"
+
+msgid "This action item notifies @{login}."
+msgstr ""
 
 msgid "This agent doesn't offer slash commands"
 msgstr "이 에이전트는 슬래시 명령을 제공하지 않습니다"
@@ -7413,6 +7479,9 @@ msgstr "이 테마 파일을 읽지 못했습니다"
 
 msgid "This theme file is too large"
 msgstr "이 테마 파일은 너무 큽니다"
+
+msgid "This wiki has more mentions than the list can show; it is cut off."
+msgstr ""
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -7992,10 +8061,16 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "외부 링크 위에 마우스를 올리면 미리보기 메타데이터를 가져오기 위해 URL을 대상 사이트로 전송합니다. 미리보기 하나마다 한 번 요청합니다."
 
+msgid "Where @{person} is mentioned in the text of a page. These do not notify anyone."
+msgstr ""
+
 msgid "Where should it live?"
 msgstr "어디에 둘까요?"
 
 msgid "Where to ask"
+msgstr ""
+
+msgid "Where you are mentioned in the text of a page. These do not notify you."
 msgstr ""
 
 msgid "Whitespace"

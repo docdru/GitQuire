@@ -13,6 +13,9 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+msgid " (notified)"
+msgstr ""
+
 msgid " or "
 msgstr " lub "
 
@@ -527,6 +530,9 @@ msgstr ""
 msgid "{words, plural, one {word} other {words}}"
 msgstr "{words, plural, one {słowo} few {słowa} many {słów} other {słowa}}"
 
+msgid "@{login} ({count})"
+msgstr ""
+
 msgid "@{login} ({open} open)"
 msgstr ""
 
@@ -645,6 +651,9 @@ msgstr "Baza wiedzy zgodna z Google Open Knowledge Format, wspólnym sposobem or
 
 msgid "A line with a footnote<0><1>[1]</1></0> and a definition shown below."
 msgstr "Wiersz z przypisem<0><1>[1]</1></0> i definicją wyświetloną poniżej."
+
+msgid "A mention in the page text does not notify @{login}."
+msgstr ""
 
 msgid "a new pane to the left of {0}"
 msgstr "nowy panel po lewej stronie {0}"
@@ -934,6 +943,9 @@ msgstr "Wszystkie pliki"
 msgid "All files are hidden by view filters."
 msgstr "Wszystkie pliki są ukryte przez filtry widoku."
 
+msgid "All mentions of @{login}"
+msgstr ""
+
 msgid "All pages with properties"
 msgstr ""
 
@@ -992,6 +1004,9 @@ msgid "any doc named {0}"
 msgstr "dokument o nazwie {0}"
 
 msgid "Any value"
+msgstr ""
+
+msgid "Anyone"
 msgstr ""
 
 msgid "Anyone can see"
@@ -1380,6 +1395,9 @@ msgstr "Zmiany są zapisywane automatycznie."
 msgid "Changes saved automatically."
 msgstr "Zmiany zapisane automatycznie."
 
+msgid "Changes the page: this line becomes an action item for @{login}."
+msgstr ""
+
 msgid "changes this page"
 msgstr ""
 
@@ -1646,6 +1664,9 @@ msgid "Comment thread"
 msgstr ""
 
 msgid "Comment threads"
+msgstr ""
+
+msgid "Comment to @{login}"
 msgstr ""
 
 msgid "Comments"
@@ -1969,6 +1990,9 @@ msgstr "Nie udało się wczytać pakietów startowych: {error}"
 msgid "Couldn't load templates"
 msgstr "Nie udało się wczytać szablonów"
 
+msgid "Couldn't load the mentions in pages."
+msgstr ""
+
 msgid "Couldn't load the pages for this view."
 msgstr ""
 
@@ -2080,10 +2104,16 @@ msgstr ""
 msgid "Couldn't save your review."
 msgstr ""
 
+msgid "Couldn't start a comment here."
+msgstr ""
+
 msgid "Couldn't switch to {language}."
 msgstr "Nie udało się przełączyć na {language}."
 
 msgid "Couldn't switch views."
+msgstr ""
+
+msgid "Couldn't turn this line into an action item."
 msgstr ""
 
 msgid "Couldn't update the draft."
@@ -3722,6 +3752,12 @@ msgstr "W projektach Git GitQuire dodaje również regułę ograniczoną zakrese
 msgid "In Le Chat, open <0>Intelligence → Connectors</0>, click <1>+ Add Connector</1> and switch to <2>Custom MCP Connector</2>. Name it <3>gitquire</3> (no spaces), paste the address and click <4>Connect</4>."
 msgstr ""
 
+msgid "In pages"
+msgstr ""
+
+msgid "Inbox"
+msgstr ""
+
 msgid "Indent"
 msgstr ""
 
@@ -4193,6 +4229,9 @@ msgstr "Utrzymywać generowane indeksy w każdym folderze?"
 msgid "Maintain index.md"
 msgstr "Utrzymuj index.md"
 
+msgid "Make it an action item"
+msgstr ""
+
 msgid "Malformed apply response"
 msgstr "Nieprawidłowa odpowiedź apply"
 
@@ -4259,10 +4298,16 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "Średni nagłówek sekcji."
 
+msgid "Mention of @{login}"
+msgstr ""
+
 msgid "Mention people by their {host} name, like @anna."
 msgstr "Wspominaj osoby ich nazwą w serwisie {host}, np. @anna."
 
 msgid "Mentions"
+msgstr ""
+
+msgid "Mentions in the text of pages. They do not notify anyone; mentions in comments and action items do."
 msgstr ""
 
 msgid "Mentions, {0} unread"
@@ -4754,6 +4799,9 @@ msgstr "Brak pasujących ścieżek"
 msgid "No matching repositories."
 msgstr "Brak pasujących repozytoriów."
 
+msgid "No mentions in pages match."
+msgstr ""
+
 msgid "No Mirror Source block in {docName} matches the text in this field. Clear it to see them all."
 msgstr "Żaden blok źródła lustra w {docName} nie pasuje do tekstu w tym polu. Wyczyść je, aby zobaczyć wszystkie."
 
@@ -4770,6 +4818,12 @@ msgid "No page has properties yet. Open a page, choose \"Add properties\" and gi
 msgstr ""
 
 msgid "No page matches."
+msgstr ""
+
+msgid "No page mentions @{person}."
+msgstr ""
+
+msgid "No page mentions you in its text."
 msgstr ""
 
 msgid "No pages are missing incoming graph links."
@@ -4868,7 +4922,7 @@ msgstr ""
 msgid "No workspace"
 msgstr "Brak obszaru roboczego"
 
-msgid "Nobody has mentioned you yet. Mentions in comments show up here."
+msgid "Nobody has mentioned you yet. Mentions in comments and action items show up here."
 msgstr ""
 
 msgid "Nobody has reviewed it yet."
@@ -5132,6 +5186,9 @@ msgstr ""
 msgid "Open the insert menu in an empty or active text position."
 msgstr "Otwórz menu wstawiania w pustym lub aktywnym miejscu tekstu."
 
+msgid "Open the page at this mention"
+msgstr ""
+
 msgid "Open this document in the editor and collapse the graph."
 msgstr "Otwórz ten dokument w edytorze i zwij graf."
 
@@ -5276,7 +5333,7 @@ msgstr "Indeksowane strony: {semanticIndexedCount} z {semanticTotalCount}."
 msgid "Pages to link"
 msgstr ""
 
-msgid "Pages with properties as a table, a board or a timeline, and the action items of all pages."
+msgid "Pages with properties as a table, a board or a timeline, and the action items and mentions of all pages."
 msgstr ""
 
 msgid "Pan down"
@@ -6505,6 +6562,9 @@ msgstr "Pokaż źródło"
 msgid "Show thumbnails"
 msgstr "Pokazuj miniatury"
 
+msgid "Show where I am mentioned"
+msgstr ""
+
 msgid "Showing results for \"{semanticResultsLabel}\""
 msgstr "Wyświetlanie wyników dla \"{semanticResultsLabel}\""
 
@@ -7075,6 +7135,9 @@ msgstr ""
 msgid "The language GitQuire speaks; System follows your operating system. Your own notes stay in the language you wrote them in."
 msgstr "Język, którym posługuje się GitQuire; System podąża za systemem operacyjnym. Twoje notatki pozostają w języku, w którym je napisałeś."
 
+msgid "The list is cut off."
+msgstr ""
+
 msgid "The live wiki changed in the same places. Update the draft first."
 msgstr ""
 
@@ -7221,6 +7284,9 @@ msgstr "Te reguły pochodzą z pliku <0>{configFile}</0> projektu, który w peł
 
 msgid "Thinking…"
 msgstr "Myślenie…"
+
+msgid "This action item notifies @{login}."
+msgstr ""
 
 msgid "This agent doesn't offer slash commands"
 msgstr "Ten agent nie udostępnia poleceń slash"
@@ -7413,6 +7479,9 @@ msgstr "Nie udało się odczytać tego pliku motywu"
 
 msgid "This theme file is too large"
 msgstr "Ten plik motywu jest za duży"
+
+msgid "This wiki has more mentions than the list can show; it is cut off."
+msgstr ""
 
 msgid "This wiki has more pages than a view can show; the list is cut off."
 msgstr ""
@@ -7992,10 +8061,16 @@ msgstr ""
 msgid "When you hover an external link, its URL is sent to the destination site to fetch the page's preview metadata — one request per previewed link."
 msgstr "Po najechaniu na link zewnętrzny jego adres URL jest wysyłany do strony docelowej, aby pobrać metadane podglądu strony — jedno żądanie na podglądany link."
 
+msgid "Where @{person} is mentioned in the text of a page. These do not notify anyone."
+msgstr ""
+
 msgid "Where should it live?"
 msgstr "Gdzie ma się znajdować?"
 
 msgid "Where to ask"
+msgstr ""
+
+msgid "Where you are mentioned in the text of a page. These do not notify you."
 msgstr ""
 
 msgid "Whitespace"

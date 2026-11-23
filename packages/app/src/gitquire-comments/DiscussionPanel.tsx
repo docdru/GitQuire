@@ -107,10 +107,11 @@ function MentionText({ body }: { body: string }) {
         return recognised ? (
           <span
             key={segment.start}
-            className="rounded bg-primary/10 px-0.5 font-medium text-primary"
+            className="gq-mention-solid font-medium text-primary"
             data-mention="known"
           >
             {segment.text}
+            <span className="sr-only">{t` (notified)`}</span>
           </span>
         ) : (
           <span
@@ -476,6 +477,10 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
 
   const forThisDoc = ui.docName === docName;
   const draft = forThisDoc ? ui.draft : null;
+
+  useEffect(() => {
+    if (draft?.body !== undefined) setDraftBody(draft.body);
+  }, [draft]);
   const activeThreadId = forThisDoc ? ui.activeThreadId : null;
   const activePlaced =
     activeThreadId === null

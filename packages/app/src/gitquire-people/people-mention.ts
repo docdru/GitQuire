@@ -1,7 +1,7 @@
 import { Extension } from '@tiptap/core';
 import type { Node as PMNode, ResolvedPos } from '@tiptap/pm/model';
 import { type EditorState, Plugin, PluginKey } from '@tiptap/pm/state';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import { Decoration, DecorationSet, type EditorView } from '@tiptap/pm/view';
 import { ReactRenderer } from '@tiptap/react';
 import Suggestion, { type SuggestionKeyDownProps, type SuggestionProps } from '@tiptap/suggestion';
 import { suggestionAllow } from '@/editor/extensions/suggestion-allow';
@@ -20,9 +20,9 @@ import {
 } from '@/lib/gitquire/people';
 import { settledSuggestionRender } from '../editor/extensions/suggestion-settled';
 import { PeopleSuggestionMenu } from './PeopleSuggestionMenu';
+import { type MentionPlace, mentionRanges } from './page-mention-find';
 
 const TRIGGER_RE = /(^|[\s(￼])@([A-Za-z0-9-]{0,39})$/;
-const MENTION_RE = /(?<![\w@])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)(?![\w-])/g;
 
 const peopleSuggestionKey = new PluginKey('gitquirePeopleSuggestion');
 const peopleHighlightKey = new PluginKey<DecorationSet>('gitquirePeopleHighlight');
@@ -37,31 +37,57 @@ function peopleMatcher(config: { $position: ResolvedPos }) {
   return { range: { from: at, to: $position.pos }, query, text: `@${query}` };
 }
 
-function isCode(node: PMNode): boolean {
-  return node.marks.some((mark) => mark.type.name === 'code');
-}
+const PLACE_CLASS: Record<MentionPlace, string> = {
+  page: 'gq-mention',
+  'action-item': 'gq-mention gq-mention-notifies',
+  'done-action-item': 'gq-mention gq-mention-task-done',
+};
 
-function mentionDecorations(doc: PMNode, known: ReadonlySet<string>): DecorationSet {
+export function mentionDecorations(doc: PMNode, known: ReadonlySet<string>): DecorationSet {
   if (known.size === 0) return DecorationSet.empty;
   const decorations: Decoration[] = [];
-  doc.descendants((node, pos) => {
-    if (node.type.spec.code === true) return false;
-    if (!node.isText || isCode(node)) return true;
-    const text = node.text ?? '';
-    if (!text.includes('@')) return false;
-    for (const match of text.matchAll(MENTION_RE)) {
-      if (!known.has((match[1] as string).toLowerCase())) continue;
-      const from = pos + (match.index ?? 0);
-      decorations.push(
-        Decoration.inline(from, from + match[0].length, {
-          class: 'gq-mention',
-          'data-gq-mention': (match[1] as string).toLowerCase(),
-        }),
-      );
-    }
-    return false;
-  });
+  for (const range of mentionRanges(doc)) {
+    if (!known.has(range.login)) continue;
+    decorations.push(
+      Decoration.inline(range.from, range.to, {
+        class: PLACE_CLASS[range.place],
+        'data-gq-mention': range.login,
+        'data-gq-mention-place': range.place,
+      }),
+    );
+  }
   return DecorationSet.create(doc, decorations);
+}
+
+const flashKey = new PluginKey<DecorationSet>('gitquireMentionFlash');
+const FLASH_MS = 2000;
+
+export function flashRange(view: EditorView, from: number, to: number): void {
+  view.dispatch(view.state.tr.setMeta(flashKey, { from, to }));
+  window.setTimeout(() => {
+    if (!view.isDestroyed) view.dispatch(view.state.tr.setMeta(flashKey, null));
+  }, FLASH_MS);
+}
+
+function flashPlugin(): Plugin<DecorationSet> {
+  return new Plugin<DecorationSet>({
+    key: flashKey,
+    state: {
+      init: () => DecorationSet.empty,
+      apply: (tr, previous) => {
+        const meta = tr.getMeta(flashKey) as { from: number; to: number } | null | undefined;
+        if (meta === null) return DecorationSet.empty;
+        if (meta === undefined) return previous.map(tr.mapping, tr.doc);
+        if (meta.to > tr.doc.content.size) return DecorationSet.empty;
+        return DecorationSet.create(tr.doc, [
+          Decoration.inline(meta.from, meta.to, { class: 'gq-mention-flash' }),
+        ]);
+      },
+    },
+    props: {
+      decorations: (state) => flashKey.getState(state),
+    },
+  });
 }
 
 function currentKnown(): ReadonlySet<string> {
@@ -193,6 +219,6 @@ function suggestionPlugin(editor: Parameters<typeof Suggestion>[0]['editor']) {
 export const GitQuirePeopleMentions = Extension.create({
   name: 'gitquirePeopleMentions',
   addProseMirrorPlugins() {
-    return [suggestionPlugin(this.editor), highlightPlugin()];
+    return [suggestionPlugin(this.editor), highlightPlugin(), flashPlugin()];
   },
 });
