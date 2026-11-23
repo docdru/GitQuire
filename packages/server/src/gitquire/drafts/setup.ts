@@ -115,8 +115,16 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
   const remote: DraftRemote =
     deps.appConfig !== undefined && deps.client !== undefined
       ? deps.appConfig.host === 'forgejo'
-        ? forgejoRemote(deps.client, deps.appConfig.repo, deps.appConfig.webUrl)
-        : gitHubRemote(deps.client, deps.appConfig.repo)
+        ? forgejoRemote(deps.client, deps.appConfig.repo, deps.appConfig.webUrl, {
+            projectDir: deps.projectDir,
+            runGit,
+            authEnv,
+          })
+        : gitHubRemote(deps.client, deps.appConfig.repo, {
+            projectDir: deps.projectDir,
+            runGit,
+            authEnv,
+          })
       : plainGitRemote(deps.projectDir, runGit, authEnv);
   const syncMode = parseAutoSyncMode(deps.env.GITQUIRE_SYNC_MODE);
 
