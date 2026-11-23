@@ -124,6 +124,7 @@ function isStatePayload(value: unknown): value is StatePayload {
 
 export function safeNextPath(raw: string | null | undefined): string {
   if (raw === null || raw === undefined || raw === '') return '/';
+  if (!/^[\x21-\x7e]+$/.test(raw)) return '/';
   if (!raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return '/';
   if (raw.startsWith('/auth/') && raw !== AGENTS_PAGE_PATH) return '/';
   return raw;
@@ -518,7 +519,8 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
 
   function handleRequest(req: IncomingMessage, res: ServerResponse): boolean {
     const { path, search } = pathOf(req);
-    if (path === '/healthz' || path === '/readyz') return false;
+    const raw = (req.url ?? '/').split('?')[0] ?? '/';
+    if ((path === '/healthz' || path === '/readyz') && raw === path) return false;
     if (isPublicAsset(path, req.method)) return false;
     if (oauth?.handle(req, res, path, search) === true) return true;
     if (path.startsWith('/api/') && isInternalRequest(req)) return false;
@@ -576,7 +578,14 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
 
   function admitUpgrade(req: IncomingMessage, socket: Duplex): boolean {
     const { path } = pathOf(req);
-    if (!path.startsWith('/collab')) return true;
+    const raw = (req.url ?? '/').split('?')[0] ?? '/';
+    if (!path.startsWith('/collab') && !raw.startsWith('/collab')) return true;
+    if (raw !== path) {
+      deps.log.warn({ path }, '[gitquire-auth] refused websocket upgrade with an unusual path');
+      socket.write('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
+      socket.destroy();
+      return false;
+    }
     if (isInAppAgentPath(path)) {
       deps.log.warn({ path }, '[gitquire-auth] refused in-app agent session');
       socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');
