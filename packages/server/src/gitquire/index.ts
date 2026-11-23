@@ -153,6 +153,11 @@ export { HostConfigError } from './host/names.ts';
 type Env = Readonly<Record<string, string | undefined>>;
 
 export function configureHostFromEnv(env: Env, projectDir: string | undefined): HostNames {
+  if (!behindFrontDoorFromEnv(env) && (env.GITQUIRE_HOSTS ?? '').trim() !== '') {
+    throw new HostConfigError(
+      'GITQUIRE_HOSTS adds Git hosts to the front door and needs GITQUIRE_WIKIS=on. A single wiki has one host (GITQUIRE_HOST); remove GITQUIRE_HOSTS or turn GITQUIRE_WIKIS on.',
+    );
+  }
   if (projectDir !== undefined && !behindFrontDoorFromEnv(env)) refuseFrontDoorVolume(projectDir);
   const names = hostNamesFromEnv(env);
   if (projectDir !== undefined && !isDraftInstance(env)) {
