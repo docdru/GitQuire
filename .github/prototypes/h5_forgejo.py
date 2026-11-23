@@ -464,6 +464,21 @@ def wikis_mcp(alice, dave):
         check("Wikis MCP", status == 200 and isinstance(result, dict) and not result.get("isError")
               and f"# {name}" in text and f"# {other}" not in text,
               f"exec cat README.md in team/{name} reads that wiki -> {status} {text[:160]}")
+    status, wrote = agent.call("write", {"wiki": "team/alpha", "document": {
+        "path": "agent-note", "content": "# Agent note\n\nWritten by alice's agent.\n"}})
+    check("Wikis MCP", status == 200 and isinstance(wrote, dict) and not wrote.get("isError"),
+          f"alice's agent writes agent-note in team/alpha -> {status} {result_text(wrote)[:160]}")
+    author = None
+    for _ in range(36):
+        _, commits, _ = f.call("GET", "/repos/team/alpha/commits?sha=main&limit=10&path=agent-note.md", auth=f.ADMIN)
+        if isinstance(commits, list) and commits:
+            author = commits[0].get("commit", {}).get("author", {})
+            break
+        time.sleep(5)
+    check("Wikis MCP", isinstance(author, dict) and author.get("email", "").startswith("alice@"),
+          f"the agent's edit is committed with alice as author -> {author}")
+    status, history = agent.call("history", {"wiki": "team/alpha", "document": "agent-note", "limit": 3})
+    check("Wikis MCP", None, f"history of agent-note in GitQuire -> {result_text(history)[:600]}")
     status, missing = agent.call("exec", {"command": "ls"})
     check("Wikis MCP", isinstance(missing, dict) and missing.get("isError") is True
           and "team/alpha, team/beta" in result_text(missing),
