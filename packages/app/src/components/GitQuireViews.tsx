@@ -6,6 +6,7 @@ import { type Dispatch, type SetStateAction, useEffect, useId, useRef, useState 
 import { toast } from 'sonner';
 import { ActionItemList, EMPTY_ACTION_FILTER, ObjectBoard } from '@/components/GitQuireBoard';
 import { type Choice, ChoiceSelect } from '@/components/GitQuireChoice';
+import { ME, PageMentionsView } from '@/components/GitQuirePageMentions';
 import { TimelineList } from '@/components/GitQuireTimeline';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { currentAuthor } from '@/gitquire-comments/ui-store';
+import { openPageMention } from '@/gitquire-people/PageMentionList';
 import { hashFromDocName } from '@/lib/doc-hash';
 import {
   type ActionFilter,
@@ -506,6 +508,7 @@ export function GitQuireViews() {
   const [tab, setTab] = useState('table');
   const [pending, setPending] = useState<ReadonlyMap<string, PendingMove>>(() => new Map());
   const [actionFilter, setActionFilter] = useState<ActionFilter>(EMPTY_ACTION_FILTER);
+  const [mentionPerson, setMentionPerson] = useState(ME);
   const [me, setMe] = useState<string | null>(null);
   const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set());
   const savingRef = useRef(new Set<string>());
@@ -633,7 +636,7 @@ export function GitQuireViews() {
           <DialogHeader>
             <DialogTitle>{t`Views`}</DialogTitle>
             <DialogDescription>
-              {t`Pages with properties as a table, a board or a timeline, and the action items of all pages.`}
+              {t`Pages with properties as a table, a board or a timeline, and the action items and mentions of all pages.`}
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="flex min-h-0 flex-1 flex-col gap-3">
@@ -670,17 +673,20 @@ export function GitQuireViews() {
                     <TabsTrigger value="board">{t`Board`}</TabsTrigger>
                     <TabsTrigger value="timeline">{t`Timeline`}</TabsTrigger>
                     <TabsTrigger value="actions">{t`Action items`}</TabsTrigger>
+                    <TabsTrigger value="mentions">{t`Mentions`}</TabsTrigger>
                   </TabsList>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="ms-auto gap-1.5"
-                    onClick={() => setSavingView(true)}
-                  >
-                    <Save aria-hidden="true" />
-                    {t`Save as page`}
-                  </Button>
+                  {tab !== 'mentions' && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="ms-auto gap-1.5"
+                      onClick={() => setSavingView(true)}
+                    >
+                      <Save aria-hidden="true" />
+                      {t`Save as page`}
+                    </Button>
+                  )}
                 </div>
                 <TabsContent value="table" className={TAB_CLASS}>
                   <ObjectTable
@@ -719,6 +725,18 @@ export function GitQuireViews() {
                     onFilter={setActionFilter}
                     onToggle={toggleTask}
                     onOpen={openPage}
+                  />
+                </TabsContent>
+                <TabsContent value="mentions" className={TAB_CLASS}>
+                  <PageMentionsView
+                    active={open && tab === 'mentions'}
+                    me={me}
+                    person={mentionPerson}
+                    onPerson={setMentionPerson}
+                    onOpen={(mention) => {
+                      setOpen(false);
+                      openPageMention(mention);
+                    }}
                   />
                 </TabsContent>
               </Tabs>

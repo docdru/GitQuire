@@ -6,7 +6,7 @@ export interface DiscussionUiState {
   docName: string | null;
   activeThreadId: string | null;
   revealThreadId: string | null;
-  draft: { anchor: Anchor; from: number; to: number } | null;
+  draft: { anchor: Anchor; from: number; to: number; body?: string } | null;
 }
 
 let state: DiscussionUiState = {

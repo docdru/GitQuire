@@ -72,6 +72,7 @@ describe('servedByLive', () => {
       '/collab',
       '/assets/app.js',
       '/api/gitquire/objects',
+      '/api/gitquire/page-mentions',
     ]) {
       expect(servedByLive(path), path).toBe(false);
     }

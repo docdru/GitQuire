@@ -51,6 +51,7 @@ import {
 } from './mentions.ts';
 import { mergedGoneBranches } from './merged-branches.ts';
 import { namingRuleFromEnv } from './naming.ts';
+import { listPageMentions, type PageMentions, pageMentionsIn } from './page-mentions.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
 import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
 import { allowedLoginsFrom, createPeopleDirectory, peopleStatePath } from './people.ts';
@@ -354,12 +355,22 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
   }
 
+  function pageMentionsOrNone(path: string, markdown: string): PageMentions {
+    try {
+      return pageMentionsIn(path, markdown);
+    } catch (err) {
+      deps.log.warn({ err, path }, '[gitquire] could not read the mentions of a page');
+      return { mentions: [], clipped: false };
+    }
+  }
+
   const pageScan = createPageScan(
     deps.contentDir ?? deps.projectDir,
     (path, markdown) => ({
       mentions: mentionsInMarkdown(path, markdown),
       facts: factsOrNone(path, markdown),
       relations: relationsOrNone(path, markdown),
+      pageMentions: pageMentionsOrNone(path, markdown),
     }),
     Date.now,
     deps.contentFilter,
@@ -391,6 +402,13 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     }
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(objectList.body(factPages.pages));
+  }
+
+  function listPageMentionsOf(req: IncomingMessage, res: ServerResponse): void {
+    const url = new URL(req.url ?? '/', 'http://gitquire.invalid');
+    const login = url.searchParams.get('login') ?? undefined;
+    const pages = pageScan.all().map((page) => ({ ...page, value: page.value.pageMentions }));
+    sendJson(res, 200, listPageMentions(pages, login === '' ? undefined : login));
   }
 
   const typedLinkList = createTypedLinkListCache();
@@ -665,6 +683,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     if (path === '/api/gitquire/objects' && method === 'GET') return listPageObjects(res);
     if (path === '/api/gitquire/typed-links' && method === 'GET') return listTypedLinks(res);
     if (path === '/api/gitquire/mentions' && method === 'GET') return listMentions(req, res);
+    if (path === '/api/gitquire/page-mentions' && method === 'GET') {
+      return listPageMentionsOf(req, res);
+    }
     if (path === '/api/gitquire/people' && method === 'GET') return listPeople(req, res);
     if (path === '/api/gitquire/me/settings' && method === 'GET') {
       return readPersonalSettings(req, res);
