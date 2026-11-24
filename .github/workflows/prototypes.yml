@@ -1,8 +1,8 @@
-name: Forgejo tests (hosts-one-door)
+name: Forgejo tests
 
 on:
   push:
-    branches: [hosts-one-door]
+    branches: [main]
   pull_request:
     paths:
       - .github/workflows/prototypes.yml
