@@ -143,3 +143,7 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 
 - DEPLOY.md: "Two Git hosts on one server" (settings, sign-in per host, agents per host, token files), addresses with the host and what browsers lose at the update, the `wiki` argument with the host, known limits, the variable reference. Docs site: several wikis, Forgejo, Connect AI.
 - Settings → Connect AI said "sign in with GitHub" also on Forgejo; it now names the wiki's host.
+
+### B9 (final pull request)
+
+- The branch handling of B0 is removed again: `checks.yml` and the Forgejo tests run on pushes to `main` only, no `hosts-one-door` image tag, `FULL_RUN_BASES` and its tests are gone, and the CONTRIBUTING paragraph is removed. `plans/one-front-door.md` stays in the AI review's reference documents, as the earlier plan did.
