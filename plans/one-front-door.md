@@ -138,3 +138,8 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 - Rows: both sign-ins in one session; Add a wiki per host and `host-required`; both lists; alice with the same login and number on both hosts is two people; `team/alpha` on both hosts reads its own README; old addresses (page, API, image) redirect to the wiki that held the name first, and someone who cannot open it gets the unknown answer; admin of the Forgejo wiki and only writer of the GitHub one, server admin on one host only; tokens per account (`/mcp` and `/mcp/github` list only their host's wikis, a token is refused at the other address, per-host token files); an agent edit reaching the fake as a commit by alice with her GitHub address; access removed on GitHub only; GitHub down while Forgejo keeps working; no host secret in an editor process.
 - The one-host rows are the existing `forgejo-h5` steps, which run unchanged on this branch, and the unit suites for one host.
 - **Not covered:** the real GitHub (only the fake); drafts and pull requests on the GitHub side (the fake answers an empty pull request list only); Claude's connector against `/mcp/github`.
+
+### B8 (docs)
+
+- DEPLOY.md: "Two Git hosts on one server" (settings, sign-in per host, agents per host, token files), addresses with the host and what browsers lose at the update, the `wiki` argument with the host, known limits, the variable reference. Docs site: several wikis, Forgejo, Connect AI.
+- Settings → Connect AI said "sign in with GitHub" also on Forgejo; it now names the wiki's host.

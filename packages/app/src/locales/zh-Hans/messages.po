@@ -1492,7 +1492,7 @@ msgstr "已清除文件夹属性"
 msgid "Clearing local collaboration data for \"{docName}\" before reconnecting."
 msgstr "正在重新连接前清除“{docName}”的本地协作数据。"
 
-msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with {host} and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -6538,10 +6538,10 @@ msgstr "登录"
 msgid "Sign in again to continue."
 msgstr ""
 
-msgid "Sign in with {label}"
+msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
 msgstr ""
 
-msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgid "Sign in with {label}"
 msgstr ""
 
 msgid "Sign out…"

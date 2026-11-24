@@ -13,7 +13,11 @@ This needs [GitHub sign-in](./github-sign-in.mdx), a public HTTPS address and
 app, **Settings → Connect AI** shows the address to use, with the steps for each assistant in its own expandable section.
 
 Your connector address is your wiki's address with `/mcp` at the end, for example
-`https://wiki.example.com/mcp`.
+`https://wiki.example.com/mcp`. On a server with [several wikis](./several-wikis.mdx) it is the
+server's address with `/mcp`, the same for all wikis of a host; a second Git host on the same
+server has its own address, `/mcp/<key>` (for example `https://wiki.example.com/mcp/github`), and
+its own tokens page, `/auth/<key>/agents`. Add one connector per host you use. Settings → Connect
+AI always shows the right address for the wiki you are in.
 
 ## Claude
 
