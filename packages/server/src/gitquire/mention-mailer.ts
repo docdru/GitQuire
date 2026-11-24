@@ -80,7 +80,7 @@ function reviewMail(
   lines.push(
     '',
     'You get this mail because you entered this address for mentions in GitQuire.',
-    'To stop, open the mention list in GitQuire and choose "Stop emailing me".',
+    'To stop, open Settings → Notifications in GitQuire and choose "Stop emailing me".',
   );
   const subject = `${who} asked you to review ${title}${config.wiki === undefined ? '' : ` in ${config.wiki}`}`;
   return { to, subject, text: `${lines.join('\n')}\n` };
@@ -113,7 +113,7 @@ export function mentionMail(
   lines.push(
     '',
     'You get this mail because you entered this address for mentions in GitQuire.',
-    'To stop, open the mention list in GitQuire and choose "Stop emailing me".',
+    'To stop, open Settings → Notifications in GitQuire and choose "Stop emailing me".',
   );
   const where = config.wiki === undefined ? page : `${page} (${config.wiki})`;
   const subject = task

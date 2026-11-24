@@ -244,6 +244,12 @@ function SettingsDialogFrame({
           label: t`Preferences`,
           userScope: true,
         },
+        {
+          id: 'notifications',
+          label: t`Notifications`,
+          userScope: true,
+          keywords: [t`Email`, t`Mentions`, t`Mail`],
+        },
         { id: 'hotkeys', label: t`Hotkeys`, userScope: true },
         {
           id: 'account',

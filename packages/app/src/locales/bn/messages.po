@@ -1995,6 +1995,9 @@ msgstr ""
 msgid "Couldn't load the pages."
 msgstr ""
 
+msgid "Couldn't load your email setting."
+msgstr ""
+
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
@@ -2660,6 +2663,9 @@ msgstr "ইমেইল"
 
 msgid "Email address"
 msgstr "ইমেইল ঠিকানা"
+
+msgid "Email for mentions is not set up."
+msgstr ""
 
 msgid "Email me new mentions"
 msgstr ""
@@ -4219,6 +4225,9 @@ msgstr "প্রতি অনুরোধে মেমোরি ব্যবহ
 msgid "lucide:Lightbulb or 📘"
 msgstr ""
 
+msgid "Mail"
+msgstr ""
+
 msgid "Maintain generated indexes in every folder?"
 msgstr "প্রতি ফোল্ডারে generated সূচী বজায় রাখুন?"
 
@@ -4627,6 +4636,9 @@ msgstr ""
 msgid "New mentions are emailed to {0}"
 msgstr ""
 
+msgid "New mentions are emailed to {0}."
+msgstr ""
+
 msgid "New page"
 msgstr ""
 
@@ -5001,6 +5013,9 @@ msgstr "এখনও কিছুই নির্ধারিত হয়নি
 
 msgid "Nothing to commit — working tree clean."
 msgstr "কমিট করার কিছু নেই: ওয়ার্কিং ট্রি পরিষ্কার।"
+
+msgid "Notifications"
+msgstr ""
 
 msgid "Number"
 msgstr "সংখ্যা"
@@ -6405,6 +6420,9 @@ msgstr "git পরিচয় নির্ধারণ করুন"
 msgid "Set identity"
 msgstr "পরিচয় নির্ধারণ করুন"
 
+msgid "Set it up in Settings"
+msgstr ""
+
 msgid "Set it up on its own page under Plugins."
 msgstr "Plugins-এর নিচে এর নিজের পাতায় এটি সাজান।"
 
@@ -6592,6 +6610,9 @@ msgid "Sign in"
 msgstr "সাইন ইন করুন"
 
 msgid "Sign in again to continue."
+msgstr ""
+
+msgid "Sign in to get mentions by email."
 msgstr ""
 
 msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
@@ -7452,6 +7473,9 @@ msgstr "এটি বিষয়বস্তু আপনার মেশিন
 msgid "This sends link addresses from the server to other sites"
 msgstr ""
 
+msgid "This server can't send email yet. An administrator turns it on with GITQUIRE_SMTP_URL and GITQUIRE_MAIL_FROM."
+msgstr ""
+
 msgid "This server does not send mail to that domain."
 msgstr ""
 
@@ -8009,6 +8033,9 @@ msgstr "অনুমোদনের অপেক্ষা"
 msgid "Waiting for someone to check"
 msgstr ""
 
+msgid "Waiting for the code sent to {0}."
+msgstr ""
+
 msgid "Warning"
 msgstr "সতর্কতা"
 
@@ -8055,6 +8082,9 @@ msgid "What's new"
 msgstr "নতুন কী আছে"
 
 msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
+
+msgid "When someone mentions you in a comment or an action item in this wiki, it shows up under the @ button. You can also get it by email."
 msgstr ""
 
 msgid "When the agent runs its scheduled work."

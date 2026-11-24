@@ -1,4 +1,6 @@
 import { createHmac, randomBytes, randomInt } from 'node:crypto';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import type { MailConfig, MailMessage } from './mail.ts';
 
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -12,8 +14,29 @@ export const MAX_CONFIRMATIONS_PER_HOUR = 30;
 export const MAX_CONFIRMATIONS_PER_DAY = 100;
 export const MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY = 3;
 
-export function confirmationKey(secret: string | undefined): string {
-  return secret !== undefined && secret !== '' ? secret : randomBytes(32).toString('hex');
+export function confirmationKeyPath(projectDir: string): string {
+  return join(projectDir, '.gitquire', 'local', 'gitquire', 'mail-code-key');
+}
+
+function storedKey(file: string): string | undefined {
+  try {
+    const key = readFileSync(file, 'utf8').trim();
+    return /^[0-9a-f]{64}$/.test(key) ? key : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function confirmationKey(secret: string | undefined, keyFile: string): string {
+  if (secret !== undefined && secret.trim() !== '') return secret;
+  const existing = storedKey(keyFile);
+  if (existing !== undefined) return existing;
+  const fresh = randomBytes(32).toString('hex');
+  mkdirSync(dirname(keyFile), { recursive: true });
+  const temporary = `${keyFile}.${process.pid}.tmp`;
+  writeFileSync(temporary, `${fresh}\n`, { mode: 0o600 });
+  renameSync(temporary, keyFile);
+  return fresh;
 }
 
 export function newConfirmationCode(): string {
@@ -46,14 +69,15 @@ export function confirmationMail(
   to: string,
   login: string,
   code: string,
+  hostLabel = 'GitHub',
 ): MailMessage {
   const where = config.externalUrl === undefined ? 'GitQuire' : `GitQuire at ${config.externalUrl}`;
   const lines = [
-    `The GitHub user "${login}" asked ${where} to send mention notifications to this address.`,
+    `The ${hostLabel} user "${login}" asked ${where} to send mention notifications to this address.`,
     '',
     `Confirmation code: ${displayConfirmationCode(code)}`,
     '',
-    'Enter the code in GitQuire under the mention list within 24 hours.',
+    'Enter the code in GitQuire under Settings → Notifications within 24 hours.',
     '',
     'If this was not you, ignore this mail.',
     'No mention emails will be sent to this address unless the code is entered.',
