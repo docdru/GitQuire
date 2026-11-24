@@ -5035,6 +5035,9 @@ msgstr "{host} पर {fullName} खोलें"
 msgid "Open {keyName} in browser"
 msgstr "{keyName} को ब्राउज़र में खोलें"
 
+msgid "Open {repoName} on {host}"
+msgstr ""
+
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "<0><1>{verificationUri}</1><2/></0> खोलें और यह कोड डालें:"
 
@@ -6531,7 +6534,13 @@ msgstr "साइन इन करें"
 msgid "Sign in again to continue."
 msgstr ""
 
+msgid "Sign in with {label}"
+msgstr ""
+
 msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
+msgid "Sign out…"
 msgstr ""
 
 msgid "Sign-in stream ended without confirmation — please try again"

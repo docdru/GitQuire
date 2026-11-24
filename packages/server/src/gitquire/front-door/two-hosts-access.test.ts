@@ -72,7 +72,7 @@ describe('two hosts in one front door', () => {
     expect(toForgejo.host).toBe('forgejo');
     expect(principal(toForgejo)).toMatchObject({ id: 11, login: 'alice', repoAdmin: true });
     const toGithub = (await (await r.get('/w/github/team/g/page', cookie)).json()) as Echo;
-    expect(toGithub.host ?? 'github').toBe('github');
+    expect(toGithub.host).toBeUndefined();
     expect(principal(toGithub).repoAdmin).toBeUndefined();
     expect(r.hosts.forgejo.asked.some((line) => line.startsWith('bot:alice:2'))).toBe(false);
   });
@@ -140,9 +140,60 @@ describe('two hosts in one front door', () => {
     const r = await twoHostRig();
     const cookie = await r.signIn('forgejo', 'carol', await r.signIn('github', 'bob'));
     r.hosts.forgejo.bot.down = true;
-    expect([404, 502]).toContain((await r.get('/w/forgejo/team/f/x', cookie)).status);
+    expect((await r.get('/w/forgejo/team/f/x', cookie)).status).toBe(502);
     expect((await r.get('/w/github/team/a/x', cookie)).status).toBe(200);
     const fresh = await r.signIn('github', 'alice');
     expect((await r.get('/w/github/team/g/x', fresh)).status).toBe(200);
+  });
+
+  it('lists one host’s wikis even while the other host does not answer at all (S7)', async () => {
+    const r = await twoHostRig();
+    const cookie = await both(r);
+    r.hosts.forgejo.bot.hang = true;
+    r.advance(ACCESS_TTL_MS + 1);
+    const started = Date.now();
+    const body = (await (await r.get('/api/front-door/wikis', cookie)).json()) as {
+      wikis: { key: string }[];
+    };
+    expect(Date.now() - started).toBeLessThan(5000);
+    expect(body.wikis.map((wiki) => wiki.key).sort()).toEqual(['github-1', 'github-2']);
+  });
+
+  it('answers a Referer of a wiki the person cannot open like no Referer (S3)', async () => {
+    const r = await twoHostRig();
+    const bob = await r.signIn('github', 'bob');
+    const hop = (from: string) =>
+      r
+        .get('/api/asset?path=a.png', bob, { referer: `${r.base}${from}` })
+        .then(async (answer) => [answer.status, await answer.text()]);
+    const none = await r.get('/api/asset?path=a.png', bob);
+    const expected = [none.status, await none.text()];
+    expect(await hop('/w/github/team/g/page')).toEqual(expected);
+    expect(await hop('/w/forgejo/team/f/page')).toEqual(expected);
+    expect(await hop('/w/github/team/nothing/page')).toEqual(expected);
+    expect((await hop('/w/github/team/a/page'))[0]).toBe(200);
+  });
+
+  it('answers a former name of another host’s wiki like an unknown address, without a redirect', async () => {
+    const r = await twoHostRig();
+    r.table.rename('forgejo-3', { owner: 'team', name: 'f2' });
+    const github = await r.signIn('github', 'alice');
+    const old = await r.get('/w/forgejo/team/f/', github);
+    const unknown = await r.get('/w/github/team/nothing/', github);
+    expect([old.status, await old.text()]).toEqual([unknown.status, await unknown.text()]);
+  });
+
+  it('answers a token or removal for another host’s wiki like a key that does not exist (S2)', async () => {
+    const r = await twoHostRig();
+    r.table.disconnect('forgejo-3', 'token');
+    const alice = await r.signIn('github', 'alice');
+    const put = (key: string) =>
+      fetch(`${r.base}/api/front-door/wikis/${key}/token`, {
+        method: 'PUT',
+        headers: { cookie: alice, origin: r.base, 'content-type': 'application/json' },
+        body: JSON.stringify({ token: 'x' }),
+      });
+    expect((await put('forgejo-3')).status).toBe(404);
+    expect((await put('nothing-1')).status).toBe(404);
   });
 });
