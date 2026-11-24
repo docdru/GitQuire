@@ -25,7 +25,6 @@ export interface WikiTable {
   byKey: (key: string) => WikiRecord | undefined;
   byId: (hostKey: string, id: number) => WikiRecord | undefined;
   byAddress: (hostKey: string, owner: string, name: string) => AddressMatch | undefined;
-  byOldAddress: (owner: string, name: string) => AddressMatch | undefined;
   add: (repo: HostRepoRecord, addedBy: string, now: number, hostKey?: string) => WikiRecord;
   rename: (key: string, to: HostRepo, ownerId?: number) => WikiRecord | undefined;
   connect: (key: string) => WikiRecord | undefined;
@@ -152,20 +151,6 @@ export function openWikiTable(file: string): WikiTable {
       if (current !== undefined) return { wiki: current, current: true };
       const former = onHost.find((wiki) => wiki.formerNames.some((old) => same(old, wanted)));
       return former === undefined ? undefined : { wiki: former, current: false };
-    },
-    byOldAddress: (owner, name) => {
-      const wanted = { owner, name };
-      const current = state.wikis.filter((wiki) => same(wiki, wanted));
-      const holders =
-        current.length > 0
-          ? current
-          : state.wikis.filter((wiki) => wiki.formerNames.some((old) => same(old, wanted)));
-      const first = holders.reduce<WikiRecord | undefined>(
-        (earliest, wiki) =>
-          earliest === undefined || wiki.addedAt < earliest.addedAt ? wiki : earliest,
-        undefined,
-      );
-      return first === undefined ? undefined : { wiki: first, current: false };
     },
     add: (repo, addedBy, now, hostKey) => {
       const key = wikiKey(repo, hostKey);

@@ -55,13 +55,13 @@ import {
 } from './pages.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import {
-  parseWikiAddresses,
+  parseWikiAddress,
   rawPathAndSearch,
-  refererAddresses,
+  refererAddress,
   stripBrowserHeaders,
   translateResponseHeaders,
   viewCookieName,
-  type WikiAddresses,
+  type WikiAddress,
 } from './translate.ts';
 import { WikiClosedError, type WikiProcesses } from './wiki-processes.ts';
 import {
@@ -100,7 +100,6 @@ function withinDeadline<T>(work: Promise<T>, ms: number, late: () => T): Promise
   });
 }
 const FRONT_DOOR_API = '/api/front-door';
-const OLD_ADDRESS_SCRIPT = '/_door/old-address.js';
 
 type DoorSessionUser = HostPerson;
 
@@ -561,9 +560,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     );
   }
 
-  function mcpPathFor(hostKey: string | undefined): string {
-    const entry = hostKey === undefined ? undefined : hosts.byKey(hostKey);
-    return (entry === undefined ? undefined : deps.agents?.pathsFor(entry.key)?.mcp) ?? '/mcp';
+  function mcpPathFor(hostKey: string): string {
+    const entry = hosts.byKey(hostKey) ?? primary;
+    return deps.agents?.pathsFor(entry.key)?.mcp ?? `/mcp/${entry.key}`;
   }
 
   function agentsOn(entry: DoorHostEntry): string {
@@ -1167,7 +1166,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   ): Record<string, string> {
     const secret = processes.secretOf(wiki.key) ?? '';
     const entry = hosts.of(wiki);
-    const further = entry === primary ? undefined : entry;
     return {
       [INTERNAL_REQUEST_HEADER]: secret,
       [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser({
@@ -1177,9 +1175,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       [FORWARDED_PREFIX_HEADER]: wikiPrefix(wiki),
       ...(view === undefined || view === '' ? {} : { [FORWARDED_VIEW_HEADER]: view }),
       ...(agentFeatures === undefined ? {} : { [FORWARDED_AGENTS_HEADER]: agentFeatures }),
-      ...(agentFeatures === undefined || further === undefined
+      ...(agentFeatures === undefined || entry === undefined
         ? {}
-        : { [FORWARDED_AGENTS_HOST_HEADER]: further.key }),
+        : { [FORWARDED_AGENTS_HOST_HEADER]: entry.key }),
     };
   }
 
@@ -1247,28 +1245,12 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     });
   }
 
-  function resolveWiki(addresses: WikiAddresses): ResolvedAddress | undefined {
-    const withHost = addresses.withHost;
-    if (withHost !== undefined && hosts.byKey(withHost.hostKey) !== undefined) {
-      const match = table.byAddress(withHost.hostKey, withHost.owner, withHost.name);
-      if (match !== undefined) {
-        return { ...match, rest: withHost.rest, search: withHost.search };
-      }
-    }
-    const old = addresses.old;
-    if (old === undefined) return undefined;
-    const match = table.byOldAddress(old.owner, old.name);
-    return match === undefined ? undefined : { ...match, rest: old.rest, search: old.search };
-  }
-
-  function oldAddressScript(res: ServerResponse): void {
-    res.writeHead(200, {
-      'Content-Type': 'text/javascript; charset=utf-8',
-      'Cache-Control': 'no-store',
-    });
-    res.end(
-      "(()=>{const d=document.getElementById('gq-default-wiki');const a=d&&d.dataset.address;if(a&&location.hash.length>1)location.replace(a+location.hash);})();\n",
-    );
+  function resolveWiki(address: WikiAddress | undefined): ResolvedAddress | undefined {
+    if (address === undefined || hosts.byKey(address.hostKey) === undefined) return undefined;
+    const match = table.byAddress(address.hostKey, address.owner, address.name);
+    return match === undefined
+      ? undefined
+      : { ...match, rest: address.rest, search: address.search };
   }
 
   async function homePage(res: ServerResponse, accounts: Accounts): Promise<void> {
@@ -1278,21 +1260,15 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       canReplaceToken:
         row.seat.entry.forgejoTokens !== undefined && isAdminOn(row.seat.entry, row.seat.person),
     }));
-    const fallback = defaultWiki();
     sendHtml(
       res,
       200,
       'Your wikis',
       homeBody({
         rows: listed,
-        defaultAddress:
-          fallback === undefined || !listed.some(({ wiki }) => wiki.key === fallback.key)
-            ? undefined
-            : `${wikiPrefix(fallback)}/`,
         hosts: ownersSentence(),
         canReplaceToken: false,
         canRemove: false,
-        scriptPath: OLD_ADDRESS_SCRIPT,
       }),
     );
   }
@@ -1558,8 +1534,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     }
     const accounts = sessionAccounts(req);
     const signedIn = accounts.size > 0;
-    const addresses = parseWikiAddresses(req.url);
-    const resolved = resolveWiki(addresses);
+    const address = parseWikiAddress(req.url);
     const viewFor = (key: string): string | undefined => {
       const value = readCookie(req, viewCookieName(key));
       return isSlug(value) ? value : undefined;
@@ -1570,22 +1545,20 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       else if (!res.writableEnded) res.destroy();
     };
 
-    if (addresses.withHost !== undefined || addresses.old !== undefined) {
-      const rests = [addresses.withHost?.rest, addresses.old?.rest];
+    if (address !== undefined) {
       if (
         deps.agents !== undefined &&
-        rests.some((rest) => rest === '/mcp' || rest?.startsWith('/mcp/') === true)
+        (address.rest === '/mcp' || address.rest.startsWith('/mcp/'))
       ) {
         sendJson(res, 404, {
           error: 'mcp-at-root',
-          mcp: new URL(mcpPathFor(addresses.withHost?.hostKey), settings.externalUrl).toString(),
-          message: severalHosts
-            ? 'AI assistants connect to the address of the Git host named in the wiki address and name the wiki in each call.'
-            : 'AI assistants connect to the one /mcp address of this server and name the wiki in each call.',
+          mcp: new URL(mcpPathFor(address.hostKey), settings.externalUrl).toString(),
+          message:
+            'AI assistants connect to the address of the Git host named in the wiki address and name the wiki in each call.',
         });
         return;
       }
-      const match = resolved;
+      const match = resolveWiki(address);
       if (!signedIn) {
         needSignIn(req, res, `${rawPath}${search}`);
         return;
@@ -1624,10 +1597,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       return;
     }
     if (handlePages(req, res, path, accounts, fail)) return;
-    if (path === OLD_ADDRESS_SCRIPT) {
-      oldAddressScript(res);
-      return;
-    }
     if (path === '/' && (req.method === 'GET' || req.method === 'HEAD')) {
       if (!signedIn) {
         needSignIn(req, res, '/');
@@ -1637,25 +1606,11 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       return;
     }
     if (req.method === 'GET' || req.method === 'HEAD') {
-      const match = resolveWiki(refererAddresses(req, settings.externalUrl.origin));
+      const match = resolveWiki(refererAddress(req, settings.externalUrl.origin));
       const fromSeat = match === undefined ? undefined : seatFor(accounts, match.wiki);
       const withoutReferer = (): void => {
-        const fallback = defaultWiki();
-        if (fallback === undefined || !wantsHtml(req) || path.startsWith('/api/')) {
-          sendJson(res, 404, { error: 'wiki-address-required' });
-          return;
-        }
-        const fallbackSeat = seatFor(accounts, fallback);
-        if (fallbackSeat === undefined) {
-          needSignIn(req, res, `${rawPath}${search}`);
-          return;
-        }
-        decide(fallbackSeat, fallback)
-          .then((decision) => {
-            if (decision.open) redirect(res, `${wikiPrefix(fallback)}${rawPath}${search}`);
-            else notAWiki(req, res);
-          })
-          .catch(fail);
+        if (wantsHtml(req) && !path.startsWith('/api/')) notAWiki(req, res);
+        else sendJson(res, 404, { error: 'wiki-address-required' });
       };
       if (fromSeat !== undefined && match?.current === true) {
         decide(fromSeat, match.wiki)
@@ -1685,13 +1640,10 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
 
   function handleUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer): void {
     const accounts = sessionAccounts(req);
-    const addresses = parseWikiAddresses(req.url);
+    const address = parseWikiAddress(req.url);
     const cookies = { headers: { cookie: req.headers.cookie } } as IncomingMessage;
     stripBrowserHeaders(req);
-    const rests = [addresses.withHost?.rest, addresses.old?.rest].filter(
-      (rest): rest is string => rest !== undefined && rest !== '',
-    );
-    if (rests.length === 0) {
+    if (address === undefined || address.rest === '') {
       refuseUpgrade(socket, '404 Not Found');
       return;
     }
@@ -1699,7 +1651,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       refuseUpgrade(socket, '401 Unauthorized');
       return;
     }
-    const resolved = resolveWiki(addresses);
+    const resolved = resolveWiki(address);
     if (resolved === undefined || resolved.rest === '') {
       refuseUpgrade(socket, '404 Not Found');
       return;

@@ -3,24 +3,15 @@ import { FORWARDED_VIEW_HEADER } from '../request-person.ts';
 import { serializeCookie } from '../signed-cookie.ts';
 
 export interface WikiAddress {
+  hostKey: string;
   owner: string;
   name: string;
   rest: string;
   search: string;
 }
 
-export interface HostWikiAddress extends WikiAddress {
-  hostKey: string;
-}
-
-export interface WikiAddresses {
-  withHost: HostWikiAddress | undefined;
-  old: WikiAddress | undefined;
-}
-
 const SEGMENT = '[A-Za-z0-9._~-]+';
-const WIKI_PATH_RE = new RegExp(`^/w/(${SEGMENT})/(${SEGMENT})(/[^?#]*)?$`);
-const HOST_WIKI_PATH_RE = new RegExp(`^/w/([a-z][a-z0-9-]*)/(${SEGMENT})/(${SEGMENT})(/[^?#]*)?$`);
+const WIKI_PATH_RE = new RegExp(`^/w/([a-z][a-z0-9-]*)/(${SEGMENT})/(${SEGMENT})(/[^?#]*)?$`);
 const FRONT_DOOR_COOKIES = ['gq_session', 'gq_oauth_state'];
 const FRONT_DOOR_COOKIE_PREFIXES = ['gq_oauth_state_'];
 const VIEW_COOKIE_PREFIX = 'gq_view_';
@@ -41,30 +32,15 @@ export function parseWikiAddress(url: string | undefined): WikiAddress | undefin
   const { path, search } = rawPathAndSearch(url);
   const match = WIKI_PATH_RE.exec(path);
   if (match === null) return undefined;
-  const [, owner, name, rest] = match;
+  const [, hostKey, owner, name, rest] = match as unknown as [
+    string,
+    string,
+    string,
+    string,
+    string?,
+  ];
   if (!isNameSegment(owner) || !isNameSegment(name)) return undefined;
-  return { owner, name, rest: rest ?? '', search };
-}
-
-export function parseWikiAddresses(url: string | undefined): WikiAddresses {
-  const { path, search } = rawPathAndSearch(url);
-  const match = HOST_WIKI_PATH_RE.exec(path);
-  const withHost =
-    match === null
-      ? undefined
-      : (() => {
-          const [, hostKey, owner, name, rest] = match as unknown as string[];
-          return isNameSegment(owner as string) && isNameSegment(name as string)
-            ? {
-                hostKey: hostKey as string,
-                owner: owner as string,
-                name: name as string,
-                rest: rest ?? '',
-                search,
-              }
-            : undefined;
-        })();
-  return { withHost, old: parseWikiAddress(url) };
+  return { hostKey, owner, name, rest: rest ?? '', search };
 }
 
 export function withPrefix(location: string, prefix: string): string {
@@ -139,19 +115,6 @@ export function translateResponseHeaders(
   }
   if (cookies.length > 0) out['set-cookie'] = cookies;
   return out;
-}
-
-export function refererAddresses(req: IncomingMessage, origin: string): WikiAddresses {
-  const referer = req.headers.referer;
-  if (typeof referer !== 'string') return { withHost: undefined, old: undefined };
-  let url: URL;
-  try {
-    url = new URL(referer);
-  } catch {
-    return { withHost: undefined, old: undefined };
-  }
-  if (url.origin !== origin) return { withHost: undefined, old: undefined };
-  return parseWikiAddresses(url.pathname);
 }
 
 export function refererAddress(req: IncomingMessage, origin: string): WikiAddress | undefined {

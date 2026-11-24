@@ -43,7 +43,7 @@ type AgentPerson = AgentTokenRecord['owner'];
 
 interface DoorMcpDeps {
   externalUrl: URL;
-  table: Pick<WikiTable, 'list' | 'byAddress' | 'byOldAddress'>;
+  table: Pick<WikiTable, 'list' | 'byAddress'>;
   access: Pick<WikiAccess, 'decide'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   seesWhy?: (person: AgentPerson, wiki: WikiRecord) => boolean;
@@ -85,7 +85,7 @@ const NULL_BODY_STATUSES = new Set([204, 205, 304]);
 
 const WIKI_ARGUMENT_SCHEMA = {
   type: 'string',
-  description: `The wiki, as ${LIST_WIKIS_TOOL} names it (host/owner/repository, for example github/team/handbook; owner/repository also works while only one wiki has that name). May be left out when you can open exactly one wiki.`,
+  description: `The wiki, as ${LIST_WIKIS_TOOL} names it (host/owner/repository, for example github/team/handbook). May be left out when you can open exactly one wiki.`,
 };
 
 const WORKSPACE_ARGUMENT_SCHEMA = {
@@ -195,19 +195,18 @@ function socketFetch(target: () => { socket: string; headers: Record<string, str
 export function wikiNameOf(
   raw: string,
   externalUrl: URL,
-): { hostKey?: string; owner: string; name: string } | null {
+): { hostKey: string; owner: string; name: string } | null {
   let text = raw.trim();
   if (text.startsWith(externalUrl.origin)) text = text.slice(externalUrl.origin.length);
   text = text.replace(/^\/+/, '');
   if (text.startsWith('w/')) text = text.slice(2);
   const parts = text.replace(/\/+$/, '').split('/');
-  if (parts.length !== 2 && parts.length !== 3) return null;
-  const [owner, name] = parts.slice(-2) as [string, string];
-  const hostKey = parts.length === 3 ? (parts[0] as string) : undefined;
+  if (parts.length !== 3) return null;
+  const [hostKey, owner, name] = parts as [string, string, string];
   if (!/^[A-Za-z0-9._~-]+$/.test(owner) || !/^[A-Za-z0-9._~-]+$/.test(name)) return null;
   if (owner === '.' || owner === '..' || name === '.' || name === '..') return null;
-  if (hostKey !== undefined && !/^[a-z][a-z0-9-]*$/.test(hostKey)) return null;
-  return hostKey === undefined ? { owner, name } : { hostKey, owner, name };
+  if (!/^[a-z][a-z0-9-]*$/.test(hostKey)) return null;
+  return { hostKey, owner, name };
 }
 
 export function withWikiArgument(tool: Tool, required: boolean): Tool {
@@ -448,32 +447,8 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     }
     const parsed = typeof named === 'string' ? wikiNameOf(named, deps.externalUrl) : null;
     if (parsed === null) return { refused: unknownWikiText(named) };
-    if (parsed.hostKey !== undefined) {
-      const match = deps.table.byAddress(parsed.hostKey, parsed.owner, parsed.name);
-      return match === undefined ? { refused: unknownWikiText(named) } : { wiki: match.wiki };
-    }
-    const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
-    const open = await openWikis(person);
-    const byName = open.filter(
-      (wiki) => same(wiki.owner, parsed.owner) && same(wiki.name, parsed.name),
-    );
-    const fitting =
-      byName.length > 0
-        ? byName
-        : open.filter((wiki) =>
-            wiki.formerNames.some(
-              (old) => same(old.owner, parsed.owner) && same(old.name, parsed.name),
-            ),
-          );
-    const only = fitting.length === 1 ? fitting[0] : undefined;
-    if (only !== undefined) return { wiki: only };
-    if (fitting.length > 1) {
-      return {
-        refused: `Several wikis are called ${parsed.owner}/${parsed.name}: ${fitting.map(wikiName).join(', ')}. Name one with its host, as ${LIST_WIKIS_TOOL} does.`,
-      };
-    }
-    const old = deps.table.byOldAddress(parsed.owner, parsed.name);
-    return old === undefined ? { refused: unknownWikiText(named) } : { wiki: old.wiki };
+    const match = deps.table.byAddress(parsed.hostKey, parsed.owner, parsed.name);
+    return match === undefined ? { refused: unknownWikiText(named) } : { wiki: match.wiki };
   }
 
   function createSessionServer(session: Omit<DoorSession, 'server'>): McpServer {

@@ -139,7 +139,7 @@ describe('the model for the AI chat', () => {
 describe('where Claude outside GitQuire puts its edits', () => {
   test('behind the front door, the choice goes into the request as the workspace argument', async () => {
     ask.destination = 'claude-web';
-    ask.prefix = '/w/team/a';
+    ask.prefix = '/w/github/team/a';
     await load();
     await waitFor(() => expect(option('Live wiki').getAttribute('aria-checked')).toBe('true'));
     fireEvent.click(option('Draft'));

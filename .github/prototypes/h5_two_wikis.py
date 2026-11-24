@@ -366,7 +366,7 @@ def stop_pushes(alice):
     agent.start()
     page = f"r6-{int(time.time())}"
     marker = f"written right before docker stop {page}"
-    status, result = agent.call("write", {"wiki": "team/alpha", "document": {"path": page, "content": f"# R6\n\n{marker}\n"}})
+    status, result = agent.call("write", {"wiki": "forgejo/team/alpha", "document": {"path": page, "content": f"# R6\n\n{marker}\n"}})
     check("Two wikis R6", status == 200 and isinstance(result, dict) and not result.get("isError"),
           f"alice's agent writes {page} in alpha -> {status} {h.result_text(result)[:160]}")
     status, _, _ = f.call("GET", f"/repos/team/alpha/contents/{page}.md", auth=f.ADMIN)

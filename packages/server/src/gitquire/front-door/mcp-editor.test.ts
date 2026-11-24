@@ -127,12 +127,18 @@ describe('the front door in front of a real editor /mcp', () => {
     }
     expect(editor.seen.filter((line) => line === 'POST /mcp').length).toBeGreaterThan(0);
 
-    const result = await client.callTool({ name: 'workspace', arguments: { wiki: 'team/a' } });
+    const result = await client.callTool({
+      name: 'workspace',
+      arguments: { wiki: 'github/team/a' },
+    });
     expect(result.content).toBeDefined();
     expect(editor.seen.some((line) => line.startsWith('GET '))).toBe(false);
 
     decision = { open: false, why: 'no-access' };
-    const refused = await client.callTool({ name: 'workspace', arguments: { wiki: 'team/a' } });
+    const refused = await client.callTool({
+      name: 'workspace',
+      arguments: { wiki: 'github/team/a' },
+    });
     expect(refused.isError).toBe(true);
   });
 
@@ -169,7 +175,7 @@ describe('the front door in front of a real editor /mcp', () => {
     );
     cleanup.push(() => client.close());
     await expect(
-      client.callTool({ name: 'workspace', arguments: { wiki: 'team/a' } }),
+      client.callTool({ name: 'workspace', arguments: { wiki: 'github/team/a' } }),
     ).rejects.toThrow();
   });
 });

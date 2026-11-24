@@ -46,7 +46,7 @@ describe('AI agents with two Git hosts', () => {
     const onGitHub = tokenOn(rig, 'github', 'alice');
     const onForgejo = tokenOn(rig, 'forgejo', 'alice');
 
-    expect(await listedNames(await connect(rig, '/mcp', onGitHub))).toEqual([
+    expect(await listedNames(await connect(rig, '/mcp/github', onGitHub))).toEqual([
       'github/team/a',
       'github/team/g',
     ]);
@@ -65,7 +65,7 @@ describe('AI agents with two Git hosts', () => {
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
     });
     expect(crossed.status).toBe(401);
-    const back = await httpFetch(`${rig.base}/mcp`, {
+    const back = await httpFetch(`${rig.base}/mcp/github`, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${onForgejo}`,
@@ -87,21 +87,22 @@ describe('AI agents with two Git hosts', () => {
     expect(refused.isError).toBe(true);
     expect(textOf(refused)).toContain('github/team/g');
     expect(textOf(refused)).toContain('list_wikis');
-    const old = await client.callTool({
+    const short = await client.callTool({
       name: 'read',
-      arguments: { wiki: 'team/g', path: 'index.md' },
+      arguments: { wiki: 'team/f', path: 'index.md' },
     });
-    expect(old.isError).toBe(true);
-    expect(textOf(old)).toContain('list_wikis');
+    expect(short.isError).toBe(true);
+    expect(textOf(short)).toContain('list_wikis');
   });
 
-  it('stores the tokens of a further host in a file of its own', async () => {
+  it('stores the tokens of each host in a file of its own, named by the host key', async () => {
     const rig = await twoHostRig({ agents: true });
     tokenOn(rig, 'github', 'alice');
     tokenOn(rig, 'forgejo', 'carol');
     rig.agents?.storeOf('github')?.flush();
     rig.agents?.storeOf('forgejo')?.flush();
-    expect(existsSync(join(rig.data, 'server', 'agent-tokens.json'))).toBe(true);
+    expect(existsSync(join(rig.data, 'server', 'agent-tokens-github.json'))).toBe(true);
+    expect(existsSync(join(rig.data, 'server', 'agent-tokens.json'))).toBe(false);
     expect(existsSync(join(rig.data, 'server', 'agent-tokens-forgejo.json'))).toBe(true);
     expect(
       rig.agents
@@ -137,10 +138,16 @@ describe('AI agents with two Git hosts', () => {
     expect(html).toContain('@carol');
     expect(html).toContain('on Forgejo');
     expect(html).toContain('action="/auth/forgejo/agents"');
-    expect(html).toContain('href="/auth/agents"');
-    const first = await rig.get('/auth/agents', forgejo);
+    expect(html).toContain('href="/auth/github/agents"');
+    const first = await rig.get('/auth/github/agents', forgejo);
     expect(first.status).toBe(302);
     expect(first.headers.get('location')).toContain('/auth/github/login');
+    const bare = await rig.get('/auth/agents', forgejo);
+    expect(bare.status).toBe(404);
+    expect(await bare.json()).toMatchObject({
+      error: 'host-key-required',
+      agents: ['/auth/github/agents', '/auth/forgejo/agents'],
+    });
   });
 
   it('tells the wiki which agent addresses fit its host', async () => {
@@ -154,7 +161,7 @@ describe('AI agents with two Git hosts', () => {
     const onGitHub = (await (await rig.get('/w/github/team/g/auth/me', both)).json()) as {
       headers: Record<string, string>;
     };
-    expect(onGitHub.headers['x-gitquire-agents-host']).toBeUndefined();
+    expect(onGitHub.headers['x-gitquire-agents-host']).toBe('github');
     expect(onGitHub.headers['x-gitquire-agents']).toContain('tokens');
   });
 
@@ -162,17 +169,18 @@ describe('AI agents with two Git hosts', () => {
     const rig = await twoHostRig({ agents: true });
     const both = await rig.signIn('forgejo', 'alice', await rig.signIn('github', 'alice'));
     const html = await (await rig.get('/auth/logout', both, { accept: 'text/html' })).text();
-    expect(html).toContain('href="/auth/agents"');
+    expect(html).toContain('href="/auth/github/agents"');
     expect(html).toContain('href="/auth/forgejo/agents"');
   });
 
   it('publishes connector metadata per host', async () => {
     const rig = await twoHostRig({ agents: true, connectors: true });
     const first = (await (
-      await rig.get('/.well-known/oauth-protected-resource/mcp', '')
+      await rig.get('/.well-known/oauth-protected-resource/mcp/github', '')
     ).json()) as { resource: string; authorization_servers: string[] };
-    expect(first.resource).toBe(`${rig.base}/mcp`);
-    expect(first.authorization_servers).toEqual([rig.base]);
+    expect(first.resource).toBe(`${rig.base}/mcp/github`);
+    expect(first.authorization_servers).toEqual([`${rig.base}/oauth/github`]);
+    expect((await rig.get('/.well-known/oauth-protected-resource/mcp', '')).status).toBe(404);
     const further = (await (
       await rig.get('/.well-known/oauth-protected-resource/mcp/forgejo', '')
     ).json()) as { resource: string; authorization_servers: string[] };
@@ -212,7 +220,9 @@ describe('AI agents with two Git hosts', () => {
       code_challenge_method: 'S256',
       state: 's',
     });
-    const there = await rig.get(`/oauth/authorize?${query}`, github, { accept: 'text/html' });
+    const there = await rig.get(`/oauth/github/authorize?${query}`, github, {
+      accept: 'text/html',
+    });
     expect(there.status).toBe(400);
   });
 });

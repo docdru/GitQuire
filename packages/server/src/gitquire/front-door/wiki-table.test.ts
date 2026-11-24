@@ -65,17 +65,6 @@ describe('wiki table', () => {
     });
   });
 
-  it('sends an old address to a wiki that has the name now before one that had it, as on one host before', () => {
-    const table = openWikiTable(tableFile());
-    table.add(repo, 'alice', 1);
-    table.rename('github-41', { owner: 'team', name: 'handbook' });
-    table.add({ ...repo, id: 42, name: 'wiki' }, 'bob', 2);
-    expect(table.byOldAddress('team', 'wiki')?.wiki.id).toBe(42);
-    expect(table.byOldAddress('team', 'handbook')?.wiki.id).toBe(41);
-    table.add({ host: 'forgejo', id: 9, owner: 'team', ownerId: 70, name: 'wiki' }, 'carol', 3);
-    expect(table.byOldAddress('team', 'wiki')?.wiki.id).toBe(42);
-  });
-
   it('disconnects and reconnects, and never removes a record (R11)', () => {
     const table = openWikiTable(tableFile());
     table.add(repo, 'alice', 0);

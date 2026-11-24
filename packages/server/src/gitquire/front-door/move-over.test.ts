@@ -159,8 +159,10 @@ describe('gitquire wikis adopt', () => {
       { key: KEY, owner: 'team', name: 'wiki', state: 'on', addedBy: 'gitquire wikis adopt' },
     ]);
     expect(table.ownerIds()).toEqual({ team: 7 });
-    expect(readFileSync(join(vol.data, 'server', 'agent-tokens.json'), 'utf8')).toContain('"v":1');
-    expect(statSync(join(vol.data, 'server', 'agent-tokens.json')).mode & 0o777).toBe(0o600);
+    expect(readFileSync(join(vol.data, 'server', 'agent-tokens-github.json'), 'utf8')).toContain(
+      '"v":1',
+    );
+    expect(statSync(join(vol.data, 'server', 'agent-tokens-github.json')).mode & 0o777).toBe(0o600);
     expect(statSync(join(vol.data, 'server')).mode & 0o777).toBe(0o700);
     expect(existsSync(join(target, '.gitquire', 'local', 'gitquire', 'agent-tokens.json'))).toBe(
       true,
@@ -453,7 +455,10 @@ describe('gitquire wikis unadopt (the way back)', () => {
     const target = join(vol.data, 'wikis', KEY);
     const derived = deriveChatKeySecret(SECRET, KEY);
     createChatKeyStore(target, derived).set(12, 'mistral', 'mistral-key-5678');
-    writeFileSync(join(vol.data, 'server', 'agent-tokens.json'), '{"v":1,"tokens":["door"]}\n');
+    writeFileSync(
+      join(vol.data, 'server', 'agent-tokens-github.json'),
+      '{"v":1,"tokens":["door"]}\n',
+    );
     const draft = join(vol.data, 'wikis', '.gitquire-drafts', KEY, 'report', KEY);
     writeFileSync(join(draft, 'later.md'), 'edited behind the front door\n');
     git(draft, 'add', 'later.md');

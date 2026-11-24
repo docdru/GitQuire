@@ -46,44 +46,28 @@ describe('addresses with the host', () => {
     });
   });
 
-  it('redirects an old address to the wiki that held it first: page, API and images', async () => {
+  it('has no address without the host: page, API, images and live editing answer as no wiki', async () => {
     const r = await twoHostRig();
     const cookie = await both(r);
-    const page = await r.get('/w/team/a/notes/plan?x=1', cookie, { accept: 'text/html' });
-    expect([page.status, page.headers.get('location')]).toEqual([
-      301,
-      '/w/github/team/a/notes/plan?x=1',
-    ]);
-    const api = await r.get('/w/team/a/api/documents', cookie);
-    expect([api.status, api.headers.get('location')]).toEqual([
-      301,
-      '/w/github/team/a/api/documents',
-    ]);
-    const image = await r.get('/w/team/f/api/asset?path=a.png', cookie);
-    expect([image.status, image.headers.get('location')]).toEqual([
-      301,
-      '/w/forgejo/team/f/api/asset?path=a.png',
-    ]);
+    const unknown = await r.get('/w/github/team/nothing/', cookie);
+    for (const path of [
+      '/w/team/a/notes/plan?x=1',
+      '/w/team/a/api/documents',
+      '/w/team/f/api/asset?path=a.png',
+    ]) {
+      const answer = await r.get(path, cookie);
+      expect(answer.status).toBe(404);
+      expect(answer.headers.get('location')).toBeNull();
+    }
+    expect(unknown.status).toBe(404);
     const posted = await fetch(`${r.base}/w/team/a/api/documents`, {
       method: 'POST',
       headers: { cookie, origin: r.base },
       redirect: 'manual',
     });
-    expect([posted.status, posted.headers.get('location')]).toEqual([
-      308,
-      '/w/github/team/a/api/documents',
-    ]);
-    const root = await r.get('/w/team/a', cookie);
-    expect(root.headers.get('location')).toBe('/w/github/team/a/');
-  });
-
-  it('answers an old address like an unknown one to a person who cannot open its wiki (S3)', async () => {
-    const r = await twoHostRig();
-    const carol = await r.signIn('forgejo', 'carol');
-    const old = await r.get('/w/team/a/', carol);
-    const unknown = await r.get('/w/team/nothing/', carol);
-    expect([old.status, await old.text()]).toEqual([unknown.status, await unknown.text()]);
-    expect((await r.get('/w/forgejo/team/a/', carol)).status).toBe(200);
+    expect(posted.status).toBe(404);
+    expect(await upgradeAnswer(r, '/w/team/a/collab', cookie)).toBe('HTTP/1.1 404 Not Found');
+    expect(await upgradeAnswer(r, '/w/team/a/collab', '')).toBe('HTTP/1.1 404 Not Found');
   });
 
   it('reads the address with the host first, so an owner named like a host key is not misread', async () => {
@@ -100,25 +84,7 @@ describe('addresses with the host', () => {
     const cookie = await both(r);
     const fj = (await (await r.get('/w/forgejo/team/a/x', cookie)).json()) as Echo;
     expect(fj.headers['x-gitquire-prefix']).toBe('/w/forgejo/team/a');
-    const old = await r.get('/w/forgejo/team/', cookie);
-    expect(old.headers.get('location')).toBe('/w/github/forgejo/team/');
-  });
-
-  it('refuses an upgrade at an old address, the browser comes back at the new one', async () => {
-    const r = await twoHostRig();
-    const cookie = await both(r);
-    const socket = await new Promise<string>((resolve, reject) => {
-      const s = connect(Number(new URL(r.base).port), '127.0.0.1');
-      s.once('error', reject);
-      s.once('data', (chunk) => {
-        resolve(chunk.toString().split('\r\n')[0] ?? '');
-        s.destroy();
-      });
-      s.write(
-        `GET /w/team/a/collab HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${cookie}\r\n\r\n`,
-      );
-    });
-    expect(socket).toBe('HTTP/1.1 404 Not Found');
+    expect((await r.get('/w/forgejo/team/', cookie)).status).toBe(404);
   });
 
   it('tells a signed-out caller nothing about which wikis exist, also for /mcp and live editing (S3)', async () => {
@@ -132,15 +98,7 @@ describe('addresses with the host', () => {
     expect(answers[0]?.status).toBe(404);
     expect(answers[0]).toEqual(answers[1]);
     expect(answers[0]?.body).toContain('/mcp/forgejo');
-    const old = await Promise.all(
-      ['/w/team/f/mcp', '/w/team/nothing/mcp'].map(async (path) => (await r.get(path, '')).text()),
-    );
-    expect(old[0]).toBe(old[1]);
-    for (const path of [
-      '/w/github/team/a/collab',
-      '/w/github/team/zzz/collab',
-      '/w/team/a/collab',
-    ]) {
+    for (const path of ['/w/github/team/a/collab', '/w/github/team/zzz/collab']) {
       expect(await upgradeAnswer(r, path, '')).toBe('HTTP/1.1 401 Unauthorized');
     }
   });
