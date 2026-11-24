@@ -83,6 +83,12 @@ People with write access to `GITQUIRE_REPO` (or listed in `GITQUIRE_ALLOWED_USER
    - **Repository permissions:** Contents read and write, Pull requests read and write,
      Metadata read.
    - Uncheck **Webhook → Active**.
+   - **Where can this GitHub App be installed?** Choose **Any account** if the app belongs to your
+     personal account. A private app can only be authorized by its owner (or, for an app owned by
+     an organization, by the organization's members); everyone else gets a 404 page from GitHub
+     at sign-in. "Any account" lets others sign in and install the app on their own accounts, but
+     GitQuire still opens only repositories they can write to, of the owners you allow. To change
+     it later: the app's settings → Advanced → **Make public**.
 2. Install the app on the content repository.
 3. Generate a client secret, then run:
 
