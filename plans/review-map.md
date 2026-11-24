@@ -6,7 +6,7 @@ One page for reviewers: who owns what, the requirements in one line each, and th
 
 `GITQUIRE_WIKIS` off and `GITQUIRE_HOST` unset must behave exactly as `main`. Any code path that runs with both off and differs from `main` is a finding.
 
-On `hosts-one-door`: a front door with one host (no `GITQUIRE_HOSTS`) must behave as `main` except that wiki addresses and names carry the host key (S8).
+On `hosts-one-door`: a front door with one host (`GITQUIRE_HOSTS` unset or empty) must behave as `main` except that wiki addresses and names carry the host key (S8).
 
 ## Who owns what
 
@@ -97,6 +97,8 @@ Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they go
 
 - `packages/server/src/gitquire/front-door/access.ts` (block 5), for changes under `front-door/`, to `door-token.ts` and to `process-pool/forward.ts`.
 
+- `packages/server/src/gitquire/front-door/hosts.ts` (`hosts-one-door` B1), for changes under `front-door/` and `host/`.
+
 ## Seams where a mistake leaks or loses work
 
 | Seam | What can go wrong | Requirement |
@@ -137,3 +139,7 @@ Modules added or changed by the branch are listed here by the pull request that 
 | --- | --- | --- |
 
 | B0 | `.github/workflows/checks.yml`, `docker.yml`, `prototypes.yml`, `scripts/ci-plan.mjs`, `.github/ai-review.toml` | Pull requests against the branch and pushes to it run everything; a push publishes the `hosts-one-door` image; `forgejo-h5` on pushes. Removed in B9 |
+| B1 | `front-door/hosts.ts` | **Contract.** `HostSettings` per host (key, kind, label, addresses, OAuth client, GitHub App or Forgejo bot token, allowed owners, server administrators, `HostNames` with id prefix `<key>-`); `hostList` reads `GITQUIRE_HOSTS` (the further hosts) and `GITQUIRE_HOST_<KEY>_*`; `hostKeyOf(record)` (`hostKey` or the kind). Refuses a key that is not `[a-z][a-z0-9-]`, repeats the first host's key, starts with `url`, `api`, `client`, `token`, `repo` or `key`, names the other kind, or shares a variable name with another key; https only |
+| B1 | `front-door/settings.ts` | `hosts`: the first host built from today's variables (unchanged fields kept), then the further hosts. One host: `hosts` has one entry equal to today's settings |
+| B1 | `index.ts` (`configureHostFromEnv`) | A single wiki refuses `GITQUIRE_HOSTS` |
+

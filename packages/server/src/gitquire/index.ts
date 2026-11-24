@@ -21,6 +21,7 @@ import {
   type LiveServerHandle,
 } from './drafts/setup.ts';
 import { createForgejoPullsClient } from './forgejo-pulls.ts';
+import { furtherHostKeys } from './front-door/hosts.ts';
 import {
   type CheckPushPermissionFn,
   createGitHubAppClient,
@@ -153,6 +154,11 @@ export { HostConfigError } from './host/names.ts';
 type Env = Readonly<Record<string, string | undefined>>;
 
 export function configureHostFromEnv(env: Env, projectDir: string | undefined): HostNames {
+  if (!behindFrontDoorFromEnv(env) && furtherHostKeys(env).length > 0) {
+    throw new HostConfigError(
+      'GITQUIRE_HOSTS adds Git hosts to the front door (GITQUIRE_WIKIS=on). A single wiki has one host (GITQUIRE_HOST); remove GITQUIRE_HOSTS.',
+    );
+  }
   if (projectDir !== undefined && !behindFrontDoorFromEnv(env)) refuseFrontDoorVolume(projectDir);
   const names = hostNamesFromEnv(env);
   if (projectDir !== undefined && !isDraftInstance(env)) {

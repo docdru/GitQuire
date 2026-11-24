@@ -80,3 +80,14 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 ### B0 (branch set-up)
 
 - Pull requests against `hosts-one-door` and pushes to it run the full CI, Docker included, the same handling `wikis-hosts` had (#185, removed in #236); a push publishes `ghcr.io/docdru/gitquire:hosts-one-door`. The `forgejo-h5` workflow runs on pushes to the branch. B9 removes this again.
+
+### B1 (host list in settings)
+
+- **Settings shape (changed from the proposal, and why):** `GITQUIRE_HOSTS` lists only the **further** hosts; the first host stays described by today's variables (`GITQUIRE_HOST`, `GITQUIRE_HOST_URL`, `GITHUB_APP_*`, `GITQUIRE_ALLOWED_OWNERS`, `GITQUIRE_ADMINS`, …) and its key is its kind. Listing the first host again would give two names for one setting. Per further host: `GITQUIRE_HOST_<KEY>_KIND` (may be left out when the key is `github` or `forgejo`), `_LABEL`, `_URL`, `_API_URL`, `_CLIENT_ID`, `_CLIENT_SECRET`, `_TOKEN` (Forgejo), `_APP_ID` and `_APP_PRIVATE_KEY_FILE` (GitHub), `_ALLOWED_OWNERS` (required), `_ADMINS`, `_COMMIT_EMAIL_FORMAT`; secrets also as `_FILE`.
+- **Collisions:** `GITQUIRE_HOST_<KEY>_…` shares its prefix with the first host's `GITQUIRE_HOST_URL`, `_API_URL`, `_CLIENT_ID`, `_CLIENT_SECRET`, `_TOKEN`, `_REPO_TOKEN`. A key whose first part is `url`, `api`, `client`, `token`, `repo` or `key` is refused, and so are two keys that would share a variable (`a` and `a-api` both give `GITQUIRE_HOST_A_API_URL`).
+- A key `github` or `forgejo` must be of that kind. Labels: `GitHub`, `Forgejo`; a second host of a kind gets `Forgejo (<key>)` unless `_LABEL` is set; two equal labels are refused.
+- Person ids are `<key>-<number>`; the first host's key is its kind, so its ids stay `github-`/`forgejo-`. Ids are never parsed by prefix, and keys are prefix-free anyway: a key that begins with another key or a kind followed by `-` (`lab` and `lab-2`, `github-x`) is refused (S1).
+- Also refused (independent review of #240): the same Git server configured twice (equal web or API origin, the first host included), keys that are words under `/auth/` (`agents`, `logout`, `me`, `login`, `callback`, `add-wiki`, `w`), addresses with a user, query or `#`. A further GitHub host with its own `_URL` and no `_API_URL` gets `<url>/api/v3`, not `api.github.com`, so a GitHub Enterprise server's secrets never go to github.com (S4). The first host's `GITQUIRE_GITHUB_API_URL` still defaults to `api.github.com` independently, as on `main` (unchanged, S8).
+- A single wiki (`GITQUIRE_WIKIS` off) refuses `GITQUIRE_HOSTS`, so nobody believes a second host is active when it is not.
+- Not yet used: B1 only reads and checks the list; the front door still uses the first host until B2–B4.
+
