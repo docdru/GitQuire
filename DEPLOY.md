@@ -600,8 +600,9 @@ its old address redirects to the new one. The `<host>` in addresses is the host'
 
 **Addresses carry the host.** Since the front door can serve two hosts, every wiki address names
 it, also on a server with one host. Addresses of the old form `/w/<owner>/<repo>/…` (pages, files,
-images and the API) redirect, after sign-in and the access check, to the wiki that has held that
-name first; someone who cannot open that wiki gets the unknown-address answer. Bookmarks and links
+images and the API) redirect, after sign-in and the access check, to the wiki that has that name
+now (the one added first, when two hosts each have one), or else to the one that had it; someone who cannot open that wiki gets the
+unknown-address answer. Bookmarks and links
 inside pages keep working this way. What browsers kept for the old address is not carried over:
 the list of open tabs and **edits made offline that were never sent**. Update when nobody has
 unsent offline edits (the app warns while edits are unsent). A wiki's drafts are kept beside it, in
@@ -631,7 +632,7 @@ one of the person's wikis on that address has that name. A person with exactly o
 it out. On every call the front door checks that the person may
 open the named wiki, the same check as for the browser, and passes the call to that wiki's process
 as that person; the edits are credited to them. `/w/<host>/<owner>/<repo>/mcp` is not an address: it
-answers 404 and names the `/mcp` address of the wiki's host. **Settings → Connect AI** shows that address in
+answers 404 and names the `/mcp` address of the host in the address. **Settings → Connect AI** shows that address in
 every wiki, and **Ask Claude** names the wiki in the prompt.
 
 Each wiki tool also takes an optional `workspace` argument: `live`, `draft` (the draft the person
@@ -805,6 +806,10 @@ A token or connector reaches only its host's wikis and is refused at the other a
 with accounts on both hosts adds two connectors (for example "GitQuire Forgejo" and "GitQuire
 GitHub"). Inside a wiki, **Settings → Connect AI** shows the address of that wiki's host. For the
 first host, everything stays where it was, so existing tokens and connectors keep working.
+
+**Going back** to an image without several hosts: first remove the further hosts' wikis (or keep a
+copy of the volume from before). An older image reads the wiki table but not the host key of a
+further host's wiki, and would take such a wiki for one of the first host's.
 
 ### Known limits
 

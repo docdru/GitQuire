@@ -20,7 +20,7 @@ import {
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
 import type { HostSettings } from './hosts.ts';
 import { createMentionCounts } from './mention-counts.ts';
-import { openRepoTokenStore, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
+import { openRepoTokenFile, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
 import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.ts';
 import {
   FrontDoorConfigError,
@@ -88,7 +88,7 @@ export async function startFrontDoor(
   chmodSync(join(settings.dataDir, 'server'), 0o700);
   mkdirSync(join(settings.dataDir, 'wikis'), { recursive: true });
   const table = openWikiTable(wikiTableFile(settings.dataDir));
-  const tokenFile = repoTokensFile(settings.dataDir);
+  const tokenFile = openRepoTokenFile(repoTokensFile(settings.dataDir));
   const later = { check: (_wiki: WikiRecord): void => {} };
 
   function entryFor(hostSettings: HostSettings): DoorHostEntry {
@@ -102,9 +102,7 @@ export async function startFrontDoor(
         };
     const trial = new Map<string, string>();
     const store =
-      hostSettings.kind === 'forgejo'
-        ? openRepoTokenStore(tokenFile, repoTokenKey(table, key))
-        : undefined;
+      hostSettings.kind === 'forgejo' ? tokenFile.scoped(repoTokenKey(table, key)) : undefined;
     const host = doorHostFor(
       hostSettings,
       (repo) => trial.get(trialKey(repo)) ?? store?.tokenFor(repo),

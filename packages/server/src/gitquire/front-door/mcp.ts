@@ -453,13 +453,18 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
       return match === undefined ? { refused: unknownWikiText(named) } : { wiki: match.wiki };
     }
     const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
-    const fitting = (await openWikis(person)).filter(
-      (wiki) =>
-        (same(wiki.owner, parsed.owner) && same(wiki.name, parsed.name)) ||
-        wiki.formerNames.some(
-          (old) => same(old.owner, parsed.owner) && same(old.name, parsed.name),
-        ),
+    const open = await openWikis(person);
+    const byName = open.filter(
+      (wiki) => same(wiki.owner, parsed.owner) && same(wiki.name, parsed.name),
     );
+    const fitting =
+      byName.length > 0
+        ? byName
+        : open.filter((wiki) =>
+            wiki.formerNames.some(
+              (old) => same(old.owner, parsed.owner) && same(old.name, parsed.name),
+            ),
+          );
     const only = fitting.length === 1 ? fitting[0] : undefined;
     if (only !== undefined) return { wiki: only };
     if (fitting.length > 1) {

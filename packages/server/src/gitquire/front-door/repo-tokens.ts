@@ -45,10 +45,11 @@ export function repoTokenKey(
   };
 }
 
-export function openRepoTokenStore(
-  file: string,
-  keyOf: (repo: HostRepoRef) => string | undefined,
-): RepoTokenStore {
+export interface RepoTokenFile {
+  scoped: (keyOf: (repo: HostRepoRef) => string | undefined) => RepoTokenStore;
+}
+
+export function openRepoTokenFile(file: string): RepoTokenFile {
   const tokens = load(file);
 
   function save(): void {
@@ -60,19 +61,28 @@ export function openRepoTokenStore(
   }
 
   return {
-    tokenFor: (repo) => {
-      const key = keyOf(repo);
-      return key === undefined ? undefined : tokens[key];
-    },
-    has: (key) => tokens[key] !== undefined,
-    forget: (key) => {
-      if (tokens[key] === undefined) return;
-      delete tokens[key];
-      save();
-    },
-    set: (key, token) => {
-      tokens[key] = token;
-      save();
-    },
+    scoped: (keyOf) => ({
+      tokenFor: (repo) => {
+        const key = keyOf(repo);
+        return key === undefined ? undefined : tokens[key];
+      },
+      has: (key) => tokens[key] !== undefined,
+      forget: (key) => {
+        if (tokens[key] === undefined) return;
+        delete tokens[key];
+        save();
+      },
+      set: (key, token) => {
+        tokens[key] = token;
+        save();
+      },
+    }),
   };
+}
+
+export function openRepoTokenStore(
+  file: string,
+  keyOf: (repo: HostRepoRef) => string | undefined,
+): RepoTokenStore {
+  return openRepoTokenFile(file).scoped(keyOf);
 }

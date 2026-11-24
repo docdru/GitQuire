@@ -2,7 +2,12 @@ import { mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { openRepoTokenStore, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
+import {
+  openRepoTokenFile,
+  openRepoTokenStore,
+  repoTokenKey,
+  repoTokensFile,
+} from './repo-tokens.ts';
 import type { WikiRecord } from './wiki-table.ts';
 
 const dirs: string[] = [];
@@ -27,6 +32,23 @@ describe('repo token store', () => {
     expect(again.has('forgejo-3')).toBe(true);
     again.forget('forgejo-3');
     expect(openRepoTokenStore(file, keyOf).has('forgejo-3')).toBe(false);
+  });
+
+  it('keeps the tokens of two Forgejo hosts in one file without one overwriting the other', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'gq-tokens-'));
+    dirs.push(dir);
+    const file = repoTokensFile(dir);
+    const shared = openRepoTokenFile(file);
+    const first = shared.scoped((repo) => (repo.name === 'a' ? 'forgejo-2' : undefined));
+    const lab = shared.scoped((repo) => (repo.name === 'b' ? 'lab-5' : undefined));
+    lab.set('lab-5', 'lab-token');
+    first.set('forgejo-2', 'first-token');
+    const again = openRepoTokenFile(file);
+    expect(again.scoped(() => 'lab-5').tokenFor({ owner: 'team', name: 'b' })).toBe('lab-token');
+    expect(again.scoped(() => 'forgejo-2').tokenFor({ owner: 'team', name: 'a' })).toBe(
+      'first-token',
+    );
+    expect(first.tokenFor({ owner: 'team', name: 'b' })).toBeUndefined();
   });
 
   it('finds a wiki’s token by its repository id, not by a name another repository may now have', () => {
