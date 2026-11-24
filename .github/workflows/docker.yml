@@ -200,7 +200,7 @@ jobs:
           echo "$out" | grep -q "GITHUB_APP_PRIVATE_KEY_FILE (or GITHUB_APP_PRIVATE_KEY), GITQUIRE_REPO"
 
       - name: Log in to GitHub Container Registry
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/hosts-one-door')
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -212,6 +212,15 @@ jobs:
         run: |
           set -eu
           for tag in latest "sha-$GITHUB_SHA"; do
+            docker tag gitquire:ci "$IMAGE:$tag"
+            docker push "$IMAGE:$tag"
+          done
+
+      - name: Publish the tested image of the hosts-one-door branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/hosts-one-door'
+        run: |
+          set -eu
+          for tag in hosts-one-door "hosts-one-door-sha-$GITHUB_SHA"; do
             docker tag gitquire:ci "$IMAGE:$tag"
             docker push "$IMAGE:$tag"
           done
