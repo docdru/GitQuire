@@ -183,6 +183,8 @@ interface MeFeatures {
   connector: boolean;
   canUseTokens: boolean;
   canConnect: boolean;
+  agentsPath?: string;
+  mcpPath?: string;
 }
 
 export function meBody(

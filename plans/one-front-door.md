@@ -122,3 +122,12 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 - Add a wiki works per host: with two accounts it asks which host; the repository list, the kept request and the "asked again" notice are per host and person. Forgejo's rules (server administrator, token) apply on the Forgejo host only.
 - The Forgejo tests in CI (`h5_*.py`) use the new addresses `/w/forgejo/team/…`.
 
+
+### B6 (AI agents per account)
+
+- **Deviation from the plan (recorded, conservative):** the plan had the connector sign-in ask which host. A connector holds one address and one token, and one MCP session in GitQuire acts as one person; a connector that could sign in with either account would need one token to carry two people, or would silently act as the wrong person on the other host's wikis. Instead **each host has its own MCP address and its own connector**: the first host keeps `/mcp`, `/oauth/*` and `/.well-known/*` exactly as on `main`; a further host `K` gets `/mcp/K`, issuer `/oauth/K` (`/oauth/K/authorize`, `/token`, `/register`), metadata at `/.well-known/oauth-protected-resource/mcp/K` and `/.well-known/oauth-authorization-server/oauth/K`, and signing secrets with the suffix `:K`, so a client, code or token from one host is refused at the other. Someone with accounts on two hosts adds two connectors.
+- Agent tokens are stored per host: the first host keeps `/data/server/agent-tokens.json`, a further host uses `agent-tokens-<key>.json`. A token verifies only at its host's address; the same person id on two hosts is two people (S1). The access sweep revokes a token when its person has no wiki left **on that host**.
+- Agents pages: `/auth/agents` for the first host, `/auth/<key>/agents` for a further host, signed in with that host's account; each links to the other hosts' pages. Server admins of a host see and revoke that host's tokens only. The sign-out page with several hosts links each account's agents page.
+- An MCP connection reaches only its host's wikis: `list_wikis`, the full name and the old `owner/repo` are all looked up among that host's wikis, so an old `owner/repo` at `/mcp` keeps naming the first host's wiki as on `main`.
+- Inside a wiki of a further host, the front door passes `x-gitquire-agents-host: <key>`; the editor answers `/auth/me` with `agentsPath` and `mcpPath`, so Settings → Connect AI shows `/mcp/<key>` and links `/auth/<key>/agents`. A request for `/w/…/mcp` names the address of that wiki's host.
+- The mention badge on the home page already sums over all accounts (B4).

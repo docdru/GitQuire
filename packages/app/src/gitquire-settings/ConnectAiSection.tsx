@@ -11,10 +11,8 @@ import { type GitQuireFeatures, useGitQuireFeatures } from '@/lib/gitquire/featu
 const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
 const CLAUDE_ORG_CONNECTORS_URL = 'https://claude.ai/admin-settings/connectors';
 const LE_CHAT_URL = 'https://chat.mistral.ai/';
-const AGENT_ACCESS_PATH = '/auth/agents';
-
-export function connectorUrl(origin: string): string {
-  return `${origin.replace(/\/+$/, '')}/mcp`;
+export function connectorUrl(origin: string, mcpPath = '/mcp'): string {
+  return `${origin.replace(/\/+$/, '')}${mcpPath}`;
 }
 
 export type ConnectAiMode = 'connector' | 'token-only' | 'unavailable';
@@ -174,7 +172,7 @@ export function ConnectAiSection({ origin }: { origin?: string }) {
   const features = useGitQuireFeatures();
   const mode = connectAiMode(features);
   const titleId = useId();
-  const url = connectorUrl(origin ?? pageOrigin());
+  const url = connectorUrl(origin ?? pageOrigin(), features.mcpPath);
 
   return (
     <section aria-labelledby={titleId} className="space-y-6" data-testid="connect-ai-section">
@@ -225,7 +223,7 @@ export function ConnectAiSection({ origin }: { origin?: string }) {
             <Trans>For Claude Code and other command-line agents, create a personal token.</Trans>
           </p>
           <Button asChild variant="outline" size="sm">
-            <a href={AGENT_ACCESS_PATH} target="_blank" rel="noreferrer">
+            <a href={features.agentsPath} target="_blank" rel="noreferrer">
               <Trans>Tokens and connected apps</Trans>
             </a>
           </Button>

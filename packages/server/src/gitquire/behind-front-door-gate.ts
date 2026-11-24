@@ -18,6 +18,7 @@ import {
   bindRequestPrefix,
   createRequestPerson,
   forwardedAgentFeatures,
+  forwardedAgentPaths,
   forwardedPrefix,
 } from './request-person.ts';
 
@@ -101,6 +102,7 @@ export function createBehindFrontDoorGate(
             features: {
               aiChat: settings.aiChat,
               ...forwardedAgentFeatures(req, true),
+              ...forwardedAgentPaths(req, true),
             },
           }),
         );

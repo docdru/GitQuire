@@ -54,9 +54,22 @@ describe('GitQuire features', () => {
       settingsAdmin: false,
       adminLogins: [],
       adminRepo: null,
+      agentsPath: '/auth/agents',
+      mcpPath: '/mcp',
     });
     expect(hasClaudeAccess(features)).toBe(true);
     expect(hasClaudeAccess(STANDALONE_FEATURES)).toBe(false);
+  });
+
+  it('takes the agent addresses of a further host and refuses odd ones', async () => {
+    const one = async (extra: Record<string, unknown>) =>
+      fetchFeatures(respond(200, JSON.stringify({ features: { canUseTokens: true, ...extra } })));
+    const further = await one({ agentsPath: '/auth/forgejo/agents', mcpPath: '/mcp/forgejo' });
+    expect(further.agentsPath).toBe('/auth/forgejo/agents');
+    expect(further.mcpPath).toBe('/mcp/forgejo');
+    const odd = await one({ agentsPath: '//evil.example/x', mcpPath: 'https://evil.example' });
+    expect(odd.agentsPath).toBe('/auth/agents');
+    expect(odd.mcpPath).toBe('/mcp');
   });
 
   it('keeps the upstream behaviour without GitHub sign-in', async () => {

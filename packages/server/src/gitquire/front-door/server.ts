@@ -20,6 +20,7 @@ import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
   encodeProxiedUser,
   FORWARDED_AGENTS_HEADER,
+  FORWARDED_AGENTS_HOST_HEADER,
   FORWARDED_PREFIX_HEADER,
   FORWARDED_VIEW_HEADER,
   PROXIED_PRINCIPAL_HEADER,
@@ -161,7 +162,7 @@ export interface FrontDoorDeps {
   hosts: DoorHosts;
   table: WikiTable;
   processes: WikiProcesses;
-  agents?: Pick<DoorAgents, 'handle' | 'features'>;
+  agents?: Pick<DoorAgents, 'handle' | 'features' | 'pathsFor'>;
   mentionCounts?: MentionCounts;
   log: GateLogger;
   now?: () => number;
@@ -174,7 +175,7 @@ export interface FrontDoor {
   handleUpgrade: (req: IncomingMessage, socket: Duplex, head: Buffer) => void;
   recheckConnections: () => Promise<void>;
   setReady: (ready: boolean) => void;
-  sessionUser: (req: IncomingMessage) => HostPerson | undefined;
+  sessionUser: (req: IncomingMessage, hostKey?: string) => HostPerson | undefined;
 }
 
 interface Seat {
@@ -310,8 +311,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     });
   }
 
-  function sessionUser(req: IncomingMessage): DoorSessionUser | undefined {
-    return sessionAccounts(req).get(primary.key)?.person;
+  function sessionUser(req: IncomingMessage, hostKey?: string): DoorSessionUser | undefined {
+    return sessionAccounts(req).get(hostKey ?? primary.key)?.person;
   }
 
   function sessionCookie(accounts: ReadonlyMap<string, DoorAccount>): string {
@@ -560,6 +561,18 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     );
   }
 
+  function mcpPathOf(wiki: WikiRecord | undefined): string {
+    const entry = wiki === undefined ? undefined : hosts.of(wiki);
+    return (entry === undefined ? undefined : deps.agents?.pathsFor(entry.key)?.mcp) ?? '/mcp';
+  }
+
+  function agentsOn(entry: DoorHostEntry): string {
+    const paths = deps.agents?.pathsFor(entry.key);
+    return paths === undefined
+      ? ''
+      : ` · <a href="${escapeHtml(paths.agents)}">AI agent access</a>`;
+  }
+
   function signOutPage(req: IncomingMessage, res: ServerResponse): void {
     const accounts = sessionAccounts(req);
     const agentsLink =
@@ -581,7 +594,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         const mine = accounts.get(entry.key);
         if (mine === undefined) return [];
         return [
-          `<li>${escapeHtml(entry.names.label)}: <strong>@${escapeHtml(mine.person.login)}</strong> <form method="post" action="/auth/logout" style="display:inline"><input type="hidden" name="host" value="${escapeHtml(entry.key)}"><button type="submit">Sign out of ${escapeHtml(entry.names.label)}</button></form></li>`,
+          `<li>${escapeHtml(entry.names.label)}: <strong>@${escapeHtml(mine.person.login)}</strong>${agentsOn(entry)} <form method="post" action="/auth/logout" style="display:inline"><input type="hidden" name="host" value="${escapeHtml(entry.key)}"><button type="submit">Sign out of ${escapeHtml(entry.names.label)}</button></form></li>`,
         ];
       })
       .join('');
@@ -589,7 +602,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       res,
       200,
       'Sign out',
-      `${rows === '' ? '<p>You are not signed in.</p>' : `<ul>${rows}</ul>${agentsLink}<form method="post" action="/auth/logout"><button type="submit">Sign out of all</button></form>`}<p><a href="${chooserPath}">Sign in with another host</a></p>`,
+      `${rows === '' ? '<p>You are not signed in.</p>' : `<ul>${rows}</ul><form method="post" action="/auth/logout"><button type="submit">Sign out of all</button></form>`}<p><a href="${chooserPath}">Sign in with another host</a></p>`,
     );
   }
 
@@ -1153,6 +1166,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     agentFeatures?: string,
   ): Record<string, string> {
     const secret = processes.secretOf(wiki.key) ?? '';
+    const entry = hosts.of(wiki);
+    const further = entry === primary ? undefined : entry;
     return {
       [INTERNAL_REQUEST_HEADER]: secret,
       [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser({
@@ -1162,6 +1177,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       [FORWARDED_PREFIX_HEADER]: wikiPrefix(wiki),
       ...(view === undefined || view === '' ? {} : { [FORWARDED_VIEW_HEADER]: view }),
       ...(agentFeatures === undefined ? {} : { [FORWARDED_AGENTS_HEADER]: agentFeatures }),
+      ...(agentFeatures === undefined || further === undefined
+        ? {}
+        : { [FORWARDED_AGENTS_HOST_HEADER]: further.key }),
     };
   }
 
@@ -1221,7 +1239,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         wiki,
         decision.admin,
         view,
-        asksForMe && seat.entry === primary ? deps.agents?.features(user) : undefined,
+        asksForMe ? deps.agents?.features(seat.entry.key, user) : undefined,
       ),
       unavailable: { error: 'wiki-unavailable', message: 'The wiki is not reachable.' },
       rewriteHeaders: (headers) =>
@@ -1560,9 +1578,10 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       ) {
         sendJson(res, 404, {
           error: 'mcp-at-root',
-          mcp: new URL('/mcp', settings.externalUrl).toString(),
-          message:
-            'AI assistants connect to the one /mcp address of this server and name the wiki in each call.',
+          mcp: new URL(mcpPathOf(resolved?.wiki), settings.externalUrl).toString(),
+          message: severalHosts
+            ? 'AI assistants connect to the address for the Git host of the wiki and name the wiki in each call.'
+            : 'AI assistants connect to the one /mcp address of this server and name the wiki in each call.',
         });
         return;
       }

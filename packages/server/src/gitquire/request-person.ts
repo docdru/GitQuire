@@ -10,6 +10,9 @@ export const PROXIED_PRINCIPAL_HEADER = 'x-gitquire-principal';
 export const FORWARDED_PREFIX_HEADER = 'x-gitquire-prefix';
 export const FORWARDED_VIEW_HEADER = 'x-gitquire-view';
 export const FORWARDED_AGENTS_HEADER = 'x-gitquire-agents';
+export const FORWARDED_AGENTS_HOST_HEADER = 'x-gitquire-agents-host';
+
+const AGENTS_HOST_RE = /^[a-z](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
 
 const PREFIX_RE = /^(?:\/[A-Za-z0-9._~-]+)+$/;
 
@@ -105,6 +108,16 @@ export function forwardedAgentFeatures(req: Headers, behind: boolean): AgentFeat
     canUseTokens: flags.has(AGENT_FEATURE_FLAGS.canUseTokens),
     canConnect: flags.has(AGENT_FEATURE_FLAGS.canConnect),
   };
+}
+
+export function forwardedAgentPaths(
+  req: Headers,
+  behind: boolean,
+): { agentsPath: string; mcpPath: string } | undefined {
+  const raw = req.headers[FORWARDED_AGENTS_HOST_HEADER];
+  if (!behind || typeof raw !== 'string' || !isInternalRequest(req)) return undefined;
+  if (!AGENTS_HOST_RE.test(raw)) return undefined;
+  return { agentsPath: `/auth/${raw}/agents`, mcpPath: `/mcp/${raw}` };
 }
 
 export interface RequestPerson {

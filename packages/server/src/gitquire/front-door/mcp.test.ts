@@ -217,9 +217,9 @@ async function rig(): Promise<Rig> {
     hosts,
     table,
     processes,
-    sessionUser: (req) => sessionUser(req),
+    sessionUser: (req, hostKey) => sessionUser(req, hostKey),
     log: silentLog,
-    store,
+    stores: new Map([[hosts.primary.key, store]]),
     now,
   });
   cleanup.push(() => agents.close());
