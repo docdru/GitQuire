@@ -6,7 +6,7 @@ One page for reviewers: who owns what, the requirements in one line each, and th
 
 `GITQUIRE_WIKIS` off and `GITQUIRE_HOST` unset must behave exactly as `main`. Any code path that runs with both off and differs from `main` is a finding.
 
-On `hosts-one-door`: a front door with one host (no `GITQUIRE_HOSTS`) must behave as `main` except that wiki addresses and names carry the host key (S8).
+On `hosts-one-door`: a front door with one host (`GITQUIRE_HOSTS` unset or empty) must behave as `main` except that wiki addresses and names carry the host key (S8).
 
 ## Who owns what
 
