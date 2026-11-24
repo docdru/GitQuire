@@ -292,10 +292,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     return table.list().filter((wiki) => hosts.of(wiki) === entry);
   }
 
-  function primaryWikis(): WikiRecord[] {
-    return wikisOf(primary);
-  }
-
   function seatFor(accounts: Accounts, wiki: WikiRecord): Seat | undefined {
     const entry = hosts.of(wiki);
     if (entry === undefined) return undefined;

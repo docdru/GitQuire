@@ -106,3 +106,10 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 - The wiki menu's "Sign in with <other host>" comes in B5 together with the other app changes.
 - Independent review of #242: each account in the cookie carries an 8-character fingerprint of its host (kind and web origin), so moving a key to another server, or making another host the first, drops the account instead of reading `github-11` as `forgejo-11` (S1). A one-host cookie from before the update has no fingerprint and is read as the first host's until it expires (at most `GITQUIRE_SESSION_DAYS`); new one-host cookies carry it as an extra field `h`, which `main` ignores. The cookie size is enforced: names and avatar addresses are shortened, then emptied, until the cookie fits in 3800 bytes (tested with CJK names, control characters and three hosts). Each further host has its own state cookie (`gq_oauth_state_<key>`), so sign-ins started in two tabs at two hosts do not spoil each other; the first host keeps `gq_oauth_state`.
 
+### B4 (access per account)
+
+- A request is decided with the account of the wiki's host only. Signed in, but not on that host: the same 404 page and JSON as an unknown address, and the websocket is refused with 404; the host is not asked (S3). Not signed in at all: the sign-in redirect as before.
+- The wiki list, the home page and the mention counts join all accounts; each row knows its account, so the remove and token forms show only for server administrators of that row's host (S2).
+- While a host is down, its wikis close for people without a confirmed owner (as on `main`: a wiki whose owner was never confirmed by id does not start without its host, 502); the other host's wikis and sign-in keep working (S7).
+- Still first-host only until B5/B6: Add a wiki, the default wiki of `GITQUIRE_REPO`, agent tokens and `/mcp`.
+
