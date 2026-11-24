@@ -155,9 +155,11 @@ export function openWikiTable(file: string): WikiTable {
     },
     byOldAddress: (owner, name) => {
       const wanted = { owner, name };
-      const holders = state.wikis.filter(
-        (wiki) => same(wiki, wanted) || wiki.formerNames.some((old) => same(old, wanted)),
-      );
+      const current = state.wikis.filter((wiki) => same(wiki, wanted));
+      const holders =
+        current.length > 0
+          ? current
+          : state.wikis.filter((wiki) => wiki.formerNames.some((old) => same(old, wanted)));
       const first = holders.reduce<WikiRecord | undefined>(
         (earliest, wiki) =>
           earliest === undefined || wiki.addedAt < earliest.addedAt ? wiki : earliest,

@@ -147,3 +147,13 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 ### B9 (final pull request)
 
 - The branch handling of B0 is removed again: `checks.yml` and the Forgejo tests run on pushes to `main` only, no `hosts-one-door` image tag, `FULL_RUN_BASES` and its tests are gone, and the CONTRIBUTING paragraph is removed. `plans/one-front-door.md` stays in the AI review's reference documents, as the earlier plan did.
+
+### Whole-branch review (before the final pull request)
+
+An independent review of the whole branch found, and this branch fixed:
+
+- `/w/…/mcp` named the MCP address from a wiki-table lookup before sign-in, so a signed-out caller could tell whether a wiki existed (S3). It now names the address of the host **in the address**, the same for any owner and repository.
+- A websocket upgrade looked the wiki up before the sign-in check (404 for no wiki, 401 for a wiki). It now answers 401 to anyone without an account for every well-formed wiki address, as on `main`.
+- Two Forgejo hosts each opened `/data/server/repo-tokens.json` with their own copy in memory, so saving a token for one host dropped the other's. One file is now opened once and shared, each host seeing only its own wikis' keys.
+- An old address went to the earliest wiki holding the name **now or before**; on `main` a wiki that has the name now came first. Now: a wiki that has the name now (the earliest added, when two hosts each have one), otherwise one that had it. `/mcp` does the same for the old `owner/repo`.
+- Rolling back to an image without several hosts after a further host has wikis is unsafe (the older image ignores the host key); DEPLOY.md says so.

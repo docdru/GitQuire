@@ -561,8 +561,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     );
   }
 
-  function mcpPathOf(wiki: WikiRecord | undefined): string {
-    const entry = wiki === undefined ? undefined : hosts.of(wiki);
+  function mcpPathFor(hostKey: string | undefined): string {
+    const entry = hostKey === undefined ? undefined : hosts.byKey(hostKey);
     return (entry === undefined ? undefined : deps.agents?.pathsFor(entry.key)?.mcp) ?? '/mcp';
   }
 
@@ -1571,16 +1571,16 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     };
 
     if (addresses.withHost !== undefined || addresses.old !== undefined) {
-      const rests = [resolved?.rest, addresses.withHost?.rest, addresses.old?.rest];
+      const rests = [addresses.withHost?.rest, addresses.old?.rest];
       if (
         deps.agents !== undefined &&
         rests.some((rest) => rest === '/mcp' || rest?.startsWith('/mcp/') === true)
       ) {
         sendJson(res, 404, {
           error: 'mcp-at-root',
-          mcp: new URL(mcpPathOf(resolved?.wiki), settings.externalUrl).toString(),
+          mcp: new URL(mcpPathFor(addresses.withHost?.hostKey), settings.externalUrl).toString(),
           message: severalHosts
-            ? 'AI assistants connect to the address for the Git host of the wiki and name the wiki in each call.'
+            ? 'AI assistants connect to the address of the Git host named in the wiki address and name the wiki in each call.'
             : 'AI assistants connect to the one /mcp address of this server and name the wiki in each call.',
         });
         return;
@@ -1685,15 +1685,23 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
 
   function handleUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer): void {
     const accounts = sessionAccounts(req);
-    const resolved = resolveWiki(parseWikiAddresses(req.url));
+    const addresses = parseWikiAddresses(req.url);
     const cookies = { headers: { cookie: req.headers.cookie } } as IncomingMessage;
     stripBrowserHeaders(req);
-    if (resolved === undefined || resolved.rest === '') {
+    const rests = [addresses.withHost?.rest, addresses.old?.rest].filter(
+      (rest): rest is string => rest !== undefined && rest !== '',
+    );
+    if (rests.length === 0) {
       refuseUpgrade(socket, '404 Not Found');
       return;
     }
     if (accounts.size === 0) {
       refuseUpgrade(socket, '401 Unauthorized');
+      return;
+    }
+    const resolved = resolveWiki(addresses);
+    if (resolved === undefined || resolved.rest === '') {
+      refuseUpgrade(socket, '404 Not Found');
       return;
     }
     const match = resolved;

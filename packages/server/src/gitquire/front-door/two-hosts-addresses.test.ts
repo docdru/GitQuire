@@ -9,6 +9,20 @@ async function both(r: TwoHostRig, who = 'alice'): Promise<string> {
   return r.signIn('forgejo', who, await r.signIn('github', who));
 }
 
+function upgradeAnswer(r: TwoHostRig, path: string, cookie: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const s = connect(Number(new URL(r.base).port), '127.0.0.1');
+    s.once('error', reject);
+    s.once('data', (chunk) => {
+      resolve(chunk.toString().split('\r\n')[0] ?? '');
+      s.destroy();
+    });
+    s.write(
+      `GET ${path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${cookie}\r\n\r\n`,
+    );
+  });
+}
+
 interface Echo {
   url: string;
   headers: Record<string, string>;
@@ -105,6 +119,30 @@ describe('addresses with the host', () => {
       );
     });
     expect(socket).toBe('HTTP/1.1 404 Not Found');
+  });
+
+  it('tells a signed-out caller nothing about which wikis exist, also for /mcp and live editing (S3)', async () => {
+    const r = await twoHostRig({ agents: true });
+    const answers = await Promise.all(
+      ['/w/forgejo/team/f/mcp', '/w/forgejo/team/nothing/mcp'].map(async (path) => {
+        const answer = await r.get(path, '');
+        return { status: answer.status, body: await answer.text() };
+      }),
+    );
+    expect(answers[0]?.status).toBe(404);
+    expect(answers[0]).toEqual(answers[1]);
+    expect(answers[0]?.body).toContain('/mcp/forgejo');
+    const old = await Promise.all(
+      ['/w/team/f/mcp', '/w/team/nothing/mcp'].map(async (path) => (await r.get(path, '')).text()),
+    );
+    expect(old[0]).toBe(old[1]);
+    for (const path of [
+      '/w/github/team/a/collab',
+      '/w/github/team/zzz/collab',
+      '/w/team/a/collab',
+    ]) {
+      expect(await upgradeAnswer(r, path, '')).toBe('HTTP/1.1 401 Unauthorized');
+    }
   });
 
   it('never hands the front door’s sign-in state cookies to an editor process', () => {

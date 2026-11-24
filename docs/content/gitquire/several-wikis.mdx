@@ -7,8 +7,7 @@ description: Run several wikis in one GitQuire container behind one front door, 
 With `GITQUIRE_WIKIS=on`, one GitQuire container serves several wikis. Each wiki is a repository on
 your Git host (GitHub or Forgejo) and opens at `/w/<host>/<owner>/<repo>/`, for example
 `/w/github/team/handbook/`. Everyone signs in at the front door and sees only the wikis whose
-repository they can write to. Old addresses without the host redirect to the wiki that has held
-that name first. This is new; try it on a
+repository they can write to. Old addresses without the host redirect to the wiki that has that name now, or else to the one that had it. This is new; try it on a
 copy of your volume first.
 
 ## Turn it on
