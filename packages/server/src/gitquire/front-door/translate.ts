@@ -9,9 +9,20 @@ export interface WikiAddress {
   search: string;
 }
 
+export interface HostWikiAddress extends WikiAddress {
+  hostKey: string;
+}
+
+export interface WikiAddresses {
+  withHost: HostWikiAddress | undefined;
+  old: WikiAddress | undefined;
+}
+
 const SEGMENT = '[A-Za-z0-9._~-]+';
 const WIKI_PATH_RE = new RegExp(`^/w/(${SEGMENT})/(${SEGMENT})(/[^?#]*)?$`);
+const HOST_WIKI_PATH_RE = new RegExp(`^/w/([a-z][a-z0-9-]*)/(${SEGMENT})/(${SEGMENT})(/[^?#]*)?$`);
 const FRONT_DOOR_COOKIES = ['gq_session', 'gq_oauth_state'];
+const FRONT_DOOR_COOKIE_PREFIXES = ['gq_oauth_state_'];
 const VIEW_COOKIE_PREFIX = 'gq_view_';
 
 function isNameSegment(value: string): boolean {
@@ -33,6 +44,27 @@ export function parseWikiAddress(url: string | undefined): WikiAddress | undefin
   const [, owner, name, rest] = match;
   if (!isNameSegment(owner) || !isNameSegment(name)) return undefined;
   return { owner, name, rest: rest ?? '', search };
+}
+
+export function parseWikiAddresses(url: string | undefined): WikiAddresses {
+  const { path, search } = rawPathAndSearch(url);
+  const match = HOST_WIKI_PATH_RE.exec(path);
+  const withHost =
+    match === null
+      ? undefined
+      : (() => {
+          const [, hostKey, owner, name, rest] = match as unknown as string[];
+          return isNameSegment(owner as string) && isNameSegment(name as string)
+            ? {
+                hostKey: hostKey as string,
+                owner: owner as string,
+                name: name as string,
+                rest: rest ?? '',
+                search,
+              }
+            : undefined;
+        })();
+  return { withHost, old: parseWikiAddress(url) };
 }
 
 export function withPrefix(location: string, prefix: string): string {
@@ -71,7 +103,11 @@ export function stripBrowserHeaders(req: IncomingMessage): void {
     .map((part) => part.trim())
     .filter((part) => {
       const name = part.slice(0, Math.max(0, part.indexOf('='))).trim();
-      return !FRONT_DOOR_COOKIES.includes(name) && !name.startsWith(VIEW_COOKIE_PREFIX);
+      return (
+        !FRONT_DOOR_COOKIES.includes(name) &&
+        !FRONT_DOOR_COOKIE_PREFIXES.some((prefix) => name.startsWith(prefix)) &&
+        !name.startsWith(VIEW_COOKIE_PREFIX)
+      );
     });
   if (kept.length === 0) {
     delete req.headers.cookie;
@@ -103,6 +139,19 @@ export function translateResponseHeaders(
   }
   if (cookies.length > 0) out['set-cookie'] = cookies;
   return out;
+}
+
+export function refererAddresses(req: IncomingMessage, origin: string): WikiAddresses {
+  const referer = req.headers.referer;
+  if (typeof referer !== 'string') return { withHost: undefined, old: undefined };
+  let url: URL;
+  try {
+    url = new URL(referer);
+  } catch {
+    return { withHost: undefined, old: undefined };
+  }
+  if (url.origin !== origin) return { withHost: undefined, old: undefined };
+  return parseWikiAddresses(url.pathname);
 }
 
 export function refererAddress(req: IncomingMessage, origin: string): WikiAddress | undefined {

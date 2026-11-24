@@ -18,9 +18,10 @@ import {
 } from '../process-pool/pool.ts';
 import { REPO_ID_ENV } from '../repo-pin.ts';
 import { safeEqual } from '../signed-cookie.ts';
+import { WIKI_NAME_ENV } from '../wiki-name.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
 import type { HostSettings } from './hosts.ts';
-import { type WikiRecord, type WikiTable, wikiDir, wikiPrefix } from './wiki-table.ts';
+import { type WikiRecord, type WikiTable, wikiDir, wikiName, wikiPrefix } from './wiki-table.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -149,6 +150,7 @@ export function wikiEnv(
       : { [CHAT_KEY_SECRET_ENV]: deriveChatKeySecret(sessionSecret, wiki.key) }),
     GITQUIRE_BEHIND_FRONT_DOOR: 'on',
     GITQUIRE_REPO: `${wiki.owner}/${wiki.name}`,
+    [WIKI_NAME_ENV]: wikiName(wiki),
     [REPO_ID_ENV]: String(wiki.id),
     GITQUIRE_EXTERNAL_URL: `${options.externalUrl.origin}${wikiPrefix(wiki)}`,
     GITQUIRE_ALLOW_EXTERNAL: '1',

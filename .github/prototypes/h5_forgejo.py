@@ -433,11 +433,11 @@ def wikis_mcp(alice, dave):
     status, token = agent_token(alice, "h5 agent")
     check("Wikis MCP", status == 200 and token is not None,
           f"alice creates an agent token at /auth/agents on the front door -> {status}")
-    status, me, _ = door_call("GET", "/w/team/alpha/auth/me", alice)
+    status, me, _ = door_call("GET", "/w/forgejo/team/alpha/auth/me", alice)
     features = me.get("features", {}) if isinstance(me, dict) else {}
     check("Wikis MCP", features.get("canUseTokens") is True and features.get("agentToken") is True,
           f"inside a wiki, /auth/me shows the front door's agent access -> {features}")
-    status, body, _ = door_call("GET", "/w/team/alpha/mcp", alice)
+    status, body, _ = door_call("GET", "/w/forgejo/team/alpha/mcp", alice)
     check("Wikis MCP", status == 404 and isinstance(body, dict) and body.get("mcp") == WIKIS + "/mcp",
           f"/mcp under a wiki address names the one /mcp address -> {status} {body}")
     unsigned = urllib.request.Request(WIKIS + "/mcp", method="POST", data=b"{}",
@@ -541,25 +541,25 @@ def wikis_test():
         check("Wikis add", status == 201 and key == f"forgejo-{repos.get(name, {}).get('id')}",
               f"Make this a wiki team/{name} -> {status} {made}")
     for name in ("alpha", "beta"):
-        status, page, _ = door_call("GET", f"/w/team/{name}/", alice, accept="text/html")
+        status, page, _ = door_call("GET", f"/w/forgejo/team/{name}/", alice, accept="text/html")
         check("Wikis open", status == 200 and "<html" in str(page).lower(),
-              f"alice opens /w/team/{name}/ -> {status}")
-        status, me, _ = door_call("GET", f"/w/team/{name}/auth/me", alice)
+              f"alice opens /w/forgejo/team/{name}/ -> {status}")
+        status, me, _ = door_call("GET", f"/w/forgejo/team/{name}/auth/me", alice)
         check("Wikis open", status == 200 and isinstance(me, dict) and me.get("login") == "alice"
               and me.get("admin") is True,
-              f"/w/team/{name}/auth/me for alice (repo admin) -> {status} {me if status != 200 else ''}")
-        status, config, _ = door_call("GET", f"/w/team/{name}/api/config", alice)
-        check("Wikis open", status == 200, f"/w/team/{name}/api/config -> {status}")
+              f"/w/forgejo/team/{name}/auth/me for alice (repo admin) -> {status} {me if status != 200 else ''}")
+        status, config, _ = door_call("GET", f"/w/forgejo/team/{name}/api/config", alice)
+        check("Wikis open", status == 200, f"/w/forgejo/team/{name}/api/config -> {status}")
     dave = f.web_login("dave")
     status, detail = door_round(dave, "/auth/forgejo/login?next=%2F")
     check("Wikis sign-in", status == 302, f"dave signs in -> {status} {detail}")
-    status, me, _ = door_call("GET", "/w/team/alpha/auth/me", dave)
+    status, me, _ = door_call("GET", "/w/forgejo/team/alpha/auth/me", dave)
     check("Wikis access", status == 200 and isinstance(me, dict) and me.get("login") == "dave"
           and me.get("admin") is False, f"dave (writer on alpha) opens alpha -> {status} {me}")
-    status, body, _ = door_call("GET", "/w/team/beta/auth/me", dave)
+    status, body, _ = door_call("GET", "/w/forgejo/team/beta/auth/me", dave)
     check("Wikis access", status == 404 and isinstance(body, dict) and body.get("error") == "not-a-wiki",
           f"dave has no access to beta, which looks like no wiki at all -> {status} {body}")
-    status, page, _ = door_call("GET", "/w/team/beta/", dave, accept="text/html")
+    status, page, _ = door_call("GET", "/w/forgejo/team/beta/", dave, accept="text/html")
     check("Wikis access", status == 404 and "There is no wiki at this address" in str(page)
           and "team/beta" not in str(page), f"dave sees the no-wiki page for beta, without its name -> {status}")
     status, listed, _ = door_call("GET", "/api/front-door/wikis", dave)
@@ -567,12 +567,12 @@ def wikis_test():
     check("Wikis access", status == 200 and names == ["alpha"], f"dave's wiki list -> {status} {names}")
     status, page, _ = door_call("GET", "/", alice, accept="text/html")
     page = str(page)
-    check("Wikis list", status == 200 and 'href="/w/team/alpha/"' in page and 'href="/w/team/beta/"' in page
+    check("Wikis list", status == 200 and 'href="/w/forgejo/team/alpha/"' in page and 'href="/w/forgejo/team/beta/"' in page
           and "This server hosts wikis from team." in page and 'href="/add-wiki"' in page,
           f"alice's list page at / shows both wikis, Add a wiki and the allowed owners -> {status}")
     status, page, _ = door_call("GET", "/", dave, accept="text/html")
     page = str(page)
-    check("Wikis list", status == 200 and 'href="/w/team/alpha/"' in page and "team/beta" not in page,
+    check("Wikis list", status == 200 and 'href="/w/forgejo/team/alpha/"' in page and "team/beta" not in page,
           f"dave's list page shows alpha only -> {status}")
     status, listed, _ = door_call("GET", "/api/front-door/wikis", alice)
     check("Wikis list", status == 200 and isinstance(listed, dict) and listed.get("addWikiPage") == "/add-wiki"

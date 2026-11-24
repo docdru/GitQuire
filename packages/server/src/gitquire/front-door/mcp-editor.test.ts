@@ -84,7 +84,8 @@ describe('the front door in front of a real editor /mcp', () => {
       externalUrl: new URL('http://127.0.0.1'),
       table: {
         list: () => [wiki],
-        byAddress: (owner, name) =>
+        byOldAddress: () => undefined,
+        byAddress: (_host, owner, name) =>
           owner === 'team' && name === 'a' ? { wiki, current: true } : undefined,
       },
       access: { decide: async () => decision },
@@ -139,7 +140,11 @@ describe('the front door in front of a real editor /mcp', () => {
     const editor = await editorOnSocket();
     const door = createDoorMcp({
       externalUrl: new URL('http://127.0.0.1'),
-      table: { list: () => [wiki], byAddress: () => ({ wiki, current: true }) },
+      table: {
+        list: () => [wiki],
+        byAddress: () => ({ wiki, current: true }),
+        byOldAddress: () => undefined,
+      },
       access: { decide: async () => ({ open: true, admin: false }) },
       processes: { ensure: async () => editor.socket, touch: () => {}, secretOf: () => 'wrong' },
       log: silentLog,

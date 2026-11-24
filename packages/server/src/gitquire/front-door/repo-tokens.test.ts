@@ -47,7 +47,7 @@ describe('repo token store', () => {
     const keyOf = repoTokenKey(
       {
         byId: (host, id) => wikis.find((wiki) => wiki.host === host && wiki.id === id),
-        byAddress: (owner, name) => {
+        byAddress: (_host, owner, name) => {
           const wiki = wikis.find((w) => w.owner === owner && w.name === name);
           return wiki === undefined ? undefined : { wiki, current: true };
         },

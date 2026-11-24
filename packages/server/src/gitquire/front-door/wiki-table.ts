@@ -24,7 +24,8 @@ export interface WikiTable {
   list: () => readonly WikiRecord[];
   byKey: (key: string) => WikiRecord | undefined;
   byId: (hostKey: string, id: number) => WikiRecord | undefined;
-  byAddress: (owner: string, name: string) => AddressMatch | undefined;
+  byAddress: (hostKey: string, owner: string, name: string) => AddressMatch | undefined;
+  byOldAddress: (owner: string, name: string) => AddressMatch | undefined;
   add: (repo: HostRepoRecord, addedBy: string, now: number, hostKey?: string) => WikiRecord;
   rename: (key: string, to: HostRepo, ownerId?: number) => WikiRecord | undefined;
   connect: (key: string) => WikiRecord | undefined;
@@ -55,8 +56,12 @@ export function wikiDir(dataDir: string, wiki: Pick<WikiRecord, 'key'>): string 
   return join(dataDir, 'wikis', wiki.key);
 }
 
-export function wikiPrefix(wiki: HostRepo): string {
-  return `/w/${wiki.owner}/${wiki.name}`;
+export function wikiPrefix(wiki: HostRepo & Pick<WikiRecord, 'host' | 'hostKey'>): string {
+  return `/w/${hostKeyOf(wiki)}/${wiki.owner}/${wiki.name}`;
+}
+
+export function wikiName(wiki: HostRepo & Pick<WikiRecord, 'host' | 'hostKey'>): string {
+  return `${hostKeyOf(wiki)}/${wiki.owner}/${wiki.name}`;
 }
 
 function same(a: HostRepo, b: HostRepo): boolean {
@@ -140,12 +145,25 @@ export function openWikiTable(file: string): WikiTable {
     byKey,
     byId: (hostKey, id) =>
       state.wikis.find((wiki) => hostKeyOf(wiki) === hostKey && wiki.id === id),
-    byAddress: (owner, name) => {
+    byAddress: (hostKey, owner, name) => {
       const wanted = { owner, name };
-      const current = state.wikis.find((wiki) => same(wiki, wanted));
+      const onHost = state.wikis.filter((wiki) => hostKeyOf(wiki) === hostKey);
+      const current = onHost.find((wiki) => same(wiki, wanted));
       if (current !== undefined) return { wiki: current, current: true };
-      const former = state.wikis.find((wiki) => wiki.formerNames.some((old) => same(old, wanted)));
+      const former = onHost.find((wiki) => wiki.formerNames.some((old) => same(old, wanted)));
       return former === undefined ? undefined : { wiki: former, current: false };
+    },
+    byOldAddress: (owner, name) => {
+      const wanted = { owner, name };
+      const holders = state.wikis.filter(
+        (wiki) => same(wiki, wanted) || wiki.formerNames.some((old) => same(old, wanted)),
+      );
+      const first = holders.reduce<WikiRecord | undefined>(
+        (earliest, wiki) =>
+          earliest === undefined || wiki.addedAt < earliest.addedAt ? wiki : earliest,
+        undefined,
+      );
+      return first === undefined ? undefined : { wiki: first, current: false };
     },
     add: (repo, addedBy, now, hostKey) => {
       const key = wikiKey(repo, hostKey);
