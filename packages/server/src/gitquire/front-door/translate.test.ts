@@ -13,23 +13,30 @@ function req(headers: IncomingMessage['headers']): IncomingMessage {
 }
 
 describe('address translation', () => {
-  it('splits /w/<owner>/<repo> from the rest of the address', () => {
-    expect(parseWikiAddress('/w/team/wiki/api/x?y=1')).toEqual({
+  it('splits /w/<host>/<owner>/<repo> from the rest of the address, and nothing shorter', () => {
+    expect(parseWikiAddress('/w/github/team/wiki/api/x?y=1')).toEqual({
+      hostKey: 'github',
       owner: 'team',
       name: 'wiki',
       rest: '/api/x',
       search: '?y=1',
     });
-    expect(parseWikiAddress('/w/team/wiki')).toEqual({
+    expect(parseWikiAddress('/w/github/team/wiki')).toEqual({
+      hostKey: 'github',
       owner: 'team',
       name: 'wiki',
       rest: '',
       search: '',
     });
-    expect(parseWikiAddress('/w/team/.github/')).toMatchObject({ name: '.github', rest: '/' });
-    expect(parseWikiAddress('/w/team')).toBeUndefined();
-    expect(parseWikiAddress('/w/../wiki/')).toBeUndefined();
-    expect(parseWikiAddress('/w/te%61m/wiki/')).toBeUndefined();
+    expect(parseWikiAddress('/w/forgejo/team/.github/')).toMatchObject({
+      name: '.github',
+      rest: '/',
+    });
+    expect(parseWikiAddress('/w/team/wiki/')).toBeUndefined();
+    expect(parseWikiAddress('/w/github/team')).toBeUndefined();
+    expect(parseWikiAddress('/w/github/../wiki/')).toBeUndefined();
+    expect(parseWikiAddress('/w/github/te%61m/wiki/')).toBeUndefined();
+    expect(parseWikiAddress('/w/GitHub/team/wiki/')).toBeUndefined();
     expect(parseWikiAddress('/docs/plan')).toBeUndefined();
   });
 
@@ -84,10 +91,16 @@ describe('address translation', () => {
 
   it('reads the wiki from a same-origin Referer only', () => {
     expect(
-      refererAddress(req({ referer: 'https://w.example/w/team/wiki/page' }), 'https://w.example'),
-    ).toMatchObject({ owner: 'team', name: 'wiki' });
+      refererAddress(
+        req({ referer: 'https://w.example/w/github/team/wiki/page' }),
+        'https://w.example',
+      ),
+    ).toMatchObject({ hostKey: 'github', owner: 'team', name: 'wiki' });
     expect(
-      refererAddress(req({ referer: 'https://evil.example/w/team/wiki/' }), 'https://w.example'),
+      refererAddress(
+        req({ referer: 'https://evil.example/w/github/team/wiki/' }),
+        'https://w.example',
+      ),
     ).toBeUndefined();
     expect(refererAddress(req({}), 'https://w.example')).toBeUndefined();
   });

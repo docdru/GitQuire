@@ -499,7 +499,7 @@ after 30 minutes without use, once it says it is pushed and clean. Try it on a c
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. `off` or empty: one wiki, exactly as before. Any other value stops the container. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
-| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it, after sign-in and only for people who can open it (others get the no-wiki page, so its name is never shown). `gitquire wikis adopt` moves this repository's single-wiki volume over. |
+| `GITQUIRE_REPO` | Optional. The repository whose single-wiki volume `gitquire wikis adopt` moves over; without `GITQUIRE_ALLOWED_OWNERS`, its owner is the allowed owner. |
 | `GITQUIRE_ADMINS` | Server administrators. They see every disconnected wiki and why, can revoke anyone's agent tokens, and on Forgejo they are the only ones who add a wiki, because they enter its token. |
 
 Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET` (at least 32
@@ -598,14 +598,10 @@ folder per wiki, `/data/wikis/<host>-<repository id>/`, so a renamed repository 
 its old address redirects to the new one. The `<host>` in addresses is the host's key: the kind
 (`github` or `forgejo`) for the first host, and the key from `GITQUIRE_HOSTS` for a further one.
 
-**Addresses carry the host.** Since the front door can serve two hosts, every wiki address names
-it, also on a server with one host. Addresses of the old form `/w/<owner>/<repo>/…` (pages, files,
-images and the API) redirect, after sign-in and the access check, to the wiki that has that name
-now (the one added first, when two hosts each have one), or else to the one that had it; someone who cannot open that wiki gets the
-unknown-address answer. Bookmarks and links
-inside pages keep working this way. What browsers kept for the old address is not carried over:
-the list of open tabs and **edits made offline that were never sent**. Update when nobody has
-unsent offline edits (the app warns while edits are unsent). A wiki's drafts are kept beside it, in
+**Addresses carry the host.** Every wiki address names its host, also on a server with one host.
+There are no other addresses for a wiki: `/w/<owner>/<repo>/…` and paths outside `/w/` are not
+wiki addresses and answer as no wiki, so bookmarks and links from before this form stop working.
+A wiki's drafts are kept beside it, in
 `/data/wikis/.gitquire-drafts/<host>-<repository id>/`; `GITQUIRE_DRAFTS_DIR` and the `/drafts`
 volume of `deploy/compose.yaml` are not used with several wikis. A volume is either one wiki or
 several: the front door refuses a volume that holds a single wiki's checkout, and a single wiki
@@ -618,21 +614,22 @@ refuses a volume with `server/wikis.json` but no `.git` (a wiki's own repository
 ### AI agents with several wikis
 
 AI agents connect to the front door, not to a wiki: there is **one** address per Git host,
-`https://<server>/mcp` for the first, and one connection or token per person and host, whichever
-wikis they use (two hosts: see [Two Git hosts on one server](#two-git-hosts-on-one-server)). Agent tokens, `/auth/agents`,
-the connector sign-in (`GITQUIRE_MCP_CONNECTORS=on`) and the connector discovery addresses
-(`/.well-known/oauth-*`, `/oauth/*`) are all at the root. The front door keeps the tokens, hashed,
-in `/data/server/agent-tokens.json`; no editor process has a token store of its own. Server
-administrators (`GITQUIRE_ADMINS`) can revoke anyone's tokens there.
+`https://<server>/mcp/<host key>` (for example `/mcp/forgejo`), and one connection or token per
+person and host, whichever wikis they use. Each host has its own agents page,
+`/auth/<host key>/agents`, its own connector sign-in (`GITQUIRE_MCP_CONNECTORS=on`) at
+`/oauth/<host key>/…` with discovery at `/.well-known/oauth-protected-resource/mcp/<host key>` and
+`/.well-known/oauth-authorization-server/oauth/<host key>`, and its own token store,
+`/data/server/agent-tokens-<host key>.json` (hashed); no editor process has a token store of its
+own. `/mcp` without a host key is not an address; it answers 404 and lists the addresses. Server
+administrators of a host can revoke anyone's tokens there.
 
 The agent sees a tool `list_wikis`, which lists the wikis the person can open, and the usual wiki
 tools, each with an extra `wiki` argument naming the wiki with its host, as `list_wikis` does
-(`github/team/handbook`). The old `owner/repo` (`team/handbook`) is still accepted while exactly
-one of the person's wikis on that address has that name. A person with exactly one wiki may leave
-it out. On every call the front door checks that the person may
+(`github/team/handbook`); `team/handbook` alone is refused. A person with exactly one wiki may
+leave it out. On every call the front door checks that the person may
 open the named wiki, the same check as for the browser, and passes the call to that wiki's process
 as that person; the edits are credited to them. `/w/<host>/<owner>/<repo>/mcp` is not an address: it
-answers 404 and names the `/mcp` address of the host in the address. **Settings → Connect AI** shows that address in
+answers 404 and names the `/mcp/<host key>` address of the host in the address. **Settings → Connect AI** shows that address in
 every wiki, and **Ask Claude** names the wiki in the prompt.
 
 Each wiki tool also takes an optional `workspace` argument: `live`, `draft` (the draft the person
@@ -711,10 +708,11 @@ What it does, and refuses:
   `/data/.gitquire-moving-in` (or `.gitquire-moving-back` for the way back); while it is there,
   neither the single wiki nor the front door starts, and running the same command again finishes
   the move (only commits not yet pushed still need `--force` then).
-- **Agent tokens move:** they are copied to the front door's store, `/data/server/agent-tokens.json`,
-  which has one writer, the front door. The `/mcp` address stays the same, and a person with one
-  wiki needs no `wiki` argument, so existing tokens and connectors keep working. The original file
-  stays in the wiki's folder, unused.
+- **Agent tokens move:** they are copied to the front door's store for the host,
+  `/data/server/agent-tokens-<host>.json`, which has one writer, the front door. The address
+  changes from `/mcp` to `/mcp/<host>`, so agents and connectors must be pointed at the new
+  address; the tokens themselves keep working there. The original file stays in the wiki's folder,
+  unused.
 - **Saved AI keys** are re-sealed with the wiki's own key (see AI chat above), so people do not
   enter them again; the old files stay in `ai-keys.before-wikis`. This needs the
   `GITQUIRE_SESSION_SECRET` the single wiki ran with; if the keys do not open with it, the command
@@ -782,8 +780,7 @@ GITQUIRE_HOST_GITHUB_ADMINS=alice
 | `GITQUIRE_HOST_<KEY>_LABEL`, `_COMMIT_EMAIL_FORMAT` | Optional: the name shown to people, and the commit address format. |
 
 A single wiki (`GITQUIRE_WIKIS` off) refuses `GITQUIRE_HOSTS`. Two hosts with the same address
-are refused. With one host, nothing above is needed and everything behaves as before, apart from
-addresses that now carry the host.
+are refused. With one host, nothing above is needed.
 
 **People sign in once per host.** The sign-in page (`/auth/sign-in`) offers each host; a person can
 be signed in with both at once, and each account sees the wikis of its own host. Accounts are never
@@ -794,18 +791,18 @@ answering when one host is slow or down (that host's wikis are left out after a 
 wiki asks which host when two are signed in. Server administrators are per host: an administrator
 on one host has no say over the other's wikis or tokens.
 
-**AI agents have one address per host**, because one connection acts as one person:
+**AI agents have one address per host**, because one connection acts as one person. Every host,
+the first included, is addressed by its key:
 
-| | First host | Further host `<key>` |
-| --- | --- | --- |
-| MCP address and connector | `/mcp` | `/mcp/<key>` |
-| Tokens and connected apps | `/auth/agents` | `/auth/<key>/agents` |
-| Token store | `/data/server/agent-tokens.json` | `/data/server/agent-tokens-<key>.json` |
+| | Host `<key>` |
+| --- | --- |
+| MCP address and connector | `/mcp/<key>` |
+| Tokens and connected apps | `/auth/<key>/agents` |
+| Token store | `/data/server/agent-tokens-<key>.json` |
 
 A token or connector reaches only its host's wikis and is refused at the other address. Someone
 with accounts on both hosts adds two connectors (for example "GitQuire Forgejo" and "GitQuire
-GitHub"). Inside a wiki, **Settings → Connect AI** shows the address of that wiki's host. For the
-first host, everything stays where it was, so existing tokens and connectors keep working.
+GitHub"). Inside a wiki, **Settings → Connect AI** shows the address of that wiki's host.
 
 **Going back** to an image without several hosts: first remove the further hosts' wikis (or keep a
 copy of the volume from before). An older image reads the wiki table but not the host key of a

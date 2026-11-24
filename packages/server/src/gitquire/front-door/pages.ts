@@ -25,11 +25,9 @@ export interface HomeRow {
 
 export interface HomeInput {
   rows: readonly HomeRow[];
-  defaultAddress: string | undefined;
   hosts: string;
   canReplaceToken: boolean;
   canRemove: boolean;
-  scriptPath: string;
 }
 
 function unreadText(unread: number | undefined): string {
@@ -68,15 +66,11 @@ export function homeBody(input: HomeInput): string {
   const items = input.rows
     .map((row) => homeRow(row, input.canReplaceToken, input.canRemove))
     .join('');
-  const marker =
-    input.defaultAddress === undefined
-      ? ''
-      : `<div id="gq-default-wiki" data-address="${escapeHtml(input.defaultAddress)}"></div>`;
   const list =
     items === ''
       ? '<p>You have no wikis on this server yet.</p>'
       : `<ul class="wikis">${items}</ul>`;
-  return `${marker}${list}<p><a href="${ADD_WIKI_PAGE}">Add a wiki</a></p><p class="muted">${escapeHtml(input.hosts)}</p><p><a href="/auth/logout">Sign out</a></p><script src="${input.scriptPath}" defer></script>`;
+  return `${list}<p><a href="${ADD_WIKI_PAGE}">Add a wiki</a></p><p class="muted">${escapeHtml(input.hosts)}</p><p><a href="/auth/logout">Sign out</a></p>`;
 }
 
 export interface AddableRow {

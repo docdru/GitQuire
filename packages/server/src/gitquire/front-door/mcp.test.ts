@@ -205,7 +205,7 @@ async function rig(): Promise<Rig> {
   cleanup.push(() => processes.stopAll());
   let sessionUser: Parameters<typeof createDoorAgents>[0]['sessionUser'] = () => undefined;
   const store = createAgentTokenStore({
-    file: join(data, 'server', 'agent-tokens.json'),
+    file: join(data, 'server', 'agent-tokens-github.json'),
     log: silentLog,
     now,
   });
@@ -250,7 +250,7 @@ async function rig(): Promise<Rig> {
 }
 
 async function connect(r: Rig, token: string, name = 'test-agent'): Promise<Client> {
-  const transport = new StreamableHTTPClientTransport(new URL(`${r.base}/mcp`), {
+  const transport = new StreamableHTTPClientTransport(new URL(`${r.base}/mcp/github`), {
     requestInit: { headers: { Authorization: `Bearer ${token}` } },
   });
   const client = new Client({ name, version: '1' });
@@ -301,9 +301,9 @@ function httpGet(
 describe('wiki argument helpers', () => {
   const origin = new URL('https://wiki.example');
 
-  it('reads the wiki from owner/name, its address or its full URL', () => {
-    expect(wikiNameOf('team/a', origin)).toEqual({ owner: 'team', name: 'a' });
-    expect(wikiNameOf('/w/team/a/', origin)).toEqual({ owner: 'team', name: 'a' });
+  it('reads the wiki from host/owner/name, its address or its full URL, and nothing shorter', () => {
+    expect(wikiNameOf('team/a', origin)).toBeNull();
+    expect(wikiNameOf('/w/team/a/', origin)).toBeNull();
     expect(wikiNameOf('github/team/a', origin)).toEqual({
       hostKey: 'github',
       owner: 'team',
@@ -349,16 +349,35 @@ describe('wiki argument helpers', () => {
 describe('/mcp at the front door', () => {
   it('refuses /mcp without an agent token, with the sign-in hint', async () => {
     const r = await rig();
-    const answer = await httpGet(`${r.base}/mcp`);
+    const answer = await httpGet(`${r.base}/mcp/github`);
     expect(answer.status).toBe(401);
     expect(JSON.parse(answer.body)).toMatchObject({ error: 'mcp-token-required' });
   });
 
+  it('refuses /mcp without the host key and names the addresses', async () => {
+    const r = await rig();
+    const answer = await httpGet(`${r.base}/mcp`);
+    expect(answer.status).toBe(404);
+    expect(JSON.parse(answer.body)).toMatchObject({
+      error: 'host-key-required',
+      mcp: [`${r.base}/mcp/github`],
+      agents: ['/auth/github/agents'],
+    });
+  });
+
+  it('refuses a wiki named without its host', async () => {
+    const r = await rig();
+    const client = await connect(r, r.token('alice'));
+    const refused = await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
+    expect(refused.isError).toBe(true);
+    expect(JSON.stringify(refused.content)).toContain('list_wikis');
+  });
+
   it('serves the connector discovery at the root', async () => {
     const r = await rig();
-    const answer = await httpGet(`${r.base}/.well-known/oauth-protected-resource/mcp`);
+    const answer = await httpGet(`${r.base}/.well-known/oauth-protected-resource/mcp/github`);
     expect(answer.status).toBe(200);
-    expect(JSON.parse(answer.body)).toMatchObject({ resource: `${r.base}/mcp` });
+    expect(JSON.parse(answer.body)).toMatchObject({ resource: `${r.base}/mcp/github` });
   });
 
   it('lists the wikis and forwards each call to the named wiki with the person', async () => {
@@ -378,7 +397,7 @@ describe('/mcp at the front door', () => {
     });
 
     const inA = echoOf(
-      await client.callTool({ name: 'read', arguments: { wiki: 'team/a', path: 'x' } }),
+      await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a', path: 'x' } }),
     );
     expect(inA).toMatchObject({
       repo: 'team/a',
@@ -395,7 +414,7 @@ describe('/mcp at the front door', () => {
     expect(inB.person.repoAdmin).toBeUndefined();
 
     const again = echoOf(
-      await client.callTool({ name: 'read', arguments: { wiki: 'team/a', path: 'z' } }),
+      await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a', path: 'z' } }),
     );
     expect(again.session).toBe(inA.session);
   });
@@ -408,7 +427,7 @@ describe('/mcp at the front door', () => {
     expect(read?.inputSchema.required).not.toContain('workspace');
 
     const plain = echoOf(
-      await client.callTool({ name: 'read', arguments: { wiki: 'team/a', path: 'x' } }),
+      await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a', path: 'x' } }),
     );
     expect(plain).toMatchObject({ args: { path: 'x' } });
     expect(plain.edits).toBeUndefined();
@@ -417,7 +436,7 @@ describe('/mcp at the front door', () => {
     const live = echoOf(
       await client.callTool({
         name: 'read',
-        arguments: { wiki: 'team/a', workspace: 'live', path: 'x' },
+        arguments: { wiki: 'github/team/a', workspace: 'live', path: 'x' },
       }),
     );
     expect(live).toMatchObject({ edits: 'live', args: { path: 'x' } });
@@ -426,20 +445,23 @@ describe('/mcp at the front door', () => {
     const named = echoOf(
       await client.callTool({
         name: 'read',
-        arguments: { wiki: 'team/a', workspace: 'draft:pricing-page', path: 'x' },
+        arguments: { wiki: 'github/team/a', workspace: 'draft:pricing-page', path: 'x' },
       }),
     );
     expect(named).toMatchObject({ edits: 'draft', draft: 'pricing-page' });
     const again = echoOf(
       await client.callTool({
         name: 'read',
-        arguments: { wiki: 'team/a', workspace: 'draft:pricing-page', path: 'y' },
+        arguments: { wiki: 'github/team/a', workspace: 'draft:pricing-page', path: 'y' },
       }),
     );
     expect(again.session).toBe(named.session);
 
     const own = echoOf(
-      await client.callTool({ name: 'read', arguments: { wiki: 'team/a', workspace: 'draft' } }),
+      await client.callTool({
+        name: 'read',
+        arguments: { wiki: 'github/team/a', workspace: 'draft' },
+      }),
     );
     expect(own.edits).toBe('draft');
     expect(own.draft).toBeUndefined();
@@ -450,14 +472,14 @@ describe('/mcp at the front door', () => {
     const client = await connect(r, r.token('alice'));
     const odd = await client.callTool({
       name: 'read',
-      arguments: { wiki: 'team/a', workspace: 'main' },
+      arguments: { wiki: 'github/team/a', workspace: 'main' },
     });
     expect(odd.isError).toBe(true);
     expect(textOf(odd)).toContain('"live", "draft" or "draft:<name>"');
 
     const gone = await client.callTool({
       name: 'read',
-      arguments: { wiki: 'team/a', workspace: 'draft:gone' },
+      arguments: { wiki: 'github/team/a', workspace: 'draft:gone' },
     });
     expect(gone.isError).toBe(true);
     expect(textOf(gone)).toContain('The draft "gone" is not open in team/a');
@@ -469,7 +491,7 @@ describe('/mcp at the front door', () => {
     const result = await client.callTool({ name: 'read', arguments: { path: 'x' } });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('github/team/a, github/team/b');
-    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'team/zz' } });
+    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'github/team/zz' } });
     expect(unknown.isError).toBe(true);
     expect(textOf(unknown)).toContain('list_wikis');
   });
@@ -489,38 +511,38 @@ describe('/mcp at the front door', () => {
   it('checks access for the named wiki on every call, answering like an unknown name', async () => {
     const r = await rig();
     const client = await connect(r, r.token('bob'));
-    const refused = await client.callTool({ name: 'read', arguments: { wiki: 'team/b' } });
+    const refused = await client.callTool({ name: 'read', arguments: { wiki: 'github/team/b' } });
     expect(refused.isError).toBe(true);
-    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'team/zz' } });
+    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'github/team/zz' } });
     expect(textOf(refused)).toBe(textOf(unknown).replace('team/zz', 'team/b'));
 
     expect(
-      echoOf(await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } })).repo,
+      echoOf(await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a' } })).repo,
     ).toBe('team/a');
     r.levels.bob.a = 'none';
     r.advance(ACCESS_TTL_MS + 1);
-    const lost = await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
+    const lost = await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a' } });
     expect(lost.isError).toBe(true);
-    expect(textOf(lost)).toContain('There is no wiki called "team/a"');
+    expect(textOf(lost)).toContain('There is no wiki called "github/team/a"');
   });
 
   it('keeps a person inside while the host is unreachable, and closes a refused wiki, saying so only to admins', async () => {
     const r = await rig();
     const client = await connect(r, r.token('bob'));
     const admin = await connect(r, r.token('alice'));
-    await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
+    await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a' } });
     r.bot.answer = 'unreachable';
     r.advance(ACCESS_TTL_MS + 1);
     expect(
-      echoOf(await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } })).repo,
+      echoOf(await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a' } })).repo,
     ).toBe('team/a');
     r.bot.answer = 'refused:removed';
     r.advance(ACCESS_TTL_MS + 1);
-    const closed = await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
+    const closed = await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a' } });
     expect(closed.isError).toBe(true);
-    expect(textOf(closed)).toContain('There is no wiki called "team/a"');
+    expect(textOf(closed)).toContain('There is no wiki called "github/team/a"');
     expect(r.table.byKey('github-1')?.state).toBe('disconnected');
-    const told = await admin.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
+    const told = await admin.callTool({ name: 'read', arguments: { wiki: 'github/team/a' } });
     expect(told.isError).toBe(true);
     expect(textOf(told)).toBe('The wiki github/team/a is disconnected.');
   });
@@ -528,8 +550,12 @@ describe('/mcp at the front door', () => {
   it('opens a new session with the wiki when the wiki forgot the old one', async () => {
     const r = await rig();
     const client = await connect(r, r.token('alice'));
-    const first = echoOf(await client.callTool({ name: 'forget', arguments: { wiki: 'team/a' } }));
-    const second = echoOf(await client.callTool({ name: 'read', arguments: { wiki: 'team/a' } }));
+    const first = echoOf(
+      await client.callTool({ name: 'forget', arguments: { wiki: 'github/team/a' } }),
+    );
+    const second = echoOf(
+      await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a' } }),
+    );
     expect(second.session).not.toBe(first.session);
     expect(second.repo).toBe('team/a');
   });
@@ -541,7 +567,7 @@ describe('/mcp at the front door', () => {
     const sessionId = (alice.transport as StreamableHTTPClientTransport).sessionId ?? '';
     const answer = await new Promise<number>((resolve, reject) => {
       const sent = request(
-        `${r.base}/mcp`,
+        `${r.base}/mcp/github`,
         {
           method: 'POST',
           headers: {
@@ -567,7 +593,7 @@ describe('/mcp at the front door', () => {
     const client = await connect(r, r.token('alice'));
     await client.listTools();
     const sessionId = (client.transport as StreamableHTTPClientTransport).sessionId ?? '';
-    const answer = await httpGet(`${r.base}/mcp`, {
+    const answer = await httpGet(`${r.base}/mcp/github`, {
       authorization: `Bearer ${r.token('alice')}`,
       'mcp-session-id': sessionId,
       accept: 'text/event-stream',
@@ -602,7 +628,7 @@ describe('/mcp at the front door', () => {
     const answer = await httpGet(`${r.base}/w/github/team/a/mcp`);
     expect(answer.status).toBe(404);
     expect(JSON.parse(answer.body)).toEqual(
-      expect.objectContaining({ error: 'mcp-at-root', mcp: `${r.base}/mcp` }),
+      expect.objectContaining({ error: 'mcp-at-root', mcp: `${r.base}/mcp/github` }),
     );
   });
 
@@ -655,8 +681,8 @@ describe('agent tokens at the front door (R9)', () => {
     const client = await connect(r, r.token('bob'));
     r.bot.answer = 'unreachable';
     r.advance(ACCESS_TTL_MS + 1);
-    const closed = await client.callTool({ name: 'read', arguments: { wiki: 'team/b' } });
-    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'team/zz' } });
+    const closed = await client.callTool({ name: 'read', arguments: { wiki: 'github/team/b' } });
+    const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'github/team/zz' } });
     expect(closed.isError).toBe(true);
     expect(textOf(closed)).toBe(textOf(unknown).replace('team/zz', 'team/b'));
   });

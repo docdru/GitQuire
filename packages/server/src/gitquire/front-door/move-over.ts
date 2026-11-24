@@ -18,6 +18,7 @@ import { draftsDir } from '../drafts/store.ts';
 import type { DoorHost, HostRepo, HostRepoRecord, RepoLookup } from '../host/types.ts';
 import { type RunGit, runGitSync } from '../repo-bootstrap.ts';
 import { FRONT_DOOR_LOCK, MOVING_BACK, MOVING_IN } from '../volume-markers.ts';
+import { agentTokensFile } from './agents.ts';
 import { type AllowedOwners, ownerAllowed, pinAllowedOwner } from './allowed-owners.ts';
 import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
 import type { FrontDoorSettings } from './settings.ts';
@@ -274,10 +275,6 @@ function agentTokensFileFor(env: Env, projectDir: string): string {
   return join(projectDir, '.gitquire', 'local', 'gitquire', 'agent-tokens.json');
 }
 
-function doorAgentTokensFile(dataDir: string): string {
-  return join(dataDir, 'server', 'agent-tokens.json');
-}
-
 function describeLookup(answer: Exclude<RepoLookup, { state: 'found' }>): string {
   if (answer.state === 'gone')
     return "GitQuire's own access cannot see it (app not installed, bot not on the repository, or no such repository)";
@@ -420,7 +417,7 @@ export async function adoptSingleWiki(
 
   const keysBackup = `${chatKeysDir(target)}${KEYS_BEFORE_WIKIS}`;
   const reseal = keysSealedWith(source, settings.sessionSecret) > 0;
-  const doorTokens = doorAgentTokensFile(dataDir);
+  const doorTokens = agentTokensFile(dataDir, settings.host);
   const copyTokens = !existsSync(doorTokens) && existsSync(tokensAt(env, dataDir, source));
   const tokenStoreFile = repoTokensFile(dataDir);
   const forgejo = settings.host === 'forgejo';
@@ -682,7 +679,7 @@ export async function unadoptWiki(
     if (!existsSync(keysBackup)) copyWhole(keysDir, keysBackup);
     resealKeys(dataDir, derived, settings.sessionSecret);
   }
-  const doorTokens = doorAgentTokensFile(back);
+  const doorTokens = agentTokensFile(back, settings.host);
   const singleTokens = agentTokensFileFor(env, dataDir);
   const tokensBackup = `${singleTokens}.before-single-wiki-${stamp}`;
   if (existsSync(doorTokens) && !existsSync(tokensBackup)) {

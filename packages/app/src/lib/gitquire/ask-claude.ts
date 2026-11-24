@@ -168,5 +168,7 @@ export function askClaudeAddress(
   prefix: string,
 ): { wikiUrl: string; wiki?: string } {
   if (!prefix.startsWith('/w/')) return { wikiUrl: `${origin}${prefix}` };
-  return { wikiUrl: origin, wiki: prefix.slice('/w/'.length) };
+  const wiki = prefix.slice('/w/'.length);
+  const hostKey = wiki.split('/')[0] ?? '';
+  return { wikiUrl: `${origin}/mcp/${hostKey}`, wiki };
 }

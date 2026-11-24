@@ -20,7 +20,7 @@ export interface DoorAgentsDeps {
     'dataDir' | 'externalUrl' | 'sessionSecret' | 'agentTokenDays' | 'mcpConnectors'
   >;
   hosts: DoorHosts;
-  table: Pick<WikiTable, 'list' | 'byAddress' | 'byOldAddress'>;
+  table: Pick<WikiTable, 'list' | 'byAddress'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   sessionUser: (req: IncomingMessage, hostKey: string) => SessionUser | undefined;
   log: GateLogger;
@@ -57,18 +57,12 @@ interface HostAgents {
   mcp: DoorMcp;
 }
 
-export function agentTokensFile(dataDir: string, hostKey?: string): string {
-  return join(
-    dataDir,
-    'server',
-    hostKey === undefined ? 'agent-tokens.json' : `agent-tokens-${hostKey}.json`,
-  );
+export function agentTokensFile(dataDir: string, hostKey: string): string {
+  return join(dataDir, 'server', `agent-tokens-${hostKey}.json`);
 }
 
-export function hostAgentPaths(hostKey: string | undefined): HostAgentPaths {
-  return hostKey === undefined
-    ? { agents: AGENTS_PAGE_PATH, mcp: '/mcp' }
-    : { agents: `/auth/${hostKey}/agents`, mcp: `/mcp/${hostKey}` };
+export function hostAgentPaths(hostKey: string): HostAgentPaths {
+  return { agents: `/auth/${hostKey}/agents`, mcp: `/mcp/${hostKey}` };
 }
 
 function hostTable(
@@ -83,10 +77,6 @@ function hostTable(
       const match = hostKey === entry.key ? table.byAddress(hostKey, owner, name) : undefined;
       return match !== undefined && mine(match.wiki) ? match : undefined;
     },
-    byOldAddress: (owner, name) => {
-      const match = table.byOldAddress(owner, name);
-      return match !== undefined && mine(match.wiki) ? match : undefined;
-    },
   };
 }
 
@@ -96,13 +86,12 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
   const severalHosts = hosts.list().length > 1;
 
   function partFor(entry: DoorHostEntry): HostAgents {
-    const keyed = entry === primary ? undefined : entry.key;
-    const paths = hostAgentPaths(keyed);
+    const paths = hostAgentPaths(entry.key);
     const table = hostTable(deps.table, hosts, entry);
     const sessionUser = (req: IncomingMessage) => deps.sessionUser(req, entry.key);
     const store =
       deps.stores?.get(entry.key) ??
-      createAgentTokenStore({ file: agentTokensFile(settings.dataDir, keyed), log });
+      createAgentTokenStore({ file: agentTokensFile(settings.dataDir, entry.key), log });
     const access = {
       decide: (person: DoorPerson, wiki: WikiRecord) =>
         hosts.of(wiki) === entry
@@ -149,7 +138,7 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
             .filter((other) => other !== entry)
             .map((other) => ({
               label: other.names.label,
-              path: hostAgentPaths(other === primary ? undefined : other.key).agents,
+              path: hostAgentPaths(other.key).agents,
             }))
         : undefined,
       now: deps.now,
@@ -164,7 +153,7 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
           sessionUser,
           checkAccess: (login, id) => verdict({ id, login }),
           host: hostLabel,
-          ...(keyed === undefined ? {} : { hostKey: keyed }),
+          hostKey: entry.key,
           agentsPagePath: paths.agents,
           severalWikis: true,
           refuseUnknownAtSignIn: true,
@@ -190,7 +179,6 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
 
   const parts = hosts.list().map(partFor);
   const primaryPart = parts.find((part) => part.entry === primary) as HostAgents;
-  const furtherParts = parts.filter((part) => part !== primaryPart);
   const partOf = (hostKey: string) => parts.find((part) => part.entry.key === hostKey);
 
   function serveMcp(part: HostAgents, req: IncomingMessage, res: ServerResponse): void {
@@ -221,11 +209,7 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
   ): boolean {
     if (part.oauth?.handle(req, res, path, search) === true) return true;
     const mcpPath = part.paths.mcp;
-    const mcpHere =
-      part === primaryPart
-        ? path === '/mcp' || path.startsWith('/mcp/')
-        : path === mcpPath || path.startsWith(`${mcpPath}/`);
-    if (mcpHere) {
+    if (path === mcpPath || path.startsWith(`${mcpPath}/`)) {
       serveMcp(part, req, res);
       return true;
     }
@@ -245,10 +229,19 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
 
   return {
     handle(req, res, path, search) {
-      for (const part of furtherParts) {
+      for (const part of parts) {
         if (handlePart(part, req, res, path, search)) return true;
       }
-      return handlePart(primaryPart, req, res, path, search);
+      if (path === '/mcp' || path.startsWith('/mcp/') || path === AGENTS_PAGE_PATH) {
+        sendJson(res, 404, {
+          error: 'host-key-required',
+          message: 'Each Git host has its own address for AI agents; it ends with the host key.',
+          mcp: parts.map((part) => new URL(part.paths.mcp, settings.externalUrl).toString()),
+          agents: parts.map((part) => part.paths.agents),
+        });
+        return true;
+      }
+      return false;
     },
     features(hostKey, person) {
       const part = partOf(hostKey);

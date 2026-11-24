@@ -131,24 +131,7 @@ def agents_token(op, path, label):
     return status, match.group(0) if match else None, page
 
 
-class Mcp(h.Mcp):
-    def __init__(self, token, path):
-        super().__init__(token)
-        self.path = path
-
-    def post(self, message):
-        hdrs = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"}
-        if self.session:
-            hdrs["Mcp-Session-Id"] = self.session
-        req = urllib.request.Request(HOSTS + self.path, data=json.dumps(message).encode(),
-                                     method="POST", headers=hdrs)
-        try:
-            with urllib.request.urlopen(req, timeout=180) as resp:
-                self.session = resp.headers.get("Mcp-Session-Id") or self.session
-                return resp.status, f.parse(resp.read())
-        except urllib.error.HTTPError as err:
-            return err.code, f.parse(err.read())
+Mcp = h.Mcp
 
 
 def listed_names(op):
@@ -243,30 +226,13 @@ def test():
     s3, gamma_me, _ = me(alice, "github/team/gamma")
     check("Hosts open", s3 == 200, f"alice opens github/team/gamma -> {s3}")
 
-    for path, wanted in (("/w/team/alpha/", "/w/forgejo/team/alpha/"),
-                         ("/w/team/alpha/api/config", "/w/forgejo/team/alpha/api/config"),
-                         ("/w/team/alpha/images/logo.png?x=1", "/w/forgejo/team/alpha/images/logo.png?x=1")):
+    for path in ("/w/team/alpha/", "/w/team/alpha/api/config", "/w/team/alpha/images/logo.png?x=1"):
         status, headers = no_redirect_get(alice, path)
-        check("Hosts old address", status == 301 and headers.get("Location") == wanted,
-              f"{path} goes to the wiki that held the name first -> {status} {headers.get('Location')}")
-    status, bob_alpha, _ = door_call("GET", "/w/team/alpha/api/config", bob)
-    nothing_status, nothing, _ = door_call("GET", "/w/team/nothing-here/api/config", bob)
-    check("Hosts old address", status == 404 and status == nothing_status and bob_alpha == nothing,
-          f"bob, who cannot open forgejo/team/alpha, gets the same answer as for an address with no wiki -> "
-          f"{status} {bob_alpha} / {nothing_status} {nothing}")
-    req = urllib.request.Request(HOSTS + "/w/team/alpha/api/config", data=b"{}", method="POST",
-                                 headers={"Content-Type": "application/json", "Origin": HOSTS})
-    try:
-        with alice.open(req, timeout=60) as resp:
-            status, location = resp.status, resp.headers.get("Location")
-    except urllib.error.HTTPError as err:
-        status, location = err.code, err.headers.get("Location")
-    check("Hosts old address", status == 308 and location == "/w/forgejo/team/alpha/api/config",
-          f"a POST to an old address is redirected with 308, so it keeps its body -> {status} {location}")
-
-    status, forgejo_token, page = agents_token(alice, "/auth/agents", "forgejo agent")
-    check("Hosts tokens", status == 200 and forgejo_token is not None,
-          f"alice creates an agent token for Forgejo at /auth/agents -> {status}")
+        check("Hosts no old address", status == 404 and headers.get("Location") is None,
+              f"{path} (no host in the address) is not a wiki address -> {status} {headers.get('Location')}")
+    status, forgejo_token, page = agents_token(alice, "/auth/forgejo/agents", "forgejo agent")
+    check("Hosts tokens", status == 200 and forgejo_token is not None and "/mcp/forgejo" in page,
+          f"alice creates an agent token for Forgejo at /auth/forgejo/agents, with the /mcp/forgejo address -> {status}")
     check("Hosts admin", "Everyone's agent access" in page, "alice is a server admin on Forgejo: she sees everyone's tokens there")
     status, github_token, page = agents_token(alice, "/auth/github/agents", "github agent")
     check("Hosts tokens", status == 200 and github_token is not None and "/mcp/github" in page,
@@ -277,11 +243,11 @@ def test():
           f"bob, a server admin on GitHub only, sees alice's GitHub token -> {status}")
 
     if forgejo_token and github_token:
-        on_forgejo = Mcp(forgejo_token, "/mcp")
+        on_forgejo = Mcp(forgejo_token, "/mcp/forgejo")
         on_forgejo.start()
         _, wikis = on_forgejo.call("list_wikis", {})
         names = [w.get("wiki") for w in (wikis or {}).get("structuredContent", {}).get("wikis", [])]
-        check("Hosts tokens", names == ["forgejo/team/alpha"], f"/mcp with the Forgejo token lists Forgejo's wikis only -> {names}")
+        check("Hosts tokens", names == ["forgejo/team/alpha"], f"/mcp/forgejo with the Forgejo token lists Forgejo's wikis only -> {names}")
         on_github = Mcp(github_token, "/mcp/github")
         on_github.start()
         _, wikis = on_github.call("list_wikis", {})
@@ -290,8 +256,8 @@ def test():
               f"/mcp/github with the GitHub token lists GitHub's wikis only -> {names}")
         status, _ = Mcp(forgejo_token, "/mcp/github").start()
         check("Hosts tokens", status == 401, f"the Forgejo token is refused at /mcp/github -> {status}")
-        status, _ = Mcp(github_token, "/mcp").start()
-        check("Hosts tokens", status == 401, f"the GitHub token is refused at /mcp -> {status}")
+        status, _ = Mcp(github_token, "/mcp/forgejo").start()
+        check("Hosts tokens", status == 401, f"the GitHub token is refused at /mcp/forgejo -> {status}")
         for agent, wiki, wanted, other in ((on_forgejo, "forgejo/team/alpha", "# alpha", "on GitHub"),
                                            (on_github, "github/team/alpha", "# alpha on GitHub", None)):
             status, result = agent.call("exec", {"wiki": wiki, "command": "cat README.md"})
@@ -337,7 +303,8 @@ def test():
     check("Hosts R12", leaks.count("editor") >= 2 and "leak" not in leaks,
           f"editor processes: {leaks.count('editor')}, holding a host secret: {leaks.count('leak')}")
     files = h.docker("exec", NAME, "ls", "/data/server", check_ok=False).stdout.split()
-    check("Hosts tokens", "agent-tokens.json" in files and "agent-tokens-github.json" in files,
+    check("Hosts tokens", "agent-tokens-forgejo.json" in files and "agent-tokens-github.json" in files
+          and "agent-tokens.json" not in files,
           f"agent tokens are stored per host -> {[n for n in files if n.startswith('agent-tokens')]}")
     unknown = fake("/_fake/unknown").get("unknown", [])
     check("Hosts fake", None, f"GitHub calls the fake does not answer: {sorted(set(unknown))[:20]}")

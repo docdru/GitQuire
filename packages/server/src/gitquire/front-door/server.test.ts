@@ -459,30 +459,24 @@ describe('front door', () => {
     expect(post.status).toBe(404);
   });
 
-  it('sends old addresses to the default wiki and shows the list at the root', async () => {
+  it('answers an address without the host as no wiki, and shows the list at the root', async () => {
     const session = await signIn(r, 'alice');
-    const old = await get(r, '/docs/plan', session, { accept: 'text/html' });
-    expect(old.headers.get('location')).toBe('/w/github/team/a/docs/plan');
+    for (const path of ['/docs/plan', '/w/team/a/', '/w/team/a/docs/plan']) {
+      const answer = await get(r, path, session, { accept: 'text/html' });
+      expect(answer.status).toBe(404);
+      expect(answer.headers.get('location')).toBeNull();
+    }
+    const anonymous = await get(r, '/w/team/a/docs/plan', '', { accept: 'text/html' });
+    expect(anonymous.status).toBe(302);
+    expect(anonymous.headers.get('location')).toContain('/auth/github/');
+    expect(anonymous.headers.get('location')).not.toContain('/w/github/');
     const home = await get(r, '/', session, { accept: 'text/html' });
     const html = await home.text();
     expect(html).toContain('href="/w/github/team/a/"');
     expect(html).toContain('href="/w/github/team/b/"');
-    expect(html).toContain('id="gq-default-wiki" data-address="/w/github/team/a/"');
+    expect(html).not.toContain('gq-default-wiki');
     expect(html).toContain('This server hosts wikis from team.');
-    expect((await get(r, '/_door/old-address.js', '')).status).toBe(200);
-  });
-
-  it('sends old addresses to the default wiki only after sign-in, and only for people who can open it', async () => {
-    const anonymous = await get(r, '/docs/plan', '', { accept: 'text/html' });
-    expect(anonymous.status).toBe(302);
-    expect(anonymous.headers.get('location') ?? '').not.toContain('team/a');
-    expect(anonymous.headers.get('location')).toContain('/auth/github/');
-    r.levels.bob = { a: 'none', b: 'write' };
-    const bob = await signIn(r, 'bob');
-    const refused = await get(r, '/docs/plan', bob, { accept: 'text/html' });
-    expect(refused.status).toBe(404);
-    expect(refused.headers.get('location')).toBeNull();
-    expect(await refused.text()).not.toContain('team/a');
+    expect((await get(r, '/_door/old-address.js', '')).status).toBe(404);
   });
 
   it('redirects a renamed wiki to its new address only for people with access', async () => {
@@ -542,7 +536,7 @@ describe('front door', () => {
     const old = await get(r, '/w/github/team/b/page?x=1', session);
     expect(old.status).toBe(301);
     expect(old.headers.get('location')).toBe('/w/github/team/handbook/page?x=1');
-    const unknown = await get(r, '/w/other/x/', session);
+    const unknown = await get(r, '/w/github/other/x/', session);
     expect(unknown.status).toBe(404);
     expect(await unknown.json()).toEqual({
       error: 'not-a-wiki',

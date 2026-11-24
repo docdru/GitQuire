@@ -75,7 +75,7 @@ def prepare():
     alice, status, _ = h.sign_in("alice")
     check = h.check
     check("Adopt", status == 302, f"alice signs in to the single wiki before the move -> {status}")
-    status, token = h.agent_token(alice, "moved agent")
+    status, token = h.agent_token(alice, "moved agent", "/auth/agents")
     check("Adopt", token is not None, f"alice creates an agent token in the single wiki -> {status}")
     status, created, _ = h.gq("POST", "/api/gitquire/drafts", alice, {"title": "Moved draft", "open": True})
     slug = created.get("draft", {}).get("slug") if isinstance(created, dict) else None
@@ -117,13 +117,13 @@ def stop(name):
     h.docker("stop", "-t", "60", name, check_ok=False)
 
 
-def mcp_reads(token, label):
-    agent = h.Mcp(token)
+def mcp_reads(token, label, path):
+    agent = h.Mcp(token, path)
     status, _ = agent.start()
     status, result = agent.call("exec", {"command": "cat pulled.md"})
     text = h.result_text(result)
     h.check("Adopt", status == 200 and isinstance(result, dict) and not result.get("isError") and "Pulled" in text,
-            f"{label}: alice's agent token from before the move reaches the wiki at /mcp -> {status} {text[:120]}")
+            f"{label}: alice's agent token from before the move reaches the wiki at {path} -> {status} {text[:120]}")
 
 
 def run():
@@ -152,7 +152,7 @@ def run():
     key = f"forgejo-{record['id']}" if status == 200 else "forgejo-?"
     layout = on_copy(
         f"test -d /data/wikis/{key}/.git && test ! -e /data/.git && ls /data | tr '\\n' ' ' && "
-        f"cat /data/server/wikis.json && test -f /data/server/agent-tokens.json && "
+        f"cat /data/server/wikis.json && test -f /data/server/agent-tokens-forgejo.json && "
         f"grep -q '\"{key}\"' /data/server/repo-tokens.json && stat -c %a /data/server/repo-tokens.json")
     check("Adopt", layout.returncode == 0 and '"team"' in layout.stdout and '"wiki"' in layout.stdout
           and layout.stdout.strip().endswith("600"),
@@ -197,11 +197,8 @@ def run():
     status, drafts, _ = h.door_call("GET", "/w/forgejo/team/wiki/api/gitquire/drafts", alice)
     check("Adopt", status == 200 and slug in json.dumps(drafts),
           f"the draft made in the single wiki is listed behind the front door -> {status}")
-    status, _, headers = h.door_call("GET", "/some-page", alice, accept="text/html")
-    check("Adopt", status in (301, 302, 303, 307, 308) and "/w/forgejo/team/wiki/" in headers.get("Location", ""),
-          f"an old address without /w/ goes to the moved wiki -> {status} {headers.get('Location')}")
     if token:
-        mcp_reads(token, "behind the front door")
+        mcp_reads(token, "behind the front door", "/mcp/forgejo")
     stop("gq-adopted")
 
     proc = gitquire("wikis", "unadopt", "/data", "--dry-run")
@@ -222,7 +219,7 @@ def run():
     status, drafts, _ = h.gq("GET", "/api/gitquire/drafts", alice)
     check("Unadopt", status == 200 and slug in json.dumps(drafts), f"the draft is still there -> {status}")
     if token:
-        mcp_reads(token, "back in the single wiki")
+        mcp_reads(token, "back in the single wiki", "/mcp")
     stop("gq-unadopted")
     h.summary()
 
