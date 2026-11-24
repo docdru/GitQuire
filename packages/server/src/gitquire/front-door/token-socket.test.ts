@@ -45,6 +45,32 @@ describe('token socket of the front door', () => {
     expect(await ask('/other', mine, socket.path)).toBe(404);
   });
 
+  it('passes on what the token may do to the repository contents, so the wiki need not ask GitHub', async () => {
+    const socket = await listenTokenSocket({
+      wikiOfSecret: () => 'github-1',
+      repoOf: () => ({ owner: 'team', name: 'a' }),
+      tokenFor: async () => 't',
+      contentsOf: () => 'write',
+      log: silentLog,
+      now: () => 1000,
+    });
+    sockets.push(socket);
+    await expect(fetchDoorToken(socket.path)).resolves.toEqual({
+      token: 't',
+      expiresAt: 1000 + DOOR_TOKEN_LIFETIME_MS,
+      contents: 'write',
+    });
+    expect(parseDoorToken(200, '{"token":"t","expiresAt":5,"contents":"read"}')).toEqual({
+      token: 't',
+      expiresAt: 5,
+      contents: 'read',
+    });
+    expect(parseDoorToken(200, '{"token":"t","expiresAt":5,"contents":7}')).toEqual({
+      token: 't',
+      expiresAt: 5,
+    });
+  });
+
   it('answers 503 without a token, which the wiki reads as "try again"', async () => {
     const socket = await listenTokenSocket({
       wikiOfSecret: () => 'github-1',

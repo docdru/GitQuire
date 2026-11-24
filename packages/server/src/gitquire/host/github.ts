@@ -40,7 +40,7 @@ export interface GitHubDoorDeps {
 type Answer = { status: number; body: unknown } | { status: 'unreachable' };
 
 type Minted =
-  | { state: 'ok'; token: string; expiresAt: number }
+  | { state: 'ok'; token: string; expiresAt: number; contents?: string }
   | { state: 'refused'; refusal: Refusal }
   | { state: 'unreachable' };
 
@@ -99,7 +99,7 @@ export function createGitHubDoorHost(
 ): DoorHost {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
-  const tokens = new Map<string, { token: string; expiresAt: number }>();
+  const tokens = new Map<string, { token: string; expiresAt: number; contents?: string }>();
   const minting = new Map<string, Promise<Minted>>();
   const installationOfRepoId = new Map<number, number>();
 
@@ -183,12 +183,20 @@ export function createGitHubDoorHost(
     if (minted.status === 404 || minted.status === 422) {
       return { state: 'refused', refusal: 'removed' };
     }
-    const body = minted.body as { token?: unknown; expires_at?: unknown } | undefined;
+    const body = minted.body as
+      | { token?: unknown; expires_at?: unknown; permissions?: { contents?: unknown } }
+      | undefined;
     const expiresAt = typeof body?.expires_at === 'string' ? Date.parse(body.expires_at) : NaN;
     if (minted.status !== 201 || typeof body?.token !== 'string' || !Number.isFinite(expiresAt)) {
       return { state: 'refused', refusal: 'token' };
     }
-    return { state: 'ok', token: body.token, expiresAt };
+    const contents = body.permissions?.contents;
+    return {
+      state: 'ok',
+      token: body.token,
+      expiresAt,
+      ...(typeof contents === 'string' ? { contents } : {}),
+    };
   }
 
   async function repoToken(app: GitHubAppAuth, repo: HostRepo): Promise<Minted> {
@@ -202,7 +210,11 @@ export function createGitHubDoorHost(
     const next = mint(app, repo).then((answer) => {
       minting.delete(key);
       if (answer.state === 'ok') {
-        tokens.set(key, { token: answer.token, expiresAt: answer.expiresAt });
+        tokens.set(key, {
+          token: answer.token,
+          expiresAt: answer.expiresAt,
+          ...(answer.contents === undefined ? {} : { contents: answer.contents }),
+        });
       } else if (answer.state === 'refused') {
         tokens.delete(key);
       }
@@ -471,6 +483,7 @@ export function createGitHubDoorHost(
         ? deps.installationToken?.()
         : undefined;
     },
+    contentsOf: (repo) => tokens.get(repoKey(repo))?.contents,
     selfCheck: async () => ({ ok: true }),
   };
 }

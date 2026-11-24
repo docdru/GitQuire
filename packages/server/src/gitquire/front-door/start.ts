@@ -221,6 +221,11 @@ export async function startFrontDoor(
       const entry = wiki === undefined ? undefined : hosts.of(wiki);
       return entry === undefined ? Promise.resolve(undefined) : entry.host.tokenFor(repo);
     },
+    contentsOf: (repo, key) => {
+      const wiki = table.byKey(key);
+      const entry = wiki === undefined ? undefined : hosts.of(wiki);
+      return entry?.host.contentsOf?.(repo);
+    },
     log,
   });
   tokenSocketPath = tokenSocket.path;

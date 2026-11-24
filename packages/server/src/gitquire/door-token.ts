@@ -26,6 +26,7 @@ export interface DoorSyncConfig {
 export interface DoorToken {
   token: string;
   expiresAt: number;
+  contents?: string;
 }
 
 function nonEmpty(value: string | undefined): string | undefined {
@@ -68,10 +69,14 @@ export function resolveDoorSyncConfig(env: Env): DoorSyncConfig | undefined {
 export function parseDoorToken(status: number, body: string): DoorToken | undefined {
   if (status !== 200) return undefined;
   try {
-    const value = JSON.parse(body) as { token?: unknown; expiresAt?: unknown };
+    const value = JSON.parse(body) as { token?: unknown; expiresAt?: unknown; contents?: unknown };
     if (typeof value.token !== 'string' || value.token === '') return undefined;
     if (typeof value.expiresAt !== 'number' || !Number.isFinite(value.expiresAt)) return undefined;
-    return { token: value.token, expiresAt: value.expiresAt };
+    return {
+      token: value.token,
+      expiresAt: value.expiresAt,
+      ...(typeof value.contents === 'string' ? { contents: value.contents } : {}),
+    };
   } catch {
     return undefined;
   }

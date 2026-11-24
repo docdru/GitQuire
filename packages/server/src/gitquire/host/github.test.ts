@@ -155,12 +155,31 @@ describe('GitHub door host: rate limits and repo ids', () => {
       return json(200, { permission: 'write', role_name: 'write' });
     });
     const record = { host: 'github' as const, id: 41, owner: 'acme', ownerId: 7, name: 'notes' };
+    expect(door.contentsOf?.(record)).toBeUndefined();
     expect(await door.tokenFor(record)).toBe('t');
+    expect(door.contentsOf?.(record)).toBeUndefined();
     expect(await door.accessByBot('alice', record)).toBe('write');
     expect(seen).toEqual([
       'GET /repositories/41/installation',
       'POST /app/installations/11/access_tokens {"repository_ids":[41]}',
       'GET /repositories/41/collaborators/alice/permission',
     ]);
+  });
+
+  it('remembers what the minted token may do to the contents, as GitHub reports it', async () => {
+    const { door } = host((method, path) => {
+      if (path === '/repositories/41/installation') return json(200, { id: 11 });
+      if (method === 'POST') {
+        return json(201, {
+          token: 't',
+          expires_at: '2999-01-01T00:00:00Z',
+          permissions: { contents: 'write', metadata: 'read', pull_requests: 'write' },
+        });
+      }
+      return json(404, {});
+    });
+    const record = { host: 'github' as const, id: 41, owner: 'acme', ownerId: 7, name: 'notes' };
+    expect(await door.tokenFor(record)).toBe('t');
+    expect(door.contentsOf?.(record)).toBe('write');
   });
 });
