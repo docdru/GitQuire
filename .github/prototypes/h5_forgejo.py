@@ -462,7 +462,7 @@ def wikis_mcp(alice, dave):
           f"tools: list_wikis plus the wiki's tools, each with a wiki argument -> {sorted(tools)[:8]}")
     status, wikis = agent.call("list_wikis", {})
     names = [w.get("wiki") for w in (wikis or {}).get("structuredContent", {}).get("wikis", [])]
-    check("Wikis MCP", names == ["team/alpha", "team/beta"], f"list_wikis for alice -> {names}")
+    check("Wikis MCP", names == ["forgejo/team/alpha", "forgejo/team/beta"], f"list_wikis for alice names the wikis with their host -> {names}")
     for name, other in (("alpha", "beta"), ("beta", "alpha")):
         status, result = agent.call("exec", {"wiki": f"team/{name}", "command": "cat README.md"})
         text = result_text(result)
@@ -484,7 +484,7 @@ def wikis_mcp(alice, dave):
           f"the agent's edit is committed with alice as author -> {author}")
     status, missing = agent.call("exec", {"command": "ls"})
     check("Wikis MCP", isinstance(missing, dict) and missing.get("isError") is True
-          and "team/alpha, team/beta" in result_text(missing),
+          and "forgejo/team/alpha, forgejo/team/beta" in result_text(missing),
           f"without a wiki, alice (two wikis) is asked to name one -> {result_text(missing)}")
     status, dave_token = agent_token(dave, "dave agent")
     if dave_token is None:
