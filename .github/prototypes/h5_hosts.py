@@ -249,9 +249,20 @@ def test():
         status, headers = no_redirect_get(alice, path)
         check("Hosts old address", status == 301 and headers.get("Location") == wanted,
               f"{path} goes to the wiki that held the name first -> {status} {headers.get('Location')}")
-    status, _ = no_redirect_get(bob, "/w/team/alpha/")
-    check("Hosts old address", status == 404,
-          f"bob, who cannot open forgejo/team/alpha, gets the unknown-address answer -> {status}")
+    status, bob_alpha, _ = door_call("GET", "/w/team/alpha/api/config", bob)
+    nothing_status, nothing, _ = door_call("GET", "/w/team/nothing-here/api/config", bob)
+    check("Hosts old address", status == 404 and status == nothing_status and bob_alpha == nothing,
+          f"bob, who cannot open forgejo/team/alpha, gets the same answer as for an address with no wiki -> "
+          f"{status} {bob_alpha} / {nothing_status} {nothing}")
+    req = urllib.request.Request(HOSTS + "/w/team/alpha/api/config", data=b"{}", method="POST",
+                                 headers={"Content-Type": "application/json", "Origin": HOSTS})
+    try:
+        with alice.open(req, timeout=60) as resp:
+            status, location = resp.status, resp.headers.get("Location")
+    except urllib.error.HTTPError as err:
+        status, location = err.code, err.headers.get("Location")
+    check("Hosts old address", status == 308 and location == "/w/forgejo/team/alpha/api/config",
+          f"a POST to an old address is redirected with 308, so it keeps its body -> {status} {location}")
 
     status, forgejo_token, page = agents_token(alice, "/auth/agents", "forgejo agent")
     check("Hosts tokens", status == 200 and forgejo_token is not None,
