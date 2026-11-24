@@ -1,6 +1,7 @@
 import { request } from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
 import { fetchDoorToken, parseDoorToken } from '../door-token.ts';
+import { startInstallationTokenManager } from '../github-app.ts';
 import { internalSecret } from '../internal-request.ts';
 import { DOOR_TOKEN_LIFETIME_MS, listenTokenSocket, type TokenSocket } from './token-socket.ts';
 
@@ -69,6 +70,35 @@ describe('token socket of the front door', () => {
       token: 't',
       expiresAt: 5,
     });
+  });
+
+  it('lets a GitHub wiki behind the front door push when its token may write, without asking GitHub', async () => {
+    const socket = await listenTokenSocket({
+      wikiOfSecret: () => 'github-1',
+      repoOf: () => ({ owner: 'team', name: 'a' }),
+      tokenFor: async () => 't',
+      contentsOf: () => 'write',
+      log: silentLog,
+    });
+    sockets.push(socket);
+    const manager = await startInstallationTokenManager(
+      { repo: { owner: 'team', name: 'a' }, gitHost: 'github.com' },
+      {
+        mintInstallationToken: () => fetchDoorToken(socket.path),
+        repoInfo: async () => ({ defaultBranch: 'main' }),
+      } as never,
+      { log: silentLog },
+    );
+    const askedGitHub: string[] = [];
+    const check = manager.wrapCheckPushPermission(async (opts) => {
+      askedGitHub.push(opts.repo);
+      return { kind: 'denied', reason: 'no-collaborator' };
+    });
+    expect(await check({ owner: 'team', repo: 'a', host: 'github.com' })).toEqual({
+      kind: 'allowed',
+    });
+    expect(askedGitHub).toEqual([]);
+    manager.stop();
   });
 
   it('answers 503 without a token, which the wiki reads as "try again"', async () => {

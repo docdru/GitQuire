@@ -225,15 +225,6 @@ def test():
           f"{github_me.get('admin') if isinstance(github_me, dict) else github_me}")
     s3, gamma_me, _ = me(alice, "github/team/gamma")
     check("Hosts open", s3 == 200, f"alice opens github/team/gamma -> {s3}")
-    last = {}
-    def push_check():
-        status, body, _ = door_call("GET", "/w/github/team/gamma/api/sync/status", alice)
-        last["answer"] = (status, json.dumps(body)[:400] if isinstance(body, (dict, list)) else str(body)[:400])
-        permission = body.get("pushPermission") if isinstance(body, dict) else None
-        return permission if isinstance(permission, dict) and permission.get("checkStatus") not in (None, "unknown") else None
-    permission = wait_for(push_check, 120, 3)
-    check("Hosts sync", isinstance(permission, dict) and permission.get("checkStatus") == "allowed",
-          f"a GitHub wiki may push, although GitHub reports push:false for the app's token on the repository -> {permission} (last answer {last.get('answer')})")
 
     for path in ("/w/team/alpha/", "/w/team/alpha/api/config", "/w/team/alpha/images/logo.png?x=1"):
         status, headers = no_redirect_get(alice, path)
