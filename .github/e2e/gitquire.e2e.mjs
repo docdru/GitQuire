@@ -160,3 +160,19 @@ test('Views → Mentions opens a page at the mention', async ({ page }) => {
   await expect(page.locator('.gq-mention-flash')).toHaveText('@alice');
   expect(readOnDisk('mention-plan.md')).toContain('Ask @alice about the budget.');
 });
+
+test('starting a comment puts the cursor in the comment field', async ({ page }) => {
+  writeOnDisk('comment-focus.md', '# Comment focus\n\nThe budget needs a second look.\n');
+  await expect(async () => {
+    await openApp(page, '#/comment-focus');
+    await expect(editor(page)).toContainText('The budget needs a second look.', {
+      timeout: 5_000,
+    });
+  }).toPass({ timeout: 60_000 });
+  await editor(page).getByText('The budget needs a second look.').dblclick();
+  await page.getByTestId('discussion-bubble-button').click();
+  const field = page.getByTestId('discussion-card').getByLabel('Comment', { exact: true });
+  await expect(field).toBeFocused();
+  await page.keyboard.type('Typed without clicking');
+  await expect(field).toHaveValue('Typed without clicking');
+});

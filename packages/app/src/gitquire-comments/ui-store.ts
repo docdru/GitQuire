@@ -6,6 +6,7 @@ export interface DiscussionUiState {
   docName: string | null;
   activeThreadId: string | null;
   revealThreadId: string | null;
+  focusReply: boolean;
   draft: { anchor: Anchor; from: number; to: number; body?: string } | null;
 }
 
@@ -13,6 +14,7 @@ let state: DiscussionUiState = {
   docName: null,
   activeThreadId: null,
   revealThreadId: null,
+  focusReply: false,
   draft: null,
 };
 const listeners = new Set<() => void>();
@@ -35,16 +37,20 @@ export function useDiscussionUi(): DiscussionUiState {
   return useSyncExternalStore(subscribeDiscussionUi, getDiscussionUi, getDiscussionUi);
 }
 
-export function openThread(docName: string, activeThreadId: string): void {
-  emit({ docName, activeThreadId, revealThreadId: null, draft: null });
+export function openThread(docName: string, activeThreadId: string, focusReply = false): void {
+  emit({ docName, activeThreadId, revealThreadId: null, focusReply, draft: null });
 }
 
 export function openCommentsPane(): void {
   requestDocPanelTab('comments');
 }
 
-export function showThreadInPane(docName: string, activeThreadId: string): void {
-  openThread(docName, activeThreadId);
+export function showThreadInPane(
+  docName: string,
+  activeThreadId: string,
+  focusReply = false,
+): void {
+  openThread(docName, activeThreadId, focusReply);
   openCommentsPane();
 }
 
@@ -53,6 +59,7 @@ export function revealDiscussion(docName: string, threadId: string): void {
     docName,
     activeThreadId: threadId,
     revealThreadId: threadId,
+    focusReply: true,
     draft: null,
   });
 }
@@ -62,7 +69,7 @@ export function clearReveal(): void {
 }
 
 export function startDraft(docName: string, draft: NonNullable<DiscussionUiState['draft']>): void {
-  emit({ docName, activeThreadId: null, revealThreadId: null, draft });
+  emit({ docName, activeThreadId: null, revealThreadId: null, focusReply: false, draft });
 }
 
 export function clearDraft(): void {
@@ -70,7 +77,12 @@ export function clearDraft(): void {
 }
 
 export function setActiveThread(activeThreadId: string | null): void {
-  emit({ ...state, activeThreadId, draft: activeThreadId === null ? state.draft : null });
+  emit({
+    ...state,
+    activeThreadId,
+    focusReply: false,
+    draft: activeThreadId === null ? state.draft : null,
+  });
 }
 
 interface MeResponse {

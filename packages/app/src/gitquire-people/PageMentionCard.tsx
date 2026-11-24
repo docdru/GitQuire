@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { anchorFromSelection } from '@/gitquire-comments/editor-threads';
-import { useFloatingAnchor } from '@/gitquire-comments/floating-anchor';
+import { UNPLACED_STYLE, useFloatingAnchor } from '@/gitquire-comments/floating-anchor';
 import { startDraft } from '@/gitquire-comments/ui-store';
 import { knownLogins, type Person, usePeople } from '@/lib/gitquire/people';
 import {
@@ -131,7 +131,7 @@ export function PageMentionCard({
       role="dialog"
       aria-label={t`Mention of @${login}`}
       className={CARD_CLASS}
-      style={{ left: 0, top: 0, visibility: 'hidden' }}
+      style={UNPLACED_STYLE}
       data-page-mention-card=""
       data-testid="page-mention-card"
       onKeyDown={(event) => {
