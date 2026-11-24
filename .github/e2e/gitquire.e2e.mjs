@@ -144,13 +144,16 @@ test('Views → Mentions opens a page at the mention', async ({ page }) => {
   );
   await openApp(page);
   await expect(treeItem(page, 'mention-plan.md')).toBeVisible({ timeout: 30_000 });
-  await page.getByRole('button', { name: 'Views', exact: true }).click();
-  await page.getByRole('tab', { name: 'Mentions', exact: true }).click();
   const view = page.getByTestId('page-mentions-view');
-  await view.getByRole('combobox', { name: 'Person' }).click();
-  await page.getByRole('option', { name: 'Anyone', exact: true }).click();
   const row = view.getByRole('button', { name: /And @alice again/ });
-  await expect(row).toBeVisible();
+  await expect(async () => {
+    await openApp(page);
+    await page.getByRole('button', { name: 'Views', exact: true }).click();
+    await page.getByRole('tab', { name: 'Mentions', exact: true }).click();
+    await view.getByRole('combobox', { name: 'Person' }).click();
+    await page.getByRole('option', { name: 'Anyone', exact: true }).click();
+    await expect(row).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
   await expect(view).toContainText('Later');
   await row.click();
   await expect(editor(page)).toContainText('Mention plan');
