@@ -70,6 +70,25 @@ export const ADDABLE_MAX_AGE_MS = 30 * 60 * 1000;
 export const PENDING_ADD_MAX_AGE_MS = 10 * 60 * 1000;
 export const RECHECK_MS = 60 * 1000;
 const MAX_JSON_BYTES = 16 * 1024;
+export const HOST_LIST_DEADLINE_MS = 8000;
+
+function withinDeadline<T>(work: Promise<T>, ms: number, late: () => T): Promise<T> {
+  if (!Number.isFinite(ms)) return work;
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => resolve(late()), ms);
+    timer.unref?.();
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err: unknown) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
 const FRONT_DOOR_API = '/api/front-door';
 const OLD_ADDRESS_SCRIPT = '/_door/old-address.js';
 
@@ -138,6 +157,7 @@ export interface FrontDoorDeps {
   log: GateLogger;
   now?: () => number;
   randomState?: () => string;
+  listDeadlineMs?: number;
 }
 
 export interface FrontDoor {
@@ -714,9 +734,19 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         const person = accounts.get(entry.key)?.person;
         if (person === undefined) return [];
         const seat: Seat = { entry, person };
-        const listed = await entry.access.wikisFor(person, wikisOf(entry), {
-          serverAdmin: isAdminOn(entry, person),
-        });
+        const listed = await withinDeadline(
+          entry.access.wikisFor(person, wikisOf(entry), {
+            serverAdmin: isAdminOn(entry, person),
+          }),
+          severalHosts ? (deps.listDeadlineMs ?? HOST_LIST_DEADLINE_MS) : Number.POSITIVE_INFINITY,
+          () => {
+            deps.log.warn(
+              { host: entry.key },
+              '[gitquire-door] a host did not answer in time; its wikis are left out of the list',
+            );
+            return [];
+          },
+        );
         return listed.map(({ wiki, admin }) => {
           const unread = unreadIn(seat, wiki);
           const base = { wiki, admin, seat };
@@ -1495,23 +1525,15 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       const from = refererAddress(req, settings.externalUrl.origin);
       const match = from === undefined ? undefined : lookup(from.owner, from.name);
       const fromSeat = match === undefined ? undefined : seatFor(accounts, match.wiki);
-      if (fromSeat !== undefined && match?.current === true) {
-        toWiki(
-          req,
-          res,
-          fromSeat,
-          match.wiki,
-          `${rawPath}${search}`,
-          viewFor(match.wiki.key),
-        ).catch(fail);
-        return;
-      }
-      const fallback = defaultWiki();
-      if (fallback !== undefined && wantsHtml(req) && !path.startsWith('/api/')) {
+      const withoutReferer = (): void => {
+        const fallback = defaultWiki();
+        if (fallback === undefined || !wantsHtml(req) || path.startsWith('/api/')) {
+          sendJson(res, 404, { error: 'wiki-address-required' });
+          return;
+        }
         const fallbackSeat = seatFor(accounts, fallback);
         if (fallbackSeat === undefined) {
-          if (signedIn) notAWiki(req, res);
-          else needSignIn(req, res, `${rawPath}${search}`);
+          needSignIn(req, res, `${rawPath}${search}`);
           return;
         }
         decide(fallbackSeat, fallback)
@@ -1520,8 +1542,29 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
             else notAWiki(req, res);
           })
           .catch(fail);
+      };
+      if (fromSeat !== undefined && match?.current === true) {
+        decide(fromSeat, match.wiki)
+          .then((decision) => {
+            if (!decision.open) {
+              withoutReferer();
+              return undefined;
+            }
+            return toWiki(
+              req,
+              res,
+              fromSeat,
+              match.wiki,
+              `${rawPath}${search}`,
+              viewFor(match.wiki.key),
+              decision,
+            );
+          })
+          .catch(fail);
         return;
       }
+      withoutReferer();
+      return;
     }
     sendJson(res, 404, { error: 'wiki-address-required' });
   }

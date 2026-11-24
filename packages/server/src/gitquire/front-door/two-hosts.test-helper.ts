@@ -82,7 +82,7 @@ export interface FakeHostState {
   people: Record<string, HostPerson>;
   levels: Record<string, Record<string, RepoAccess>>;
   repos: HostRepoRecord[];
-  bot: { answer: BotAccess | undefined; down: boolean };
+  bot: { answer: BotAccess | undefined; down: boolean; hang?: boolean };
   asked: string[];
 }
 
@@ -111,6 +111,7 @@ function fakeHost(kind: HostKeyName, state: FakeHostState): DoorHost {
       return state.levels[login]?.[name(repo)] ?? 'none';
     },
     accessByBot: async (login, repo) => {
+      if (state.bot.hang === true) return new Promise<BotAccess>(() => {});
       if (state.bot.down) return 'unreachable';
       state.asked.push(`bot:${login}:${repo.id}`);
       return state.bot.answer ?? state.levels[login]?.[name(repo)] ?? 'none';
@@ -286,6 +287,7 @@ export async function twoHostRig(
     log: silentLog,
     now,
     randomState: () => 'state-1',
+    listDeadlineMs: 300,
   });
   door.setReady(true);
   const server: Server = createServer(door.handleRequest);
