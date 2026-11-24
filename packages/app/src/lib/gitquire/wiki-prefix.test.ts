@@ -45,21 +45,29 @@ describe('withWikiPrefix', () => {
     expect(withWikiPrefix('/api/asset?path=a.png', '/w/github/team/wiki')).toBe(
       '/w/github/team/wiki/api/asset?path=a.png',
     );
-    expect(withWikiPrefix('/w/github/team/wiki/api/x', '/w/github/team/wiki')).toBe('/w/github/team/wiki/api/x');
+    expect(withWikiPrefix('/w/github/team/wiki/api/x', '/w/github/team/wiki')).toBe(
+      '/w/github/team/wiki/api/x',
+    );
     expect(withWikiPrefix('/w/github/team/wiki-b/api/x', '/w/github/team/wiki')).toBe(
       '/w/github/team/wiki/w/github/team/wiki-b/api/x',
     );
   });
 
   it("leaves the front door's own API at the root", () => {
-    expect(withWikiPrefix('/api/front-door/wikis', '/w/github/team/wiki')).toBe('/api/front-door/wikis');
-    expect(withWikiPrefix('/api/front-doors', '/w/github/team/wiki')).toBe('/w/github/team/wiki/api/front-doors');
+    expect(withWikiPrefix('/api/front-door/wikis', '/w/github/team/wiki')).toBe(
+      '/api/front-door/wikis',
+    );
+    expect(withWikiPrefix('/api/front-doors', '/w/github/team/wiki')).toBe(
+      '/w/github/team/wiki/api/front-doors',
+    );
   });
 
   it('leaves relative, protocol-relative and absolute addresses alone', () => {
     expect(withWikiPrefix('api/x', '/w/github/team/wiki')).toBe('api/x');
     expect(withWikiPrefix('//cdn.example/x', '/w/github/team/wiki')).toBe('//cdn.example/x');
-    expect(withWikiPrefix('https://example.com/x', '/w/github/team/wiki')).toBe('https://example.com/x');
+    expect(withWikiPrefix('https://example.com/x', '/w/github/team/wiki')).toBe(
+      'https://example.com/x',
+    );
   });
 });
 

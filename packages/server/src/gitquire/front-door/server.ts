@@ -270,7 +270,7 @@ async function readForm(req: IncomingMessage): Promise<URLSearchParams> {
 export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   const { settings, hosts, table, processes } = deps;
   const primary = hosts.primary;
-  const { host, access, owners, forgejoTokens } = primary;
+  const { owners } = primary;
   const now = deps.now ?? Date.now;
   const randomState = deps.randomState ?? (() => randomBytes(24).toString('base64url'));
   const secure = settings.externalUrl.protocol === 'https:';
@@ -798,9 +798,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
 
   function addableAnswer(seat: Seat): AddableAnswer | undefined {
     const user = seat.person;
-    const { owners, forgejoTokens, access } = seat.entry;
-    const label = seat.entry.names.label;
-    const addPath = seat.entry.paths.addWiki;
+    const { owners } = seat.entry;
     const entry = addable.get(slot(seat));
     if (entry === undefined || now() - entry.at > ADDABLE_MAX_AGE_MS) return undefined;
     const repos = (entry.repos ?? [])
@@ -1000,16 +998,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     );
   }
 
-  async function makeWiki(req: IncomingMessage, res: ServerResponse, seat: Seat): Promise<void> {
-    const user = seat.person;
-    const { owners, forgejoTokens, access } = seat.entry;
-    const label = seat.entry.names.label;
-    const addPath = seat.entry.paths.addWiki;
-    const body = await readJson(req);
-    const outcome = await addWiki(seat, body.id, body.token);
-    sendJson(res, outcome.status, outcome.body);
-  }
-
   function adminSeatOf(
     accounts: Accounts,
     key: string,
@@ -1057,7 +1045,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
 
   function handleApi(req: IncomingMessage, res: ServerResponse, path: string): void {
     const accounts = sessionAccounts(req);
-    const user = accounts.get(primary.key)?.person;
     if (accounts.size === 0) {
       sendJson(res, 401, {
         error: 'not-signed-in',
@@ -1299,7 +1286,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
 
   function askHostAgain(res: ServerResponse, seat: Seat, adding: boolean): void {
     const user = seat.person;
-    const { owners, forgejoTokens, access } = seat.entry;
     const label = seat.entry.names.label;
     const addPath = seat.entry.paths.addWiki;
     const entry = addable.get(slot(seat));
@@ -1318,10 +1304,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   function takePendingAdd(seat: Seat): PendingAdd | undefined {
-    const user = seat.person;
-    const { owners, forgejoTokens, access } = seat.entry;
-    const label = seat.entry.names.label;
-    const addPath = seat.entry.paths.addWiki;
     const pending = pendingAdds.get(slot(seat));
     pendingAdds.delete(slot(seat));
     if (pending === undefined || now() - pending.at > PENDING_ADD_MAX_AGE_MS) return undefined;
@@ -1329,8 +1311,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   async function addWikiPage(res: ServerResponse, seat: Seat, failed?: Outcome): Promise<void> {
-    const user = seat.person;
-    const { owners, forgejoTokens, access } = seat.entry;
     const label = seat.entry.names.label;
     const addPath = seat.entry.paths.addWiki;
     const answer = addableAnswer(seat);
@@ -1396,10 +1376,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     res: ServerResponse,
     seat: Seat,
   ): Promise<void> {
-    const user = seat.person;
-    const { owners, forgejoTokens, access } = seat.entry;
-    const label = seat.entry.names.label;
-    const addPath = seat.entry.paths.addWiki;
     const raw = form.get('id') ?? '';
     const id = /^[0-9]{1,15}$/.test(raw) ? Number(raw) : undefined;
     const outcome = await addWiki(seat, id, form.get('token') ?? undefined);
