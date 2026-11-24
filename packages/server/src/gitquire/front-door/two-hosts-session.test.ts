@@ -1,12 +1,22 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { decodeSigned, encodeSigned } from '../signed-cookie.ts';
-import { MAX_SESSION_COOKIE_BYTES, readDoorSession, writeDoorSession } from './door-session.ts';
+import {
+  hostFingerprint,
+  MAX_SESSION_COOKIE_BYTES,
+  readDoorSession,
+  writeDoorSession,
+} from './door-session.ts';
 import { cleanUpRigs, cookiesOf, twoHostRig } from './two-hosts.test-helper.ts';
 
 afterEach(cleanUpRigs);
 
 const SECRET = '0123456789abcdef0123456789abcdef';
-const keys = new Set(['github', 'forgejo']);
+const fingerprints = new Map([
+  ['github', hostFingerprint({ kind: 'github', webUrl: 'https://github.example' })],
+  ['forgejo', hostFingerprint({ kind: 'forgejo', webUrl: 'https://forgejo.example' })],
+  ['lab', hostFingerprint({ kind: 'forgejo', webUrl: 'https://lab.example' })],
+]);
+const hostsFor = (primaryKey = 'github') => ({ primaryKey, fingerprints });
 const person = (id: number, login: string) => ({ id, login, name: login, avatarUrl: '' });
 
 function payloadOf(cookie: string): Record<string, unknown> {
@@ -16,10 +26,14 @@ function payloadOf(cookie: string): Record<string, unknown> {
   >;
 }
 
+function read(raw: string, nowSeconds = 0, primaryKey = 'github') {
+  return readDoorSession(SECRET, raw, { ...hostsFor(primaryKey), nowSeconds });
+}
+
 describe('the session cookie', () => {
   it('writes the one-host form while only the first host is signed in, and reads it back', () => {
     const one = new Map([['github', { person: person(11, 'alice'), exp: 2000 }]]);
-    const raw = writeDoorSession(SECRET, one, 'github');
+    const raw = writeDoorSession(SECRET, one, hostsFor());
     expect(decodeSigned(SECRET, raw)).toEqual({
       v: 1,
       id: 11,
@@ -27,49 +41,72 @@ describe('the session cookie', () => {
       name: 'alice',
       avatarUrl: '',
       exp: 2000,
+      h: fingerprints.get('github'),
     });
-    expect(
-      readDoorSession(SECRET, raw, { nowSeconds: 1000, primaryKey: 'github', keys }).get('github'),
-    ).toEqual({ person: person(11, 'alice'), exp: 2000 });
+    expect(read(raw, 1000).get('github')).toEqual({ person: person(11, 'alice'), exp: 2000 });
+    const before = encodeSigned(SECRET, { v: 1, ...person(11, 'alice'), exp: 2000 });
+    expect(read(before, 1000).get('github')?.person.login).toBe('alice');
   });
 
-  it('holds one account per host, drops expired and unconfigured ones, and stays small (S6)', () => {
-    const long = {
+  it('holds one account per host, drops expired and unconfigured ones (S6)', () => {
+    const both = new Map([
+      ['github', { person: person(11, 'alice'), exp: 2000 }],
+      ['forgejo', { person: person(11, 'alice'), exp: 1500 }],
+      ['gone', { person: person(11, 'alice'), exp: 3000 }],
+    ]);
+    const raw = writeDoorSession(SECRET, both, hostsFor());
+    expect([...read(raw, 1000).keys()]).toEqual(['github', 'forgejo']);
+    expect([...read(raw, 1600).keys()]).toEqual(['github']);
+    expect(read(raw, 2100).size).toBe(0);
+    expect(read(encodeSigned('another secret that is long enough!', {})).size).toBe(0);
+  });
+
+  it.each([
+    ['long ASCII', 'N'.repeat(500), 2],
+    ['CJK', '名'.repeat(400), 3],
+    ['control characters', '\u0001'.repeat(400), 3],
+  ])('stays under the cookie limit with %s names (S6)', (_what, name, count) => {
+    const big = {
       id: 99_999_999,
       login: 'x'.repeat(39),
-      name: 'N'.repeat(500),
+      name,
       avatarUrl: `https://a.example/${'p'.repeat(400)}`,
     };
-    const both = new Map([
-      ['github', { person: long, exp: 2000 }],
-      ['forgejo', { person: long, exp: 1500 }],
-      ['gone', { person: long, exp: 3000 }],
+    const keys = ['github', 'forgejo', 'lab'].slice(0, count);
+    const accounts = new Map(keys.map((key) => [key, { person: big, exp: 2000 }]));
+    const raw = writeDoorSession(SECRET, accounts, hostsFor());
+    expect(encodeURIComponent(raw).length).toBeLessThanOrEqual(MAX_SESSION_COOKIE_BYTES);
+    expect([...read(raw, 1000).keys()]).toEqual(keys);
+    expect(read(raw, 1000).get('github')?.person.login).toBe('x'.repeat(39));
+  });
+
+  it('drops an account whose key now names another server, so ids never cross hosts (S1)', () => {
+    const one = new Map([['github', { person: person(11, 'alice'), exp: 2000 }]]);
+    const v1 = writeDoorSession(SECRET, one, hostsFor());
+    expect(read(v1, 0, 'forgejo').size).toBe(0);
+    const two = new Map([
+      ['github', { person: person(11, 'alice'), exp: 2000 }],
+      ['forgejo', { person: person(12, 'bob'), exp: 2000 }],
     ]);
-    const raw = writeDoorSession(SECRET, both, 'github');
-    expect(raw.length).toBeLessThan(MAX_SESSION_COOKIE_BYTES);
-    const read = (nowSeconds: number) =>
-      readDoorSession(SECRET, raw, { nowSeconds, primaryKey: 'github', keys });
-    expect([...read(1000).keys()]).toEqual(['github', 'forgejo']);
-    expect([...read(1600).keys()]).toEqual(['github']);
-    expect(read(2100).size).toBe(0);
-    expect(
-      readDoorSession(SECRET, encodeSigned('another secret that is long enough!', {}), {
-        nowSeconds: 0,
-        primaryKey: 'github',
-        keys,
-      }).size,
-    ).toBe(0);
+    const v2 = writeDoorSession(SECRET, two, hostsFor());
+    const moved = new Map(fingerprints);
+    moved.set('forgejo', hostFingerprint({ kind: 'forgejo', webUrl: 'https://elsewhere.example' }));
+    const after = readDoorSession(SECRET, v2, {
+      primaryKey: 'github',
+      fingerprints: moved,
+      nowSeconds: 0,
+    });
+    expect([...after.keys()]).toEqual(['github']);
   });
 
   it('writes no account under another host key than it was given', () => {
     const raw = writeDoorSession(
       SECRET,
       new Map([['forgejo', { person: person(11, 'alice'), exp: 2000 }]]),
-      'github',
+      hostsFor(),
     );
-    const read = readDoorSession(SECRET, raw, { nowSeconds: 0, primaryKey: 'github', keys });
-    expect(read.has('github')).toBe(false);
-    expect(read.get('forgejo')?.person.login).toBe('alice');
+    expect(read(raw).has('github')).toBe(false);
+    expect(read(raw).get('forgejo')?.person.login).toBe('alice');
   });
 });
 
@@ -126,6 +163,36 @@ describe('signing in with two hosts', () => {
     expect(r.hosts.forgejo.asked).toEqual([]);
   });
 
+  it('refuses a state cookie of the first host, old or new, at a further host’s callback (S5)', async () => {
+    const r = await twoHostRig();
+    const old = encodeURIComponent(
+      encodeSigned(SECRET, { state: 'state-1', next: '/', purpose: 'sign-in', exp: 9e9 }),
+    );
+    for (const name of ['gq_oauth_state', 'gq_oauth_state_forgejo']) {
+      const back = await r.get(
+        '/auth/forgejo/callback?code=alice&state=state-1',
+        name === 'gq_oauth_state' ? `${name}=${old}` : `${name}=${old}`,
+      );
+      expect(back.status).toBe(400);
+    }
+    expect(r.hosts.forgejo.asked).toEqual([]);
+  });
+
+  it('refuses a sign-out from another site', async () => {
+    const r = await twoHostRig();
+    const cookie = await r.signIn('github', 'alice');
+    const answer = await fetch(`${r.base}/auth/logout`, {
+      method: 'POST',
+      headers: {
+        cookie,
+        origin: 'https://evil.example',
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: 'host=github',
+    });
+    expect(answer.status).toBe(403);
+  });
+
   it('lets one account expire without ending the other (S6)', async () => {
     const r = await twoHostRig({ sessionSeconds: 100 });
     const github = await r.signIn('github', 'alice');
@@ -170,6 +237,12 @@ describe('one host (S8)', () => {
     const home = await r.get('/', '', { accept: 'text/html' });
     expect(home.headers.get('location')).toBe('/auth/github/login?next=%2F');
     expect((await r.get('/auth/sign-in', '')).status).toBe(404);
+    const start = await r.get('/auth/github/login?next=%2F', '');
+    const state = cookiesOf(start).find((c) => c.startsWith('gq_oauth_state=')) ?? '';
+    const back = await r.get('/auth/github/callback?code=alice&state=state-1', state);
+    expect(back.headers.getSetCookie().find((line) => line.startsWith('gq_session='))).toContain(
+      'Max-Age=3600',
+    );
     const session = await r.signIn('github', 'alice');
     expect(payloadOf(session).v).toBe(1);
     const me = (await (await r.get('/auth/me', session)).json()) as Record<string, unknown>;

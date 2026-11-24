@@ -35,7 +35,12 @@ import type { DoorPerson, OpenDecision } from './access.ts';
 import type { DoorAgents } from './agents.ts';
 import { allowedOwnersSentence, ownerAllowed, pinAllowedOwner } from './allowed-owners.ts';
 import { type DoorHostEntry, type DoorHosts, personIdOn } from './door-hosts.ts';
-import { type DoorAccount, readDoorSession, writeDoorSession } from './door-session.ts';
+import {
+  type DoorAccount,
+  hostFingerprint,
+  readDoorSession,
+  writeDoorSession,
+} from './door-session.ts';
 import type { MentionCounts } from './mention-counts.ts';
 import {
   ADD_WIKI_PAGE,
@@ -238,15 +243,25 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   const cookie = (name: string, value: string, maxAgeSeconds: number): string =>
     serializeCookie(name, value, { maxAgeSeconds, secure });
 
-  const hostKeys = new Set(hosts.list().map((entry) => entry.key));
+  const sessionHosts = {
+    primaryKey: primary.key,
+    fingerprints: new Map(
+      hosts.list().map((entry) => [entry.key, hostFingerprint(entry.settings)]),
+    ),
+  };
   const severalHosts = hosts.list().length > 1;
   const chooserPath = '/auth/sign-in';
 
+  function stateCookieName(entry: DoorHostEntry): string {
+    return entry === primary
+      ? DOOR_STATE_COOKIE
+      : `${DOOR_STATE_COOKIE}_${entry.key.replaceAll('-', '_')}`;
+  }
+
   function sessionAccounts(req: IncomingMessage): Map<string, DoorAccount> {
     return readDoorSession(settings.sessionSecret, readCookie(req, DOOR_SESSION_COOKIE), {
+      ...sessionHosts,
       nowSeconds: now() / 1000,
-      primaryKey: primary.key,
-      keys: hostKeys,
     });
   }
 
@@ -260,7 +275,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     const maxAge = Math.max(1, Math.ceil(lastExp - now() / 1000));
     return cookie(
       DOOR_SESSION_COOKIE,
-      writeDoorSession(settings.sessionSecret, accounts, primary.key),
+      writeDoorSession(settings.sessionSecret, accounts, sessionHosts),
       maxAge,
     );
   }
@@ -324,7 +339,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       }),
       {
         'Set-Cookie': cookie(
-          DOOR_STATE_COOKIE,
+          stateCookieName(entry),
           encodeSigned(settings.sessionSecret, payload),
           STATE_MAX_AGE_SECONDS,
         ),
@@ -350,8 +365,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     const params = new URLSearchParams(search);
     const code = params.get('code');
     const state = params.get('state');
-    const stored = decodeSigned(settings.sessionSecret, readCookie(req, DOOR_STATE_COOKIE));
-    const clearState = cookie(DOOR_STATE_COOKIE, '', 0);
+    const stored = decodeSigned(settings.sessionSecret, readCookie(req, stateCookieName(entry)));
+    const clearState = cookie(stateCookieName(entry), '', 0);
     const hostLabel = entry.names.label;
     const tryAgain = `<p><a href="${entry.paths.login}">Sign in with ${escapeHtml(hostLabel)}</a></p>`;
     if (params.get('error') !== null) {
@@ -495,7 +510,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       res,
       200,
       'Sign out',
-      `${rows === '' ? '<p>You are not signed in.</p>' : `<ul>${rows}</ul>`}${agentsLink}<form method="post" action="/auth/logout"><button type="submit">Sign out of all</button></form><p><a href="${chooserPath}">Sign in with another host</a></p>`,
+      `${rows === '' ? '<p>You are not signed in.</p>' : `<ul>${rows}</ul>${agentsLink}<form method="post" action="/auth/logout"><button type="submit">Sign out of all</button></form>`}<p><a href="${chooserPath}">Sign in with another host</a></p>`,
     );
   }
 
@@ -515,7 +530,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       res,
       200,
       'Signed out',
-      `<p>${left.length === 0 ? 'You are signed out of GitQuire.' : `You are signed out of ${escapeHtml(hosts.byKey(only)?.names.label ?? only)}. Still signed in with ${escapeHtml(left.join(', '))}.`}</p>${signInLink}`,
+      `<p>${left.length === 0 ? 'You are signed out of GitQuire.' : leaving.length === 0 ? `You were not signed in with that host. Still signed in with ${escapeHtml(left.join(', '))}.` : `You are signed out of ${escapeHtml(hosts.byKey(only)?.names.label ?? only)}. Still signed in with ${escapeHtml(left.join(', '))}.`}</p>${signInLink}`,
       { 'Set-Cookie': sessionCookie(accounts) },
     );
   }
