@@ -243,7 +243,7 @@ async function api(req, res, path, url) {
         ? send(res, 404, { message: 'Not Found' })
         : send(res, 200, repoBody(repo, level));
     }
-    if (isInstallation(token)) return send(res, 200, repoBody(repo, 'admin'));
+    if (isInstallation(token)) return send(res, 200, repoBody(repo, 'read'));
     return send(res, 404, { message: 'Not Found' });
   }
   if (repo !== undefined && rest[0] === 'installation' && rest.length === 1) {

@@ -80,5 +80,6 @@ export interface DoorHost {
   repoByName: (repo: HostRepo) => Promise<RepoLookup>;
   health: (repo: HostRepoRef) => Promise<HostHealth>;
   tokenFor: (repo: HostRepoRef) => Promise<string | undefined>;
+  contentsOf?: (repo: HostRepoRef) => string | undefined;
   selfCheck: () => Promise<SelfCheck>;
 }

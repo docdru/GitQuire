@@ -14,6 +14,7 @@ export interface TokenSocketDeps {
   wikiOfSecret: (secret: string) => string | undefined;
   repoOf: (key: string) => HostRepoRef | undefined;
   tokenFor: (repo: HostRepoRef, key: string) => Promise<string | undefined>;
+  contentsOf?: (repo: HostRepoRef, key: string) => string | undefined;
   log: GateLogger;
   now?: () => number;
 }
@@ -41,7 +42,12 @@ function createTokenHandler(
           sendJson(res, 503, { error: 'no-token' });
           return;
         }
-        sendJson(res, 200, { token, expiresAt: now() + DOOR_TOKEN_LIFETIME_MS });
+        const contents = deps.contentsOf?.(repo, key);
+        sendJson(res, 200, {
+          token,
+          expiresAt: now() + DOOR_TOKEN_LIFETIME_MS,
+          ...(contents === undefined ? {} : { contents }),
+        });
       },
       (err: unknown) => {
         deps.log.warn({ err, wiki: key }, '[gitquire-wikis] host token lookup failed');
