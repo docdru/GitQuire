@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Input } from '@/components/ui/input';
 import { AgentDraftSetting } from '@/gitquire-settings/AgentDraftSetting';
 import { type GitQuireFeatures, useGitQuireFeatures } from '@/lib/gitquire/features';
+import { useHostLabel } from '@/lib/gitquire/repository';
 
 const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
 const CLAUDE_ORG_CONNECTORS_URL = 'https://claude.ai/admin-settings/connectors';
@@ -94,6 +95,7 @@ function AssistantSteps({
 }
 
 function ClaudeSteps() {
+  const host = useHostLabel();
   return (
     <AssistantSteps title={<Trans>Claude</Trans>} testId="connect-ai-claude">
       <ol className="list-decimal space-y-3 ps-5">
@@ -111,7 +113,7 @@ function ClaudeSteps() {
         </li>
         <li>
           <Trans>
-            Click <strong>Connect</strong>, sign in with GitHub and approve access. Claude can then
+            Click <strong>Connect</strong>, sign in with {host} and approve access. Claude can then
             work in the wiki on the web, in the desktop app and on your phone.
           </Trans>
         </li>
@@ -130,6 +132,7 @@ function ClaudeSteps() {
 }
 
 function MistralSteps() {
+  const host = useHostLabel();
   return (
     <AssistantSteps title={<Trans>Mistral Le Chat</Trans>} testId="connect-ai-mistral">
       <ol className="list-decimal space-y-3 ps-5">
@@ -148,7 +151,7 @@ function MistralSteps() {
         </li>
         <li>
           <Trans>
-            Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat
+            Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat
             use the wiki there.
           </Trans>
         </li>
