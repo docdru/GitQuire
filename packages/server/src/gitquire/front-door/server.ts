@@ -34,7 +34,13 @@ import {
 import type { DoorPerson, OpenDecision } from './access.ts';
 import type { DoorAgents } from './agents.ts';
 import { allowedOwnersSentence, ownerAllowed, pinAllowedOwner } from './allowed-owners.ts';
-import { type DoorHosts, personIdOn } from './door-hosts.ts';
+import { type DoorHostEntry, type DoorHosts, personIdOn } from './door-hosts.ts';
+import {
+  type DoorAccount,
+  hostFingerprint,
+  readDoorSession,
+  writeDoorSession,
+} from './door-session.ts';
 import type { MentionCounts } from './mention-counts.ts';
 import {
   ADD_WIKI_PAGE,
@@ -69,17 +75,13 @@ const OLD_ADDRESS_SCRIPT = '/_door/old-address.js';
 
 type DoorSessionUser = HostPerson;
 
-interface SessionPayload extends DoorSessionUser {
-  v: 1;
-  exp: number;
-}
-
 type Purpose = 'sign-in' | 'add';
 
 interface StatePayload {
   state: string;
   next: string;
   purpose: Purpose;
+  host?: string;
   exp: number;
 }
 
@@ -152,19 +154,6 @@ interface OpenConnection {
   socket: Duplex;
 }
 
-function isSessionPayload(value: unknown): value is SessionPayload {
-  if (typeof value !== 'object' || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    v.v === 1 &&
-    typeof v.id === 'number' &&
-    typeof v.login === 'string' &&
-    typeof v.name === 'string' &&
-    typeof v.avatarUrl === 'string' &&
-    typeof v.exp === 'number'
-  );
-}
-
 function isStatePayload(value: unknown): value is StatePayload {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
@@ -172,6 +161,7 @@ function isStatePayload(value: unknown): value is StatePayload {
     typeof v.state === 'string' &&
     typeof v.next === 'string' &&
     (v.purpose === 'sign-in' || v.purpose === 'add') &&
+    (v.host === undefined || typeof v.host === 'string') &&
     typeof v.exp === 'number'
   );
 }
@@ -242,9 +232,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   const secure = settings.externalUrl.protocol === 'https:';
   const label = primary.names.label;
   const loginPath = primary.paths.login;
-  const returnPath = primary.paths.callback;
   const addPath = primary.paths.addWiki;
-  const callbackUrl = new URL(returnPath, settings.externalUrl).toString();
   const addable = new Map<number, AddableEntry>();
   const pendingAdds = new Map<number, PendingAdd>();
   const renewed = new Set<number>();
@@ -255,15 +243,41 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   const cookie = (name: string, value: string, maxAgeSeconds: number): string =>
     serializeCookie(name, value, { maxAgeSeconds, secure });
 
+  const sessionHosts = {
+    primaryKey: primary.key,
+    fingerprints: new Map(
+      hosts.list().map((entry) => [entry.key, hostFingerprint(entry.settings)]),
+    ),
+  };
+  const severalHosts = hosts.list().length > 1;
+  const chooserPath = '/auth/sign-in';
+
+  function stateCookieName(entry: DoorHostEntry): string {
+    return entry === primary
+      ? DOOR_STATE_COOKIE
+      : `${DOOR_STATE_COOKIE}_${entry.key.replaceAll('-', '_')}`;
+  }
+
+  function sessionAccounts(req: IncomingMessage): Map<string, DoorAccount> {
+    return readDoorSession(settings.sessionSecret, readCookie(req, DOOR_SESSION_COOKIE), {
+      ...sessionHosts,
+      nowSeconds: now() / 1000,
+    });
+  }
+
   function sessionUser(req: IncomingMessage): DoorSessionUser | undefined {
-    const decoded = decodeSigned(settings.sessionSecret, readCookie(req, DOOR_SESSION_COOKIE));
-    if (!isSessionPayload(decoded) || decoded.exp * 1000 <= now()) return undefined;
-    return {
-      id: decoded.id,
-      login: decoded.login,
-      name: decoded.name,
-      avatarUrl: decoded.avatarUrl,
-    };
+    return sessionAccounts(req).get(primary.key)?.person;
+  }
+
+  function sessionCookie(accounts: ReadonlyMap<string, DoorAccount>): string {
+    if (accounts.size === 0) return cookie(DOOR_SESSION_COOKIE, '', 0);
+    const lastExp = Math.max(...[...accounts.values()].map((account) => account.exp));
+    const maxAge = Math.max(1, Math.ceil(lastExp - now() / 1000));
+    return cookie(
+      DOOR_SESSION_COOKIE,
+      writeDoorSession(settings.sessionSecret, accounts, sessionHosts),
+      maxAge,
+    );
   }
 
   function primaryWikis(): WikiRecord[] {
@@ -287,32 +301,45 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   function signInAddress(next: string): string {
-    return `${loginPath}?next=${encodeURIComponent(next)}`;
+    return `${severalHosts ? chooserPath : loginPath}?next=${encodeURIComponent(next)}`;
   }
 
   function needSignIn(req: IncomingMessage, res: ServerResponse, next: string): void {
     if (wantsHtml(req)) {
       redirect(res, signInAddress(next));
     } else {
-      sendJson(res, 401, { error: 'not-signed-in', signIn: loginPath });
+      sendJson(res, 401, {
+        error: 'not-signed-in',
+        signIn: severalHosts ? chooserPath : loginPath,
+      });
     }
   }
 
-  function startLogin(res: ServerResponse, search: string, purpose: Purpose): void {
+  function startLogin(
+    res: ServerResponse,
+    search: string,
+    purpose: Purpose,
+    entry: DoorHostEntry,
+  ): void {
     const next = safeNextPath(new URLSearchParams(search).get('next'));
     const state = randomState();
     const payload: StatePayload = {
       state,
       next,
       purpose,
+      host: entry.key,
       exp: Math.floor(now() / 1000) + STATE_MAX_AGE_SECONDS,
     };
     redirect(
       res,
-      host.authorizeUrl({ clientId: primary.settings.clientId, redirectUri: callbackUrl, state }),
+      entry.host.authorizeUrl({
+        clientId: entry.settings.clientId,
+        redirectUri: new URL(entry.paths.callback, settings.externalUrl).toString(),
+        state,
+      }),
       {
         'Set-Cookie': cookie(
-          DOOR_STATE_COOKIE,
+          stateCookieName(entry),
           encodeSigned(settings.sessionSecret, payload),
           STATE_MAX_AGE_SECONDS,
         ),
@@ -333,19 +360,21 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     req: IncomingMessage,
     res: ServerResponse,
     search: string,
+    entry: DoorHostEntry,
   ): Promise<void> {
     const params = new URLSearchParams(search);
     const code = params.get('code');
     const state = params.get('state');
-    const stored = decodeSigned(settings.sessionSecret, readCookie(req, DOOR_STATE_COOKIE));
-    const clearState = cookie(DOOR_STATE_COOKIE, '', 0);
-    const tryAgain = `<p><a href="${loginPath}">Sign in with ${label}</a></p>`;
+    const stored = decodeSigned(settings.sessionSecret, readCookie(req, stateCookieName(entry)));
+    const clearState = cookie(stateCookieName(entry), '', 0);
+    const hostLabel = entry.names.label;
+    const tryAgain = `<p><a href="${entry.paths.login}">Sign in with ${escapeHtml(hostLabel)}</a></p>`;
     if (params.get('error') !== null) {
       sendHtml(
         res,
         401,
         'Sign-in cancelled',
-        `<p>${label} did not complete the sign-in.</p>${tryAgain}`,
+        `<p>${escapeHtml(hostLabel)} did not complete the sign-in.</p>${tryAgain}`,
         {
           'Set-Cookie': clearState,
         },
@@ -357,8 +386,15 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       state === null ||
       !isStatePayload(stored) ||
       stored.exp * 1000 <= now() ||
-      !safeEqual(state, stored.state)
+      !safeEqual(state, stored.state) ||
+      (stored.host ?? primary.key) !== entry.key
     ) {
+      if (isStatePayload(stored) && (stored.host ?? primary.key) !== entry.key) {
+        deps.log.warn(
+          { started: stored.host ?? primary.key, callback: entry.key },
+          '[gitquire-door] a sign-in came back to another host than it started at; refused',
+        );
+      }
       sendHtml(
         res,
         400,
@@ -368,20 +404,23 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       );
       return;
     }
-    const token = await host.exchangeCode({
-      clientId: primary.settings.clientId,
-      clientSecret: primary.settings.clientSecret,
+    const token = await entry.host.exchangeCode({
+      clientId: entry.settings.clientId,
+      clientSecret: entry.settings.clientSecret,
       code,
-      redirectUri: callbackUrl,
+      redirectUri: new URL(entry.paths.callback, settings.externalUrl).toString(),
     });
-    const person = token === undefined ? undefined : await host.person(token);
+    const person = token === undefined ? undefined : await entry.host.person(token);
     if (token === undefined || person === undefined) {
-      deps.log.warn({ gotToken: token !== undefined }, `[gitquire-door] ${label} sign-in failed`);
+      deps.log.warn(
+        { gotToken: token !== undefined, ...(severalHosts ? { host: entry.key } : {}) },
+        `[gitquire-door] ${hostLabel} sign-in failed`,
+      );
       sendHtml(
         res,
         502,
         'Sign-in failed',
-        `<p>${label} did not confirm the sign-in.</p>${tryAgain}`,
+        `<p>${escapeHtml(hostLabel)} did not confirm the sign-in.</p>${tryAgain}`,
         {
           'Set-Cookie': clearState,
         },
@@ -389,24 +428,127 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       return;
     }
     await Promise.all([
-      access.signIn(person, token, primaryWikis()),
-      stored.purpose === 'add' ? rememberAddable(person, token) : Promise.resolve(),
+      entry === primary ? access.signIn(person, token, primaryWikis()) : Promise.resolve(),
+      stored.purpose === 'add' && entry === primary
+        ? rememberAddable(person, token)
+        : Promise.resolve(),
     ]);
-    const session: SessionPayload = {
-      v: 1,
-      ...person,
+    const accounts = sessionAccounts(req);
+    accounts.set(entry.key, {
+      person,
       exp: Math.floor(now() / 1000) + settings.sessionMaxAgeSeconds,
-    };
-    deps.log.info({ login: person.login, purpose: stored.purpose }, '[gitquire-door] signed in');
+    });
+    deps.log.info(
+      {
+        login: person.login,
+        purpose: stored.purpose,
+        ...(severalHosts ? { host: entry.key } : {}),
+      },
+      '[gitquire-door] signed in',
+    );
     redirect(res, safeNextPath(stored.next), {
-      'Set-Cookie': [
-        clearState,
-        cookie(
-          DOOR_SESSION_COOKIE,
-          encodeSigned(settings.sessionSecret, session),
-          settings.sessionMaxAgeSeconds,
-        ),
-      ],
+      'Set-Cookie': [clearState, sessionCookie(accounts)],
+    });
+  }
+
+  function forgetAccount(entry: DoorHostEntry, person: HostPerson): void {
+    entry.access.forget(person);
+    if (entry === primary) {
+      addable.delete(person.id);
+      pendingAdds.delete(person.id);
+      renewed.delete(person.id);
+    }
+  }
+
+  function signInChooser(req: IncomingMessage, res: ServerResponse, search: string): void {
+    const next = safeNextPath(new URLSearchParams(search).get('next'));
+    const accounts = sessionAccounts(req);
+    const rows = hosts
+      .list()
+      .map((entry) => {
+        const mine = accounts.get(entry.key);
+        const start = `${entry.paths.login}?next=${encodeURIComponent(next)}`;
+        return mine === undefined
+          ? `<li><a href="${escapeHtml(start)}">Sign in with ${escapeHtml(entry.names.label)}</a></li>`
+          : `<li>${escapeHtml(entry.names.label)}: signed in as <strong>@${escapeHtml(mine.person.login)}</strong> (<a href="${escapeHtml(start)}">sign in again</a>)</li>`;
+      })
+      .join('');
+    sendHtml(
+      res,
+      200,
+      'Sign in',
+      `<p>Sign in with the Git host of the wiki you want to open. You can be signed in with several hosts at once; each account sees the wikis of its own host.</p><ul>${rows}</ul>`,
+    );
+  }
+
+  function signOutPage(req: IncomingMessage, res: ServerResponse): void {
+    const accounts = sessionAccounts(req);
+    const agentsLink =
+      deps.agents === undefined ? '' : '<p><a href="/auth/agents">AI agent access</a></p>';
+    if (!severalHosts) {
+      const user = accounts.get(primary.key)?.person;
+      const who = user === undefined ? '' : ` as <strong>@${escapeHtml(user.login)}</strong>`;
+      sendHtml(
+        res,
+        200,
+        'Sign out',
+        `<p>You are signed in${who}.</p>${agentsLink}<form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>`,
+      );
+      return;
+    }
+    const rows = hosts
+      .list()
+      .flatMap((entry) => {
+        const mine = accounts.get(entry.key);
+        if (mine === undefined) return [];
+        return [
+          `<li>${escapeHtml(entry.names.label)}: <strong>@${escapeHtml(mine.person.login)}</strong> <form method="post" action="/auth/logout" style="display:inline"><input type="hidden" name="host" value="${escapeHtml(entry.key)}"><button type="submit">Sign out of ${escapeHtml(entry.names.label)}</button></form></li>`,
+        ];
+      })
+      .join('');
+    sendHtml(
+      res,
+      200,
+      'Sign out',
+      `${rows === '' ? '<p>You are not signed in.</p>' : `<ul>${rows}</ul>${agentsLink}<form method="post" action="/auth/logout"><button type="submit">Sign out of all</button></form>`}<p><a href="${chooserPath}">Sign in with another host</a></p>`,
+    );
+  }
+
+  async function signOut(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const accounts = sessionAccounts(req);
+    const only = severalHosts ? ((await readForm(req)).get('host') ?? '') : '';
+    const leaving = only === '' ? [...accounts.keys()] : accounts.has(only) ? [only] : [];
+    for (const key of leaving) {
+      const entry = hosts.byKey(key);
+      const account = accounts.get(key);
+      if (entry !== undefined && account !== undefined) forgetAccount(entry, account.person);
+      accounts.delete(key);
+    }
+    const signInLink = `<p><a href="${severalHosts ? chooserPath : loginPath}">Sign in${severalHosts ? '' : ` with ${escapeHtml(label)}`}</a></p>`;
+    const left = [...accounts.keys()].map((key) => hosts.byKey(key)?.names.label ?? key);
+    sendHtml(
+      res,
+      200,
+      'Signed out',
+      `<p>${left.length === 0 ? 'You are signed out of GitQuire.' : leaving.length === 0 ? `You were not signed in with that host. Still signed in with ${escapeHtml(left.join(', '))}.` : `You are signed out of ${escapeHtml(hosts.byKey(only)?.names.label ?? only)}. Still signed in with ${escapeHtml(left.join(', '))}.`}</p>${signInLink}`,
+      { 'Set-Cookie': sessionCookie(accounts) },
+    );
+  }
+
+  function accountList(req: IncomingMessage): Record<string, unknown>[] {
+    const accounts = sessionAccounts(req);
+    return hosts.list().flatMap((entry) => {
+      const mine = accounts.get(entry.key);
+      return mine === undefined
+        ? []
+        : [
+            {
+              host: entry.key,
+              label: entry.names.label,
+              login: mine.person.login,
+              principalId: personIdOn(entry.names, mine.person.id),
+            },
+          ];
     });
   }
 
@@ -416,32 +558,41 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     path: string,
     search: string,
   ): void {
-    if (path === loginPath) {
-      startLogin(res, search, 'sign-in');
+    const fail = (err: unknown, hostLabel: string): void => {
+      deps.log.error({ err }, '[gitquire-door] sign-in callback failed');
+      if (!res.headersSent) {
+        sendHtml(
+          res,
+          502,
+          'Sign-in failed',
+          `<p>Could not reach ${escapeHtml(hostLabel)}. Try again in a moment.</p>`,
+        );
+      } else if (!res.writableEnded) {
+        res.end();
+      }
+    };
+    if (severalHosts && path === chooserPath) {
+      signInChooser(req, res, search);
       return;
+    }
+    for (const entry of hosts.list()) {
+      if (path === entry.paths.login) {
+        startLogin(res, search, 'sign-in', entry);
+        return;
+      }
+      if (path === entry.paths.callback) {
+        completeLogin(req, res, search, entry).catch((err: unknown) =>
+          fail(err, entry.names.label),
+        );
+        return;
+      }
     }
     if (path === addPath) {
       if (sessionUser(req) === undefined) {
         needSignIn(req, res, `${path}${search}`);
         return;
       }
-      startLogin(res, search, 'add');
-      return;
-    }
-    if (path === returnPath) {
-      completeLogin(req, res, search).catch((err: unknown) => {
-        deps.log.error({ err }, '[gitquire-door] sign-in callback failed');
-        if (!res.headersSent) {
-          sendHtml(
-            res,
-            502,
-            'Sign-in failed',
-            `<p>Could not reach ${label}. Try again in a moment.</p>`,
-          );
-        } else if (!res.writableEnded) {
-          res.end();
-        }
-      });
+      startLogin(res, search, 'add', primary);
       return;
     }
     if (path === '/auth/logout') {
@@ -450,43 +601,35 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         return;
       }
       if (req.method === 'POST') {
-        const user = sessionUser(req);
-        if (user !== undefined) {
-          access.forget(user);
-          addable.delete(user.id);
-          pendingAdds.delete(user.id);
-          renewed.delete(user.id);
-        }
-        sendHtml(
-          res,
-          200,
-          'Signed out',
-          `<p>You are signed out of GitQuire.</p><p><a href="${loginPath}">Sign in with ${label}</a></p>`,
-          { 'Set-Cookie': cookie(DOOR_SESSION_COOKIE, '', 0) },
-        );
+        signOut(req, res).catch((err: unknown) => {
+          deps.log.warn({ err }, '[gitquire-door] sign-out failed');
+          if (!res.headersSent) sendJson(res, 400, { error: 'bad-request' });
+        });
         return;
       }
-      const user = sessionUser(req);
-      const who = user === undefined ? '' : ` as <strong>@${escapeHtml(user.login)}</strong>`;
-      sendHtml(
-        res,
-        200,
-        'Sign out',
-        `<p>You are signed in${who}.</p>${deps.agents === undefined ? '' : '<p><a href="/auth/agents">AI agent access</a></p>'}<form method="post" action="/auth/logout"><button type="submit">Sign out</button></form>`,
-      );
+      signOutPage(req, res);
       return;
     }
     if (path === '/auth/me') {
       const user = sessionUser(req);
-      if (user === undefined) {
-        sendJson(res, 401, { error: 'not-signed-in', signIn: loginPath });
+      const accounts = severalHosts ? accountList(req) : undefined;
+      if (user === undefined && (accounts === undefined || accounts.length === 0)) {
+        sendJson(res, 401, {
+          error: 'not-signed-in',
+          signIn: severalHosts ? chooserPath : loginPath,
+        });
         return;
       }
       sendJson(res, 200, {
-        ...user,
-        principalId: personIdOn(primary.names, user.id),
-        serverAdmin: isServerAdmin(user),
+        ...(user === undefined
+          ? {}
+          : {
+              ...user,
+              principalId: personIdOn(primary.names, user.id),
+              serverAdmin: isServerAdmin(user),
+            }),
         wikis: true,
+        ...(accounts === undefined ? {} : { accounts, signIn: chooserPath }),
       });
       return;
     }
@@ -733,7 +876,10 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   function handleApi(req: IncomingMessage, res: ServerResponse, path: string): void {
     const user = sessionUser(req);
     if (user === undefined) {
-      sendJson(res, 401, { error: 'not-signed-in', signIn: loginPath });
+      sendJson(res, 401, {
+        error: 'not-signed-in',
+        signIn: severalHosts ? chooserPath : loginPath,
+      });
       return;
     }
     const method = req.method ?? 'GET';

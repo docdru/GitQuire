@@ -98,3 +98,11 @@ Linking accounts into one person; one AI connection for both accounts; GitLab; a
 - Editor processes stay one-host; a process for a further host is told its host through its environment (`GITQUIRE_HOST`, addresses, admins, e-mail format, `GITQUIRE_HOST_KEY`, `GITQUIRE_HOST_LABEL`).
 - Allowed-owner pins of further hosts are kept in `wikis.json` under `hostOwners`; the first host's stay under `owners`, so a one-host table file is written exactly as before.
 
+### B3 (session with several accounts)
+
+- One cookie, one account per host key, each with its own expiry, so one account can expire or be signed out while the other stays (S6). With only the first host's account the cookie keeps today's format; with two it is a compact list (about 400 bytes for two ordinary accounts; the test with 500-character names and avatar addresses stays under 3800 bytes because those two fields are trimmed in the list form).
+- The OAuth state cookie names the host; a callback at another host's address is refused like an expired sign-in and logged (S5). A state cookie from before the update has no host and counts as the first host's.
+- With several hosts, a person who is not signed in goes to `/auth/sign-in`, which offers every host; `/auth/logout` offers "Sign out of <host>" per account and "Sign out of all". With one host, sign-in still starts at the host right away and `/auth/sign-in` does not exist (S8).
+- The wiki menu's "Sign in with <other host>" comes in B5 together with the other app changes.
+- Independent review of #242: each account in the cookie carries an 8-character fingerprint of its host (kind and web origin), so moving a key to another server, or making another host the first, drops the account instead of reading `github-11` as `forgejo-11` (S1). A one-host cookie from before the update has no fingerprint and is read as the first host's until it expires (at most `GITQUIRE_SESSION_DAYS`); new one-host cookies carry it as an extra field `h`, which `main` ignores. The cookie size is enforced: names and avatar addresses are shortened, then emptied, until the cookie fits in 3800 bytes (tested with CJK names, control characters and three hosts). Each further host has its own state cookie (`gq_oauth_state_<key>`), so sign-ins started in two tabs at two hosts do not spoil each other; the first host keeps `gq_oauth_state`.
+
