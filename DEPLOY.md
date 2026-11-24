@@ -149,8 +149,9 @@ edits; changes without a signed-in person are authored as `GITQUIRE_GIT_NAME` /
 
 GitQuire can use a [Forgejo](https://forgejo.org) server instead of GitHub: people sign in with
 their Forgejo account, and a person may use the wiki when they can write to its repository, as on
-GitHub. Forgejo 15 or later is required; Gitea and Codeberg may work but are not tested. One
-GitQuire server uses one host: GitHub or Forgejo, never both.
+GitHub. Forgejo 15 or later is required; Gitea and Codeberg may work but are not tested. A
+single wiki uses one host; a front door for several wikis can serve GitHub and Forgejo together
+(see [Two Git hosts on one server](#two-git-hosts-on-one-server)).
 
 Forgejo has no GitHub App, so GitQuire acts through a **bot account** with **two tokens**:
 
@@ -488,9 +489,8 @@ out.
 ## Several wikis
 
 `GITQUIRE_WIKIS=on` turns the container into a front door for several wikis. Each wiki opens at
-`/w/<owner>/<repo>/` and runs in its own editor process, started when someone opens it and stopped
-after 30 minutes without use, once it says it is pushed and clean. This is new on the
-`wikis-hosts` branch; try it on a copy of your volume first (see
+`/w/<host>/<owner>/<repo>/`, for example `/w/github/team/handbook/`, and runs in its own editor process, started when someone opens it and stopped
+after 30 minutes without use, once it says it is pushed and clean. Try it on a copy of your volume first (see
 [Moving a single wiki over](#moving-a-single-wiki-over)).
 
 ### Settings
@@ -499,7 +499,7 @@ after 30 minutes without use, once it says it is pushed and clean. This is new o
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. `off` or empty: one wiki, exactly as before. Any other value stops the container. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
-| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it, after sign-in and only for people who can open it (others get the no-wiki page, so its name is never shown). `gitquire wikis adopt` moves this repository's single-wiki volume over. |
+| `GITQUIRE_REPO` | Optional. The repository whose single-wiki volume `gitquire wikis adopt` moves over; without `GITQUIRE_ALLOWED_OWNERS`, its owner is the allowed owner. |
 | `GITQUIRE_ADMINS` | Server administrators. They see every disconnected wiki and why, can revoke anyone's agent tokens, and on Forgejo they are the only ones who add a wiki, because they enter its token. |
 
 Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET` (at least 32
@@ -595,7 +595,13 @@ new one in the wiki list.
 
 The volume holds `/data/server/` (the wiki table, the agent tokens and the Forgejo tokens) and one
 folder per wiki, `/data/wikis/<host>-<repository id>/`, so a renamed repository keeps its folder;
-its old address redirects to the new one. A wiki's drafts are kept beside it, in
+its old address redirects to the new one. The `<host>` in addresses is the host's key: the kind
+(`github` or `forgejo`) for the first host, and the key from `GITQUIRE_HOSTS` for a further one.
+
+**Addresses carry the host.** Every wiki address names its host, also on a server with one host.
+There are no other addresses for a wiki: `/w/<owner>/<repo>/…` and paths outside `/w/` are not
+wiki addresses and answer as no wiki, so bookmarks and links from before this form stop working.
+A wiki's drafts are kept beside it, in
 `/data/wikis/.gitquire-drafts/<host>-<repository id>/`; `GITQUIRE_DRAFTS_DIR` and the `/drafts`
 volume of `deploy/compose.yaml` are not used with several wikis. A volume is either one wiki or
 several: the front door refuses a volume that holds a single wiki's checkout, and a single wiki
@@ -607,19 +613,23 @@ refuses a volume with `server/wikis.json` but no `.git` (a wiki's own repository
 
 ### AI agents with several wikis
 
-AI agents connect to the front door, not to a wiki: there is **one** address, `https://<server>/mcp`,
-and one connection or token per person, whichever wikis they use. Agent tokens, `/auth/agents`,
-the connector sign-in (`GITQUIRE_MCP_CONNECTORS=on`) and the connector discovery addresses
-(`/.well-known/oauth-*`, `/oauth/*`) are all at the root. The front door keeps the tokens, hashed,
-in `/data/server/agent-tokens.json`; no editor process has a token store of its own. Server
-administrators (`GITQUIRE_ADMINS`) can revoke anyone's tokens there.
+AI agents connect to the front door, not to a wiki: there is **one** address per Git host,
+`https://<server>/mcp/<host key>` (for example `/mcp/forgejo`), and one connection or token per
+person and host, whichever wikis they use. Each host has its own agents page,
+`/auth/<host key>/agents`, its own connector sign-in (`GITQUIRE_MCP_CONNECTORS=on`) at
+`/oauth/<host key>/…` with discovery at `/.well-known/oauth-protected-resource/mcp/<host key>` and
+`/.well-known/oauth-authorization-server/oauth/<host key>`, and its own token store,
+`/data/server/agent-tokens-<host key>.json` (hashed); no editor process has a token store of its
+own. `/mcp` without a host key is not an address; it answers 404 and lists the addresses. Server
+administrators of a host can revoke anyone's tokens there.
 
 The agent sees a tool `list_wikis`, which lists the wikis the person can open, and the usual wiki
-tools, each with an extra `wiki` argument (`owner/repo`, for example `team/handbook`). A person
-with exactly one wiki may leave it out. On every call the front door checks that the person may
+tools, each with an extra `wiki` argument naming the wiki with its host, as `list_wikis` does
+(`github/team/handbook`); `team/handbook` alone is refused. A person with exactly one wiki may
+leave it out. On every call the front door checks that the person may
 open the named wiki, the same check as for the browser, and passes the call to that wiki's process
-as that person; the edits are credited to them. `/w/<owner>/<repo>/mcp` is not an address: it
-answers 404 and names the one `/mcp` address. **Settings → Connect AI** shows that address in
+as that person; the edits are credited to them. `/w/<host>/<owner>/<repo>/mcp` is not an address: it
+answers 404 and names the `/mcp/<host key>` address of the host in the address. **Settings → Connect AI** shows that address in
 every wiki, and **Ask Claude** names the wiki in the prompt.
 
 Each wiki tool also takes an optional `workspace` argument: `live`, `draft` (the draft the person
@@ -698,10 +708,11 @@ What it does, and refuses:
   `/data/.gitquire-moving-in` (or `.gitquire-moving-back` for the way back); while it is there,
   neither the single wiki nor the front door starts, and running the same command again finishes
   the move (only commits not yet pushed still need `--force` then).
-- **Agent tokens move:** they are copied to the front door's store, `/data/server/agent-tokens.json`,
-  which has one writer, the front door. The `/mcp` address stays the same, and a person with one
-  wiki needs no `wiki` argument, so existing tokens and connectors keep working. The original file
-  stays in the wiki's folder, unused.
+- **Agent tokens move:** they are copied to the front door's store for the host,
+  `/data/server/agent-tokens-<host>.json`, which has one writer, the front door. The address
+  changes from `/mcp` to `/mcp/<host>`, so agents and connectors must be pointed at the new
+  address; the tokens themselves keep working there. The original file stays in the wiki's folder,
+  unused.
 - **Saved AI keys** are re-sealed with the wiki's own key (see AI chat above), so people do not
   enter them again; the old files stay in `ai-keys.before-wikis`. This needs the
   `GITQUIRE_SESSION_SECRET` the single wiki ran with; if the keys do not open with it, the command
@@ -730,9 +741,77 @@ the front door (the wiki table, the Forgejo tokens, the drafts folder) in
 A volume that holds several wikis (`server/wikis.json` without `.git`) or an unfinished move is
 refused when the container starts with `GITQUIRE_WIKIS` off, before anything is written to it.
 
+### Two Git hosts on one server
+
+One front door can serve wikis from **GitHub and one Forgejo server** together; this combination is
+tested (against the real Forgejo 15 and a GitHub fake; the real GitHub has not been tried with two
+hosts yet). The host you configure as today is the **first host**. Further hosts are listed in
+`GITQUIRE_HOSTS` and each is described by its own variables, `GITQUIRE_HOST_<KEY>_…`:
+
+```env
+GITQUIRE_WIKIS=on
+GITQUIRE_HOST=forgejo
+GITQUIRE_HOST_URL=https://git.example.com
+GITQUIRE_HOST_CLIENT_ID=…
+GITQUIRE_HOST_CLIENT_SECRET=…
+GITQUIRE_HOST_TOKEN_FILE=/run/secrets/forgejo-bot
+GITQUIRE_ALLOWED_OWNERS=team
+GITQUIRE_ADMINS=alice
+
+GITQUIRE_HOSTS=github
+GITQUIRE_HOST_GITHUB_CLIENT_ID=…
+GITQUIRE_HOST_GITHUB_CLIENT_SECRET_FILE=/run/secrets/github-client-secret
+GITQUIRE_HOST_GITHUB_APP_ID=123456
+GITQUIRE_HOST_GITHUB_APP_PRIVATE_KEY_FILE=/run/secrets/app.pem
+GITQUIRE_HOST_GITHUB_ALLOWED_OWNERS=team
+GITQUIRE_HOST_GITHUB_ADMINS=alice
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_HOSTS` | The keys of the further hosts, separated by commas. A key is lower-case letters, digits and dashes, starting with a letter; it appears in addresses (`/w/<key>/…`) and person ids, so do not change it later. A key that is `github` or `forgejo` is also the kind. |
+| `GITQUIRE_HOST_<KEY>_KIND` | `github` or `forgejo`; may be left out when the key is the kind. |
+| `GITQUIRE_HOST_<KEY>_URL`, `_API_URL` | The host's https address; for GitHub default `https://github.com` (then the API is `https://api.github.com`, otherwise `<url>/api/v3`), for Forgejo required (the API defaults to `<url>/api/v1`). |
+| `GITQUIRE_HOST_<KEY>_CLIENT_ID`, `_CLIENT_SECRET` (or `_FILE`) | The sign-in application of this host. Its callback is `<server>/auth/<key>/callback`. |
+| GitHub: `GITQUIRE_HOST_<KEY>_APP_ID`, `_APP_PRIVATE_KEY_FILE` (or `_APP_PRIVATE_KEY`) | The GitHub App, as for the first host. |
+| Forgejo: `GITQUIRE_HOST_<KEY>_TOKEN` (or `_FILE`) | The bot's unlimited token, as `GITQUIRE_HOST_TOKEN`. |
+| `GITQUIRE_HOST_<KEY>_ALLOWED_OWNERS` | Required: the owners on this host whose repositories may become wikis. |
+| `GITQUIRE_HOST_<KEY>_ADMINS` | Server administrators on this host. `GITQUIRE_ADMINS` is for the first host only. |
+| `GITQUIRE_HOST_<KEY>_LABEL`, `_COMMIT_EMAIL_FORMAT` | Optional: the name shown to people, and the commit address format. |
+
+A single wiki (`GITQUIRE_WIKIS` off) refuses `GITQUIRE_HOSTS`. Two hosts with the same address
+are refused. With one host, nothing above is needed.
+
+**People sign in once per host.** The sign-in page (`/auth/sign-in`) offers each host; a person can
+be signed in with both at once, and each account sees the wikis of its own host. Accounts are never
+linked: the same login, even the same number, on two hosts is two people, with their own access
+checks, mentions, settings and agent tokens. **Sign out…** in the wiki menu signs out of one host
+or all. The wiki list joins both accounts' wikis, names each `<host>/<owner>/<repo>` and keeps
+answering when one host is slow or down (that host's wikis are left out after a few seconds). Add a
+wiki asks which host when two are signed in. Server administrators are per host: an administrator
+on one host has no say over the other's wikis or tokens.
+
+**AI agents have one address per host**, because one connection acts as one person. Every host,
+the first included, is addressed by its key:
+
+| | Host `<key>` |
+| --- | --- |
+| MCP address and connector | `/mcp/<key>` |
+| Tokens and connected apps | `/auth/<key>/agents` |
+| Token store | `/data/server/agent-tokens-<key>.json` |
+
+A token or connector reaches only its host's wikis and is refused at the other address. Someone
+with accounts on both hosts adds two connectors (for example "GitQuire Forgejo" and "GitQuire
+GitHub"). Inside a wiki, **Settings → Connect AI** shows the address of that wiki's host.
+
+**Going back** to an image without several hosts: first remove the further hosts' wikis (or keep a
+copy of the volume from before). An older image reads the wiki table but not the host key of a
+further host's wiki, and would take such a wiki for one of the first host's.
+
 ### Known limits
 
-- One host per server: GitHub or Forgejo.
+- One GitHub and one Forgejo per server are tested; more hosts may work but are not promised.
+  Accounts on two hosts are not linked, and an AI connection reaches one host.
 - About 250 MB of memory per wiki in use, and the same per draft in use. A wiki's process starts
   when someone opens it (a few seconds) and stops after 30 minutes without use.
 - All wikis share one browser origin and one container user; the separation is the front door's
@@ -851,4 +930,5 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_NAMING` | [Wiki administration](#wiki-administration) |
 | `GITQUIRE_BEHIND_FRONT_DOOR`, `GITQUIRE_DOOR_TOKEN_SOCKET` | [Behind GitQuire's front door](#behind-gitquires-front-door) |
 | `GITQUIRE_WIKIS`, `GITQUIRE_ALLOWED_OWNERS` | [Several wikis](#several-wikis) |
+| `GITQUIRE_HOSTS`, `GITQUIRE_HOST_<KEY>_…` | [Two Git hosts on one server](#two-git-hosts-on-one-server) |
 | `GITQUIRE_ACCESS_CHECK_SECONDS`, `GITQUIRE_WIKI_IDLE_MINUTES` | [Several wikis](#timing-of-access-checks-and-stops) |

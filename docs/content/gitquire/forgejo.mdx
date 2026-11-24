@@ -6,8 +6,9 @@ description: Use a Forgejo server instead of GitHub for sign-in, sync and drafts
 
 GitQuire can use a [Forgejo](https://forgejo.org) server instead of GitHub: people sign in with
 their Forgejo account, and a person may use the wiki when they can write to its repository, as on
-GitHub. Forgejo 15 or later is required; Gitea and Codeberg may work but are not tested. One
-GitQuire server uses one host: GitHub or Forgejo, never both.
+GitHub. Forgejo 15 or later is required; Gitea and Codeberg may work but are not tested. A
+single wiki uses one host; with [several wikis](./several-wikis.mdx), one server can serve GitHub
+and Forgejo together.
 
 Forgejo has no GitHub App, so GitQuire acts through a **bot account** with **two tokens**:
 

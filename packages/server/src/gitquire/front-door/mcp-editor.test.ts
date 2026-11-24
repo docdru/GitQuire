@@ -84,7 +84,8 @@ describe('the front door in front of a real editor /mcp', () => {
       externalUrl: new URL('http://127.0.0.1'),
       table: {
         list: () => [wiki],
-        byAddress: (owner, name) =>
+        byOldAddress: () => undefined,
+        byAddress: (_host, owner, name) =>
           owner === 'team' && name === 'a' ? { wiki, current: true } : undefined,
       },
       access: { decide: async () => decision },
@@ -126,12 +127,18 @@ describe('the front door in front of a real editor /mcp', () => {
     }
     expect(editor.seen.filter((line) => line === 'POST /mcp').length).toBeGreaterThan(0);
 
-    const result = await client.callTool({ name: 'workspace', arguments: { wiki: 'team/a' } });
+    const result = await client.callTool({
+      name: 'workspace',
+      arguments: { wiki: 'github/team/a' },
+    });
     expect(result.content).toBeDefined();
     expect(editor.seen.some((line) => line.startsWith('GET '))).toBe(false);
 
     decision = { open: false, why: 'no-access' };
-    const refused = await client.callTool({ name: 'workspace', arguments: { wiki: 'team/a' } });
+    const refused = await client.callTool({
+      name: 'workspace',
+      arguments: { wiki: 'github/team/a' },
+    });
     expect(refused.isError).toBe(true);
   });
 
@@ -139,7 +146,11 @@ describe('the front door in front of a real editor /mcp', () => {
     const editor = await editorOnSocket();
     const door = createDoorMcp({
       externalUrl: new URL('http://127.0.0.1'),
-      table: { list: () => [wiki], byAddress: () => ({ wiki, current: true }) },
+      table: {
+        list: () => [wiki],
+        byAddress: () => ({ wiki, current: true }),
+        byOldAddress: () => undefined,
+      },
       access: { decide: async () => ({ open: true, admin: false }) },
       processes: { ensure: async () => editor.socket, touch: () => {}, secretOf: () => 'wrong' },
       log: silentLog,
@@ -164,7 +175,7 @@ describe('the front door in front of a real editor /mcp', () => {
     );
     cleanup.push(() => client.close());
     await expect(
-      client.callTool({ name: 'workspace', arguments: { wiki: 'team/a' } }),
+      client.callTool({ name: 'workspace', arguments: { wiki: 'github/team/a' } }),
     ).rejects.toThrow();
   });
 });

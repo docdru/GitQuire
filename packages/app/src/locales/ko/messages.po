@@ -1510,7 +1510,7 @@ msgstr "폴더 속성 지움"
 msgid "Clearing local collaboration data for \"{docName}\" before reconnecting."
 msgstr "다시 연결하기 전에 \"{docName}\"의 로컬 협업 데이터를 지우는 중입니다."
 
-msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with {host} and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -5093,6 +5093,9 @@ msgstr "{host}에서 {fullName} 열기"
 msgid "Open {keyName} in browser"
 msgstr "브라우저에서 {keyName} 열기"
 
+msgid "Open {repoName} on {host}"
+msgstr ""
+
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "다음 주소를 열어 이 코드를 입력하세요: <0><1>{verificationUri}</1><2/></0>"
 
@@ -6595,7 +6598,13 @@ msgstr "로그인"
 msgid "Sign in again to continue."
 msgstr ""
 
-msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
+msgid "Sign in with {label}"
+msgstr ""
+
+msgid "Sign out…"
 msgstr ""
 
 msgid "Sign-in stream ended without confirmation — please try again"

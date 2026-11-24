@@ -1,6 +1,7 @@
 import { useLingui } from '@lingui/react/macro';
 import { Check, ChevronDown, Folder } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { LeftTruncatedName } from '@/components/LeftTruncatedName';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,7 +21,7 @@ const BADGE_CLASS =
 
 const LABEL_CLASS = 'min-w-0 gap-1.5 px-2 font-normal text-foreground text-sm';
 
-function nameFromPrefix(prefix: string): string {
+export function nameFromPrefix(prefix: string): string {
   return prefix.replace(/^\/w\//, '');
 }
 
@@ -56,12 +57,8 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
   const host = repository?.host ?? '';
   const elsewhere = unreadElsewhere(door, here);
   const current = door?.wikis.find((wiki) => wiki.address === here);
-  const fullName =
-    current === undefined
-      ? repository === null
-        ? nameFromPrefix(prefix)
-        : `${repository.owner}/${repository.name}`
-      : `${current.owner}/${current.name}`;
+  const fullName = current === undefined ? nameFromPrefix(prefix) : current.fullName;
+  const repoName = repository === null ? fullName : `${repository.owner}/${repository.name}`;
 
   return (
     <DropdownMenu
@@ -79,13 +76,11 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
         >
           <Folder aria-hidden="true" className="size-4 shrink-0" />
           <span className="sr-only">{t`Repository`}</span>
-          <span
-            className="min-w-0 truncate"
+          <LeftTruncatedName
+            name={fullName}
             data-app-header-center-label=""
             data-testid="web-project-name-label"
-          >
-            {fullName}
-          </span>
+          />
           {elsewhere > 0 && (
             <span className={BADGE_CLASS} data-testid="wiki-menu-badge">
               <span aria-hidden="true">{unreadBadge(elsewhere)}</span>
@@ -96,10 +91,17 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-72" data-testid="wiki-menu">
+        <DropdownMenuLabel
+          className="break-all font-normal text-muted-foreground text-xs"
+          data-testid="wiki-menu-current"
+        >
+          {fullName}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
         <DropdownMenuLabel>{t`Your wikis`}</DropdownMenuLabel>
         {(door?.wikis ?? []).map((wiki) => {
           const isHere = wiki.address === here;
-          const name = `${wiki.owner}/${wiki.name}`;
+          const name = wiki.fullName;
           return (
             <DropdownMenuItem
               key={wiki.key}
@@ -116,7 +118,7 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
                   aria-hidden="true"
                   className={isHere ? 'size-4 shrink-0' : 'size-4 shrink-0 opacity-0'}
                 />
-                <span className="min-w-0 flex-1 truncate">{name}</span>
+                <LeftTruncatedName name={name} className="flex-1" />
                 {wiki.unread > 0 && (
                   <span className={BADGE_CLASS} data-unread={wiki.unread}>
                     {unreadBadge(wiki.unread)}
@@ -134,7 +136,7 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
         {repository !== null && (
           <DropdownMenuItem asChild>
             <a href={repository.url} target="_blank" rel="noreferrer">
-              {t`Open ${fullName} on ${host}`}
+              {t`Open ${repoName} on ${host}`}
             </a>
           </DropdownMenuItem>
         )}
@@ -144,6 +146,21 @@ export function GitQuireWikiMenu({ prefix }: { prefix: string }) {
         <DropdownMenuItem asChild>
           <a href={door?.addWikiPage ?? '/add-wiki'}>{t`Add a wiki`}</a>
         </DropdownMenuItem>
+        {(door?.signInWith ?? []).map((host) => {
+          const label = host.label;
+          return (
+            <DropdownMenuItem key={host.host} asChild data-sign-in-host={host.host}>
+              <a href={`${host.address}?next=${encodeURIComponent(here)}`}>
+                {t`Sign in with ${label}`}
+              </a>
+            </DropdownMenuItem>
+          );
+        })}
+        {door?.severalHosts === true && (
+          <DropdownMenuItem asChild>
+            <a href="/auth/logout">{t`Sign out…`}</a>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

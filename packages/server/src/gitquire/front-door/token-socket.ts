@@ -13,7 +13,7 @@ export const DOOR_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
 export interface TokenSocketDeps {
   wikiOfSecret: (secret: string) => string | undefined;
   repoOf: (key: string) => HostRepoRef | undefined;
-  tokenFor: (repo: HostRepoRef) => Promise<string | undefined>;
+  tokenFor: (repo: HostRepoRef, key: string) => Promise<string | undefined>;
   log: GateLogger;
   now?: () => number;
 }
@@ -34,7 +34,7 @@ function createTokenHandler(
       sendJson(res, 403, { error: 'unknown-wiki' });
       return;
     }
-    deps.tokenFor(repo).then(
+    deps.tokenFor(repo, key).then(
       (token) => {
         if (token === undefined) {
           deps.log.warn({ wiki: key }, '[gitquire-wikis] no host token for a wiki');

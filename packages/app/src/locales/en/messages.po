@@ -1510,8 +1510,8 @@ msgstr "cleared folder properties"
 msgid "Clearing local collaboration data for \"{docName}\" before reconnecting."
 msgstr "Clearing local collaboration data for \"{docName}\" before reconnecting."
 
-msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
-msgstr "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with {host} and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
+msgstr "Click <0>Connect</0>, sign in with {host} and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 
 msgid "Click an agent's avatar in the presence bar to view their session."
 msgstr "Click an agent's avatar in the presence bar to view their session."
@@ -5093,6 +5093,9 @@ msgstr "Open {fullName} on {host}"
 msgid "Open {keyName} in browser"
 msgstr "Open {keyName} in browser"
 
+msgid "Open {repoName} on {host}"
+msgstr "Open {repoName} on {host}"
+
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 
@@ -6595,8 +6598,14 @@ msgstr "Sign in"
 msgid "Sign in again to continue."
 msgstr "Sign in again to continue."
 
-msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
-msgstr "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+
+msgid "Sign in with {label}"
+msgstr "Sign in with {label}"
+
+msgid "Sign out…"
+msgstr "Sign out…"
 
 msgid "Sign-in stream ended without confirmation — please try again"
 msgstr "Sign-in stream ended without confirmation — please try again"

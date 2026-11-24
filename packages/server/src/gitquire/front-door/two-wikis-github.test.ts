@@ -417,8 +417,8 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
       });
       expect(made.status).toBe(201);
     }
-    const a = echo(await get('alice', '/w/team/a/page'));
-    const b = echo(await get('alice', '/w/team/b/page'));
+    const a = echo(await get('alice', '/w/github/team/a/page'));
+    const b = echo(await get('alice', '/w/github/team/b/page'));
     expect([a.repo, b.repo]).toEqual(['team/a', 'team/b']);
     expect(a.pid).not.toBe(b.pid);
     expect(a.headers['x-gitquire-internal']).not.toBe(b.headers['x-gitquire-internal']);
@@ -453,38 +453,40 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     expect(counted.wikis.map((w) => [w.key, w.unread])).toEqual([['github-1', 1]]);
     expect(JSON.stringify(counted)).not.toContain('github-2');
     const page = await get('bob', '/', { accept: 'text/html' });
-    expect(page.body).toContain('/w/team/a/');
+    expect(page.body).toContain('/w/github/team/a/');
     expect(page.body).not.toContain('team/b');
   }, 30_000);
 
   it('keeps bob, with wiki a only, out of wiki b by every address', async () => {
-    const notAWiki = await get('bob', '/w/team/b/page');
+    const notAWiki = await get('bob', '/w/github/team/b/page');
     expect(notAWiki.status).toBe(404);
     expect(notAWiki.body).not.toContain('"b"');
-    const html = await get('bob', '/w/team/b/', { accept: 'text/html' });
+    const html = await get('bob', '/w/github/team/b/', { accept: 'text/html' });
     expect(html.status).toBe(404);
     expect(html.body).not.toContain('team/b');
-    expect((await get('bob', '/w/team/b/image.png')).status).toBe(404);
+    expect((await get('bob', '/w/github/team/b/image.png')).status).toBe(404);
     expect((await get('bob', '/w/TEAM/B/api/gitquire/drafts')).status).toBe(404);
-    expect((await get('bob', '/w/team/b/api/gitquire/drafts/open')).status).toBe(404);
-    const viaReferer = await get('bob', '/image.png', { referer: `${base}/w/team/b/page` });
+    expect((await get('bob', '/w/github/team/b/api/gitquire/drafts/open')).status).toBe(404);
+    const viaReferer = await get('bob', '/image.png', { referer: `${base}/w/github/team/b/page` });
     expect(viaReferer.status).toBe(404);
-    const ownReferer = echo(await get('bob', '/image.png', { referer: `${base}/w/team/a/page` }));
+    const ownReferer = echo(
+      await get('bob', '/image.png', { referer: `${base}/w/github/team/a/page` }),
+    );
     expect(ownReferer.repo).toBe('team/a');
-    const ws = await upgrade('bob', '/w/team/b/collab');
+    const ws = await upgrade('bob', '/w/github/team/b/collab');
     expect(ws.line).toBe('HTTP/1.1 404 Not Found');
     ws.socket.destroy();
-    const own = await upgrade('bob', '/w/team/a/collab');
+    const own = await upgrade('bob', '/w/github/team/a/collab');
     expect(own.line).toBe('HTTP/1.1 101 Switching Protocols');
     own.socket.destroy();
     const forged = echo(
-      await get('bob', '/w/team/a/page', {
+      await get('bob', '/w/github/team/a/page', {
         'x-gitquire-principal': 'forged',
-        'x-gitquire-prefix': '/w/team/b',
+        'x-gitquire-prefix': '/w/github/team/b',
         cookie: `${sessions.bob}; gq_view_github-2=d1`,
       }),
     );
-    expect(forged.headers['x-gitquire-prefix']).toBe('/w/team/a');
+    expect(forged.headers['x-gitquire-prefix']).toBe('/w/github/team/a');
     expect(forged.headers['x-gitquire-view']).toBeUndefined();
     expect(
       JSON.parse(Buffer.from(forged.headers['x-gitquire-principal'] ?? '', 'base64url').toString()),
@@ -492,20 +494,20 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
   }, 30_000);
 
   it('keeps an open draft to its own wiki', async () => {
-    const opened = await get('alice', '/w/team/a/api/gitquire/drafts/open');
+    const opened = await get('alice', '/w/github/team/a/api/gitquire/drafts/open');
     const view = opened.cookies.find((c) => c.startsWith('gq_view_github-1='));
     expect(view).toBeDefined();
     const cookie = `${sessions.alice}; ${view}`;
-    expect(echo(await get('alice', '/w/team/a/page', { cookie })).headers['x-gitquire-view']).toBe(
-      'd1',
-    );
     expect(
-      echo(await get('alice', '/w/team/b/page', { cookie })).headers['x-gitquire-view'],
+      echo(await get('alice', '/w/github/team/a/page', { cookie })).headers['x-gitquire-view'],
+    ).toBe('d1');
+    expect(
+      echo(await get('alice', '/w/github/team/b/page', { cookie })).headers['x-gitquire-view'],
     ).toBeUndefined();
   }, 30_000);
 
   it('cuts bob off an open live-editing connection once his access is removed (R8)', async () => {
-    const live = await upgrade('bob', '/w/team/a/collab');
+    const live = await upgrade('bob', '/w/github/team/a/collab');
     expect(live.line).toBe('HTTP/1.1 101 Switching Protocols');
     const closed = new Promise<number>((resolve) => {
       const started = Date.now();
@@ -516,7 +518,7 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     expect(
       (
         await until(
-          () => get('bob', '/w/team/a/page'),
+          () => get('bob', '/w/github/team/a/page'),
           (a) => a.status === 404,
         )
       ).status,
@@ -525,23 +527,23 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
   }, 30_000);
 
   it('stops an unused wiki and starts it again on the next request', async () => {
-    const before = echo(await get('alice', '/w/team/b/page')).pid;
+    const before = echo(await get('alice', '/w/github/team/b/page')).pid;
     const gone = await until(
       async () => existsSync(`/proc/${before}`),
       (running) => !running,
     );
     expect(gone).toBe(false);
-    const after = echo(await get('alice', '/w/team/b/page'));
+    const after = echo(await get('alice', '/w/github/team/b/page'));
     expect(after.repo).toBe('team/b');
     expect(after.pid).not.toBe(before);
   }, 30_000);
 
   it('does not stop a wiki that is not pushed and clean, and pushes before the container stops (R6)', async () => {
-    echo(await get('alice', '/w/team/a/page'));
-    const pid = echo(await get('alice', '/w/team/a/page')).pid;
+    echo(await get('alice', '/w/github/team/a/page'));
+    const pid = echo(await get('alice', '/w/github/team/a/page')).pid;
     writeFileSync(join(data, 'wikis', 'github-1', 'unpushed'), 'edit');
     await new Promise((resolve) => setTimeout(resolve, 4_000));
-    expect(echo(await get('alice', '/w/team/a/page')).pid).toBe(pid);
+    expect(echo(await get('alice', '/w/github/team/a/page')).pid).toBe(pid);
     await stopDoor();
     expect(existsSync(join(data, 'wikis', 'github-1', 'pushed-on-stop'))).toBe(true);
     expect(existsSync(join(data, 'wikis', 'github-1', 'unpushed'))).toBe(false);
@@ -554,12 +556,12 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     await stopDoor();
     await startDoor();
     const moved = await until(
-      () => get('alice', '/w/team/b/page'),
+      () => get('alice', '/w/github/team/b/page'),
       (a) => a.status === 301,
     );
     expect(moved.status).toBe(301);
-    expect(moved.location).toBe('/w/team/b2/page');
-    expect(echo(await get('alice', '/w/team/b2/page')).repo).toBe('team/b2');
+    expect(moved.location).toBe('/w/github/team/b2/page');
+    expect(echo(await get('alice', '/w/github/team/b2/page')).repo).toBe('team/b2');
     expect(existsSync(join(data, 'wikis', 'github-2', 'bootstrapped'))).toBe(true);
   }, 30_000);
 
@@ -567,7 +569,7 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     const a = github.repos.find((r) => r.id === 1);
     if (a !== undefined) a.installed = false;
     const refused = await until(
-      () => get('alice', '/w/team/a/page', { accept: 'text/html' }),
+      () => get('alice', '/w/github/team/a/page', { accept: 'text/html' }),
       (answer) => answer.status === 403,
     );
     expect(refused.status).toBe(403);
@@ -578,7 +580,7 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     const shown = list.wikis.find((w) => w.name === 'a');
     expect(shown?.state).toBe('disconnected');
     expect(['token', 'removed', 'gone']).toContain(shown?.reason);
-    expect((await get('bob', '/w/team/a/page')).status).toBe(404);
+    expect((await get('bob', '/w/github/team/a/page')).status).toBe(404);
     expect(existsSync(join(data, 'wikis', 'github-1', 'pushed-on-stop'))).toBe(true);
     expect(openWikiTable(wikiTableFile(data)).byKey('github-1')).toMatchObject({
       state: 'disconnected',
@@ -587,17 +589,17 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     await stopDoor();
     await startDoor();
     const back = await until(
-      () => get('alice', '/w/team/a/page'),
+      () => get('alice', '/w/github/team/a/page'),
       (answer) => answer.status === 200,
     );
     expect(echo(back).repo).toBe('team/a');
   }, 30_000);
 
   it('keeps people inside and lets nobody new in while GitHub is down (R14)', async () => {
-    echo(await get('alice', '/w/team/a/page'));
+    echo(await get('alice', '/w/github/team/a/page'));
     github.down = true;
     await new Promise((resolve) => setTimeout(resolve, 1_500));
-    expect(echo(await get('alice', '/w/team/a/page')).repo).toBe('team/a');
+    expect(echo(await get('alice', '/w/github/team/a/page')).repo).toBe('team/a');
     const carol = await signIn('carol');
     expect(carol.status).toBe(502);
     expect(sessions.carol).toBeUndefined();
@@ -624,7 +626,7 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
       ['a', 'disconnected', 'owner-not-allowed'],
       ['b2', 'disconnected', 'owner-not-allowed'],
     ]);
-    expect((await get('alice', '/w/team/a/page')).status).toBe(403);
+    expect((await get('alice', '/w/github/team/a/page')).status).toBe(403);
     await stopDoor();
     await startDoor();
   }, 30_000);

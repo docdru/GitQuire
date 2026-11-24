@@ -31,16 +31,19 @@ describe('Ask Claude', () => {
     );
   });
 
-  it('behind the front door, points at the one /mcp address and names the wiki', () => {
-    const address = askClaudeAddress('https://wiki.example.com', '/w/team/handbook');
-    expect(address).toEqual({ wikiUrl: 'https://wiki.example.com', wiki: 'team/handbook' });
+  it('behind the front door, points at the address of the wiki’s host and names the wiki', () => {
+    const address = askClaudeAddress('https://wiki.example.com', '/w/github/team/handbook');
+    expect(address).toEqual({
+      wikiUrl: 'https://wiki.example.com/mcp/github',
+      wiki: 'github/team/handbook',
+    });
     const prompt = buildClaudePrompt({
       ...address,
       target: { kind: 'page', path: 'index.md' },
       request: 'Summarise',
     });
     expect(prompt.split('\n')[0]).toBe(
-      'Use the GitQuire wiki tools (the MCP server for https://wiki.example.com) for this, in the wiki team/handbook: give "team/handbook" as the wiki argument of every call.',
+      'Use the GitQuire wiki tools (the MCP server for https://wiki.example.com/mcp/github) for this, in the wiki github/team/handbook: give "github/team/handbook" as the wiki argument of every call.',
     );
     expect(askClaudeAddress('https://wiki.example.com', '')).toEqual({
       wikiUrl: 'https://wiki.example.com',

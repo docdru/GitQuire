@@ -1506,7 +1506,7 @@ msgstr "ফোল্ডার প্রপার্টি মুছে ফেল
 msgid "Clearing local collaboration data for \"{docName}\" before reconnecting."
 msgstr "পুনরায় যুক্ত হওয়ার আগে \"{docName}\"-এর স্থানীয় সহযোগিতা তথ্য মুছে ফেলা হচ্ছে।"
 
-msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with {host} and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -5089,6 +5089,9 @@ msgstr "{host}-এ {fullName} খুলুন"
 msgid "Open {keyName} in browser"
 msgstr "{keyName} ব্রাউজারে খুলুন"
 
+msgid "Open {repoName} on {host}"
+msgstr ""
+
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "<0><1>{verificationUri}</1><2/></0> খুলুন এবং এই কোডটি দিন:"
 
@@ -6591,7 +6594,13 @@ msgstr "সাইন ইন করুন"
 msgid "Sign in again to continue."
 msgstr ""
 
-msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
+msgid "Sign in with {label}"
+msgstr ""
+
+msgid "Sign out…"
 msgstr ""
 
 msgid "Sign-in stream ended without confirmation — please try again"

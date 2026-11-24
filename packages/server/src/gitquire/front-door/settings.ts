@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { loginSet, parseGitHubRepo } from '../github-auth-config.ts';
-import { parseHostKind } from '../host/names.ts';
+import { hostNamesFromEnv, parseHostKind } from '../host/names.ts';
 import type { HostKind, HostRepo } from '../host/types.ts';
+import { HostListError, type HostSettings, hostList } from './hosts.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -32,6 +33,7 @@ export interface FrontDoorSettings {
   mcpConnectors: boolean;
   accessCheckMs: number;
   wikiIdleMs: number;
+  hosts: readonly HostSettings[];
 }
 
 const MIN_SESSION_SECRET_LENGTH = 32;
@@ -261,6 +263,29 @@ export function resolveFrontDoorSettings(
     },
   );
   const addresses = hostAddresses(env, host);
+  const primary: HostSettings = {
+    key: host,
+    kind: host,
+    label: host === 'github' ? 'GitHub' : 'Forgejo',
+    primary: true,
+    webUrl: addresses.web,
+    apiUrl: addresses.api,
+    clientId,
+    clientSecret,
+    githubApp,
+    forgejoBotToken,
+    allowedOwners,
+    serverAdmins: loginSet(env.GITQUIRE_ADMINS),
+    commitEmailFormat: nonEmpty(env.GITQUIRE_COMMIT_EMAIL_FORMAT),
+    names: hostNamesFromEnv(env),
+  };
+  let hosts: readonly HostSettings[];
+  try {
+    hosts = hostList(env, primary, readFile);
+  } catch (err) {
+    if (err instanceof HostListError) throw new FrontDoorConfigError(err.message);
+    throw err;
+  }
   return {
     host,
     dataDir: resolve(dataDir),
@@ -273,7 +298,7 @@ export function resolveFrontDoorSettings(
     apiUrl: addresses.api,
     defaultWiki,
     allowedOwners,
-    serverAdmins: loginSet(env.GITQUIRE_ADMINS),
+    serverAdmins: primary.serverAdmins,
     githubApp,
     forgejoBotToken,
     agentTokenDays,
@@ -282,5 +307,6 @@ export function resolveFrontDoorSettings(
     ),
     accessCheckMs: Math.round(accessCheckSeconds * 1000),
     wikiIdleMs: Math.round(wikiIdleMinutes * 60 * 1000),
+    hosts,
   };
 }

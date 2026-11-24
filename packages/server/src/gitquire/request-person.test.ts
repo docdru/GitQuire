@@ -9,9 +9,11 @@ import {
   encodeAgentFeatures,
   encodeProxiedUser,
   FORWARDED_AGENTS_HEADER,
+  FORWARDED_AGENTS_HOST_HEADER,
   FORWARDED_PREFIX_HEADER,
   FORWARDED_VIEW_HEADER,
   forwardedAgentFeatures,
+  forwardedAgentPaths,
   forwardedPrefix,
   forwardedView,
   PROXIED_PRINCIPAL_HEADER,
@@ -150,5 +152,21 @@ describe('the agent access the front door passes on', () => {
     expect(
       forwardedAgentFeatures(forwarded(ALICE, { [FORWARDED_AGENTS_HEADER]: header }), false),
     ).toEqual(none);
+  });
+});
+
+describe('the agent addresses of a further host', () => {
+  it('are passed on only behind the front door with the secret and a host key', () => {
+    const host = { [FORWARDED_AGENTS_HOST_HEADER]: 'forgejo' };
+    expect(forwardedAgentPaths(forwarded(ALICE, host), true)).toEqual({
+      agentsPath: '/auth/forgejo/agents',
+      mcpPath: '/mcp/forgejo',
+    });
+    expect(forwardedAgentPaths(forwarded(ALICE), true)).toBeUndefined();
+    expect(forwardedAgentPaths(req(host), true)).toBeUndefined();
+    expect(forwardedAgentPaths(forwarded(ALICE, host), false)).toBeUndefined();
+    expect(
+      forwardedAgentPaths(forwarded(ALICE, { [FORWARDED_AGENTS_HOST_HEADER]: '../x' }), true),
+    ).toBeUndefined();
   });
 });

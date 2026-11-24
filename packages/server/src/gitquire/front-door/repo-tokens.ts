@@ -1,7 +1,8 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { ForgejoRepoTokens } from '../host/forgejo.ts';
-import type { HostKind, HostRepoRef } from '../host/types.ts';
+import type { HostRepoRef } from '../host/types.ts';
+import { hostKeyOf } from './hosts.ts';
 import type { WikiTable } from './wiki-table.ts';
 
 export interface RepoTokenStore extends ForgejoRepoTokens {
@@ -33,19 +34,22 @@ function load(file: string): Record<string, string> {
 
 export function repoTokenKey(
   table: Pick<WikiTable, 'byId' | 'byAddress'>,
-  host: HostKind,
+  hostKey: string,
 ): (repo: HostRepoRef) => string | undefined {
   return (repo) => {
-    if (repo.id !== undefined) return table.byId(host, repo.id)?.key;
-    const match = table.byAddress(repo.owner, repo.name);
-    return match?.current === true ? match.wiki.key : undefined;
+    if (repo.id !== undefined) return table.byId(hostKey, repo.id)?.key;
+    const match = table.byAddress(hostKey, repo.owner, repo.name);
+    return match?.current === true && hostKeyOf(match.wiki) === hostKey
+      ? match.wiki.key
+      : undefined;
   };
 }
 
-export function openRepoTokenStore(
-  file: string,
-  keyOf: (repo: HostRepoRef) => string | undefined,
-): RepoTokenStore {
+export interface RepoTokenFile {
+  scoped: (keyOf: (repo: HostRepoRef) => string | undefined) => RepoTokenStore;
+}
+
+export function openRepoTokenFile(file: string): RepoTokenFile {
   const tokens = load(file);
 
   function save(): void {
@@ -57,19 +61,28 @@ export function openRepoTokenStore(
   }
 
   return {
-    tokenFor: (repo) => {
-      const key = keyOf(repo);
-      return key === undefined ? undefined : tokens[key];
-    },
-    has: (key) => tokens[key] !== undefined,
-    forget: (key) => {
-      if (tokens[key] === undefined) return;
-      delete tokens[key];
-      save();
-    },
-    set: (key, token) => {
-      tokens[key] = token;
-      save();
-    },
+    scoped: (keyOf) => ({
+      tokenFor: (repo) => {
+        const key = keyOf(repo);
+        return key === undefined ? undefined : tokens[key];
+      },
+      has: (key) => tokens[key] !== undefined,
+      forget: (key) => {
+        if (tokens[key] === undefined) return;
+        delete tokens[key];
+        save();
+      },
+      set: (key, token) => {
+        tokens[key] = token;
+        save();
+      },
+    }),
   };
+}
+
+export function openRepoTokenStore(
+  file: string,
+  keyOf: (repo: HostRepoRef) => string | undefined,
+): RepoTokenStore {
+  return openRepoTokenFile(file).scoped(keyOf);
 }

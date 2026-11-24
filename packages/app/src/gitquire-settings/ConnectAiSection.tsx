@@ -7,14 +7,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Input } from '@/components/ui/input';
 import { AgentDraftSetting } from '@/gitquire-settings/AgentDraftSetting';
 import { type GitQuireFeatures, useGitQuireFeatures } from '@/lib/gitquire/features';
+import { useHostLabel } from '@/lib/gitquire/repository';
 
 const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
 const CLAUDE_ORG_CONNECTORS_URL = 'https://claude.ai/admin-settings/connectors';
 const LE_CHAT_URL = 'https://chat.mistral.ai/';
-const AGENT_ACCESS_PATH = '/auth/agents';
-
-export function connectorUrl(origin: string): string {
-  return `${origin.replace(/\/+$/, '')}/mcp`;
+export function connectorUrl(origin: string, mcpPath = '/mcp'): string {
+  return `${origin.replace(/\/+$/, '')}${mcpPath}`;
 }
 
 export type ConnectAiMode = 'connector' | 'token-only' | 'unavailable';
@@ -96,6 +95,7 @@ function AssistantSteps({
 }
 
 function ClaudeSteps() {
+  const host = useHostLabel();
   return (
     <AssistantSteps title={<Trans>Claude</Trans>} testId="connect-ai-claude">
       <ol className="list-decimal space-y-3 ps-5">
@@ -113,7 +113,7 @@ function ClaudeSteps() {
         </li>
         <li>
           <Trans>
-            Click <strong>Connect</strong>, sign in with GitHub and approve access. Claude can then
+            Click <strong>Connect</strong>, sign in with {host} and approve access. Claude can then
             work in the wiki on the web, in the desktop app and on your phone.
           </Trans>
         </li>
@@ -132,6 +132,7 @@ function ClaudeSteps() {
 }
 
 function MistralSteps() {
+  const host = useHostLabel();
   return (
     <AssistantSteps title={<Trans>Mistral Le Chat</Trans>} testId="connect-ai-mistral">
       <ol className="list-decimal space-y-3 ps-5">
@@ -150,7 +151,7 @@ function MistralSteps() {
         </li>
         <li>
           <Trans>
-            Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat
+            Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat
             use the wiki there.
           </Trans>
         </li>
@@ -174,7 +175,7 @@ export function ConnectAiSection({ origin }: { origin?: string }) {
   const features = useGitQuireFeatures();
   const mode = connectAiMode(features);
   const titleId = useId();
-  const url = connectorUrl(origin ?? pageOrigin());
+  const url = connectorUrl(origin ?? pageOrigin(), features.mcpPath);
 
   return (
     <section aria-labelledby={titleId} className="space-y-6" data-testid="connect-ai-section">
@@ -225,7 +226,7 @@ export function ConnectAiSection({ origin }: { origin?: string }) {
             <Trans>For Claude Code and other command-line agents, create a personal token.</Trans>
           </p>
           <Button asChild variant="outline" size="sm">
-            <a href={AGENT_ACCESS_PATH} target="_blank" rel="noreferrer">
+            <a href={features.agentsPath} target="_blank" rel="noreferrer">
               <Trans>Tokens and connected apps</Trans>
             </a>
           </Button>

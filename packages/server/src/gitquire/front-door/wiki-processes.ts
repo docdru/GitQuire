@@ -4,6 +4,7 @@ import { mkdirSync } from 'node:fs';
 import type { GateLogger } from '../access-gate.ts';
 import { CHAT_KEY_SECRET_ENV, deriveChatKeySecret } from '../chat/key-secret.ts';
 import { DOOR_TOKEN_SOCKET_ENV } from '../door-token.ts';
+import { HOST_KEY_ENV, HOST_LABEL_ENV } from '../host/names.ts';
 import { repoChange } from '../host/renames.ts';
 import type { DoorHost, Refusal } from '../host/types.ts';
 import { INTERNAL_REQUEST_HEADER, INTERNAL_SECRET_ENV } from '../internal-request.ts';
@@ -17,8 +18,10 @@ import {
 } from '../process-pool/pool.ts';
 import { REPO_ID_ENV } from '../repo-pin.ts';
 import { safeEqual } from '../signed-cookie.ts';
+import { WIKI_NAME_ENV } from '../wiki-name.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
-import { type WikiRecord, type WikiTable, wikiDir, wikiPrefix } from './wiki-table.ts';
+import type { HostSettings } from './hosts.ts';
+import { type WikiRecord, type WikiTable, wikiDir, wikiName, wikiPrefix } from './wiki-table.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -96,15 +99,46 @@ function isPassed(name: string): boolean {
   return PASSED_SYSTEM.has(upper);
 }
 
+const HOST_SETTINGS = new Set([
+  'GITQUIRE_HOST',
+  'GITQUIRE_HOST_URL',
+  'GITQUIRE_HOST_API_URL',
+  'GITQUIRE_GITHUB_WEB_URL',
+  'GITQUIRE_GITHUB_API_URL',
+  'GITQUIRE_COMMIT_EMAIL_FORMAT',
+  'GITQUIRE_ADMINS',
+]);
+
+function furtherHostEnv(host: HostSettings): Record<string, string> {
+  const addresses: Record<string, string> =
+    host.kind === 'forgejo'
+      ? { GITQUIRE_HOST_URL: host.webUrl, GITQUIRE_HOST_API_URL: host.apiUrl }
+      : { GITQUIRE_GITHUB_WEB_URL: host.webUrl, GITQUIRE_GITHUB_API_URL: host.apiUrl };
+  return {
+    GITQUIRE_HOST: host.kind,
+    ...addresses,
+    ...(host.key === host.kind ? {} : { [HOST_KEY_ENV]: host.key }),
+    [HOST_LABEL_ENV]: host.label,
+    ...(host.commitEmailFormat === undefined
+      ? {}
+      : { GITQUIRE_COMMIT_EMAIL_FORMAT: host.commitEmailFormat }),
+    ...(host.serverAdmins.size === 0 ? {} : { GITQUIRE_ADMINS: [...host.serverAdmins].join(',') }),
+  };
+}
+
 export function wikiEnv(
   base: Env,
   wiki: WikiRecord,
-  options: { externalUrl: URL; secret: string; tokenSocket: string },
+  options: { externalUrl: URL; secret: string; tokenSocket: string; host?: HostSettings },
 ): Record<string, string> {
+  const further = options.host !== undefined && !options.host.primary ? options.host : undefined;
   const env: Record<string, string> = {};
   for (const [name, value] of Object.entries(base)) {
-    if (value !== undefined && isPassed(name)) env[name] = value;
+    if (value === undefined || !isPassed(name)) continue;
+    if (further !== undefined && HOST_SETTINGS.has(name.toUpperCase())) continue;
+    env[name] = value;
   }
+  if (further !== undefined) Object.assign(env, furtherHostEnv(further));
   const sessionSecret = base.GITQUIRE_SESSION_SECRET?.trim() ?? '';
   const chatOff = ['0', 'off', 'false', 'no'].includes(
     base.GITQUIRE_AI_CHAT?.trim().toLowerCase() ?? '',
@@ -116,6 +150,7 @@ export function wikiEnv(
       : { [CHAT_KEY_SECRET_ENV]: deriveChatKeySecret(sessionSecret, wiki.key) }),
     GITQUIRE_BEHIND_FRONT_DOOR: 'on',
     GITQUIRE_REPO: `${wiki.owner}/${wiki.name}`,
+    [WIKI_NAME_ENV]: wikiName(wiki),
     [REPO_ID_ENV]: String(wiki.id),
     GITQUIRE_EXTERNAL_URL: `${options.externalUrl.origin}${wikiPrefix(wiki)}`,
     GITQUIRE_ALLOW_EXTERNAL: '1',
@@ -140,14 +175,19 @@ export interface WikiProcesses {
   retire: (key: string) => Promise<void>;
 }
 
+export interface WikiHost {
+  host: Pick<DoorHost, 'repoById' | 'health'>;
+  owners: AllowedOwners;
+  settings?: HostSettings;
+}
+
 export interface WikiProcessesDeps {
   dataDir: string;
   externalUrl: URL;
   env: Env;
   cli: readonly string[];
-  host: Pick<DoorHost, 'repoById' | 'health'>;
+  hostOf: (wiki: WikiRecord) => WikiHost | undefined;
   table: WikiTable;
-  owners: AllowedOwners;
   tokenSocket: () => string;
   log: GateLogger;
   spawn?: SpawnFn;
@@ -223,7 +263,9 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
   });
 
   async function check(wiki: WikiRecord): Promise<WikiCheck> {
-    const change = repoChange(wiki, await deps.host.repoById(wiki.id));
+    const entry = deps.hostOf(wiki);
+    if (entry === undefined) return 'closed';
+    const change = repoChange(wiki, await entry.host.repoById(wiki.id));
     if (change.change === 'unreachable') return wiki.state === 'on' ? 'unreachable' : 'closed';
     if (change.change === 'gone' || change.change === 'mismatch') {
       deps.table.disconnect(wiki.key, 'gone');
@@ -241,11 +283,11 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
       deps.log.info({ wiki: wiki.key, to: change.to }, '[gitquire-wikis] repository moved');
       deps.table.rename(wiki.key, change.to, change.ownerId);
     }
-    if (!ownerAllowed(deps.owners, wiki)) {
+    if (!ownerAllowed(entry.owners, wiki)) {
       deps.table.disconnect(wiki.key, 'owner-not-allowed');
       return 'closed';
     }
-    const health = await deps.host.health(wiki);
+    const health = await entry.host.health(wiki);
     if (health === 'unreachable') return wiki.state === 'on' ? 'unreachable' : 'closed';
     if (health !== 'ok') {
       deps.table.disconnect(wiki.key, health.slice('refused:'.length) as Refusal);
@@ -273,8 +315,10 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
   }
 
   function ownerConfirmed(wiki: WikiRecord): boolean {
-    const pinned = deps.owners.pinned();
-    return [...deps.owners.names].some((name) => pinned[name] === wiki.ownerId);
+    const owners = deps.hostOf(wiki)?.owners;
+    if (owners === undefined) return false;
+    const pinned = owners.pinned();
+    return [...owners.names].some((name) => pinned[name] === wiki.ownerId);
   }
 
   function ensure(wiki: WikiRecord): Promise<string> {
@@ -308,6 +352,7 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
       externalUrl: deps.externalUrl,
       secret,
       tokenSocket: deps.tokenSocket(),
+      host: deps.hostOf(wiki)?.settings,
     });
     await bootstrap(dir, env);
     startedAs.set(wiki.key, `${wiki.owner}/${wiki.name}`);

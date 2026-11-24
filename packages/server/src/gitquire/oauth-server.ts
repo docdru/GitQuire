@@ -28,6 +28,8 @@ interface OAuthClient {
 }
 
 export interface OAuthServerDeps {
+  hostKey?: string;
+  host?: { label: string; signInPath: string };
   externalUrl: URL;
   secret: string;
   store: AgentTokenStore;
@@ -35,6 +37,7 @@ export interface OAuthServerDeps {
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   checkAccess?: (login: string, id: number) => Promise<AccessVerdict>;
   severalWikis?: boolean;
+  agentsPagePath?: string;
   refuseUnknownAtSignIn?: boolean;
   fetch?: typeof fetch;
   now?: () => number;
@@ -196,11 +199,32 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
   const randomId = deps.randomId ?? (() => randomBytes(16).toString('base64url'));
-  const issuer = deps.externalUrl.origin;
-  const resource = new URL('/mcp', deps.externalUrl).toString();
-  const clientSecret = `${deps.secret}:oauth-client`;
-  const codeSecret = `${deps.secret}:oauth-code`;
-  const consentSecret = `${deps.secret}:oauth-consent`;
+  const keyed = deps.hostKey;
+  const oauthBase = keyed === undefined ? '' : `/oauth/${keyed}`;
+  const authorizePath = keyed === undefined ? AUTHORIZE_PATH : `${oauthBase}/authorize`;
+  const tokenPath = keyed === undefined ? TOKEN_PATH : `${oauthBase}/token`;
+  const registerPath = keyed === undefined ? REGISTER_PATH : `${oauthBase}/register`;
+  const mcpPath = keyed === undefined ? '/mcp' : `/mcp/${keyed}`;
+  const origin = deps.externalUrl.origin;
+  const issuer = `${origin}${oauthBase}`;
+  const resource = new URL(mcpPath, deps.externalUrl).toString();
+  const secretFor = (purpose: string): string =>
+    keyed === undefined ? `${deps.secret}:${purpose}` : `${deps.secret}:${purpose}:${keyed}`;
+  const clientSecret = secretFor('oauth-client');
+  const codeSecret = secretFor('oauth-code');
+  const consentSecret = secretFor('oauth-consent');
+  const resourceMetadataPaths =
+    keyed === undefined
+      ? [PROTECTED_RESOURCE_PATH, `${PROTECTED_RESOURCE_PATH}/mcp`]
+      : [`${PROTECTED_RESOURCE_PATH}${mcpPath}`];
+  const serverMetadataPaths =
+    keyed === undefined
+      ? [AUTHORIZATION_SERVER_PATH, `${AUTHORIZATION_SERVER_PATH}/mcp`]
+      : [
+          `${AUTHORIZATION_SERVER_PATH}${oauthBase}`,
+          `${oauthBase}${AUTHORIZATION_SERVER_PATH}`,
+          `${AUTHORIZATION_SERVER_PATH}${mcpPath}`,
+        ];
   const usedCodes = new Map<string, number>();
   const clientCache = new Map<string, { client: OAuthClient; until: number }>();
 
@@ -212,9 +236,9 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
   };
   const authorizationServer = {
     issuer,
-    authorization_endpoint: `${issuer}${AUTHORIZE_PATH}`,
-    token_endpoint: `${issuer}${TOKEN_PATH}`,
-    registration_endpoint: `${issuer}${REGISTER_PATH}`,
+    authorization_endpoint: `${origin}${authorizePath}`,
+    token_endpoint: `${origin}${tokenPath}`,
+    registration_endpoint: `${origin}${registerPath}`,
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
     code_challenge_methods_supported: ['S256'],
@@ -397,9 +421,9 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
       res,
       200,
       'Connect an AI app',
-      `<p><strong>${escapeHtml(request.client.name)}</strong> wants to read and edit ${deps.severalWikis === true ? 'your wikis on this server' : 'this wiki'} as <strong>@${escapeHtml(user.login)}</strong>. Its edits will be credited to you.</p>
-<p class="muted">After you allow it, you go back to <code>${escapeHtml(host)}</code>. You can revoke access any time at <a href="/auth/agents">AI agent access</a>.</p>
-<form method="post" action="${AUTHORIZE_PATH}">${hidden}<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
+      `<p><strong>${escapeHtml(request.client.name)}</strong> wants to read and edit ${deps.severalWikis === true ? (deps.host === undefined || deps.hostKey === undefined ? 'your wikis on this server' : `your wikis from ${escapeHtml(deps.host.label)} on this server`) : 'this wiki'} as <strong>@${escapeHtml(user.login)}</strong>. Its edits will be credited to you.</p>
+<p class="muted">After you allow it, you go back to <code>${escapeHtml(host)}</code>. You can revoke access any time at <a href="${escapeHtml(deps.agentsPagePath ?? '/auth/agents')}">AI agent access</a>.</p>
+<form method="post" action="${authorizePath}">${hidden}<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">
 <p><button type="submit" name="decision" value="allow">Allow</button> <button type="submit" name="decision" value="deny">Cancel</button></p>
 </form>`,
     );
@@ -418,7 +442,10 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     const request = await parseAuthorize(params);
     const user = deps.sessionUser(req);
     if (user === undefined) {
-      redirect(res, `${signInPath()}?next=${encodeURIComponent(AUTHORIZE_PATH + search)}`);
+      redirect(
+        res,
+        `${deps.host?.signInPath ?? signInPath()}?next=${encodeURIComponent(authorizePath + search)}`,
+      );
       return;
     }
     consentPage(res, user, request, params);
@@ -480,14 +507,14 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
       throw new OAuthError(
         503,
         'temporarily_unavailable',
-        `${hostNames().label} cannot be reached right now, so access cannot be checked. Try again in a moment.`,
+        `${deps.host?.label ?? hostNames().label} cannot be reached right now, so access cannot be checked. Try again in a moment.`,
       );
     }
     if (verdict === 'denied') {
       throw new OAuthError(
         400,
         'invalid_grant',
-        `This ${hostNames().label} account no longer has access.`,
+        `This ${deps.host?.label ?? hostNames().label} account no longer has access.`,
       );
     }
   }
@@ -606,15 +633,15 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     path: string,
     search: string,
   ): boolean {
-    if (path === PROTECTED_RESOURCE_PATH || path === `${PROTECTED_RESOURCE_PATH}/mcp`) {
+    if (resourceMetadataPaths.includes(path)) {
       sendOAuthJson(res, 200, protectedResource);
       return true;
     }
-    if (path === AUTHORIZATION_SERVER_PATH || path === `${AUTHORIZATION_SERVER_PATH}/mcp`) {
+    if (serverMetadataPaths.includes(path)) {
       sendOAuthJson(res, 200, authorizationServer);
       return true;
     }
-    if (!path.startsWith('/oauth/')) return false;
+    if (!path.startsWith(keyed === undefined ? '/oauth/' : `${oauthBase}/`)) return false;
     if (req.method === 'OPTIONS') {
       res.writeHead(204, {
         'Access-Control-Allow-Origin': '*',
@@ -624,19 +651,19 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
       res.end();
       return true;
     }
-    if (path === AUTHORIZE_PATH && req.method === 'GET') {
+    if (path === authorizePath && req.method === 'GET') {
       run(res, true, () => authorizeGet(req, res, search));
       return true;
     }
-    if (path === AUTHORIZE_PATH && req.method === 'POST') {
+    if (path === authorizePath && req.method === 'POST') {
       run(res, true, () => authorizePost(req, res));
       return true;
     }
-    if (path === TOKEN_PATH && req.method === 'POST') {
+    if (path === tokenPath && req.method === 'POST') {
       run(res, false, () => token(req, res));
       return true;
     }
-    if (path === REGISTER_PATH && req.method === 'POST') {
+    if (path === registerPath && req.method === 'POST') {
       run(res, false, () => register(req, res));
       return true;
     }
@@ -646,6 +673,7 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
 
   return {
     handle,
-    wwwAuthenticate: () => `Bearer resource_metadata="${issuer}${PROTECTED_RESOURCE_PATH}/mcp"`,
+    wwwAuthenticate: () =>
+      `Bearer resource_metadata="${origin}${PROTECTED_RESOURCE_PATH}${keyed === undefined ? '/mcp' : mcpPath}"`,
   };
 }

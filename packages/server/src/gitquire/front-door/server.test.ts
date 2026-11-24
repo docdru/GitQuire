@@ -19,7 +19,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddableRepo, BotAccess, DoorHost, HostRepo, RepoAccess } from '../host/types.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
+import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
 import { createMentionCounts } from './mention-counts.ts';
+import type { ForgejoTokenChecks } from './server.ts';
 import { createFrontDoor, type FrontDoor } from './server.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import { createWikiProcesses, type WikiProcesses } from './wiki-processes.ts';
@@ -53,10 +55,34 @@ server.listen(socket);
 process.on('SIGTERM', () => { server.closeAllConnections(); server.close(() => process.exit(0)); });
 `;
 
-const repoA = { host: 'github' as const, id: 1, owner: 'team', ownerId: 7, name: 'a' };
-const repoB = { host: 'github' as const, id: 2, owner: 'team', ownerId: 7, name: 'b' };
-const repoC = { host: 'github' as const, id: 3, owner: 'team', ownerId: 7, name: 'c' };
-const repoD = { host: 'github' as const, id: 4, owner: 'other', ownerId: 9, name: 'd' };
+const baseA = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 1,
+  owner: 'team',
+  ownerId: 7,
+  name: 'a',
+};
+const baseB = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 2,
+  owner: 'team',
+  ownerId: 7,
+  name: 'b',
+};
+const baseC = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 3,
+  owner: 'team',
+  ownerId: 7,
+  name: 'c',
+};
+const baseD = {
+  host: 'github' as 'github' | 'forgejo',
+  id: 4,
+  owner: 'other',
+  ownerId: 9,
+  name: 'd',
+};
 
 const people: Record<string, { id: number; login: string; name: string; avatarUrl: string }> = {
   'token-alice': { id: 11, login: 'alice', name: 'Alice', avatarUrl: '' },
@@ -69,6 +95,7 @@ afterEach(async () => {
 });
 
 interface Rig {
+  kind: 'github' | 'forgejo';
   base: string;
   data: string;
   door: FrontDoor;
@@ -97,6 +124,11 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
   };
   const bot: Rig['bot'] = { answer: undefined };
   const gone = new Set<number>();
+  const kind = options.host ?? 'github';
+  const [repoA, repoB, repoC, repoD] = [baseA, baseB, baseC, baseD].map((repo) => ({
+    ...repo,
+    host: kind,
+  })) as [typeof baseA, typeof baseB, typeof baseC, typeof baseD];
   const host: DoorHost = {
     authorizeUrl: ({ state }) => `https://host.example/authorize?state=${state}`,
     exchangeCode: async ({ code }) => `token-${code}`,
@@ -152,9 +184,8 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
     externalUrl: settings.externalUrl,
     env: { PATH: process.env.PATH, GITHUB_APP_PRIVATE_KEY: 'key' },
     cli: [process.execPath, script],
-    host,
+    hostOf: () => ({ host, owners }),
     table,
-    owners,
     tokenSocket: () => '/tmp/none.sock',
     log: silentLog,
     bootstrap: async () => {},
@@ -162,31 +193,38 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
   });
   cleanup.push(() => processes.stopAll());
   const saved: Record<string, string> = {};
+  const forgejoTokens: ForgejoTokenChecks | undefined =
+    options.host === 'forgejo'
+      ? {
+          check: async (_repo: HostRepo, token: string) =>
+            token === 'good' ? 'ok' : 'refused:token',
+          save: (key, token) => {
+            saved[key] = token;
+          },
+          forget: (key) => {
+            delete saved[key];
+          },
+          isBotToken: (token) => token === 'bot',
+        }
+      : undefined;
+  const hosts = hostsForTest(
+    entryForTest({
+      settings: hostSettingsForTest(settings),
+      host,
+      access,
+      owners,
+      ...(forgejoTokens === undefined ? {} : { forgejoTokens }),
+      addWikiHelp: async () =>
+        options.host === 'forgejo'
+          ? { botLogin: 'gq-bot' }
+          : { installUrl: 'https://github.com/apps/gq/installations/new' },
+    }),
+  );
   const door = createFrontDoor({
     settings,
-    host,
+    hosts,
     table,
-    owners,
-    access,
     processes,
-    forgejoTokens:
-      options.host === 'forgejo'
-        ? {
-            check: async (_repo: HostRepo, token: string) =>
-              token === 'good' ? 'ok' : 'refused:token',
-            save: (key, token) => {
-              saved[key] = token;
-            },
-            forget: (key) => {
-              delete saved[key];
-            },
-            isBotToken: (token) => token === 'bot',
-          }
-        : undefined,
-    addWikiHelp: async () =>
-      options.host === 'forgejo'
-        ? { botLogin: 'gq-bot' }
-        : { installUrl: 'https://github.com/apps/gq/installations/new' },
     mentionCounts: createMentionCounts(data, now),
     log: silentLog,
     now,
@@ -207,6 +245,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
   const port = typeof address === 'object' && address !== null ? address.port : 0;
   settings.externalUrl = new URL(`http://127.0.0.1:${port}`);
   return {
+    kind,
     base: `http://127.0.0.1:${port}`,
     data,
     door,
@@ -266,14 +305,15 @@ function cookiesOf(response: Answer): string[] {
   return response.headers.getSetCookie().map((line) => line.split(';')[0] ?? '');
 }
 
-async function signIn(r: Rig, who: string, path = '/auth/github/login?next=%2F'): Promise<string> {
+async function signIn(r: Rig, who: string, given?: string): Promise<string> {
+  const path = given ?? `/auth/${r.kind}/login?next=%2F`;
   const first = path.includes('add-wiki') ? await signIn(r, who) : '';
   const start = await httpFetch(`${r.base}${path}`, {
     redirect: 'manual',
     headers: { cookie: first },
   });
   const state = cookiesOf(start).find((c) => c.startsWith('gq_oauth_state='));
-  const back = await httpFetch(`${r.base}/auth/github/callback?code=${who}&state=state-1`, {
+  const back = await httpFetch(`${r.base}/auth/${r.kind}/callback?code=${who}&state=state-1`, {
     redirect: 'manual',
     headers: { cookie: state ?? '' },
   });
@@ -307,30 +347,32 @@ describe('front door', () => {
   });
 
   it('sends a signed-out browser to sign-in at the root, with the state cookie at the root', async () => {
-    const page = await get(r, '/w/team/a/page', '', { accept: 'text/html' });
+    const page = await get(r, '/w/github/team/a/page', '', { accept: 'text/html' });
     expect(page.status).toBe(302);
-    expect(page.headers.get('location')).toBe('/auth/github/login?next=%2Fw%2Fteam%2Fa%2Fpage');
-    const start = await httpFetch(`${r.base}/auth/github/login?next=/w/team/a/`, {
+    expect(page.headers.get('location')).toBe(
+      '/auth/github/login?next=%2Fw%2Fgithub%2Fteam%2Fa%2Fpage',
+    );
+    const start = await httpFetch(`${r.base}/auth/github/login?next=/w/github/team/a/`, {
       redirect: 'manual',
     });
     expect(start.headers.getSetCookie()[0]).toMatch(/^gq_oauth_state=.*; Path=\//);
-    const api = await get(r, '/w/team/a/api/x', '');
+    const api = await get(r, '/w/github/team/a/api/x', '');
     expect(api.status).toBe(401);
   });
 
   it('signs in once and opens both wikis, each in its own process with its own secret, prefix and admin flag', async () => {
     const session = await signIn(r, 'alice');
-    const a = (await (await get(r, '/w/team/a/page?x=1', session)).json()) as {
+    const a = (await (await get(r, '/w/github/team/a/page?x=1', session)).json()) as {
       repo: string;
       url: string;
       headers: Record<string, string>;
     };
-    const b = (await (await get(r, '/w/team/b/', session)).json()) as typeof a;
+    const b = (await (await get(r, '/w/github/team/b/', session)).json()) as typeof a;
     expect(a.repo).toBe('team/a');
     expect(b.repo).toBe('team/b');
     expect(a.url).toBe('/page?x=1');
-    expect(a.headers['x-gitquire-prefix']).toBe('/w/team/a');
-    expect(b.headers['x-gitquire-prefix']).toBe('/w/team/b');
+    expect(a.headers['x-gitquire-prefix']).toBe('/w/github/team/a');
+    expect(b.headers['x-gitquire-prefix']).toBe('/w/github/team/b');
     expect(a.headers['x-gitquire-internal']).toBe(r.processes.secretOf('github-1'));
     expect(b.headers['x-gitquire-internal']).toBe(r.processes.secretOf('github-2'));
     expect(a.headers['x-gitquire-internal']).not.toBe(b.headers['x-gitquire-internal']);
@@ -342,13 +384,13 @@ describe('front door', () => {
 
   it('gives a person with one wiki "no wiki here" for the other, without naming it', async () => {
     const session = await signIn(r, 'bob');
-    expect((await get(r, '/w/team/a/', session)).status).toBe(200);
-    const page = await get(r, '/w/team/b/', session, { accept: 'text/html' });
+    expect((await get(r, '/w/github/team/a/', session)).status).toBe(200);
+    const page = await get(r, '/w/github/team/b/', session, { accept: 'text/html' });
     expect(page.status).toBe(404);
     const html = await page.text();
     expect(html).toContain('There is no wiki at this address.');
     expect(html).not.toContain('team/b');
-    const api = await get(r, '/w/team/b/api/x', session);
+    const api = await get(r, '/w/github/team/b/api/x', session);
     expect(api.status).toBe(404);
     expect(await api.json()).toEqual({
       error: 'not-a-wiki',
@@ -364,36 +406,36 @@ describe('front door', () => {
   it('replaces x-gitquire-* headers a browser sends with its own', async () => {
     const session = await signIn(r, 'bob');
     const echo = (await (
-      await get(r, '/w/team/a/', session, {
+      await get(r, '/w/github/team/a/', session, {
         'x-gitquire-principal': Buffer.from(
           JSON.stringify({ id: 1, login: 'root', repoAdmin: true }),
         ).toString('base64url'),
         'x-gitquire-internal': 'forged',
-        'x-gitquire-prefix': '/w/team/b',
+        'x-gitquire-prefix': '/w/github/team/b',
         'x-gitquire-view': 'other',
       })
     ).json()) as { headers: Record<string, string> };
     expect(principal(echo)).toMatchObject({ login: 'bob' });
     expect(principal(echo).repoAdmin).toBeUndefined();
-    expect(echo.headers['x-gitquire-prefix']).toBe('/w/team/a');
+    expect(echo.headers['x-gitquire-prefix']).toBe('/w/github/team/a');
     expect(echo.headers['x-gitquire-view']).toBeUndefined();
     expect(echo.headers['x-gitquire-internal']).toBe(r.processes.secretOf('github-1'));
   });
 
   it('adds the trailing slash, the prefix to redirects, and keeps the open draft in a per-wiki cookie', async () => {
     const session = await signIn(r, 'alice');
-    const bare = await get(r, '/w/team/a?x=1', session);
+    const bare = await get(r, '/w/github/team/a?x=1', session);
     expect(bare.status).toBe(302);
-    expect(bare.headers.get('location')).toBe('/w/team/a/?x=1');
-    const moved = await get(r, '/w/team/a/redirect', session);
-    expect(moved.headers.get('location')).toBe('/w/team/a/somewhere');
+    expect(bare.headers.get('location')).toBe('/w/github/team/a/?x=1');
+    const moved = await get(r, '/w/github/team/a/redirect', session);
+    expect(moved.headers.get('location')).toBe('/w/github/team/a/somewhere');
     expect(cookiesOf(moved)).toEqual(['gq_view_github-1=d1']);
     const echo = (await (
-      await get(r, '/w/team/a/', `${session}; gq_view_github-1=d1; gq_view_github-2=d2`)
+      await get(r, '/w/github/team/a/', `${session}; gq_view_github-1=d1; gq_view_github-2=d2`)
     ).json()) as { headers: Record<string, string> };
     expect(echo.headers['x-gitquire-view']).toBe('d1');
     const other = (await (
-      await get(r, '/w/team/b/', `${session}; gq_view_github-1=d1`)
+      await get(r, '/w/github/team/b/', `${session}; gq_view_github-1=d1`)
     ).json()) as {
       headers: Record<string, string>;
     };
@@ -403,57 +445,51 @@ describe('front door', () => {
   it('routes a GET without a wiki prefix by its Referer after the access check', async () => {
     const alice = await signIn(r, 'alice');
     const image = (await (
-      await get(r, '/dot.png', alice, { referer: `${r.base}/w/team/b/page` })
+      await get(r, '/dot.png', alice, { referer: `${r.base}/w/github/team/b/page` })
     ).json()) as { repo: string; url: string };
     expect(image).toMatchObject({ repo: 'team/b', url: '/dot.png' });
     const bob = await signIn(r, 'bob');
-    expect((await get(r, '/dot.png', bob, { referer: `${r.base}/w/team/b/page` })).status).toBe(
-      404,
-    );
+    expect(
+      (await get(r, '/dot.png', bob, { referer: `${r.base}/w/github/team/b/page` })).status,
+    ).toBe(404);
     const post = await httpFetch(`${r.base}/dot.png`, {
       method: 'POST',
-      headers: { cookie: alice, referer: `${r.base}/w/team/b/page` },
+      headers: { cookie: alice, referer: `${r.base}/w/github/team/b/page` },
     });
     expect(post.status).toBe(404);
   });
 
-  it('sends old addresses to the default wiki and shows the list at the root', async () => {
+  it('answers an address without the host as no wiki, and shows the list at the root', async () => {
     const session = await signIn(r, 'alice');
-    const old = await get(r, '/docs/plan', session, { accept: 'text/html' });
-    expect(old.headers.get('location')).toBe('/w/team/a/docs/plan');
+    for (const path of ['/docs/plan', '/w/team/a/', '/w/team/a/docs/plan']) {
+      const answer = await get(r, path, session, { accept: 'text/html' });
+      expect(answer.status).toBe(404);
+      expect(answer.headers.get('location')).toBeNull();
+    }
+    const anonymous = await get(r, '/w/team/a/docs/plan', '', { accept: 'text/html' });
+    expect(anonymous.status).toBe(302);
+    expect(anonymous.headers.get('location')).toContain('/auth/github/');
+    expect(anonymous.headers.get('location')).not.toContain('/w/github/');
     const home = await get(r, '/', session, { accept: 'text/html' });
     const html = await home.text();
-    expect(html).toContain('href="/w/team/a/"');
-    expect(html).toContain('href="/w/team/b/"');
-    expect(html).toContain('id="gq-default-wiki" data-address="/w/team/a/"');
+    expect(html).toContain('href="/w/github/team/a/"');
+    expect(html).toContain('href="/w/github/team/b/"');
+    expect(html).not.toContain('gq-default-wiki');
     expect(html).toContain('This server hosts wikis from team.');
-    expect((await get(r, '/_door/old-address.js', '')).status).toBe(200);
-  });
-
-  it('sends old addresses to the default wiki only after sign-in, and only for people who can open it', async () => {
-    const anonymous = await get(r, '/docs/plan', '', { accept: 'text/html' });
-    expect(anonymous.status).toBe(302);
-    expect(anonymous.headers.get('location') ?? '').not.toContain('team/a');
-    expect(anonymous.headers.get('location')).toContain('/auth/github/');
-    r.levels.bob = { a: 'none', b: 'write' };
-    const bob = await signIn(r, 'bob');
-    const refused = await get(r, '/docs/plan', bob, { accept: 'text/html' });
-    expect(refused.status).toBe(404);
-    expect(refused.headers.get('location')).toBeNull();
-    expect(await refused.text()).not.toContain('team/a');
+    expect((await get(r, '/_door/old-address.js', '')).status).toBe(404);
   });
 
   it('redirects a renamed wiki to its new address only for people with access', async () => {
     const bob = await signIn(r, 'bob');
     r.table.rename('github-2', { owner: 'team', name: 'handbook' });
-    expect((await get(r, '/w/team/b/page', bob)).status).toBe(404);
-    expect((await get(r, '/w/team/handbook/page', bob)).status).toBe(404);
+    expect((await get(r, '/w/github/team/b/page', bob)).status).toBe(404);
+    expect((await get(r, '/w/github/team/handbook/page', bob)).status).toBe(404);
   });
 
   it('forwards the open draft only when the cookie holds a draft name, on both hops', async () => {
     const session = await signIn(r, 'alice');
     const forged = `${session}; gq_view_github-1=d1%0d%0ax-gitquire-principal:%20forged`;
-    const echo = (await (await get(r, '/w/team/a/', forged)).json()) as {
+    const echo = (await (await get(r, '/w/github/team/a/', forged)).json()) as {
       headers: Record<string, string>;
     };
     expect(echo.headers['x-gitquire-view']).toBeUndefined();
@@ -466,7 +502,7 @@ describe('front door', () => {
         socket.destroy();
       });
       socket.write(
-        `GET /w/team/a/collab HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${forged}\r\n\r\n`,
+        `GET /w/github/team/a/collab HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${forged}\r\n\r\n`,
       );
     });
     expect(line).toBe('HTTP/1.1 101 Switching Protocols');
@@ -497,10 +533,10 @@ describe('front door', () => {
   it('redirects a renamed wiki to its new address and answers an unknown one with the allowed owners', async () => {
     const session = await signIn(r, 'alice');
     r.table.rename('github-2', { owner: 'team', name: 'handbook' });
-    const old = await get(r, '/w/team/b/page?x=1', session);
+    const old = await get(r, '/w/github/team/b/page?x=1', session);
     expect(old.status).toBe(301);
-    expect(old.headers.get('location')).toBe('/w/team/handbook/page?x=1');
-    const unknown = await get(r, '/w/other/x/', session);
+    expect(old.headers.get('location')).toBe('/w/github/team/handbook/page?x=1');
+    const unknown = await get(r, '/w/github/other/x/', session);
     expect(unknown.status).toBe(404);
     expect(await unknown.json()).toEqual({
       error: 'not-a-wiki',
@@ -525,7 +561,7 @@ describe('front door', () => {
       needsToken: boolean;
     };
     expect(addable.repos.map((repo) => [repo.name, repo.wiki])).toEqual([
-      ['a', '/w/team/a/'],
+      ['a', '/w/github/team/a/'],
       ['c', undefined],
     ]);
     expect(addable).toMatchObject({ canAdd: true, needsToken: false });
@@ -535,7 +571,7 @@ describe('front door', () => {
     const made = await post({ id: 3 });
     expect(made.status).toBe(201);
     expect(await made.json()).toMatchObject({
-      wiki: { key: 'github-3', address: '/w/team/c/', admin: true },
+      wiki: { key: 'github-3', address: '/w/github/team/c/', admin: true },
     });
     expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
     expect(r.table.ownerIds()).toEqual({ team: 7 });
@@ -560,7 +596,7 @@ describe('front door', () => {
       socket.once('data', (chunk) => resolve(String(chunk))),
     );
     socket.write(
-      `GET /w/team/a/collab HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${session}\r\n\r\n`,
+      `GET /w/github/team/a/collab HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${session}\r\n\r\n`,
     );
     expect(await opened).toContain('101 Switching Protocols');
     await r.door.recheckConnections();
@@ -581,7 +617,7 @@ describe('front door', () => {
           socket.destroy();
         });
         socket.write(
-          `GET /w/team/b/collab HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${cookie}\r\n\r\n`,
+          `GET /w/github/team/b/collab HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nCookie: ${cookie}\r\n\r\n`,
         );
       });
     expect(await answer('')).toBe('HTTP/1.1 401 Unauthorized');
@@ -592,10 +628,10 @@ describe('front door', () => {
     const alice = await signIn(r, 'alice');
     r.bot.answer = 'unreachable';
     r.advance(ACCESS_TTL_MS + 1);
-    expect((await get(r, '/w/team/a/', alice)).status).toBe(200);
+    expect((await get(r, '/w/github/team/a/', alice)).status).toBe(200);
     r.bot.answer = 'refused:removed';
     r.advance(ACCESS_TTL_MS + 1);
-    expect((await get(r, '/w/team/a/', alice)).status).toBe(403);
+    expect((await get(r, '/w/github/team/a/', alice)).status).toBe(403);
     expect(r.table.byKey('github-1')).toMatchObject({ state: 'disconnected', reason: 'removed' });
     const list = (await (await get(r, '/api/front-door/wikis', alice)).json()) as {
       wikis: Array<{ name: string; state: string; reason?: string }>;
@@ -604,10 +640,10 @@ describe('front door', () => {
       state: 'disconnected',
       reason: 'removed',
     });
-    const page = await get(r, '/w/team/a/', alice, { accept: 'text/html' });
+    const page = await get(r, '/w/github/team/a/', alice, { accept: 'text/html' });
     expect(await page.text()).toContain('GitQuire no longer has access to this repository');
     const bob = await signIn(r, 'bob');
-    expect((await get(r, '/w/team/a/', bob)).status).toBe(404);
+    expect((await get(r, '/w/github/team/a/', bob)).status).toBe(404);
     const bobList = (await (await get(r, '/api/front-door/wikis', bob)).json()) as {
       wikis: unknown[];
     };
@@ -623,17 +659,17 @@ describe('a person whose access the host cannot confirm', () => {
     r.bot.answer = 'unreachable';
     r.advance(ACCESS_TTL_MS + 1);
 
-    const page = await get(r, '/w/team/a/', bob, { accept: 'text/html' });
-    const none = await get(r, '/w/team/zz/', bob, { accept: 'text/html' });
+    const page = await get(r, '/w/github/team/a/', bob, { accept: 'text/html' });
+    const none = await get(r, '/w/github/team/zz/', bob, { accept: 'text/html' });
     expect(page.status).toBe(404);
     expect(await page.text()).toBe(await none.text());
-    const api = await get(r, '/w/team/a/api/gitquire/repository', bob);
+    const api = await get(r, '/w/github/team/a/api/gitquire/repository', bob);
     expect(api.status).toBe(404);
-    expect(await api.json()).toEqual(await (await get(r, '/w/team/zz/api/x', bob)).json());
+    expect(await api.json()).toEqual(await (await get(r, '/w/github/team/zz/api/x', bob)).json());
 
     const alice = await signIn(r, 'alice');
     r.advance(ACCESS_TTL_MS + 1);
-    expect((await get(r, '/w/team/a/', alice)).status).toBe(200);
+    expect((await get(r, '/w/github/team/a/', alice)).status).toBe(200);
   });
 });
 
@@ -664,10 +700,12 @@ describe('wiki list and Add a wiki pages', () => {
     const bob = await signIn(r, 'bob');
     r.table.disconnect('github-1', 'removed');
     const mine = await (await get(r, '/', alice, { accept: 'text/html' })).text();
-    expect(mine).toContain('<li data-wiki="github-1">team/a <span class="muted">admin</span>');
+    expect(mine).toContain(
+      '<li data-wiki="github-1">github/team/a <span class="muted">admin</span>',
+    );
     expect(mine).toContain('(disconnected)');
     expect(mine).toContain('GitQuire no longer has access to this repository');
-    expect(mine).toContain('href="/w/team/b/"');
+    expect(mine).toContain('href="/w/github/team/b/"');
     expect(mine).toContain('<a href="/add-wiki">Add a wiki</a>');
     expect(mine).toContain('This server hosts wikis from team.');
     const his = await (await get(r, '/', bob, { accept: 'text/html' })).text();
@@ -684,7 +722,7 @@ describe('wiki list and Add a wiki pages', () => {
     const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
     const page = await (await get(r, '/add-wiki', session, { accept: 'text/html' })).text();
     expect(page).toContain(
-      '<tr data-repo="1"><td><code>team/a</code></td><td><a href="/w/team/a/">',
+      '<tr data-repo="1"><td><code>team/a</code></td><td><a href="/w/github/team/a/">',
     );
     expect(page).toContain(
       '<input type="hidden" name="id" value="3"><button type="submit">Make this a wiki</button>',
@@ -700,7 +738,7 @@ describe('wiki list and Add a wiki pages', () => {
     expect(await refused.text()).toContain('role="alert"');
     const made = await postForm('/add-wiki', session, { id: '3' });
     expect(made.status).toBe(303);
-    expect(made.headers.get('location')).toBe('/w/team/c/');
+    expect(made.headers.get('location')).toBe('/w/github/team/c/');
     expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
   });
 
@@ -779,8 +817,8 @@ describe('wiki list and Add a wiki pages', () => {
 
   it('answers an address that is no wiki, and a wiki without access, with the same page pointing to Add a wiki', async () => {
     const bob = await signIn(r, 'bob');
-    const unknown = await get(r, '/w/team/zzz/', bob, { accept: 'text/html' });
-    const hidden = await get(r, '/w/team/b/', bob, { accept: 'text/html' });
+    const unknown = await get(r, '/w/github/team/zzz/', bob, { accept: 'text/html' });
+    const hidden = await get(r, '/w/github/team/b/', bob, { accept: 'text/html' });
     const page = await unknown.text();
     expect(unknown.status).toBe(404);
     expect(hidden.status).toBe(404);
@@ -846,15 +884,22 @@ describe('mention counts across wikis', () => {
 });
 
 describe('front door on Forgejo', () => {
+  it('names the person by the host it holds, not by the process-wide host (S9)', async () => {
+    const r = await rig({ host: 'forgejo' });
+    const alice = await signIn(r, 'alice');
+    const me = await (await get(r, '/auth/me', alice)).json();
+    expect(me).toMatchObject({ login: 'alice', principalId: 'forgejo-11' });
+  });
+
   it('explains on Add a wiki that the bot must be repo admin and a server administrator enters the token', async () => {
     const r = await rig({ host: 'forgejo' });
-    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const alice = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const page = await (await get(r, '/add-wiki', alice, { accept: 'text/html' })).text();
     expect(page).toContain('<strong>@gq-bot</strong>');
     expect(page).toContain('make that account an administrator of the repository');
     expect(page).toContain('a server administrator signs in to');
     expect(page).toContain('<input type="password" name="token"');
-    const bob = await signIn(r, 'bob', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const bob = await signIn(r, 'bob', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const his = await (await get(r, '/add-wiki', bob, { accept: 'text/html' })).text();
     expect(his).toContain('A server administrator can add it.');
     expect(his).toContain('only server administrators add wikis');
@@ -868,13 +913,13 @@ describe('front door on Forgejo', () => {
     expect((await form(bob, { id: '3', token: 'good' })).status).toBe(403);
     expect((await form(alice, { id: '3', token: 'wrong' })).status).toBe(400);
     expect((await form(alice, { id: '3', token: 'good' })).headers.get('location')).toBe(
-      '/w/team/c/',
+      '/w/forgejo/team/c/',
     );
-    r.table.disconnect('github-1', 'token');
+    r.table.disconnect('forgejo-1', 'token');
     const home = await (await get(r, '/', alice, { accept: 'text/html' })).text();
     expect(home).toContain('action="/add-wiki/token"');
-    const asBob = await form(bob, { key: 'github-1', token: 'good' }, '/add-wiki/token');
-    const unknownAsBob = await form(bob, { key: 'github-99', token: 'good' }, '/add-wiki/token');
+    const asBob = await form(bob, { key: 'forgejo-1', token: 'good' }, '/add-wiki/token');
+    const unknownAsBob = await form(bob, { key: 'forgejo-99', token: 'good' }, '/add-wiki/token');
     expect(asBob.status).toBe(404);
     expect(await asBob.text()).toBe(await unknownAsBob.text());
     const put = (key: string) =>
@@ -883,16 +928,16 @@ describe('front door on Forgejo', () => {
         headers: { cookie: bob, origin: r.base, 'content-type': 'application/json' },
         body: JSON.stringify({ token: 'good' }),
       });
-    const known = await put('github-1');
-    const unknown = await put('github-99');
+    const known = await put('forgejo-1');
+    const unknown = await put('forgejo-99');
     expect([known.status, await known.text()]).toEqual([unknown.status, await unknown.text()]);
-    const saved = await form(alice, { key: 'github-1', token: 'good' }, '/add-wiki/token');
+    const saved = await form(alice, { key: 'forgejo-1', token: 'good' }, '/add-wiki/token');
     expect(saved.status).toBe(303);
   });
 
   it('keeps the list of repositories 30 minutes, then carries the entered token through a new sign-in', async () => {
     const r = await rig({ host: 'forgejo' });
-    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const alice = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const page = await (await get(r, '/add-wiki', alice, { accept: 'text/html' })).text();
     expect(page).toContain('GitQuire keeps this list for 30 minutes');
     r.advance(29 * 60 * 1000);
@@ -910,12 +955,12 @@ describe('front door on Forgejo', () => {
       body: new URLSearchParams({ id: '3', token: 'good' }).toString(),
     });
     expect(sent.status).toBe(302);
-    expect(sent.headers.get('location')).toBe('/auth/github/add-wiki?next=%2Fadd-wiki');
-    expect(r.table.byKey('github-3')).toBeUndefined();
+    expect(sent.headers.get('location')).toBe('/auth/forgejo/add-wiki?next=%2Fadd-wiki');
+    expect(r.table.byKey('forgejo-3')).toBeUndefined();
 
-    const again = await get(r, '/auth/github/add-wiki?next=%2Fadd-wiki', alice);
+    const again = await get(r, '/auth/forgejo/add-wiki?next=%2Fadd-wiki', alice);
     const state = cookiesOf(again).find((c) => c.startsWith('gq_oauth_state='));
-    const back = await httpFetch(`${r.base}/auth/github/callback?code=alice&state=state-1`, {
+    const back = await httpFetch(`${r.base}/auth/forgejo/callback?code=alice&state=state-1`, {
       redirect: 'manual',
       headers: { cookie: state ?? '' },
     });
@@ -923,18 +968,18 @@ describe('front door on Forgejo', () => {
     const fresh = cookiesOf(back).find((c) => c.startsWith('gq_session=')) ?? '';
     const done = await get(r, '/add-wiki', fresh, { accept: 'text/html' });
     expect(done.status).toBe(303);
-    expect(done.headers.get('location')).toBe('/w/team/c/');
-    expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
+    expect(done.headers.get('location')).toBe('/w/forgejo/team/c/');
+    expect(r.table.byKey('forgejo-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
     const after = await (await get(r, '/add-wiki', fresh, { accept: 'text/html' })).text();
     expect(after).not.toContain('role="status"');
   });
 
   it('says why it asked the host again when the list had expired', async () => {
     const r = await rig({ host: 'forgejo' });
-    const alice = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const alice = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     r.advance(31 * 60 * 1000);
     expect((await get(r, '/add-wiki', alice, { accept: 'text/html' })).status).toBe(302);
-    const fresh = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2Fadd-wiki');
+    const fresh = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2Fadd-wiki');
     const page = await (await get(r, '/add-wiki', fresh, { accept: 'text/html' })).text();
     expect(page).toContain('again for your repositories: the list is kept for 30 minutes.');
     expect(page).not.toContain('carried over');
@@ -942,7 +987,7 @@ describe('front door on Forgejo', () => {
 
   it('lets only a server administrator add a wiki, with a token that works for the repository (F10)', async () => {
     const r = await rig({ host: 'forgejo' });
-    const session = await signIn(r, 'alice', '/auth/github/add-wiki?next=%2F');
+    const session = await signIn(r, 'alice', '/auth/forgejo/add-wiki?next=%2F');
     const post = (body: unknown) =>
       httpFetch(`${r.base}/api/front-door/wikis`, {
         method: 'POST',
@@ -955,7 +1000,7 @@ describe('front door on Forgejo', () => {
       error: 'token-refused',
     });
     expect((await post({ id: 3, token: 'good' })).status).toBe(201);
-    const bob = await signIn(r, 'bob', '/auth/github/add-wiki?next=%2F');
+    const bob = await signIn(r, 'bob', '/auth/forgejo/add-wiki?next=%2F');
     const answer = (await (await get(r, '/api/front-door/addable', bob)).json()) as {
       canAdd: boolean;
     };

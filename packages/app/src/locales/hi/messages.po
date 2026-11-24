@@ -1506,7 +1506,7 @@ msgstr "फ़ोल्डर प्रॉपर्टी साफ़ की �
 msgid "Clearing local collaboration data for \"{docName}\" before reconnecting."
 msgstr "फिर से जुड़ने से पहले \"{docName}\" का स्थानीय सहयोग डेटा साफ़ किया जा रहा है।"
 
-msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with {host} and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -5089,6 +5089,9 @@ msgstr "{host} पर {fullName} खोलें"
 msgid "Open {keyName} in browser"
 msgstr "{keyName} को ब्राउज़र में खोलें"
 
+msgid "Open {repoName} on {host}"
+msgstr ""
+
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "<0><1>{verificationUri}</1><2/></0> खोलें और यह कोड डालें:"
 
@@ -6591,7 +6594,13 @@ msgstr "साइन इन करें"
 msgid "Sign in again to continue."
 msgstr ""
 
-msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
+msgid "Sign in with {label}"
+msgstr ""
+
+msgid "Sign out…"
 msgstr ""
 
 msgid "Sign-in stream ended without confirmation — please try again"

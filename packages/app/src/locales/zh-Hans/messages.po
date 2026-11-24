@@ -1510,7 +1510,7 @@ msgstr "已清除文件夹属性"
 msgid "Clearing local collaboration data for \"{docName}\" before reconnecting."
 msgstr "正在重新连接前清除“{docName}”的本地协作数据。"
 
-msgid "Click <0>Connect</0>, sign in with GitHub and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
+msgid "Click <0>Connect</0>, sign in with {host} and approve access. Claude can then work in the wiki on the web, in the desktop app and on your phone."
 msgstr ""
 
 msgid "Click an agent's avatar in the presence bar to view their session."
@@ -5093,6 +5093,9 @@ msgstr "在 {host} 上打开 {fullName}"
 msgid "Open {keyName} in browser"
 msgstr "在浏览器中打开 {keyName}"
 
+msgid "Open {repoName} on {host}"
+msgstr ""
+
 msgid "Open <0><1>{verificationUri}</1><2/></0> and enter this code:"
 msgstr "打开 <0><1>{verificationUri}</1><2/></0>，并输入这个验证码："
 
@@ -6595,7 +6598,13 @@ msgstr "登录"
 msgid "Sign in again to continue."
 msgstr ""
 
-msgid "Sign in with GitHub and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
+msgstr ""
+
+msgid "Sign in with {label}"
+msgstr ""
+
+msgid "Sign out…"
 msgstr ""
 
 msgid "Sign-in stream ended without confirmation — please try again"

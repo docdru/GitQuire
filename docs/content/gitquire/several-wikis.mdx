@@ -5,8 +5,9 @@ description: Run several wikis in one GitQuire container behind one front door, 
 ---
 
 With `GITQUIRE_WIKIS=on`, one GitQuire container serves several wikis. Each wiki is a repository on
-your Git host (GitHub or Forgejo) and opens at `/w/<owner>/<repo>/`. Everyone signs in once, at the
-front door, and sees only the wikis whose repository they can write to. This is new; try it on a
+your Git host (GitHub or Forgejo) and opens at `/w/<host>/<owner>/<repo>/`, for example
+`/w/github/team/handbook/`. Everyone signs in at the front door and sees only the wikis whose
+repository they can write to. There are no addresses without the host. This is new; try it on a
 copy of your volume first.
 
 ## Turn it on
@@ -15,7 +16,7 @@ copy of your volume first.
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. Off or empty: one wiki, as before. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. |
-| `GITQUIRE_REPO` | Optional. The default wiki: old addresses without `/w/…` open it, after sign-in and only for people who can open it. |
+| `GITQUIRE_REPO` | Optional. The repository whose single-wiki volume `gitquire wikis adopt` moves over. |
 | `GITQUIRE_ADMINS` | Server administrators. On Forgejo only they add wikis. |
 
 The sign-in settings, `GITQUIRE_SESSION_SECRET`, `GITQUIRE_EXTERNAL_URL` (the root address) and
@@ -46,9 +47,25 @@ nobody can open it, and nothing is deleted. A server administrator can remove a 
 on the wiki list; its files are moved to `wikis-removed/` and its name is free again. Inside a wiki, the repository name in the header
 switches between your wikis and shows unread mentions in the others.
 
-AI agents use one address for all wikis, `https://<server>/mcp`; every tool takes a `wiki`
-argument such as `team/handbook`, which a person with one wiki may leave out. See
-[Connect AI](./connect-ai.mdx).
+AI agents use one address for all wikis of a host, `https://<server>/mcp/<host key>` (for example
+`/mcp/github`); every tool takes a `wiki` argument such as `github/team/handbook`, which a person
+with one wiki may leave out. See [Connect AI](./connect-ai.mdx).
+
+## GitHub and Forgejo on one server
+
+The host you configure as usual is the first host; further hosts are listed in `GITQUIRE_HOSTS`
+and each has its own `GITQUIRE_HOST_<KEY>_…` settings (sign-in application, GitHub App or Forgejo
+bot token, allowed owners, administrators). One GitHub plus one Forgejo is tested.
+
+- People sign in once per host and can be signed in with both at once. Accounts are never linked:
+  the same login on two hosts is two people.
+- The wiki list shows the wikis of both accounts, each named `<host>/<owner>/<repo>`, and keeps
+  working while one host is down. Add a wiki asks which host.
+- AI agents have one address per host, `/mcp/<key>`, each with its own tokens page,
+  `/auth/<key>/agents`. A connection reaches only its host's wikis.
+
+The settings are in
+[DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#two-git-hosts-on-one-server).
 
 ## Move a single wiki over
 

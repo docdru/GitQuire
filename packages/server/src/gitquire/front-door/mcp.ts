@@ -28,7 +28,7 @@ import {
 } from '../request-person.ts';
 import type { OpenDecision, WikiAccess } from './access.ts';
 import { WikiClosedError, type WikiProcesses } from './wiki-processes.ts';
-import { type WikiRecord, type WikiTable, wikiPrefix } from './wiki-table.ts';
+import { type WikiRecord, type WikiTable, wikiName, wikiPrefix } from './wiki-table.ts';
 
 const LIST_WIKIS_TOOL = 'list_wikis';
 const WIKI_ARGUMENT = 'wiki';
@@ -85,7 +85,7 @@ const NULL_BODY_STATUSES = new Set([204, 205, 304]);
 
 const WIKI_ARGUMENT_SCHEMA = {
   type: 'string',
-  description: `The wiki, as ${LIST_WIKIS_TOOL} names it (owner/repository, for example team/handbook). May be left out when you can open exactly one wiki.`,
+  description: `The wiki, as ${LIST_WIKIS_TOOL} names it (host/owner/repository, for example github/team/handbook). May be left out when you can open exactly one wiki.`,
 };
 
 const WORKSPACE_ARGUMENT_SCHEMA = {
@@ -192,17 +192,21 @@ function socketFetch(target: () => { socket: string; headers: Record<string, str
   return fetchLike;
 }
 
-export function wikiNameOf(raw: string, externalUrl: URL): { owner: string; name: string } | null {
+export function wikiNameOf(
+  raw: string,
+  externalUrl: URL,
+): { hostKey: string; owner: string; name: string } | null {
   let text = raw.trim();
   if (text.startsWith(externalUrl.origin)) text = text.slice(externalUrl.origin.length);
   text = text.replace(/^\/+/, '');
   if (text.startsWith('w/')) text = text.slice(2);
   const parts = text.replace(/\/+$/, '').split('/');
-  if (parts.length !== 2) return null;
-  const [owner, name] = parts;
+  if (parts.length !== 3) return null;
+  const [hostKey, owner, name] = parts as [string, string, string];
   if (!/^[A-Za-z0-9._~-]+$/.test(owner) || !/^[A-Za-z0-9._~-]+$/.test(name)) return null;
   if (owner === '.' || owner === '..' || name === '.' || name === '..') return null;
-  return { owner, name };
+  if (!/^[a-z][a-z0-9-]*$/.test(hostKey)) return null;
+  return { hostKey, owner, name };
 }
 
 export function withWikiArgument(tool: Tool, required: boolean): Tool {
@@ -240,7 +244,7 @@ function closedText(
   asked: unknown,
   seesWhy: boolean,
 ): string {
-  const name = `${wiki.owner}/${wiki.name}`;
+  const name = wikiName(wiki);
   if (decision.why !== 'disconnected' || !seesWhy) return unknownWikiText(asked);
   return `The wiki ${name} is disconnected.`;
 }
@@ -366,7 +370,7 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
   async function opened(
     session: DoorSession,
     wiki: WikiRecord,
-    asked: unknown = `${wiki.owner}/${wiki.name}`,
+    asked: unknown = wikiName(wiki),
   ): Promise<{ target: WikiTarget } | { refused: string }> {
     const decision = await deps.access.decide(session.person, wiki);
     if (!decision.open) {
@@ -413,7 +417,7 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
       wikis.map(async (wiki) => {
         const decision = await deps.access.decide(person, wiki);
         return {
-          wiki: `${wiki.owner}/${wiki.name}`,
+          wiki: wikiName(wiki),
           address: `${deps.externalUrl.origin}${wikiPrefix(wiki)}/`,
           admin: decision.open && decision.admin,
         };
@@ -436,15 +440,15 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
       const wikis = await openWikis(person);
       if (wikis.length === 1) return { wiki: wikis[0] };
       if (wikis.length === 0) return { refused: 'You cannot open any wiki on this server.' };
-      const names = wikis.map((wiki) => `${wiki.owner}/${wiki.name}`).join(', ');
+      const names = wikis.map((wiki) => wikiName(wiki)).join(', ');
       return {
         refused: `Name the wiki in the "${WIKI_ARGUMENT}" argument. You can open: ${names}.`,
       };
     }
     const parsed = typeof named === 'string' ? wikiNameOf(named, deps.externalUrl) : null;
-    const match = parsed === null ? undefined : deps.table.byAddress(parsed.owner, parsed.name);
-    if (match === undefined) return { refused: unknownWikiText(named) };
-    return { wiki: match.wiki };
+    if (parsed === null) return { refused: unknownWikiText(named) };
+    const match = deps.table.byAddress(parsed.hostKey, parsed.owner, parsed.name);
+    return match === undefined ? { refused: unknownWikiText(named) } : { wiki: match.wiki };
   }
 
   function createSessionServer(session: Omit<DoorSession, 'server'>): McpServer {

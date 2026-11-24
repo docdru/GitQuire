@@ -21,9 +21,9 @@ describe('the wiki prefix in the browser', () => {
   });
 
   it('comes from the /w/<owner>/<repo>/ address the page was loaded from', () => {
-    window.history.replaceState(null, '', '/w/team/wiki/#/notes/plan');
-    expect(wikiPrefix()).toBe('/w/team/wiki');
-    expect(wikiStorageNamespace()).toBe('wiki:/w/team/wiki');
-    expect(defaultCollabWsUrl()).toBe(`ws://${window.location.host}/w/team/wiki/collab`);
+    window.history.replaceState(null, '', '/w/github/team/wiki/#/notes/plan');
+    expect(wikiPrefix()).toBe('/w/github/team/wiki');
+    expect(wikiStorageNamespace()).toBe('wiki:/w/github/team/wiki');
+    expect(defaultCollabWsUrl()).toBe(`ws://${window.location.host}/w/github/team/wiki/collab`);
   });
 });

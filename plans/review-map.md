@@ -1,10 +1,12 @@
-# Review map for the `wikis-hosts` branch
+# Review map
 
-One page for reviewers: who owns what, the requirements in one line each, and the seams where a mistake leaks one wiki into another or loses work. Updated in the pull request that changes what it describes. The plan is `plans/wikis-and-hosts.md`.
+One page for reviewers: who owns what, the requirements in one line each, and the seams where a mistake leaks one wiki into another or loses work. Updated in the pull request that changes what it describes. Written for the `wikis-hosts` branch (plan `plans/wikis-and-hosts.md`, R1–R18, merged in #209); the `hosts-one-door` branch (plan `plans/one-front-door.md`, S1–S9) adds the section "One front door for several hosts" at the end.
 
 ## Switches
 
 `GITQUIRE_WIKIS` off and `GITQUIRE_HOST` unset must behave exactly as `main`. Any code path that runs with both off and differs from `main` is a finding.
+
+On `hosts-one-door`: a front door with one host (`GITQUIRE_HOSTS` unset or empty) must behave as `main` except that wiki addresses and names carry the host key (S8).
 
 ## Who owns what
 
@@ -95,6 +97,8 @@ Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they go
 
 - `packages/server/src/gitquire/front-door/access.ts` (block 5), for changes under `front-door/`, to `door-token.ts` and to `process-pool/forward.ts`.
 
+- `packages/server/src/gitquire/front-door/hosts.ts` (`hosts-one-door` B1), for changes under `front-door/` and `host/`.
+
 ## Seams where a mistake leaks or loses work
 
 | Seam | What can go wrong | Requirement |
@@ -112,3 +116,47 @@ Sent through `[[related.rules]]` in `.github/ai-review.toml` when a path they go
 ## Requirements in one line
 
 R1 nothing written into a repo not turned on · R2 one "who is this request", passed on every hop · R3 admin flag per wiki · R4 internal secret required behind the front door · R5 Unix sockets · R6 stop only when pushed and clean · R7 allowed-users and MCP token refused in several-wiki mode · R8 live connections re-checked on a timer · R9 agent tokens revoked only with no wiki left · R10 folders keyed by host and repo id · R11 uninstalled or bot removed means "disconnected", never deleted · R12 host credentials only in the front door · R13 one writer for agent tokens · R14 host unreachable (network, 5xx): inside stay, nobody new · R15 own token refused (401, 403): wiki disconnected · R16 host in every record and id, addresses looked up · R17 Forgejo version and bot admin checked at start · R18 only allowed owners' repos run as wikis, checked in the front door.
+
+## One front door for several hosts (`hosts-one-door`)
+
+Plan `plans/one-front-door.md`. Requirements in one line:
+
+| # | One line |
+| --- | --- |
+| S1 | Never match people across hosts (login or number) |
+| S2 | Admin and allowed-owner lists per host; unqualified ones are the first host's |
+| S3 | Not signed in on the wiki's host, or no access: the unknown-address answer |
+| S4 | A host's secrets only go to that host's address |
+| S5 | Sign-in state binds the callback to its host |
+| S6 | Two accounts fit in the cookie; one expiring leaves the other |
+| S7 | One host down leaves the other working |
+| S8 | One host: as `main`, except host in addresses and names |
+| S9 | No process-wide host names in the front door |
+
+Modules added or changed by the branch are listed here by the pull request that changes them.
+
+| Block | Module | Notes |
+| --- | --- | --- |
+
+| B0 | `.github/workflows/checks.yml`, `docker.yml`, `prototypes.yml`, `scripts/ci-plan.mjs`, `.github/ai-review.toml` | Pull requests against the branch and pushes to it run everything; a push publishes the `hosts-one-door` image; `forgejo-h5` on pushes. Removed in B9 |
+| B1 | `front-door/hosts.ts` | **Contract.** `HostSettings` per host (key, kind, label, addresses, OAuth client, GitHub App or Forgejo bot token, allowed owners, server administrators, `HostNames` with id prefix `<key>-`); `hostList` reads `GITQUIRE_HOSTS` (the further hosts) and `GITQUIRE_HOST_<KEY>_*`; `hostKeyOf(record)` (`hostKey` or the kind). Refuses a key that is not `[a-z][a-z0-9-]`, repeats the first host's key, starts with `url`, `api`, `client`, `token`, `repo` or `key`, names the other kind, or shares a variable name with another key; https only |
+| B1 | `front-door/settings.ts` | `hosts`: the first host built from today's variables (unchanged fields kept), then the further hosts. One host: `hosts` has one entry equal to today's settings |
+| B1 | `index.ts` (`configureHostFromEnv`) | A single wiki refuses `GITQUIRE_HOSTS` |
+| B2 | `front-door/door-hosts.ts` | One `DoorHostEntry` per configured host: its `HostSettings`, `HostNames`, `DoorHost`, `WikiAccess`, allowed owners (the first host's pins in `owners`, a further host's in `hostOwners[<key>]`), sign-in paths `/auth/<key>/…`, Forgejo token checks, Add a wiki help. `doorHosts.of(record)` answers only when a host with the record's key **and kind** is configured; otherwise the wiki is closed for everybody |
+| B2 | `front-door/start.ts`, `server.ts`, `agents.ts`, `mention-counts.ts`, `oauth-server.ts`, `agent-pages.ts` | No process-wide host names in the front door (S9): `setHostNames` is gone from `startFrontDoor`; labels, sign-in paths and person ids come from the host entry. Until B3/B4 the session account is the first host's and every wiki of another host answers like an unknown address. A further host's start check runs in the background and never holds up the start (S7) |
+| B2 | `front-door/wiki-processes.ts` (`wikiEnv`, `hostOf`) | Repo checks and allowed owners per wiki host. An editor process of a further host gets that host's `GITQUIRE_HOST`, addresses, `GITQUIRE_ADMINS`, commit e-mail format, `GITQUIRE_HOST_KEY` and `GITQUIRE_HOST_LABEL` instead of the first host's; a wiki of the first host gets exactly the environment it got before (S8) |
+| B2 | `host/names.ts` | Behind the front door only, `GITQUIRE_HOST_KEY` sets the id prefix `<key>-` and `GITQUIRE_HOST_LABEL` the label |
+| B2 | `front-door/wiki-table.ts`, `repo-tokens.ts`, `token-socket.ts` | `hostKey` on a record only when it differs from the kind; keys `<host key>-<id>`; `byId(hostKey, id)`; Forgejo tokens found by host key; the token socket asks the wiki's own host |
+| B3 | `front-door/door-session.ts` | **Contract.** The session cookie `gq_session` holds at most one account per host key, each with its own expiry. Only the first host signed in: written in today's form `{v:1, id, login, name, avatarUrl, exp}` (S8, and a rollback keeps the session); otherwise `{v:2, a: {<key>: [id, login, name, avatarUrl, exp]}}` with name and avatar address trimmed. Read: a v1 cookie is the first host's account; accounts of keys not configured, or expired, are dropped one by one (S6) |
+| B3 | `front-door/server.ts` (sign-in) | One `/auth/<key>/login` and `/auth/<key>/callback` per host; the OAuth state names the host it started at and a callback at another host is refused (S5); each host gets only its own client id, secret and callback address (S4). With several hosts, "sign in" goes to `/auth/sign-in` (one button per host) and `/auth/logout` signs out of one host (`host=<key>`) or of all; with one host both are as before. `/auth/me` at the root lists `accounts` with several hosts. Until B4 only the first host's account opens wikis |
+| B4 | `front-door/server.ts` (access) | Every wiki request, upgrade, `Referer` hop, re-check and token or removal form uses the session's account **of the wiki's host** (a "seat": host entry and person), its host's access cache and its host's server administrators. No account on that host: the unknown-address answer (404, also for websockets) without asking any host (S3). The forwarded person is that account; its editor process names it with its own id prefix (S1). Lists and the home page join the wikis of all accounts, each checked by its own host; a server administrator of one host sees and removes only that host's disconnected wikis (S2). A host that is down closes only its own wikis (S7). Sign-in checks the person's token against that host's wikis only (S4) |
+| B5 | `front-door/wiki-table.ts` (`wikiPrefix`, `wikiName`, `byAddress(hostKey, …)`, `byOldAddress`), `translate.ts` (`parseWikiAddresses`) | **Addresses carry the host:** `/w/<host key>/<owner>/<repo>/` on every server. The three-part form is looked up first (in the table, so an owner named like a host key is not misread); then the old two-part form finds a wiki that has the name now (earliest `addedAt` when two hosts each have one), otherwise one that had it (whole-branch review fix). An old address is redirected (301 for GET/HEAD, 308 otherwise, path and query kept) **only after** the access check with the account of that wiki's host; otherwise the unknown-address answer (S3). Websockets only at the new address. `gq_oauth_state_<key>` cookies are stripped before forwarding like `gq_oauth_state` |
+| B5 | `front-door/server.ts` (Add a wiki), `pages.ts` | Add a wiki per seat: the repository list, pending request and "asked again" marks are kept per host and person (`<key>:<id>`); `/add-wiki?host=<key>`, `POST /api/front-door/wikis` with `host`; with two accounts and no host named, a host choice page (or `400 host-required` from the API). `/auth/<key>/add-wiki` per host. With one host and one account: as before |
+| B5 | `front-door/mcp.ts` (`wikiNameOf`, `chooseWiki`) | The `wiki` argument takes `host/owner/repo`, `/w/host/owner/repo/` or the full address; an old `owner/repo` is accepted while exactly one of the person's wikis has (or had) that name, then the old-address rule; several: refused, naming them with the host. `list_wikis` names wikis `host/owner/repo` |
+| B5 | `wiki-name.ts`, `wiki-processes.ts` | Editor processes get `GITQUIRE_WIKI_NAME=<key>/<owner>/<repo>`; mails and chat messages name the wiki with the host |
+| B5 | `packages/app/src/lib/gitquire/wiki-prefix.ts`, `wikis.ts`, `components/GitQuireWikiMenu.tsx`, `LeftTruncatedName.tsx` | The app's prefix is `/w/<host>/<owner>/<repo>`; storage keys and the tab session key follow it (see the plan for what is lost). Names in the header and menu are `host/owner/repo`, shortened from the left with "…" (`dir=rtl` with an `ltr` `<bdi>`), the full name in `title` and at the top of the open menu; with several hosts the menu offers "Sign in with <host>" and "Sign out…" |
+| B6 | `front-door/agents.ts` (`createDoorAgents`, `hostAgentPaths`, `agentTokensFile`) | **One agents part per host:** its token store (first host `agent-tokens.json`, further `agent-tokens-<key>.json`), sweep over that host's wikis with that host's access, agents page, OAuth server and MCP limited to that host's wikis (`hostTable`). Further hosts are dispatched before the first, whose `/oauth/` and `/mcp/` prefixes would otherwise take their paths. A token verifies only in its own host's store (S1) |
+| B6 | `oauth-server.ts` (`hostKey`, `agentsPagePath`), `agent-pages.ts` (`pagePath`, `mcpPath`, `otherHosts`) | With `hostKey` K: issuer `/oauth/K`, resource `/mcp/K`, metadata paths per host, secrets suffixed `:K`. Without it: unchanged from `main` (S8) |
+| B6 | `request-person.ts` (`FORWARDED_AGENTS_HOST_HEADER`, `forwardedAgentPaths`), `behind-front-door-gate.ts`, `front-door/server.ts` (`forwardHeaders`, `features(hostKey, person)`), app `features.ts`, `ConnectAiSection.tsx` | The front door sends the host key for a further host's wiki; the editor turns it into `agentsPath`/`mcpPath` on `/auth/me` only with the internal secret; the app accepts only plain paths. Agent features are now sent per seat, not only for the first host |
+| B7 | `.github/prototypes/github-fake.mjs`, `h5_hosts.py`, `.github/workflows/prototypes.yml` | Test-only. The fake accepts any JWT and any `ghu_<login>` token for a known person; it is not a model of GitHub's security, only of the answers GitQuire reads. Git goes through `git http-backend` with an installation token or a person token |
+| Owner's change | `front-door/translate.ts` (`parseWikiAddress` keyed only), `server.ts` (`resolveWiki`, no default-wiki fallback, no old-address script), `wiki-table.ts` (no `byOldAddress`), `mcp.ts` (`wikiNameOf` keyed only), `agents.ts` (`hostAgentPaths(key)` always keyed, bare `/mcp` → 404 `host-key-required`), `move-over.ts` (adopt into `agent-tokens-<key>.json`) | No backward compatibility: every wiki and AI address carries the host key. The only redirect left is from a renamed repository's former name within the keyed form |

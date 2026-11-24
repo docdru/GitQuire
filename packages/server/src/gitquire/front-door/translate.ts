@@ -3,6 +3,7 @@ import { FORWARDED_VIEW_HEADER } from '../request-person.ts';
 import { serializeCookie } from '../signed-cookie.ts';
 
 export interface WikiAddress {
+  hostKey: string;
   owner: string;
   name: string;
   rest: string;
@@ -10,8 +11,9 @@ export interface WikiAddress {
 }
 
 const SEGMENT = '[A-Za-z0-9._~-]+';
-const WIKI_PATH_RE = new RegExp(`^/w/(${SEGMENT})/(${SEGMENT})(/[^?#]*)?$`);
+const WIKI_PATH_RE = new RegExp(`^/w/([a-z][a-z0-9-]*)/(${SEGMENT})/(${SEGMENT})(/[^?#]*)?$`);
 const FRONT_DOOR_COOKIES = ['gq_session', 'gq_oauth_state'];
+const FRONT_DOOR_COOKIE_PREFIXES = ['gq_oauth_state_'];
 const VIEW_COOKIE_PREFIX = 'gq_view_';
 
 function isNameSegment(value: string): boolean {
@@ -30,9 +32,15 @@ export function parseWikiAddress(url: string | undefined): WikiAddress | undefin
   const { path, search } = rawPathAndSearch(url);
   const match = WIKI_PATH_RE.exec(path);
   if (match === null) return undefined;
-  const [, owner, name, rest] = match;
+  const [, hostKey, owner, name, rest] = match as unknown as [
+    string,
+    string,
+    string,
+    string,
+    string?,
+  ];
   if (!isNameSegment(owner) || !isNameSegment(name)) return undefined;
-  return { owner, name, rest: rest ?? '', search };
+  return { hostKey, owner, name, rest: rest ?? '', search };
 }
 
 export function withPrefix(location: string, prefix: string): string {
@@ -71,7 +79,11 @@ export function stripBrowserHeaders(req: IncomingMessage): void {
     .map((part) => part.trim())
     .filter((part) => {
       const name = part.slice(0, Math.max(0, part.indexOf('='))).trim();
-      return !FRONT_DOOR_COOKIES.includes(name) && !name.startsWith(VIEW_COOKIE_PREFIX);
+      return (
+        !FRONT_DOOR_COOKIES.includes(name) &&
+        !FRONT_DOOR_COOKIE_PREFIXES.some((prefix) => name.startsWith(prefix)) &&
+        !name.startsWith(VIEW_COOKIE_PREFIX)
+      );
     });
   if (kept.length === 0) {
     delete req.headers.cookie;

@@ -13,19 +13,22 @@ This needs [GitHub sign-in](./github-sign-in.mdx), a public HTTPS address and
 app, **Settings → Connect AI** shows the address to use, with the steps for each assistant in its own expandable section.
 
 Your connector address is your wiki's address with `/mcp` at the end, for example
-`https://wiki.example.com/mcp`.
+`https://wiki.example.com/mcp`. On a server with [several wikis](./several-wikis.mdx) it is the
+server's address with `/mcp/<host key>`, the same for all wikis of a host (for example
+`https://wiki.example.com/mcp/github`), and the tokens page is `/auth/<host key>/agents`. Add one connector per host you use. Settings → Connect
+AI always shows the right address for the wiki you are in.
 
 ## Claude
 
 1. In Claude, open **Customize → Connectors**, click **+** and choose **Add custom connector**.
 2. Name it GitQuire, paste the connector address and click **Add**. Leave the request headers
-   empty: the connector signs in on its own, and an agent token from `/auth/agents` does not work
+   empty: the connector signs in on its own, and an agent token from the agents page does not work
    there.
-3. Click **Connect**, sign in with GitHub and approve access.
+3. Click **Connect**, sign in with your Git host and approve access.
 
 On a Team or Enterprise plan, an owner adds the connector once under **Organization settings →
 Connectors**, then everyone clicks **Connect**. For Claude Code, create a personal token on
-`/auth/agents` instead.
+the agents page (`/auth/agents`, or `/auth/<host key>/agents` with several wikis) instead.
 
 ## Mistral Le Chat
 
@@ -33,7 +36,7 @@ Connectors**, then everyone clicks **Connect**. For Claude Code, create a person
    **+ Add Connector**.
 2. Switch to **Custom MCP Connector**, name it `gitquire` (no spaces) and paste the connector
    address.
-3. Click **Connect**, sign in with GitHub and approve access.
+3. Click **Connect**, sign in with your Git host and approve access.
 
 Only Le Chat administrators can add connectors; on the Free, Pro and Student plans, that is the
 account owner. Turn the connector on in a chat to let Le Chat use the wiki there.
@@ -55,6 +58,6 @@ instead. See [Drafts](./drafts.mdx).
 
 ## Managing access
 
-Every connected app appears on `/auth/agents`, where you can revoke it. An access token lasts an
+Every connected app appears on the agents page, where you can revoke it. An access token lasts an
 hour and is renewed for up to 90 days of inactivity. Who gets in is still decided by GitHub sign-in
 and the repository's access rules; see [Security](./security.mdx).
