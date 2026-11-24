@@ -6,6 +6,9 @@ describe('connectorUrl', () => {
   test('appends /mcp to the page origin', () => {
     expect(connectorUrl('https://wiki.example.com')).toBe('https://wiki.example.com/mcp');
     expect(connectorUrl('https://wiki.example.com/')).toBe('https://wiki.example.com/mcp');
+    expect(connectorUrl('https://wiki.example.com', '/mcp/forgejo')).toBe(
+      'https://wiki.example.com/mcp/forgejo',
+    );
   });
 });
 

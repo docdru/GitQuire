@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { forgejoNames, gitHubNames } from '../host/names.ts';
 import type { BotAccess, DoorHost, HostPerson, HostRepoRecord, RepoAccess } from '../host/types.ts';
 import { createWikiAccess } from './access.ts';
+import { createDoorAgents, type DoorAgents } from './agents.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
 import { type DoorHostEntry, doorHostPaths, doorHosts } from './door-hosts.ts';
 import type { HostSettings } from './hosts.ts';
@@ -137,6 +138,7 @@ export interface TwoHostRig {
   processes: WikiProcesses;
   hosts: Record<HostKeyName, FakeHostState>;
   advance: (ms: number) => void;
+  agents: DoorAgents | undefined;
   signIn: (host: HostKeyName, who: string, cookie?: string) => Promise<string>;
   get: (path: string, cookie: string, headers?: Record<string, string>) => Promise<Answer>;
 }
@@ -154,7 +156,12 @@ function tempDir(): string {
 }
 
 export async function twoHostRig(
-  options: { only?: HostKeyName; sessionSeconds?: number } = {},
+  options: {
+    only?: HostKeyName;
+    sessionSeconds?: number;
+    agents?: boolean;
+    connectors?: boolean;
+  } = {},
 ): Promise<TwoHostRig> {
   const data = tempDir();
   const script = join(tempDir(), 'child.cjs');
@@ -210,7 +217,7 @@ export async function twoHostRig(
     githubApp: undefined,
     forgejoBotToken: undefined,
     agentTokenDays: 30,
-    mcpConnectors: false,
+    mcpConnectors: options.connectors === true,
     accessCheckMs: 300_000,
     wikiIdleMs: 30 * 60_000,
     hosts: [],
@@ -278,20 +285,9 @@ export async function twoHostRig(
     now,
   });
   cleanup.push(() => processes.stopAll());
-  const door = createFrontDoor({
-    settings,
-    hosts,
-    table,
-    processes,
-    mentionCounts: createMentionCounts(data, now),
-    log: silentLog,
-    now,
-    randomState: () => 'state-1',
-    listDeadlineMs: 300,
-  });
-  door.setReady(true);
-  const server: Server = createServer(door.handleRequest);
-  server.on('upgrade', door.handleUpgrade);
+  let late: FrontDoor | undefined;
+  const server: Server = createServer((req, res) => late?.handleRequest(req, res));
+  server.on('upgrade', (req, socket, head) => late?.handleUpgrade(req, socket, head));
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', () => resolve()));
   cleanup.push(
     () =>
@@ -303,6 +299,33 @@ export async function twoHostRig(
   const address = server.address();
   const port = typeof address === 'object' && address !== null ? address.port : 0;
   settings.externalUrl = new URL(`http://127.0.0.1:${port}`);
+  const agents =
+    options.agents === true
+      ? createDoorAgents({
+          settings,
+          hosts,
+          table,
+          processes,
+          sessionUser: (req, hostKey) => late?.sessionUser(req, hostKey),
+          log: silentLog,
+          now,
+        })
+      : undefined;
+  if (agents !== undefined) cleanup.push(() => agents.close());
+  const door = createFrontDoor({
+    settings,
+    hosts,
+    table,
+    processes,
+    ...(agents === undefined ? {} : { agents }),
+    mentionCounts: createMentionCounts(data, now),
+    log: silentLog,
+    now,
+    randomState: () => 'state-1',
+    listDeadlineMs: 300,
+  });
+  door.setReady(true);
+  late = door;
   const base = `http://127.0.0.1:${port}`;
   const get = (path: string, cookie: string, headers: Record<string, string> = {}) =>
     httpFetch(`${base}${path}`, { headers: { cookie, ...headers } });
@@ -312,6 +335,7 @@ export async function twoHostRig(
     door,
     table,
     processes,
+    agents,
     hosts: state,
     advance: (ms) => {
       time += ms;

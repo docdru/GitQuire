@@ -9,6 +9,8 @@ export interface GitQuireFeatures {
   settingsAdmin: boolean;
   adminLogins: readonly string[];
   adminRepo: string | null;
+  agentsPath: string;
+  mcpPath: string;
 }
 
 export const STANDALONE_FEATURES: GitQuireFeatures = {
@@ -20,6 +22,8 @@ export const STANDALONE_FEATURES: GitQuireFeatures = {
   settingsAdmin: true,
   adminLogins: [],
   adminRepo: null,
+  agentsPath: '/auth/agents',
+  mcpPath: '/mcp',
 };
 
 const UNKNOWN_FEATURES: GitQuireFeatures = {
@@ -31,8 +35,18 @@ const UNKNOWN_FEATURES: GitQuireFeatures = {
   settingsAdmin: true,
   adminLogins: [],
   adminRepo: null,
+  agentsPath: '/auth/agents',
+  mcpPath: '/mcp',
 };
 const REFRESH_AFTER_MS = 30_000;
+
+const AGENT_PATH_RE = /^\/[a-z0-9/-]+$/;
+
+function agentPath(value: unknown, fallback: string): string {
+  return typeof value === 'string' && AGENT_PATH_RE.test(value) && !value.includes('//')
+    ? value
+    : fallback;
+}
 
 export function parseFeatures(body: unknown): GitQuireFeatures {
   if (typeof body !== 'object' || body === null) return STANDALONE_FEATURES;
@@ -53,6 +67,8 @@ export function parseFeatures(body: unknown): GitQuireFeatures {
       ? adminInfo.logins.filter((login): login is string => typeof login === 'string')
       : [],
     adminRepo: typeof adminInfo.repo === 'string' ? adminInfo.repo : null,
+    agentsPath: agentPath(f.agentsPath, '/auth/agents'),
+    mcpPath: agentPath(f.mcpPath, '/mcp'),
   };
 }
 

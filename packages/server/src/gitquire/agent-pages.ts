@@ -20,6 +20,9 @@ export interface AgentPagesDeps {
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   connectorsEnabled: boolean;
   severalWikis?: boolean;
+  pagePath?: string;
+  mcpPath?: string;
+  otherHosts?: readonly { label: string; path: string }[];
   now?: () => number;
 }
 
@@ -27,16 +30,16 @@ function day(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
-function mcpUrl(externalUrl: URL): string {
-  return new URL('/mcp', externalUrl).toString();
+function mcpUrl(externalUrl: URL, mcpPath = '/mcp'): string {
+  return new URL(mcpPath, externalUrl).toString();
 }
 
-export function claudeCodeCommand(externalUrl: URL, token: string): string {
+export function claudeCodeCommand(externalUrl: URL, token: string, mcpPath = '/mcp'): string {
   const header = `--header "Authorization: Bearer ${token}"`;
-  return `claude mcp add --transport http gitquire ${mcpUrl(externalUrl)} ${header}`;
+  return `claude mcp add --transport http gitquire ${mcpUrl(externalUrl, mcpPath)} ${header}`;
 }
 
-function claudeDesktopConfig(externalUrl: URL, token: string): string {
+function claudeDesktopConfig(externalUrl: URL, token: string, mcpPath: string): string {
   return JSON.stringify(
     {
       mcpServers: {
@@ -45,7 +48,7 @@ function claudeDesktopConfig(externalUrl: URL, token: string): string {
           args: [
             '-y',
             'mcp-remote',
-            mcpUrl(externalUrl),
+            mcpUrl(externalUrl, mcpPath),
             '--header',
             `Authorization: Bearer ${token}`,
           ],
@@ -62,12 +65,15 @@ export function createAgentPages(deps: AgentPagesDeps) {
   const isAdmin = (user: SessionUser) => deps.config.admins.has(user.login.toLowerCase());
   const several = deps.severalWikis === true;
   const theWiki = several ? 'your wikis' : 'the wiki';
+  const pagePath = deps.pagePath ?? AGENTS_PAGE_PATH;
+  const mcpPath = deps.mcpPath ?? '/mcp';
+  const hostLabel = deps.host?.label ?? hostNames().label;
 
   function row(record: AgentTokenRecord, showOwner: boolean): string {
     const kind = record.kind === 'connector' ? 'Connector' : 'Token';
     const lastUsed = record.lastUsedAt === undefined ? 'never' : day(record.lastUsedAt);
     const owner = showOwner ? `<td>@${escapeHtml(record.owner.login)}</td>` : '';
-    return `<tr>${owner}<td>${escapeHtml(record.label)}<br><span class="muted">${kind}</span></td><td>${day(record.createdAt)}</td><td>${lastUsed}</td><td>${day(record.expiresAt)}</td><td><form method="post" action="${AGENTS_PAGE_PATH}/revoke"><input type="hidden" name="id" value="${escapeHtml(record.id)}"><button type="submit">Revoke</button></form></td></tr>`;
+    return `<tr>${owner}<td>${escapeHtml(record.label)}<br><span class="muted">${kind}</span></td><td>${day(record.createdAt)}</td><td>${lastUsed}</td><td>${day(record.expiresAt)}</td><td><form method="post" action="${pagePath}/revoke"><input type="hidden" name="id" value="${escapeHtml(record.id)}"><button type="submit">Revoke</button></form></td></tr>`;
   }
 
   function table(records: AgentTokenRecord[], showOwner: boolean, empty: string): string {
@@ -84,8 +90,14 @@ export function createAgentPages(deps: AgentPagesDeps) {
       ? deps.store.list().filter((record) => record.owner.id !== user.id)
       : [];
     const connectorHelp = deps.connectorsEnabled
-      ? `<h2>Claude on the web and on your phone</h2><p>In Claude's settings, add a custom connector with this address, then sign in with ${deps.host?.label ?? hostNames().label} when asked:</p><pre>${escapeHtml(mcpUrl(deps.config.externalUrl))}</pre><p class="muted">No token is needed there: leave the request headers empty. Connectors you authorize show up in the list above, and you can revoke them here.</p>`
+      ? `<h2>Claude on the web and on your phone</h2><p>In Claude's settings, add a custom connector with this address, then sign in with ${hostLabel} when asked:</p><pre>${escapeHtml(mcpUrl(deps.config.externalUrl, mcpPath))}</pre><p class="muted">No token is needed there: leave the request headers empty. Connectors you authorize show up in the list above, and you can revoke them here.</p>`
       : `<h2>Claude on the web and on your phone</h2><p class="muted">Not turned on for this server, and an agent token does not work there: Claude's connectors sign in on their own. ${isAdmin(user) ? 'To turn them on, set <code>GITQUIRE_MCP_CONNECTORS=on</code> and restart GitQuire.' : 'An administrator of this server can turn them on.'}</p>`;
+    const otherHosts = deps.otherHosts ?? [];
+    const onHost = otherHosts.length > 0 ? ` on ${escapeHtml(hostLabel)}` : '';
+    const otherHostsNote =
+      otherHosts.length > 0
+        ? `<p class="muted">Wikis on another host have their own address and tokens: ${otherHosts.map((other) => `<a href="${escapeHtml(other.path)}">${escapeHtml(other.label)}</a>`).join(', ')}.</p>`
+        : '';
     const adminSection = isAdmin(user)
       ? `<h2>Everyone's agent access</h2><p class="muted">You are an admin, so you can revoke anyone's tokens.</p>${table(others, true, 'Nobody else has agent access.')}`
       : '';
@@ -93,11 +105,12 @@ export function createAgentPages(deps: AgentPagesDeps) {
       res,
       status,
       'AI agent access',
-      `<p>Signed in as <strong>@${escapeHtml(user.login)}</strong>. <a href="/">${several ? 'Your wikis' : 'Back to the wiki'}</a></p>
-<p>An agent token lets your own AI agent, such as Claude Code or the Claude desktop app, read and edit ${theWiki} as you. Its edits are credited to you, and each token can be revoked on its own.${several ? ' One address and one token reach every wiki you can open; the agent names the wiki in each call.' : ''}</p>
+      `<p>Signed in as <strong>@${escapeHtml(user.login)}</strong>${onHost}. <a href="/">${several ? 'Your wikis' : 'Back to the wiki'}</a></p>
+<p>An agent token lets your own AI agent, such as Claude Code or the Claude desktop app, read and edit ${theWiki} as you. Its edits are credited to you, and each token can be revoked on its own.${several ? ` One address and one token reach every wiki you can open${otherHosts.length > 0 ? ` on ${escapeHtml(hostLabel)}` : ''}; the agent names the wiki in each call.` : ''}</p>
+${otherHostsNote}
 ${notice}
 <h2>Create a token</h2>
-<form method="post" action="${AGENTS_PAGE_PATH}">
+<form method="post" action="${pagePath}">
 <p><label for="label">What is it for?</label><br><input type="text" id="label" name="label" maxlength="80" placeholder="Claude Code on my laptop" required></p>
 <p><button type="submit">Create token</button> <span class="muted">Valid for ${deps.config.agentTokenDays} days.</span></p>
 </form>
@@ -114,10 +127,10 @@ ${adminSection}`,
 <p><strong>Your new token.</strong> Copy it now: it is shown only once.</p>
 <pre>${escapeHtml(token)}</pre>
 <p><strong>Claude Code:</strong> run this in a terminal.</p>
-<pre>${escapeHtml(claudeCodeCommand(url, token))}</pre>
+<pre>${escapeHtml(claudeCodeCommand(url, token, mcpPath))}</pre>
 <p><strong>Claude desktop app (chat):</strong> open Settings → Developer → Edit Config, add this, then restart the app.</p>
-<pre>${escapeHtml(claudeDesktopConfig(url, token))}</pre>
-<p class="muted">Other agents: use the MCP address <code>${escapeHtml(mcpUrl(url))}</code> with the header <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+<pre>${escapeHtml(claudeDesktopConfig(url, token, mcpPath))}</pre>
+<p class="muted">Other agents: use the MCP address <code>${escapeHtml(mcpUrl(url, mcpPath))}</code> with the header <code>Authorization: Bearer &lt;token&gt;</code>.</p>
 </div>`;
   }
 
@@ -132,7 +145,7 @@ ${adminSection}`,
       return;
     }
     const form = await readForm(req);
-    if (path === `${AGENTS_PAGE_PATH}/revoke`) {
+    if (path === `${pagePath}/revoke`) {
       const id = form.get('id') ?? '';
       const ok = deps.store.revoke(id, isAdmin(user) ? 'admin' : { ownerId: user.id });
       page(
@@ -161,12 +174,12 @@ ${adminSection}`,
   }
 
   function handle(req: IncomingMessage, res: ServerResponse, path: string): boolean {
-    if (path !== AGENTS_PAGE_PATH && path !== `${AGENTS_PAGE_PATH}/revoke`) return false;
+    if (path !== pagePath && path !== `${pagePath}/revoke`) return false;
     const user = deps.sessionUser(req);
     if (user === undefined) {
       redirect(
         res,
-        `${deps.host?.signInPath ?? signInPath()}?next=${encodeURIComponent(AGENTS_PAGE_PATH)}`,
+        `${deps.host?.signInPath ?? signInPath()}?next=${encodeURIComponent(pagePath)}`,
       );
       return true;
     }
@@ -181,8 +194,8 @@ ${adminSection}`,
       });
       return true;
     }
-    if (path !== AGENTS_PAGE_PATH) {
-      redirect(res, AGENTS_PAGE_PATH);
+    if (path !== pagePath) {
+      redirect(res, pagePath);
       return true;
     }
     page(res, user, '');

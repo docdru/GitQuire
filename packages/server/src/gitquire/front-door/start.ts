@@ -227,13 +227,14 @@ export async function startFrontDoor(
   });
   tokenSocketPath = tokenSocket.path;
 
-  let doorSessionUser: (req: IncomingMessage) => HostPerson | undefined = () => undefined;
+  let doorSessionUser: (req: IncomingMessage, hostKey: string) => HostPerson | undefined = () =>
+    undefined;
   const agents = createDoorAgents({
     settings,
     hosts,
     table,
     processes,
-    sessionUser: (req) => doorSessionUser(req),
+    sessionUser: (req, hostKey) => doorSessionUser(req, hostKey),
     log,
   });
   agents.sweep.runOnce().catch((err: unknown) => {
