@@ -215,7 +215,7 @@ jobs:
           for c in gq-a gq-b forgejo; do echo "::group::$c"; docker logs --tail 150 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
 
   forgejo-h5:
-    name: H5 GitQuire on Forgejo (sign-in, sync, drafts, access removed, host down)
+    name: H5 GitQuire on Forgejo (sign-in, sync, drafts, access removed, host down, two hosts)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -371,6 +371,33 @@ jobs:
         if: always()
         run: |
           echo "::group::gq-two"; docker logs --tail 300 gq-two 2>&1 | cut -c1-300 || true; echo "::endgroup::"
+
+      - name: Two Git hosts on one front door (Forgejo OAuth app, people on the GitHub fake)
+        run: |
+          set -eu
+          docker stop gq-two >/dev/null 2>&1 || true
+          openssl genrsa -out /tmp/ca/app.pem 2048 2>/dev/null
+          chmod 644 /tmp/ca/app.pem
+          python3 -I .github/prototypes/h5_hosts.py setup
+
+      - name: Start the GitHub fake over https
+        run: |
+          set -eu
+          nohup node .github/prototypes/github-fake.mjs > /tmp/github-fake.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS --cacert /tmp/ca/cert.pem -X POST https://127.0.0.1:3443/_fake/unknown >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -fsS --cacert /tmp/ca/cert.pem -X POST https://127.0.0.1:3443/_fake/unknown
+
+      - name: Two-host rows (both sign-ins, lists, same login, same name, old addresses, admin, access removed, host down, tokens)
+        run: python3 -I .github/prototypes/h5_hosts.py test
+
+      - name: Logs of the two-host run
+        if: always()
+        run: |
+          echo "::group::gq-hosts"; docker logs --tail 300 gq-hosts 2>&1 | cut -c1-300 || true; echo "::endgroup::"
+          echo "::group::github-fake"; tail -200 /tmp/github-fake.log || true; echo "::endgroup::"
 
       - name: Logs
         if: always()
