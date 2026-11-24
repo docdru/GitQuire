@@ -1999,6 +1999,9 @@ msgstr "Couldn't load the pages for this view."
 msgid "Couldn't load the pages."
 msgstr "Couldn't load the pages."
 
+msgid "Couldn't load your email setting."
+msgstr "Couldn't load your email setting."
+
 msgid "Couldn't mark the draft as ready."
 msgstr "Couldn't mark the draft as ready."
 
@@ -2664,6 +2667,9 @@ msgstr "Email"
 
 msgid "Email address"
 msgstr "Email address"
+
+msgid "Email for mentions is not set up."
+msgstr "Email for mentions is not set up."
 
 msgid "Email me new mentions"
 msgstr "Email me new mentions"
@@ -4223,6 +4229,9 @@ msgstr "Lower this to reduce memory use and work per request. Smaller batches se
 msgid "lucide:Lightbulb or 📘"
 msgstr "lucide:Lightbulb or 📘"
 
+msgid "Mail"
+msgstr "Mail"
+
 msgid "Maintain generated indexes in every folder?"
 msgstr "Maintain generated indexes in every folder?"
 
@@ -4631,6 +4640,9 @@ msgstr "New meeting note"
 msgid "New mentions are emailed to {0}"
 msgstr "New mentions are emailed to {0}"
 
+msgid "New mentions are emailed to {0}."
+msgstr "New mentions are emailed to {0}."
+
 msgid "New page"
 msgstr "New page"
 
@@ -5005,6 +5017,9 @@ msgstr "Nothing set yet."
 
 msgid "Nothing to commit — working tree clean."
 msgstr "Nothing to commit — working tree clean."
+
+msgid "Notifications"
+msgstr "Notifications"
 
 msgid "Number"
 msgstr "Number"
@@ -6409,6 +6424,9 @@ msgstr "Set git identity"
 msgid "Set identity"
 msgstr "Set identity"
 
+msgid "Set it up in Settings"
+msgstr "Set it up in Settings"
+
 msgid "Set it up on its own page under Plugins."
 msgstr "Set it up on its own page under Plugins."
 
@@ -6597,6 +6615,9 @@ msgstr "Sign in"
 
 msgid "Sign in again to continue."
 msgstr "Sign in again to continue."
+
+msgid "Sign in to get mentions by email."
+msgstr "Sign in to get mentions by email."
 
 msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
 msgstr "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
@@ -7456,6 +7477,9 @@ msgstr "This sends content off your machine"
 msgid "This sends link addresses from the server to other sites"
 msgstr "This sends link addresses from the server to other sites"
 
+msgid "This server can't send email yet. An administrator turns it on with GITQUIRE_SMTP_URL and GITQUIRE_MAIL_FROM."
+msgstr "This server can't send email yet. An administrator turns it on with GITQUIRE_SMTP_URL and GITQUIRE_MAIL_FROM."
+
 msgid "This server does not send mail to that domain."
 msgstr "This server does not send mail to that domain."
 
@@ -8013,6 +8037,9 @@ msgstr "Waiting for authorization"
 msgid "Waiting for someone to check"
 msgstr "Waiting for someone to check"
 
+msgid "Waiting for the code sent to {0}."
+msgstr "Waiting for the code sent to {0}."
+
 msgid "Warning"
 msgstr "Warning"
 
@@ -8060,6 +8087,9 @@ msgstr "What's new"
 
 msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
 msgstr "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+
+msgid "When someone mentions you in a comment or an action item in this wiki, it shows up under the @ button. You can also get it by email."
+msgstr "When someone mentions you in a comment or an action item in this wiki, it shows up under the @ button. You can also get it by email."
 
 msgid "When the agent runs its scheduled work."
 msgstr "When the agent runs its scheduled work."

@@ -16,6 +16,7 @@ import {
 import {
   CONFIRMATION_RESEND_MS,
   confirmationKey,
+  confirmationKeyPath,
   confirmationMail,
   hashConfirmationCode,
   MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY,
@@ -29,7 +30,7 @@ import {
 import { GitHubUnavailableError } from './github-app.ts';
 import { parseGitHubRepo } from './github-auth-config.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
-import { parseHostKind } from './host/names.ts';
+import { hostNames, parseHostKind } from './host/names.ts';
 import {
   isAllowedRecipient,
   isEmailAddress,
@@ -546,7 +547,14 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     return user;
   }
 
-  const codeKey = confirmationKey((deps.env ?? process.env).GITQUIRE_SESSION_SECRET);
+  let codeKeyValue: string | undefined;
+  function codeKey(): string {
+    codeKeyValue ??= confirmationKey(
+      (deps.env ?? process.env).GITQUIRE_SESSION_SECRET,
+      confirmationKeyPath(deps.projectDir),
+    );
+    return codeKeyValue;
+  }
 
   function checkConfirmationBudget(reader: MentionReader, toKey: string, now: Date): void {
     const last = mentionReads.lastConfirmationAt(reader.id);
@@ -598,11 +606,11 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       return;
     }
     const now = new Date();
-    const toKey = recipientKey(codeKey, address);
+    const toKey = recipientKey(codeKey(), address);
     checkConfirmationBudget(reader, toKey, now);
     mentionReads.reserveConfirmation(reader, toKey, now);
     const code = newConfirmationCode();
-    const message = confirmationMail(mail.config, address, reader.login, code);
+    const message = confirmationMail(mail.config, address, reader.login, code, hostNames().label);
     try {
       await (deps.sendMail ?? sendMail)(mail.config, message);
     } catch (err) {
@@ -614,7 +622,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       );
       throw new HttpError(502, 'mail-failed', 'The confirmation mail could not be sent.');
     }
-    const codeHash = hashConfirmationCode(codeKey, reader.id, code);
+    const codeHash = hashConfirmationCode(codeKey(), reader.id, code);
     mentionReads.startConfirmation(reader, address, codeHash, now);
     deps.log.info({ login: reader.login }, '[gitquire-mail] confirmation mail sent');
     sendJson(res, 200, emailState(reader.id));
@@ -626,7 +634,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     const code = typeof body.code === 'string' ? normalizeConfirmationCode(body.code) : '';
     if (code === '') throw new HttpError(400, 'invalid-code', 'Enter the code from the mail.');
     const alreadyThere = mentionsFor(reader, mentionIndex.all()).map((mention) => mention.id);
-    const hash = hashConfirmationCode(codeKey, reader.id, code);
+    const hash = hashConfirmationCode(codeKey(), reader.id, code);
     const result = mentionReads.confirm(reader, hash, alreadyThere, new Date());
     if (result === 'none') {
       throw new HttpError(409, 'nothing-to-confirm', 'There is no address waiting for a code.');

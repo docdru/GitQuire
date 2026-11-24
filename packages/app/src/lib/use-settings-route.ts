@@ -45,6 +45,12 @@ export function openAiChatSettings(): void {
   openSettingsSection(AI_CHAT_SECTION);
 }
 
+const NOTIFICATIONS_SECTION = 'notifications';
+
+export function openNotificationSettings(): void {
+  openSettingsSection(NOTIFICATIONS_SECTION);
+}
+
 const ACCOUNT_SECTION = 'account';
 
 export function openAccountSettings(): void {

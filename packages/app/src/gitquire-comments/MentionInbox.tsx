@@ -1,11 +1,8 @@
 import { formatRelativeAge } from '@gitquire/core/utils/relative-time';
 import { useLingui } from '@lingui/react/macro';
 import { AtSign } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { listenMentionPanel } from '@/gitquire-people/mention-events';
@@ -17,21 +14,20 @@ import {
 import { hashFromDocName } from '@/lib/doc-hash';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
-  cancelMentionEmail,
-  confirmMentionEmail,
   fetchMentions,
   type InboxMention,
+  listenMentionEmailChanged,
   type MentionEmail,
   type MentionInboxData,
   markMentionsRead,
   pageTitle,
   type ReadTarget,
-  setMentionEmail,
   unreadBadge,
   withMentionsRead,
 } from '@/lib/gitquire/mentions-api';
 import type { PageMention } from '@/lib/gitquire/page-mentions';
 import { revealEditor } from '@/lib/reveal-editor';
+import { openNotificationSettings } from '@/lib/use-settings-route';
 import { cn } from '@/lib/utils';
 import { revealDiscussion } from './ui-store';
 
@@ -81,169 +77,32 @@ function MentionRow({ mention, onOpen }: { mention: InboxMention; onOpen: () => 
   );
 }
 
-const PENDING_GONE = new Set(['nothing-to-confirm', 'code-expired', 'too-many-tries']);
-
-function emailError(err: unknown, fallback: string, messages: Record<string, string>): string {
-  const code = err instanceof GitQuireApiError ? err.code : '';
-  return messages[code] ?? fallback;
-}
-
-function EmailSetting({
-  email,
-  onChange,
-}: {
-  email: MentionEmail;
-  onChange: (next: MentionEmail) => void;
-}) {
+function EmailHint({ email, onOpen }: { email: MentionEmail; onOpen: () => void }) {
   const { t } = useLingui();
-  const fieldId = useId();
-  const codeId = useId();
-  const [draft, setDraft] = useState(email.address ?? '');
-  const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
-  const pending = email.pending ?? null;
-  const messages: Record<string, string> = {
-    'invalid-address': t`Enter a valid email address.`,
-    'address-not-allowed': t`This server does not send mail to that domain.`,
-    'mail-failed': t`The confirmation mail could not be sent. Check the address and try again.`,
-    'resend-too-soon': t`Wait a minute before asking for another code.`,
-    'too-many-codes': t`Too many confirmation mails for now. Try again later.`,
-    'wrong-code': t`That code is not right.`,
-    'code-expired': t`The code has expired. Ask for a new one.`,
-    'too-many-tries': t`Too many wrong codes. Ask for a new one.`,
-    'nothing-to-confirm': t`There is no address waiting for a code.`,
-  };
-
-  function run(request: Promise<MentionEmail>, fallback: string, done?: () => void) {
-    if (busy) return;
-    setBusy(true);
-    request
-      .then(
-        (next) => {
-          onChange(next);
-          done?.();
-        },
-        (err: unknown) => {
-          toast.error(emailError(err, fallback, messages));
-          const reason = err instanceof GitQuireApiError ? err.code : '';
-          if (PENDING_GONE.has(reason)) onChange({ ...email, pending: null });
-        },
-      )
-      .finally(() => setBusy(false));
-  }
-
-  function save(address: string | null) {
-    run(setMentionEmail(address), t`Couldn't save the email address.`, () => {
-      setCode('');
-      if (address === null) setDraft('');
-    });
-  }
-
-  if (pending !== null) {
-    return (
-      <form
-        className="flex flex-col gap-1.5 border-t px-2 pt-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (code.trim() !== '') {
-            run(confirmMentionEmail(code), t`Couldn't confirm the address.`, () => setCode(''));
-          }
-        }}
-      >
-        <Label htmlFor={codeId} className="text-xs">
-          {t`We sent a code to ${pending}. Enter it to turn on email.`}
-        </Label>
-        <div className="flex gap-2">
-          <Input
-            id={codeId}
-            autoComplete="one-time-code"
-            autoCapitalize="characters"
-            spellCheck={false}
-            value={code}
-            placeholder={t`ABCD-2345`}
-            disabled={busy}
-            onChange={(event) => setCode(event.target.value)}
-          />
-          <Button type="submit" size="sm" disabled={busy || code.trim() === ''}>
-            {t`Confirm`}
-          </Button>
-        </div>
-        {email.address !== null && (
-          <p className="text-muted-foreground text-xs">
-            {t`Until then, mentions still go to ${email.address}.`}
-          </p>
-        )}
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="px-0"
-            disabled={busy}
-            onClick={() => save(pending)}
-          >
-            {t`Send a new code`}
-          </Button>
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="px-0"
-            disabled={busy}
-            onClick={() => run(cancelMentionEmail(), t`Couldn't cancel.`)}
-          >
-            {t`Cancel`}
-          </Button>
-        </div>
-      </form>
-    );
-  }
-
+  const text =
+    email.address !== null
+      ? t`New mentions are emailed to ${email.address}.`
+      : email.pending !== null && email.pending !== undefined
+        ? t`Waiting for the code sent to ${email.pending}.`
+        : t`Email for mentions is not set up.`;
   return (
-    <form
-      className="flex flex-col gap-1.5 border-t px-2 pt-2"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const address = draft.trim();
-        if (address !== '') save(address);
-      }}
+    <p
+      className="flex flex-wrap items-center gap-x-1 border-t px-2 pt-2 text-muted-foreground text-xs"
+      data-testid="mention-email-hint"
     >
-      <Label htmlFor={fieldId} className="text-xs">
-        {email.address === null
-          ? t`Email me new mentions`
-          : t`New mentions are emailed to ${email.address}`}
-      </Label>
-      <div className="flex gap-2">
-        <Input
-          id={fieldId}
-          type="email"
-          autoComplete="email"
-          value={draft}
-          placeholder={t`name@example.com`}
-          disabled={busy || !email.available}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-        <Button
-          type="submit"
-          size="sm"
-          disabled={busy || draft.trim() === '' || draft.trim() === email.address}
-        >
-          {email.address === null ? t`Send code` : t`Change`}
-        </Button>
-      </div>
-      {email.address !== null && (
-        <Button
-          type="button"
-          variant="link"
-          size="sm"
-          className="self-start px-0"
-          disabled={busy}
-          onClick={() => save(null)}
-        >
-          {t`Stop emailing me`}
-        </Button>
-      )}
-    </form>
+      <span>{text}</span>
+      <Button
+        type="button"
+        variant="link"
+        size="sm"
+        className="h-auto px-0 text-xs"
+        onClick={onOpen}
+      >
+        {email.address === null && (email.pending ?? null) === null
+          ? t`Set it up in Settings`
+          : t`Settings`}
+      </Button>
+    </p>
   );
 }
 
@@ -324,6 +183,14 @@ export function MentionInbox() {
       setOpen(true);
     });
   }, [enabled]);
+
+  useEffect(
+    () =>
+      listenMentionEmailChanged((email) =>
+        setInbox((latest) => (latest === null ? latest : { ...latest, email })),
+      ),
+    [],
+  );
 
   useEffect(() => {
     let live = true;
@@ -468,11 +335,12 @@ export function MentionInbox() {
           </TabsContent>
         </Tabs>
         {tab === 'inbox' && email !== undefined && (email.available || email.address !== null) && (
-          <EmailSetting
+          <EmailHint
             email={email}
-            onChange={(next) =>
-              setInbox((latest) => (latest === null ? latest : { ...latest, email: next }))
-            }
+            onOpen={() => {
+              setOpen(false);
+              openNotificationSettings();
+            }}
           />
         )}
       </PopoverContent>

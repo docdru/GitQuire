@@ -17,6 +17,7 @@ import {
   normalizeConfirmationCode,
   recipientKey,
 } from './email-confirmation.ts';
+import { forgejoNames, resetHostNames, setHostNames } from './host/names.ts';
 import { type MailConfig, type MailMessage, resolveMailConfig, SmtpError } from './mail.ts';
 import { createMentionMailer, draftLink, mentionMail, pageLink } from './mention-mailer.ts';
 import {
@@ -343,6 +344,42 @@ describe('mention routes', () => {
       const off = await putEmail(routes, { address: null });
       expect(off.body).toEqual({ available: true, address: null, pending: null });
     } finally {
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('accepts the code after the wiki process restarted without a session secret', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    const first = mailRoutes(dir, sent, { on: false });
+    let second: ReturnType<typeof createGitQuireRoutes> | undefined;
+    try {
+      expect((await putEmail(first, { address: 'alice@example.com' })).status).toBe(200);
+      first.stop();
+      second = mailRoutes(dir, sent, { on: false });
+      const right = await confirmCode(second, codeIn(sent[0]));
+      expect(right.body).toEqual({ available: true, address: 'alice@example.com', pending: null });
+      expect((await call(second, '/api/gitquire/mentions')).body.email).toMatchObject({
+        address: 'alice@example.com',
+      });
+    } finally {
+      first.stop();
+      second?.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('names the Git host the person signed in with in the confirmation mail', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    setHostNames(forgejoNames('{login}@noreply.git.example.org'));
+    const routes = mailRoutes(dir, sent, { on: false });
+    try {
+      await putEmail(routes, { address: 'alice@example.com' });
+      expect(sent[0]?.text).toContain('The Forgejo user "Alice" asked');
+    } finally {
+      resetHostNames();
       routes.stop();
       rmSync(dir, { recursive: true, force: true });
     }

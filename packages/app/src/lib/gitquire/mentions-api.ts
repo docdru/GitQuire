@@ -82,3 +82,17 @@ export function pageTitle(docName: string): string {
 export function unreadBadge(unread: number): string {
   return unread > 99 ? '99+' : String(unread);
 }
+
+const EMAIL_CHANGED_EVENT = 'gitquire:mention-email-changed';
+
+export function notifyMentionEmailChanged(email: MentionEmail): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent<MentionEmail>(EMAIL_CHANGED_EVENT, { detail: email }));
+}
+
+export function listenMentionEmailChanged(onChange: (email: MentionEmail) => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const handler = (event: Event) => onChange((event as CustomEvent<MentionEmail>).detail);
+  window.addEventListener(EMAIL_CHANGED_EVENT, handler);
+  return () => window.removeEventListener(EMAIL_CHANGED_EVENT, handler);
+}

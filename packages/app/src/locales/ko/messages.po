@@ -1999,6 +1999,9 @@ msgstr ""
 msgid "Couldn't load the pages."
 msgstr ""
 
+msgid "Couldn't load your email setting."
+msgstr ""
+
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
@@ -2664,6 +2667,9 @@ msgstr "이메일"
 
 msgid "Email address"
 msgstr "이메일 주소"
+
+msgid "Email for mentions is not set up."
+msgstr ""
 
 msgid "Email me new mentions"
 msgstr ""
@@ -4223,6 +4229,9 @@ msgstr "이 값을 낮추면 요청당 메모리 사용량과 작업량이 줄�
 msgid "lucide:Lightbulb or 📘"
 msgstr ""
 
+msgid "Mail"
+msgstr ""
+
 msgid "Maintain generated indexes in every folder?"
 msgstr "모든 폴더에서 생성된 인덱스를 유지하시겠습니까?"
 
@@ -4631,6 +4640,9 @@ msgstr ""
 msgid "New mentions are emailed to {0}"
 msgstr ""
 
+msgid "New mentions are emailed to {0}."
+msgstr ""
+
 msgid "New page"
 msgstr ""
 
@@ -5005,6 +5017,9 @@ msgstr "아직 설정된 항목 없음."
 
 msgid "Nothing to commit — working tree clean."
 msgstr "커밋할 내용이 없습니다. 작업 트리가 깨끗합니다."
+
+msgid "Notifications"
+msgstr ""
 
 msgid "Number"
 msgstr "숫자"
@@ -6409,6 +6424,9 @@ msgstr "git 사용자 정보 설정"
 msgid "Set identity"
 msgstr "사용자 정보 설정"
 
+msgid "Set it up in Settings"
+msgstr ""
+
 msgid "Set it up on its own page under Plugins."
 msgstr "플러그인 아래의 자체 페이지에서 설정합니다."
 
@@ -6596,6 +6614,9 @@ msgid "Sign in"
 msgstr "로그인"
 
 msgid "Sign in again to continue."
+msgstr ""
+
+msgid "Sign in to get mentions by email."
 msgstr ""
 
 msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
@@ -7456,6 +7477,9 @@ msgstr "이 컴퓨터 밖으로 콘텐츠를 전송합니다"
 msgid "This sends link addresses from the server to other sites"
 msgstr ""
 
+msgid "This server can't send email yet. An administrator turns it on with GITQUIRE_SMTP_URL and GITQUIRE_MAIL_FROM."
+msgstr ""
+
 msgid "This server does not send mail to that domain."
 msgstr ""
 
@@ -8013,6 +8037,9 @@ msgstr "인증 대기 중"
 msgid "Waiting for someone to check"
 msgstr ""
 
+msgid "Waiting for the code sent to {0}."
+msgstr ""
+
 msgid "Warning"
 msgstr "경고"
 
@@ -8059,6 +8086,9 @@ msgid "What's new"
 msgstr "새로운 기능"
 
 msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
+
+msgid "When someone mentions you in a comment or an action item in this wiki, it shows up under the @ button. You can also get it by email."
 msgstr ""
 
 msgid "When the agent runs its scheduled work."

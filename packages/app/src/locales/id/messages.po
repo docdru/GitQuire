@@ -1995,6 +1995,9 @@ msgstr ""
 msgid "Couldn't load the pages."
 msgstr ""
 
+msgid "Couldn't load your email setting."
+msgstr ""
+
 msgid "Couldn't mark the draft as ready."
 msgstr ""
 
@@ -2660,6 +2663,9 @@ msgstr "Surel"
 
 msgid "Email address"
 msgstr "Alamat surel"
+
+msgid "Email for mentions is not set up."
+msgstr ""
 
 msgid "Email me new mentions"
 msgstr ""
@@ -4219,6 +4225,9 @@ msgstr "Turunkan nilai ini untuk mengurangi penggunaan memori dan beban per perm
 msgid "lucide:Lightbulb or 📘"
 msgstr ""
 
+msgid "Mail"
+msgstr ""
+
 msgid "Maintain generated indexes in every folder?"
 msgstr "Pertahankan indeks generated di setiap folder?"
 
@@ -4627,6 +4636,9 @@ msgstr ""
 msgid "New mentions are emailed to {0}"
 msgstr ""
 
+msgid "New mentions are emailed to {0}."
+msgstr ""
+
 msgid "New page"
 msgstr ""
 
@@ -5001,6 +5013,9 @@ msgstr "Belum ada yang disetel."
 
 msgid "Nothing to commit — working tree clean."
 msgstr "Tidak ada yang perlu di-commit: working tree bersih."
+
+msgid "Notifications"
+msgstr ""
 
 msgid "Number"
 msgstr "Angka"
@@ -6405,6 +6420,9 @@ msgstr "Setel identitas git"
 msgid "Set identity"
 msgstr "Setel identitas"
 
+msgid "Set it up in Settings"
+msgstr ""
+
 msgid "Set it up on its own page under Plugins."
 msgstr "Siapkan di halamannya sendiri di bawah Plugin."
 
@@ -6592,6 +6610,9 @@ msgid "Sign in"
 msgstr "Masuk"
 
 msgid "Sign in again to continue."
+msgstr ""
+
+msgid "Sign in to get mentions by email."
 msgstr ""
 
 msgid "Sign in with {host} and approve access. Turn the connector on in a chat to let Le Chat use the wiki there."
@@ -7452,6 +7473,9 @@ msgstr "Ini mengirim konten keluar dari komputer Anda"
 msgid "This sends link addresses from the server to other sites"
 msgstr ""
 
+msgid "This server can't send email yet. An administrator turns it on with GITQUIRE_SMTP_URL and GITQUIRE_MAIL_FROM."
+msgstr ""
+
 msgid "This server does not send mail to that domain."
 msgstr ""
 
@@ -8009,6 +8033,9 @@ msgstr "Menunggu otorisasi"
 msgid "Waiting for someone to check"
 msgstr ""
 
+msgid "Waiting for the code sent to {0}."
+msgstr ""
+
 msgid "Warning"
 msgstr "Peringatan"
 
@@ -8055,6 +8082,9 @@ msgid "What's new"
 msgstr "Yang baru"
 
 msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
+msgstr ""
+
+msgid "When someone mentions you in a comment or an action item in this wiki, it shows up under the @ button. You can also get it by email."
 msgstr ""
 
 msgid "When the agent runs its scheduled work."

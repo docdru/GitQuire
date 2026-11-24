@@ -246,7 +246,7 @@ offers them.
 
 ## Mention emails
 
-People enter their address under the mention list and get a confirmation mail with a code; email
+People enter their address in Settings → Notifications (the @ panel links there) and get a confirmation mail with a code; email
 starts once they enter the code in GitQuire. Codes are valid for 24 hours and allow five tries. A
 new code can be requested after a minute; at most five confirmation mails go out per person and
 three per address a day, and 30 an hour for the whole server. Once a minute, new mentions they have

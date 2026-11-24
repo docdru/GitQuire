@@ -6,6 +6,7 @@ import { type ComponentType, lazy } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AiChatSettings } from '@/gitquire-chat/AiChatSettings';
 import { AgentsSettings } from '@/gitquire-settings/AgentsSettings';
+import { MentionEmailSettings } from '@/gitquire-settings/MentionEmailSettings';
 import { WikiAdminGate } from '@/gitquire-settings/WikiAdminGate';
 import { lazyWithPreload } from '@/lib/lazy-with-preload';
 import { SettingsSectionHeader } from './SettingsSectionHeader';
@@ -158,6 +159,9 @@ function SettingsDialogSection({
         <ContentRulesSection />
       </section>
     );
+  }
+  if (activeId === 'notifications') {
+    return <MentionEmailSettings />;
   }
   if (activeId === 'ai-chat') {
     return <AiChatSettings />;
