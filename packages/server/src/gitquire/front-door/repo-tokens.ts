@@ -38,7 +38,7 @@ export function repoTokenKey(
 ): (repo: HostRepoRef) => string | undefined {
   return (repo) => {
     if (repo.id !== undefined) return table.byId(hostKey, repo.id)?.key;
-    const match = table.byAddress(repo.owner, repo.name);
+    const match = table.byAddress(hostKey, repo.owner, repo.name);
     return match?.current === true && hostKeyOf(match.wiki) === hostKey
       ? match.wiki.key
       : undefined;

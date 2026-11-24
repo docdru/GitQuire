@@ -176,7 +176,7 @@ def run():
     ready = start("gq-adopted", True)
     check("Adopt", ready, "the front door starts on the moved volume")
     if state.get("session"):
-        kept = urllib.request.Request(URL + "/w/team/wiki/auth/me", headers={
+        kept = urllib.request.Request(URL + "/w/forgejo/team/wiki/auth/me", headers={
             "Accept": "application/json", "Cookie": f"gq_session={state['session']}"})
         try:
             with urllib.request.urlopen(kept, timeout=120) as resp:
@@ -191,14 +191,14 @@ def run():
     status, listed, _ = h.door_call("GET", "/api/front-door/wikis", alice)
     names = [f"{w.get('owner')}/{w.get('name')}" for w in listed.get("wikis", [])] if isinstance(listed, dict) else []
     check("Adopt", status == 200 and names == ["team/wiki"], f"her wiki list holds the moved wiki -> {status} {names}")
-    status, me, _ = h.door_call("GET", "/w/team/wiki/auth/me", alice)
+    status, me, _ = h.door_call("GET", "/w/forgejo/team/wiki/auth/me", alice)
     check("Adopt", status == 200 and isinstance(me, dict) and me.get("login") == "alice",
-          f"/w/team/wiki/auth/me -> {status}")
-    status, drafts, _ = h.door_call("GET", "/w/team/wiki/api/gitquire/drafts", alice)
+          f"/w/forgejo/team/wiki/auth/me -> {status}")
+    status, drafts, _ = h.door_call("GET", "/w/forgejo/team/wiki/api/gitquire/drafts", alice)
     check("Adopt", status == 200 and slug in json.dumps(drafts),
           f"the draft made in the single wiki is listed behind the front door -> {status}")
     status, _, headers = h.door_call("GET", "/some-page", alice, accept="text/html")
-    check("Adopt", status in (301, 302, 303, 307, 308) and "/w/team/wiki/" in headers.get("Location", ""),
+    check("Adopt", status in (301, 302, 303, 307, 308) and "/w/forgejo/team/wiki/" in headers.get("Location", ""),
           f"an old address without /w/ goes to the moved wiki -> {status} {headers.get('Location')}")
     if token:
         mcp_reads(token, "behind the front door")

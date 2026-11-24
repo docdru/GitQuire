@@ -20,7 +20,7 @@ export interface DoorAgentsDeps {
     'dataDir' | 'externalUrl' | 'sessionSecret' | 'agentTokenDays' | 'mcpConnectors'
   >;
   hosts: DoorHosts;
-  table: Pick<WikiTable, 'list' | 'byAddress'>;
+  table: Pick<WikiTable, 'list' | 'byAddress' | 'byOldAddress'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   log: GateLogger;

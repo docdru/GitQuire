@@ -304,12 +304,24 @@ describe('wiki argument helpers', () => {
   it('reads the wiki from owner/name, its address or its full URL', () => {
     expect(wikiNameOf('team/a', origin)).toEqual({ owner: 'team', name: 'a' });
     expect(wikiNameOf('/w/team/a/', origin)).toEqual({ owner: 'team', name: 'a' });
-    expect(wikiNameOf('https://wiki.example/w/team/a/', origin)).toEqual({
+    expect(wikiNameOf('github/team/a', origin)).toEqual({
+      hostKey: 'github',
+      owner: 'team',
+      name: 'a',
+    });
+    expect(wikiNameOf('/w/github/team/a/', origin)).toEqual({
+      hostKey: 'github',
+      owner: 'team',
+      name: 'a',
+    });
+    expect(wikiNameOf('https://wiki.example/w/github/team/a/', origin)).toEqual({
+      hostKey: 'github',
       owner: 'team',
       name: 'a',
     });
     expect(wikiNameOf('team', origin)).toBeNull();
-    expect(wikiNameOf('team/a/b', origin)).toBeNull();
+    expect(wikiNameOf('Team/a/b', origin)).toBeNull();
+    expect(wikiNameOf('a/b/c/d', origin)).toBeNull();
     expect(wikiNameOf('../a', origin)).toBeNull();
     expect(wikiNameOf('team/a b', origin)).toBeNull();
   });
@@ -360,8 +372,8 @@ describe('/mcp at the front door', () => {
     const listed = await client.callTool({ name: 'list_wikis', arguments: {} });
     expect(listed.structuredContent).toEqual({
       wikis: [
-        { wiki: 'team/a', address: `${r.base}/w/team/a/`, admin: true },
-        { wiki: 'team/b', address: `${r.base}/w/team/b/`, admin: false },
+        { wiki: 'github/team/a', address: `${r.base}/w/github/team/a/`, admin: true },
+        { wiki: 'github/team/b', address: `${r.base}/w/github/team/b/`, admin: false },
       ],
     });
 
@@ -372,14 +384,14 @@ describe('/mcp at the front door', () => {
       repo: 'team/a',
       tool: 'read',
       args: { path: 'x' },
-      prefix: '/w/team/a',
+      prefix: '/w/github/team/a',
     });
     expect(inA.person).toMatchObject({ id: 11, login: 'alice', repoAdmin: true });
 
     const inB = echoOf(
-      await client.callTool({ name: 'read', arguments: { wiki: '/w/team/b/', path: 'y' } }),
+      await client.callTool({ name: 'read', arguments: { wiki: '/w/github/team/b/', path: 'y' } }),
     );
-    expect(inB).toMatchObject({ repo: 'team/b', args: { path: 'y' }, prefix: '/w/team/b' });
+    expect(inB).toMatchObject({ repo: 'team/b', args: { path: 'y' }, prefix: '/w/github/team/b' });
     expect(inB.person.repoAdmin).toBeUndefined();
 
     const again = echoOf(
@@ -456,7 +468,7 @@ describe('/mcp at the front door', () => {
     const client = await connect(r, r.token('alice'));
     const result = await client.callTool({ name: 'read', arguments: { path: 'x' } });
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('team/a, team/b');
+    expect(textOf(result)).toContain('github/team/a, github/team/b');
     const unknown = await client.callTool({ name: 'read', arguments: { wiki: 'team/zz' } });
     expect(unknown.isError).toBe(true);
     expect(textOf(unknown)).toContain('list_wikis');
@@ -510,7 +522,7 @@ describe('/mcp at the front door', () => {
     expect(r.table.byKey('github-1')?.state).toBe('disconnected');
     const told = await admin.callTool({ name: 'read', arguments: { wiki: 'team/a' } });
     expect(told.isError).toBe(true);
-    expect(textOf(told)).toBe('The wiki team/a is disconnected.');
+    expect(textOf(told)).toBe('The wiki github/team/a is disconnected.');
   });
 
   it('opens a new session with the wiki when the wiki forgot the old one', async () => {
@@ -587,7 +599,7 @@ describe('/mcp at the front door', () => {
 
   it('refuses /mcp under a wiki address and names the one address', async () => {
     const r = await rig();
-    const answer = await httpGet(`${r.base}/w/team/a/mcp`);
+    const answer = await httpGet(`${r.base}/w/github/team/a/mcp`);
     expect(answer.status).toBe(404);
     expect(JSON.parse(answer.body)).toEqual(
       expect.objectContaining({ error: 'mcp-at-root', mcp: `${r.base}/mcp` }),
@@ -603,10 +615,10 @@ describe('/mcp at the front door', () => {
       cookie: state,
     });
     const session = back.cookies.find((c) => c.startsWith('gq_session=')) ?? '';
-    const me = await httpGet(`${r.base}/w/team/a/auth/me`, { cookie: session });
+    const me = await httpGet(`${r.base}/w/github/team/a/auth/me`, { cookie: session });
     const echoed = JSON.parse(me.body) as { headers: Record<string, string> };
     expect(echoed.headers['x-gitquire-agents']).toBe('token,tokens,connect');
-    const page = await httpGet(`${r.base}/w/team/a/page`, { cookie: session });
+    const page = await httpGet(`${r.base}/w/github/team/a/page`, { cookie: session });
     expect(
       (JSON.parse(page.body) as { headers: Record<string, string> }).headers['x-gitquire-agents'],
     ).toBeUndefined();

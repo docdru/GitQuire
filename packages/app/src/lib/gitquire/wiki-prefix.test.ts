@@ -12,25 +12,27 @@ describe('the wiki prefix', () => {
     expect(prefixFromPath('/gitquire/')).toBe('');
   });
 
-  it('is /w/<owner>/<repo> when the page is under that address', () => {
-    expect(prefixFromPath('/w/team/wiki/')).toBe('/w/team/wiki');
-    expect(prefixFromPath('/w/team/wiki/x')).toBe('/w/team/wiki');
-    expect(prefixFromPath('/w/team/wiki/index.html')).toBe('/w/team/wiki');
-    expect(prefixFromPath('/w/team/my.wiki/')).toBe('/w/team/my.wiki');
+  it('is /w/<host>/<owner>/<repo> when the page is under that address', () => {
+    expect(prefixFromPath('/w/github/team/wiki/')).toBe('/w/github/team/wiki');
+    expect(prefixFromPath('/w/forgejo/team/wiki/x')).toBe('/w/forgejo/team/wiki');
+    expect(prefixFromPath('/w/lab-2/team/wiki/index.html')).toBe('/w/lab-2/team/wiki');
+    expect(prefixFromPath('/w/github/team/my.wiki/')).toBe('/w/github/team/my.wiki');
   });
 
-  it('needs the owner, the repo and the slash after them', () => {
-    expect(prefixFromPath('/w/team')).toBe('');
-    expect(prefixFromPath('/w/team/')).toBe('');
-    expect(prefixFromPath('/w/team/wiki')).toBe('');
-    expect(prefixFromPath('/x/w/team/wiki/')).toBe('');
+  it('needs the host, the owner, the repo and the slash after them', () => {
+    expect(prefixFromPath('/w/github/team')).toBe('');
+    expect(prefixFromPath('/w/github/team/')).toBe('');
+    expect(prefixFromPath('/w/github/team/wiki')).toBe('');
+    expect(prefixFromPath('/w/team/wiki/')).toBe('');
+    expect(prefixFromPath('/x/w/github/team/wiki/')).toBe('');
   });
 
-  it('ignores owners and repos that are not plain names', () => {
-    expect(prefixFromPath('/w/team/../')).toBe('');
-    expect(prefixFromPath('/w/team/./')).toBe('');
-    expect(prefixFromPath('/w/a%20b/wiki/')).toBe('');
-    expect(prefixFromPath('/w/te.am/wiki/')).toBe('');
+  it('ignores hosts, owners and repos that are not plain names', () => {
+    expect(prefixFromPath('/w/github/team/../')).toBe('');
+    expect(prefixFromPath('/w/github/team/./')).toBe('');
+    expect(prefixFromPath('/w/github/a%20b/wiki/')).toBe('');
+    expect(prefixFromPath('/w/github/te.am/wiki/')).toBe('');
+    expect(prefixFromPath('/w/GitHub/team/wiki/')).toBe('');
   });
 });
 
@@ -40,24 +42,32 @@ describe('withWikiPrefix', () => {
   });
 
   it('puts the prefix in front of root addresses once', () => {
-    expect(withWikiPrefix('/api/asset?path=a.png', '/w/team/wiki')).toBe(
-      '/w/team/wiki/api/asset?path=a.png',
+    expect(withWikiPrefix('/api/asset?path=a.png', '/w/github/team/wiki')).toBe(
+      '/w/github/team/wiki/api/asset?path=a.png',
     );
-    expect(withWikiPrefix('/w/team/wiki/api/x', '/w/team/wiki')).toBe('/w/team/wiki/api/x');
-    expect(withWikiPrefix('/w/team/wiki-b/api/x', '/w/team/wiki')).toBe(
-      '/w/team/wiki/w/team/wiki-b/api/x',
+    expect(withWikiPrefix('/w/github/team/wiki/api/x', '/w/github/team/wiki')).toBe(
+      '/w/github/team/wiki/api/x',
+    );
+    expect(withWikiPrefix('/w/github/team/wiki-b/api/x', '/w/github/team/wiki')).toBe(
+      '/w/github/team/wiki/w/github/team/wiki-b/api/x',
     );
   });
 
   it("leaves the front door's own API at the root", () => {
-    expect(withWikiPrefix('/api/front-door/wikis', '/w/team/wiki')).toBe('/api/front-door/wikis');
-    expect(withWikiPrefix('/api/front-doors', '/w/team/wiki')).toBe('/w/team/wiki/api/front-doors');
+    expect(withWikiPrefix('/api/front-door/wikis', '/w/github/team/wiki')).toBe(
+      '/api/front-door/wikis',
+    );
+    expect(withWikiPrefix('/api/front-doors', '/w/github/team/wiki')).toBe(
+      '/w/github/team/wiki/api/front-doors',
+    );
   });
 
   it('leaves relative, protocol-relative and absolute addresses alone', () => {
-    expect(withWikiPrefix('api/x', '/w/team/wiki')).toBe('api/x');
-    expect(withWikiPrefix('//cdn.example/x', '/w/team/wiki')).toBe('//cdn.example/x');
-    expect(withWikiPrefix('https://example.com/x', '/w/team/wiki')).toBe('https://example.com/x');
+    expect(withWikiPrefix('api/x', '/w/github/team/wiki')).toBe('api/x');
+    expect(withWikiPrefix('//cdn.example/x', '/w/github/team/wiki')).toBe('//cdn.example/x');
+    expect(withWikiPrefix('https://example.com/x', '/w/github/team/wiki')).toBe(
+      'https://example.com/x',
+    );
   });
 });
 

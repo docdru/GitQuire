@@ -21,7 +21,7 @@ describe('wiki table', () => {
   it('keys folders by host and repo id (R10, R16)', () => {
     expect(wikiKey(repo)).toBe('github-41');
     expect(wikiDir('/data', { key: 'github-41' })).toBe('/data/wikis/github-41');
-    expect(wikiPrefix(repo)).toBe('/w/team/wiki');
+    expect(wikiPrefix(repo)).toBe('/w/github/team/wiki');
   });
 
   it('stores records and reads them back after a restart, file mode 0600', () => {
@@ -43,13 +43,13 @@ describe('wiki table', () => {
   it('looks addresses up case-insensitively, and finds former names for redirects after a rename', () => {
     const table = openWikiTable(tableFile());
     table.add(repo, 'alice', 0);
-    expect(table.byAddress('TEAM', 'Wiki')).toMatchObject({ current: true });
+    expect(table.byAddress('github', 'TEAM', 'Wiki')).toMatchObject({ current: true });
     table.rename('github-41', { owner: 'team', name: 'handbook' });
-    expect(table.byAddress('team', 'wiki')).toMatchObject({
+    expect(table.byAddress('github', 'team', 'wiki')).toMatchObject({
       current: false,
       wiki: { name: 'handbook' },
     });
-    expect(table.byAddress('team', 'handbook')).toMatchObject({ current: true });
+    expect(table.byAddress('github', 'team', 'handbook')).toMatchObject({ current: true });
     table.rename('github-41', { owner: 'team', name: 'wiki' });
     expect(table.byKey('github-41')?.formerNames).toEqual([{ owner: 'team', name: 'handbook' }]);
   });
@@ -59,7 +59,10 @@ describe('wiki table', () => {
     table.add(repo, 'alice', 0);
     table.rename('github-41', { owner: 'team', name: 'old' });
     table.add({ ...repo, id: 42, name: 'wiki' }, 'bob', 0);
-    expect(table.byAddress('team', 'wiki')).toMatchObject({ current: true, wiki: { id: 42 } });
+    expect(table.byAddress('github', 'team', 'wiki')).toMatchObject({
+      current: true,
+      wiki: { id: 42 },
+    });
   });
 
   it('disconnects and reconnects, and never removes a record (R11)', () => {
@@ -79,8 +82,8 @@ describe('wiki table', () => {
     table.add(repo, 'alice', 0);
     table.rename('github-41', { owner: 'team', name: 'new' });
     expect(table.remove('github-41')?.key).toBe('github-41');
-    expect(table.byAddress('team', 'new')).toBeUndefined();
-    expect(table.byAddress('team', 'wiki')).toBeUndefined();
+    expect(table.byAddress('github', 'team', 'new')).toBeUndefined();
+    expect(table.byAddress('github', 'team', 'wiki')).toBeUndefined();
     expect(table.remove('github-41')).toBeUndefined();
     expect(openWikiTable(file).byKey('github-41')).toBeUndefined();
   });

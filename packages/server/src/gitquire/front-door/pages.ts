@@ -1,6 +1,6 @@
 import type { HostKind } from '../host/types.ts';
 import { escapeHtml } from '../http-util.ts';
-import { type WikiRecord, wikiPrefix } from './wiki-table.ts';
+import { type WikiRecord, wikiName, wikiPrefix } from './wiki-table.ts';
 
 export const ADD_WIKI_PAGE = '/add-wiki';
 export const ADD_WIKI_TOKEN_FORM = '/add-wiki/token';
@@ -39,16 +39,16 @@ function unreadText(unread: number | undefined): string {
 }
 
 function tokenForm(wiki: WikiRecord): string {
-  return `<form method="post" action="${ADD_WIKI_TOKEN_FORM}"><input type="hidden" name="key" value="${escapeHtml(wiki.key)}"><label>New token limited to <code>${escapeHtml(`${wiki.owner}/${wiki.name}`)}</code> <input type="password" name="token" autocomplete="off" required></label> <button type="submit">Save the token</button></form>`;
+  return `<form method="post" action="${ADD_WIKI_TOKEN_FORM}"><input type="hidden" name="key" value="${escapeHtml(wiki.key)}"><label>New token limited to <code>${escapeHtml(wikiName(wiki))}</code> <input type="password" name="token" autocomplete="off" required></label> <button type="submit">Save the token</button></form>`;
 }
 
 function removeForm(wiki: WikiRecord): string {
-  return `<form method="post" action="${REMOVE_WIKI_FORM}"><input type="hidden" name="key" value="${escapeHtml(wiki.key)}"><label><input type="checkbox" name="confirm" value="yes" required> Remove <code>${escapeHtml(`${wiki.owner}/${wiki.name}`)}</code> from GitQuire; its files are kept in <code>wikis-removed/</code></label> <button type="submit">Remove the wiki</button></form>`;
+  return `<form method="post" action="${REMOVE_WIKI_FORM}"><input type="hidden" name="key" value="${escapeHtml(wiki.key)}"><label><input type="checkbox" name="confirm" value="yes" required> Remove <code>${escapeHtml(wikiName(wiki))}</code> from GitQuire; its files are kept in <code>wikis-removed/</code></label> <button type="submit">Remove the wiki</button></form>`;
 }
 
 function homeRow(row: HomeRow, canReplaceToken: boolean, canRemove: boolean): string {
   const { wiki, admin } = row;
-  const label = escapeHtml(`${wiki.owner}/${wiki.name}`);
+  const label = escapeHtml(wikiName(wiki));
   const role = admin ? ' <span class="muted">admin</span>' : '';
   if (wiki.state === 'on') {
     return `<li data-wiki="${escapeHtml(wiki.key)}"><a href="${escapeHtml(`${wikiPrefix(wiki)}/`)}">${label}</a>${role}${unreadText(row.unread)}</li>`;
@@ -105,6 +105,7 @@ export interface AddWikiInput {
   keptMinutes: number;
   message?: string;
   notice?: string;
+  hostKey?: string;
 }
 
 function botName(help: AddWikiHelp): string {
@@ -124,7 +125,11 @@ function addAction(repo: AddableRow, input: AddWikiInput): string {
   const token = input.needsToken
     ? `<label>Token limited to this repository <input type="password" name="token" autocomplete="off" required></label> `
     : '';
-  return `<form method="post" action="${ADD_WIKI_PAGE}"><input type="hidden" name="id" value="${repo.id}">${token}<button type="submit">Make this a wiki</button></form>`;
+  const host =
+    input.hostKey === undefined
+      ? ''
+      : `<input type="hidden" name="host" value="${escapeHtml(input.hostKey)}">`;
+  return `<form method="post" action="${ADD_WIKI_PAGE}">${host}<input type="hidden" name="id" value="${repo.id}">${token}<button type="submit">Make this a wiki</button></form>`;
 }
 
 function hostHelp(input: AddWikiInput): string {

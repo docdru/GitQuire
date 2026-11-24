@@ -68,10 +68,10 @@ describe('two hosts in one front door', () => {
   it('forwards the account of the wiki’s host, so the same login on two hosts is two people (S1)', async () => {
     const r = await twoHostRig();
     const cookie = await both(r);
-    const toForgejo = (await (await r.get('/w/team/f/page', cookie)).json()) as Echo;
+    const toForgejo = (await (await r.get('/w/forgejo/team/f/page', cookie)).json()) as Echo;
     expect(toForgejo.host).toBe('forgejo');
     expect(principal(toForgejo)).toMatchObject({ id: 11, login: 'alice', repoAdmin: true });
-    const toGithub = (await (await r.get('/w/team/g/page', cookie)).json()) as Echo;
+    const toGithub = (await (await r.get('/w/github/team/g/page', cookie)).json()) as Echo;
     expect(toGithub.host).toBeUndefined();
     expect(principal(toGithub).repoAdmin).toBeUndefined();
     expect(r.hosts.forgejo.asked.some((line) => line.startsWith('bot:alice:2'))).toBe(false);
@@ -81,18 +81,20 @@ describe('two hosts in one front door', () => {
     const r = await twoHostRig();
     const github = await r.signIn('github', 'alice');
     for (const accept of ['text/html', 'application/json']) {
-      const forgejo = await r.get('/w/team/f/', github, { accept });
-      const unknown = await r.get('/w/team/nothing-here/', github, { accept });
+      const forgejo = await r.get('/w/forgejo/team/f/', github, { accept });
+      const unknown = await r.get('/w/github/team/nothing-here/', github, { accept });
       expect([forgejo.status, await forgejo.text()]).toEqual([
         unknown.status,
         await unknown.text(),
       ]);
       expect(forgejo.status).toBe(404);
     }
-    const api = await r.get('/w/team/f/api/documents', github);
+    const api = await r.get('/w/forgejo/team/f/api/documents', github);
     expect(api.status).toBe(404);
-    expect(await upgrade(r, '/w/team/f/collab', github)).toBe('HTTP/1.1 404 Not Found');
-    expect(await upgrade(r, '/w/team/g/collab', github)).toBe('HTTP/1.1 101 Switching Protocols');
+    expect(await upgrade(r, '/w/forgejo/team/f/collab', github)).toBe('HTTP/1.1 404 Not Found');
+    expect(await upgrade(r, '/w/github/team/g/collab', github)).toBe(
+      'HTTP/1.1 101 Switching Protocols',
+    );
     expect(r.hosts.forgejo.asked).toEqual([]);
   });
 
@@ -127,21 +129,21 @@ describe('two hosts in one front door', () => {
   it('cuts off only the host where access was removed', async () => {
     const r = await twoHostRig();
     const cookie = await both(r);
-    expect((await r.get('/w/team/f/x', cookie)).status).toBe(200);
+    expect((await r.get('/w/forgejo/team/f/x', cookie)).status).toBe(200);
     r.hosts.forgejo.levels.alice = {};
     r.advance(ACCESS_TTL_MS + 1);
-    expect((await r.get('/w/team/f/x', cookie)).status).toBe(404);
-    expect((await r.get('/w/team/g/x', cookie)).status).toBe(200);
+    expect((await r.get('/w/forgejo/team/f/x', cookie)).status).toBe(404);
+    expect((await r.get('/w/github/team/g/x', cookie)).status).toBe(200);
   });
 
   it('keeps the other host working while one is down (S7)', async () => {
     const r = await twoHostRig();
     const cookie = await r.signIn('forgejo', 'carol', await r.signIn('github', 'bob'));
     r.hosts.forgejo.bot.down = true;
-    expect((await r.get('/w/team/f/x', cookie)).status).toBe(502);
-    expect((await r.get('/w/team/a/x', cookie)).status).toBe(200);
+    expect((await r.get('/w/forgejo/team/f/x', cookie)).status).toBe(502);
+    expect((await r.get('/w/github/team/a/x', cookie)).status).toBe(200);
     const fresh = await r.signIn('github', 'alice');
-    expect((await r.get('/w/team/g/x', fresh)).status).toBe(200);
+    expect((await r.get('/w/github/team/g/x', fresh)).status).toBe(200);
   });
 
   it('lists one host’s wikis even while the other host does not answer at all (S7)', async () => {
@@ -166,18 +168,18 @@ describe('two hosts in one front door', () => {
         .then(async (answer) => [answer.status, await answer.text()]);
     const none = await r.get('/api/asset?path=a.png', bob);
     const expected = [none.status, await none.text()];
-    expect(await hop('/w/team/g/page')).toEqual(expected);
-    expect(await hop('/w/team/f/page')).toEqual(expected);
-    expect(await hop('/w/team/nothing/page')).toEqual(expected);
-    expect((await hop('/w/team/a/page'))[0]).toBe(200);
+    expect(await hop('/w/github/team/g/page')).toEqual(expected);
+    expect(await hop('/w/forgejo/team/f/page')).toEqual(expected);
+    expect(await hop('/w/github/team/nothing/page')).toEqual(expected);
+    expect((await hop('/w/github/team/a/page'))[0]).toBe(200);
   });
 
   it('answers a former name of another host’s wiki like an unknown address, without a redirect', async () => {
     const r = await twoHostRig();
     r.table.rename('forgejo-3', { owner: 'team', name: 'f2' });
     const github = await r.signIn('github', 'alice');
-    const old = await r.get('/w/team/f/', github);
-    const unknown = await r.get('/w/team/nothing/', github);
+    const old = await r.get('/w/forgejo/team/f/', github);
+    const unknown = await r.get('/w/github/team/nothing/', github);
     expect([old.status, await old.text()]).toEqual([unknown.status, await unknown.text()]);
   });
 

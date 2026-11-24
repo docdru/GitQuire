@@ -1,4 +1,4 @@
-const WIKI_ADDRESS_RE = /^(\/w\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\//;
+const WIKI_ADDRESS_RE = /^(\/w\/[a-z][a-z0-9-]*\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\//;
 
 export function prefixFromPath(pathname: string): string {
   const prefix = WIKI_ADDRESS_RE.exec(pathname)?.[1];
