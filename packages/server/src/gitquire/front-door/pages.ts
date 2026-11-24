@@ -19,6 +19,8 @@ export interface HomeRow {
   wiki: WikiRecord;
   admin: boolean;
   unread?: number;
+  canReplaceToken?: boolean;
+  canRemove?: boolean;
 }
 
 export interface HomeInput {
@@ -54,8 +56,11 @@ function homeRow(row: HomeRow, canReplaceToken: boolean, canRemove: boolean): st
   const why = admin
     ? `<br><span class="muted">${escapeHtml(REASON_TEXT[wiki.reason ?? ''] ?? '')}</span>`
     : '';
-  const replace = admin && canReplaceToken && wiki.reason === 'token' ? tokenForm(wiki) : '';
-  const remove = canRemove ? removeForm(wiki) : '';
+  const replace =
+    admin && (row.canReplaceToken ?? canReplaceToken) && wiki.reason === 'token'
+      ? tokenForm(wiki)
+      : '';
+  const remove = (row.canRemove ?? canRemove) ? removeForm(wiki) : '';
   return `<li data-wiki="${escapeHtml(wiki.key)}">${label}${role} <span class="muted">(disconnected)</span>${why}${replace}${remove}</li>`;
 }
 
