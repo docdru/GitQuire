@@ -317,7 +317,7 @@ export async function twoHostRig(
     get,
     signIn: async (host, who, cookie = '') => {
       const start = await get(`/auth/${host}/login?next=%2F`, cookie);
-      const stateCookie = cookiesOf(start).find((c) => c.startsWith('gq_oauth_state=')) ?? '';
+      const stateCookie = cookiesOf(start).find((c) => c.startsWith('gq_oauth_state')) ?? '';
       const back = await get(
         `/auth/${host}/callback?code=${who}&state=state-1`,
         [cookie, stateCookie].filter((part) => part !== '').join('; '),
