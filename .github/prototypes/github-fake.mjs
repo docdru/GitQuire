@@ -142,7 +142,7 @@ async function control(req, res, path) {
     return send(res, 200, { down: state.down });
   }
   if (path === '/_fake/access') {
-    levels[body.login] = { ...(levels[body.login] ?? {}), [body.repo]: body.level };
+    levels[body.login] = { ...levels[body.login], [body.repo]: body.level };
     return send(res, 200, { levels });
   }
   if (path === '/_fake/unknown') return send(res, 200, { unknown });
