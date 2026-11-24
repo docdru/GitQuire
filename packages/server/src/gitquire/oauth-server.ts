@@ -28,6 +28,7 @@ interface OAuthClient {
 }
 
 export interface OAuthServerDeps {
+  host?: { label: string; signInPath: string };
   externalUrl: URL;
   secret: string;
   store: AgentTokenStore;
@@ -418,7 +419,10 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
     const request = await parseAuthorize(params);
     const user = deps.sessionUser(req);
     if (user === undefined) {
-      redirect(res, `${signInPath()}?next=${encodeURIComponent(AUTHORIZE_PATH + search)}`);
+      redirect(
+        res,
+        `${deps.host?.signInPath ?? signInPath()}?next=${encodeURIComponent(AUTHORIZE_PATH + search)}`,
+      );
       return;
     }
     consentPage(res, user, request, params);
@@ -480,14 +484,14 @@ export function createOAuthServer(deps: OAuthServerDeps): OAuthServer {
       throw new OAuthError(
         503,
         'temporarily_unavailable',
-        `${hostNames().label} cannot be reached right now, so access cannot be checked. Try again in a moment.`,
+        `${deps.host?.label ?? hostNames().label} cannot be reached right now, so access cannot be checked. Try again in a moment.`,
       );
     }
     if (verdict === 'denied') {
       throw new OAuthError(
         400,
         'invalid_grant',
-        `This ${hostNames().label} account no longer has access.`,
+        `This ${deps.host?.label ?? hostNames().label} account no longer has access.`,
       );
     }
   }

@@ -5,14 +5,7 @@ import { join } from 'node:path';
 import type { Duplex } from 'node:stream';
 import { type GateLogger, safeNextPath } from '../access-gate.ts';
 import { isSlug } from '../drafts/model.ts';
-import { callbackPath, hostNames, signInPath } from '../host/names.ts';
-import type {
-  AddableRepo,
-  DoorHost,
-  HostHealth,
-  HostPerson,
-  HostRepoRecord,
-} from '../host/types.ts';
+import type { AddableRepo, HostHealth, HostPerson, HostRepoRecord } from '../host/types.ts';
 import {
   escapeHtml,
   isSameOriginRequest,
@@ -23,7 +16,6 @@ import {
   wantsHtml,
 } from '../http-util.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
-import { principalIdForUser } from '../principal-directory.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
   encodeProxiedUser,
@@ -39,14 +31,10 @@ import {
   safeEqual,
   serializeCookie,
 } from '../signed-cookie.ts';
-import type { DoorPerson, OpenDecision, WikiAccess } from './access.ts';
+import type { DoorPerson, OpenDecision } from './access.ts';
 import type { DoorAgents } from './agents.ts';
-import {
-  type AllowedOwners,
-  allowedOwnersSentence,
-  ownerAllowed,
-  pinAllowedOwner,
-} from './allowed-owners.ts';
+import { allowedOwnersSentence, ownerAllowed, pinAllowedOwner } from './allowed-owners.ts';
+import { type DoorHosts, personIdOn } from './door-hosts.ts';
 import type { MentionCounts } from './mention-counts.ts';
 import {
   ADD_WIKI_PAGE,
@@ -140,14 +128,10 @@ export interface ForgejoTokenChecks {
 
 export interface FrontDoorDeps {
   settings: FrontDoorSettings;
-  host: DoorHost;
+  hosts: DoorHosts;
   table: WikiTable;
-  owners: AllowedOwners;
-  access: WikiAccess;
   processes: WikiProcesses;
-  forgejoTokens?: ForgejoTokenChecks;
   agents?: Pick<DoorAgents, 'handle' | 'features'>;
-  addWikiHelp?: () => Promise<AddWikiHelp>;
   mentionCounts?: MentionCounts;
   log: GateLogger;
   now?: () => number;
@@ -250,15 +234,16 @@ async function readForm(req: IncomingMessage): Promise<URLSearchParams> {
 }
 
 export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
-  const { settings, host, table, access, processes } = deps;
+  const { settings, hosts, table, processes } = deps;
+  const primary = hosts.primary;
+  const { host, access, owners, forgejoTokens } = primary;
   const now = deps.now ?? Date.now;
   const randomState = deps.randomState ?? (() => randomBytes(24).toString('base64url'));
   const secure = settings.externalUrl.protocol === 'https:';
-  const names = hostNames();
-  const label = names.label;
-  const loginPath = signInPath(names);
-  const returnPath = callbackPath(names);
-  const addPath = `/auth/${names.kind}/add-wiki`;
+  const label = primary.names.label;
+  const loginPath = primary.paths.login;
+  const returnPath = primary.paths.callback;
+  const addPath = primary.paths.addWiki;
   const callbackUrl = new URL(returnPath, settings.externalUrl).toString();
   const addable = new Map<number, AddableEntry>();
   const pendingAdds = new Map<number, PendingAdd>();
@@ -281,15 +266,24 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     };
   }
 
+  function primaryWikis(): WikiRecord[] {
+    return table.list().filter((wiki) => hosts.of(wiki) === primary);
+  }
+
+  function decide(person: DoorPerson, wiki: WikiRecord): Promise<OpenDecision> {
+    if (hosts.of(wiki) !== primary) return Promise.resolve({ open: false, why: 'no-access' });
+    return access.decide(person, wiki);
+  }
+
   function isServerAdmin(user: DoorSessionUser): boolean {
-    return settings.serverAdmins.has(user.login.toLowerCase());
+    return primary.settings.serverAdmins.has(user.login.toLowerCase());
   }
 
   function defaultWiki(): WikiRecord | undefined {
     const wanted = settings.defaultWiki;
     if (wanted === undefined) return undefined;
     const match = table.byAddress(wanted.owner, wanted.name);
-    return match?.current === true ? match.wiki : undefined;
+    return match?.current === true && hosts.of(match.wiki) === primary ? match.wiki : undefined;
   }
 
   function signInAddress(next: string): string {
@@ -315,7 +309,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     };
     redirect(
       res,
-      host.authorizeUrl({ clientId: settings.clientId, redirectUri: callbackUrl, state }),
+      host.authorizeUrl({ clientId: primary.settings.clientId, redirectUri: callbackUrl, state }),
       {
         'Set-Cookie': cookie(
           DOOR_STATE_COOKIE,
@@ -375,8 +369,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       return;
     }
     const token = await host.exchangeCode({
-      clientId: settings.clientId,
-      clientSecret: settings.clientSecret,
+      clientId: primary.settings.clientId,
+      clientSecret: primary.settings.clientSecret,
       code,
       redirectUri: callbackUrl,
     });
@@ -395,7 +389,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       return;
     }
     await Promise.all([
-      access.signIn(person, token, table.list()),
+      access.signIn(person, token, primaryWikis()),
       stored.purpose === 'add' ? rememberAddable(person, token) : Promise.resolve(),
     ]);
     const session: SessionPayload = {
@@ -490,7 +484,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       }
       sendJson(res, 200, {
         ...user,
-        principalId: principalIdForUser(user.id),
+        principalId: personIdOn(primary.names, user.id),
         serverAdmin: isServerAdmin(user),
         wikis: true,
       });
@@ -515,9 +509,12 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   function unreadIn(user: DoorSessionUser, wiki: WikiRecord): number | undefined {
-    if (deps.mentionCounts === undefined || wiki.state !== 'on') return undefined;
+    const entry = hosts.of(wiki);
+    if (deps.mentionCounts === undefined || wiki.state !== 'on' || entry === undefined) {
+      return undefined;
+    }
     try {
-      return deps.mentionCounts.unread(user, wiki);
+      return deps.mentionCounts.unread(user, wiki, personIdOn(entry.names, user.id));
     } catch (err) {
       deps.log.warn({ err, wiki: wiki.key }, '[gitquire-door] could not count mentions');
       return undefined;
@@ -525,7 +522,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   async function openableWikis(user: DoorSessionUser): Promise<ListedWithUnread[]> {
-    const listed = await access.wikisFor(user, table.list(), {
+    const listed = await access.wikisFor(user, primaryWikis(), {
       serverAdmin: isServerAdmin(user),
     });
     return listed.map(({ wiki, admin }) => {
@@ -543,7 +540,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         ...(unread === undefined ? {} : { unread }),
       })),
       unread: listed.reduce((sum, { unread }) => sum + (unread ?? 0), 0),
-      hosts: allowedOwnersSentence(deps.owners),
+      hosts: allowedOwnersSentence(owners),
       defaultWiki: fallback === undefined ? null : `${wikiPrefix(fallback)}/`,
       addWiki: addPath,
       addWikiPage: ADD_WIKI_PAGE,
@@ -554,9 +551,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     const entry = addable.get(user.id);
     if (entry === undefined || now() - entry.at > ADDABLE_MAX_AGE_MS) return undefined;
     const repos = (entry.repos ?? [])
-      .filter((repo) => ownerAllowed(deps.owners, repo))
+      .filter((repo) => ownerAllowed(owners, repo))
       .map((repo): AddableView => {
-        const existing = table.byId(repo.host, repo.id);
+        const existing = table.byId(primary.key, repo.id);
         return {
           id: repo.id,
           owner: repo.owner,
@@ -568,9 +565,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     return {
       state: entry.answer,
       repos,
-      hosts: allowedOwnersSentence(deps.owners),
-      needsToken: settings.host === 'forgejo',
-      canAdd: settings.host !== 'forgejo' || isServerAdmin(user),
+      hosts: allowedOwnersSentence(owners),
+      needsToken: primary.settings.kind === 'forgejo',
+      canAdd: primary.settings.kind !== 'forgejo' || isServerAdmin(user),
     };
   }
 
@@ -607,13 +604,13 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         },
       };
     }
-    if (!ownerAllowed(deps.owners, repo)) {
+    if (!ownerAllowed(owners, repo)) {
       return {
         status: 403,
-        body: { error: 'owner-not-allowed', message: allowedOwnersSentence(deps.owners) },
+        body: { error: 'owner-not-allowed', message: allowedOwnersSentence(owners) },
       };
     }
-    const existing = table.byId(repo.host, repo.id);
+    const existing = table.byId(primary.key, repo.id);
     if (existing !== undefined) {
       return {
         status: 409,
@@ -651,8 +648,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         },
       };
     }
-    const key = wikiKey(repo);
-    if (deps.forgejoTokens !== undefined) {
+    const key = wikiKey(repo, primary.key);
+    if (forgejoTokens !== undefined) {
       if (!isServerAdmin(user)) {
         return {
           status: 403,
@@ -663,7 +660,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         };
       }
       const token = typeof given === 'string' ? given.trim() : '';
-      if (token === '' || deps.forgejoTokens.isBotToken(token)) {
+      if (token === '' || forgejoTokens.isBotToken(token)) {
         return {
           status: 400,
           body: {
@@ -673,14 +670,14 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
           },
         };
       }
-      const health = await deps.forgejoTokens.check(repo, token);
+      const health = await forgejoTokens.check(repo, token);
       if (health !== 'ok') {
         return refusalOutcome(label, health);
       }
-      deps.forgejoTokens.save(key, token);
+      forgejoTokens.save(key, token);
     }
-    pinAllowedOwner(deps.owners, repo);
-    const wiki = table.add(repo, user.login, now());
+    pinAllowedOwner(owners, repo);
+    const wiki = table.add(repo, user.login, now(), primary.key);
     access.learn(user, wiki, 'admin');
     deps.log.info(
       { wiki: wiki.key, repo: `${wiki.owner}/${wiki.name}`, by: user.login },
@@ -700,18 +697,20 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   async function newToken(user: DoorSessionUser, key: string, given: unknown): Promise<Outcome> {
-    if (!isServerAdmin(user) || deps.forgejoTokens === undefined) {
+    if (!isServerAdmin(user) || forgejoTokens === undefined) {
       return { status: 404, body: { error: 'not-found' } };
     }
     const wiki = table.byKey(key);
-    if (wiki === undefined) return { status: 404, body: { error: 'not-found' } };
+    if (wiki === undefined || hosts.of(wiki) !== primary) {
+      return { status: 404, body: { error: 'not-found' } };
+    }
     const token = typeof given === 'string' ? given.trim() : '';
-    if (token === '' || deps.forgejoTokens.isBotToken(token)) {
+    if (token === '' || forgejoTokens.isBotToken(token)) {
       return { status: 400, body: { error: 'token-required' } };
     }
-    const health = await deps.forgejoTokens.check(wiki, token);
+    const health = await forgejoTokens.check(wiki, token);
     if (health !== 'ok') return refusalOutcome(label, health);
-    deps.forgejoTokens.save(key, token);
+    forgejoTokens.save(key, token);
     await processes.check(wiki);
     return { status: 200, body: { wiki: wikiView(wiki, true) } };
   }
@@ -722,11 +721,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     user: DoorSessionUser,
     key: string,
   ): Promise<void> {
-    if (
-      !isServerAdmin(user) ||
-      deps.forgejoTokens === undefined ||
-      table.byKey(key) === undefined
-    ) {
+    if (!isServerAdmin(user) || forgejoTokens === undefined || table.byKey(key) === undefined) {
       sendJson(res, 404, { error: 'not-found' });
       return;
     }
@@ -810,7 +805,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   function notAWiki(req: IncomingMessage, res: ServerResponse): void {
-    const sentence = allowedOwnersSentence(deps.owners);
+    const sentence = allowedOwnersSentence(owners);
     if (wantsHtml(req)) {
       sendHtml(
         res,
@@ -876,7 +871,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     view: string | undefined,
     decided?: OpenDecision,
   ): Promise<void> {
-    const decision = decided ?? (await access.decide(user, wiki));
+    const decision = decided ?? (await decide(user, wiki));
     if (!decision.open) {
       closedAnswer(req, res, wiki, user, decision);
       return;
@@ -933,8 +928,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
           fallback === undefined || !listed.some(({ wiki }) => wiki.key === fallback.key)
             ? undefined
             : `${wikiPrefix(fallback)}/`,
-        hosts: allowedOwnersSentence(deps.owners),
-        canReplaceToken: deps.forgejoTokens !== undefined && isServerAdmin(user),
+        hosts: allowedOwnersSentence(owners),
+        canReplaceToken: forgejoTokens !== undefined && isServerAdmin(user),
         canRemove: isServerAdmin(user),
         scriptPath: OLD_ADDRESS_SCRIPT,
       }),
@@ -942,8 +937,8 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   }
 
   async function addWikiHelp(): Promise<AddWikiHelp> {
-    if (deps.addWikiHelp === undefined) return {};
-    return deps.addWikiHelp().catch((): AddWikiHelp => ({}));
+    if (primary.addWikiHelp === undefined) return {};
+    return primary.addWikiHelp().catch((): AddWikiHelp => ({}));
   }
 
   function askHostAgain(res: ServerResponse, user: DoorSessionUser, adding: boolean): void {
@@ -1001,7 +996,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       failed?.status ?? 200,
       'Add a wiki',
       addWikiBody({
-        host: settings.host,
+        host: primary.settings.kind,
         label,
         state: answer.state,
         repos: answer.repos,
@@ -1048,7 +1043,9 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   async function removeWiki(user: DoorSessionUser, key: string): Promise<Outcome> {
     if (!isServerAdmin(user)) return { status: 404, body: { error: 'not-found' } };
     const wiki = table.byKey(key);
-    if (wiki === undefined) return { status: 404, body: { error: 'not-found' } };
+    if (wiki === undefined || hosts.of(wiki) !== primary) {
+      return { status: 404, body: { error: 'not-found' } };
+    }
     if (wiki.state === 'on') {
       return {
         status: 409,
@@ -1068,7 +1065,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       renameSync(dir, keptIn);
     }
     table.remove(key);
-    deps.forgejoTokens?.forget(key);
+    forgejoTokens?.forget(key);
     deps.log.warn(
       {
         wiki: key,
@@ -1214,8 +1211,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         return;
       }
       const view = viewFor(match.wiki.key);
-      access
-        .decide(user, match.wiki)
+      decide(user, match.wiki)
         .then((decision) => {
           if (decision.open && (!match.current || address.rest === '')) {
             res.writeHead(match.current ? 302 : 301, {
@@ -1277,8 +1273,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
           needSignIn(req, res, `${rawPath}${search}`);
           return;
         }
-        access
-          .decide(user, fallback)
+        decide(user, fallback)
           .then((decision) => {
             if (decision.open) redirect(res, `${wikiPrefix(fallback)}${rawPath}${search}`);
             else notAWiki(req, res);
@@ -1312,7 +1307,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     const cookieView = readCookie(cookies, viewCookieName(wiki.key));
     const viewSlug = isSlug(cookieView) ? cookieView : undefined;
     void (async () => {
-      const decision = await access.decide(user, wiki);
+      const decision = await decide(user, wiki);
       if (!decision.open) {
         refuseUpgrade(socket, '404 Not Found');
         return;
@@ -1346,7 +1341,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         const decision =
           wiki === undefined
             ? ({ open: false, why: 'disconnected' } as const)
-            : await access.decide(connection.person, wiki);
+            : await decide(connection.person, wiki);
         if (decision.open || decision.why === 'unreachable') return;
         deps.log.info(
           { wiki: connection.key, login: connection.person.login, why: decision.why },

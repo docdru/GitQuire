@@ -276,6 +276,7 @@ export function resolveFrontDoorSettings(
     forgejoBotToken,
     allowedOwners,
     serverAdmins: loginSet(env.GITQUIRE_ADMINS),
+    commitEmailFormat: nonEmpty(env.GITQUIRE_COMMIT_EMAIL_FORMAT),
     names: hostNamesFromEnv(env),
   };
   let hosts: readonly HostSettings[];

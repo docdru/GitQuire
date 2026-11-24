@@ -414,9 +414,13 @@ function authorIdForReader(reader: MentionReader): string {
   return principalIdForUser(reader.id);
 }
 
-export function mentionsFor(reader: MentionReader, all: readonly Mention[]): Mention[] {
+export function mentionsFor(
+  reader: MentionReader,
+  all: readonly Mention[],
+  selfId: string = authorIdForReader(reader),
+): Mention[] {
   const login = reader.login.toLowerCase();
-  const self = authorIdForReader(reader);
+  const self = selfId;
   const seen = new Set<string>();
   const mine: Mention[] = [];
   for (const mention of all) {
@@ -441,8 +445,9 @@ export function buildInbox(
   reader: MentionReader,
   all: readonly Mention[],
   read: ReadonlySet<string>,
+  selfId?: string,
 ): Inbox {
-  const mine = mentionsFor(reader, all);
+  const mine = mentionsFor(reader, all, selfId);
   const items: InboxMention[] = mine.map((mention) => ({
     id: mention.id,
     kind: mention.kind ?? 'comment',

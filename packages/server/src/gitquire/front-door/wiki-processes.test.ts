@@ -155,9 +155,8 @@ function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHea
     externalUrl: new URL('https://wiki.example.org'),
     env: { PATH: process.env.PATH },
     cli: [process.execPath, script],
-    host,
+    hostOf: () => ({ host, owners }),
     table,
-    owners,
     tokenSocket: () => '/tmp/door.sock',
     log: silentLog,
     bootstrap: async (dir) => {

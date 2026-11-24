@@ -8,23 +8,19 @@ import { bearerToken, sendJson } from '../http-util.ts';
 import { createOAuthServer, type OAuthServer } from '../oauth-server.ts';
 import { encodeAgentFeatures } from '../request-person.ts';
 import type { DoorPerson, WikiAccess } from './access.ts';
+import type { DoorHosts } from './door-hosts.ts';
 import { createDoorMcp, type DoorMcp } from './mcp.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import type { WikiProcesses } from './wiki-processes.ts';
-import type { WikiTable } from './wiki-table.ts';
+import type { WikiRecord, WikiTable } from './wiki-table.ts';
 
 export interface DoorAgentsDeps {
   settings: Pick<
     FrontDoorSettings,
-    | 'dataDir'
-    | 'externalUrl'
-    | 'sessionSecret'
-    | 'serverAdmins'
-    | 'agentTokenDays'
-    | 'mcpConnectors'
+    'dataDir' | 'externalUrl' | 'sessionSecret' | 'agentTokenDays' | 'mcpConnectors'
   >;
+  hosts: DoorHosts;
   table: Pick<WikiTable, 'list' | 'byAddress'>;
-  access: Pick<WikiAccess, 'decide' | 'wasAdmin'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   log: GateLogger;
@@ -48,7 +44,16 @@ function agentTokensFile(dataDir: string): string {
 }
 
 export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
-  const { settings, table, access, log } = deps;
+  const { settings, table, log } = deps;
+  const primary = deps.hosts.primary;
+  const access = {
+    decide: (person: DoorPerson, wiki: WikiRecord): ReturnType<WikiAccess['decide']> =>
+      deps.hosts.of(wiki) === primary
+        ? primary.access.decide(person, wiki)
+        : Promise.resolve({ open: false, why: 'no-access' }),
+    wasAdmin: (person: DoorPerson, wiki: WikiRecord) =>
+      deps.hosts.of(wiki) === primary && primary.access.wasAdmin(person, wiki),
+  };
   const store =
     deps.store ?? createAgentTokenStore({ file: agentTokensFile(settings.dataDir), log });
 
@@ -72,8 +77,9 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
     config: {
       externalUrl: settings.externalUrl,
       agentTokenDays: settings.agentTokenDays,
-      admins: settings.serverAdmins,
+      admins: primary.settings.serverAdmins,
     },
+    host: { label: primary.names.label, signInPath: primary.paths.login },
     store,
     log,
     sessionUser: deps.sessionUser,
@@ -90,6 +96,7 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
         log,
         sessionUser: deps.sessionUser,
         checkAccess: (login, id) => verdict({ id, login }),
+        host: { label: primary.names.label, signInPath: primary.paths.login },
         severalWikis: true,
         refuseUnknownAtSignIn: true,
         fetch: deps.fetch,
@@ -103,7 +110,9 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
     access,
     processes: deps.processes,
     seesWhy: (person, wiki) =>
-      access.wasAdmin(person, wiki) || settings.serverAdmins.has(person.login.toLowerCase()),
+      access.wasAdmin(person, wiki) ||
+      (deps.hosts.of(wiki) === primary &&
+        primary.settings.serverAdmins.has(person.login.toLowerCase())),
     log,
     now: deps.now,
   });

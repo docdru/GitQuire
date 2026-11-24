@@ -10,6 +10,9 @@ export class HostConfigError extends Error {
 type Env = Readonly<Record<string, string | undefined>>;
 
 const GITHUB_EMAIL_FORMAT = '{id}+{login}@users.noreply.github.com';
+export const HOST_KEY_ENV = 'GITQUIRE_HOST_KEY';
+export const HOST_LABEL_ENV = 'GITQUIRE_HOST_LABEL';
+const HOST_KEY_RE = /^[a-z](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
 
 function nonEmpty(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
@@ -74,14 +77,40 @@ function forgejoDefaultEmailFormat(env: Env): string {
   return `{login}@noreply.${hostname}`;
 }
 
+function keyedByFrontDoor(env: Env, names: HostNames): HostNames {
+  if (
+    !['1', 'on', 'true', 'yes'].includes(
+      nonEmpty(env.GITQUIRE_BEHIND_FRONT_DOOR)?.toLowerCase() ?? '',
+    )
+  ) {
+    return names;
+  }
+  const key = nonEmpty(env[HOST_KEY_ENV]);
+  const label = nonEmpty(env[HOST_LABEL_ENV]);
+  if (key !== undefined && !HOST_KEY_RE.test(key)) {
+    throw new HostConfigError(`${HOST_KEY_ENV} is not a host key: "${key}".`);
+  }
+  return {
+    ...names,
+    ...(key === undefined ? {} : { idPrefix: `${key}-` }),
+    ...(label === undefined ? {} : { label }),
+  };
+}
+
 export function hostNamesFromEnv(env: Env): HostNames {
   const kind = parseHostKind(env);
   if (kind === 'forgejo') {
-    return forgejoNames(
-      parseEmailFormat(env.GITQUIRE_COMMIT_EMAIL_FORMAT, forgejoDefaultEmailFormat(env)),
+    return keyedByFrontDoor(
+      env,
+      forgejoNames(
+        parseEmailFormat(env.GITQUIRE_COMMIT_EMAIL_FORMAT, forgejoDefaultEmailFormat(env)),
+      ),
     );
   }
-  return gitHubNames(parseEmailFormat(env.GITQUIRE_COMMIT_EMAIL_FORMAT, GITHUB_EMAIL_FORMAT));
+  return keyedByFrontDoor(
+    env,
+    gitHubNames(parseEmailFormat(env.GITQUIRE_COMMIT_EMAIL_FORMAT, GITHUB_EMAIL_FORMAT)),
+  );
 }
 
 export function signInPath(names: HostNames = current): string {

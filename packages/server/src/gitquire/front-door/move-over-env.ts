@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { hostNamesFromEnv, setHostNames } from '../host/names.ts';
+import { doorHostFor } from './door-hosts.ts';
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
 import {
   adoptSingleWiki,
@@ -9,7 +10,6 @@ import {
   unadoptWiki,
 } from './move-over.ts';
 import { FrontDoorConfigError, resolveFrontDoorSettings } from './settings.ts';
-import { doorHostFor } from './start.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -37,6 +37,8 @@ export async function moveOverFromEnv(
 ): Promise<MoveOverReport> {
   setHostNames(hostNamesFromEnv(env));
   const settings = resolveFrontDoorSettings(env, dataDir);
+  const first = settings.hosts[0];
+  if (first === undefined) throw new FrontDoorConfigError('No Git host is configured.');
   if (direction === 'unadopt') return unadoptWiki({ settings, env, running }, options);
   const repoToken = settings.host === 'forgejo' ? repoTokenFromEnv(env) : undefined;
   if (repoToken !== undefined && repoToken === settings.forgejoBotToken) {
@@ -45,7 +47,7 @@ export async function moveOverFromEnv(
     );
   }
   const checkRepoToken: RepoTokenCheck = async (repo, token) => {
-    const trial = doorHostFor(settings, () => token);
+    const trial = doorHostFor(first, () => token);
     const health = await trial.health(repo);
     if (health !== 'ok') return health;
     const scope = await createForgejoTokenScopeCheck({
@@ -59,7 +61,7 @@ export async function moveOverFromEnv(
       settings,
       env,
       running,
-      host: doorHostFor(settings, () => undefined),
+      host: doorHostFor(first, () => undefined),
       repoToken,
       checkRepoToken,
     },

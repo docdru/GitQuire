@@ -10,6 +10,7 @@ import type { BotAccess, DoorHost, RepoAccess } from '../host/types.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import { createDoorAgents, type DoorAgents } from './agents.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
+import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
 import { wikiNameOf, withWikiArgument } from './mcp.ts';
 import { createFrontDoor } from './server.ts';
 import type { FrontDoorSettings } from './settings.ts';
@@ -194,9 +195,8 @@ async function rig(): Promise<Rig> {
     externalUrl: settings.externalUrl,
     env: { PATH: process.env.PATH },
     cli: [process.execPath, script],
-    host,
+    hostOf: () => ({ host, owners }),
     table,
-    owners,
     tokenSocket: () => '/tmp/none.sock',
     log: silentLog,
     bootstrap: async () => {},
@@ -209,10 +209,13 @@ async function rig(): Promise<Rig> {
     log: silentLog,
     now,
   });
+  const hosts = hostsForTest(
+    entryForTest({ settings: hostSettingsForTest(settings), host, access, owners }),
+  );
   const agents = createDoorAgents({
     settings,
+    hosts,
     table,
-    access,
     processes,
     sessionUser: (req) => sessionUser(req),
     log: silentLog,
@@ -222,10 +225,8 @@ async function rig(): Promise<Rig> {
   cleanup.push(() => agents.close());
   const door = createFrontDoor({
     settings,
-    host,
+    hosts,
     table,
-    owners,
-    access,
     processes,
     agents,
     log: silentLog,

@@ -24,6 +24,7 @@ export interface HostSettings {
   forgejoBotToken: string | undefined;
   allowedOwners: ReadonlySet<string>;
   serverAdmins: ReadonlySet<string>;
+  commitEmailFormat: string | undefined;
   names: HostNames;
 }
 
@@ -313,6 +314,7 @@ function furtherHost(
     forgejoBotToken,
     allowedOwners,
     serverAdmins: loginSet(env[name('ADMINS')]),
+    commitEmailFormat: nonEmpty(env[name('COMMIT_EMAIL_FORMAT')]),
     names: hostNamesFor(kind, key, label, emailFormat),
   };
 }

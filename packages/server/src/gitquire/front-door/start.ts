@@ -4,16 +4,21 @@ import { hostname } from 'node:os';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
-import { createForgejoDoorHost, type ForgejoRepoTokens } from '../host/forgejo.ts';
-import { createGitHubDoorHost } from '../host/github.ts';
-import { hostNamesFromEnv, setHostNames } from '../host/names.ts';
-import type { DoorHost, HostPerson, HostRepoRef } from '../host/types.ts';
+import type { DoorHost, HostPerson } from '../host/types.ts';
 import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
 import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
+import {
+  type DoorHostEntry,
+  doorHostFor,
+  doorHostPaths,
+  doorHosts,
+  trialKey,
+} from './door-hosts.ts';
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
+import type { HostSettings } from './hosts.ts';
 import { createMentionCounts } from './mention-counts.ts';
 import { openRepoTokenStore, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
 import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.ts';
@@ -36,12 +41,6 @@ interface RunningFrontDoor {
   stop: () => Promise<void>;
 }
 
-function trialKey(repo: HostRepoRef): string {
-  return repo.id === undefined
-    ? `name:${repo.owner.toLowerCase()}/${repo.name.toLowerCase()}`
-    : `id:${repo.id}`;
-}
-
 export function refuseSingleWikiVolume(dataDir: string): void {
   const move = interruptedMove(dataDir);
   if (move !== undefined) {
@@ -54,30 +53,6 @@ export function refuseSingleWikiVolume(dataDir: string): void {
       `${dataDir} holds the checkout of a single wiki (it has .git). Move it into the several-wiki layout first with "gitquire wikis adopt" (see "Moving a single wiki over" in DEPLOY.md), or give the front door a volume of its own.`,
     );
   }
-}
-
-export function doorHostFor(
-  settings: Pick<FrontDoorSettings, 'host' | 'webUrl' | 'apiUrl' | 'forgejoBotToken' | 'githubApp'>,
-  repoToken: ForgejoRepoTokens['tokenFor'],
-): DoorHost {
-  if (settings.host === 'forgejo') {
-    return createForgejoDoorHost(
-      { webUrl: settings.webUrl, apiUrl: settings.apiUrl, repo: undefined },
-      { botToken: () => settings.forgejoBotToken, repoTokens: { tokenFor: repoToken } },
-    );
-  }
-  return createGitHubDoorHost(
-    { webUrl: settings.webUrl, apiUrl: settings.apiUrl, repo: undefined },
-    {
-      app: {
-        jwt: () => {
-          const app = settings.githubApp;
-          if (app === undefined) throw new Error('No GitHub App key.');
-          return createAppJwt(app.appId, app.privateKeyPem, Date.now());
-        },
-      },
-    },
-  );
 }
 
 async function checkHost(host: DoorHost, log: GateLogger): Promise<void> {
@@ -101,7 +76,6 @@ export async function startFrontDoor(
   options: { log: GateLogger; cli: readonly string[] },
 ): Promise<RunningFrontDoor> {
   const log = options.log;
-  setHostNames(hostNamesFromEnv(env));
   const settings: FrontDoorSettings = resolveFrontDoorSettings(env, dataDir);
   if ((env.GITQUIRE_HOST_REPO_TOKEN ?? env.GITQUIRE_HOST_REPO_TOKEN_FILE ?? '').trim() !== '') {
     log.warn(
@@ -114,39 +88,105 @@ export async function startFrontDoor(
   chmodSync(join(settings.dataDir, 'server'), 0o700);
   mkdirSync(join(settings.dataDir, 'wikis'), { recursive: true });
   const table = openWikiTable(wikiTableFile(settings.dataDir));
-  const owners: AllowedOwners = {
-    names: settings.allowedOwners,
-    pinned: table.ownerIds,
-    pin: table.pinOwner,
-  };
-  const trial = new Map<string, string>();
-  const store =
-    settings.host === 'forgejo'
-      ? openRepoTokenStore(repoTokensFile(settings.dataDir), repoTokenKey(table, settings.host))
-      : undefined;
-
-  const appJwt = (): string => {
-    const app = settings.githubApp;
-    if (app === undefined) throw new Error('No GitHub App key.');
-    return createAppJwt(app.appId, app.privateKeyPem, Date.now());
-  };
-  const host = doorHostFor(settings, (repo) => trial.get(trialKey(repo)) ?? store?.tokenFor(repo));
-  await checkHost(host, log);
-
+  const tokenFile = repoTokensFile(settings.dataDir);
   const later = { check: (_wiki: WikiRecord): void => {} };
-  const access = createWikiAccess({
-    host,
-    ttlMs: settings.accessCheckMs,
-    changed: (wiki) => later.check(wiki),
-    runnable: (wiki) => ownerAllowed(owners, wiki),
-    refused: (wiki, refusal) => {
-      log.warn(
-        { wiki: wiki.key, refusal },
-        "[gitquire-door] GitQuire's access was refused: wiki disconnected",
+
+  function entryFor(hostSettings: HostSettings): DoorHostEntry {
+    const key = hostSettings.key;
+    const owners: AllowedOwners = hostSettings.primary
+      ? { names: hostSettings.allowedOwners, pinned: table.ownerIds, pin: table.pinOwner }
+      : {
+          names: hostSettings.allowedOwners,
+          pinned: () => table.hostOwnerIds(key),
+          pin: (owner, id) => table.pinHostOwner(key, owner, id),
+        };
+    const trial = new Map<string, string>();
+    const store =
+      hostSettings.kind === 'forgejo'
+        ? openRepoTokenStore(tokenFile, repoTokenKey(table, key))
+        : undefined;
+    const host = doorHostFor(
+      hostSettings,
+      (repo) => trial.get(trialKey(repo)) ?? store?.tokenFor(repo),
+    );
+    const access = createWikiAccess({
+      host,
+      ttlMs: settings.accessCheckMs,
+      changed: (wiki) => later.check(wiki),
+      runnable: (wiki) => ownerAllowed(owners, wiki),
+      refused: (wiki, refusal) => {
+        log.warn(
+          { wiki: wiki.key, refusal },
+          "[gitquire-door] GitQuire's access was refused: wiki disconnected",
+        );
+        table.disconnect(wiki.key, refusal);
+      },
+    });
+    const tokenScope = createForgejoTokenScopeCheck({
+      apiUrl: hostSettings.apiUrl,
+      botToken: () => hostSettings.forgejoBotToken,
+    });
+    const forgejoTokens: ForgejoTokenChecks | undefined =
+      store === undefined
+        ? undefined
+        : {
+            check: async (repo, token) => {
+              trial.set(trialKey(repo), token);
+              let health: Awaited<ReturnType<DoorHost['health']>>;
+              try {
+                health = await host.health(repo);
+              } finally {
+                trial.delete(trialKey(repo));
+              }
+              if (health !== 'ok') return health;
+              const scope = await tokenScope(repo, token);
+              return scope === 'limited' ? 'ok' : scope;
+            },
+            save: store.set,
+            forget: store.forget,
+            isBotToken: (token) => token === hostSettings.forgejoBotToken,
+          };
+    const jwt = (): string => {
+      const app = hostSettings.githubApp;
+      if (app === undefined) throw new Error('No GitHub App key.');
+      return createAppJwt(app.appId, app.privateKeyPem, Date.now());
+    };
+    return {
+      key,
+      settings: hostSettings,
+      names: hostSettings.names,
+      host,
+      access,
+      owners,
+      paths: doorHostPaths(key),
+      ...(forgejoTokens === undefined ? {} : { forgejoTokens }),
+      addWikiHelp: addWikiHelpFor({
+        host,
+        kind: hostSettings.kind,
+        apiUrl: hostSettings.apiUrl,
+        jwt,
+        botToken: () => hostSettings.forgejoBotToken,
+      }),
+    };
+  }
+
+  const hosts = doorHosts(settings.hosts.map(entryFor));
+  await checkHost(hosts.primary.host, log);
+  for (const further of hosts.list().slice(1)) {
+    further.host
+      .selfCheck()
+      .then((result) => {
+        if (!result.ok) {
+          log.warn(
+            { host: further.key, unreachable: result.unreachable, problems: result.problems },
+            '[gitquire-door] a further host did not pass its start check; its wikis stay closed until it does',
+          );
+        }
+      })
+      .catch((err: unknown) =>
+        log.warn({ err, host: further.key }, '[gitquire-door] a further host could not be checked'),
       );
-      table.disconnect(wiki.key, refusal);
-    },
-  });
+  }
 
   let tokenSocketPath = '';
   const processes = createWikiProcesses({
@@ -154,9 +194,13 @@ export async function startFrontDoor(
     externalUrl: settings.externalUrl,
     env,
     cli: options.cli,
-    host,
+    hostOf: (wiki) => {
+      const entry = hosts.of(wiki);
+      return entry === undefined
+        ? undefined
+        : { host: entry.host, owners: entry.owners, settings: entry.settings };
+    },
     table,
-    owners,
     tokenSocket: () => tokenSocketPath,
     idleMs: settings.wikiIdleMs,
     log,
@@ -174,41 +218,20 @@ export async function startFrontDoor(
       const wiki = table.byKey(key);
       return wiki === undefined || wiki.state !== 'on' ? undefined : wiki;
     },
-    tokenFor: host.tokenFor,
+    tokenFor: (repo, key) => {
+      const wiki = table.byKey(key);
+      const entry = wiki === undefined ? undefined : hosts.of(wiki);
+      return entry === undefined ? Promise.resolve(undefined) : entry.host.tokenFor(repo);
+    },
     log,
   });
   tokenSocketPath = tokenSocket.path;
 
-  const tokenScope = createForgejoTokenScopeCheck({
-    apiUrl: settings.apiUrl,
-    botToken: () => settings.forgejoBotToken,
-  });
-  const forgejoTokens: ForgejoTokenChecks | undefined =
-    store === undefined
-      ? undefined
-      : {
-          check: async (repo, token) => {
-            trial.set(trialKey(repo), token);
-            let health: Awaited<ReturnType<DoorHost['health']>>;
-            try {
-              health = await host.health(repo);
-            } finally {
-              trial.delete(trialKey(repo));
-            }
-            if (health !== 'ok') return health;
-            const scope = await tokenScope(repo, token);
-            return scope === 'limited' ? 'ok' : scope;
-          },
-          save: store.set,
-          forget: store.forget,
-          isBotToken: (token) => token === settings.forgejoBotToken,
-        };
-
   let doorSessionUser: (req: IncomingMessage) => HostPerson | undefined = () => undefined;
   const agents = createDoorAgents({
     settings,
+    hosts,
     table,
-    access,
     processes,
     sessionUser: (req) => doorSessionUser(req),
     log,
@@ -218,20 +241,10 @@ export async function startFrontDoor(
   });
   const door = createFrontDoor({
     settings,
-    host,
+    hosts,
     table,
-    owners,
-    access,
     processes,
-    forgejoTokens,
     agents,
-    addWikiHelp: addWikiHelpFor({
-      host,
-      kind: settings.host,
-      apiUrl: settings.apiUrl,
-      jwt: appJwt,
-      botToken: () => settings.forgejoBotToken,
-    }),
     mentionCounts: createMentionCounts(settings.dataDir),
     log,
   });
@@ -288,6 +301,7 @@ export async function startFrontDoor(
     {
       port: boundPort,
       host: settings.host,
+      ...(hosts.list().length > 1 ? { hosts: hosts.list().map((entry) => entry.key) } : {}),
       wikis: table.list().length,
       allowedOwners: [...settings.allowedOwners],
     },
