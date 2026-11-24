@@ -5,13 +5,7 @@ import { join } from 'node:path';
 import type { Duplex } from 'node:stream';
 import { type GateLogger, safeNextPath } from '../access-gate.ts';
 import { isSlug } from '../drafts/model.ts';
-import type {
-  AddableRepo,
-  DoorHost,
-  HostHealth,
-  HostPerson,
-  HostRepoRecord,
-} from '../host/types.ts';
+import type { AddableRepo, HostHealth, HostPerson, HostRepoRecord } from '../host/types.ts';
 import {
   escapeHtml,
   isSameOriginRequest,
