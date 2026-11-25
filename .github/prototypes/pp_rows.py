@@ -107,7 +107,7 @@ def put_page(repo, name, text, auth):
 def mention_page(name, day):
     return (
         f"# Mention {name}\n\nThe quarterly numbers look good.\n\n"
-        f"[^c-{name}]: 💬 on \"quarterly numbers\"\n\n"
+        f"[^c-{name.replace('-', '')}]: 💬 on \"quarterly numbers\"\n\n"
         f"    - **@dave** · 2030-01-{day} 10:00 — @alice please look ({name})\n"
     )
 
@@ -116,9 +116,10 @@ def old_format_address():
     status, user, _ = f.call("GET", "/users/dave", auth=f.ADMIN)
     dave_id = user.get("id") if isinstance(user, dict) else None
     alpha = t.key_of("alpha")
+    now = time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime())
     state = json.dumps({"version": 1, "users": {str(dave_id): {
         "read": [], "login": "dave", "email": "dave.old@example.org",
-        "since": "2026-01-01T00:00:00.000Z", "lastSeen": "2026-01-02T00:00:00.000Z", "mailed": [],
+        "since": now, "lastSeen": now, "mailed": [],
     }}})
     script = (
         "set -e; f=/data/wikis/%s/.gitquire/local/gitquire/mentions.json; "
