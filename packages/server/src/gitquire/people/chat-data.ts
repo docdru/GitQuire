@@ -65,7 +65,7 @@ export function personChatData(
           { ...entry, wiki },
           (a, b) => a.wiki === b.wiki,
         );
-        return { entries: next ?? kept };
+        return { entries: (next ?? kept).slice(-MAX_USAGE_ENTRIES) };
       },
     );
   }
