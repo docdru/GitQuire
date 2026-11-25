@@ -123,6 +123,8 @@ export function recordAccountAddress(
   return updateMailRecord(store, person, (record) => withAccountAddress(record, login, found, now));
 }
 
+export const UNCHECKED_ACCOUNT_ADDRESS_MS = 30 * 24 * 60 * 60 * 1000;
+
 export type AccountOffer =
   | { offered: true; address: string }
   | { offered: false; why: AccountProblem | 'domain' | 'not-read' };
@@ -130,9 +132,16 @@ export type AccountOffer =
 export function accountOffer(
   record: MailRecord,
   config: Pick<MailConfig, 'allowedDomains'> | undefined,
+  now: number = Date.now(),
 ): AccountOffer {
   if (record.account === undefined) {
     return { offered: false, why: record.accountProblem ?? 'not-read' };
+  }
+  if (
+    record.accountProblem === 'unreachable' &&
+    now - Date.parse(record.account.readAt) > UNCHECKED_ACCOUNT_ADDRESS_MS
+  ) {
+    return { offered: false, why: 'unreachable' };
   }
   if (config !== undefined && !isAllowedRecipient(config, record.account.address)) {
     return { offered: false, why: 'domain' };
@@ -143,9 +152,10 @@ export function accountOffer(
 export function mailAddressOf(
   record: MailRecord,
   config: Pick<MailConfig, 'allowedDomains'> | undefined,
+  now: number = Date.now(),
 ): string | undefined {
   if (record.use === 'account') {
-    const offer = accountOffer(record, config);
+    const offer = accountOffer(record, config, now);
     return offer.offered ? offer.address : undefined;
   }
   if (record.use === 'other' && record.other !== undefined) {

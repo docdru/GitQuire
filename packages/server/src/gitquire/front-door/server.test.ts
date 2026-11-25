@@ -22,7 +22,7 @@ import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
 import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
 import { createMentionCounts } from './mention-counts.ts';
-import type { ForgejoTokenChecks } from './server.ts';
+import type { ForgejoTokenChecks, FrontDoorDeps } from './server.ts';
 import { createFrontDoor, type FrontDoor } from './server.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import { createWikiProcesses, type WikiProcesses } from './wiki-processes.ts';
@@ -115,7 +115,12 @@ function tempDir(): string {
   return dir;
 }
 
-async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> {
+async function rig(
+  options: {
+    host?: 'github' | 'forgejo';
+    readAccountAddress?: FrontDoorDeps['readAccountAddress'];
+  } = {},
+): Promise<Rig> {
   const data = tempDir();
   const script = join(tempDir(), 'child.cjs');
   writeFileSync(script, CHILD);
@@ -230,6 +235,9 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
     processes,
     mentionCounts: createMentionCounts(data, now),
     tickets,
+    ...(options.readAccountAddress === undefined
+      ? {}
+      : { readAccountAddress: options.readAccountAddress }),
     log: silentLog,
     now,
     randomState: () => 'state-1',
@@ -406,6 +414,19 @@ describe('front door', () => {
       wikis: Array<{ name: string }>;
     };
     expect(list.wikis.map((w) => w.name)).toEqual(['a']);
+  });
+
+  it('reads the account address with the sign-in token, and signs in even when that fails', async () => {
+    const asked: string[] = [];
+    const reading = await rig({
+      readAccountAddress: async (entry, person, token) => {
+        asked.push(`${entry.key}:${person.login}:${token}`);
+        throw new Error('host refused');
+      },
+    });
+    const session = await signIn(reading, 'alice');
+    expect(asked).toEqual(['github:alice:token-alice']);
+    expect((await get(reading, '/w/github/team/a/', session)).status).toBe(200);
   });
 
   it('gives each forwarded request a person ticket that names the person only to that wiki', async () => {

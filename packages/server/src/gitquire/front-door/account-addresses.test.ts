@@ -84,4 +84,21 @@ describe('reading the account address at sign-in', () => {
     expect(Date.now() - started).toBeLessThan(2000);
     expect(readMailRecord(store, 'github-5').accountProblem).toBe('unreachable');
   });
+
+  it('treats a failing call as an outage and a host without the call as a refusal', async () => {
+    const { store, log } = setup();
+    const read = accountAddressReader({ store, log });
+    await read(
+      entry('github', () => Promise.reject(new Error('boom'))),
+      anna,
+      't',
+    );
+    expect(readMailRecord(store, 'github-5').accountProblem).toBe('unreachable');
+    const without = {
+      ...entry('forgejo', async () => ({ state: 'none' })),
+      host: {},
+    } as DoorHostEntry;
+    await read(without, anna, 't');
+    expect(readMailRecord(store, 'forgejo-5').accountProblem).toBe('refused');
+  });
 });

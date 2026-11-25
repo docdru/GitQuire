@@ -118,4 +118,21 @@ describe('the account address in the per-person store', () => {
     expect(mailAddressOf(other, config)).toBeUndefined();
     expect(mailAddressOf(other, undefined)).toBe('a@elsewhere.example');
   });
+
+  it('stops using an address it could not check with the host for 30 days', () => {
+    const record = withAccountAddress(
+      { account: { address: 'anna@example.org', readAt: '2026-10-01T00:00:00Z' }, use: 'account' },
+      'anna',
+      { state: 'unreachable' },
+      at,
+    );
+    expect(mailAddressOf(record, undefined, Date.parse('2026-10-20T00:00:00Z'))).toBe(
+      'anna@example.org',
+    );
+    expect(mailAddressOf(record, undefined, Date.parse('2026-11-01T00:00:01Z'))).toBeUndefined();
+    expect(accountOffer(record, undefined, Date.parse('2026-11-01T00:00:01Z'))).toEqual({
+      offered: false,
+      why: 'unreachable',
+    });
+  });
 });

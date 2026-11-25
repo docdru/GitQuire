@@ -52,6 +52,27 @@ describe('the account address a host reports', () => {
     ).toEqual({ state: 'none' });
   });
 
+  it('skips GitHub no-reply addresses in any case', () => {
+    expect(
+      primaryVerifiedAddress(200, [
+        { email: '7+Anna@Users.NoReply.GitHub.com', primary: true, verified: true },
+      ]),
+    ).toEqual({ state: 'none' });
+  });
+
+  it('counts a GitHub rate limit as an outage, not as a missing permission', async () => {
+    const limited = (async () =>
+      new Response(JSON.stringify({ message: 'API rate limit exceeded' }), {
+        status: 403,
+        headers: { 'x-ratelimit-remaining': '0' },
+      })) as typeof fetch;
+    const github = createGitHubDoorHost(
+      { webUrl: 'https://github.com', apiUrl: 'https://api.github.com', repo },
+      { fetch: limited, installationToken: () => 'bot' },
+    );
+    expect(await github.accountAddress?.('t')).toEqual({ state: 'unreachable' });
+  });
+
   it('tells a refusal from a host that cannot be reached', () => {
     expect(
       primaryVerifiedAddress(403, { message: 'Resource not accessible by integration' }),

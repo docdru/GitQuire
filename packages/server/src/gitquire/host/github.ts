@@ -401,10 +401,18 @@ export function createGitHubDoorHost(
 
   async function accountAddress(token: string): Promise<AccountAddress> {
     try {
-      const { status, body } = await json(`${config.apiUrl}/user/emails?per_page=100`, {
+      const response = await doFetch(`${config.apiUrl}/user/emails?per_page=100`, {
         headers: apiHeaders(token),
       });
-      return primaryVerifiedAddress(status, body);
+      const text = await response.text();
+      if (isRateLimited(response.status, response.headers, text)) return { state: 'unreachable' };
+      let body: unknown;
+      try {
+        body = text === '' ? undefined : JSON.parse(text);
+      } catch {
+        body = undefined;
+      }
+      return primaryVerifiedAddress(response.status, body);
     } catch {
       return { state: 'unreachable' };
     }
