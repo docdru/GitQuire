@@ -107,7 +107,8 @@ Each is also in the roadmap doc's "Assumptions".
 | B7 AI keys and usage | #263 |
 | B8 moving over | #264 |
 | B9 single wiki | #265 |
-| B10 tests and docs | see the pull request of this block |
+| B10 tests and docs | #266 |
+| per-person → main | #267 (open, for the owner to merge) |
 
 ## What the `forgejo-h5` job tries for real (B10)
 
