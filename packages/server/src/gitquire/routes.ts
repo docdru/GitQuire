@@ -59,6 +59,7 @@ import { allowedLoginsFrom, createPeopleDirectory, peopleStatePath } from './peo
 import { checkPersonalSettings, createPersonalSettingsStore } from './personal-settings.ts';
 import { recentDocumentWriter } from './principal-directory.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
+import { behindFrontDoorFromEnv } from './request-person.ts';
 import { createTypedLinkListCache } from './typed-links.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -468,6 +469,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 200, { saved: true });
   }
 
+  const behindFrontDoor = behindFrontDoorFromEnv(deps.env ?? process.env);
   const mentionReads = createMentionReadStore(
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
   );
@@ -536,7 +538,11 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     mentionReads.seen(user, new Date());
     people.remember(user);
     const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
-    sendJson(res, 200, { enabled: true, ...inbox, email: emailState(user.id) });
+    sendJson(res, 200, {
+      enabled: true,
+      ...inbox,
+      ...(behindFrontDoor ? {} : { email: emailState(user.id) }),
+    });
   }
 
   function sessionReader(req: IncomingMessage): MentionReader {

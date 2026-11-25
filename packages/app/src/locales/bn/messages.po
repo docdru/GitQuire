@@ -2667,7 +2667,13 @@ msgstr "ইমেইল ঠিকানা"
 msgid "Email for mentions is not set up."
 msgstr ""
 
-msgid "Email me new mentions"
+msgid "Email me at {0} instead"
+msgstr ""
+
+msgid "Email me mentions at {accountAddress}"
+msgstr ""
+
+msgid "Email me new mentions at another address"
 msgstr ""
 
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
@@ -4303,6 +4309,9 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "মাঝারি বিভাগ শিরোনাম।"
 
+msgid "Mention email is stopped."
+msgstr ""
+
 msgid "Mention of @{login}"
 msgstr ""
 
@@ -4633,10 +4642,10 @@ msgstr ""
 msgid "New meeting note"
 msgstr ""
 
-msgid "New mentions are emailed to {0}"
+msgid "New mentions are emailed to {0}."
 msgstr ""
 
-msgid "New mentions are emailed to {0}."
+msgid "New mentions are emailed to {otherInUse}"
 msgstr ""
 
 msgid "New page"
@@ -7916,6 +7925,9 @@ msgstr "বদলে একটি টোকেন ব্যবহার কর�
 msgid "Use an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "একটি https:// URL ব্যবহার করুন — http:// কেবল loopback এন্ডপয়েন্টের জন্য অনুমোদিত।"
 
+msgid "Use another address"
+msgstr ""
+
 msgid "Use letters, digits, <0>_</0> and <1>-</1> only."
 msgstr "কেবল অক্ষর, অঙ্ক, <0>_</0> ও <1>-</1> ব্যবহার করুন।"
 
@@ -8084,7 +8096,7 @@ msgstr "নতুন কী আছে"
 msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
 msgstr ""
 
-msgid "When someone mentions you in a comment or an action item in this wiki, it shows up under the @ button. You can also get it by email."
+msgid "When someone mentions you in a comment or an action item, it shows up under the @ button. You can also get it by email. This setting is the same in all wikis you open with this account."
 msgstr ""
 
 msgid "When the agent runs its scheduled work."

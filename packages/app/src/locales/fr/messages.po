@@ -2671,7 +2671,13 @@ msgstr "Adresse e-mail"
 msgid "Email for mentions is not set up."
 msgstr ""
 
-msgid "Email me new mentions"
+msgid "Email me at {0} instead"
+msgstr ""
+
+msgid "Email me mentions at {accountAddress}"
+msgstr ""
+
+msgid "Email me new mentions at another address"
 msgstr ""
 
 msgid "Embed a live snapshot of an .excalidraw board from this workspace."
@@ -4307,6 +4313,9 @@ msgstr ""
 msgid "Medium section heading."
 msgstr "Titre de section moyen."
 
+msgid "Mention email is stopped."
+msgstr ""
+
 msgid "Mention of @{login}"
 msgstr ""
 
@@ -4637,10 +4646,10 @@ msgstr ""
 msgid "New meeting note"
 msgstr ""
 
-msgid "New mentions are emailed to {0}"
+msgid "New mentions are emailed to {0}."
 msgstr ""
 
-msgid "New mentions are emailed to {0}."
+msgid "New mentions are emailed to {otherInUse}"
 msgstr ""
 
 msgid "New page"
@@ -7920,6 +7929,9 @@ msgstr "Utiliser plutôt un jeton"
 msgid "Use an https:// URL — http:// is only allowed for loopback endpoints."
 msgstr "Utilisez une URL https:// — http:// n'est autorisé que pour les points de terminaison de bouclage."
 
+msgid "Use another address"
+msgstr ""
+
 msgid "Use letters, digits, <0>_</0> and <1>-</1> only."
 msgstr "Utilisez uniquement des lettres, des chiffres, <0>_</0> et <1>-</1>."
 
@@ -8088,7 +8100,7 @@ msgstr "Nouveautés"
 msgid "When enabled, the agent opens or refreshes the preview after each edit. Disable if you manage your own preview window, such as a browser tab on another display."
 msgstr ""
 
-msgid "When someone mentions you in a comment or an action item in this wiki, it shows up under the @ button. You can also get it by email."
+msgid "When someone mentions you in a comment or an action item, it shows up under the @ button. You can also get it by email. This setting is the same in all wikis you open with this account."
 msgstr ""
 
 msgid "When the agent runs its scheduled work."

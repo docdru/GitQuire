@@ -119,6 +119,7 @@ async function rig(
   options: {
     host?: 'github' | 'forgejo';
     readAccountAddress?: FrontDoorDeps['readAccountAddress'];
+    personRoutes?: FrontDoorDeps['personRoutes'];
   } = {},
 ): Promise<Rig> {
   const data = tempDir();
@@ -235,6 +236,7 @@ async function rig(
     processes,
     mentionCounts: createMentionCounts(data, now),
     tickets,
+    ...(options.personRoutes === undefined ? {} : { personRoutes: options.personRoutes }),
     ...(options.readAccountAddress === undefined
       ? {}
       : { readAccountAddress: options.readAccountAddress }),
@@ -427,6 +429,40 @@ describe('front door', () => {
     const session = await signIn(reading, 'alice');
     expect(asked).toEqual(['github:alice:token-alice']);
     expect((await get(reading, '/w/github/team/a/', session)).status).toBe(200);
+  });
+
+  it('answers the email routes itself, the same in every wiki of the account, also from a draft (P1, P5, P12)', async () => {
+    const seen: string[] = [];
+    const door = await rig({
+      personRoutes: {
+        handles: (path) => path === '/api/gitquire/mentions/email',
+        handle: (_req, res, who) => {
+          seen.push(who?.person ?? 'nobody');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ person: who?.person }));
+        },
+      },
+    });
+    const alice = await signIn(door, 'alice');
+    const bob = await signIn(door, 'bob');
+    const inA = await get(door, '/w/github/team/a/api/gitquire/mentions/email', alice);
+    const inB = await get(door, '/w/github/team/b/api/gitquire/mentions/email', alice);
+    expect(await inA.json()).toEqual({ person: 'github-11' });
+    expect(await inB.json()).toEqual({ person: 'github-11' });
+    const drafted = await get(
+      door,
+      '/w/github/team/a/api/gitquire/mentions/email',
+      `${alice}; gq_view_github-1=d1`,
+    );
+    expect(await drafted.json()).toEqual({ person: 'github-11' });
+    expect(
+      await (await get(door, '/w/github/team/a/api/gitquire/mentions/email', bob)).json(),
+    ).toEqual({
+      person: 'github-12',
+    });
+    expect((await get(door, '/w/github/team/b/api/gitquire/mentions/email', bob)).status).toBe(404);
+    expect(seen).toEqual(['github-11', 'github-11', 'github-11', 'github-12']);
+    expect(door.processes.isRunning('github-1')).toBe(false);
   });
 
   it('gives each forwarded request a person ticket that names the person only to that wiki', async () => {
