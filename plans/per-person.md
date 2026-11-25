@@ -79,6 +79,9 @@ Each is also in the roadmap doc's "Assumptions".
 - **B2:** a GitHub 403 that is a rate limit counts as "could not ask", not as a missing permission.
 - **B2:** the no-reply domain on Forgejo is taken from the commit-email format (`GITQUIRE_COMMIT_EMAIL_FORMAT`, by default `{login}@noreply.<host>`); DEPLOY.md says to set it to Forgejo's `NO_REPLY_ADDRESS`. An account address on that domain is not offered. On Forgejo, "verified" means what Forgejo reports as activated; on a Forgejo that does not ask people to confirm addresses, every added address counts as verified (P2 as written: "what the host reports").
 
+- **B4:** the mailer asks each wiki's access for a person with a 15-second deadline; no answer in time counts as "could not ask" (P3). The front door's badge now also counts draft review requests, like the in-wiki inbox.
+- **B5:** every 10 minutes the front door runs `git ls-remote` for each sleeping wiki's branch with the wiki's own token and compares it with the wiki's `@{upstream}`; if the host has more, it starts the wiki process, which pulls and goes back to sleep by the usual idle rule (30 minutes). After a failed check the wiki is asked again after 10, 20, 40 … minutes, at most every 2 hours; a successful check resets that. A running wiki is not asked (it pulls by itself).
+
 ## Blocks
 
 | Block | Pull request | State |

@@ -19,6 +19,7 @@ import { accountAddressReader } from './account-addresses.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
 import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
+import { BRANCH_WATCH_MS, createBranchWatch } from './branch-watch.ts';
 import {
   type DoorHostEntry,
   doorHostFor,
@@ -42,6 +43,7 @@ import { createWikiProcesses } from './wiki-processes.ts';
 import {
   openWikiTable,
   type WikiRecord,
+  wikiDir,
   wikiName,
   wikiPrefix,
   wikiTableFile,
@@ -260,6 +262,26 @@ export async function startFrontDoor(
     mailer.round().catch((err: unknown) => log.warn({ err }, '[gitquire-mail] mail round failed'));
   }, MAIL_ROUND_MS);
   mailRounds.unref();
+  const branchWatch = createBranchWatch({
+    wikis: () => table.list(),
+    isRunning: (key) => processes.isRunning(key),
+    dirOf: (wiki) => wikiDir(settings.dataDir, wiki),
+    gitHostOf: (wiki) => {
+      const entry = hosts.of(wiki);
+      return entry === undefined ? undefined : new URL(entry.settings.webUrl).host;
+    },
+    tokenFor: async (wiki) => hosts.of(wiki)?.host.tokenFor(wiki),
+    wake: async (wiki) => {
+      await processes.ensure(wiki);
+    },
+    log,
+  });
+  const branchRounds = setInterval(() => {
+    branchWatch
+      .round()
+      .catch((err: unknown) => log.warn({ err }, '[gitquire-wikis] branch check failed'));
+  }, BRANCH_WATCH_MS);
+  branchRounds.unref();
   const personRoutes = createPersonRoutes({
     routes: [emailRoutes(email)],
     sameOrigin: (req) => isSameOriginRequest(req, settings.externalUrl),
@@ -403,6 +425,7 @@ export async function startFrontDoor(
       door.setReady(false);
       clearInterval(recheck);
       clearInterval(mailRounds);
+      clearInterval(branchRounds);
       clearInterval(checks);
       await new Promise<void>((resolve) => {
         server.close(() => resolve());
