@@ -49,8 +49,9 @@ listed as read and are not mailed or posted.
 **Mark all as read** clears the count.
 
 The inbox needs [GitHub sign-in](./github-sign-in.mdx), because it has to know who is asking. The
-mentions themselves stay in the pages, in Git. Only who has read what, and the email settings
-below, are kept on the server in `/data/.gitquire/local/gitquire/mentions.json`, outside Git. The team
+mentions themselves stay in the pages, in Git. Only who has read what is kept per wiki on the
+server in `.gitquire/local/gitquire/mentions.json`, outside Git; the email setting below belongs to
+your account and is kept with your other personal data on the server. The team
 chat keeps what it has posted next to it, in `chat.json`; when each action item mention was first
 seen is in `action-item-mentions.json`, and the people list in `people.json`.
 
@@ -82,17 +83,24 @@ Nothing is stored for this list: GitQuire reads the pages each time, as for the 
 
 ## Email
 
-Open **Settings → Notifications** (the bottom of the @ panel links there), enter your address
-and choose **Send code**. GitQuire sends a confirmation
-mail with a code like `ABCD-2345`; type it in and choose **Confirm**. From then on, new mentions
-you have not read yet are mailed once a minute. Mentions that already existed when you confirmed
-are not mailed.
+Open **Settings → Notifications** (the bottom of the @ panel links there).
 
-- **Change address:** enter the new one, choose **Change** and enter the new code. Until then,
-  mail still goes to the old address.
-- **Stop:** choose **Stop emailing me**.
+- **Email me mentions at <your address>:** one switch. The address is your account's primary,
+  verified address on GitHub or Forgejo, read each time you sign in; no code is needed. It is off
+  until you switch it on. If GitQuire cannot use your account's address, the page says why (for
+  example, the GitHub App was not allowed to read email addresses, or the address is on a domain
+  this server does not mail) and you can use another address instead.
+- **Use another address:** enter it and choose **Send code**. GitQuire sends a confirmation mail
+  with a code like `ABCD-2345`; type it in and choose **Confirm**. Until then, mail still goes to the
+  address in use. **Stop emailing me** turns mail off.
+- **One setting for all wikis:** the switch and the address belong to your account, so they are the
+  same in every wiki you open with it. Each mail names the wiki and links into it. If you have both
+  a GitHub and a Forgejo account, each has its own setting.
+- **What is mailed:** new mentions you have not read, once a minute, only from wikis you can still
+  open. Mentions that already existed when you switched mail on are not mailed. If you change your
+  address on the host, the new one is used after your next sign-in; if it is gone, mail stops and
+  Settings says so.
 - **Codes:** valid for 24 hours, five tries. A new code can be requested after a minute.
-- **Several wikis:** the address is set per wiki for now; set it in each wiki you want mail from.
 
 Limits keep the feature from being used to flood someone: at most 5 confirmation mails per person
 and 3 per address a day, and 30 an hour (100 a day) for the whole server. At most 20 mention mails
@@ -108,7 +116,7 @@ service, or a relay on your network.
 | --- | --- |
 | `GITQUIRE_SMTP_URL` | `smtps://user:password@host:465` or `smtp://user:password@host:587`. Without it, email is off and the address field is hidden. |
 | `GITQUIRE_MAIL_FROM` | Sender address, for example `wiki@acme.com`. Required. |
-| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. |
+| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains mail may go to, for example `acme.com`, for account addresses and other addresses alike. |
 | `GITQUIRE_EXTERNAL_URL` | The link in the mails is built from it. Without it, mails have no link. |
 
 With `smtp://`, STARTTLS is required. Add `?starttls=off` only for a relay without encryption; a
@@ -116,7 +124,11 @@ password is then only sent to `localhost`.
 Special characters in the user name or password must be URL-encoded (`@` becomes `%40`). Use a
 sender address on your own domain with SPF and DKIM set up, or mails may land in spam.
 
-To test, enter your own address: the confirmation mail is the first real mail. If it does not
+On GitHub, give the GitHub App the account permission **Email addresses: read** so people's account
+addresses can be offered; they approve it once at their next sign-in. On Forgejo nothing is needed.
+
+To test, enter your own address under **Use another address**: the confirmation mail is the first
+real mail. If it does not
 arrive, the server log shows `[gitquire-mail] confirmation mail failed` with the reason. If the
 settings are not valid, email stays off and the log shows `[gitquire-mail] email for mentions is
 off`.

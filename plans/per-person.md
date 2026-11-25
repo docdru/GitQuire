@@ -91,6 +91,22 @@ Each is also in the roadmap doc's "Assumptions".
 
 ## Blocks
 
-| Block | Pull request | State |
-| --- | --- | --- |
-| B0 | — | this file |
+| Block | Pull request |
+| --- | --- |
+| B0 stage 0 | #256 |
+| B1 store, tickets, door socket | #257 |
+| B2 account address | #258 |
+| B3 Settings and routes | #259 |
+| B4 front-door mailer | #260 |
+| B5 sleeping wikis | #261 |
+| B6 personal settings | #262 |
+| B7 AI keys and usage | #263 |
+| B8 moving over | #264 |
+| B9 single wiki | #265 |
+| B10 tests and docs | see the pull request of this block |
+
+## What the `forgejo-h5` job tries for real (B10)
+
+`.github/prototypes/pp_rows.py`, on the two-wiki volume with a local mail sink (`pp_smtp.py`) and a fake AI provider: the old per-wiki address of one person is moved over and switched on; the account address is offered and mail is off (nothing sent); one switch in one wiki shows in the other; another person's answer does not carry the address; both wiki processes asleep, mentions pushed through Git into both are mailed to the one address, each naming its wiki; access removed from one wiki → its mention is not mailed, the other's is; an AI key entered in one wiki works in the other, and is in no process environment and nowhere unsealed on the volume; the address is not in the log.
+
+Not in the job: two accounts with the same address on two hosts (unit tests only; the job's second host is a GitHub fake on another volume), a volume made by the `main` image (the move-over row writes the old per-wiki format by hand), a browser, real mail.

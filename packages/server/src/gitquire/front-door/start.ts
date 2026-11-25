@@ -56,6 +56,11 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 const WIKI_CHECK_MS = 10 * 60 * 1000;
 const MAIL_ROUND_MS = 60 * 1000;
+
+function branchWatchMs(env: Env): number {
+  const seconds = Number(env.GITQUIRE_BRANCH_WATCH_SECONDS ?? '');
+  return Number.isInteger(seconds) && seconds >= 10 ? seconds * 1000 : BRANCH_WATCH_MS;
+}
 const MAIL_ACCESS_DEADLINE_MS = 15 * 1000;
 
 interface RunningFrontDoor {
@@ -350,13 +355,14 @@ export async function startFrontDoor(
     wake: async (wiki) => {
       await processes.ensure(wiki);
     },
+    intervalMs: branchWatchMs(env),
     log,
   });
   const branchRounds = setInterval(() => {
     branchWatch
       .round()
       .catch((err: unknown) => log.warn({ err }, '[gitquire-wikis] branch check failed'));
-  }, BRANCH_WATCH_MS);
+  }, branchWatchMs(env));
   branchRounds.unref();
   const personRoutes = createPersonRoutes({
     routes: [emailRoutes(email), settingsRoutes(personSettings(people))],
