@@ -37,3 +37,4 @@ export function primaryVerifiedAddress(status: number, body: unknown): AccountAd
   }
   return { state: 'none' };
 }
+export const ACCOUNT_ADDRESS_DEADLINE_MS = 5000;

@@ -3,10 +3,14 @@ import { basename } from 'node:path';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { DOOR_TOKEN_SOCKET_ENV } from '../door-token.ts';
 import { parseGitHubRepo } from '../github-auth-config.ts';
+import { hostNames } from '../host/names.ts';
+import { personChatData, personKeyStore } from '../people/chat-data.ts';
 import { doorAsker } from '../people/door-client.ts';
+import { SINGLE_WIKI_KEY } from '../people/move-over.ts';
+import type { PeopleStore } from '../people/store.ts';
 import { behindFrontDoorFromEnv } from '../request-person.ts';
 import { createChatHistoryStore } from './history.ts';
-import { chatKeySecretFromEnv } from './key-secret.ts';
+import { chatKeySecretFromEnv, derivePeopleKeySecret } from './key-secret.ts';
 import { createChatKeyStore } from './key-store.ts';
 import {
   type ChatKeys,
@@ -15,6 +19,8 @@ import {
   doorChatUsage,
   localChatKeys,
   localChatUsage,
+  peopleChatKeys,
+  peopleChatUsage,
 } from './person-data.ts';
 import { createChatProviders } from './providers.ts';
 import { type ChatRoutes, createChatRoutes } from './routes.ts';
@@ -48,6 +54,7 @@ function wikiNameFrom(env: Env, projectDir: string): string {
 export function chatStoresFromEnv(
   env: Env,
   projectDir: string,
+  people?: PeopleStore,
 ): { keys: ChatKeys; usage: ChatUsage } | undefined {
   const socket = env[DOOR_TOKEN_SOCKET_ENV]?.trim() ?? '';
   if (behindFrontDoorFromEnv(env)) {
@@ -57,6 +64,17 @@ export function chatStoresFromEnv(
   }
   const secret = chatKeySecretFromEnv(env);
   if (secret === undefined) return undefined;
+  if (people !== undefined) {
+    const prefix = hostNames().idPrefix;
+    return {
+      keys: peopleChatKeys(personKeyStore(people, derivePeopleKeySecret(secret)), prefix),
+      usage: peopleChatUsage(
+        personChatData(people, personKeyStore(people, derivePeopleKeySecret(secret))),
+        SINGLE_WIKI_KEY,
+        prefix,
+      ),
+    };
+  }
   return {
     keys: localChatKeys(createChatKeyStore(projectDir, secret)),
     usage: localChatUsage(createChatUsageStore(projectDir)),
@@ -70,10 +88,11 @@ export function createChatFromEnv(
     sessionUser: (req: IncomingMessage) => SessionUser | undefined;
     log: GateLogger;
     ownPort?: () => number | undefined;
+    people?: PeopleStore;
   },
 ): ChatRoutes | undefined {
   if (isOff(env.GITQUIRE_AI_CHAT)) return undefined;
-  const stores = chatStoresFromEnv(env, options.projectDir);
+  const stores = chatStoresFromEnv(env, options.projectDir, options.people);
   if (stores === undefined) return undefined;
   const wikiName = wikiNameFrom(env, options.projectDir);
   const anthropic = baseUrl(env.GITQUIRE_ANTHROPIC_BASE_URL);

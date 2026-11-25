@@ -33,7 +33,7 @@ export interface WikiPeopleSource {
 
 export interface MoveOverTarget {
   store: PeopleStore;
-  keys: SealedKeyStore;
+  keys?: SealedKeyStore;
   markExisting?: (person: string, login: string, wikiKey: string, before?: string) => void;
   wikiKeys?: () => readonly string[];
   now?: () => number;
@@ -317,7 +317,7 @@ export function movePeopleData(
     }
     for (const provider of CHAT_PROVIDERS) {
       const key = keys.get(`${who}\n${provider}`);
-      if (key === undefined) continue;
+      if (key === undefined || target.keys === undefined) continue;
       const saved = target.keys.savedAt(who, provider);
       if (saved !== undefined && Date.parse(saved) >= key.at) continue;
       target.keys.set(who, provider as ChatProvider, key.value, new Date(key.at || now()));

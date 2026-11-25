@@ -13,6 +13,7 @@ export const AGENT_MODE_PATH = '/api/gitquire/drafts/agent-mode';
 
 export interface PersonRoute {
   matches: (path: string, method: string) => boolean;
+  signedOut?: (path: string, method: string) => unknown;
   answer: (
     req: IncomingMessage,
     who: EmailPerson,
@@ -84,6 +85,8 @@ export function settingsRoutes(settings: PersonSettings): PersonRoute {
     matches: (path, method) =>
       (path === SETTINGS_PATH || path === AGENT_MODE_PATH) &&
       (method === 'GET' || method === 'PUT'),
+    signedOut: (path, method) =>
+      path === SETTINGS_PATH && method === 'GET' ? { personal: false } : undefined,
     answer: (_req, who, path, method, body) => {
       if (path === SETTINGS_PATH && method === 'GET') {
         return { personal: true, login: who.login, yaml: settings.read(who.person) };
@@ -126,7 +129,9 @@ export function createPersonRoutes(options: {
         return;
       }
       if (who === undefined) {
-        sendJson(res, 401, { error: 'sign-in-required', message: 'Sign in first.' });
+        const anonymous = route.signedOut?.(path, method);
+        if (anonymous !== undefined) sendJson(res, 200, anonymous);
+        else sendJson(res, 401, { error: 'sign-in-required', message: 'Sign in first.' });
         return;
       }
       if (method !== 'GET' && !options.sameOrigin(req)) {
