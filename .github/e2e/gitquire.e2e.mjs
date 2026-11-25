@@ -169,7 +169,8 @@ test('starting a comment puts the cursor in the comment field', async ({ page })
       timeout: 5_000,
     });
   }).toPass({ timeout: 60_000 });
-  await editor(page).getByText('The budget needs a second look.').dblclick();
+  await editor(page).locator('p', { hasText: 'The budget needs a second look.' }).selectText();
+  await expect(page.getByTestId('bubble-menu-bar')).toBeVisible();
   await page.getByTestId('discussion-bubble-button').click();
   const field = page.getByTestId('discussion-card').getByLabel('Comment', { exact: true });
   await expect(field).toBeFocused();
