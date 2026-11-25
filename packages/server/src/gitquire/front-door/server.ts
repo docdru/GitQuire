@@ -16,6 +16,7 @@ import {
   wantsHtml,
 } from '../http-util.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
+import type { PersonRoutes } from '../people/person-routes.ts';
 import { PERSON_TICKET_HEADER, type PersonTickets } from '../people/ticket.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
@@ -165,6 +166,7 @@ export interface FrontDoorDeps {
   agents?: Pick<DoorAgents, 'handle' | 'features' | 'pathsFor'>;
   mentionCounts?: MentionCounts;
   tickets?: PersonTickets;
+  personRoutes?: PersonRoutes;
   readAccountAddress?: (entry: DoorHostEntry, person: HostPerson, token: string) => Promise<void>;
   log: GateLogger;
   now?: () => number;
@@ -1540,6 +1542,29 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     return true;
   }
 
+  function answeredForPerson(
+    req: IncomingMessage,
+    res: ServerResponse,
+    seat: Seat,
+    rest: string,
+  ): boolean {
+    const routes = deps.personRoutes;
+    if (routes === undefined) return false;
+    const path = rawPathAndSearch(rest).path;
+    if (!routes.handles(path, req.method ?? 'GET')) return false;
+    routes.handle(
+      req,
+      res,
+      {
+        person: personIdOn(seat.entry.names, seat.person.id),
+        login: seat.person.login,
+        hostLabel: seat.entry.names.label,
+      },
+      path,
+    );
+    return true;
+  }
+
   function handleRequest(req: IncomingMessage, res: ServerResponse): void {
     const { path: rawPath, search } = rawPathAndSearch(req.url);
     if (rawPath === '/healthz') {
@@ -1598,6 +1623,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
             res.end();
             return undefined;
           }
+          if (decision.open && answeredForPerson(req, res, seat, match.rest)) return undefined;
           return toWiki(req, res, seat, match.wiki, `${match.rest}${match.search}`, view, decision);
         })
         .catch(fail);
@@ -1637,6 +1663,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
               withoutReferer();
               return undefined;
             }
+            if (answeredForPerson(req, res, fromSeat, rawPath)) return undefined;
             return toWiki(
               req,
               res,

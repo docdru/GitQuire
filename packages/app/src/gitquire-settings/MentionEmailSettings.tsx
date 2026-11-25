@@ -5,11 +5,14 @@ import { SettingsSectionHeader } from '@/components/settings/SettingsSectionHead
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
+  type AccountAddressProblem,
   cancelMentionEmail,
+  chooseMentionEmail,
   confirmMentionEmail,
-  fetchMentions,
+  fetchMentionEmail,
   type MentionEmail,
   notifyMentionEmailChanged,
   setMentionEmail,
@@ -32,7 +35,8 @@ export function MentionEmailForm({
   const { t } = useLingui();
   const fieldId = useId();
   const codeId = useId();
-  const [draft, setDraft] = useState(email.address ?? '');
+  const otherInUse = email.use === 'other' || email.use === undefined ? email.address : null;
+  const [draft, setDraft] = useState(otherInUse ?? '');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const pending = email.pending ?? null;
@@ -143,9 +147,9 @@ export function MentionEmailForm({
       }}
     >
       <Label htmlFor={fieldId}>
-        {email.address === null
-          ? t`Email me new mentions`
-          : t`New mentions are emailed to ${email.address}`}
+        {otherInUse === null
+          ? t`Email me new mentions at another address`
+          : t`New mentions are emailed to ${otherInUse}`}
       </Label>
       <div className="flex gap-2">
         <Input
@@ -160,12 +164,12 @@ export function MentionEmailForm({
         <Button
           type="submit"
           size="sm"
-          disabled={busy || draft.trim() === '' || draft.trim() === email.address}
+          disabled={busy || draft.trim() === '' || draft.trim() === otherInUse}
         >
-          {email.address === null ? t`Send code` : t`Change`}
+          {otherInUse === null ? t`Send code` : t`Change`}
         </Button>
       </div>
-      {email.address !== null && (
+      {otherInUse !== null && (
         <Button
           type="button"
           variant="link"
@@ -181,6 +185,78 @@ export function MentionEmailForm({
   );
 }
 
+function problemText(
+  why: AccountAddressProblem | null | undefined,
+  t: ReturnType<typeof useLingui>['t'],
+): string {
+  if (why === 'refused') {
+    return t`Your Git host does not let GitQuire read your account's email address. An administrator can allow it for the GitQuire app, then sign in again.`;
+  }
+  if (why === 'domain') return t`This server does not send mail to your account's address.`;
+  if (why === 'unreachable') {
+    return t`GitQuire could not ask your Git host for your account's address. Sign in again later.`;
+  }
+  if (why === 'not-read') return t`Sign in again to use your account's address.`;
+  return t`Your account has no verified address GitQuire can use.`;
+}
+
+export function AccountEmailSwitch({
+  email,
+  onChange,
+}: {
+  email: MentionEmail;
+  onChange: (next: MentionEmail) => void;
+}) {
+  const { t } = useLingui();
+  const switchId = useId();
+  const [busy, setBusy] = useState(false);
+  const accountAddress = email.account?.address ?? null;
+
+  function choose(use: 'account' | 'other' | null) {
+    if (busy) return;
+    setBusy(true);
+    chooseMentionEmail(use)
+      .then(onChange, () => toast.error(t`Couldn't save the setting. Try again.`))
+      .finally(() => setBusy(false));
+  }
+
+  if (accountAddress === null) {
+    return (
+      <div className="flex max-w-md flex-col gap-1" data-testid="mention-email-account">
+        {email.stopped === 'account-gone' && (
+          <p className="font-medium text-sm">{t`Mention email is stopped.`}</p>
+        )}
+        <p className="text-muted-foreground text-sm">{problemText(email.account?.why, t)}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex max-w-md flex-col gap-2" data-testid="mention-email-account">
+      <div className="flex items-start justify-between gap-4">
+        <Label htmlFor={switchId}>{t`Email me mentions at ${accountAddress}`}</Label>
+        <Switch
+          id={switchId}
+          checked={email.use === 'account'}
+          disabled={busy}
+          onCheckedChange={(checked) => choose(checked ? 'account' : null)}
+        />
+      </div>
+      {email.use !== 'other' && email.other !== null && email.other !== undefined && (
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="self-start px-0"
+          disabled={busy}
+          onClick={() => choose('other')}
+        >
+          {t`Email me at ${email.other} instead`}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 type Loaded =
   | { kind: 'loading' }
   | { kind: 'failed' }
@@ -190,27 +266,36 @@ type Loaded =
 export function MentionEmailSettings() {
   const { t } = useLingui();
   const [state, setState] = useState<Loaded>({ kind: 'loading' });
+  const [another, setAnother] = useState(false);
 
   useEffect(() => {
     let live = true;
-    fetchMentions().then(
-      (inbox) => {
-        if (!live) return;
-        if (!inbox.enabled) setState({ kind: 'signed-out' });
-        else
-          setState({
-            kind: 'ready',
-            email: inbox.email ?? { available: false, address: null, pending: null },
-          });
+    fetchMentionEmail().then(
+      (email) => {
+        if (live) setState({ kind: 'ready', email });
       },
-      () => {
-        if (live) setState({ kind: 'failed' });
+      (err: unknown) => {
+        if (!live) return;
+        setState(
+          err instanceof GitQuireApiError && err.status === 401
+            ? { kind: 'signed-out' }
+            : { kind: 'failed' },
+        );
       },
     );
     return () => {
       live = false;
     };
   }, []);
+
+  function changed(next: MentionEmail) {
+    setState({ kind: 'ready', email: next });
+    notifyMentionEmailChanged(next);
+  }
+
+  const email = state.kind === 'ready' ? state.email : undefined;
+  const showOther =
+    email !== undefined && (another || email.use === 'other' || (email.pending ?? null) !== null);
 
   return (
     <section
@@ -224,8 +309,9 @@ export function MentionEmailSettings() {
         scope="user"
       >
         <Trans>
-          When someone mentions you in a comment or an action item in this wiki, it shows up under
-          the @ button. You can also get it by email.
+          When someone mentions you in a comment or an action item, it shows up under the @ button.
+          You can also get it by email. This setting is the same in all wikis you open with this
+          account.
         </Trans>
       </SettingsSectionHeader>
       {state.kind === 'loading' && <p className="text-muted-foreground text-sm">{t`Loading…`}</p>}
@@ -235,19 +321,28 @@ export function MentionEmailSettings() {
       {state.kind === 'signed-out' && (
         <p className="text-muted-foreground text-sm">{t`Sign in to get mentions by email.`}</p>
       )}
-      {state.kind === 'ready' && !state.email.available && state.email.address === null && (
+      {email !== undefined && !email.available && email.address === null && (
         <p className="text-muted-foreground text-sm" data-testid="mention-email-unavailable">
           {t`This server can't send email yet. An administrator turns it on with GITQUIRE_SMTP_URL and GITQUIRE_MAIL_FROM.`}
         </p>
       )}
-      {state.kind === 'ready' && (state.email.available || state.email.address !== null) && (
-        <MentionEmailForm
-          email={state.email}
-          onChange={(next) => {
-            setState({ kind: 'ready', email: next });
-            notifyMentionEmailChanged(next);
-          }}
-        />
+      {email !== undefined && (email.available || email.address !== null) && (
+        <>
+          <AccountEmailSwitch email={email} onChange={changed} />
+          {showOther ? (
+            <MentionEmailForm email={email} onChange={changed} />
+          ) : (
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="px-0"
+              onClick={() => setAnother(true)}
+            >
+              {t`Use another address`}
+            </Button>
+          )}
+        </>
       )}
     </section>
   );

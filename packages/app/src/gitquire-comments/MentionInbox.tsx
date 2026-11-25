@@ -14,6 +14,7 @@ import {
 import { hashFromDocName } from '@/lib/doc-hash';
 import { GitQuireApiError } from '@/lib/gitquire/branch-api';
 import {
+  fetchMentionEmail,
   fetchMentions,
   type InboxMention,
   listenMentionEmailChanged,
@@ -184,13 +185,23 @@ export function MentionInbox() {
     });
   }, [enabled]);
 
-  useEffect(
-    () =>
-      listenMentionEmailChanged((email) =>
-        setInbox((latest) => (latest === null ? latest : { ...latest, email })),
-      ),
-    [],
-  );
+  const [email, setEmail] = useState<MentionEmail | undefined>(undefined);
+
+  useEffect(() => listenMentionEmailChanged(setEmail), []);
+
+  useEffect(() => {
+    if (!enabled || !open) return;
+    let live = true;
+    fetchMentionEmail().then(
+      (next) => {
+        if (live) setEmail(next);
+      },
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, [enabled, open]);
 
   useEffect(() => {
     let live = true;
@@ -259,7 +270,6 @@ export function MentionInbox() {
     if (mention.kind !== 'task') revealDiscussion(mention.docName, mention.threadId);
   }
 
-  const email = current.email;
   const label =
     current.unread === 0 ? t`Mentions` : t`Mentions, ${unreadBadge(current.unread)} unread`;
 

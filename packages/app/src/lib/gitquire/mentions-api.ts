@@ -22,10 +22,16 @@ export interface InboxMention {
   draft?: { slug: string; title: string };
 }
 
+export type AccountAddressProblem = 'none' | 'refused' | 'unreachable' | 'domain' | 'not-read';
+
 export interface MentionEmail {
   available: boolean;
   address: string | null;
   pending?: string | null;
+  use?: 'account' | 'other' | null;
+  account?: { address: string | null; why: AccountAddressProblem | null };
+  other?: string | null;
+  stopped?: 'account-gone' | null;
 }
 
 export interface MentionInboxData {
@@ -49,6 +55,17 @@ export function markMentionsRead(
   deps: ApiDeps = {},
 ): Promise<{ unread: number }> {
   return gitquireRequest('/api/gitquire/mentions/read', { method: 'POST', body: target }, deps);
+}
+
+export function fetchMentionEmail(deps: ApiDeps = {}): Promise<MentionEmail> {
+  return gitquireRequest(EMAIL_URL, {}, deps);
+}
+
+export function chooseMentionEmail(
+  use: 'account' | 'other' | null,
+  deps: ApiDeps = {},
+): Promise<MentionEmail> {
+  return gitquireRequest(EMAIL_URL, { method: 'PUT', body: { use } }, deps);
 }
 
 export function setMentionEmail(address: string | null, deps: ApiDeps = {}): Promise<MentionEmail> {

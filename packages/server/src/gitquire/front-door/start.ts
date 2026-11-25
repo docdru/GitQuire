@@ -5,6 +5,10 @@ import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
 import type { DoorHost, HostPerson } from '../host/types.ts';
+import { isSameOriginRequest } from '../http-util.ts';
+import { resolveMailConfig, sendMail } from '../mail.ts';
+import { createEmailService } from '../people/email-service.ts';
+import { createPersonRoutes, emailRoutes } from '../people/person-routes.ts';
 import { personSettings } from '../people/settings.ts';
 import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
 import { createPersonTickets } from '../people/ticket.ts';
@@ -206,6 +210,23 @@ export async function startFrontDoor(
     settings: personSettings(people),
     log,
   });
+  const mail = resolveMailConfig(env);
+  if (mail.kind === 'invalid') {
+    log.warn({ reason: mail.reason }, '[gitquire-mail] email for mentions is off');
+  }
+  const email = createEmailService({
+    store: people,
+    countersFile: join(settings.dataDir, 'server', 'mail-recipients.json'),
+    mail,
+    codeKey: () => settings.sessionSecret,
+    send: sendMail,
+    log,
+  });
+  const personRoutes = createPersonRoutes({
+    routes: [emailRoutes(email)],
+    sameOrigin: (req) => isSameOriginRequest(req, settings.externalUrl),
+    log,
+  });
   let tokenSocketPath = '';
   const processes = createWikiProcesses({
     dataDir: settings.dataDir,
@@ -274,6 +295,7 @@ export async function startFrontDoor(
     mentionCounts: createMentionCounts(settings.dataDir),
     tickets,
     readAccountAddress: accountAddressReader({ store: people, log }),
+    personRoutes,
     log,
   });
   doorSessionUser = door.sessionUser;
