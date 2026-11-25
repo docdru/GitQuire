@@ -1178,7 +1178,11 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       ...(deps.tickets === undefined || entry === undefined
         ? {}
         : {
-            [PERSON_TICKET_HEADER]: deps.tickets.issue(wiki.key, personIdOn(entry.names, user.id)),
+            [PERSON_TICKET_HEADER]: deps.tickets.issue(
+              wiki.key,
+              personIdOn(entry.names, user.id),
+              user.login,
+            ),
           }),
       ...(view === undefined || view === '' ? {} : { [FORWARDED_VIEW_HEADER]: view }),
       ...(agentFeatures === undefined ? {} : { [FORWARDED_AGENTS_HEADER]: agentFeatures }),

@@ -415,7 +415,7 @@ describe('front door', () => {
     ).json()) as { headers: Record<string, string> };
     const ticket = a.headers['x-gitquire-person-ticket'];
     expect(ticket).not.toBe('forged');
-    expect(r.tickets.personOf(ticket, 'github-1')).toBe('github-11');
+    expect(r.tickets.personOf(ticket, 'github-1')).toEqual({ person: 'github-11', login: 'alice' });
     expect(r.tickets.personOf(ticket, 'github-2')).toBeUndefined();
   });
 

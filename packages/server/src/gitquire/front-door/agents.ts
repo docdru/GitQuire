@@ -164,6 +164,7 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
         })
       : undefined;
 
+    const tickets = deps.tickets;
     const mcp = createDoorMcp({
       externalUrl: settings.externalUrl,
       table,
@@ -172,11 +173,11 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
       seesWhy: (person, wiki) =>
         access.wasAdmin(person, wiki) ||
         (hosts.of(wiki) === entry && entry.settings.serverAdmins.has(person.login.toLowerCase())),
-      ...(deps.tickets === undefined
+      ...(tickets === undefined
         ? {}
         : {
-            ticketFor: (wiki: WikiRecord, person: { id: number }) =>
-              deps.tickets?.issue(wiki.key, personIdOn(entry.names, person.id)) ?? '',
+            ticketFor: (wiki: WikiRecord, person: { id: number; login: string }) =>
+              tickets.issue(wiki.key, personIdOn(entry.names, person.id), person.login),
           }),
       log,
       now: deps.now,

@@ -10,12 +10,18 @@ export const PERSON_TICKET_LIFETIME_MS = 15 * 60 * 1000;
 interface TicketBody {
   w: string;
   p: string;
+  l: string;
   e: number;
 }
 
+export interface TicketPerson {
+  person: string;
+  login: string;
+}
+
 export interface PersonTickets {
-  issue: (wikiKey: string, person: string) => string;
-  personOf: (ticket: string | undefined, wikiKey: string) => string | undefined;
+  issue: (wikiKey: string, person: string, login: string) => string;
+  personOf: (ticket: string | undefined, wikiKey: string) => TicketPerson | undefined;
 }
 
 export function createPersonTickets(
@@ -25,14 +31,19 @@ export function createPersonTickets(
   const now = options.now ?? Date.now;
   const lifetime = options.lifetimeMs ?? PERSON_TICKET_LIFETIME_MS;
   return {
-    issue: (wikiKey, person) =>
-      encodeSigned(key, { w: wikiKey, p: person, e: now() + lifetime } satisfies TicketBody),
+    issue: (wikiKey, person, login) =>
+      encodeSigned(key, {
+        w: wikiKey,
+        p: person,
+        l: login,
+        e: now() + lifetime,
+      } satisfies TicketBody),
     personOf: (ticket, wikiKey) => {
       const body = decodeSigned(key, ticket) as Partial<TicketBody> | undefined;
       if (typeof body !== 'object' || body === null) return undefined;
-      if (body.w !== wikiKey || !isPersonId(body.p)) return undefined;
+      if (body.w !== wikiKey || !isPersonId(body.p) || typeof body.l !== 'string') return undefined;
       if (typeof body.e !== 'number' || body.e <= now()) return undefined;
-      return body.p;
+      return { person: body.p, login: body.l };
     },
   };
 }

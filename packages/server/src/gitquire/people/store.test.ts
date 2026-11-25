@@ -59,4 +59,13 @@ describe('the per-person store', () => {
     read.n = 99;
     expect(store.readJson('github-7', 'prefs.json', counter)).toEqual({ n: 1 });
   });
+
+  it('forgets a removed file, also in what it keeps in memory', () => {
+    const store = createPeopleStore(root());
+    store.updateJson('github-7', 'prefs.json', counter, () => ({ n: 4 }));
+    expect(store.changedAt('github-7', 'prefs.json')).toBeTypeOf('number');
+    store.remove('github-7', 'prefs.json');
+    expect(store.readJson('github-7', 'prefs.json', counter)).toEqual({ n: 0 });
+    expect(store.changedAt('github-7', 'prefs.json')).toBeUndefined();
+  });
 });

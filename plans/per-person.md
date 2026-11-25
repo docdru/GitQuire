@@ -70,7 +70,8 @@ Nothing makes the design impossible. Three details change:
 Each is also in the roadmap doc's "Assumptions".
 
 - **B0:** the address is read at sign-in only (finding 1).
-- **B0:** the person ticket (finding 2), 15 minutes, HMAC-SHA256 with a random key made at each front-door start.
+- **B0:** the person ticket (finding 2), 15 minutes, HMAC-SHA256 with a random key made at each front-door start. It carries the login too, and the front door answers a ticket only while the person can still open that wiki (the same access answer as for pages), so removing someone's access stops the answers at once, not after 15 minutes (B1 review).
+- **B1:** per-person questions are asked only while serving an HTTP request (pages, API, `/mcp`), each of which carries a fresh ticket. The live-editing websocket gets a ticket at its start, but nothing asks per-person questions from it; a long-open socket would otherwise hold an expired ticket (B1 review).
 - **B0:** usage report as in finding 3.
 - **B0:** "Put my AI assistant's edits into a draft" counts as a personal setting and moves to the per-person store (plan item 7). It becomes one choice for all wikis of the account.
 

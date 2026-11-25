@@ -9,6 +9,7 @@ const MAX_BODY_BYTES = 64 * 1024;
 
 export interface PersonQuestion {
   person: string;
+  login: string;
   wikiKey: string;
   method: string;
   path: string;
@@ -23,6 +24,7 @@ export type PersonQuestionHandler = (
 
 export interface PersonSocketDeps {
   tickets: PersonTickets;
+  mayAsk: (wikiKey: string, person: string, login: string) => Promise<boolean>;
   settings: PersonSettings;
   handlers?: readonly PersonQuestionHandler[];
   log: GateLogger;
@@ -75,16 +77,22 @@ export function createPersonSocketHandler(
   ];
   return (req, res, wikiKey, path) => {
     const raw = req.headers[PERSON_TICKET_HEADER];
-    const person = deps.tickets.personOf(typeof raw === 'string' ? raw : undefined, wikiKey);
-    if (person === undefined) {
+    const holder = deps.tickets.personOf(typeof raw === 'string' ? raw : undefined, wikiKey);
+    if (holder === undefined) {
       sendJson(res, 403, { error: 'no-ticket' });
       return;
     }
+    const { person, login } = holder;
     const method = req.method ?? 'GET';
     readBody(req)
       .then(async (body) => {
+        if (!(await deps.mayAsk(wikiKey, person, login))) {
+          sendJson(res, 403, { error: 'no-access' });
+          return;
+        }
         const question: PersonQuestion = {
           person,
+          login,
           wikiKey,
           method,
           path: path.slice(PERSON_PATH_PREFIX.length),

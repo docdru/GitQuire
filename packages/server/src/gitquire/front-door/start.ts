@@ -194,6 +194,14 @@ export async function startFrontDoor(
   const people = createPeopleStore(frontDoorPeopleRoot(settings.dataDir));
   const personSocket = createPersonSocketHandler({
     tickets,
+    mayAsk: async (wikiKey, person, login) => {
+      const wiki = table.byKey(wikiKey);
+      const entry = wiki === undefined ? undefined : hosts.of(wiki);
+      if (wiki === undefined || entry === undefined) return false;
+      if (!person.startsWith(entry.names.idPrefix)) return false;
+      const id = Number(person.slice(entry.names.idPrefix.length));
+      return (await entry.access.decide({ id, login }, wiki)).open;
+    },
     settings: personSettings(people),
     log,
   });
