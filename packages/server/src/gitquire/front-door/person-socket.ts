@@ -6,6 +6,7 @@ import { isAgentMode, type PersonSettings } from '../people/settings.ts';
 import { PERSON_TICKET_HEADER, type PersonTickets } from '../people/ticket.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
+export const USAGE_TICKET_GRACE_MS = 2 * 60 * 60 * 1000;
 
 export interface PersonQuestion {
   person: string;
@@ -77,7 +78,12 @@ export function createPersonSocketHandler(
   ];
   return (req, res, wikiKey, path) => {
     const raw = req.headers[PERSON_TICKET_HEADER];
-    const holder = deps.tickets.personOf(typeof raw === 'string' ? raw : undefined, wikiKey);
+    const recordsUsage = path === `${PERSON_PATH_PREFIX}ai-usage` && req.method === 'POST';
+    const holder = deps.tickets.personOf(
+      typeof raw === 'string' ? raw : undefined,
+      wikiKey,
+      recordsUsage ? USAGE_TICKET_GRACE_MS : 0,
+    );
     if (holder === undefined) {
       sendJson(res, 403, { error: 'no-ticket' });
       return;

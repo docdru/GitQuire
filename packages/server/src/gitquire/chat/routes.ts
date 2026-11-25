@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
 import { isEditTarget } from '../drafts/model.ts';
+import { DoorUnavailableError } from '../people/door-client.ts';
 import { type ChatEvent, runChatTurn, systemPrompt } from './agent.ts';
 import {
   CHAT_RETENTION_DAYS,
@@ -451,6 +452,15 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
         }
         if (err instanceof ChatHttpError) {
           sendJson(res, err.status, { error: err.code, message: err.message });
+        } else if (err instanceof DoorUnavailableError) {
+          deps.log.warn(
+            { reason: err.message, path },
+            '[gitquire-chat] the front door did not answer',
+          );
+          sendJson(res, 503, {
+            error: 'try-again',
+            message: 'Your AI keys could not be reached. Reload the page and try again.',
+          });
         } else {
           deps.log.error({ err, path }, '[gitquire-chat] request failed');
           sendJson(res, 500, { error: 'internal', message: 'Internal error.' });

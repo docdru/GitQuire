@@ -214,6 +214,18 @@ export async function startFrontDoor(
     people,
     personKeyStore(people, derivePeopleKeySecret(settings.sessionSecret)),
   );
+  const usagePurge = setInterval(
+    () => {
+      try {
+        chatData.purgeUsage(new Date());
+      } catch (err) {
+        log.warn({ err }, '[gitquire-chat] could not remove expired usage');
+      }
+    },
+    6 * 60 * 60 * 1000,
+  );
+  usagePurge.unref();
+  chatData.purgeUsage(new Date());
   const personSocket = createPersonSocketHandler({
     tickets,
     handlers: [chatData.answer],
@@ -433,6 +445,7 @@ export async function startFrontDoor(
       door.setReady(false);
       clearInterval(recheck);
       clearInterval(mailRounds);
+      clearInterval(usagePurge);
       clearInterval(branchRounds);
       clearInterval(checks);
       await new Promise<void>((resolve) => {

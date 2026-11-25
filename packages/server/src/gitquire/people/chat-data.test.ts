@@ -21,11 +21,12 @@ afterEach(async () => {
 
 const KEY = 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789';
 
-async function door() {
+async function door(options: { open?: () => boolean } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'gq-chat-data-'));
   cleanups.push(() => rmSync(dir, { recursive: true, force: true }));
   const store = createPeopleStore(join(dir, 'people'));
-  const tickets = createPersonTickets();
+  const clock = { at: Date.parse('2026-11-25T10:00:00Z') };
+  const tickets = createPersonTickets({ now: () => clock.at });
   const state = { wiki: 'github-1' };
   const data = personChatData(store, personKeyStore(store, 'p'.repeat(64)), {
     now: () => new Date('2026-11-25T10:00:00Z'),
@@ -33,7 +34,7 @@ async function door() {
   const socket = await listenTokenSocket({
     person: createPersonSocketHandler({
       tickets,
-      mayAsk: async () => true,
+      mayAsk: async () => options.open?.() ?? true,
       settings: personSettings(store),
       handlers: [data.answer],
       log: silentLog,
@@ -45,8 +46,8 @@ async function door() {
   });
   cleanups.push(() => socket.close());
   const ask = doorAsker(socket.path);
-  const request = (wiki: string, person: string) => {
-    state.wiki = wiki;
+  const request = (wiki: string, person: string, from = wiki) => {
+    state.wiki = from;
     return {
       headers: {
         [INTERNAL_REQUEST_HEADER]: internalSecret(),
@@ -54,7 +55,16 @@ async function door() {
       },
     } as unknown as IncomingMessage;
   };
-  return { dir, store, keys: doorChatKeys(ask), usage: doorChatUsage(ask), request, state };
+  return {
+    dir,
+    store,
+    data,
+    clock,
+    keys: doorChatKeys(ask),
+    usage: doorChatUsage(ask),
+    request,
+    state,
+  };
 }
 
 const anna = { id: 5, login: 'anna', name: 'Anna', avatarUrl: '' };
@@ -116,5 +126,58 @@ describe('AI keys and token usage per person', () => {
     expect(inA.total).toEqual({ inputTokens: 200, outputTokens: 20 });
     expect(inA.chats.map((chat) => chat.title)).toEqual(['Budget in A']);
     expect(JSON.stringify(inA)).not.toContain('Secret plan');
+  });
+
+  it('refuses a ticket of another wiki and a person who lost access (P8)', async () => {
+    let open = true;
+    const { keys, request } = await door({ open: () => open });
+    await keys.set(request('github-1', 'github-5'), anna, 'claude', KEY, new Date());
+    await expect(
+      keys.get(request('github-1', 'github-5', 'github-2'), anna, 'claude'),
+    ).rejects.toThrow('403');
+    open = false;
+    await expect(keys.get(request('github-1', 'github-5'), anna, 'claude')).rejects.toThrow('403');
+  });
+
+  it('still records the usage of a long chat after the ticket ran out, but no key', async () => {
+    const { keys, usage, request, clock } = await door();
+    const inA = request('github-1', 'github-5');
+    clock.at += 20 * 60 * 1000;
+    await usage.add(inA, anna, {
+      day: '2026-11-25',
+      chatId: 'chatAAAAAAAAAAAA',
+      title: 'Long',
+      provider: 'claude',
+      model: 'claude-sonnet',
+      inputTokens: 5,
+      outputTokens: 1,
+    });
+    await expect(keys.get(inA, anna, 'claude')).rejects.toThrow('403');
+    expect((await usage.report(request('github-1', 'github-5'), anna, new Date())).total).toEqual({
+      inputTokens: 5,
+      outputTokens: 1,
+    });
+  });
+
+  it('refuses usage dated in the future and drops expired usage on a purge', async () => {
+    const { usage, request, data } = await door();
+    const entry = {
+      chatId: 'chatAAAAAAAAAAAA',
+      title: 'x',
+      provider: 'claude' as const,
+      model: 'm',
+      inputTokens: 1,
+      outputTokens: 1,
+    };
+    await expect(
+      usage.add(request('github-1', 'github-5'), anna, { ...entry, day: '2099-01-01' }),
+    ).rejects.toThrow('400');
+    data.addUsage(
+      'github-5',
+      'github-1',
+      { ...entry, day: '2026-01-01' },
+      new Date('2026-01-01T10:00:00Z'),
+    );
+    expect(data.purgeUsage(new Date('2026-11-25T10:00:00Z'))).toBe(1);
   });
 });

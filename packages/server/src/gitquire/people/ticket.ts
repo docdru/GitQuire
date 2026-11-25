@@ -21,7 +21,11 @@ export interface TicketPerson {
 
 export interface PersonTickets {
   issue: (wikiKey: string, person: string, login: string) => string;
-  personOf: (ticket: string | undefined, wikiKey: string) => TicketPerson | undefined;
+  personOf: (
+    ticket: string | undefined,
+    wikiKey: string,
+    graceMs?: number,
+  ) => TicketPerson | undefined;
 }
 
 export function createPersonTickets(
@@ -38,11 +42,11 @@ export function createPersonTickets(
         l: login,
         e: now() + lifetime,
       } satisfies TicketBody),
-    personOf: (ticket, wikiKey) => {
+    personOf: (ticket, wikiKey, graceMs = 0) => {
       const body = decodeSigned(key, ticket) as Partial<TicketBody> | undefined;
       if (typeof body !== 'object' || body === null) return undefined;
       if (body.w !== wikiKey || !isPersonId(body.p) || typeof body.l !== 'string') return undefined;
-      if (typeof body.e !== 'number' || body.e <= now()) return undefined;
+      if (typeof body.e !== 'number' || body.e + graceMs <= now()) return undefined;
       return { person: body.p, login: body.l };
     },
   };

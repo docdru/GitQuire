@@ -9,7 +9,7 @@ import {
 import { isChatProvider } from '../chat/models.ts';
 import { cutoffDay, type UsageEntry, usageEntryOf, usageReport, withUsage } from '../chat/usage.ts';
 import type { PersonAnswer, PersonQuestion } from '../front-door/person-socket.ts';
-import type { PeopleStore } from './store.ts';
+import { isPersonId, type PeopleStore } from './store.ts';
 
 export interface PersonUsageEntry extends UsageEntry {
   wiki: string;
@@ -28,13 +28,20 @@ function parseUsage(raw: unknown): PersonUsageEntry[] {
   return out;
 }
 
+const MAX_USAGE_ENTRIES = 5000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 export function personKeyStore(store: PeopleStore, secret: string): SealedKeyStore {
-  return createSealedKeyStore((person) => join(store.root, person, 'ai-keys.json'), secret);
+  return createSealedKeyStore((person) => {
+    if (!isPersonId(person)) throw new Error(`invalid person id: ${person}`);
+    return join(store.root, person, 'ai-keys.json');
+  }, secret);
 }
 
 export interface PersonChatData {
   answer: (question: PersonQuestion) => PersonAnswer;
   addUsage: (person: string, wiki: string, entry: UsageEntry, now: Date) => void;
+  purgeUsage: (now: Date) => number;
 }
 
 export function personChatData(
@@ -93,7 +100,10 @@ export function personChatData(
     }
     if (path === 'ai-usage' && method === 'POST') {
       const entry = usageEntryOf(body.entry);
-      if (entry === undefined) return { status: 400, body: { error: 'invalid-usage' } };
+      const latest = new Date(now().getTime() + DAY_MS).toISOString().slice(0, 10);
+      if (entry === undefined || entry.day > latest) {
+        return { status: 400, body: { error: 'invalid-usage' } };
+      }
       addUsage(person, wikiKey, entry, now());
       return { status: 200, body: { recorded: true } };
     }
@@ -112,5 +122,25 @@ export function personChatData(
     return undefined;
   }
 
-  return { answer, addUsage };
+  function purgeUsage(at: Date): number {
+    const cutoff = cutoffDay(at, retention);
+    let removed = 0;
+    for (const person of store.people()) {
+      const entries = store.readJson(person, 'usage.json', parseUsage);
+      const kept = entries.filter((entry) => entry.day >= cutoff);
+      if (kept.length === entries.length) continue;
+      removed += entries.length - kept.length;
+      store.updateJson(
+        person,
+        'usage.json',
+        (raw) => ({ entries: parseUsage(raw) }),
+        () => ({
+          entries: kept,
+        }),
+      );
+    }
+    return removed;
+  }
+
+  return { answer, addUsage, purgeUsage };
 }
