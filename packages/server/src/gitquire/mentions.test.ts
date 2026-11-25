@@ -8,7 +8,7 @@ import {
   normalizeCommentTimes,
   writeCommentThreads,
 } from '@gitquire/core/gitquire/comment-threads';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   confirmationMail,
   displayConfirmationCode,
@@ -544,6 +544,37 @@ describe('mention routes', () => {
       expect(await routes.mailRound()).toBe(1);
       expect(sent[0]?.to).toBe('alice@example.org');
     } finally {
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('a single wiki counts opening the inbox as a visit, so a daily reader is not idle', async () => {
+    const dir = project();
+    const routes = createGitQuireRoutes({
+      projectDir: dir,
+      log: silentLog,
+      sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
+      env: {
+        GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
+        GITQUIRE_MAIL_FROM: 'wiki@example.com',
+      },
+      sendMail: async () => {},
+      mailRoundMs: 3_600_000,
+    });
+    try {
+      routes.recordAddress?.(alice, { state: 'found', address: 'alice@example.org' });
+      await putEmail(routes, { use: 'account' });
+      const root = join(dir, '.gitquire', 'local', 'gitquire', 'people');
+      const file = join(root, 'github-1', 'mail.json');
+      const later = Date.now() + 40 * 24 * 60 * 60 * 1000;
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(later);
+      expect((await call(routes, '/api/gitquire/mentions')).status).toBe(200);
+      const seen = JSON.parse(readFileSync(file, 'utf8')).lastSeen as string;
+      expect(Date.parse(seen)).toBe(later);
+    } finally {
+      vi.useRealTimers();
       routes.stop();
       rmSync(dir, { recursive: true, force: true });
     }

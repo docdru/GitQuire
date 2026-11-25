@@ -105,6 +105,11 @@ export function withAccountAddress(
   const next: MailRecord = { ...rest, login };
   if (found.state === 'found') {
     next.account = { address: found.address, readAt: now.toISOString() };
+    const sameAsMoved =
+      record.account === undefined &&
+      record.use === 'other' &&
+      record.other?.address.toLowerCase() === found.address.toLowerCase();
+    if (sameAsMoved) next.use = 'account';
     return next;
   }
   if (found.state === 'unreachable') {
@@ -166,4 +171,17 @@ export function mailAddressOf(
     return record.other.address;
   }
   return undefined;
+}
+
+export function withoutAddress(text: string, address: string): string {
+  const wanted = address.toLowerCase();
+  if (wanted === '') return text;
+  let out = '';
+  let from = 0;
+  const lower = text.toLowerCase();
+  for (let at = lower.indexOf(wanted); at !== -1; at = lower.indexOf(wanted, from)) {
+    out += `${text.slice(from, at)}<address>`;
+    from = at + wanted.length;
+  }
+  return out + text.slice(from);
 }

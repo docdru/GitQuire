@@ -326,16 +326,19 @@ export function movePeopleData(
     const record = readMailRecord(target.store, who);
     const switchedOn = record.use !== undefined && before.use === undefined;
     const sinceMoved = record.since !== before.since;
-    if (record.use !== undefined && record.login !== undefined && (switchedOn || sinceMoved)) {
+    if (record.use !== undefined && record.login !== undefined) {
       const own = sinceIn.get(who) ?? new Map<string, string>();
       const everyWiki = new Set([...(target.wikiKeys?.() ?? []), ...movedKeys]);
       for (const wikiKey of everyWiki) {
+        if (!movedKeys.has(wikiKey) && !switchedOn && !sinceMoved) continue;
         const theirs = own.get(wikiKey);
         if (theirs === undefined) {
           target.markExisting?.(who, record.login, wikiKey);
         } else if (record.since !== undefined && theirs > record.since) {
           target.markExisting?.(who, record.login, wikiKey, theirs);
         }
+        if (movedKeys.has(wikiKey) && theirs !== undefined)
+          markMailed(target.store, who, wikiKey, []);
       }
     }
   }

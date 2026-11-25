@@ -119,6 +119,7 @@ async function rig(
   options: {
     host?: 'github' | 'forgejo';
     readAccountAddress?: FrontDoorDeps['readAccountAddress'];
+    seen?: FrontDoorDeps['seen'];
     personRoutes?: FrontDoorDeps['personRoutes'];
   } = {},
 ): Promise<Rig> {
@@ -240,6 +241,7 @@ async function rig(
     ...(options.readAccountAddress === undefined
       ? {}
       : { readAccountAddress: options.readAccountAddress }),
+    ...(options.seen === undefined ? {} : { seen: options.seen }),
     log: silentLog,
     now,
     randomState: () => 'state-1',
@@ -431,6 +433,12 @@ describe('front door', () => {
     expect((await get(reading, '/w/github/team/a/', session)).status).toBe(200);
   });
 
+  it('does not hold up the sign-in while the host is slow to give the account address', async () => {
+    const slow = await rig({ readAccountAddress: () => new Promise(() => {}) });
+    const session = await signIn(slow, 'alice');
+    expect((await get(slow, '/w/github/team/a/', session)).status).toBe(200);
+  }, 3000);
+
   it('answers the email routes itself, the same in every wiki of the account, also from a draft (P1, P5, P12)', async () => {
     const seen: string[] = [];
     const door = await rig({
@@ -474,6 +482,16 @@ describe('front door', () => {
     expect(ticket).not.toBe('forged');
     expect(r.tickets.personOf(ticket, 'github-1')).toEqual({ person: 'github-11', login: 'alice' });
     expect(r.tickets.personOf(ticket, 'github-2')).toBeUndefined();
+  });
+
+  it('notes that the person opened GitQuire on every forwarded request, for the idle rule', async () => {
+    const visits: string[] = [];
+    const door = await rig({ seen: (person, login) => visits.push(`${person} ${login}`) });
+    const session = await signIn(door, 'alice');
+    expect(visits).toEqual([]);
+    await get(door, '/w/github/team/a/', session);
+    await get(door, '/w/github/team/a/api/gitquire/tree', session);
+    expect(visits).toEqual(['github-11 alice', 'github-11 alice']);
   });
 
   it('replaces x-gitquire-* headers a browser sends with its own', async () => {

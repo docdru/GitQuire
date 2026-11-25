@@ -276,7 +276,10 @@ export async function startFrontDoor(
             mentions: () => mentionCounts.mentionsOf(wiki, entry.names.idPrefix),
             readIds: (id: number) => mentionCounts.readIdsOf(wiki, id),
             canOpen: (account: { id: number; login: string }) =>
-              openWithin(entry.access.decide(account, wiki), MAIL_ACCESS_DEADLINE_MS),
+              openWithin(
+                entry.access.decide(account, wiki, { strict: true }),
+                MAIL_ACCESS_DEADLINE_MS,
+              ),
           },
         ];
       }),
@@ -438,6 +441,7 @@ export async function startFrontDoor(
     mentionCounts,
     tickets,
     readAccountAddress: accountAddressReader({ store: people, log }),
+    seen: (person, login) => email.seen({ person, login }),
     personRoutes,
     log,
   });

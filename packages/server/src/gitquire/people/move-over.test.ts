@@ -15,7 +15,7 @@ import { createChatKeyStore } from '../chat/key-store.ts';
 import type { Mention } from '../mentions.ts';
 import { personKeyStore } from './chat-data.ts';
 import { readMailRecord, recordAccountAddress } from './mail.ts';
-import { createPeopleMailer, mailedIds } from './mailer.ts';
+import { createPeopleMailer, knownWikis, mailedIds } from './mailer.ts';
 import { copyPeopleForWiki, movedWikis, movePeopleData, SINGLE_WIKI_KEY } from './move-over.ts';
 import { personSettings } from './settings.ts';
 import { createPeopleStore, SETTINGS_FILE } from './store.ts';
@@ -114,6 +114,33 @@ describe('moving per-wiki data to the front door', () => {
     expect([...mailedIds(store, 'github-11', 'github-2')]).toEqual(['t9:c9']);
     expect(marked).toEqual(['github-11:anna:github-2', 'github-11:anna:github-3']);
     expect(readMailRecord(store, 'github-12').use).toBeUndefined();
+  });
+
+  it('still marks what was there when a first move stopped partway (P4)', () => {
+    const { root, store, keys } = setup();
+    const a = wiki(root, 'github-1', {
+      11: { read: [], login: 'anna', email: 'anna@old.example', since: '2026-10-01T00:00:00.000Z' },
+    });
+    const c = wiki(root, 'github-3', { 11: { read: [], login: 'anna' } });
+    expect(() =>
+      movePeopleData([a, c], {
+        store,
+        keys,
+        markExisting: () => {
+          throw new Error('stopped');
+        },
+      }),
+    ).toThrow('stopped');
+    expect(readMailRecord(store, 'github-11').use).toBe('other');
+    const marked: string[] = [];
+    const report = movePeopleData([a, c], {
+      store,
+      keys,
+      markExisting: (person, login, wikiKey) => marked.push(`${person}:${login}:${wikiKey}`),
+    });
+    expect(report.wikis).toEqual(['github-1', 'github-3']);
+    expect(marked).toEqual(['github-11:anna:github-3']);
+    expect([...knownWikis(store, 'github-11')].sort()).toEqual(['github-1']);
   });
 
   it('stores an address that equals the account address as the account address', () => {

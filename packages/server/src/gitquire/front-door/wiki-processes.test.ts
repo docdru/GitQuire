@@ -75,6 +75,9 @@ describe('wiki process environment (R12)', () => {
         GITQUIRE_HOST_URL: 'https://code.example.org',
         GITQUIRE_AI_CHAT: 'off',
         GITQUIRE_ADMINS: 'alice',
+        GITQUIRE_SMTP_URL: 'smtps://user:password@mail.example.org',
+        GITQUIRE_MAIL_FROM: 'wiki@example.org',
+        GITQUIRE_MAIL_DOMAINS: 'example.org',
       },
       record(),
       {

@@ -2,7 +2,7 @@ import type { GateLogger } from '../access-gate.ts';
 import { isPermanentMailFailure, type MailConfig, type MailMessage } from '../mail.ts';
 import { mentionMail } from '../mention-mailer.ts';
 import { type Mention, mentionsFor } from '../mentions.ts';
-import { mailAddressOf, readMailRecord } from './mail.ts';
+import { mailAddressOf, readMailRecord, withoutAddress } from './mail.ts';
 import type { PeopleStore } from './store.ts';
 
 const MINUTE_MS = 60_000;
@@ -86,6 +86,10 @@ function parseMailed(raw: unknown): Mailed {
   return out;
 }
 
+export function knownWikis(store: PeopleStore, person: string): Set<string> {
+  return new Set(Object.keys(store.readJson(person, 'mailed.json', parseMailed)));
+}
+
 export function mailedIds(store: PeopleStore, person: string, wikiKey: string): Set<string> {
   return new Set(store.readJson(person, 'mailed.json', parseMailed)[wikiKey] ?? []);
 }
@@ -96,8 +100,8 @@ export function markMailed(
   wikiKey: string,
   ids: readonly string[],
 ): void {
-  if (ids.length === 0) return;
   store.updateJson(person, 'mailed.json', parseMailed, (mailed) => {
+    if (ids.length === 0 && mailed[wikiKey] !== undefined) return mailed;
     const merged = new Set(mailed[wikiKey] ?? []);
     for (const id of ids) {
       merged.delete(id);
@@ -133,6 +137,19 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     return sentOverall.length < limits.perHour && mine.length < limits.perPersonPerDay;
   }
 
+  function markExisting(person: string, login: string, onlyWiki?: string, before?: string): void {
+    const account = accountOf(person);
+    if (account === undefined) return;
+    for (const wiki of deps.wikis()) {
+      if (wiki.idPrefix !== account.idPrefix) continue;
+      if (onlyWiki !== undefined && wiki.key !== onlyWiki) continue;
+      const ids = mentionsFor({ id: account.id, login }, wiki.mentions(), person)
+        .filter((mention) => before === undefined || mention.at < before)
+        .map((mention) => mention.id);
+      markMailed(deps.store, person, wiki.key, ids);
+    }
+  }
+
   async function mailOne(
     person: string,
     login: string,
@@ -150,9 +167,7 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     try {
       await deps.send(config, mentionMail(wikiConfig, address, mention));
     } catch (err) {
-      const reason = (err instanceof Error ? err.message : String(err))
-        .split(address)
-        .join('<address>');
+      const reason = withoutAddress(err instanceof Error ? err.message : String(err), address);
       if (isPermanentMailFailure(err)) {
         markMailed(deps.store, person, wiki.key, [mention.id]);
         deps.log.warn({ reason, login, wiki: wiki.key }, '[gitquire-mail] mention email refused');
@@ -239,8 +254,13 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     const reader = { id: account.id, login };
     const earliest = new Date(Date.parse(since) - limits.clockSlackMs).toISOString();
     let sent = 0;
+    const known = knownWikis(deps.store, person);
     for (const round of wikis) {
       if (round.wiki.idPrefix !== account.idPrefix || hostsDown.has(account.idPrefix)) continue;
+      if (!known.has(round.wiki.key)) {
+        markExisting(person, login, round.wiki.key);
+        continue;
+      }
       const due = dueIn(round, person, reader, earliest);
       if (due.length === 0) continue;
       const open = await round.wiki.canOpen(reader);
@@ -289,17 +309,6 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
       }
       return sent;
     },
-    markExisting: (person, login, onlyWiki, before) => {
-      const account = accountOf(person);
-      if (account === undefined) return;
-      for (const wiki of deps.wikis()) {
-        if (wiki.idPrefix !== account.idPrefix) continue;
-        if (onlyWiki !== undefined && wiki.key !== onlyWiki) continue;
-        const ids = mentionsFor({ id: account.id, login }, wiki.mentions(), person)
-          .filter((mention) => before === undefined || mention.at < before)
-          .map((mention) => mention.id);
-        markMailed(deps.store, person, wiki.key, ids);
-      }
-    },
+    markExisting,
   };
 }

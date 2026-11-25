@@ -1,12 +1,15 @@
 import {
+  closeSync,
   existsSync,
+  fsyncSync,
   mkdirSync,
+  openSync,
   readdirSync,
   readFileSync,
   renameSync,
   rmSync,
   statSync,
-  writeFileSync,
+  writeSync,
 } from 'node:fs';
 import { join } from 'node:path';
 
@@ -55,7 +58,13 @@ export interface PeopleStore {
 
 function writeAtomic(file: string, text: string): void {
   const temporary = `${file}.${process.pid}.tmp`;
-  writeFileSync(temporary, text, { mode: 0o600 });
+  const fd = openSync(temporary, 'w', 0o600);
+  try {
+    writeSync(fd, text);
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
   renameSync(temporary, file);
 }
 
