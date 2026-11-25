@@ -119,7 +119,9 @@ interface Rig {
   token: (who: keyof typeof people) => string;
 }
 
-async function rig(): Promise<Rig> {
+async function rig(
+  options: { agentMode?: (person: string) => 'live' | 'draft' } = {},
+): Promise<Rig> {
   let handler: Parameters<typeof createServer>[1] = () => {};
   const server: Server = createServer((req, res) => handler?.(req, res));
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', () => resolve()));
@@ -218,6 +220,7 @@ async function rig(): Promise<Rig> {
     table,
     processes,
     sessionUser: (req, hostKey) => sessionUser(req, hostKey),
+    ...(options.agentMode === undefined ? {} : { agentMode: options.agentMode }),
     log: silentLog,
     stores: new Map([[hosts.primary.key, store]]),
     now,
@@ -465,6 +468,24 @@ describe('/mcp at the front door', () => {
     );
     expect(own.edits).toBe('draft');
     expect(own.draft).toBeUndefined();
+  });
+
+  it('sends a call without a workspace where the person’s own setting says, kept per account', async () => {
+    const modes: Record<string, 'live' | 'draft'> = { 'github-11': 'draft' };
+    const r = await rig({ agentMode: (person) => modes[person] ?? 'live' });
+    const client = await connect(r, r.token('alice'));
+    const plain = echoOf(
+      await client.callTool({ name: 'read', arguments: { wiki: 'github/team/a', path: 'x' } }),
+    );
+    expect(plain.person).toMatchObject({ login: 'alice' });
+    expect(plain.edits).toBe('draft');
+    const live = echoOf(
+      await client.callTool({
+        name: 'read',
+        arguments: { wiki: 'github/team/a', workspace: 'live', path: 'x' },
+      }),
+    );
+    expect(live.edits).toBe('live');
   });
 
   it('refuses a workspace it cannot read and a draft that is not open', async () => {

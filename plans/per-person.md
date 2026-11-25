@@ -86,6 +86,8 @@ Each is also in the roadmap doc's "Assumptions".
 - **B4:** the mailer asks each wiki's access for a person with a 15-second deadline; no answer in time counts as "could not ask" (P3). The front door's badge now also counts draft review requests, like the in-wiki inbox.
 - **B5:** every 10 minutes the front door runs `git ls-remote` for each sleeping wiki's branch with the wiki's own token and compares it with the wiki's `@{upstream}`; if the host has more, it starts the wiki process, which pulls and goes back to sleep by the usual idle rule (30 minutes). After a failed check the wiki is asked again after 10, 20, 40 … minutes, at most every 2 hours; a successful check resets that. A running wiki is not asked (it pulls by itself).
 
+- **B6:** the front door answers `/api/gitquire/me/settings` and `/api/gitquire/drafts/agent-mode` itself. For "Put my AI assistant's edits into a draft", the front door sends the person's choice with every `/mcp` call that names no workspace (as the same header a `workspace` argument sets), so the editor process never reads a per-person file; behind the front door the editor answers both routes with 404. The person-socket questions of B1 for settings stay available but nothing in the server needs them: stage 0 found no other server-side reader of the personal settings YAML.
+
 ## Blocks
 
 | Block | Pull request | State |

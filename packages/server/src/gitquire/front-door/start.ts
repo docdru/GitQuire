@@ -9,7 +9,7 @@ import { isSameOriginRequest } from '../http-util.ts';
 import { resolveMailConfig, sendMail } from '../mail.ts';
 import { createEmailService } from '../people/email-service.ts';
 import { createPeopleMailer, openWithin } from '../people/mailer.ts';
-import { createPersonRoutes, emailRoutes } from '../people/person-routes.ts';
+import { createPersonRoutes, emailRoutes, settingsRoutes } from '../people/person-routes.ts';
 import { personSettings } from '../people/settings.ts';
 import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
 import { createPersonTickets } from '../people/ticket.ts';
@@ -283,7 +283,7 @@ export async function startFrontDoor(
   }, BRANCH_WATCH_MS);
   branchRounds.unref();
   const personRoutes = createPersonRoutes({
-    routes: [emailRoutes(email)],
+    routes: [emailRoutes(email), settingsRoutes(personSettings(people))],
     sameOrigin: (req) => isSameOriginRequest(req, settings.externalUrl),
     log,
   });
@@ -341,6 +341,7 @@ export async function startFrontDoor(
     processes,
     sessionUser: (req, hostKey) => doorSessionUser(req, hostKey),
     tickets,
+    agentMode: (person) => personSettings(people).agentMode(person),
     log,
   });
   agents.sweep.runOnce().catch((err: unknown) => {

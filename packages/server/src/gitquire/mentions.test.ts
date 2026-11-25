@@ -345,6 +345,11 @@ describe('mention routes', () => {
       const inbox = await call(routes, '/api/gitquire/mentions');
       expect(inbox.body.email).toBeUndefined();
       expect(JSON.stringify(inbox.body)).not.toContain('alice@example.com');
+      const settings = await call(routes, '/api/gitquire/me/settings', {
+        method: 'PUT',
+        body: { yaml: 'a: 1\n' },
+      });
+      expect([settings.status, settings.body.error]).toEqual([404, 'served-by-front-door']);
       routes.stop();
     } finally {
       rmSync(dir, { recursive: true, force: true });

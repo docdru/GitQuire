@@ -1080,3 +1080,65 @@ describe('front door on Forgejo', () => {
     expect(answer.canAdd).toBe(false);
   });
 });
+
+describe('personal settings at the front door', () => {
+  it('keeps one set of settings per account for all its wikis, also from a draft (P6, P12)', async () => {
+    const { createPersonRoutes, settingsRoutes } = await import('../people/person-routes.ts');
+    const { personSettings } = await import('../people/settings.ts');
+    const { createPeopleStore } = await import('../people/store.ts');
+    const data = tempDir();
+    const store = createPeopleStore(join(data, 'people'));
+    let base = '';
+    const r = await rig({
+      personRoutes: createPersonRoutes({
+        routes: [settingsRoutes(personSettings(store))],
+        sameOrigin: (req) => req.headers.origin === undefined || req.headers.origin === base,
+        log: silentLog,
+      }),
+    });
+    base = r.base;
+    const alice = await signIn(r, 'alice');
+    const put = await httpFetch(`${r.base}/w/github/team/a/api/gitquire/me/settings`, {
+      method: 'PUT',
+      redirect: 'manual',
+      headers: { cookie: alice, origin: r.base, 'content-type': 'application/json' },
+      body: JSON.stringify({ yaml: 'editor:\n  spellcheck: false\n' }),
+    });
+    expect(put.status).toBe(200);
+    const inB = await get(r, '/w/github/team/b/api/gitquire/me/settings', alice);
+    expect(await inB.json()).toEqual({
+      personal: true,
+      login: 'alice',
+      yaml: 'editor:\n  spellcheck: false\n',
+    });
+    const mode = await httpFetch(`${r.base}/w/github/team/b/api/gitquire/drafts/agent-mode`, {
+      method: 'PUT',
+      redirect: 'manual',
+      headers: {
+        cookie: `${alice}; gq_view_github-2=d1`,
+        origin: r.base,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ mode: 'draft' }),
+    });
+    expect(await mode.json()).toEqual({ mode: 'draft' });
+    expect(
+      await (await get(r, '/w/github/team/a/api/gitquire/drafts/agent-mode', alice)).json(),
+    ).toEqual({
+      mode: 'draft',
+    });
+    const forged = await httpFetch(`${r.base}/w/github/team/a/api/gitquire/me/settings`, {
+      method: 'PUT',
+      redirect: 'manual',
+      headers: {
+        cookie: alice,
+        origin: 'https://evil.example',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ yaml: 'x: 1\n' }),
+    });
+    expect(forged.status).toBe(403);
+    expect(r.processes.isRunning('github-1')).toBe(false);
+    expect(store.people()).toEqual(['github-11']);
+  });
+});
