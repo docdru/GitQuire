@@ -165,6 +165,7 @@ export interface FrontDoorDeps {
   agents?: Pick<DoorAgents, 'handle' | 'features' | 'pathsFor'>;
   mentionCounts?: MentionCounts;
   tickets?: PersonTickets;
+  readAccountAddress?: (entry: DoorHostEntry, person: HostPerson, token: string) => Promise<void>;
   log: GateLogger;
   now?: () => number;
   randomState?: () => string;
@@ -513,6 +514,12 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     }
     await Promise.all([
       entry.access.signIn(person, token, wikisOf(entry)),
+      deps.readAccountAddress?.(entry, person, token).catch((err: unknown) => {
+        deps.log.warn(
+          { err, login: person.login, ...(severalHosts ? { host: entry.key } : {}) },
+          '[gitquire-mail] could not read the account address at sign-in',
+        );
+      }),
       stored.purpose === 'add' ? rememberAddable({ entry, person }, token) : Promise.resolve(),
     ]);
     const accounts = sessionAccounts(req);

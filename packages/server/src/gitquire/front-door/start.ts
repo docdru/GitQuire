@@ -10,6 +10,7 @@ import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
 import { createPersonTickets } from '../people/ticket.ts';
 import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
+import { accountAddressReader } from './account-addresses.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
 import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
@@ -272,6 +273,7 @@ export async function startFrontDoor(
     agents,
     mentionCounts: createMentionCounts(settings.dataDir),
     tickets,
+    readAccountAddress: accountAddressReader({ store: people, log }),
     log,
   });
   doorSessionUser = door.sessionUser;

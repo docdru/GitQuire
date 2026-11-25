@@ -79,6 +79,10 @@ Each is also in the roadmap doc's "Assumptions".
 - **B0:** usage report as in finding 3.
 - **B0:** "Put my AI assistant's edits into a draft" counts as a personal setting and moves to the per-person store (plan item 7). It becomes one choice for all wikis of the account.
 
+- **B2:** if the host cannot be asked at a sign-in, the last verified account address stays in use for up to 30 days after it was last read; after that it is no longer offered or used, and Settings says the host could not be asked. A changed or vanished address is taken over at the next sign-in that reaches the host (P11). (B2 review.)
+- **B2:** a GitHub 403 that is a rate limit counts as "could not ask", not as a missing permission.
+- **B2:** the no-reply domain on Forgejo is taken from the commit-email format (`GITQUIRE_COMMIT_EMAIL_FORMAT`, by default `{login}@noreply.<host>`); DEPLOY.md says to set it to Forgejo's `NO_REPLY_ADDRESS`. An account address on that domain is not offered. On Forgejo, "verified" means what Forgejo reports as activated; on a Forgejo that does not ask people to confirm addresses, every added address counts as verified (P2 as written: "what the host reports").
+
 ## Blocks
 
 | Block | Pull request | State |

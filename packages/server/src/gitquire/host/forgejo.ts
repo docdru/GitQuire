@@ -1,4 +1,6 @@
+import { primaryVerifiedAddress } from './account-address.ts';
 import type {
+  AccountAddress,
   AddableRepo,
   AddableRepos,
   BotAccess,
@@ -134,6 +136,15 @@ export function createForgejoDoorHost(
     const fullName = typeof u.full_name === 'string' ? u.full_name.trim() : '';
     const avatarUrl = typeof u.avatar_url === 'string' ? u.avatar_url : '';
     return { id: u.id, login: u.login, name: fullName === '' ? u.login : fullName, avatarUrl };
+  }
+
+  async function accountAddress(token: string): Promise<AccountAddress> {
+    try {
+      const { status, body } = await strictCall('/user/emails', token);
+      return primaryVerifiedAddress(status, body);
+    } catch {
+      return { state: 'unreachable' };
+    }
   }
 
   function levelFrom(permissions: Record<string, unknown> | undefined): RepoAccess {
@@ -378,6 +389,7 @@ export function createForgejoDoorHost(
       return typeof token === 'string' && token !== '' ? token : undefined;
     },
     person,
+    accountAddress,
     access,
     accessByBot,
     addableRepos,

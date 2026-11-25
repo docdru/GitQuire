@@ -69,10 +69,17 @@ export type SelfCheck =
   | { ok: true }
   | { ok: false; unreachable: boolean; problems: readonly string[] };
 
+export type AccountAddress =
+  | { state: 'found'; address: string }
+  | { state: 'none' }
+  | { state: 'refused' }
+  | { state: 'unreachable' };
+
 export interface DoorHost {
   authorizeUrl: (input: AuthorizeInput) => string;
   exchangeCode: (input: ExchangeInput) => Promise<string | undefined>;
   person: (personToken: string) => Promise<HostPerson | undefined>;
+  accountAddress?: (personToken: string) => Promise<AccountAddress>;
   access: (personToken: string, repo: HostRepoRef) => Promise<RepoAccess>;
   accessByBot: (login: string, repo: HostRepoRef) => Promise<BotAccess>;
   addableRepos: (personToken: string) => Promise<AddableRepos>;
