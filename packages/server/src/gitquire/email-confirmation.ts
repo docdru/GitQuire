@@ -55,7 +55,7 @@ export function displayConfirmationCode(code: string): string {
   return `${code.slice(0, 4)}-${code.slice(4)}`;
 }
 
-export function hashConfirmationCode(key: string, userId: number, code: string): string {
+export function hashConfirmationCode(key: string, userId: number | string, code: string): string {
   const normalized = normalizeConfirmationCode(code);
   return createHmac('sha256', key).update(`code:${userId}:${normalized}`).digest('hex');
 }

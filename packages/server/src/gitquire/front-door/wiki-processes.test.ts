@@ -75,6 +75,9 @@ describe('wiki process environment (R12)', () => {
         GITQUIRE_HOST_URL: 'https://code.example.org',
         GITQUIRE_AI_CHAT: 'off',
         GITQUIRE_ADMINS: 'alice',
+        GITQUIRE_SMTP_URL: 'smtps://user:password@mail.example.org',
+        GITQUIRE_MAIL_FROM: 'wiki@example.org',
+        GITQUIRE_MAIL_DOMAINS: 'example.org',
       },
       record(),
       {
@@ -114,19 +117,12 @@ describe('AI chat key inside a wiki', () => {
     tokenSocket: '/tmp/d/door.sock',
   };
 
-  it('passes a key derived for this wiki, never the session secret', () => {
+  it('passes no chat key secret and never the session secret: keys come from the front door (P8)', () => {
     const env = wikiEnv(base, record(), options);
-    const other = wikiEnv(base, { ...record(), key: 'github-6', id: 6 }, options);
     expect(env.GITQUIRE_SESSION_SECRET).toBeUndefined();
-    expect(env[CHAT_KEY_SECRET_ENV]).toBe(deriveChatKeySecret('x'.repeat(40), 'github-5'));
-    expect(env[CHAT_KEY_SECRET_ENV]).toMatch(/^[0-9a-f]{64}$/);
-    expect(other[CHAT_KEY_SECRET_ENV]).not.toBe(env[CHAT_KEY_SECRET_ENV]);
-    expect(Object.values(env)).not.toContain('x'.repeat(40));
-  });
-
-  it('passes no key when AI chat is off', () => {
-    const env = wikiEnv({ ...base, GITQUIRE_AI_CHAT: 'off' }, record(), options);
     expect(env[CHAT_KEY_SECRET_ENV]).toBeUndefined();
+    expect(Object.values(env)).not.toContain('x'.repeat(40));
+    expect(Object.values(env)).not.toContain(deriveChatKeySecret('x'.repeat(40), 'github-5'));
   });
 });
 

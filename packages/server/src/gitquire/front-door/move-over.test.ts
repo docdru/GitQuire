@@ -13,10 +13,12 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { deriveChatKeySecret } from '../chat/key-secret.ts';
+import { deriveChatKeySecret, derivePeopleKeySecret } from '../chat/key-secret.ts';
 import { createChatKeyStore } from '../chat/key-store.ts';
-import type { HostRepo, RepoLookup } from '../host/types.ts';
 import { refuseFrontDoorVolume, runGitQuireBootstrap } from '../index.ts';
+import { personKeyStore } from '../people/chat-data.ts';
+import { movedWikis, SINGLE_WIKI_KEY } from '../people/move-over.ts';
+import { createPeopleStore, frontDoorPeopleRoot, singleWikiPeopleRoot } from '../people/store.ts';
 import { FRONT_DOOR_LOCK, MOVING_BACK, MOVING_IN } from '../volume-markers.ts';
 import {
   type AdoptDeps,
@@ -175,6 +177,11 @@ describe('gitquire wikis adopt', () => {
     );
     const kept = join(target, '.gitquire', 'local', 'gitquire', 'ai-keys.before-wikis', '11.json');
     expect(existsSync(kept)).toBe(true);
+    const people = createPeopleStore(frontDoorPeopleRoot(vol.data));
+    expect(personKeyStore(people, derivePeopleKeySecret(SECRET)).get('github-11', 'claude')).toBe(
+      'sk-ant-secret-key-1234',
+    );
+    expect(movedWikis(people)).toEqual(new Set([KEY]));
     const copied = join(vol.data, 'wikis', '.gitquire-drafts', KEY, 'report', KEY);
     expect(existsSync(join(copied, '.git'))).toBe(true);
     expect(existsSync(join(vol.drafts, 'report', 'data', '.git'))).toBe(true);
@@ -496,6 +503,11 @@ describe('gitquire wikis unadopt (the way back)', () => {
     expect(createChatKeyStore(vol.data, SECRET).get(11, 'claude')).toBe('sk-ant-secret-key-1234');
     expect(createChatKeyStore(vol.data, SECRET).get(12, 'mistral')).toBe('mistral-key-5678');
     expect(readFileSync(join(state, 'agent-tokens.json'), 'utf8')).toContain('door');
+    const single = createPeopleStore(singleWikiPeopleRoot(vol.data));
+    expect(personKeyStore(single, derivePeopleKeySecret(SECRET)).get('github-11', 'claude')).toBe(
+      'sk-ant-secret-key-1234',
+    );
+    expect(movedWikis(single)).toEqual(new Set([SINGLE_WIKI_KEY]));
     const stamp = '2026-11-22T00-00-00-000Z';
     expect(readFileSync(join(state, `agent-tokens.json.before-single-wiki-${stamp}`), 'utf8')).toBe(
       '{"v":1,"tokens":[]}\n',

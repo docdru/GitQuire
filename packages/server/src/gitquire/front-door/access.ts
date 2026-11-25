@@ -4,6 +4,10 @@ import type { WikiRecord } from './wiki-table.ts';
 export const ACCESS_TTL_MS = 5 * 60 * 1000;
 const UNREACHABLE_RETRY_MS = 30 * 1000;
 
+export interface DecideOptions {
+  strict?: boolean;
+}
+
 export interface DoorPerson {
   id: number;
   login: string;
@@ -20,7 +24,7 @@ interface ListedWiki {
 
 export interface WikiAccess {
   signIn: (person: DoorPerson, personToken: string, wikis: readonly WikiRecord[]) => Promise<void>;
-  decide: (person: DoorPerson, wiki: WikiRecord) => Promise<OpenDecision>;
+  decide: (person: DoorPerson, wiki: WikiRecord, options?: DecideOptions) => Promise<OpenDecision>;
   wikisFor: (
     person: DoorPerson,
     wikis: readonly WikiRecord[],
@@ -43,6 +47,7 @@ export interface WikiAccessDeps {
 interface Entry {
   level: RepoAccess;
   checkedAt: number;
+  confirmedAt: number;
 }
 
 function decisionFor(level: RepoAccess): OpenDecision {
@@ -81,14 +86,20 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
     return next;
   }
 
-  async function decide(person: DoorPerson, wiki: WikiRecord): Promise<OpenDecision> {
+  async function decide(
+    person: DoorPerson,
+    wiki: WikiRecord,
+    options: DecideOptions = {},
+  ): Promise<OpenDecision> {
     if (wiki.state !== 'on' || !deps.runnable(wiki)) return { open: false, why: 'disconnected' };
     const mine = entriesOf(person);
     const entry = mine.get(wiki.key);
-    if (entry !== undefined && now() - entry.checkedAt < ttl) return decisionFor(entry.level);
+    const since = options.strict === true ? entry?.confirmedAt : entry?.checkedAt;
+    if (entry !== undefined && since !== undefined && now() - since < ttl)
+      return decisionFor(entry.level);
     const answer = await askBot(person, wiki);
     if (answer === 'unreachable') {
-      if (entry !== undefined && entry.level !== 'none') {
+      if (options.strict !== true && entry !== undefined && entry.level !== 'none') {
         entry.checkedAt = Math.max(entry.checkedAt, now() - ttl + UNREACHABLE_RETRY_MS);
         return decisionFor(entry.level);
       }
@@ -98,7 +109,7 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
       deps.refused(wiki, answer.slice('refused:'.length) as Refusal);
       return { open: false, why: 'disconnected' };
     }
-    mine.set(wiki.key, { level: answer, checkedAt: now() });
+    mine.set(wiki.key, { level: answer, checkedAt: now(), confirmedAt: now() });
     if (entry !== undefined && entry.level !== answer) deps.changed?.(wiki);
     return decisionFor(answer);
   }
@@ -111,7 +122,7 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
         wikis.map(async (wiki) => {
           try {
             const level = await deps.host.access(personToken, wiki);
-            mine.set(wiki.key, { level, checkedAt: now() });
+            mine.set(wiki.key, { level, checkedAt: now(), confirmedAt: now() });
           } catch {
             const kept = previous?.get(wiki.key);
             if (kept !== undefined) mine.set(wiki.key, kept);
@@ -139,7 +150,7 @@ export function createWikiAccess(deps: WikiAccessDeps): WikiAccess {
       return listed.filter((item): item is ListedWiki => item !== undefined);
     },
     learn: (person, wiki, level) => {
-      entriesOf(person).set(wiki.key, { level, checkedAt: now() });
+      entriesOf(person).set(wiki.key, { level, checkedAt: now(), confirmedAt: now() });
     },
     wasAdmin: (person, wiki) => entries.get(person.id)?.get(wiki.key)?.level === 'admin',
     forget: (person) => {

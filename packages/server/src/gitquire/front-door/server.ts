@@ -16,6 +16,8 @@ import {
   wantsHtml,
 } from '../http-util.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
+import type { PersonRoutes } from '../people/person-routes.ts';
+import { PERSON_TICKET_HEADER, type PersonTickets } from '../people/ticket.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
   encodeProxiedUser,
@@ -163,6 +165,11 @@ export interface FrontDoorDeps {
   processes: WikiProcesses;
   agents?: Pick<DoorAgents, 'handle' | 'features' | 'pathsFor'>;
   mentionCounts?: MentionCounts;
+  tickets?: PersonTickets;
+  seen?: (person: string, login: string) => void;
+  wikiRemoved?: (key: string) => void;
+  personRoutes?: PersonRoutes;
+  readAccountAddress?: (entry: DoorHostEntry, person: HostPerson, token: string) => Promise<void>;
   log: GateLogger;
   now?: () => number;
   randomState?: () => string;
@@ -509,6 +516,12 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       );
       return;
     }
+    deps.readAccountAddress?.(entry, person, token).catch((err: unknown) => {
+      deps.log.warn(
+        { err, login: person.login, ...(severalHosts ? { host: entry.key } : {}) },
+        '[gitquire-mail] could not read the account address at sign-in',
+      );
+    });
     await Promise.all([
       entry.access.signIn(person, token, wikisOf(entry)),
       stored.purpose === 'add' ? rememberAddable({ entry, person }, token) : Promise.resolve(),
@@ -1157,6 +1170,14 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     }
   }
 
+  function noteSeen(person: string, login: string): void {
+    try {
+      deps.seen?.(person, login);
+    } catch (err) {
+      deps.log.warn({ err, login }, '[gitquire-mail] could not note the visit');
+    }
+  }
+
   function forwardHeaders(
     user: DoorSessionUser,
     wiki: WikiRecord,
@@ -1166,6 +1187,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
   ): Record<string, string> {
     const secret = processes.secretOf(wiki.key) ?? '';
     const entry = hosts.of(wiki);
+    if (entry !== undefined) noteSeen(personIdOn(entry.names, user.id), user.login);
     return {
       [INTERNAL_REQUEST_HEADER]: secret,
       [PROXIED_PRINCIPAL_HEADER]: encodeProxiedUser({
@@ -1173,6 +1195,15 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         ...(admin ? { repoAdmin: true } : {}),
       }),
       [FORWARDED_PREFIX_HEADER]: wikiPrefix(wiki),
+      ...(deps.tickets === undefined || entry === undefined
+        ? {}
+        : {
+            [PERSON_TICKET_HEADER]: deps.tickets.issue(
+              wiki.key,
+              personIdOn(entry.names, user.id),
+              user.login,
+            ),
+          }),
       ...(view === undefined || view === '' ? {} : { [FORWARDED_VIEW_HEADER]: view }),
       ...(agentFeatures === undefined ? {} : { [FORWARDED_AGENTS_HEADER]: agentFeatures }),
       ...(agentFeatures === undefined || entry === undefined
@@ -1416,6 +1447,11 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       renameSync(dir, keptIn);
     }
     table.remove(key);
+    try {
+      deps.wikiRemoved?.(key);
+    } catch (err) {
+      deps.log.warn({ err, wiki: key }, '[gitquire-door] could not forget the removed wiki');
+    }
     found.seat.entry.forgejoTokens?.forget(key);
     deps.log.warn(
       {
@@ -1522,6 +1558,29 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     return true;
   }
 
+  function answeredForPerson(
+    req: IncomingMessage,
+    res: ServerResponse,
+    seat: Seat,
+    rest: string,
+  ): boolean {
+    const routes = deps.personRoutes;
+    if (routes === undefined) return false;
+    const path = rawPathAndSearch(rest).path;
+    if (!routes.handles(path, req.method ?? 'GET')) return false;
+    routes.handle(
+      req,
+      res,
+      {
+        person: personIdOn(seat.entry.names, seat.person.id),
+        login: seat.person.login,
+        hostLabel: seat.entry.names.label,
+      },
+      path,
+    );
+    return true;
+  }
+
   function handleRequest(req: IncomingMessage, res: ServerResponse): void {
     const { path: rawPath, search } = rawPathAndSearch(req.url);
     if (rawPath === '/healthz') {
@@ -1580,6 +1639,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
             res.end();
             return undefined;
           }
+          if (decision.open && answeredForPerson(req, res, seat, match.rest)) return undefined;
           return toWiki(req, res, seat, match.wiki, `${match.rest}${match.search}`, view, decision);
         })
         .catch(fail);
@@ -1619,6 +1679,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
               withoutReferer();
               return undefined;
             }
+            if (answeredForPerson(req, res, fromSeat, rawPath)) return undefined;
             return toWiki(
               req,
               res,

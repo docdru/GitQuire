@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { BotAccess, RepoAccess } from '../host/types.ts';
+import { openWithin } from '../people/mailer.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { WikiRecord } from './wiki-table.ts';
 
@@ -83,6 +84,16 @@ describe('front door access check', () => {
       open: false,
       why: 'unreachable',
     });
+  });
+
+  it('mails nothing from an old answer while the host is unreachable (P3)', async () => {
+    const a = wiki('a', 1);
+    const { access, advance } = setup({ a: 'write' }, () => 'unreachable');
+    await access.signIn(alice, 't', [a]);
+    advance(ACCESS_TTL_MS + 1);
+    expect(await openWithin(access.decide(alice, a, { strict: true }), 1000)).toBe('unknown');
+    expect(await access.decide(alice, a)).toEqual({ open: true, admin: false });
+    expect(await openWithin(access.decide(alice, a, { strict: true }), 1000)).toBe('unknown');
   });
 
   it('disconnects the wiki when GitQuire own token is refused (R15)', async () => {

@@ -1,4 +1,6 @@
+import { primaryVerifiedAddress } from './account-address.ts';
 import type {
+  AccountAddress,
   AddableRepo,
   AddableRepos,
   BotAccess,
@@ -397,6 +399,25 @@ export function createGitHubDoorHost(
     return { id: u.id, login: u.login, name, avatarUrl };
   }
 
+  async function accountAddress(token: string): Promise<AccountAddress> {
+    try {
+      const response = await doFetch(`${config.apiUrl}/user/emails?per_page=100`, {
+        headers: apiHeaders(token),
+      });
+      const text = await response.text();
+      if (isRateLimited(response.status, response.headers, text)) return { state: 'unreachable' };
+      let body: unknown;
+      try {
+        body = text === '' ? undefined : JSON.parse(text);
+      } catch {
+        body = undefined;
+      }
+      return primaryVerifiedAddress(response.status, body);
+    } catch {
+      return { state: 'unreachable' };
+    }
+  }
+
   async function access(token: string, repo: HostRepoRef): Promise<RepoAccess> {
     const { status, body } = await json(`${config.apiUrl}${repoAddress(repo)}`, {
       headers: apiHeaders(token),
@@ -468,6 +489,7 @@ export function createGitHubDoorHost(
       return typeof token === 'string' && token !== '' ? token : undefined;
     },
     person,
+    accountAddress,
     access,
     accessByBot,
     addableRepos,

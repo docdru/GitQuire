@@ -8,7 +8,7 @@ import {
   normalizeCommentTimes,
   writeCommentThreads,
 } from '@gitquire/core/gitquire/comment-threads';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   confirmationMail,
   displayConfirmationCode,
@@ -316,17 +316,57 @@ describe('mention routes', () => {
     return call(routes, `${EMAIL_URL}/confirm`, { method: 'POST', body: { code } });
   }
 
+  it('behind the front door, an editor process neither mails nor reports an address', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    try {
+      createMentionReadStore(mentionStatePath(dir)).setEmail(
+        { id: alice.id, login: 'Alice' },
+        'alice@example.com',
+        [],
+        new Date(0),
+      );
+      const routes = createGitQuireRoutes({
+        projectDir: dir,
+        log: silentLog,
+        sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
+        env: {
+          GITQUIRE_BEHIND_FRONT_DOOR: 'on',
+          GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
+          GITQUIRE_MAIL_FROM: 'wiki@example.com',
+        },
+        sendMail: async (_config, message) => {
+          sent.push(message);
+        },
+        mailRoundMs: 3_600_000,
+      });
+      expect(await routes.mailRound()).toBe(0);
+      expect(sent).toEqual([]);
+      const inbox = await call(routes, '/api/gitquire/mentions');
+      expect(inbox.body.email).toBeUndefined();
+      expect(JSON.stringify(inbox.body)).not.toContain('alice@example.com');
+      const settings = await call(routes, '/api/gitquire/me/settings', {
+        method: 'PUT',
+        body: { yaml: 'a: 1\n' },
+      });
+      expect([settings.status, settings.body.error]).toEqual([404, 'served-by-front-door']);
+      routes.stop();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('turns email on only after the code from the confirmation mail is entered', async () => {
     const dir = project();
     const sent: MailMessage[] = [];
     const routes = mailRoutes(dir, sent, { on: false });
     try {
-      const before = await call(routes, '/api/gitquire/mentions');
-      expect(before.body.email).toEqual({ available: true, address: null, pending: null });
+      const before = await call(routes, EMAIL_URL);
+      expect(before.body).toMatchObject({ available: true, address: null, pending: null });
       expect((await putEmail(routes, { address: 'not an address' })).status).toBe(400);
       const asked = await putEmail(routes, { address: ' alice@example.com ' });
       const waiting = { available: true, address: null, pending: 'alice@example.com' };
-      expect(asked.body).toEqual(waiting);
+      expect(asked.body).toMatchObject(waiting);
       expect(sent).toHaveLength(1);
       expect(sent[0]?.to).toBe('alice@example.com');
       expect(sent[0]?.subject).toBe('Confirm your address for GitQuire mentions');
@@ -336,13 +376,17 @@ describe('mention routes', () => {
       const wrong = await confirmCode(routes, 'AAAA-AAAA');
       expect([wrong.status, wrong.body.error]).toEqual([400, 'wrong-code']);
       const right = await confirmCode(routes, codeIn(sent[0]).toLowerCase().replace('-', ' '));
-      expect(right.body).toEqual({ available: true, address: 'alice@example.com', pending: null });
+      expect(right.body).toMatchObject({
+        available: true,
+        address: 'alice@example.com',
+        pending: null,
+      });
       expect(await routes.mailRound()).toBe(0);
       expect(sent).toHaveLength(1);
       expect((await confirmCode(routes, codeIn(sent[0]))).status).toBe(409);
 
       const off = await putEmail(routes, { address: null });
-      expect(off.body).toEqual({ available: true, address: null, pending: null });
+      expect(off.body).toMatchObject({ available: true, address: null, pending: null });
     } finally {
       routes.stop();
       rmSync(dir, { recursive: true, force: true });
@@ -359,8 +403,12 @@ describe('mention routes', () => {
       first.stop();
       second = mailRoutes(dir, sent, { on: false });
       const right = await confirmCode(second, codeIn(sent[0]));
-      expect(right.body).toEqual({ available: true, address: 'alice@example.com', pending: null });
-      expect((await call(second, '/api/gitquire/mentions')).body.email).toMatchObject({
+      expect(right.body).toMatchObject({
+        available: true,
+        address: 'alice@example.com',
+        pending: null,
+      });
+      expect((await call(second, EMAIL_URL)).body).toMatchObject({
         address: 'alice@example.com',
       });
     } finally {
@@ -392,7 +440,7 @@ describe('mention routes', () => {
     try {
       const failed = await putEmail(routes, { address: 'alice@example.com' });
       expect([failed.status, failed.body.error]).toEqual([502, 'mail-failed']);
-      expect((await call(routes, '/api/gitquire/mentions')).body.email).toMatchObject({
+      expect((await call(routes, EMAIL_URL)).body).toMatchObject({
         pending: null,
       });
       const tooSoon = await putEmail(routes, { address: 'alice@example.com' });
@@ -424,7 +472,7 @@ describe('mention routes', () => {
       expect((await putEmail(routes, { address: null })).status).toBe(200);
       const afterOff = await putEmail(routes, { address: 'alice@example.com' });
       expect([afterOff.status, afterOff.body.error]).toEqual([429, 'resend-too-soon']);
-      expect((await putEmail(routes, { cancel: true })).body).toEqual({
+      expect((await putEmail(routes, { cancel: true })).body).toMatchObject({
         available: true,
         address: null,
         pending: null,
@@ -448,6 +496,88 @@ describe('mention routes', () => {
     });
     expect(result.status).toBe(409);
     expect(result.body.error).toBe('mail-not-configured');
+  });
+
+  it('a single wiki offers the account address and mails only while the person can open it (P3)', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    let verdict: 'allowed' | 'denied' | 'unknown' = 'allowed';
+    const routes = createGitQuireRoutes({
+      projectDir: dir,
+      log: silentLog,
+      sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
+      env: {
+        GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
+        GITQUIRE_MAIL_FROM: 'wiki@example.com',
+      },
+      sendMail: async (_config, message) => {
+        sent.push(message);
+      },
+      mailRoundMs: 3_600_000,
+      canOpen: async () => verdict,
+    });
+    try {
+      routes.recordAddress?.(alice, { state: 'found', address: 'alice@example.org' });
+      expect((await call(routes, EMAIL_URL)).body).toMatchObject({
+        account: { address: 'alice@example.org', why: null },
+        use: null,
+      });
+      expect((await putEmail(routes, { use: 'account' })).body).toMatchObject({
+        address: 'alice@example.org',
+        use: 'account',
+      });
+      expect(sent).toEqual([]);
+      const fresh = comment(
+        'c7',
+        bob,
+        '@alice look here',
+        new Date(Date.now() + 1000).toISOString(),
+        ['alice'],
+      );
+      writeFileSync(join(dir, 'later.md'), page([thread('t7', [fresh])]));
+      await new Promise((resolve) => setTimeout(resolve, 5100));
+      verdict = 'unknown';
+      expect(await routes.mailRound()).toBe(0);
+      verdict = 'denied';
+      expect(await routes.mailRound()).toBe(0);
+      verdict = 'allowed';
+      expect(await routes.mailRound()).toBe(1);
+      expect(sent[0]?.to).toBe('alice@example.org');
+    } finally {
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('a single wiki counts opening the inbox as a visit, so a daily reader is not idle', async () => {
+    const dir = project();
+    const routes = createGitQuireRoutes({
+      projectDir: dir,
+      log: silentLog,
+      sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
+      env: {
+        GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
+        GITQUIRE_MAIL_FROM: 'wiki@example.com',
+      },
+      sendMail: async () => {},
+      mailRoundMs: 3_600_000,
+    });
+    try {
+      routes.recordAddress?.(alice, { state: 'found', address: 'alice@example.org' });
+      await putEmail(routes, { use: 'account' });
+      const root = join(dir, '.gitquire', 'local', 'gitquire', 'people');
+      const file = join(root, 'github-1', 'mail.json');
+      const later = Date.now() + 40 * 24 * 60 * 60 * 1000;
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(later);
+      expect((await call(routes, '/api/gitquire/mentions')).status).toBe(200);
+      const seen = JSON.parse(readFileSync(file, 'utf8')).lastSeen as string;
+      expect(Date.parse(seen)).toBe(later);
+    } finally {
+      vi.useRealTimers();
+      routes.stop();
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('reports the inbox as off without sign-in', async () => {

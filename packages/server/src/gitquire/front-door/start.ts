@@ -3,13 +3,26 @@ import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
+import { deriveChatKeySecret, derivePeopleKeySecret } from '../chat/key-secret.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
 import type { DoorHost, HostPerson } from '../host/types.ts';
+import { isSameOriginRequest } from '../http-util.ts';
+import { resolveMailConfig, sendMail } from '../mail.ts';
+import { personChatData, personKeyStore } from '../people/chat-data.ts';
+import { createEmailService } from '../people/email-service.ts';
+import { createPeopleMailer, forgetWikiMailed, openWithin } from '../people/mailer.ts';
+import { movePeopleData } from '../people/move-over.ts';
+import { createPersonRoutes, emailRoutes, settingsRoutes } from '../people/person-routes.ts';
+import { personSettings } from '../people/settings.ts';
+import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
+import { createPersonTickets } from '../people/ticket.ts';
 import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
+import { accountAddressReader } from './account-addresses.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
 import { createDoorAgents } from './agents.ts';
 import { type AllowedOwners, ownerAllowed } from './allowed-owners.ts';
+import { BRANCH_WATCH_MS, createBranchWatch } from './branch-watch.ts';
 import {
   type DoorHostEntry,
   doorHostFor,
@@ -20,6 +33,7 @@ import {
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
 import type { HostSettings } from './hosts.ts';
 import { createMentionCounts } from './mention-counts.ts';
+import { createPersonSocketHandler } from './person-socket.ts';
 import { openRepoTokenFile, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
 import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.ts';
 import {
@@ -29,11 +43,25 @@ import {
 } from './settings.ts';
 import { listenTokenSocket } from './token-socket.ts';
 import { createWikiProcesses } from './wiki-processes.ts';
-import { openWikiTable, type WikiRecord, wikiTableFile } from './wiki-table.ts';
+import {
+  openWikiTable,
+  type WikiRecord,
+  wikiDir,
+  wikiName,
+  wikiPrefix,
+  wikiTableFile,
+} from './wiki-table.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
 const WIKI_CHECK_MS = 10 * 60 * 1000;
+const MAIL_ROUND_MS = 60 * 1000;
+
+function branchWatchMs(env: Env): number {
+  const seconds = Number(env.GITQUIRE_BRANCH_WATCH_SECONDS ?? '');
+  return Number.isInteger(seconds) && seconds >= 10 ? seconds * 1000 : BRANCH_WATCH_MS;
+}
+const MAIL_ACCESS_DEADLINE_MS = 15 * 1000;
 
 interface RunningFrontDoor {
   server: Server;
@@ -186,6 +214,165 @@ export async function startFrontDoor(
       );
   }
 
+  const tickets = createPersonTickets();
+  const people = createPeopleStore(frontDoorPeopleRoot(settings.dataDir));
+  const personKeys = personKeyStore(people, derivePeopleKeySecret(settings.sessionSecret));
+  const chatData = personChatData(people, personKeys);
+  const usagePurge = setInterval(
+    () => {
+      try {
+        chatData.purgeUsage(new Date());
+      } catch (err) {
+        log.warn({ err }, '[gitquire-chat] could not remove expired usage');
+      }
+    },
+    6 * 60 * 60 * 1000,
+  );
+  usagePurge.unref();
+  chatData.purgeUsage(new Date());
+  const personSocket = createPersonSocketHandler({
+    tickets,
+    handlers: [chatData.answer],
+    mayAsk: async (wikiKey, person, login) => {
+      const wiki = table.byKey(wikiKey);
+      const entry = wiki === undefined ? undefined : hosts.of(wiki);
+      if (wiki === undefined || entry === undefined) return false;
+      if (!person.startsWith(entry.names.idPrefix)) return false;
+      const id = Number(person.slice(entry.names.idPrefix.length));
+      return (await entry.access.decide({ id, login }, wiki)).open;
+    },
+    settings: personSettings(people),
+    log,
+  });
+  const mail = resolveMailConfig(env);
+  if (mail.kind === 'invalid') {
+    log.warn({ reason: mail.reason }, '[gitquire-mail] email for mentions is off');
+  }
+  const email = createEmailService({
+    store: people,
+    countersFile: join(settings.dataDir, 'server', 'mail-recipients.json'),
+    mail,
+    codeKey: () => settings.sessionSecret,
+    send: sendMail,
+    log,
+    onSwitchedOn: (person, login) => mailer.markExisting(person, login),
+  });
+  const mentionCounts = createMentionCounts(settings.dataDir);
+  const mailer = createPeopleMailer({
+    store: people,
+    config: mail.kind === 'on' ? mail.config : undefined,
+    send: sendMail,
+    log,
+    wikis: () =>
+      table.list().flatMap((wiki) => {
+        const entry = hosts.of(wiki);
+        if (entry === undefined) return [];
+        return [
+          {
+            key: wiki.key,
+            idPrefix: entry.names.idPrefix,
+            name: wikiName(wiki),
+            url: `${settings.externalUrl.origin}${wikiPrefix(wiki)}`,
+            mentions: () => mentionCounts.mentionsOf(wiki, entry.names.idPrefix),
+            readIds: (id: number) => mentionCounts.readIdsOf(wiki, id),
+            addedAt: wiki.addedAt,
+            canOpen: (account: { id: number; login: string }) =>
+              openWithin(
+                entry.access.decide(account, wiki, { strict: true }),
+                MAIL_ACCESS_DEADLINE_MS,
+              ),
+          },
+        ];
+      }),
+  });
+  let moved: ReturnType<typeof movePeopleData> = {
+    wikis: [],
+    failed: [],
+    people: 0,
+    addresses: 0,
+    keys: 0,
+    unreadableKeys: 0,
+  };
+  try {
+    moved = movePeopleData(
+      table.list().flatMap((wiki) => {
+        const entry = hosts.of(wiki);
+        return entry === undefined
+          ? []
+          : [
+              {
+                dir: wikiDir(settings.dataDir, wiki),
+                wikiKey: wiki.key,
+                idPrefix: entry.names.idPrefix,
+                keySecrets: [
+                  deriveChatKeySecret(settings.sessionSecret, wiki.key),
+                  settings.sessionSecret,
+                ],
+              },
+            ];
+      }),
+      {
+        store: people,
+        keys: personKeys,
+        markExisting: (person, login, wikiKey, before) =>
+          mailer.markExisting(person, login, wikiKey, before),
+        wikiKeys: () => table.list().map((wiki) => wiki.key),
+      },
+    );
+  } catch (err) {
+    log.warn(
+      { err },
+      '[gitquire-people] could not move per-person data; tried again at the next start',
+    );
+  }
+  if (moved.failed.length > 0) {
+    log.warn(
+      { wikis: moved.failed },
+      '[gitquire-people] could not move the per-person data of these wikis; tried again at the next start',
+    );
+  }
+  if (moved.wikis.length > 0) {
+    log.info(
+      {
+        wikis: moved.wikis,
+        people: moved.people,
+        addresses: moved.addresses,
+        keys: moved.keys,
+        unreadableKeys: moved.unreadableKeys,
+      },
+      '[gitquire-people] moved per-person data of these wikis to the front door; the old files stay as they were',
+    );
+  }
+  const mailRounds = setInterval(() => {
+    mailer.round().catch((err: unknown) => log.warn({ err }, '[gitquire-mail] mail round failed'));
+  }, MAIL_ROUND_MS);
+  mailRounds.unref();
+  const branchWatch = createBranchWatch({
+    wikis: () => table.list(),
+    isRunning: (key) => processes.isRunning(key),
+    dirOf: (wiki) => wikiDir(settings.dataDir, wiki),
+    gitHostOf: (wiki) => {
+      const entry = hosts.of(wiki);
+      return entry === undefined ? undefined : new URL(entry.settings.webUrl).host;
+    },
+    tokenFor: async (wiki) => hosts.of(wiki)?.host.tokenFor(wiki),
+    wake: async (wiki) => {
+      await processes.ensure(wiki);
+    },
+    intervalMs: branchWatchMs(env),
+    log,
+  });
+  const branchRounds = setInterval(() => {
+    branchWatch
+      .round()
+      .catch((err: unknown) => log.warn({ err }, '[gitquire-wikis] branch check failed'));
+  }, branchWatchMs(env));
+  branchRounds.unref();
+  const personRoutes = createPersonRoutes({
+    routes: [emailRoutes(email), settingsRoutes(personSettings(people))],
+    sameOrigin: (req) => isSameOriginRequest(req, settings.externalUrl),
+    log,
+  });
   let tokenSocketPath = '';
   const processes = createWikiProcesses({
     dataDir: settings.dataDir,
@@ -211,6 +398,7 @@ export async function startFrontDoor(
       );
   };
   const tokenSocket = await listenTokenSocket({
+    person: personSocket,
     wikiOfSecret: processes.wikiOfSecret,
     repoOf: (key) => {
       const wiki = table.byKey(key);
@@ -238,6 +426,8 @@ export async function startFrontDoor(
     table,
     processes,
     sessionUser: (req, hostKey) => doorSessionUser(req, hostKey),
+    tickets,
+    agentMode: (person) => personSettings(people).agentMode(person),
     log,
   });
   agents.sweep.runOnce().catch((err: unknown) => {
@@ -249,7 +439,12 @@ export async function startFrontDoor(
     table,
     processes,
     agents,
-    mentionCounts: createMentionCounts(settings.dataDir),
+    mentionCounts,
+    tickets,
+    readAccountAddress: accountAddressReader({ store: people, log }),
+    seen: (person, login) => email.seen({ person, login }),
+    wikiRemoved: (key) => forgetWikiMailed(people, key),
+    personRoutes,
     log,
   });
   doorSessionUser = door.sessionUser;
@@ -318,6 +513,9 @@ export async function startFrontDoor(
     stop: async () => {
       door.setReady(false);
       clearInterval(recheck);
+      clearInterval(mailRounds);
+      clearInterval(usagePurge);
+      clearInterval(branchRounds);
       clearInterval(checks);
       await new Promise<void>((resolve) => {
         server.close(() => resolve());

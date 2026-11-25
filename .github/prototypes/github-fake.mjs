@@ -213,6 +213,16 @@ async function api(req, res, path, url) {
       avatar_url: '',
     });
   }
+  if (path === '/user/emails') {
+    if (person === undefined) return send(res, 401, { message: 'Bad credentials' });
+    if (person.emailsRefused === true) {
+      return send(res, 403, { message: 'Resource not accessible by integration' });
+    }
+    return send(res, 200, [
+      { email: `${person.id}+${person.login}@users.noreply.github.com`, primary: false, verified: true, visibility: null },
+      { email: person.email ?? `${person.login}@example.org`, primary: true, verified: true, visibility: 'private' },
+    ]);
+  }
   if (path === '/user/installations') {
     if (person === undefined) return send(res, 401, { message: 'Bad credentials' });
     return send(res, 200, { total_count: 1, installations: [{ id: INSTALLATION_ID }] });

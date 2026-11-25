@@ -7,7 +7,7 @@ const KEY_INFO = 'gitquire-ai-chat-keys-v1';
 const MAX_KEY_LENGTH = 512;
 const KEY_PATTERN = /^[\x21-\x7e]+$/;
 
-interface StoredKeyInfo {
+export interface StoredKeyInfo {
   configured: boolean;
   hint: string | null;
   savedAt: string | null;
@@ -64,14 +64,35 @@ export interface ChatKeyStore {
   remove(userId: number, provider: ChatProvider): void;
 }
 
+export interface SealedKeyStore {
+  info(owner: string): Record<ChatProvider, StoredKeyInfo>;
+  get(owner: string, provider: ChatProvider): string | undefined;
+  set(owner: string, provider: ChatProvider, key: string, now?: Date): StoredKeyInfo;
+  remove(owner: string, provider: ChatProvider): void;
+  savedAt(owner: string, provider: ChatProvider): string | undefined;
+}
+
 export function createChatKeyStore(projectDir: string, secret: string): ChatKeyStore {
+  const sealed = createSealedKeyStore((owner) => fileFor(projectDir, Number(owner)), secret);
+  return {
+    info: (userId) => sealed.info(String(userId)),
+    get: (userId, provider) => sealed.get(String(userId), provider),
+    set: (userId, provider, key, now) => sealed.set(String(userId), provider, key, now),
+    remove: (userId, provider) => sealed.remove(String(userId), provider),
+  };
+}
+
+export function createSealedKeyStore(
+  fileOf: (owner: string) => string,
+  secret: string,
+): SealedKeyStore {
   if (secret.length < 32) throw new Error('The AI chat needs a session secret of 32+ characters.');
   const masterKey = Buffer.from(
     hkdfSync('sha256', Buffer.from(secret, 'utf8'), Buffer.alloc(0), KEY_INFO, 32),
   );
 
-  function readFile(userId: number): KeyFile {
-    const file = fileFor(projectDir, userId);
+  function readFile(owner: string): KeyFile {
+    const file = fileOf(owner);
     if (!existsSync(file)) return {};
     try {
       const parsed: unknown = JSON.parse(readFileSync(file, 'utf8'));
@@ -81,8 +102,8 @@ export function createChatKeyStore(projectDir: string, secret: string): ChatKeyS
     }
   }
 
-  function writeFile(userId: number, value: KeyFile): void {
-    const file = fileFor(projectDir, userId);
+  function writeFile(owner: string, value: KeyFile): void {
+    const file = fileOf(owner);
     if (Object.keys(value).length === 0) {
       rmSync(file, { force: true });
       return;
@@ -93,14 +114,14 @@ export function createChatKeyStore(projectDir: string, secret: string): ChatKeyS
     renameSync(temporary, file);
   }
 
-  function aad(userId: number, provider: ChatProvider): Buffer {
-    return Buffer.from(`${userId}:${provider}`, 'utf8');
+  function aad(owner: string, provider: ChatProvider): Buffer {
+    return Buffer.from(`${owner}:${provider}`, 'utf8');
   }
 
-  function open(userId: number, provider: ChatProvider, sealed: SealedKey): string | undefined {
+  function open(owner: string, provider: ChatProvider, sealed: SealedKey): string | undefined {
     try {
       const decipher = createDecipheriv('aes-256-gcm', masterKey, Buffer.from(sealed.iv, 'base64'));
-      decipher.setAAD(aad(userId, provider));
+      decipher.setAAD(aad(owner, provider));
       decipher.setAuthTag(Buffer.from(sealed.tag, 'base64'));
       return Buffer.concat([
         decipher.update(Buffer.from(sealed.data, 'base64')),
@@ -112,8 +133,8 @@ export function createChatKeyStore(projectDir: string, secret: string): ChatKeyS
   }
 
   return {
-    info(userId) {
-      const file = readFile(userId);
+    info(owner) {
+      const file = readFile(owner);
       const out = {} as Record<ChatProvider, StoredKeyInfo>;
       for (const provider of CHAT_PROVIDERS) {
         const sealed = file[provider];
@@ -121,7 +142,7 @@ export function createChatKeyStore(projectDir: string, secret: string): ChatKeyS
           out[provider] = { configured: false, hint: null, savedAt: null };
           continue;
         }
-        const readable = open(userId, provider, sealed) !== undefined;
+        const readable = open(owner, provider, sealed) !== undefined;
         out[provider] = {
           configured: readable,
           hint: sealed.hint,
@@ -131,14 +152,17 @@ export function createChatKeyStore(projectDir: string, secret: string): ChatKeyS
       }
       return out;
     },
-    get(userId, provider) {
-      const sealed = readFile(userId)[provider];
-      return sealed === undefined ? undefined : open(userId, provider, sealed);
+    get(owner, provider) {
+      const sealed = readFile(owner)[provider];
+      return sealed === undefined ? undefined : open(owner, provider, sealed);
     },
-    set(userId, provider, key, now = new Date()) {
+    savedAt(owner, provider) {
+      return readFile(owner)[provider]?.savedAt;
+    },
+    set(owner, provider, key, now = new Date()) {
       const iv = randomBytes(12);
       const cipher = createCipheriv('aes-256-gcm', masterKey, iv);
-      cipher.setAAD(aad(userId, provider));
+      cipher.setAAD(aad(owner, provider));
       const data = Buffer.concat([cipher.update(key, 'utf8'), cipher.final()]);
       const sealed: SealedKey = {
         iv: iv.toString('base64'),
@@ -147,13 +171,13 @@ export function createChatKeyStore(projectDir: string, secret: string): ChatKeyS
         hint: keyHint(key),
         savedAt: now.toISOString(),
       };
-      writeFile(userId, { ...readFile(userId), [provider]: sealed });
+      writeFile(owner, { ...readFile(owner), [provider]: sealed });
       return { configured: true, hint: sealed.hint, savedAt: sealed.savedAt };
     },
-    remove(userId, provider) {
-      const file = readFile(userId);
+    remove(owner, provider) {
+      const file = readFile(owner);
       delete file[provider];
-      writeFile(userId, file);
+      writeFile(owner, file);
     },
   };
 }

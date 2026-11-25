@@ -17,11 +17,12 @@ import {
 } from '@gitquire/core/gitquire/comment-threads';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddableRepo, BotAccess, DoorHost, HostRepo, RepoAccess } from '../host/types.ts';
+import { createPersonTickets, type PersonTickets } from '../people/ticket.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
 import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
 import { createMentionCounts } from './mention-counts.ts';
-import type { ForgejoTokenChecks } from './server.ts';
+import type { ForgejoTokenChecks, FrontDoorDeps } from './server.ts';
 import { createFrontDoor, type FrontDoor } from './server.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import { createWikiProcesses, type WikiProcesses } from './wiki-processes.ts';
@@ -99,11 +100,13 @@ interface Rig {
   base: string;
   data: string;
   door: FrontDoor;
+  tickets: PersonTickets;
   table: WikiTable;
   processes: WikiProcesses;
   levels: Record<string, Record<string, RepoAccess>>;
   bot: { answer: BotAccess | undefined };
   gone: Set<number>;
+  forgotten: string[];
   advance: (ms: number) => void;
 }
 
@@ -113,7 +116,14 @@ function tempDir(): string {
   return dir;
 }
 
-async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> {
+async function rig(
+  options: {
+    host?: 'github' | 'forgejo';
+    readAccountAddress?: FrontDoorDeps['readAccountAddress'];
+    seen?: FrontDoorDeps['seen'];
+    personRoutes?: FrontDoorDeps['personRoutes'];
+  } = {},
+): Promise<Rig> {
   const data = tempDir();
   const script = join(tempDir(), 'child.cjs');
   writeFileSync(script, CHILD);
@@ -220,12 +230,21 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
           : { installUrl: 'https://github.com/apps/gq/installations/new' },
     }),
   );
+  const tickets = createPersonTickets({ now });
+  const forgotten: string[] = [];
   const door = createFrontDoor({
     settings,
     hosts,
     table,
     processes,
     mentionCounts: createMentionCounts(data, now),
+    tickets,
+    ...(options.personRoutes === undefined ? {} : { personRoutes: options.personRoutes }),
+    ...(options.readAccountAddress === undefined
+      ? {}
+      : { readAccountAddress: options.readAccountAddress }),
+    ...(options.seen === undefined ? {} : { seen: options.seen }),
+    wikiRemoved: (key) => forgotten.push(key),
     log: silentLog,
     now,
     randomState: () => 'state-1',
@@ -249,11 +268,13 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
     base: `http://127.0.0.1:${port}`,
     data,
     door,
+    tickets,
     table,
     processes,
     levels,
     gone,
     bot,
+    forgotten,
     advance: (ms) => {
       time += ms;
     },
@@ -401,6 +422,80 @@ describe('front door', () => {
       wikis: Array<{ name: string }>;
     };
     expect(list.wikis.map((w) => w.name)).toEqual(['a']);
+  });
+
+  it('reads the account address with the sign-in token, and signs in even when that fails', async () => {
+    const asked: string[] = [];
+    const reading = await rig({
+      readAccountAddress: async (entry, person, token) => {
+        asked.push(`${entry.key}:${person.login}:${token}`);
+        throw new Error('host refused');
+      },
+    });
+    const session = await signIn(reading, 'alice');
+    expect(asked).toEqual(['github:alice:token-alice']);
+    expect((await get(reading, '/w/github/team/a/', session)).status).toBe(200);
+  });
+
+  it('does not hold up the sign-in while the host is slow to give the account address', async () => {
+    const slow = await rig({ readAccountAddress: () => new Promise(() => {}) });
+    const session = await signIn(slow, 'alice');
+    expect((await get(slow, '/w/github/team/a/', session)).status).toBe(200);
+  }, 3000);
+
+  it('answers the email routes itself, the same in every wiki of the account, also from a draft (P1, P5, P12)', async () => {
+    const seen: string[] = [];
+    const door = await rig({
+      personRoutes: {
+        handles: (path) => path === '/api/gitquire/mentions/email',
+        handle: (_req, res, who) => {
+          seen.push(who?.person ?? 'nobody');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ person: who?.person }));
+        },
+      },
+    });
+    const alice = await signIn(door, 'alice');
+    const bob = await signIn(door, 'bob');
+    const inA = await get(door, '/w/github/team/a/api/gitquire/mentions/email', alice);
+    const inB = await get(door, '/w/github/team/b/api/gitquire/mentions/email', alice);
+    expect(await inA.json()).toEqual({ person: 'github-11' });
+    expect(await inB.json()).toEqual({ person: 'github-11' });
+    const drafted = await get(
+      door,
+      '/w/github/team/a/api/gitquire/mentions/email',
+      `${alice}; gq_view_github-1=d1`,
+    );
+    expect(await drafted.json()).toEqual({ person: 'github-11' });
+    expect(
+      await (await get(door, '/w/github/team/a/api/gitquire/mentions/email', bob)).json(),
+    ).toEqual({
+      person: 'github-12',
+    });
+    expect((await get(door, '/w/github/team/b/api/gitquire/mentions/email', bob)).status).toBe(404);
+    expect(seen).toEqual(['github-11', 'github-11', 'github-11', 'github-12']);
+    expect(door.processes.isRunning('github-1')).toBe(false);
+  });
+
+  it('gives each forwarded request a person ticket that names the person only to that wiki', async () => {
+    const session = await signIn(r, 'alice');
+    const a = (await (
+      await get(r, '/w/github/team/a/', session, { 'x-gitquire-person-ticket': 'forged' })
+    ).json()) as { headers: Record<string, string> };
+    const ticket = a.headers['x-gitquire-person-ticket'];
+    expect(ticket).not.toBe('forged');
+    expect(r.tickets.personOf(ticket, 'github-1')).toEqual({ person: 'github-11', login: 'alice' });
+    expect(r.tickets.personOf(ticket, 'github-2')).toBeUndefined();
+  });
+
+  it('notes that the person opened GitQuire on every forwarded request, for the idle rule', async () => {
+    const visits: string[] = [];
+    const door = await rig({ seen: (person, login) => visits.push(`${person} ${login}`) });
+    const session = await signIn(door, 'alice');
+    expect(visits).toEqual([]);
+    await get(door, '/w/github/team/a/', session);
+    await get(door, '/w/github/team/a/api/gitquire/tree', session);
+    expect(visits).toEqual(['github-11 alice', 'github-11 alice']);
   });
 
   it('replaces x-gitquire-* headers a browser sends with its own', async () => {
@@ -759,6 +854,7 @@ describe('wiki list and Add a wiki pages', () => {
     });
     expect(removed.status).toBe(303);
     expect(r.table.byKey('github-1')).toBeUndefined();
+    expect(r.forgotten).toEqual(['github-1']);
     expect(existsSync(join(r.data, 'wikis', 'github-1'))).toBe(false);
     const kept = readdirSync(join(r.data, 'wikis-removed'));
     expect(kept).toHaveLength(1);
@@ -1005,5 +1101,67 @@ describe('front door on Forgejo', () => {
       canAdd: boolean;
     };
     expect(answer.canAdd).toBe(false);
+  });
+});
+
+describe('personal settings at the front door', () => {
+  it('keeps one set of settings per account for all its wikis, also from a draft (P6, P12)', async () => {
+    const { createPersonRoutes, settingsRoutes } = await import('../people/person-routes.ts');
+    const { personSettings } = await import('../people/settings.ts');
+    const { createPeopleStore } = await import('../people/store.ts');
+    const data = tempDir();
+    const store = createPeopleStore(join(data, 'people'));
+    let base = '';
+    const r = await rig({
+      personRoutes: createPersonRoutes({
+        routes: [settingsRoutes(personSettings(store))],
+        sameOrigin: (req) => req.headers.origin === undefined || req.headers.origin === base,
+        log: silentLog,
+      }),
+    });
+    base = r.base;
+    const alice = await signIn(r, 'alice');
+    const put = await httpFetch(`${r.base}/w/github/team/a/api/gitquire/me/settings`, {
+      method: 'PUT',
+      redirect: 'manual',
+      headers: { cookie: alice, origin: r.base, 'content-type': 'application/json' },
+      body: JSON.stringify({ yaml: 'editor:\n  spellcheck: false\n' }),
+    });
+    expect(put.status).toBe(200);
+    const inB = await get(r, '/w/github/team/b/api/gitquire/me/settings', alice);
+    expect(await inB.json()).toEqual({
+      personal: true,
+      login: 'alice',
+      yaml: 'editor:\n  spellcheck: false\n',
+    });
+    const mode = await httpFetch(`${r.base}/w/github/team/b/api/gitquire/drafts/agent-mode`, {
+      method: 'PUT',
+      redirect: 'manual',
+      headers: {
+        cookie: `${alice}; gq_view_github-2=d1`,
+        origin: r.base,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ mode: 'draft' }),
+    });
+    expect(await mode.json()).toEqual({ mode: 'draft' });
+    expect(
+      await (await get(r, '/w/github/team/a/api/gitquire/drafts/agent-mode', alice)).json(),
+    ).toEqual({
+      mode: 'draft',
+    });
+    const forged = await httpFetch(`${r.base}/w/github/team/a/api/gitquire/me/settings`, {
+      method: 'PUT',
+      redirect: 'manual',
+      headers: {
+        cookie: alice,
+        origin: 'https://evil.example',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ yaml: 'x: 1\n' }),
+    });
+    expect(forged.status).toBe(403);
+    expect(r.processes.isRunning('github-1')).toBe(false);
+    expect(store.people()).toEqual(['github-11']);
   });
 });

@@ -9,7 +9,7 @@ import {
   principalFromUser,
   refuseForPerson,
 } from './access-gate.ts';
-import { chatKeySecretFromEnv } from './chat/key-secret.ts';
+import { DOOR_TOKEN_SOCKET_ENV } from './door-token.ts';
 import { loginSet, parseGitHubRepo } from './github-auth-config.ts';
 import { pathOf, sendJson } from './http-util.ts';
 import { isInternalRequest } from './internal-request.ts';
@@ -34,7 +34,7 @@ export function resolveBehindFrontDoorSettings(env: Env): BehindFrontDoorSetting
   const repo = parseGitHubRepo(env.GITQUIRE_REPO);
   const aiChat =
     !['0', 'off', 'false', 'no'].includes(env.GITQUIRE_AI_CHAT?.trim().toLowerCase() ?? '') &&
-    chatKeySecretFromEnv(env) !== undefined;
+    (env[DOOR_TOKEN_SOCKET_ENV]?.trim() ?? '') !== '';
   return {
     repo: repo === undefined ? undefined : `${repo.owner}/${repo.name}`,
     adminLogins: loginSet(env.GITQUIRE_ADMINS),

@@ -7,9 +7,10 @@ import { AGENTS_PAGE_PATH, createAgentPages } from './agent-pages.ts';
 import type { AgentTokenRecord, AgentTokenStore } from './agent-tokens.ts';
 import { isAppIconPath } from './app-icons.ts';
 import type { GitHubAuthConfig } from './github-auth-config.ts';
+import { ACCOUNT_ADDRESS_DEADLINE_MS } from './host/account-address.ts';
 import { createGitHubDoorHost } from './host/github.ts';
 import { callbackPath, hostNames, signInPath } from './host/names.ts';
-import type { DoorHost } from './host/types.ts';
+import type { AccountAddress, DoorHost } from './host/types.ts';
 import {
   bearerToken,
   escapeHtml,
@@ -77,6 +78,8 @@ export interface AccessGate {
   sessionUser: (req: IncomingMessage) => SessionUser | undefined;
   isAdminRequest: (req: IncomingMessage) => boolean;
   agentOwner?: (req: IncomingMessage) => SessionUser | undefined;
+  accessOf?: (login: string) => Promise<AccessVerdict>;
+  onAccountAddress?: (listener: (user: SessionUser, found: AccountAddress) => void) => void;
   routeUpgrade?: (req: IncomingMessage, socket: Duplex, head: Buffer) => boolean;
 }
 
@@ -210,6 +213,33 @@ export function meBody(
 }
 
 export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps): AccessGate {
+  const addressListeners: ((user: SessionUser, found: AccountAddress) => void)[] = [];
+
+  function readAccountAddress(user: SessionUser, token: string): void {
+    const ask = deps.host?.accountAddress;
+    if (ask === undefined || addressListeners.length === 0) return;
+    let timer: NodeJS.Timeout | undefined;
+    const late = new Promise<AccountAddress>((resolve) => {
+      timer = setTimeout(() => resolve({ state: 'unreachable' }), ACCOUNT_ADDRESS_DEADLINE_MS);
+      timer.unref?.();
+    });
+    Promise.race([ask(token).catch((): AccountAddress => ({ state: 'unreachable' })), late])
+      .then((found) => {
+        if (timer !== undefined) clearTimeout(timer);
+        for (const listener of addressListeners) listener(user, found);
+        deps.log.info(
+          { login: user.login, account: found.state },
+          '[gitquire-mail] account address read at sign-in',
+        );
+      })
+      .catch((err: unknown) => {
+        deps.log.warn(
+          { err, login: user.login },
+          '[gitquire-mail] could not keep the account address',
+        );
+      });
+  }
+
   const doFetch = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now;
   const randomState = deps.randomState ?? (() => randomBytes(24).toString('base64url'));
@@ -419,6 +449,7 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
       return;
     }
 
+    readAccountAddress(user, token);
     const session: SessionPayload = {
       v: 1,
       ...user,
@@ -569,5 +600,18 @@ export function createAccessGate(config: GitHubAuthConfig, deps: AccessGateDeps)
     return false;
   }
 
-  return { handleRequest, admitUpgrade, sessionUser, isAdminRequest, agentOwner };
+  return {
+    handleRequest,
+    admitUpgrade,
+    sessionUser,
+    isAdminRequest,
+    agentOwner,
+    accessOf: async (login) => {
+      if (config.allowedUsers.has(login.toLowerCase())) return 'allowed';
+      return deps.checkAccess === undefined ? 'unknown' : deps.checkAccess(login);
+    },
+    onAccountAddress: (listener) => {
+      addressListeners.push(listener);
+    },
+  };
 }
