@@ -3,10 +3,12 @@ import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
+import { derivePeopleKeySecret } from '../chat/key-secret.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
 import type { DoorHost, HostPerson } from '../host/types.ts';
 import { isSameOriginRequest } from '../http-util.ts';
 import { resolveMailConfig, sendMail } from '../mail.ts';
+import { personChatData, personKeyStore } from '../people/chat-data.ts';
 import { createEmailService } from '../people/email-service.ts';
 import { createPeopleMailer, openWithin } from '../people/mailer.ts';
 import { createPersonRoutes, emailRoutes, settingsRoutes } from '../people/person-routes.ts';
@@ -208,8 +210,25 @@ export async function startFrontDoor(
 
   const tickets = createPersonTickets();
   const people = createPeopleStore(frontDoorPeopleRoot(settings.dataDir));
+  const chatData = personChatData(
+    people,
+    personKeyStore(people, derivePeopleKeySecret(settings.sessionSecret)),
+  );
+  const usagePurge = setInterval(
+    () => {
+      try {
+        chatData.purgeUsage(new Date());
+      } catch (err) {
+        log.warn({ err }, '[gitquire-chat] could not remove expired usage');
+      }
+    },
+    6 * 60 * 60 * 1000,
+  );
+  usagePurge.unref();
+  chatData.purgeUsage(new Date());
   const personSocket = createPersonSocketHandler({
     tickets,
+    handlers: [chatData.answer],
     mayAsk: async (wikiKey, person, login) => {
       const wiki = table.byKey(wikiKey);
       const entry = wiki === undefined ? undefined : hosts.of(wiki);
@@ -426,6 +445,7 @@ export async function startFrontDoor(
       door.setReady(false);
       clearInterval(recheck);
       clearInterval(mailRounds);
+      clearInterval(usagePurge);
       clearInterval(branchRounds);
       clearInterval(checks);
       await new Promise<void>((resolve) => {

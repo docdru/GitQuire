@@ -17,3 +17,9 @@ export function chatKeySecretFromEnv(env: Env): string | undefined {
   const secret = raw?.trim() ?? '';
   return secret.length < MIN_SECRET_LENGTH ? undefined : secret;
 }
+
+export function derivePeopleKeySecret(sessionSecret: string): string {
+  return createHmac('sha256', sessionSecret)
+    .update('gitquire-ai-chat-keys:people', 'utf8')
+    .digest('hex');
+}

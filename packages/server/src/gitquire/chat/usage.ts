@@ -8,12 +8,12 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { CHAT_RETENTION_DAYS, isChatId } from './history.ts';
-import type { ChatProvider } from './models.ts';
+import { type ChatProvider, isChatProvider } from './models.ts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-interface UsageEntry {
+export interface UsageEntry {
   day: string;
   chatId: string;
   title: string;
@@ -44,7 +44,7 @@ interface UsageChat {
   outputTokens: number;
 }
 
-interface UsageReport {
+export interface UsageReport {
   retentionDays: number;
   total: { inputTokens: number; outputTokens: number };
   days: UsageDay[];
@@ -102,8 +102,101 @@ function writeEntries(file: string, entries: readonly UsageEntry[]): void {
   renameSync(temporary, file);
 }
 
-function cutoffDay(now: Date, retentionDays: number): string {
+export function cutoffDay(now: Date, retentionDays: number): string {
   return new Date(now.getTime() - retentionDays * DAY_MS).toISOString().slice(0, 10);
+}
+
+export function withUsage<T extends UsageEntry>(
+  entries: readonly T[],
+  entry: T,
+  same: (a: T, b: T) => boolean = () => true,
+): T[] | undefined {
+  const input = count(entry.inputTokens);
+  const output = count(entry.outputTokens);
+  if (input === 0 && output === 0) return undefined;
+  const next = entries.map((existing) => ({ ...existing }));
+  const found = next.find(
+    (existing) =>
+      existing.day === entry.day &&
+      existing.chatId === entry.chatId &&
+      existing.provider === entry.provider &&
+      existing.model === entry.model &&
+      same(existing, entry),
+  );
+  if (found === undefined) {
+    next.push({ ...entry, inputTokens: input, outputTokens: output });
+  } else {
+    found.inputTokens += input;
+    found.outputTokens += output;
+    found.title = entry.title;
+  }
+  return next;
+}
+
+export function usageReport(
+  all: readonly UsageEntry[],
+  now: Date,
+  retentionDays: number,
+  listed: (entry: UsageEntry) => boolean = () => true,
+): UsageReport {
+  const cutoff = cutoffDay(now, retentionDays);
+  const entries = all.filter((e) => e.day >= cutoff);
+  const days = new Map<string, UsageDay>();
+  const chats = new Map<string, UsageChat>();
+  const total = { inputTokens: 0, outputTokens: 0 };
+  for (const entry of entries) {
+    total.inputTokens += entry.inputTokens;
+    total.outputTokens += entry.outputTokens;
+    const day = days.get(entry.day) ?? { day: entry.day, inputTokens: 0, outputTokens: 0 };
+    day.inputTokens += entry.inputTokens;
+    day.outputTokens += entry.outputTokens;
+    days.set(entry.day, day);
+    if (!listed(entry)) continue;
+    const chat = chats.get(entry.chatId) ?? {
+      chatId: entry.chatId,
+      title: entry.title,
+      provider: entry.provider,
+      model: entry.model,
+      lastDay: entry.day,
+      inputTokens: 0,
+      outputTokens: 0,
+    };
+    chat.inputTokens += entry.inputTokens;
+    chat.outputTokens += entry.outputTokens;
+    if (entry.day >= chat.lastDay) {
+      chat.lastDay = entry.day;
+      chat.title = entry.title;
+      chat.provider = entry.provider;
+      chat.model = entry.model;
+    }
+    chats.set(entry.chatId, chat);
+  }
+  return {
+    retentionDays,
+    total,
+    days: [...days.values()].sort((a, b) => b.day.localeCompare(a.day)),
+    chats: [...chats.values()].sort(
+      (a, b) =>
+        b.lastDay.localeCompare(a.lastDay) ||
+        b.inputTokens + b.outputTokens - (a.inputTokens + a.outputTokens),
+    ),
+  };
+}
+
+export function usageEntryOf(raw: unknown): UsageEntry | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const entry = raw as Partial<UsageEntry>;
+  if (!DAY_RE.test(String(entry.day)) || !isChatId(entry.chatId)) return undefined;
+  if (!isChatProvider(entry.provider) || typeof entry.model !== 'string') return undefined;
+  return {
+    day: String(entry.day),
+    chatId: entry.chatId as string,
+    title: typeof entry.title === 'string' ? entry.title.slice(0, 200) : '',
+    provider: entry.provider,
+    model: entry.model.slice(0, 100),
+    inputTokens: count(entry.inputTokens),
+    outputTokens: count(entry.outputTokens),
+  };
 }
 
 export function createChatUsageStore(
@@ -112,69 +205,12 @@ export function createChatUsageStore(
 ): ChatUsageStore {
   return {
     add(userId, entry) {
-      const input = count(entry.inputTokens);
-      const output = count(entry.outputTokens);
-      if (input === 0 && output === 0) return;
       const file = fileFor(projectDir, userId);
-      const entries = readEntries(file);
-      const same = entries.find(
-        (existing) =>
-          existing.day === entry.day &&
-          existing.chatId === entry.chatId &&
-          existing.provider === entry.provider &&
-          existing.model === entry.model,
-      );
-      if (same === undefined) {
-        entries.push({ ...entry, inputTokens: input, outputTokens: output });
-      } else {
-        same.inputTokens += input;
-        same.outputTokens += output;
-        same.title = entry.title;
-      }
-      writeEntries(file, entries);
+      const next = withUsage(readEntries(file), entry);
+      if (next !== undefined) writeEntries(file, next);
     },
     report(userId, now = new Date()) {
-      const cutoff = cutoffDay(now, retentionDays);
-      const entries = readEntries(fileFor(projectDir, userId)).filter((e) => e.day >= cutoff);
-      const days = new Map<string, UsageDay>();
-      const chats = new Map<string, UsageChat>();
-      const total = { inputTokens: 0, outputTokens: 0 };
-      for (const entry of entries) {
-        total.inputTokens += entry.inputTokens;
-        total.outputTokens += entry.outputTokens;
-        const day = days.get(entry.day) ?? { day: entry.day, inputTokens: 0, outputTokens: 0 };
-        day.inputTokens += entry.inputTokens;
-        day.outputTokens += entry.outputTokens;
-        days.set(entry.day, day);
-        const chat = chats.get(entry.chatId) ?? {
-          chatId: entry.chatId,
-          title: entry.title,
-          provider: entry.provider,
-          model: entry.model,
-          lastDay: entry.day,
-          inputTokens: 0,
-          outputTokens: 0,
-        };
-        chat.inputTokens += entry.inputTokens;
-        chat.outputTokens += entry.outputTokens;
-        if (entry.day >= chat.lastDay) {
-          chat.lastDay = entry.day;
-          chat.title = entry.title;
-          chat.provider = entry.provider;
-          chat.model = entry.model;
-        }
-        chats.set(entry.chatId, chat);
-      }
-      return {
-        retentionDays,
-        total,
-        days: [...days.values()].sort((a, b) => b.day.localeCompare(a.day)),
-        chats: [...chats.values()].sort(
-          (a, b) =>
-            b.lastDay.localeCompare(a.lastDay) ||
-            b.inputTokens + b.outputTokens - (a.inputTokens + a.outputTokens),
-        ),
-      };
+      return usageReport(readEntries(fileFor(projectDir, userId)), now, retentionDays);
     },
     purgeExpired(now = new Date()) {
       const dir = usageDir(projectDir);

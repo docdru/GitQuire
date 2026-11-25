@@ -2,7 +2,6 @@ import { type ChildProcess, spawn as nodeSpawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import type { GateLogger } from '../access-gate.ts';
-import { CHAT_KEY_SECRET_ENV, deriveChatKeySecret } from '../chat/key-secret.ts';
 import { DOOR_TOKEN_SOCKET_ENV } from '../door-token.ts';
 import { HOST_KEY_ENV, HOST_LABEL_ENV } from '../host/names.ts';
 import { repoChange } from '../host/renames.ts';
@@ -139,15 +138,8 @@ export function wikiEnv(
     env[name] = value;
   }
   if (further !== undefined) Object.assign(env, furtherHostEnv(further));
-  const sessionSecret = base.GITQUIRE_SESSION_SECRET?.trim() ?? '';
-  const chatOff = ['0', 'off', 'false', 'no'].includes(
-    base.GITQUIRE_AI_CHAT?.trim().toLowerCase() ?? '',
-  );
   return {
     ...env,
-    ...(sessionSecret === '' || chatOff
-      ? {}
-      : { [CHAT_KEY_SECRET_ENV]: deriveChatKeySecret(sessionSecret, wiki.key) }),
     GITQUIRE_BEHIND_FRONT_DOOR: 'on',
     GITQUIRE_REPO: `${wiki.owner}/${wiki.name}`,
     [WIKI_NAME_ENV]: wikiName(wiki),
