@@ -7,10 +7,12 @@ import { DOOR_TOKEN_PATH } from '../door-token.ts';
 import type { HostRepoRef } from '../host/types.ts';
 import { pathOf, sendJson } from '../http-util.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
+import { PERSON_PATH_PREFIX } from '../people/door-client.ts';
 
 export const DOOR_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
 
 export interface TokenSocketDeps {
+  person?: (req: IncomingMessage, res: ServerResponse, wikiKey: string, path: string) => void;
   wikiOfSecret: (secret: string) => string | undefined;
   repoOf: (key: string) => HostRepoRef | undefined;
   tokenFor: (repo: HostRepoRef, key: string) => Promise<string | undefined>;
@@ -24,12 +26,22 @@ function createTokenHandler(
 ): (req: IncomingMessage, res: ServerResponse) => void {
   const now = deps.now ?? Date.now;
   return (req, res) => {
-    if (pathOf(req).path !== DOOR_TOKEN_PATH || req.method !== 'GET') {
+    const path = pathOf(req).path;
+    const asksForPerson = deps.person !== undefined && path.startsWith(PERSON_PATH_PREFIX);
+    if (!asksForPerson && (path !== DOOR_TOKEN_PATH || req.method !== 'GET')) {
       sendJson(res, 404, { error: 'not-found' });
       return;
     }
     const secret = req.headers[INTERNAL_REQUEST_HEADER];
     const key = typeof secret === 'string' ? deps.wikiOfSecret(secret) : undefined;
+    if (asksForPerson) {
+      if (key === undefined) {
+        sendJson(res, 403, { error: 'unknown-wiki' });
+        return;
+      }
+      deps.person?.(req, res, key, path);
+      return;
+    }
     const repo = key === undefined ? undefined : deps.repoOf(key);
     if (key === undefined || repo === undefined) {
       sendJson(res, 403, { error: 'unknown-wiki' });

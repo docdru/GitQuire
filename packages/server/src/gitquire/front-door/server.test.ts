@@ -17,6 +17,7 @@ import {
 } from '@gitquire/core/gitquire/comment-threads';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddableRepo, BotAccess, DoorHost, HostRepo, RepoAccess } from '../host/types.ts';
+import { createPersonTickets, type PersonTickets } from '../people/ticket.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
 import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
@@ -99,6 +100,7 @@ interface Rig {
   base: string;
   data: string;
   door: FrontDoor;
+  tickets: PersonTickets;
   table: WikiTable;
   processes: WikiProcesses;
   levels: Record<string, Record<string, RepoAccess>>;
@@ -220,12 +222,14 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
           : { installUrl: 'https://github.com/apps/gq/installations/new' },
     }),
   );
+  const tickets = createPersonTickets({ now });
   const door = createFrontDoor({
     settings,
     hosts,
     table,
     processes,
     mentionCounts: createMentionCounts(data, now),
+    tickets,
     log: silentLog,
     now,
     randomState: () => 'state-1',
@@ -249,6 +253,7 @@ async function rig(options: { host?: 'github' | 'forgejo' } = {}): Promise<Rig> 
     base: `http://127.0.0.1:${port}`,
     data,
     door,
+    tickets,
     table,
     processes,
     levels,
@@ -401,6 +406,17 @@ describe('front door', () => {
       wikis: Array<{ name: string }>;
     };
     expect(list.wikis.map((w) => w.name)).toEqual(['a']);
+  });
+
+  it('gives each forwarded request a person ticket that names the person only to that wiki', async () => {
+    const session = await signIn(r, 'alice');
+    const a = (await (
+      await get(r, '/w/github/team/a/', session, { 'x-gitquire-person-ticket': 'forged' })
+    ).json()) as { headers: Record<string, string> };
+    const ticket = a.headers['x-gitquire-person-ticket'];
+    expect(ticket).not.toBe('forged');
+    expect(r.tickets.personOf(ticket, 'github-1')).toBe('github-11');
+    expect(r.tickets.personOf(ticket, 'github-2')).toBeUndefined();
   });
 
   it('replaces x-gitquire-* headers a browser sends with its own', async () => {

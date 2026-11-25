@@ -6,9 +6,10 @@ import { AGENTS_PAGE_PATH, createAgentPages } from '../agent-pages.ts';
 import { type AgentTokenStore, createAgentTokenStore } from '../agent-tokens.ts';
 import { bearerToken, sendJson } from '../http-util.ts';
 import { createOAuthServer, type OAuthServer } from '../oauth-server.ts';
+import type { PersonTickets } from '../people/ticket.ts';
 import { encodeAgentFeatures } from '../request-person.ts';
 import type { DoorPerson } from './access.ts';
-import type { DoorHostEntry, DoorHosts } from './door-hosts.ts';
+import { type DoorHostEntry, type DoorHosts, personIdOn } from './door-hosts.ts';
 import { createDoorMcp, type DoorMcp } from './mcp.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import type { WikiProcesses } from './wiki-processes.ts';
@@ -23,6 +24,7 @@ export interface DoorAgentsDeps {
   table: Pick<WikiTable, 'list' | 'byAddress'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   sessionUser: (req: IncomingMessage, hostKey: string) => SessionUser | undefined;
+  tickets?: PersonTickets;
   log: GateLogger;
   stores?: ReadonlyMap<string, AgentTokenStore>;
   sweepMs?: number;
@@ -170,6 +172,12 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
       seesWhy: (person, wiki) =>
         access.wasAdmin(person, wiki) ||
         (hosts.of(wiki) === entry && entry.settings.serverAdmins.has(person.login.toLowerCase())),
+      ...(deps.tickets === undefined
+        ? {}
+        : {
+            ticketFor: (wiki: WikiRecord, person: { id: number }) =>
+              deps.tickets?.issue(wiki.key, personIdOn(entry.names, person.id)) ?? '',
+          }),
       log,
       now: deps.now,
     });
