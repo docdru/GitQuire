@@ -89,7 +89,11 @@ describe('mention email per account', () => {
     expect(on).toMatchObject({ address: 'anna@example.org', use: 'account' });
     expect(sent).toEqual([]);
     expect(switchedOn).toEqual(['github-5']);
+    await service.change(anna, { address: 'anna@elsewhere.example' });
+    expect(switchedOn).toEqual(['github-5']);
     expect((await service.change(anna, { use: null })).address).toBeNull();
+    await service.change(anna, { use: 'account' });
+    expect(switchedOn).toEqual(['github-5', 'github-5']);
   });
 
   it('refuses the switch without a verified account address (P2)', async () => {

@@ -479,7 +479,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     deps.log.warn({ reason: mail.reason }, '[gitquire-mail] email for mentions is off');
   }
   const mailer =
-    mail.kind === 'on'
+    mail.kind === 'on' && !behindFrontDoor
       ? createMentionMailer({
           index: mentionIndex,
           store: mentionReads,

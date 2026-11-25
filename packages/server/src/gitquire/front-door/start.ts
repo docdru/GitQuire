@@ -8,6 +8,7 @@ import type { DoorHost, HostPerson } from '../host/types.ts';
 import { isSameOriginRequest } from '../http-util.ts';
 import { resolveMailConfig, sendMail } from '../mail.ts';
 import { createEmailService } from '../people/email-service.ts';
+import { createPeopleMailer, openWithin } from '../people/mailer.ts';
 import { createPersonRoutes, emailRoutes } from '../people/person-routes.ts';
 import { personSettings } from '../people/settings.ts';
 import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
@@ -38,11 +39,19 @@ import {
 } from './settings.ts';
 import { listenTokenSocket } from './token-socket.ts';
 import { createWikiProcesses } from './wiki-processes.ts';
-import { openWikiTable, type WikiRecord, wikiTableFile } from './wiki-table.ts';
+import {
+  openWikiTable,
+  type WikiRecord,
+  wikiName,
+  wikiPrefix,
+  wikiTableFile,
+} from './wiki-table.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
 const WIKI_CHECK_MS = 10 * 60 * 1000;
+const MAIL_ROUND_MS = 60 * 1000;
+const MAIL_ACCESS_DEADLINE_MS = 15 * 1000;
 
 interface RunningFrontDoor {
   server: Server;
@@ -221,7 +230,36 @@ export async function startFrontDoor(
     codeKey: () => settings.sessionSecret,
     send: sendMail,
     log,
+    onSwitchedOn: (person, login) => mailer.markExisting(person, login),
   });
+  const mentionCounts = createMentionCounts(settings.dataDir);
+  const mailer = createPeopleMailer({
+    store: people,
+    config: mail.kind === 'on' ? mail.config : undefined,
+    send: sendMail,
+    log,
+    wikis: () =>
+      table.list().flatMap((wiki) => {
+        const entry = hosts.of(wiki);
+        if (entry === undefined) return [];
+        return [
+          {
+            key: wiki.key,
+            idPrefix: entry.names.idPrefix,
+            name: wikiName(wiki),
+            url: `${settings.externalUrl.origin}${wikiPrefix(wiki)}`,
+            mentions: () => mentionCounts.mentionsOf(wiki, entry.names.idPrefix),
+            readIds: (id: number) => mentionCounts.readIdsOf(wiki, id),
+            canOpen: (account: { id: number; login: string }) =>
+              openWithin(entry.access.decide(account, wiki), MAIL_ACCESS_DEADLINE_MS),
+          },
+        ];
+      }),
+  });
+  const mailRounds = setInterval(() => {
+    mailer.round().catch((err: unknown) => log.warn({ err }, '[gitquire-mail] mail round failed'));
+  }, MAIL_ROUND_MS);
+  mailRounds.unref();
   const personRoutes = createPersonRoutes({
     routes: [emailRoutes(email)],
     sameOrigin: (req) => isSameOriginRequest(req, settings.externalUrl),
@@ -292,7 +330,7 @@ export async function startFrontDoor(
     table,
     processes,
     agents,
-    mentionCounts: createMentionCounts(settings.dataDir),
+    mentionCounts,
     tickets,
     readAccountAddress: accountAddressReader({ store: people, log }),
     personRoutes,
@@ -364,6 +402,7 @@ export async function startFrontDoor(
     stop: async () => {
       door.setReady(false);
       clearInterval(recheck);
+      clearInterval(mailRounds);
       clearInterval(checks);
       await new Promise<void>((resolve) => {
         server.close(() => resolve());
