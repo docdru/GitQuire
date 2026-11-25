@@ -34,12 +34,14 @@ export interface WikiPeopleSource {
 export interface MoveOverTarget {
   store: PeopleStore;
   keys: SealedKeyStore;
-  markExisting?: (person: string, login: string, wikiKey: string) => void;
+  markExisting?: (person: string, login: string, wikiKey: string, before?: string) => void;
+  wikiKeys?: () => readonly string[];
   now?: () => number;
 }
 
 export interface PeopleMoveReport {
   wikis: string[];
+  failed: string[];
   people: number;
   addresses: number;
   keys: number;
@@ -148,7 +150,8 @@ export function movePeopleData(
   const done = movedWikis(target.store);
   const todo = sources.filter((source) => !done.has(source.wikiKey));
   const report: PeopleMoveReport = {
-    wikis: todo.map((source) => source.wikiKey),
+    wikis: [],
+    failed: [],
     people: 0,
     addresses: 0,
     keys: 0,
@@ -165,8 +168,18 @@ export function movePeopleData(
   const settings = new Map<string, Candidate<string>>();
   const modes = new Map<string, Candidate<AgentMode>>();
   const keys = new Map<string, Candidate<string>>();
+  const sinceIn = new Map<string, Map<string, string>>();
 
   for (const source of todo) {
+    try {
+      readSource(source);
+      report.wikis.push(source.wikiKey);
+    } catch {
+      report.failed.push(source.wikiKey);
+    }
+  }
+
+  function readSource(source: WikiPeopleSource): void {
     const person = (id: number) => `${source.idPrefix}${id}`;
     for (const [id, user] of oldUsers(source.dir)) {
       const who = person(id);
@@ -177,8 +190,12 @@ export function movePeopleData(
         lastSeen.set(who, user.lastSeen);
       }
       if (user.email === undefined || user.since === undefined) continue;
-      subscribedIn.set(who, new Set([...(subscribedIn.get(who) ?? []), source.wikiKey]));
       const at = Date.parse(user.since);
+      if (Number.isNaN(at)) continue;
+      subscribedIn.set(who, new Set([...(subscribedIn.get(who) ?? []), source.wikiKey]));
+      const ownSince = sinceIn.get(who) ?? new Map<string, string>();
+      ownSince.set(source.wikiKey, user.since);
+      sinceIn.set(who, ownSince);
       addresses.set(
         who,
         later(addresses.get(who), { value: { address: user.email, since: user.since }, at }),
@@ -257,8 +274,10 @@ export function movePeopleData(
     }
   }
 
+  const movedKeys = new Set(report.wikis);
   for (const who of touched) {
     const candidate = addresses.get(who);
+    const before = readMailRecord(target.store, who);
     updateMailRecord(target.store, who, (record) => {
       const next = { ...record };
       const login = logins.get(who);
@@ -305,18 +324,25 @@ export function movePeopleData(
       report.keys += 1;
     }
     const record = readMailRecord(target.store, who);
-    if (record.use !== undefined && record.login !== undefined) {
-      for (const source of todo) {
-        if (subscribedIn.get(who)?.has(source.wikiKey) === true) continue;
-        if (!source.idPrefix || !who.startsWith(source.idPrefix)) continue;
-        target.markExisting?.(who, record.login, source.wikiKey);
+    const switchedOn = record.use !== undefined && before.use === undefined;
+    const sinceMoved = record.since !== before.since;
+    if (record.use !== undefined && record.login !== undefined && (switchedOn || sinceMoved)) {
+      const own = sinceIn.get(who) ?? new Map<string, string>();
+      const everyWiki = new Set([...(target.wikiKeys?.() ?? []), ...movedKeys]);
+      for (const wikiKey of everyWiki) {
+        const theirs = own.get(wikiKey);
+        if (theirs === undefined) {
+          target.markExisting?.(who, record.login, wikiKey);
+        } else if (record.since !== undefined && theirs > record.since) {
+          target.markExisting?.(who, record.login, wikiKey, theirs);
+        }
       }
     }
   }
   report.people = touched.size;
   const moved = readMoved(target.store);
   const at = new Date(now()).toISOString();
-  for (const source of todo) moved.wikis[source.wikiKey] = at;
+  for (const key of movedKeys) moved.wikis[key] = at;
   writeMoved(moved);
   return report;
 }

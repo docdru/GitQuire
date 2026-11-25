@@ -276,29 +276,52 @@ export async function startFrontDoor(
         ];
       }),
   });
-  const moved = movePeopleData(
-    table.list().flatMap((wiki) => {
-      const entry = hosts.of(wiki);
-      return entry === undefined
-        ? []
-        : [
-            {
-              dir: wikiDir(settings.dataDir, wiki),
-              wikiKey: wiki.key,
-              idPrefix: entry.names.idPrefix,
-              keySecrets: [
-                deriveChatKeySecret(settings.sessionSecret, wiki.key),
-                settings.sessionSecret,
-              ],
-            },
-          ];
-    }),
-    {
-      store: people,
-      keys: personKeys,
-      markExisting: (person, login, wikiKey) => mailer.markExisting(person, login, wikiKey),
-    },
-  );
+  let moved: ReturnType<typeof movePeopleData> = {
+    wikis: [],
+    failed: [],
+    people: 0,
+    addresses: 0,
+    keys: 0,
+    unreadableKeys: 0,
+  };
+  try {
+    moved = movePeopleData(
+      table.list().flatMap((wiki) => {
+        const entry = hosts.of(wiki);
+        return entry === undefined
+          ? []
+          : [
+              {
+                dir: wikiDir(settings.dataDir, wiki),
+                wikiKey: wiki.key,
+                idPrefix: entry.names.idPrefix,
+                keySecrets: [
+                  deriveChatKeySecret(settings.sessionSecret, wiki.key),
+                  settings.sessionSecret,
+                ],
+              },
+            ];
+      }),
+      {
+        store: people,
+        keys: personKeys,
+        markExisting: (person, login, wikiKey, before) =>
+          mailer.markExisting(person, login, wikiKey, before),
+        wikiKeys: () => table.list().map((wiki) => wiki.key),
+      },
+    );
+  } catch (err) {
+    log.warn(
+      { err },
+      '[gitquire-people] could not move per-person data; tried again at the next start',
+    );
+  }
+  if (moved.failed.length > 0) {
+    log.warn(
+      { wikis: moved.failed },
+      '[gitquire-people] could not move the per-person data of these wikis; tried again at the next start',
+    );
+  }
   if (moved.wikis.length > 0) {
     log.info(
       {

@@ -609,7 +609,8 @@ function movePeopleIn(
     {
       store: people,
       keys: personKeyStore(people, derivePeopleKeySecret(sessionSecret)),
-      markExisting: (person, login, wikiKey) => marker.markExisting(person, login, wikiKey),
+      markExisting: (person, login, wikiKey, before) =>
+        marker.markExisting(person, login, wikiKey, before),
       now,
     },
   );
