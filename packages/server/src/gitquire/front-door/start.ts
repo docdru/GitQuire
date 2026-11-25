@@ -3,7 +3,7 @@ import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
-import { derivePeopleKeySecret } from '../chat/key-secret.ts';
+import { deriveChatKeySecret, derivePeopleKeySecret } from '../chat/key-secret.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
 import type { DoorHost, HostPerson } from '../host/types.ts';
 import { isSameOriginRequest } from '../http-util.ts';
@@ -11,6 +11,7 @@ import { resolveMailConfig, sendMail } from '../mail.ts';
 import { personChatData, personKeyStore } from '../people/chat-data.ts';
 import { createEmailService } from '../people/email-service.ts';
 import { createPeopleMailer, openWithin } from '../people/mailer.ts';
+import { movePeopleData } from '../people/move-over.ts';
 import { createPersonRoutes, emailRoutes, settingsRoutes } from '../people/person-routes.ts';
 import { personSettings } from '../people/settings.ts';
 import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
@@ -210,10 +211,8 @@ export async function startFrontDoor(
 
   const tickets = createPersonTickets();
   const people = createPeopleStore(frontDoorPeopleRoot(settings.dataDir));
-  const chatData = personChatData(
-    people,
-    personKeyStore(people, derivePeopleKeySecret(settings.sessionSecret)),
-  );
+  const personKeys = personKeyStore(people, derivePeopleKeySecret(settings.sessionSecret));
+  const chatData = personChatData(people, personKeys);
   const usagePurge = setInterval(
     () => {
       try {
@@ -277,6 +276,64 @@ export async function startFrontDoor(
         ];
       }),
   });
+  let moved: ReturnType<typeof movePeopleData> = {
+    wikis: [],
+    failed: [],
+    people: 0,
+    addresses: 0,
+    keys: 0,
+    unreadableKeys: 0,
+  };
+  try {
+    moved = movePeopleData(
+      table.list().flatMap((wiki) => {
+        const entry = hosts.of(wiki);
+        return entry === undefined
+          ? []
+          : [
+              {
+                dir: wikiDir(settings.dataDir, wiki),
+                wikiKey: wiki.key,
+                idPrefix: entry.names.idPrefix,
+                keySecrets: [
+                  deriveChatKeySecret(settings.sessionSecret, wiki.key),
+                  settings.sessionSecret,
+                ],
+              },
+            ];
+      }),
+      {
+        store: people,
+        keys: personKeys,
+        markExisting: (person, login, wikiKey, before) =>
+          mailer.markExisting(person, login, wikiKey, before),
+        wikiKeys: () => table.list().map((wiki) => wiki.key),
+      },
+    );
+  } catch (err) {
+    log.warn(
+      { err },
+      '[gitquire-people] could not move per-person data; tried again at the next start',
+    );
+  }
+  if (moved.failed.length > 0) {
+    log.warn(
+      { wikis: moved.failed },
+      '[gitquire-people] could not move the per-person data of these wikis; tried again at the next start',
+    );
+  }
+  if (moved.wikis.length > 0) {
+    log.info(
+      {
+        wikis: moved.wikis,
+        people: moved.people,
+        addresses: moved.addresses,
+        keys: moved.keys,
+        unreadableKeys: moved.unreadableKeys,
+      },
+      '[gitquire-people] moved per-person data of these wikis to the front door; the old files stay as they were',
+    );
+  }
   const mailRounds = setInterval(() => {
     mailer.round().catch((err: unknown) => log.warn({ err }, '[gitquire-mail] mail round failed'));
   }, MAIL_ROUND_MS);
