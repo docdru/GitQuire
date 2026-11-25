@@ -340,6 +340,7 @@ export function movePeopleData(
     }
   }
   report.people = touched.size;
+  if (touched.size === 0 && !existsSync(target.store.root)) return report;
   const moved = readMoved(target.store);
   const at = new Date(now()).toISOString();
   for (const key of movedKeys) moved.wikis[key] = at;

@@ -1,4 +1,12 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -335,5 +343,17 @@ describe('the way back for one wiki (unadopt) and in again (adopt)', () => {
     copyPeopleForWiki(single, again, SINGLE_WIKI_KEY, 'github-1');
     expect([...mailedIds(again, 'github-11', 'github-1')]).toEqual(['t1:c1']);
     expect(readMailRecord(again, 'github-11').other?.address).toBe('anna@example.org');
+  });
+
+  it('writes nothing when there is nothing to move', () => {
+    const { root, store, keys } = setup();
+    const empty = {
+      dir: join(root, 'wikis', 'github-9'),
+      wikiKey: 'github-9',
+      idPrefix: 'github-',
+      keySecrets: [],
+    };
+    movePeopleData([empty], { store, keys });
+    expect(existsSync(store.root)).toBe(false);
   });
 });
