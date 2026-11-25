@@ -30,6 +30,7 @@ import {
   mailAddressOf,
   readMailRecord,
   updateMailRecord,
+  withoutAddress,
 } from './mail.ts';
 import type { PeopleStore } from './store.ts';
 
@@ -80,7 +81,7 @@ export interface EmailServiceDeps {
 
 export interface EmailService {
   state: (person: string) => EmailState;
-  seen: (who: EmailPerson) => void;
+  seen: (who: Pick<EmailPerson, 'person' | 'login'>) => void;
   change: (who: EmailPerson, body: Record<string, unknown>) => Promise<EmailState>;
   confirm: (who: EmailPerson, body: Record<string, unknown>) => EmailState;
 }
@@ -108,6 +109,7 @@ function writeCounters(file: string, counters: Counters): void {
 }
 
 const SEEN_WRITE_GAP_MS = DAY_MS;
+const SEEN_MEMORY_GAP_MS = 60 * 60 * 1000;
 
 export function createEmailService(deps: EmailServiceDeps): EmailService {
   const now = deps.now ?? Date.now;
@@ -220,7 +222,7 @@ export function createEmailService(deps: EmailServiceDeps): EmailService {
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       deps.log.warn(
-        { reason: reason.split(address).join('<address>'), login: who.login },
+        { reason: withoutAddress(reason, address), login: who.login },
         '[gitquire-mail] confirmation mail failed',
       );
       throw new EmailRequestError(502, 'mail-failed', 'The confirmation mail could not be sent.');
@@ -352,9 +354,14 @@ export function createEmailService(deps: EmailServiceDeps): EmailService {
     return state(who.person);
   }
 
+  const seenAt = new Map<string, number>();
+
   return {
     state,
     seen: (who) => {
+      const noted = seenAt.get(who.person);
+      if (noted !== undefined && now() - noted < SEEN_MEMORY_GAP_MS) return;
+      seenAt.set(who.person, now());
       const record = readMailRecord(deps.store, who.person);
       if (record.use === undefined) return;
       const last = record.lastSeen === undefined ? 0 : Date.parse(record.lastSeen);

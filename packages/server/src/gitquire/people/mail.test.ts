@@ -9,6 +9,7 @@ import {
   recordAccountAddress,
   updateMailRecord,
   withAccountAddress,
+  withoutAddress,
 } from './mail.ts';
 import { createPeopleStore } from './store.ts';
 
@@ -39,6 +40,47 @@ describe('the account address in the per-person store', () => {
     expect(record.since).toBeUndefined();
     expect(mailAddressOf(record, undefined)).toBeUndefined();
     expect(accountOffer(record, undefined)).toEqual({ offered: true, address: 'anna@example.org' });
+  });
+
+  it('turns a moved address into the account address at the first sign-in that finds the same one', () => {
+    const people = store();
+    updateMailRecord(people, 'forgejo-3', () => ({
+      login: 'anna',
+      use: 'other',
+      other: { address: 'Anna@Example.org', confirmedAt: '2026-10-01T00:00:00.000Z', moved: true },
+      since: '2026-10-01T00:00:00.000Z',
+    }));
+    updateMailRecord(people, 'forgejo-4', () => ({
+      login: 'bert',
+      use: 'other',
+      other: { address: 'bert@example.org', confirmedAt: '2026-10-01T00:00:00.000Z' },
+      since: '2026-10-01T00:00:00.000Z',
+    }));
+    const chosen = recordAccountAddress(
+      people,
+      'forgejo-4',
+      'bert',
+      { state: 'found', address: 'bert@example.org' },
+      at,
+    );
+    expect(chosen.use).toBe('other');
+    const first = recordAccountAddress(
+      people,
+      'forgejo-3',
+      'anna',
+      { state: 'found', address: 'anna@example.org' },
+      at,
+    );
+    expect(first.use).toBe('account');
+    updateMailRecord(people, 'forgejo-3', (record) => ({ ...record, use: 'other' }));
+    const later = recordAccountAddress(
+      people,
+      'forgejo-3',
+      'anna',
+      { state: 'found', address: 'anna@example.org' },
+      at,
+    );
+    expect(later.use).toBe('other');
   });
 
   it('follows the account: a changed address replaces the old one at the next sign-in (P11)', () => {
@@ -134,5 +176,17 @@ describe('the account address in the per-person store', () => {
       offered: false,
       why: 'unreachable',
     });
+  });
+});
+
+describe('keeping the address out of log lines (P1)', () => {
+  it('removes the address in any case, every time it appears', () => {
+    expect(
+      withoutAddress(
+        '550 <Anna@Example.org> unknown; retry anna@example.ORG later',
+        'anna@example.org',
+      ),
+    ).toBe('550 <<address>> unknown; retry <address> later');
+    expect(withoutAddress('no address here', 'anna@example.org')).toBe('no address here');
   });
 });

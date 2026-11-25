@@ -17,7 +17,7 @@ export interface MailRecord {
   accountProblem?: AccountProblem;
   use?: 'account' | 'other';
   chosenAt?: string;
-  other?: { address: string; confirmedAt: string };
+  other?: { address: string; confirmedAt: string; moved?: true };
   pending?: PendingAddress;
   since?: string;
   lastSeen?: string;
@@ -60,7 +60,11 @@ export function parseMailRecord(raw: unknown): MailRecord {
   const otherAddress = text(other?.address);
   const confirmedAt = text(other?.confirmedAt);
   if (otherAddress !== undefined && confirmedAt !== undefined) {
-    record.other = { address: otherAddress, confirmedAt };
+    record.other = {
+      address: otherAddress,
+      confirmedAt,
+      ...(other?.moved === true ? { moved: true } : {}),
+    };
   }
   const pending = r.pending as Record<string, unknown> | undefined;
   const pendingAddress = text(pending?.address);
@@ -105,6 +109,12 @@ export function withAccountAddress(
   const next: MailRecord = { ...rest, login };
   if (found.state === 'found') {
     next.account = { address: found.address, readAt: now.toISOString() };
+    const sameAsMoved =
+      record.account === undefined &&
+      record.use === 'other' &&
+      record.other?.moved === true &&
+      record.other?.address.toLowerCase() === found.address.toLowerCase();
+    if (sameAsMoved) next.use = 'account';
     return next;
   }
   if (found.state === 'unreachable') {
@@ -166,4 +176,17 @@ export function mailAddressOf(
     return record.other.address;
   }
   return undefined;
+}
+
+export function withoutAddress(text: string, address: string): string {
+  const wanted = address.toLowerCase();
+  if (wanted === '') return text;
+  let out = '';
+  let from = 0;
+  const lower = text.toLowerCase();
+  for (let at = lower.indexOf(wanted); at !== -1; at = lower.indexOf(wanted, from)) {
+    out += `${text.slice(from, at)}<address>`;
+    from = at + wanted.length;
+  }
+  return out + text.slice(from);
 }

@@ -266,8 +266,8 @@ The setting belongs to the account, not to a wiki: the same in every wiki the pe
 account. A person with a GitHub and a Forgejo account has two settings; they are never matched, also
 with the same address. Once a minute, new mentions the person has not read are mailed, only while
 the person can still open that wiki; if the host cannot be asked, nothing is mailed and it is tried
-again. Mentions that already existed when mail was switched on are not mailed. Each mail names the
-wiki and links into it. Behind the front door one mailer serves all wikis, and a sleeping wiki whose
+again. Mentions that already existed when mail was switched on, or when a wiki was added later,
+are not mailed. Each mail names the wiki and links into it. Behind the front door one mailer serves all wikis, and a sleeping wiki whose
 branch moved on the host is started every 10 minutes so mentions pushed through Git are mailed too.
 
 | Variable | Meaning |
@@ -295,6 +295,83 @@ into these folders, once, and leaves the old files as they were. A confirmed add
 two wikis disagree, the most recently confirmed address, the most recently changed settings and the
 most recently saved key win; codes waiting for confirmation are dropped. Going back to the previous
 image finds the old files as they were at the move.
+
+## People you can mention
+
+Typing `@` in a comment or a page offers the people who use this wiki: everyone who has signed in,
+the repository's collaborators with write access (read through the GitHub App, cached for ten
+minutes; if GitHub refuses, only the other two sources are used) and `GITQUIRE_ALLOWED_USERS`. The
+list of people who signed in is kept in `.gitquire/local/gitquire/people.json` on the data volume.
+
+Action items that mention someone (`- [ ] … @alice`) notify them like comments do. When this
+first runs, existing open action items are recorded as already seen, so nobody gets a burst of old
+notifications.
+
+## Chat notifications
+
+Set `GITQUIRE_CHAT_WEBHOOK_URL` to an incoming webhook of Slack, Microsoft Teams (Workflows),
+Discord, Mattermost or Rocket.Chat; other services get plain JSON. The format is guessed from the
+URL, or set `GITQUIRE_CHAT_FORMAT` to `slack`, `teams`, `discord` or `generic`. Mentions that exist
+when the webhook is first set up are not posted.
+
+## AI agents
+
+Each person connects their own AI agent, with their own Claude, Mistral (or other) account.
+Nothing runs on the server on their behalf.
+
+In the app, **Settings → Connect AI** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
+it shows the connector address and expandable steps for Claude (Customize → Connectors → Add
+custom connector) and Mistral's Le Chat (Intelligence → Connectors → Custom MCP Connector), and it
+links to the token page below for Claude Code. There, people can also choose to have their
+assistant's edits go into a [draft](#drafts) instead of the live wiki; behind the front door this is
+one choice for all wikis of the account.
+
+1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
+2. Create a token. The page shows it once, with the command for Claude Code and the config for the
+   Claude desktop app:
+
+   ```bash
+   claude mcp add --transport http gitquire https://wiki.example.com/mcp \
+     --header "Authorization: Bearer gqa_…"
+   ```
+
+3. Ask the agent to work on the wiki. Its edits show up live and are committed with you as the
+   author.
+
+### Claude on the web and on phones
+
+With `GITQUIRE_MCP_CONNECTORS=on`, `/mcp` also speaks the sign-in protocol that cloud connectors
+use (OAuth 2.1 with PKCE, client metadata documents and dynamic registration). In Claude's
+settings, add a custom connector with the address `https://wiki.example.com/mcp`. A popup opens,
+you sign in with GitHub and approve, and Claude can then work on the wiki from any device, as you.
+
+The connection comes from Anthropic's servers, so the wiki must be reachable on the public
+internet over HTTPS. GitHub sign-in and the repository's write access still decide who gets in.
+Each connected app shows up on `/auth/agents`, where it can be revoked. Its access token lasts an
+hour and is renewed with a refresh token for up to 90 days of inactivity.
+
+### Mistral Le Chat
+
+Le Chat connects the same way. An administrator of the Le Chat account (on the Free, Pro and Student
+plans, the account owner) opens **Intelligence → Connectors**, clicks **+ Add Connector**, switches
+to **Custom MCP Connector**, names it `gitquire` and enters `https://wiki.example.com/mcp`. Le Chat
+registers itself with a client secret (`client_secret_basic`), which GitQuire issues at
+registration and checks on every token request; the sign-in is then the same GitHub popup as for
+Claude. Like Claude, Le Chat connects from Mistral's servers, so the wiki must be reachable on the
+public internet over HTTPS.
+
+### Token storage
+
+Tokens are stored hashed in `.gitquire/local/gitquire/agent-tokens.json` on the data volume, never in
+the repository. Revoke one from `/auth/agents`; admins (`GITQUIRE_ADMINS`) can revoke anyone's.
+Every ten minutes the server checks that token owners can still write to `GITQUIRE_REPO` (using
+the GitHub App when it is configured) and revokes the tokens of people who lost access.
+
+| Variable | Meaning |
+| --- | --- |
+| `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
+| `GITQUIRE_MCP_CONNECTORS` | `on` lets Claude on the web, desktop chat and phones connect through GitHub sign-in. Needs a public `https://` URL. |
+| `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
 
 ## AI chat
 

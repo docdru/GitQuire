@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -7,8 +7,11 @@ import type { Mention } from '../mentions.ts';
 import { updateMailRecord } from './mail.ts';
 import {
   createPeopleMailer,
+  forgetWikiMailed,
+  knownWikis,
   type MailWiki,
   mailedIds,
+  markMailed,
   openWithin,
   type PeopleMailLimits,
   type WikiOpen,
@@ -106,7 +109,10 @@ function switchOn(store: PeopleStore, person: string, login: string, address: st
     since: new Date(since).toISOString(),
     lastSeen: new Date(since).toISOString(),
   }));
+  for (const key of KNOWN_AT_SWITCH_ON) markMailed(store, person, key, []);
 }
+
+const KNOWN_AT_SWITCH_ON = ['a', 'b', 'f', 'g', 'g1', 'g2', 'g3'];
 
 describe('the one mailer in the front door', () => {
   it('mails mentions from all wikis of the account to the one address, naming each wiki', async () => {
@@ -272,6 +278,95 @@ describe('the one mailer in the front door', () => {
     expect(mailedIds(store, 'github-5', 'g1').size).toBe(0);
   });
 
+  it('does not mail the backlog of a wiki added after the switch-on, only what comes later', async () => {
+    const a = {
+      key: 'a',
+      idPrefix: 'github-',
+      list: [] as Mention[],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const added = {
+      key: 'added',
+      idPrefix: 'github-',
+      list: [mention('old', 'anna', T0 + 1000)],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const fakes = [a];
+    const { store, sent, make } = setup(fakes);
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    const mailer = make();
+    expect(await mailer.round()).toBe(0);
+    fakes.push(added);
+    expect(await mailer.round()).toBe(0);
+    expect(sent).toEqual([]);
+    added.list.push(mention('new', 'anna', T0 + 5000));
+    expect(await mailer.round()).toBe(1);
+    expect(sent[0]?.text).toContain('team/added');
+  });
+
+  it('marks only what was there when a wiki was added, also if the first round comes much later', async () => {
+    const added: FakeWiki & { addedAt?: string } = {
+      key: 'added',
+      idPrefix: 'github-',
+      list: [mention('before', 'anna', T0 + 1000), mention('after', 'anna', T0 + 5000)],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const { store, sent } = setup([]);
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    const mailer = createPeopleMailer({
+      store,
+      config,
+      send: async (_c, message) => {
+        sent.push(message);
+      },
+      wikis: () => [{ ...wikiOf(added), addedAt: new Date(T0 + 3000).toISOString() }],
+      log: { warn: () => {} },
+      now: () => T0 + 60 * 60 * 1000,
+    });
+    expect(await mailer.round()).toBe(1);
+    expect(sent[0]?.text).toContain('team/added');
+    expect(mailedIds(store, 'github-5', 'added')).toEqual(new Set(['before', 'after']));
+  });
+
+  it('forgets a removed wiki, so adding it again marks what is there then', () => {
+    const { store } = setup([]);
+    markMailed(store, 'github-5', 'gone', ['m1']);
+    markMailed(store, 'github-5', 'kept', ['m2']);
+    forgetWikiMailed(store, 'gone');
+    expect(knownWikis(store, 'github-5')).toEqual(new Set(['kept']));
+  });
+
+  it('mails nothing twice when its record of what was mailed cannot be read', async () => {
+    const a = {
+      key: 'a',
+      idPrefix: 'github-',
+      list: [mention('m1', 'anna', T0 + 1000)],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const { store, sent, make } = setup([a]);
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    expect(await make().round()).toBe(1);
+    writeFileSync(join(store.root, 'github-5', 'mailed.json'), '{"a": ["m1"');
+    const reopened = createPeopleStore(store.root);
+    const mailer = createPeopleMailer({
+      store: reopened,
+      config,
+      send: async (_c, message) => {
+        sent.push(message);
+      },
+      wikis: () => [wikiOf(a)],
+      log: { warn: () => {} },
+      now: () => T0,
+    });
+    expect(await mailer.round()).toBe(0);
+    expect(sent).toHaveLength(1);
+    expect(mailedIds(reopened, 'github-5', 'a').has('m1')).toBe(true);
+  });
+
   it('does not send a mention that was marked mailed while the round waited', async () => {
     const a = {
       key: 'a',
@@ -329,6 +424,40 @@ describe('the one mailer in the front door', () => {
     expect(await restarted.round()).toBe(1);
     expect(await restarted.round()).toBe(0);
     expect(new Set(sent.map((m) => m.to)).size).toBe(3);
+  });
+
+  it('holds the daily limit per person over all wikis and rounds, and lets others through (P10)', async () => {
+    const a = {
+      key: 'a',
+      idPrefix: 'github-',
+      list: [
+        ...['a1', 'a2', 'a3'].map((id) => mention(id, 'anna', T0 + 1000)),
+        mention('b1', 'bert', T0 + 1000),
+      ],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const b = {
+      key: 'b',
+      idPrefix: 'github-',
+      list: ['b2', 'b3'].map((id) => mention(id, 'anna', T0 + 1000)),
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const { store, sent, make, advance } = setup([a, b], {
+      perPersonPerDay: 4,
+      perPersonPerRound: 2,
+    });
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    switchOn(store, 'github-6', 'bert', 'bert@example.org');
+    const mailer = make();
+    expect(await mailer.round()).toBe(3);
+    expect(await mailer.round()).toBe(2);
+    expect(await mailer.round()).toBe(0);
+    expect(sent.filter((m) => m.to === 'anna@example.org')).toHaveLength(4);
+    expect(sent.filter((m) => m.to === 'bert@example.org')).toHaveLength(1);
+    advance(24 * 60 * 60 * 1000);
+    expect(await mailer.round()).toBe(1);
   });
 
   it('skips read mentions, the author’s own and mentions of others', async () => {

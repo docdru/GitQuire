@@ -93,6 +93,19 @@ Each is also in the roadmap doc's "Assumptions".
 
 - **B9, single wiki without a front door:** the same per-person code with its store in `<wiki>/.gitquire/local/gitquire/people/` (person ids as everywhere, mailed ids under the wiki key `wiki`). At its first start it moves its own old files there once, by the same rules as the front door, and leaves them as they were. It reads the account address at its own sign-in (5 seconds, without holding up the sign-in), answers Settings → Notifications and `/me/settings` from that store, and its mailer asks the same access check as its agent tokens (allowed users, or write access through the host) before each person's mail; "unknown" mails nothing. Its AI chat keys and usage move to the same folder (sealed with a secret derived from `GITQUIRE_SESSION_SECRET`), so `unadopt` and `adopt` carry them. The agent mode stays in the wiki's drafts store in this mode (it has only one wiki).
 
+- **Whole-branch review (#267):**
+  - The mailer asks access strictly. When the host cannot be asked, an older cached answer never counts as "open", so nothing is mailed (P3). Pages still use the cached answer, as before (R14).
+  - Any request the front door forwards into a wiki counts as a visit for the 30-day idle rule; so does opening the inbox in a single wiki. This is noted at most once an hour per person.
+  - A wiki key in `mailed.json` means "this wiki is known for this person". Switch-on, the move-over and `adopt`/`unadopt` write or copy it (also with nothing mailed yet). Removing a wiki drops its key for everyone. At each round, for every switched-on person and before any pause check (idle, address, backoff, host down), a wiki without a key gets its mentions from before the wiki's `addedAt` marked as mailed; later ones are mailed as usual. If `mailed.json` cannot be parsed, all existing mentions are marked, so nothing is mailed twice. Files and their folder are fsynced. Second review of the fix PR (#269): known-key copy on adopt, `addedAt`, removal, and the check before pauses.
+  - The move-over marks the wikis it moves in this run whatever the record looked like before, so a retry after a run that stopped partway still marks.
+  - A moved address (marked as moved by the move-over) that equals the account address read at the first sign-in becomes the account address. An address chosen with a code is never converted.
+  - The front-door sign-in no longer waits for the account address.
+  - Editors no longer get the SMTP settings.
+  - The address is removed from mail error lines in any case.
+  - Kept as it is, after the review's nit 7: a host that does not answer is skipped for the rest of the round (B4). "Does not answer" is a 15-second timeout or "unreachable"; a wiki the bot is refused on counts as closed, not as down.
+  - Kept as it is, after nit 11: the login in the mail record is refreshed at each sign-in, each visit and each Settings visit. A renamed account whose old login is taken over by someone else, with no visit in between, is a known limit.
+  - Design limit (nit 12): editor processes run as the same Unix user as the front door. The ticket keeps a buggy editor from asking for another person's data, but a compromised editor can read the addresses on the volume. AI keys stay safe, because they are sealed with a key derived from `GITQUIRE_SESSION_SECRET`, which editors do not get.
+
 ## Blocks
 
 | Block | Pull request |
@@ -108,6 +121,7 @@ Each is also in the roadmap doc's "Assumptions".
 | B8 moving over | #264 |
 | B9 single wiki | #265 |
 | B10 tests and docs | #266 |
+| Whole-branch review fixes | see the pull request of this block |
 | per-person → main | #267 (open, for the owner to merge) |
 
 ## What the `forgejo-h5` job tries for real (B10)

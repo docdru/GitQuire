@@ -44,6 +44,7 @@ export interface SingleWikiPeople {
   routes: PersonRoutes;
   mailer: PeopleMailer | undefined;
   who: (req: IncomingMessage) => EmailPerson | undefined;
+  seen: (user: Pick<SessionUser, 'id' | 'login'>) => void;
   recordAddress: (user: Pick<SessionUser, 'id' | 'login'>, found: AccountAddress) => void;
 }
 
@@ -52,7 +53,7 @@ function openOf(verdict: AccessVerdict): WikiOpen {
 }
 
 export function createSingleWikiPeople(deps: SingleWikiPeopleDeps): SingleWikiPeople {
-  const now = deps.now ?? Date.now;
+  const now = deps.now ?? (() => Date.now());
   const names = hostNames();
   const store = createPeopleStore(singleWikiPeopleRoot(deps.projectDir));
   const secret = deps.env.GITQUIRE_SESSION_SECRET?.trim() ?? '';
@@ -136,6 +137,7 @@ export function createSingleWikiPeople(deps: SingleWikiPeopleDeps): SingleWikiPe
         ? undefined
         : { person: personId(names.idPrefix, user.id), login: user.login, hostLabel: names.label };
     },
+    seen: (user) => email.seen({ person: personId(names.idPrefix, user.id), login: user.login }),
     recordAddress: (user, found) => {
       recordAccountAddress(
         store,

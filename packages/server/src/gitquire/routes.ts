@@ -481,6 +481,7 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       return;
     }
     people.remember(user);
+    single?.seen(user);
     const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
     sendJson(res, 200, {
       enabled: true,
