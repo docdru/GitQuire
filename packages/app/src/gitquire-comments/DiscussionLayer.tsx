@@ -52,7 +52,7 @@ function createDiscussionPlugin(docName: string): Plugin<DecorationSet> {
       decorations: (state) => discussionKey.getState(state),
       handleClickOn: (_view, _pos, node) => {
         if (node.type.name !== GITQUIRE_COMMENT_MARK_NODE) return false;
-        openThread(docName, String(node.attrs.id ?? ''));
+        openThread(docName, String(node.attrs.id ?? ''), true);
         return true;
       },
       handleClick: (view, pos) => {

@@ -9,10 +9,17 @@ import {
   size,
 } from '@floating-ui/dom';
 import type { Editor } from '@tiptap/react';
-import { type RefObject, useLayoutEffect } from 'react';
+import { type CSSProperties, type RefObject, useLayoutEffect } from 'react';
 
 const EDGE_PADDING = 8;
 const MIN_HEIGHT = 160;
+
+export const UNPLACED_STYLE: CSSProperties = {
+  left: 0,
+  top: 0,
+  opacity: 0,
+  pointerEvents: 'none',
+};
 
 export interface TextRange {
   from: number;
@@ -91,6 +98,8 @@ export function useFloatingAnchor(
       }).then(({ x, y, middlewareData }) => {
         element.style.left = `${x}px`;
         element.style.top = `${y}px`;
+        element.style.opacity = '';
+        element.style.pointerEvents = '';
         element.style.visibility = middlewareData.hide?.referenceHidden ? 'hidden' : 'visible';
       });
     };

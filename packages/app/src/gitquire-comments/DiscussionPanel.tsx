@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils';
 import { findQuoteRange } from './anchor-search';
 import { registerCommentEditor, useCommentEditor } from './comment-editors';
 import { type PlacedThread, placeThreads, readThreads } from './editor-threads';
-import { type TextRange, useFloatingAnchor } from './floating-anchor';
+import { type TextRange, UNPLACED_STYLE, useFloatingAnchor } from './floating-anchor';
 import {
   type Author,
   addReply,
@@ -50,6 +50,7 @@ import {
   clearDraft,
   clearReveal,
   currentAuthor,
+  getDiscussionUi,
   setActiveThread,
   showThreadInPane,
   useDiscussionUi,
@@ -64,6 +65,14 @@ const KEEP_CARD_OPEN_SELECTOR =
 const EMPTY: Thread[] = [];
 
 const ignore = (): undefined => undefined;
+
+function focusFirstField(container: HTMLElement | null): void {
+  const field = container?.querySelector<HTMLTextAreaElement>('textarea:not(:disabled)');
+  if (field === null || field === undefined) return;
+  field.focus({ preventScroll: true });
+  const end = field.value.length;
+  field.setSelectionRange(end, end);
+}
 
 function useThreads(editor: Editor): Thread[] {
   return useSyncExternalStore(
@@ -252,6 +261,7 @@ function ThreadCard({
   active,
   expanded,
   framed = true,
+  focusReply = false,
   me,
   onSelect,
   onReply,
@@ -263,6 +273,7 @@ function ThreadCard({
   active: boolean;
   expanded: boolean;
   framed?: boolean;
+  focusReply?: boolean;
   me: Author | null;
   onSelect: () => void;
   onReply: (body: string) => Promise<void>;
@@ -324,6 +335,7 @@ function ThreadCard({
             value={reply}
             placeholder={t`Write a reply. Type @ to mention someone.`}
             aria-label={t`Reply`}
+            autoFocus={focusReply}
             onValueChange={setReply}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void send();
@@ -348,6 +360,7 @@ function AnchoredCard({
   editor,
   range,
   label,
+  focusField = false,
   onClose,
   onDismiss,
   children,
@@ -355,6 +368,7 @@ function AnchoredCard({
   editor: Editor;
   range: TextRange;
   label: string;
+  focusField?: boolean;
   onClose: () => void;
   onDismiss: () => void;
   children: ReactNode;
@@ -366,6 +380,11 @@ function AnchoredCard({
     dismiss.current = onDismiss;
   });
   useFloatingAnchor(editor, range, card);
+  const focusOnOpen = useRef(focusField);
+
+  useLayoutEffect(() => {
+    if (focusOnOpen.current) focusFirstField(card.current);
+  }, []);
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent): void => {
@@ -392,7 +411,7 @@ function AnchoredCard({
     <section
       ref={card}
       className={CARD_CLASS}
-      style={{ left: 0, top: 0, visibility: 'hidden' }}
+      style={UNPLACED_STYLE}
       aria-label={label}
       data-discussion-card=""
       data-testid="discussion-card"
@@ -492,7 +511,9 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
     activePlaced !== null && activeRange === null ? activePlaced.thread.id : null;
 
   useEffect(() => {
-    if (orphanThreadId !== null) showThreadInPane(docName, orphanThreadId);
+    if (orphanThreadId !== null) {
+      showThreadInPane(docName, orphanThreadId, getDiscussionUi().focusReply);
+    }
   }, [orphanThreadId, docName]);
 
   const revealThreadId = forThisDoc ? ui.revealThreadId : null;
@@ -539,6 +560,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       editor={editor}
       range={draft}
       label={t`New comment`}
+      focusField
       onClose={cancelDraft}
       onDismiss={() => {
         if (draftBody.trim() === '') cancelDraft();
@@ -550,7 +572,6 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
         value={draftBody}
         placeholder={t`Add a comment. Type @ to mention someone.`}
         aria-label={t`Comment`}
-        autoFocus
         onValueChange={setDraftBody}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void createFromDraft();
@@ -578,6 +599,7 @@ export function DiscussionPanel({ editor, docName }: { editor: Editor; docName: 
       editor={editor}
       range={activeRange}
       label={t`Comment thread`}
+      focusField={ui.focusReply}
       onClose={() => setActiveThread(null)}
       onDismiss={() => setActiveThread(null)}
     >
@@ -642,12 +664,12 @@ function CommentList({
 
   function select(p: PlacedThread) {
     if (p.range === null || editor.isDestroyed) {
-      setActiveThread(p.thread.id);
+      showThreadInPane(docName, p.thread.id, true);
       return;
     }
     editor.chain().setTextSelection(p.range).scrollIntoView().run();
-    showThreadInPane(docName, p.thread.id);
-    onNavigated?.(editor.view.dom);
+    showThreadInPane(docName, p.thread.id, true);
+    onNavigated?.();
   }
 
   if (placed.length === 0) {
@@ -668,6 +690,7 @@ function CommentList({
               placed={p}
               active={active}
               expanded={active && p.range === null}
+              focusReply={active && ui.focusReply}
               me={me}
               onSelect={() => select(p)}
               onReply={(body) => actions.replyTo(p.thread.id, body)}
