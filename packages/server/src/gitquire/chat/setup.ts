@@ -1,10 +1,21 @@
 import type { IncomingMessage } from 'node:http';
 import { basename } from 'node:path';
 import type { GateLogger, SessionUser } from '../access-gate.ts';
+import { DOOR_TOKEN_SOCKET_ENV } from '../door-token.ts';
 import { parseGitHubRepo } from '../github-auth-config.ts';
+import { doorAsker } from '../people/door-client.ts';
+import { behindFrontDoorFromEnv } from '../request-person.ts';
 import { createChatHistoryStore } from './history.ts';
 import { chatKeySecretFromEnv } from './key-secret.ts';
 import { createChatKeyStore } from './key-store.ts';
+import {
+  type ChatKeys,
+  type ChatUsage,
+  doorChatKeys,
+  doorChatUsage,
+  localChatKeys,
+  localChatUsage,
+} from './person-data.ts';
 import { createChatProviders } from './providers.ts';
 import { type ChatRoutes, createChatRoutes } from './routes.ts';
 import { createChatUsageStore } from './usage.ts';
@@ -34,6 +45,24 @@ function wikiNameFrom(env: Env, projectDir: string): string {
   return basename(projectDir) || 'wiki';
 }
 
+export function chatStoresFromEnv(
+  env: Env,
+  projectDir: string,
+): { keys: ChatKeys; usage: ChatUsage } | undefined {
+  const socket = env[DOOR_TOKEN_SOCKET_ENV]?.trim() ?? '';
+  if (behindFrontDoorFromEnv(env)) {
+    if (socket === '') return undefined;
+    const ask = doorAsker(socket);
+    return { keys: doorChatKeys(ask), usage: doorChatUsage(ask) };
+  }
+  const secret = chatKeySecretFromEnv(env);
+  if (secret === undefined) return undefined;
+  return {
+    keys: localChatKeys(createChatKeyStore(projectDir, secret)),
+    usage: localChatUsage(createChatUsageStore(projectDir)),
+  };
+}
+
 export function createChatFromEnv(
   env: Env,
   options: {
@@ -44,8 +73,8 @@ export function createChatFromEnv(
   },
 ): ChatRoutes | undefined {
   if (isOff(env.GITQUIRE_AI_CHAT)) return undefined;
-  const secret = chatKeySecretFromEnv(env);
-  if (secret === undefined) return undefined;
+  const stores = chatStoresFromEnv(env, options.projectDir);
+  if (stores === undefined) return undefined;
   const wikiName = wikiNameFrom(env, options.projectDir);
   const anthropic = baseUrl(env.GITQUIRE_ANTHROPIC_BASE_URL);
   const mistral = baseUrl(env.GITQUIRE_MISTRAL_BASE_URL);
@@ -54,9 +83,9 @@ export function createChatFromEnv(
     ...(mistral === undefined ? {} : { mistral }),
   };
   return createChatRoutes({
-    keys: createChatKeyStore(options.projectDir, secret),
+    keys: stores.keys,
     history: createChatHistoryStore(options.projectDir),
-    usage: createChatUsageStore(options.projectDir),
+    usage: stores.usage,
     providers: createChatProviders({ endpoints }),
     openTools: createLoopbackWikiTools({ clientName: 'GitQuire AI chat', version: '1' }),
     sessionUser: options.sessionUser,

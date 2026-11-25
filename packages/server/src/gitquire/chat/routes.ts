@@ -10,7 +10,7 @@ import {
   newChatId,
   titleFrom,
 } from './history.ts';
-import { type ChatKeyStore, InvalidApiKeyError, normalizeApiKey } from './key-store.ts';
+import { InvalidApiKeyError, normalizeApiKey } from './key-store.ts';
 import {
   CHAT_PROVIDERS,
   type ChatProvider,
@@ -18,6 +18,7 @@ import {
   PROVIDER_INFO,
   resolveModel,
 } from './models.ts';
+import type { ChatKeys, ChatUsage } from './person-data.ts';
 import { type ChatProviders, ProviderError } from './providers.ts';
 import {
   chatTranscript,
@@ -25,7 +26,6 @@ import {
   normalizePagePath,
   suggestedPagePath,
 } from './transcript.ts';
-import type { ChatUsageStore } from './usage.ts';
 import type { OpenWikiTools } from './wiki-tools.ts';
 
 const MAX_MESSAGE_CHARS = 20_000;
@@ -79,9 +79,9 @@ function sameOrigin(req: IncomingMessage): boolean {
 }
 
 export interface ChatRoutesDeps {
-  keys: ChatKeyStore;
+  keys: ChatKeys;
   history: ChatHistoryStore;
-  usage: ChatUsageStore;
+  usage: ChatUsage;
   providers: ChatProviders;
   openTools: OpenWikiTools;
   ownPort?: () => number | undefined;
@@ -130,8 +130,8 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
     return value;
   }
 
-  function overview(user: SessionUser) {
-    const keys = deps.keys.info(user.id);
+  async function overview(req: IncomingMessage, user: SessionUser) {
+    const keys = await deps.keys.info(req, user);
     return {
       available: true,
       retentionDays: CHAT_RETENTION_DAYS,
@@ -180,7 +180,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
         throw err;
       }
     }
-    const info = deps.keys.set(user.id, provider, key, now());
+    const info = await deps.keys.set(req, user, provider, key, now());
     deps.log.info({ login: user.login, provider }, '[gitquire-chat] saved an API key');
     sendJson(res, 200, { provider, key: info });
   }
@@ -217,7 +217,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
     const edits = body.edits;
     const provider = providerFrom(body.provider);
     const model = resolveModel(provider, body.model);
-    const apiKey = deps.keys.get(user.id, provider);
+    const apiKey = await deps.keys.get(req, user, provider);
     if (apiKey === undefined) {
       throw new ChatHttpError(
         409,
@@ -254,8 +254,8 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       'X-Accel-Buffering': 'no',
     });
     const record = (event: ChatEvent & { type: 'usage' }) => {
-      try {
-        deps.usage.add(user.id, {
+      deps.usage
+        .add(req, user, {
           day: now().toISOString().slice(0, 10),
           chatId: chat.id,
           title: chat.title,
@@ -263,10 +263,10 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
           model: chat.model,
           inputTokens: event.inputTokens,
           outputTokens: event.outputTokens,
+        })
+        .catch((err: unknown) => {
+          deps.log.warn({ err }, '[gitquire-chat] could not record token usage');
         });
-      } catch (err) {
-        deps.log.warn({ err }, '[gitquire-chat] could not record token usage');
-      }
     };
     const emit = (event: ChatEvent) => {
       if (event.type === 'usage') record(event);
@@ -385,7 +385,7 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       throw new ChatHttpError(403, 'cross-origin', 'Cross-origin requests are not allowed.');
     }
     if (path === CHAT_API_PREFIX && method === 'GET') {
-      sendJson(res, 200, overview(requireUser(req)));
+      sendJson(res, 200, await overview(req, requireUser(req)));
       return;
     }
     const keyMatch = /^\/api\/gitquire\/chat\/keys\/([a-z]+)$/.exec(path);
@@ -394,14 +394,14 @@ export function createChatRoutes(deps: ChatRoutesDeps): ChatRoutes {
       if (method === 'PUT') return saveKey(req, res, provider);
       if (method === 'DELETE') {
         const user = requireUser(req);
-        deps.keys.remove(user.id, provider);
+        await deps.keys.remove(req, user, provider);
         deps.log.info({ login: user.login, provider }, '[gitquire-chat] removed an API key');
-        sendJson(res, 200, { provider, key: deps.keys.info(user.id)[provider] });
+        sendJson(res, 200, { provider, key: (await deps.keys.info(req, user))[provider] });
         return;
       }
     }
     if (path === `${CHAT_API_PREFIX}/usage` && method === 'GET') {
-      sendJson(res, 200, deps.usage.report(requireUser(req).id, now()));
+      sendJson(res, 200, await deps.usage.report(req, requireUser(req), now()));
       return;
     }
     if (path === `${CHAT_API_PREFIX}/chats` && method === 'GET') {

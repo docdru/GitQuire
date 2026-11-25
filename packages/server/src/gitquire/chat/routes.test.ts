@@ -8,6 +8,7 @@ import type { SessionUser } from '../access-gate.ts';
 import { listenOnUnixSocket } from '../process-pool/socket-listener.ts';
 import { createChatHistoryStore } from './history.ts';
 import { createChatKeyStore } from './key-store.ts';
+import { localChatKeys, localChatUsage } from './person-data.ts';
 import { type ChatProviders, ProviderError, type ProviderTurn } from './providers.ts';
 import { type ChatRoutes, createChatRoutes } from './routes.ts';
 import { createChatUsageStore } from './usage.ts';
@@ -72,9 +73,9 @@ async function harness(options: {
     async close() {},
   });
   const routes = createChatRoutes({
-    keys: createChatKeyStore(dir, 's'.repeat(40)),
+    keys: localChatKeys(createChatKeyStore(dir, 's'.repeat(40))),
     history: createChatHistoryStore(dir),
-    usage: createChatUsageStore(dir),
+    usage: localChatUsage(createChatUsageStore(dir)),
     providers,
     openTools,
     sessionUser: (req) => {
