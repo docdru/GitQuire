@@ -21,6 +21,7 @@ import type { GateLogger } from '../access-gate.ts';
 import type { AgentTokenRecord } from '../agent-tokens.ts';
 import { EDITS_DRAFT_HEADER, EDITS_HEADER } from '../drafts/model.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
+import { PERSON_TICKET_HEADER } from '../people/ticket.ts';
 import {
   encodeProxiedUser,
   FORWARDED_PREFIX_HEADER,
@@ -47,6 +48,7 @@ interface DoorMcpDeps {
   access: Pick<WikiAccess, 'decide'>;
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   seesWhy?: (person: AgentPerson, wiki: WikiRecord) => boolean;
+  ticketFor?: (wiki: WikiRecord, person: AgentPerson) => string;
   log: GateLogger;
   now?: () => number;
   sessionTtlMs?: number;
@@ -282,6 +284,9 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
         ...(target.admin ? { repoAdmin: true } : {}),
       }),
       [FORWARDED_PREFIX_HEADER]: wikiPrefix(wiki),
+      ...(deps.ticketFor === undefined
+        ? {}
+        : { [PERSON_TICKET_HEADER]: deps.ticketFor(wiki, session.person) }),
     };
   }
 

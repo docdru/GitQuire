@@ -16,6 +16,7 @@ import {
   wantsHtml,
 } from '../http-util.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
+import { PERSON_TICKET_HEADER, type PersonTickets } from '../people/ticket.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
   encodeProxiedUser,
@@ -163,6 +164,7 @@ export interface FrontDoorDeps {
   processes: WikiProcesses;
   agents?: Pick<DoorAgents, 'handle' | 'features' | 'pathsFor'>;
   mentionCounts?: MentionCounts;
+  tickets?: PersonTickets;
   log: GateLogger;
   now?: () => number;
   randomState?: () => string;
@@ -1173,6 +1175,15 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         ...(admin ? { repoAdmin: true } : {}),
       }),
       [FORWARDED_PREFIX_HEADER]: wikiPrefix(wiki),
+      ...(deps.tickets === undefined || entry === undefined
+        ? {}
+        : {
+            [PERSON_TICKET_HEADER]: deps.tickets.issue(
+              wiki.key,
+              personIdOn(entry.names, user.id),
+              user.login,
+            ),
+          }),
       ...(view === undefined || view === '' ? {} : { [FORWARDED_VIEW_HEADER]: view }),
       ...(agentFeatures === undefined ? {} : { [FORWARDED_AGENTS_HEADER]: agentFeatures }),
       ...(agentFeatures === undefined || entry === undefined

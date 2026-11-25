@@ -5,6 +5,9 @@ import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
 import type { DoorHost, HostPerson } from '../host/types.ts';
+import { personSettings } from '../people/settings.ts';
+import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
+import { createPersonTickets } from '../people/ticket.ts';
 import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
@@ -20,6 +23,7 @@ import {
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
 import type { HostSettings } from './hosts.ts';
 import { createMentionCounts } from './mention-counts.ts';
+import { createPersonSocketHandler } from './person-socket.ts';
 import { openRepoTokenFile, repoTokenKey, repoTokensFile } from './repo-tokens.ts';
 import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.ts';
 import {
@@ -186,6 +190,21 @@ export async function startFrontDoor(
       );
   }
 
+  const tickets = createPersonTickets();
+  const people = createPeopleStore(frontDoorPeopleRoot(settings.dataDir));
+  const personSocket = createPersonSocketHandler({
+    tickets,
+    mayAsk: async (wikiKey, person, login) => {
+      const wiki = table.byKey(wikiKey);
+      const entry = wiki === undefined ? undefined : hosts.of(wiki);
+      if (wiki === undefined || entry === undefined) return false;
+      if (!person.startsWith(entry.names.idPrefix)) return false;
+      const id = Number(person.slice(entry.names.idPrefix.length));
+      return (await entry.access.decide({ id, login }, wiki)).open;
+    },
+    settings: personSettings(people),
+    log,
+  });
   let tokenSocketPath = '';
   const processes = createWikiProcesses({
     dataDir: settings.dataDir,
@@ -211,6 +230,7 @@ export async function startFrontDoor(
       );
   };
   const tokenSocket = await listenTokenSocket({
+    person: personSocket,
     wikiOfSecret: processes.wikiOfSecret,
     repoOf: (key) => {
       const wiki = table.byKey(key);
@@ -238,6 +258,7 @@ export async function startFrontDoor(
     table,
     processes,
     sessionUser: (req, hostKey) => doorSessionUser(req, hostKey),
+    tickets,
     log,
   });
   agents.sweep.runOnce().catch((err: unknown) => {
@@ -250,6 +271,7 @@ export async function startFrontDoor(
     processes,
     agents,
     mentionCounts: createMentionCounts(settings.dataDir),
+    tickets,
     log,
   });
   doorSessionUser = door.sessionUser;
