@@ -241,7 +241,7 @@ export async function startFrontDoor(
     wikis: () =>
       table.list().flatMap((wiki) => {
         const entry = hosts.of(wiki);
-        if (entry === undefined || wiki.state !== 'on') return [];
+        if (entry === undefined) return [];
         return [
           {
             key: wiki.key,

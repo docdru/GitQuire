@@ -210,12 +210,8 @@ describe('the one mailer in the front door', () => {
     expect(sent).toHaveLength(1);
   });
 
-  it('mails nothing that existed before mail was switched on (P4)', async () => {
-    const old = mention('old', 'anna', T0 - 60 * 60 * 1000);
-    const edited = {
-      ...mention('edited', 'anna', T0 - 60 * 60 * 1000),
-      at: new Date(T0 + 5000).toISOString(),
-    };
+  it('mails nothing that existed before mail was switched on, also when edited later (P4)', async () => {
+    const old = mention('old', 'anna', T0 + 1000);
     const a = {
       key: 'a',
       idPrefix: 'github-',
@@ -227,11 +223,90 @@ describe('the one mailer in the front door', () => {
     switchOn(store, 'github-5', 'anna', 'anna@example.org');
     const mailer = make();
     mailer.markExisting('github-5', 'anna');
-    a.list = [old, edited];
-    expect(await mailer.round()).toBe(1);
-    expect(sent.map((m) => m.text).join('\n')).not.toContain('old');
-    a.list = [old, { ...edited }];
+    a.list = [{ ...old, at: new Date(T0 + 60_000).toISOString(), body: '@anna edited' }];
     expect(await mailer.round()).toBe(0);
+    a.list = [...a.list, mention('new', 'anna', T0 + 2000)];
+    expect(await mailer.round()).toBe(1);
+    expect(sent.map((m) => m.text).join('\n')).not.toContain('edited');
+  });
+
+  it('pays the wait for a host that does not answer once per round, and the other host goes on (P3)', async () => {
+    let asked = 0;
+    const hanging: MailWiki[] = ['g1', 'g2', 'g3'].map((key) => ({
+      key,
+      idPrefix: 'github-',
+      name: key,
+      url: undefined,
+      mentions: () => [mention(`m-${key}`, 'anna', T0 + 1000)],
+      readIds: () => new Set(),
+      canOpen: () => {
+        asked += 1;
+        return openWithin(new Promise(() => {}), 30);
+      },
+    }));
+    const up = {
+      key: 'f',
+      idPrefix: 'forgejo-',
+      list: [mention('mf', 'anna', T0 + 1000)],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const { store, sent } = setup([up]);
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    switchOn(store, 'github-6', 'anna', 'anna2@example.org');
+    switchOn(store, 'forgejo-5', 'anna', 'anna@example.org');
+    const mailer = createPeopleMailer({
+      store,
+      config,
+      send: async (_c, message) => {
+        sent.push(message);
+      },
+      wikis: () => [...hanging, wikiOf(up)],
+      log: { warn: () => {} },
+      now: () => T0,
+    });
+    const started = Date.now();
+    expect(await mailer.round()).toBe(1);
+    expect(asked).toBe(1);
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(mailedIds(store, 'github-5', 'g1').size).toBe(0);
+  });
+
+  it('does not send a mention that was marked mailed while the round waited', async () => {
+    const a = {
+      key: 'a',
+      idPrefix: 'github-',
+      list: [mention('m1', 'anna', T0 + 1000)],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const { store, sent, make } = setup([a]);
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    const mailer = make();
+    const wiki = wikiOf(a);
+    const slow: MailWiki = {
+      ...wiki,
+      canOpen: async () => {
+        updateMailRecord(store, 'github-5', (record) => ({
+          ...record,
+          since: new Date(T0 + 5000).toISOString(),
+        }));
+        mailer.markExisting('github-5', 'anna');
+        return 'open';
+      },
+    };
+    const racing = createPeopleMailer({
+      store,
+      config,
+      send: async (_c, message) => {
+        sent.push(message);
+      },
+      wikis: () => [slow],
+      log: { warn: () => {} },
+      now: () => T0 + 6000,
+    });
+    expect(await racing.round()).toBe(0);
+    expect(sent).toEqual([]);
   });
 
   it('keeps "mailed" over a restart and holds the hourly limit for the whole server (P10)', async () => {

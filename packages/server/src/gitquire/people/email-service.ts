@@ -137,11 +137,10 @@ export function createEmailService(deps: EmailServiceDeps): EmailService {
 
   function switchOn(who: EmailPerson, use: 'account' | 'other', extra: Partial<MailRecord> = {}) {
     let since: string | undefined;
+    let fresh = false;
     updateMailRecord(deps.store, who.person, (record) => {
-      since =
-        record.use === undefined || record.since === undefined
-          ? new Date(now()).toISOString()
-          : record.since;
+      fresh = record.use === undefined || record.since === undefined;
+      since = fresh ? new Date(now()).toISOString() : record.since;
       return {
         ...record,
         ...extra,
@@ -151,7 +150,7 @@ export function createEmailService(deps: EmailServiceDeps): EmailService {
         lastSeen: new Date(now()).toISOString(),
       };
     });
-    if (since !== undefined) deps.onSwitchedOn?.(who.person, who.login, since);
+    if (fresh && since !== undefined) deps.onSwitchedOn?.(who.person, who.login, since);
   }
 
   function checkBudget(who: EmailPerson, toKey: string): void {

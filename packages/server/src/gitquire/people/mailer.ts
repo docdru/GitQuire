@@ -173,20 +173,59 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     return true;
   }
 
+  interface RoundWiki {
+    wiki: MailWiki;
+    mentions: () => Mention[];
+    readIds: (accountId: number) => Set<string>;
+  }
+
+  function forRound(wiki: MailWiki): RoundWiki {
+    let mentions: Mention[] | undefined;
+    const read = new Map<number, Set<string>>();
+    return {
+      wiki,
+      mentions: () => {
+        mentions ??= wiki.mentions();
+        return mentions;
+      },
+      readIds: (accountId) => {
+        let ids = read.get(accountId);
+        if (ids === undefined) {
+          ids = wiki.readIds(accountId);
+          read.set(accountId, ids);
+        }
+        return ids;
+      },
+    };
+  }
+
   function dueIn(
-    wiki: MailWiki,
+    round: RoundWiki,
     person: string,
     account: { id: number; login: string },
     earliest: string,
   ): Mention[] {
-    const mailed = mailedIds(deps.store, person, wiki.key);
-    const read = wiki.readIds(account.id);
-    return mentionsFor(account, wiki.mentions(), person).filter(
+    const mailed = mailedIds(deps.store, person, round.wiki.key);
+    const read = round.readIds(account.id);
+    return mentionsFor(account, round.mentions(), person).filter(
       (mention) => mention.at >= earliest && !mailed.has(mention.id) && !read.has(mention.id),
     );
   }
 
-  async function mailPerson(person: string, wikis: readonly MailWiki[]): Promise<number> {
+  function stillDue(person: string, wikiKey: string, since: string, address: string, id: string) {
+    const record = readMailRecord(deps.store, person);
+    return (
+      record.since === since &&
+      mailAddressOf(record, deps.config, now()) === address &&
+      !mailedIds(deps.store, person, wikiKey).has(id)
+    );
+  }
+
+  async function mailPerson(
+    person: string,
+    wikis: readonly RoundWiki[],
+    hostsDown: Set<string>,
+  ): Promise<number> {
     const account = accountOf(person);
     if (account === undefined) return 0;
     const record = readMailRecord(deps.store, person);
@@ -196,21 +235,25 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     if (now() - lastSeen > limits.idleDays * DAY_MS) return 0;
     if ((failures.get(person)?.retryAt ?? 0) > now()) return 0;
     const login = record.login;
+    const since = record.since;
     const reader = { id: account.id, login };
-    const earliest = new Date(Date.parse(record.since) - limits.clockSlackMs).toISOString();
+    const earliest = new Date(Date.parse(since) - limits.clockSlackMs).toISOString();
     let sent = 0;
-    for (const wiki of wikis) {
-      if (wiki.idPrefix !== account.idPrefix) continue;
-      const due = dueIn(wiki, person, reader, earliest);
+    for (const round of wikis) {
+      if (round.wiki.idPrefix !== account.idPrefix || hostsDown.has(account.idPrefix)) continue;
+      const due = dueIn(round, person, reader, earliest);
       if (due.length === 0) continue;
-      if ((await wiki.canOpen(reader)) !== 'open') continue;
+      const open = await round.wiki.canOpen(reader);
+      if (open === 'unknown') {
+        hostsDown.add(account.idPrefix);
+        continue;
+      }
+      if (open !== 'open') continue;
       for (const mention of due) {
         if (sent >= limits.perPersonPerRound || !mayMail(person, now())) return sent;
-        if (mailAddressOf(readMailRecord(deps.store, person), deps.config, now()) !== address) {
-          return sent;
-        }
+        if (!stillDue(person, round.wiki.key, since, address, mention.id)) continue;
         try {
-          if (await mailOne(person, login, address, wiki, mention)) sent += 1;
+          if (await mailOne(person, login, address, round.wiki, mention)) sent += 1;
         } catch {
           return sent;
         }
@@ -225,10 +268,22 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
       running = true;
       let sent = 0;
       try {
-        const wikis = deps.wikis();
+        const wikis = deps.wikis().map(forRound);
+        const hostsDown = new Set<string>();
+        const byHost = new Map<string, string[]>();
         for (const person of deps.store.people()) {
-          sent += await mailPerson(person, wikis);
+          const prefix = accountOf(person)?.idPrefix;
+          if (prefix === undefined) continue;
+          byHost.set(prefix, [...(byHost.get(prefix) ?? []), person]);
         }
+        const counts = await Promise.all(
+          [...byHost.values()].map(async (people) => {
+            let count = 0;
+            for (const person of people) count += await mailPerson(person, wikis, hostsDown);
+            return count;
+          }),
+        );
+        sent = counts.reduce((total, count) => total + count, 0);
       } finally {
         running = false;
       }
