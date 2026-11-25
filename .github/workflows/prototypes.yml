@@ -364,6 +364,20 @@ jobs:
       - name: Two-wiki rows (sign in once, open both, no access for the other)
         run: python3 -I .github/prototypes/h5_forgejo.py wikis
 
+      - name: Per-person rows (account address, one switch, mail from two wikis, access removed, sleeping wikis, AI key, move-over)
+        run: |
+          set -eu
+          docker stop -t 60 gq-wikis >/dev/null
+          nohup python3 -I .github/prototypes/pp_smtp.py > /tmp/pp-smtp.log 2>&1 &
+          sleep 1
+          python3 -I .github/prototypes/pp_rows.py
+
+      - name: Logs of the per-person rows
+        if: always()
+        run: |
+          echo "::group::gq-pp"; docker logs --tail 300 gq-pp 2>&1 | cut -c1-300 || true; echo "::endgroup::"
+          echo "::group::mails"; ls -la /tmp/pp-mail 2>/dev/null || true; echo "::endgroup::"
+
       - name: Two wikis in depth (every address, drafts, R6, R8, R10, R11, R14, R18, sleep and wake)
         run: |
           set -eu

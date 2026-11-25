@@ -81,7 +81,8 @@ People with write access to `GITQUIRE_REPO` (or listed in `GITQUIRE_ALLOWED_USER
    - **Callback URL:** `https://brain.example.com/auth/github/callback` (your `GITQUIRE_EXTERNAL_URL`
      plus `/auth/github/callback`). Add `http://localhost:8080/auth/github/callback` too for local use.
    - **Repository permissions:** Contents read and write, Pull requests read and write,
-     Metadata read.
+     Metadata read. **Account permissions:** Email addresses read (for
+     [mention emails](#mention-emails) to the account's address).
    - Uncheck **Webhook → Active**.
    - **Where can this GitHub App be installed?** Choose **Any account** if the app belongs to your
      personal account. A private app can only be authorized by its owner (or, for an app owned by
@@ -246,101 +247,54 @@ offers them.
 
 ## Mention emails
 
-People enter their address in Settings → Notifications (the @ panel links there) and get a confirmation mail with a code; email
-starts once they enter the code in GitQuire. Codes are valid for 24 hours and allow five tries. A
-new code can be requested after a minute; at most five confirmation mails go out per person and
-three per address a day, and 30 an hour for the whole server. Once a minute, new mentions they have
-not read yet are mailed; mentions that already existed when the address was confirmed are not.
+In **Settings → Notifications** (the @ panel links there) each person chooses:
+
+- **Email me mentions at <their account's address>:** one switch, off by default, no code. The
+  address is the one the Git host reports as the account's primary, verified address, read at every
+  sign-in (GitQuire keeps no token between sign-ins, so a change on the host takes effect at the
+  next sign-in). No-reply addresses are skipped. If the host cannot be asked at a sign-in, the last
+  verified address is kept for at most 30 days.
+  - **GitHub:** the GitHub App needs the account permission **Email addresses: read** (GitHub App
+    settings → Permissions → Account permissions). People approve it once at their next sign-in.
+    Without it everything works, only the account address is not offered.
+  - **Forgejo:** the `read:user` scope GitQuire already asks for is enough.
+- **Use another address:** as before, with a confirmation mail and a code. Codes are valid for 24
+  hours and allow five tries; a new code can be requested after a minute; at most five confirmation
+  mails go out per person and three per address a day, 30 an hour and 100 a day for the whole server.
+
+The setting belongs to the account, not to a wiki: the same in every wiki the person opens with that
+account. A person with a GitHub and a Forgejo account has two settings; they are never matched, also
+with the same address. Once a minute, new mentions the person has not read are mailed, only while
+the person can still open that wiki; if the host cannot be asked, nothing is mailed and it is tried
+again. Mentions that already existed when mail was switched on are not mailed. Each mail names the
+wiki and links into it. Behind the front door one mailer serves all wikis, and a sleeping wiki whose
+branch moved on the host is started every 10 minutes so mentions pushed through Git are mailed too.
 
 | Variable | Meaning |
 | --- | --- |
 | `GITQUIRE_SMTP_URL` | `smtps://user:password@host:465` or `smtp://user:password@host:587`. Without it, email is off. |
 | `GITQUIRE_MAIL_FROM` | Sender address. Required; without a valid one, email stays off and a warning is logged. |
-| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains people may enter, for example `acme.com`. Without it, any address is accepted. |
+| `GITQUIRE_MAIL_DOMAINS` | Optional comma-separated domains mail may go to, for example `acme.com`, for the account address and another address alike. Without it, any address is accepted. |
 
 With `smtp://`, STARTTLS is required; add `?starttls=off` only for a local relay, and a password is
-then only sent to `localhost`. Mail is limited to 20 per person per day and 100 per hour in total;
-the counts start over when the server restarts. People who have not opened GitQuire for 30 days get
-no mail. The link in the mail is built from `GITQUIRE_EXTERNAL_URL`; without it, the mail has no link.
+then only sent to `localhost`. Mail is limited to 20 per person per day, five per person a minute
+and 100 per hour for the whole server; the counts start over when the server restarts, what was
+mailed does not. People who have not opened GitQuire for 30 days get no mail. The link in the mail
+is built from `GITQUIRE_EXTERNAL_URL`; without it, the mail has no link.
 
-Read state and email settings are kept on the server in `/data/.gitquire/local/gitquire/mentions.json`,
-outside Git.
+**Where it is kept:** behind the front door, per account in `/data/server/people/<host>-<account id>/`
+(files readable only by the server's user): the mail setting and addresses, what was mailed per
+wiki, personal settings, AI keys (sealed) and AI token counts. A single wiki keeps the same files in
+`/data/.gitquire/local/gitquire/people/`. Read state stays per wiki in
+`.gitquire/local/gitquire/mentions.json`. All of it is outside Git and addresses never reach Git,
+the logs (only the login) or other people's answers.
 
-## People you can mention
-
-Typing `@` in a comment or a page offers the people who use this wiki: everyone who has signed in,
-the repository's collaborators with write access (read through the GitHub App, cached for ten
-minutes; if GitHub refuses, only the other two sources are used) and `GITQUIRE_ALLOWED_USERS`. The
-list of people who signed in is kept in `.gitquire/local/gitquire/people.json` on the data volume.
-
-Action items that mention someone (`- [ ] … @alice`) notify them like comments do. When this
-first runs, existing open action items are recorded as already seen, so nobody gets a burst of old
-notifications.
-
-## Chat notifications
-
-Set `GITQUIRE_CHAT_WEBHOOK_URL` to an incoming webhook of Slack, Microsoft Teams (Workflows),
-Discord, Mattermost or Rocket.Chat; other services get plain JSON. The format is guessed from the
-URL, or set `GITQUIRE_CHAT_FORMAT` to `slack`, `teams`, `discord` or `generic`. Mentions that exist
-when the webhook is first set up are not posted.
-
-## AI agents
-
-Each person connects their own AI agent, with their own Claude, Mistral (or other) account.
-Nothing runs on the server on their behalf.
-
-In the app, **Settings → Connect AI** walks people through it: with `GITQUIRE_MCP_CONNECTORS=on`
-it shows the connector address and expandable steps for Claude (Customize → Connectors → Add
-custom connector) and Mistral's Le Chat (Intelligence → Connectors → Custom MCP Connector), and it
-links to the token page below for Claude Code. There, people can also choose to have their
-assistant's edits go into a [draft](#drafts) instead of the live wiki.
-
-1. Sign in and open `/auth/agents` (also linked from `/auth/logout`).
-2. Create a token. The page shows it once, with the command for Claude Code and the config for the
-   Claude desktop app:
-
-   ```bash
-   claude mcp add --transport http gitquire https://wiki.example.com/mcp \
-     --header "Authorization: Bearer gqa_…"
-   ```
-
-3. Ask the agent to work on the wiki. Its edits show up live and are committed with you as the
-   author.
-
-### Claude on the web and on phones
-
-With `GITQUIRE_MCP_CONNECTORS=on`, `/mcp` also speaks the sign-in protocol that cloud connectors
-use (OAuth 2.1 with PKCE, client metadata documents and dynamic registration). In Claude's
-settings, add a custom connector with the address `https://wiki.example.com/mcp`. A popup opens,
-you sign in with GitHub and approve, and Claude can then work on the wiki from any device, as you.
-
-The connection comes from Anthropic's servers, so the wiki must be reachable on the public
-internet over HTTPS. GitHub sign-in and the repository's write access still decide who gets in.
-Each connected app shows up on `/auth/agents`, where it can be revoked. Its access token lasts an
-hour and is renewed with a refresh token for up to 90 days of inactivity.
-
-### Mistral Le Chat
-
-Le Chat connects the same way. An administrator of the Le Chat account (on the Free, Pro and Student
-plans, the account owner) opens **Intelligence → Connectors**, clicks **+ Add Connector**, switches
-to **Custom MCP Connector**, names it `gitquire` and enters `https://wiki.example.com/mcp`. Le Chat
-registers itself with a client secret (`client_secret_basic`), which GitQuire issues at
-registration and checks on every token request; the sign-in is then the same GitHub popup as for
-Claude. Like Claude, Le Chat connects from Mistral's servers, so the wiki must be reachable on the
-public internet over HTTPS.
-
-### Token storage
-
-Tokens are stored hashed in `.gitquire/local/gitquire/agent-tokens.json` on the data volume, never in
-the repository. Revoke one from `/auth/agents`; admins (`GITQUIRE_ADMINS`) can revoke anyone's.
-Every ten minutes the server checks that token owners can still write to `GITQUIRE_REPO` (using
-the GitHub App when it is configured) and revokes the tokens of people who lost access.
-
-| Variable | Meaning |
-| --- | --- |
-| `GITQUIRE_AGENT_TOKEN_DAYS` | How long a personal agent token stays valid, default 90. |
-| `GITQUIRE_MCP_CONNECTORS` | `on` lets Claude on the web, desktop chat and phones connect through GitHub sign-in. Needs a public `https://` URL. |
-| `GITQUIRE_MCP_TOKEN` | Optional shared token for `/mcp`. Prefer personal agent tokens: edits made with the shared token are not credited to anyone. |
+**Upgrading:** at its first start with this version, GitQuire moves each wiki's per-wiki mail
+address, personal settings, "Put my AI assistant's edits into a draft", AI keys and token counts
+into these folders, once, and leaves the old files as they were. A confirmed address stays on; when
+two wikis disagree, the most recently confirmed address, the most recently changed settings and the
+most recently saved key win; codes waiting for confirmation are dropped. Going back to the previous
+image finds the old files as they were at the move.
 
 ## AI chat
 
@@ -357,9 +311,11 @@ shows the chat. Nothing runs until someone adds a key:
 - **Each person uses their own API key** from the [Claude Console](https://platform.claude.com) or
   [Mistral La Plateforme](https://console.mistral.ai), entered under **Settings → AI chat**. GitQuire
   checks the key with the provider, then stores it encrypted (AES-256-GCM, key derived from
-  `GITQUIRE_SESSION_SECRET`) in `/data/.gitquire/local/gitquire/ai-keys/`. It never sends a key anywhere
-  but to its provider and never shows it again. Changing `GITQUIRE_SESSION_SECRET` makes saved keys
-  unreadable; people then paste them again.
+  `GITQUIRE_SESSION_SECRET`) with the person's other data (see [Mention emails](#mention-emails)): a
+  key entered once works in every wiki of that account. Wiki processes get a key from the front door
+  only while serving a request of its owner; it is never in an environment. It never sends a key
+  anywhere but to its provider and never shows it again. Changing `GITQUIRE_SESSION_SECRET` makes
+  saved keys unreadable; people then paste them again.
 - **Spending is each person's responsibility.** They pay their provider per use and should set a
   monthly spending limit there; the settings page links to it. Each message is capped at 16,000
   output tokens (thinking included) and 12 tool steps, older tool results are shortened in long
@@ -367,9 +323,9 @@ shows the chat. Nothing runs until someone adds a key:
 - **Chats are kept per person** in `/data/.gitquire/local/gitquire/chats/<GitHub user id>/`, outside Git,
   and deleted 90 days after their last message. Only their owner sees them in the app; whoever runs
   the server can read the files. **Save as page** writes a chat into the wiki.
-- **Token counts** per day and per chat are kept per person in
-  `/data/.gitquire/local/gitquire/chat-usage/<GitHub user id>.json` for the same 90 days (also after a
-  chat is deleted) and shown in **Settings → AI chat**. Tokens only, no prices.
+- **Token counts** per day and per chat are kept per person with the person's other data for the same
+  90 days (also after a chat is deleted) and shown in **Settings → AI chat**: the totals of all wikis
+  of the account, and the chats of the wiki it is opened in. Tokens only, no prices.
 - Answers are **streamed** from the provider and passed on as they arrive. Behind nginx, the chat
   response already sends `X-Accel-Buffering: no`; a gateway set with the variables below may ignore
   streaming, which still works, only without the gradual display.
@@ -827,7 +783,7 @@ further host's wiki, and would take such a wiki for one of the first host's.
   token can still read the details (not the files) of other repositories the bot belongs to.
 - The front door asks the host once per wiki at sign-in; with many wikis (roughly 50 and more)
   sign-in gets slower.
-- Saved AI keys and mail settings are per wiki for now.
+- Mentions in files a wiki hides from its file tree are still counted and mailed by the front door.
 - The way back (`unadopt`) is for a server that still has only the moved wiki.
 - Whether an AI assistant such as Claude uses the `wiki` argument well has not been tried with a
   real connector yet.
@@ -838,6 +794,7 @@ further host's wiki, and would take such a wiki for one of the first host's.
 | --- | --- |
 | `GITQUIRE_ACCESS_CHECK_SECONDS` | How long the front door keeps a person's access answer before asking the host again, 1 to 3600, default 300. Open live-editing connections are checked every minute, or at this interval when it is shorter, so a person who loses access is cut off within this time plus a minute. Shorter means more host calls. |
 | `GITQUIRE_WIKI_IDLE_MINUTES` | How long a wiki's process keeps running without use, default 30. It stops only once it is pushed and clean, and starts again on the next request. |
+| `GITQUIRE_BRANCH_WATCH_SECONDS` | How often the front door asks the host whether a sleeping wiki's branch moved, at least 10, default 600. After a failed check a wiki is asked again after twice the time, up to two hours. |
 
 ## Build the image yourself
 
@@ -937,4 +894,4 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_BEHIND_FRONT_DOOR`, `GITQUIRE_DOOR_TOKEN_SOCKET` | [Behind GitQuire's front door](#behind-gitquires-front-door) |
 | `GITQUIRE_WIKIS`, `GITQUIRE_ALLOWED_OWNERS` | [Several wikis](#several-wikis) |
 | `GITQUIRE_HOSTS`, `GITQUIRE_HOST_<KEY>_…` | [Two Git hosts on one server](#two-git-hosts-on-one-server) |
-| `GITQUIRE_ACCESS_CHECK_SECONDS`, `GITQUIRE_WIKI_IDLE_MINUTES` | [Several wikis](#timing-of-access-checks-and-stops) |
+| `GITQUIRE_ACCESS_CHECK_SECONDS`, `GITQUIRE_WIKI_IDLE_MINUTES`, `GITQUIRE_BRANCH_WATCH_SECONDS` | [Several wikis](#timing-of-access-checks-and-stops) |
