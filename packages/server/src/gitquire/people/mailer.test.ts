@@ -391,6 +391,40 @@ describe('the one mailer in the front door', () => {
     expect(new Set(sent.map((m) => m.to)).size).toBe(3);
   });
 
+  it('holds the daily limit per person over all wikis and rounds, and lets others through (P10)', async () => {
+    const a = {
+      key: 'a',
+      idPrefix: 'github-',
+      list: [
+        ...['a1', 'a2', 'a3'].map((id) => mention(id, 'anna', T0 + 1000)),
+        mention('b1', 'bert', T0 + 1000),
+      ],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const b = {
+      key: 'b',
+      idPrefix: 'github-',
+      list: ['b2', 'b3'].map((id) => mention(id, 'anna', T0 + 1000)),
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const { store, sent, make, advance } = setup([a, b], {
+      perPersonPerDay: 4,
+      perPersonPerRound: 2,
+    });
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    switchOn(store, 'github-6', 'bert', 'bert@example.org');
+    const mailer = make();
+    expect(await mailer.round()).toBe(3);
+    expect(await mailer.round()).toBe(2);
+    expect(await mailer.round()).toBe(0);
+    expect(sent.filter((m) => m.to === 'anna@example.org')).toHaveLength(4);
+    expect(sent.filter((m) => m.to === 'bert@example.org')).toHaveLength(1);
+    advance(24 * 60 * 60 * 1000);
+    expect(await mailer.round()).toBe(1);
+  });
+
   it('skips read mentions, the author’s own and mentions of others', async () => {
     const a = {
       key: 'a',
