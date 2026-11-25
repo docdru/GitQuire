@@ -79,8 +79,8 @@ function reviewMail(
   if (link !== undefined) lines.push('', `Open the draft: ${link}`);
   lines.push(
     '',
-    'You get this mail because you entered this address for mentions in GitQuire.',
-    'To stop, open Settings → Notifications in GitQuire and choose "Stop emailing me".',
+    'You get this mail because you turned on email for mentions in GitQuire.',
+    'To stop, open Settings → Notifications in GitQuire and turn it off.',
   );
   const subject = `${who} asked you to review ${title}${config.wiki === undefined ? '' : ` in ${config.wiki}`}`;
   return { to, subject, text: `${lines.join('\n')}\n` };
@@ -112,8 +112,8 @@ export function mentionMail(
   if (link !== undefined) lines.push('', `Open the page: ${link}`);
   lines.push(
     '',
-    'You get this mail because you entered this address for mentions in GitQuire.',
-    'To stop, open Settings → Notifications in GitQuire and choose "Stop emailing me".',
+    'You get this mail because you turned on email for mentions in GitQuire.',
+    'To stop, open Settings → Notifications in GitQuire and turn it off.',
   );
   const where = config.wiki === undefined ? page : `${page} (${config.wiki})`;
   const subject = task

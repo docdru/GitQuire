@@ -316,6 +316,41 @@ describe('mention routes', () => {
     return call(routes, `${EMAIL_URL}/confirm`, { method: 'POST', body: { code } });
   }
 
+  it('behind the front door, an editor process neither mails nor reports an address', async () => {
+    const dir = project();
+    const sent: MailMessage[] = [];
+    try {
+      createMentionReadStore(mentionStatePath(dir)).setEmail(
+        { id: alice.id, login: 'Alice' },
+        'alice@example.com',
+        [],
+        new Date(0),
+      );
+      const routes = createGitQuireRoutes({
+        projectDir: dir,
+        log: silentLog,
+        sessionUser: () => ({ ...alice, name: 'Alice', avatarUrl: '' }),
+        env: {
+          GITQUIRE_BEHIND_FRONT_DOOR: 'on',
+          GITQUIRE_SMTP_URL: 'smtps://mail.example.com',
+          GITQUIRE_MAIL_FROM: 'wiki@example.com',
+        },
+        sendMail: async (_config, message) => {
+          sent.push(message);
+        },
+        mailRoundMs: 3_600_000,
+      });
+      expect(await routes.mailRound()).toBe(0);
+      expect(sent).toEqual([]);
+      const inbox = await call(routes, '/api/gitquire/mentions');
+      expect(inbox.body.email).toBeUndefined();
+      expect(JSON.stringify(inbox.body)).not.toContain('alice@example.com');
+      routes.stop();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('turns email on only after the code from the confirmation mail is entered', async () => {
     const dir = project();
     const sent: MailMessage[] = [];

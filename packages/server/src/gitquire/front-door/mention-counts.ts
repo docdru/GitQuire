@@ -1,4 +1,7 @@
 import { actionItemStatePath, seenActionItemMentions } from '../action-item-mentions.ts';
+import type { DraftRecord } from '../drafts/model.ts';
+import { reviewMentionsOf } from '../drafts/review-mentions.ts';
+import { createDraftStore, draftsStatePath } from '../drafts/store.ts';
 import {
   buildInbox,
   createMentionReadStore,
@@ -17,7 +20,9 @@ interface ScannedValue {
 }
 
 export interface MentionCounts {
-  unread: (reader: MentionReader, wiki: WikiRecord, selfId: string) => number;
+  unread: (reader: MentionReader, wiki: WikiRecord, selfId?: string) => number;
+  mentionsOf: (wiki: WikiRecord, idPrefix: string) => Mention[];
+  readIdsOf: (wiki: WikiRecord, accountId: number) => Set<string>;
 }
 
 function factsOrNone(path: string, markdown: string): PageFacts | undefined {
@@ -31,6 +36,14 @@ function factsOrNone(path: string, markdown: string): PageFacts | undefined {
 function mentionsOrNone(path: string, markdown: string): Mention[] {
   try {
     return mentionsInMarkdown(path, markdown);
+  } catch {
+    return [];
+  }
+}
+
+function draftsOf(dir: string): DraftRecord[] {
+  try {
+    return createDraftStore(draftsStatePath(dir)).all();
   } catch {
     return [];
   }
@@ -55,19 +68,31 @@ export function createMentionCounts(dataDir: string, now: () => number = Date.no
     return scan;
   }
 
+  function mentionsOf(wiki: WikiRecord, idPrefix: string): Mention[] {
+    const dir = wikiDir(dataDir, wiki);
+    const pages = scanOf(wiki).all();
+    const comments = pages.flatMap((page) => page.value.mentions);
+    const tasks = seenActionItemMentions(
+      actionItemStatePath(dir),
+      pages.flatMap((page) =>
+        page.value.facts === undefined ? [] : [{ path: page.path, facts: page.value.facts }],
+      ),
+    );
+    return [...comments, ...tasks, ...reviewMentionsOf(draftsOf(dir), idPrefix)];
+  }
+
+  function readIdsOf(wiki: WikiRecord, accountId: number): Set<string> {
+    return createMentionReadStore(mentionStatePath(wikiDir(dataDir, wiki))).readIds(accountId);
+  }
+
   return {
     unread: (reader, wiki, selfId) => {
-      const dir = wikiDir(dataDir, wiki);
-      const pages = scanOf(wiki).all();
-      const comments = pages.flatMap((page) => page.value.mentions);
-      const tasks = seenActionItemMentions(
-        actionItemStatePath(dir),
-        pages.flatMap((page) =>
-          page.value.facts === undefined ? [] : [{ path: page.path, facts: page.value.facts }],
-        ),
-      );
-      const read = createMentionReadStore(mentionStatePath(dir)).readIds(reader.id);
-      return buildInbox(reader, [...comments, ...tasks], read, selfId).unread;
+      const prefix =
+        selfId === undefined ? '' : selfId.slice(0, selfId.length - String(reader.id).length);
+      const all = mentionsOf(wiki, prefix);
+      return buildInbox(reader, all, readIdsOf(wiki, reader.id), selfId).unread;
     },
+    mentionsOf,
+    readIdsOf,
   };
 }
