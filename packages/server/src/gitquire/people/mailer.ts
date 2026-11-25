@@ -52,7 +52,7 @@ export interface PeopleMailerDeps {
 
 export interface PeopleMailer {
   round: () => Promise<number>;
-  markExisting: (person: string, login: string) => void;
+  markExisting: (person: string, login: string, onlyWiki?: string) => void;
 }
 
 export function openWithin(
@@ -289,11 +289,12 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
       }
       return sent;
     },
-    markExisting: (person, login) => {
+    markExisting: (person, login, onlyWiki) => {
       const account = accountOf(person);
       if (account === undefined) return;
       for (const wiki of deps.wikis()) {
         if (wiki.idPrefix !== account.idPrefix) continue;
+        if (onlyWiki !== undefined && wiki.key !== onlyWiki) continue;
         const ids = mentionsFor({ id: account.id, login }, wiki.mentions(), person).map(
           (mention) => mention.id,
         );

@@ -11,19 +11,30 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
-import { deriveChatKeySecret } from '../chat/key-secret.ts';
+import { deriveChatKeySecret, derivePeopleKeySecret } from '../chat/key-secret.ts';
 import { chatKeysDir, createChatKeyStore } from '../chat/key-store.ts';
 import { CHAT_PROVIDERS } from '../chat/models.ts';
 import { draftsDir } from '../drafts/store.ts';
 import type { DoorHost, HostRepo, HostRepoRecord, RepoLookup } from '../host/types.ts';
+import { personKeyStore } from '../people/chat-data.ts';
+import { createPeopleMailer } from '../people/mailer.ts';
+import {
+  copyPeopleForWiki,
+  markWikisMoved,
+  movedWikis,
+  movePeopleData,
+  SINGLE_WIKI_KEY,
+} from '../people/move-over.ts';
+import { createPeopleStore, frontDoorPeopleRoot, singleWikiPeopleRoot } from '../people/store.ts';
 import { type RunGit, runGitSync } from '../repo-bootstrap.ts';
 import { FRONT_DOOR_LOCK, MOVING_BACK, MOVING_IN } from '../volume-markers.ts';
 import { agentTokensFile } from './agents.ts';
 import { type AllowedOwners, ownerAllowed, pinAllowedOwner } from './allowed-owners.ts';
+import { createMentionCounts } from './mention-counts.ts';
 import { openRepoTokenStore, repoTokensFile } from './repo-tokens.ts';
 import type { FrontDoorSettings } from './settings.ts';
 import { wikisModeFromEnv } from './settings.ts';
-import { openWikiTable, wikiDir, wikiKey, wikiTableFile } from './wiki-table.ts';
+import { openWikiTable, type WikiRecord, wikiDir, wikiKey, wikiTableFile } from './wiki-table.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -479,6 +490,11 @@ export async function adoptSingleWiki(
     );
   }
   if (record) steps.push(`Add ${repo.owner}/${repo.name} as the wiki ${key} to ${tableFile}.`);
+  if (!movedWikis(createPeopleStore(frontDoorPeopleRoot(dataDir))).has(key)) {
+    steps.push(
+      "Move the per-person data (mention email, settings, AI keys, usage) to the front door's server/people; the wiki's own files stay as they are.",
+    );
+  }
   const report = (changed: boolean): MoveOverReport => ({
     changed,
     wiki: `${repo.owner}/${repo.name}`,
@@ -534,7 +550,78 @@ export async function adoptSingleWiki(
     );
     finalTable.add(repo, ADDED_BY, now());
   }
+  const people = movePeopleIn(
+    dataDir,
+    target,
+    key,
+    `${settings.host}-`,
+    settings.sessionSecret,
+    now,
+  );
+  if (people !== undefined) steps.push(people);
   return report(true);
+}
+
+function movePeopleIn(
+  dataDir: string,
+  target: string,
+  key: string,
+  idPrefix: string,
+  sessionSecret: string,
+  now: () => number,
+): string | undefined {
+  const people = createPeopleStore(frontDoorPeopleRoot(dataDir));
+  if (movedWikis(people).has(key)) return undefined;
+  const single = createPeopleStore(singleWikiPeopleRoot(target));
+  if (movedWikis(single).has(SINGLE_WIKI_KEY)) {
+    const count = copyPeopleForWiki(single, people, SINGLE_WIKI_KEY, key);
+    markWikisMoved(people, [key], new Date(now()));
+    return `Copied the per-person data of ${count} ${count === 1 ? 'person' : 'people'} to ${people.root}; the wiki's own copy stays.`;
+  }
+  const counts = createMentionCounts(dataDir, now);
+  const record = { key } as WikiRecord;
+  const marker = createPeopleMailer({
+    store: people,
+    config: undefined,
+    send: async () => {},
+    log: { warn: () => {} },
+    wikis: () => [
+      {
+        key,
+        idPrefix,
+        name: undefined,
+        url: undefined,
+        mentions: () => counts.mentionsOf(record, idPrefix),
+        readIds: (id) => counts.readIdsOf(record, id),
+        canOpen: async () => 'unknown',
+      },
+    ],
+  });
+  const moved = movePeopleData(
+    [
+      {
+        dir: target,
+        wikiKey: key,
+        idPrefix,
+        keySecrets: [deriveChatKeySecret(sessionSecret, key), sessionSecret],
+      },
+    ],
+    {
+      store: people,
+      keys: personKeyStore(people, derivePeopleKeySecret(sessionSecret)),
+      markExisting: (person, login, wikiKey) => marker.markExisting(person, login, wikiKey),
+      now,
+    },
+  );
+  return `Moved the per-person data of ${moved.people} ${moved.people === 1 ? 'person' : 'people'} (mention email, settings, AI keys, usage) to ${people.root}; the wiki's own files stay as they were.${moved.unreadableKeys > 0 ? ` ${moved.unreadableKeys} saved AI key${moved.unreadableKeys === 1 ? '' : 's'} could not be opened; people enter them again.` : ''}`;
+}
+
+function movePeopleBack(back: string, dataDir: string, key: string, now: () => number): string {
+  const people = createPeopleStore(join(back, 'server', 'people'));
+  const single = createPeopleStore(singleWikiPeopleRoot(dataDir));
+  const count = copyPeopleForWiki(people, single, key, SINGLE_WIKI_KEY);
+  markWikisMoved(single, [SINGLE_WIKI_KEY], new Date(now()));
+  return `Copied the per-person data of ${count} ${count === 1 ? 'person' : 'people'} into ${single.root} for the single wiki.`;
 }
 
 export async function unadoptWiki(
@@ -648,6 +735,7 @@ export async function unadoptWiki(
       (draft) =>
         `Copy the draft working copy ${draft.dir} to ${join(singleDrafts, draft.slug, basename(dataDir))} (an existing one is kept beside it).`,
     ),
+    "Copy the per-person data (mention email, settings, AI keys, usage of this wiki) into the single wiki's people folder.",
     `Keep the rest of the front door's files (the wiki table, Forgejo tokens, draft copies) in ${join(dataDir, '.gitquire', 'local', 'gitquire', 'several-wikis-<time>')}.`,
   );
   if (settings.host === 'forgejo') {
@@ -697,6 +785,7 @@ export async function unadoptWiki(
     }
     copyWhole(draft.dir, to);
   }
+  steps.push(movePeopleBack(back, dataDir, key, now));
   const kept = join(dataDir, '.gitquire', 'local', 'gitquire', `several-wikis-${stamp}`);
   mkdirSync(dirname(kept), { recursive: true });
   renameSync(back, kept);

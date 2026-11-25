@@ -16,6 +16,7 @@ export interface MailRecord {
   account?: { address: string; readAt: string };
   accountProblem?: AccountProblem;
   use?: 'account' | 'other';
+  chosenAt?: string;
   other?: { address: string; confirmedAt: string };
   pending?: PendingAddress;
   since?: string;
@@ -53,6 +54,8 @@ export function parseMailRecord(raw: unknown): MailRecord {
     record.accountProblem = r.accountProblem;
   }
   if (r.use === 'account' || r.use === 'other') record.use = r.use;
+  const chosenAt = text(r.chosenAt);
+  if (chosenAt !== undefined) record.chosenAt = chosenAt;
   const other = r.other as Record<string, unknown> | undefined;
   const otherAddress = text(other?.address);
   const confirmedAt = text(other?.confirmedAt);

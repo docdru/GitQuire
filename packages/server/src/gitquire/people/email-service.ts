@@ -146,6 +146,7 @@ export function createEmailService(deps: EmailServiceDeps): EmailService {
         ...extra,
         login: who.login,
         use,
+        chosenAt: new Date(now()).toISOString(),
         since,
         lastSeen: new Date(now()).toISOString(),
       };
