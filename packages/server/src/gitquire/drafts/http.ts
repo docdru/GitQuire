@@ -5,6 +5,7 @@ import { pathOf, redirect, sendJson } from '../http-util.ts';
 import { internalRequestHeaders, isInternalRequest } from '../internal-request.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
 import {
+  behindFrontDoorFromEnv,
   encodeProxiedUser,
   FORWARDED_PREFIX_HEADER,
   FORWARDED_VIEW_HEADER,
@@ -240,6 +241,9 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       return;
     }
     if (path === '/api/gitquire/drafts/agent-mode') {
+      if (behindFrontDoorFromEnv(process.env)) {
+        throw new DraftError(404, 'served-by-front-door', 'The front door answers this.');
+      }
       if (method === 'PUT') {
         const body = await readBody(req);
         if (body.mode !== 'live' && body.mode !== 'draft') {

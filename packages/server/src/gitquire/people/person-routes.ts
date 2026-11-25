@@ -2,11 +2,14 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { GateLogger } from '../access-gate.ts';
 import { sendJson } from '../http-util.ts';
 import { type EmailPerson, EmailRequestError, type EmailService } from './email-service.ts';
+import { isAgentMode, type PersonSettings } from './settings.ts';
 
 const MAX_BODY_BYTES = 16 * 1024;
 
 export const EMAIL_PATH = '/api/gitquire/mentions/email';
 export const EMAIL_CONFIRM_PATH = '/api/gitquire/mentions/email/confirm';
+export const SETTINGS_PATH = '/api/gitquire/me/settings';
+export const AGENT_MODE_PATH = '/api/gitquire/drafts/agent-mode';
 
 export interface PersonRoute {
   matches: (path: string, method: string) => boolean;
@@ -72,6 +75,36 @@ export function emailRoutes(email: EmailService): PersonRoute {
       }
       if (path === EMAIL_PATH) return email.change(who, body);
       return email.confirm(who, body);
+    },
+  };
+}
+
+export function settingsRoutes(settings: PersonSettings): PersonRoute {
+  return {
+    matches: (path, method) =>
+      (path === SETTINGS_PATH || path === AGENT_MODE_PATH) &&
+      (method === 'GET' || method === 'PUT'),
+    answer: (_req, who, path, method, body) => {
+      if (path === SETTINGS_PATH && method === 'GET') {
+        return { personal: true, login: who.login, yaml: settings.read(who.person) };
+      }
+      if (path === SETTINGS_PATH) {
+        if (typeof body.yaml !== 'string') {
+          throw new PersonRouteError(400, 'invalid-settings', 'Send "yaml" as a string.');
+        }
+        const problem = settings.write(who.person, body.yaml);
+        if (problem !== undefined) {
+          throw new PersonRouteError(400, `settings-${problem}`, 'These settings are not valid.');
+        }
+        return { saved: true };
+      }
+      if (method === 'PUT') {
+        if (!isAgentMode(body.mode)) {
+          throw new PersonRouteError(400, 'invalid-mode', 'Choose "live" or "draft".');
+        }
+        return { mode: settings.setAgentMode(who.person, body.mode) };
+      }
+      return { mode: settings.agentMode(who.person) };
     },
   };
 }

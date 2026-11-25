@@ -25,6 +25,7 @@ export interface DoorAgentsDeps {
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   sessionUser: (req: IncomingMessage, hostKey: string) => SessionUser | undefined;
   tickets?: PersonTickets;
+  agentMode?: (person: string) => 'live' | 'draft';
   log: GateLogger;
   stores?: ReadonlyMap<string, AgentTokenStore>;
   sweepMs?: number;
@@ -173,6 +174,12 @@ export function createDoorAgents(deps: DoorAgentsDeps): DoorAgents {
       seesWhy: (person, wiki) =>
         access.wasAdmin(person, wiki) ||
         (hosts.of(wiki) === entry && entry.settings.serverAdmins.has(person.login.toLowerCase())),
+      ...(deps.agentMode === undefined
+        ? {}
+        : {
+            defaultEdits: (person: { id: number }) =>
+              deps.agentMode?.(personIdOn(entry.names, person.id)) ?? 'live',
+          }),
       ...(tickets === undefined
         ? {}
         : {

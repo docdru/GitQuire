@@ -701,6 +701,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       return listPageMentionsOf(req, res);
     }
     if (path === '/api/gitquire/people' && method === 'GET') return listPeople(req, res);
+    if (path === '/api/gitquire/me/settings' && behindFrontDoor) {
+      throw new HttpError(404, 'served-by-front-door', 'The front door answers this.');
+    }
     if (path === '/api/gitquire/me/settings' && method === 'GET') {
       return readPersonalSettings(req, res);
     }

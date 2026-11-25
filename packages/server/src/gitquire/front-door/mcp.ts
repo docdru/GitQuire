@@ -49,6 +49,7 @@ interface DoorMcpDeps {
   processes: Pick<WikiProcesses, 'ensure' | 'touch' | 'secretOf'>;
   seesWhy?: (person: AgentPerson, wiki: WikiRecord) => boolean;
   ticketFor?: (wiki: WikiRecord, person: AgentPerson) => string;
+  defaultEdits?: (person: AgentPerson) => 'live' | 'draft';
   log: GateLogger;
   now?: () => number;
   sessionTtlMs?: number;
@@ -274,7 +275,11 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
     choice: WorkspaceChoice | undefined,
   ) {
     return {
-      ...(choice === undefined ? {} : { [EDITS_HEADER]: choice.edits }),
+      ...(choice === undefined
+        ? deps.defaultEdits === undefined
+          ? {}
+          : { [EDITS_HEADER]: deps.defaultEdits(session.person) }
+        : { [EDITS_HEADER]: choice.edits }),
       ...(choice?.edits === 'draft' && choice.draft !== undefined
         ? { [EDITS_DRAFT_HEADER]: choice.draft }
         : {}),
