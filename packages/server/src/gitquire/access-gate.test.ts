@@ -672,6 +672,48 @@ describe('in-app agent routes', () => {
   });
 });
 
+describe('the account address at a single wiki’s sign-in', () => {
+  it('reads it with the sign-in token and hands it on, without holding up the sign-in', async () => {
+    const config = resolveGitHubAuthConfig(BASE_ENV, { externalUrl: 'https://brain.example.com' });
+    if (config === undefined) throw new Error('expected auth to be enabled');
+    const asked: string[] = [];
+    const host: DoorHost = {
+      authorizeUrl: () => 'https://host.example/authorize',
+      exchangeCode: async () => 'person-token',
+      person: async () => ({ id: 7, login: 'dora', name: 'Dora', avatarUrl: '' }),
+      accountAddress: async (token) => {
+        asked.push(token);
+        return { state: 'found', address: 'dora@example.org' };
+      },
+      access: async () => 'write',
+      accessByBot: async () => 'none',
+      addableRepos: async () => ({ state: 'listed', repos: [] }),
+      repoById: async () => ({ state: 'gone' }),
+      health: async () => 'ok',
+      tokenFor: async () => undefined,
+      selfCheck: async () => ({ ok: true }),
+    };
+    const gate = createAccessGate(config, {
+      log: silentLog,
+      now: () => NOW,
+      randomState: () => 'fixed-state',
+      host,
+      checkAccess: async (login) => (login === 'dora' ? 'allowed' : 'denied'),
+    });
+    const heard: string[] = [];
+    gate.onAccountAddress?.((user, found) =>
+      heard.push(`${user.login} ${found.state === 'found' ? found.address : found.state}`),
+    );
+    const callback = await signIn(gate);
+    expect(callback.status).toBe(302);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(asked).toEqual(['person-token']);
+    expect(heard).toEqual(['dora dora@example.org']);
+    expect(await gate.accessOf?.('dora')).toBe('allowed');
+    expect(await gate.accessOf?.('erik')).toBe('denied');
+  });
+});
+
 describe('sign-in through the host interface', () => {
   it('uses the host given to the gate for every sign-in step', async () => {
     const config = resolveGitHubAuthConfig(BASE_ENV, { externalUrl: 'https://brain.example.com' });

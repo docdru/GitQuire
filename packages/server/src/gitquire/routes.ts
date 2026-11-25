@@ -7,44 +7,22 @@ import {
   createActionItemMentions,
   WRITER_WINDOW_MS,
 } from './action-item-mentions.ts';
+import type { AccessVerdict } from './agent-access.ts';
 import {
   type ChatPost,
   chatStatePath,
   createChatNotifier,
   resolveChatConfig,
 } from './chat-notifier.ts';
-import {
-  CONFIRMATION_RESEND_MS,
-  confirmationKey,
-  confirmationKeyPath,
-  confirmationMail,
-  hashConfirmationCode,
-  MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY,
-  MAX_CONFIRMATIONS_PER_DAY,
-  MAX_CONFIRMATIONS_PER_HOUR,
-  MAX_CONFIRMATIONS_PER_PERSON_PER_DAY,
-  newConfirmationCode,
-  normalizeConfirmationCode,
-  recipientKey,
-} from './email-confirmation.ts';
 import { GitHubUnavailableError } from './github-app.ts';
 import { parseGitHubRepo } from './github-auth-config.ts';
 import { type GitHubPullsClient, GitHubRequestError } from './github-pulls.ts';
-import { hostNames, parseHostKind } from './host/names.ts';
-import {
-  isAllowedRecipient,
-  isEmailAddress,
-  type MailConfig,
-  type MailMessage,
-  resolveMailConfig,
-  sendMail,
-} from './mail.ts';
-import { createMentionMailer } from './mention-mailer.ts';
+import { parseHostKind } from './host/names.ts';
+import { type MailConfig, type MailMessage, resolveMailConfig, sendMail } from './mail.ts';
 import {
   buildInbox,
   createMentionReadStore,
   type Mention,
-  type MentionReader,
   mentionIndexFrom,
   mentionStatePath,
   mentionsFor,
@@ -55,8 +33,8 @@ import { namingRuleFromEnv } from './naming.ts';
 import { listPageMentions, type PageMentions, pageMentionsIn } from './page-mentions.ts';
 import { createObjectListCache, type PageFacts, pageFacts } from './page-objects.ts';
 import { createPageScan, docNameForPath, type ScanFilter, type ScannedPage } from './page-scan.ts';
+import { createSingleWikiPeople, type SingleWikiPeople } from './people/single-wiki.ts';
 import { allowedLoginsFrom, createPeopleDirectory, peopleStatePath } from './people.ts';
-import { checkPersonalSettings, createPersonalSettingsStore } from './personal-settings.ts';
 import { recentDocumentWriter } from './principal-directory.ts';
 import { type RunGit, runGitSync } from './repo-bootstrap.ts';
 import { behindFrontDoorFromEnv } from './request-person.ts';
@@ -84,9 +62,12 @@ export interface GitQuireRoutesDeps {
   postToChat?: ChatPost;
   extraMentions?: () => Mention[];
   notify?: boolean;
+  canOpen?: (login: string) => Promise<AccessVerdict>;
 }
 
 export interface GitQuireRoutes {
+  recordAddress?: SingleWikiPeople['recordAddress'];
+  peopleStore?: SingleWikiPeople['store'];
   handle: (req: IncomingMessage, res: ServerResponse) => boolean;
   mailRound: () => Promise<number>;
   chatRound: () => Promise<number>;
@@ -94,12 +75,6 @@ export interface GitQuireRoutes {
 }
 
 const DEFAULT_MAIL_ROUND_MS = 60_000;
-
-interface EmailState {
-  available: boolean;
-  address: string | null;
-  pending: string | null;
-}
 
 class HttpError extends Error {
   readonly status: number;
@@ -425,7 +400,6 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(typedLinkList.body(relationPages.pages));
   }
-  const personalSettings = createPersonalSettingsStore(deps.projectDir);
   const people = createPeopleDirectory({
     stateFile: peopleStatePath(deps.projectDir),
     allowedLogins: allowedLoginsFrom(deps.env?.GITQUIRE_ALLOWED_USERS),
@@ -443,32 +417,6 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
     sendJson(res, 200, { people: await people.list(), me: user.login });
   }
 
-  function readPersonalSettings(req: IncomingMessage, res: ServerResponse): void {
-    const user = deps.sessionUser?.(req);
-    if (user === undefined) {
-      sendJson(res, 200, { personal: false });
-      return;
-    }
-    sendJson(res, 200, { personal: true, login: user.login, yaml: personalSettings.read(user.id) });
-  }
-
-  async function writePersonalSettings(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const user = deps.sessionUser?.(req);
-    if (user === undefined) {
-      throw new HttpError(401, 'sign-in-required', 'Sign in to save your settings.');
-    }
-    const body = await readJson(req);
-    if (typeof body.yaml !== 'string') {
-      throw new HttpError(400, 'invalid-settings', 'Send "yaml" as a string.');
-    }
-    const problem = checkPersonalSettings(body.yaml);
-    if (problem !== undefined) {
-      throw new HttpError(400, `settings-${problem}`, 'These settings are not valid.');
-    }
-    personalSettings.write(user.id, body.yaml);
-    sendJson(res, 200, { saved: true });
-  }
-
   const behindFrontDoor = behindFrontDoorFromEnv(deps.env ?? process.env);
   const mentionReads = createMentionReadStore(
     deps.mentionStateFile ?? mentionStatePath(deps.projectDir),
@@ -478,16 +426,21 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
   if (mail.kind === 'invalid') {
     deps.log.warn({ reason: mail.reason }, '[gitquire-mail] email for mentions is off');
   }
-  const mailer =
-    mail.kind === 'on' && !behindFrontDoor
-      ? createMentionMailer({
-          index: mentionIndex,
-          store: mentionReads,
-          config: mail.config,
-          send: deps.sendMail ?? sendMail,
-          log: deps.log,
-        })
-      : undefined;
+  const single = behindFrontDoor
+    ? undefined
+    : createSingleWikiPeople({
+        projectDir: deps.projectDir,
+        env: deps.env ?? process.env,
+        log: deps.log,
+        mail,
+        send: deps.sendMail ?? sendMail,
+        mentions: mentionIndex,
+        readIds: (id) => mentionReads.readIds(id),
+        sessionUser: (req) => deps.sessionUser?.(req),
+        sameOrigin: isSameOrigin,
+        ...(deps.canOpen === undefined ? {} : { canOpen: deps.canOpen }),
+      });
+  const mailer = single?.mailer;
   const chat = resolveChatConfig(deps.env ?? process.env);
   if (chat.kind === 'invalid') {
     deps.log.warn({ reason: chat.reason }, '[gitquire-chat] chat notifications are off');
@@ -515,14 +468,6 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
   }
   const mailTimer = startMailRounds();
 
-  function emailState(userId: number): EmailState {
-    return {
-      available: mailer !== undefined,
-      address: mentionReads.emailOf(userId) ?? null,
-      pending: mentionReads.pendingOf(userId, new Date())?.email ?? null,
-    };
-  }
-
   function listMentions(req: IncomingMessage, res: ServerResponse): void {
     const user = deps.sessionUser?.(req);
     if (user === undefined) {
@@ -535,125 +480,12 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       });
       return;
     }
-    mentionReads.seen(user, new Date());
     people.remember(user);
     const inbox = buildInbox(user, mentionIndex.all(), mentionReads.readIds(user.id));
     sendJson(res, 200, {
       enabled: true,
       ...inbox,
-      ...(behindFrontDoor ? {} : { email: emailState(user.id) }),
     });
-  }
-
-  function sessionReader(req: IncomingMessage): MentionReader {
-    const user = deps.sessionUser?.(req);
-    if (user === undefined) {
-      throw new HttpError(401, 'sign-in-required', 'Sign in to use the mention inbox.');
-    }
-    return user;
-  }
-
-  let codeKeyValue: string | undefined;
-  function codeKey(): string {
-    codeKeyValue ??= confirmationKey(
-      (deps.env ?? process.env).GITQUIRE_SESSION_SECRET,
-      confirmationKeyPath(deps.projectDir),
-    );
-    return codeKeyValue;
-  }
-
-  function checkConfirmationBudget(reader: MentionReader, toKey: string, now: Date): void {
-    const last = mentionReads.lastConfirmationAt(reader.id);
-    const sinceLast = last === undefined ? Infinity : now.getTime() - Date.parse(last);
-    if (sinceLast < CONFIRMATION_RESEND_MS) {
-      throw new HttpError(429, 'resend-too-soon', 'Wait a minute before asking for another code.');
-    }
-    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    const toAddress = mentionReads.recipientConfirmationsSince(toKey, dayAgo);
-    const limits: [number, number][] = [
-      [mentionReads.confirmationsSince(reader.id, dayAgo), MAX_CONFIRMATIONS_PER_PERSON_PER_DAY],
-      [toAddress, MAX_CONFIRMATIONS_PER_ADDRESS_PER_DAY],
-      [mentionReads.confirmationsSince(undefined, hourAgo), MAX_CONFIRMATIONS_PER_HOUR],
-      [mentionReads.confirmationsSince(undefined, dayAgo), MAX_CONFIRMATIONS_PER_DAY],
-    ];
-    if (limits.some(([used, limit]) => used >= limit)) {
-      throw new HttpError(429, 'too-many-codes', 'Too many confirmation mails. Try again later.');
-    }
-  }
-
-  async function setMentionEmail(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const reader = sessionReader(req);
-    const body = await readJson(req);
-    if (body.cancel === true) {
-      mentionReads.cancelConfirmation(reader.id);
-      sendJson(res, 200, emailState(reader.id));
-      return;
-    }
-    if (body.address === null) {
-      mentionReads.setEmail(reader, undefined, [], new Date());
-      deps.log.info({ login: reader.login }, '[gitquire-mail] mention email turned off');
-      sendJson(res, 200, emailState(reader.id));
-      return;
-    }
-    if (mailer === undefined || mail.kind !== 'on') {
-      throw new HttpError(409, 'mail-not-configured', 'This server cannot send email.');
-    }
-    const address = typeof body.address === 'string' ? body.address.trim() : '';
-    if (!isEmailAddress(address)) {
-      throw new HttpError(400, 'invalid-address', 'Enter a valid email address.');
-    }
-    if (!isAllowedRecipient(mail.config, address)) {
-      throw new HttpError(400, 'address-not-allowed', 'This server does not mail that domain.');
-    }
-    if (address === mentionReads.emailOf(reader.id)) {
-      mentionReads.cancelConfirmation(reader.id);
-      sendJson(res, 200, emailState(reader.id));
-      return;
-    }
-    const now = new Date();
-    const toKey = recipientKey(codeKey(), address);
-    checkConfirmationBudget(reader, toKey, now);
-    mentionReads.reserveConfirmation(reader, toKey, now);
-    const code = newConfirmationCode();
-    const message = confirmationMail(mail.config, address, reader.login, code, hostNames().label);
-    try {
-      await (deps.sendMail ?? sendMail)(mail.config, message);
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
-      const safeReason = reason.split(address).join('<address>');
-      deps.log.warn(
-        { reason: safeReason, login: reader.login },
-        '[gitquire-mail] confirmation mail failed',
-      );
-      throw new HttpError(502, 'mail-failed', 'The confirmation mail could not be sent.');
-    }
-    const codeHash = hashConfirmationCode(codeKey(), reader.id, code);
-    mentionReads.startConfirmation(reader, address, codeHash, now);
-    deps.log.info({ login: reader.login }, '[gitquire-mail] confirmation mail sent');
-    sendJson(res, 200, emailState(reader.id));
-  }
-
-  async function confirmMentionEmail(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const reader = sessionReader(req);
-    const body = await readJson(req);
-    const code = typeof body.code === 'string' ? normalizeConfirmationCode(body.code) : '';
-    if (code === '') throw new HttpError(400, 'invalid-code', 'Enter the code from the mail.');
-    const alreadyThere = mentionsFor(reader, mentionIndex.all()).map((mention) => mention.id);
-    const hash = hashConfirmationCode(codeKey(), reader.id, code);
-    const result = mentionReads.confirm(reader, hash, alreadyThere, new Date());
-    if (result === 'none') {
-      throw new HttpError(409, 'nothing-to-confirm', 'There is no address waiting for a code.');
-    }
-    if (result === 'expired') {
-      throw new HttpError(410, 'code-expired', 'The code has expired. Ask for a new one.');
-    }
-    if (result === 'wrong') throw new HttpError(400, 'wrong-code', 'That code is not right.');
-    if (result === 'locked') {
-      throw new HttpError(429, 'too-many-tries', 'Too many wrong codes. Ask for a new one.');
-    }
-    deps.log.info({ login: reader.login }, '[gitquire-mail] mention email confirmed');
-    sendJson(res, 200, emailState(reader.id));
   }
 
   async function markMentionsRead(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -701,23 +533,16 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
       return listPageMentionsOf(req, res);
     }
     if (path === '/api/gitquire/people' && method === 'GET') return listPeople(req, res);
-    if (path === '/api/gitquire/me/settings' && behindFrontDoor) {
+    if (
+      (path === '/api/gitquire/me/settings' ||
+        path === '/api/gitquire/mentions/email' ||
+        path === '/api/gitquire/mentions/email/confirm') &&
+      single === undefined
+    ) {
       throw new HttpError(404, 'served-by-front-door', 'The front door answers this.');
-    }
-    if (path === '/api/gitquire/me/settings' && method === 'GET') {
-      return readPersonalSettings(req, res);
-    }
-    if (path === '/api/gitquire/me/settings' && method === 'PUT') {
-      return writePersonalSettings(req, res);
     }
     if (path === '/api/gitquire/mentions/read' && method === 'POST') {
       return markMentionsRead(req, res);
-    }
-    if (path === '/api/gitquire/mentions/email' && method === 'PUT') {
-      return setMentionEmail(req, res);
-    }
-    if (path === '/api/gitquire/mentions/email/confirm' && method === 'POST') {
-      return confirmMentionEmail(req, res);
     }
     throw new HttpError(404, 'not-found', 'Unknown GitQuire endpoint.');
   }
@@ -725,6 +550,10 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
   function handle(req: IncomingMessage, res: ServerResponse): boolean {
     const path = new URL(req.url ?? '/', 'http://gitquire.invalid').pathname;
     if (!path.startsWith('/api/gitquire/')) return false;
+    if (single?.routes.handles(path, req.method ?? 'GET')) {
+      single.routes.handle(req, res, single.who(req), path);
+      return true;
+    }
     route(req, res, path).catch((err: unknown) => {
       if (res.headersSent) {
         if (!res.writableEnded) res.end();
@@ -749,6 +578,9 @@ export function createGitQuireRoutes(deps: GitQuireRoutesDeps): GitQuireRoutes {
 
   return {
     handle,
+    ...(single === undefined
+      ? {}
+      : { recordAddress: single.recordAddress, peopleStore: single.store }),
     mailRound: () => mailer?.round() ?? Promise.resolve(0),
     chatRound: () => chatNotifier?.round() ?? Promise.resolve(0),
     stop: () => clearInterval(mailTimer),

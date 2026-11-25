@@ -1,8 +1,10 @@
 import type { IncomingMessage } from 'node:http';
 import type { SessionUser } from '../access-gate.ts';
+import type { PersonChatData } from '../people/chat-data.ts';
 import { type AskDoor, DoorUnavailableError } from '../people/door-client.ts';
+import { personId } from '../people/store.ts';
 import { ticketOfRequest } from '../people/ticket.ts';
-import type { ChatKeyStore, StoredKeyInfo } from './key-store.ts';
+import type { ChatKeyStore, SealedKeyStore, StoredKeyInfo } from './key-store.ts';
 import type { ChatProvider } from './models.ts';
 import type { ChatUsageStore, UsageEntry, UsageReport } from './usage.ts';
 
@@ -77,5 +79,38 @@ export function doorChatUsage(ask: AskDoor): ChatUsage {
     },
     report: (req) => answered(ask('GET', 'ai-usage', ticket(req))),
     purgeExpired: () => 0,
+  };
+}
+
+export function peopleChatKeys(keys: SealedKeyStore, idPrefix: string): ChatKeys {
+  const owner = (user: SessionUser) => personId(idPrefix, user.id);
+  return {
+    info: async (_req, user) => keys.info(owner(user)),
+    get: async (_req, user, provider) => keys.get(owner(user), provider),
+    set: async (_req, user, provider, key, now) => keys.set(owner(user), provider, key, now),
+    remove: async (_req, user, provider) => keys.remove(owner(user), provider),
+  };
+}
+
+export function peopleChatUsage(
+  data: PersonChatData,
+  wikiKey: string,
+  idPrefix: string,
+): ChatUsage {
+  const owner = (user: SessionUser) => personId(idPrefix, user.id);
+  return {
+    add: async (_req, user, entry) => data.addUsage(owner(user), wikiKey, entry, new Date()),
+    report: async (_req, user) => {
+      const answer = data.answer({
+        person: owner(user),
+        login: user.login,
+        wikiKey,
+        method: 'GET',
+        path: 'ai-usage',
+        body: {},
+      });
+      return answer?.body as UsageReport;
+    },
+    purgeExpired: (now) => data.purgeUsage(now),
   };
 }

@@ -528,7 +528,12 @@ export function createGitQuireHttp(
     sessionUser: options.gate?.sessionUser,
     extraMentions: drafts === undefined ? undefined : () => drafts.service.reviewMentions(),
     notify: !isDraftInstance(env),
+    ...(gate?.accessOf === undefined ? {} : { canOpen: gate.accessOf }),
   });
+  if (routes.recordAddress !== undefined) {
+    const record = routes.recordAddress;
+    gate?.onAccountAddress?.((user, found) => record(user, found));
+  }
   const chat =
     gate === undefined || isDraftInstance(env)
       ? undefined
@@ -537,6 +542,7 @@ export function createGitQuireHttp(
           sessionUser: gate.sessionUser,
           log: options.log,
           ownPort: options.ownPort,
+          ...(routes.peopleStore === undefined ? {} : { people: routes.peopleStore }),
         });
   const stopState = createStopStateRoute(() =>
     projectStopState(
