@@ -106,6 +106,7 @@ interface Rig {
   levels: Record<string, Record<string, RepoAccess>>;
   bot: { answer: BotAccess | undefined };
   gone: Set<number>;
+  forgotten: string[];
   advance: (ms: number) => void;
 }
 
@@ -230,6 +231,7 @@ async function rig(
     }),
   );
   const tickets = createPersonTickets({ now });
+  const forgotten: string[] = [];
   const door = createFrontDoor({
     settings,
     hosts,
@@ -242,6 +244,7 @@ async function rig(
       ? {}
       : { readAccountAddress: options.readAccountAddress }),
     ...(options.seen === undefined ? {} : { seen: options.seen }),
+    wikiRemoved: (key) => forgotten.push(key),
     log: silentLog,
     now,
     randomState: () => 'state-1',
@@ -271,6 +274,7 @@ async function rig(
     levels,
     gone,
     bot,
+    forgotten,
     advance: (ms) => {
       time += ms;
     },
@@ -850,6 +854,7 @@ describe('wiki list and Add a wiki pages', () => {
     });
     expect(removed.status).toBe(303);
     expect(r.table.byKey('github-1')).toBeUndefined();
+    expect(r.forgotten).toEqual(['github-1']);
     expect(existsSync(join(r.data, 'wikis', 'github-1'))).toBe(false);
     const kept = readdirSync(join(r.data, 'wikis-removed'));
     expect(kept).toHaveLength(1);

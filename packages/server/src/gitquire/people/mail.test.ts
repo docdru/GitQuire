@@ -47,9 +47,23 @@ describe('the account address in the per-person store', () => {
     updateMailRecord(people, 'forgejo-3', () => ({
       login: 'anna',
       use: 'other',
-      other: { address: 'Anna@Example.org', confirmedAt: '2026-10-01T00:00:00.000Z' },
+      other: { address: 'Anna@Example.org', confirmedAt: '2026-10-01T00:00:00.000Z', moved: true },
       since: '2026-10-01T00:00:00.000Z',
     }));
+    updateMailRecord(people, 'forgejo-4', () => ({
+      login: 'bert',
+      use: 'other',
+      other: { address: 'bert@example.org', confirmedAt: '2026-10-01T00:00:00.000Z' },
+      since: '2026-10-01T00:00:00.000Z',
+    }));
+    const chosen = recordAccountAddress(
+      people,
+      'forgejo-4',
+      'bert',
+      { state: 'found', address: 'bert@example.org' },
+      at,
+    );
+    expect(chosen.use).toBe('other');
     const first = recordAccountAddress(
       people,
       'forgejo-3',

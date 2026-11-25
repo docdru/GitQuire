@@ -18,7 +18,7 @@ import { draftsStatePath } from '../drafts/store.ts';
 import { mentionStatePath } from '../mentions.ts';
 import type { PersonUsageEntry } from './chat-data.ts';
 import { readMailRecord, updateMailRecord } from './mail.ts';
-import { mailedIds, markMailed } from './mailer.ts';
+import { knownWikis, mailedIds, markMailed } from './mailer.ts';
 import { type AgentMode, isAgentMode } from './settings.ts';
 import { type PeopleStore, SETTINGS_FILE } from './store.ts';
 
@@ -293,7 +293,7 @@ export function movePeopleData(
           next.account.address.toLowerCase() === address.toLowerCase();
         next.use = isAccount ? 'account' : 'other';
         next.chosenAt = new Date(candidate.at).toISOString();
-        if (!isAccount) next.other = { address, confirmedAt: candidate.value.since };
+        if (!isAccount) next.other = { address, confirmedAt: candidate.value.since, moved: true };
         report.addresses += 1;
       }
       const first = earliest.get(who);
@@ -389,8 +389,9 @@ export function copyPeopleForWiki(
     for (const file of ['mail.json', 'prefs.json', 'ai-keys.json', SETTINGS_FILE] as const) {
       copyIfAbsent(join(from.root, person, file), join(to.root, person, file));
     }
-    const mailed = [...mailedIds(from, person, fromWiki)];
-    if (mailed.length > 0) markMailed(to, person, toWiki, mailed);
+    if (knownWikis(from, person).has(fromWiki)) {
+      markMailed(to, person, toWiki, [...mailedIds(from, person, fromWiki)]);
+    }
     const entries = from
       .readJson(person, 'usage.json', (raw) => {
         const list = (raw as { entries?: PersonUsageEntry[] } | undefined)?.entries;

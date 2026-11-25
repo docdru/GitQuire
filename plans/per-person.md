@@ -96,9 +96,9 @@ Each is also in the roadmap doc's "Assumptions".
 - **Whole-branch review (#267):**
   - The mailer asks access strictly. When the host cannot be asked, an older cached answer never counts as "open", so nothing is mailed (P3). Pages still use the cached answer, as before (R14).
   - Any request the front door forwards into a wiki counts as a visit for the 30-day idle rule; so does opening the inbox in a single wiki. This is noted at most once an hour per person.
-  - A wiki key in `mailed.json` means "this wiki is known for this person". Switch-on and the move-over write the key. When the mailer meets a wiki without a key (added or adopted later, or `mailed.json` unreadable), it marks that wiki's existing mentions as mailed instead of mailing them. Files are fsynced before the rename.
+  - A wiki key in `mailed.json` means "this wiki is known for this person". Switch-on, the move-over and `adopt`/`unadopt` write or copy it (also with nothing mailed yet). Removing a wiki drops its key for everyone. At each round, for every switched-on person and before any pause check (idle, address, backoff, host down), a wiki without a key gets its mentions from before the wiki's `addedAt` marked as mailed; later ones are mailed as usual. If `mailed.json` cannot be parsed, all existing mentions are marked, so nothing is mailed twice. Files and their folder are fsynced. Second review of the fix PR (#269): known-key copy on adopt, `addedAt`, removal, and the check before pauses.
   - The move-over marks the wikis it moves in this run whatever the record looked like before, so a retry after a run that stopped partway still marks.
-  - A moved address that equals the account address read at the first sign-in becomes the account address.
+  - A moved address (marked as moved by the move-over) that equals the account address read at the first sign-in becomes the account address. An address chosen with a code is never converted.
   - The front-door sign-in no longer waits for the account address.
   - Editors no longer get the SMTP settings.
   - The address is removed from mail error lines in any case.

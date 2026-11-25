@@ -11,7 +11,7 @@ import {
   statSync,
   writeSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 const PERSON_ID_RE = /^[a-z](?:[a-z0-9-]{0,30}[a-z0-9])?-[1-9][0-9]{0,15}$/;
 
@@ -56,6 +56,18 @@ export interface PeopleStore {
   people: () => string[];
 }
 
+function syncFolder(dir: string): void {
+  let fd: number | undefined;
+  try {
+    fd = openSync(dir, 'r');
+    fsyncSync(fd);
+  } catch {
+    return;
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
+
 function writeAtomic(file: string, text: string): void {
   const temporary = `${file}.${process.pid}.tmp`;
   const fd = openSync(temporary, 'w', 0o600);
@@ -66,6 +78,7 @@ function writeAtomic(file: string, text: string): void {
     closeSync(fd);
   }
   renameSync(temporary, file);
+  syncFolder(dirname(file));
 }
 
 export function createPeopleStore(root: string): PeopleStore {

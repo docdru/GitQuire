@@ -167,6 +167,7 @@ export interface FrontDoorDeps {
   mentionCounts?: MentionCounts;
   tickets?: PersonTickets;
   seen?: (person: string, login: string) => void;
+  wikiRemoved?: (key: string) => void;
   personRoutes?: PersonRoutes;
   readAccountAddress?: (entry: DoorHostEntry, person: HostPerson, token: string) => Promise<void>;
   log: GateLogger;
@@ -1446,6 +1447,11 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       renameSync(dir, keptIn);
     }
     table.remove(key);
+    try {
+      deps.wikiRemoved?.(key);
+    } catch (err) {
+      deps.log.warn({ err, wiki: key }, '[gitquire-door] could not forget the removed wiki');
+    }
     found.seat.entry.forgejoTokens?.forget(key);
     deps.log.warn(
       {

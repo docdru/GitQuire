@@ -7,6 +7,8 @@ import type { Mention } from '../mentions.ts';
 import { updateMailRecord } from './mail.ts';
 import {
   createPeopleMailer,
+  forgetWikiMailed,
+  knownWikis,
   type MailWiki,
   mailedIds,
   markMailed,
@@ -302,6 +304,39 @@ describe('the one mailer in the front door', () => {
     added.list.push(mention('new', 'anna', T0 + 5000));
     expect(await mailer.round()).toBe(1);
     expect(sent[0]?.text).toContain('team/added');
+  });
+
+  it('marks only what was there when a wiki was added, also if the first round comes much later', async () => {
+    const added: FakeWiki & { addedAt?: string } = {
+      key: 'added',
+      idPrefix: 'github-',
+      list: [mention('before', 'anna', T0 + 1000), mention('after', 'anna', T0 + 5000)],
+      read: new Set<string>(),
+      open: 'open' as WikiOpen,
+    };
+    const { store, sent } = setup([]);
+    switchOn(store, 'github-5', 'anna', 'anna@example.org');
+    const mailer = createPeopleMailer({
+      store,
+      config,
+      send: async (_c, message) => {
+        sent.push(message);
+      },
+      wikis: () => [{ ...wikiOf(added), addedAt: new Date(T0 + 3000).toISOString() }],
+      log: { warn: () => {} },
+      now: () => T0 + 60 * 60 * 1000,
+    });
+    expect(await mailer.round()).toBe(1);
+    expect(sent[0]?.text).toContain('team/added');
+    expect(mailedIds(store, 'github-5', 'added')).toEqual(new Set(['before', 'after']));
+  });
+
+  it('forgets a removed wiki, so adding it again marks what is there then', () => {
+    const { store } = setup([]);
+    markMailed(store, 'github-5', 'gone', ['m1']);
+    markMailed(store, 'github-5', 'kept', ['m2']);
+    forgetWikiMailed(store, 'gone');
+    expect(knownWikis(store, 'github-5')).toEqual(new Set(['kept']));
   });
 
   it('mails nothing twice when its record of what was mailed cannot be read', async () => {

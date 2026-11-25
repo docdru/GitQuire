@@ -15,7 +15,7 @@ import { createChatKeyStore } from '../chat/key-store.ts';
 import type { Mention } from '../mentions.ts';
 import { personKeyStore } from './chat-data.ts';
 import { readMailRecord, recordAccountAddress } from './mail.ts';
-import { createPeopleMailer, knownWikis, mailedIds } from './mailer.ts';
+import { createPeopleMailer, knownWikis, mailedIds, markMailed } from './mailer.ts';
 import { copyPeopleForWiki, movedWikis, movePeopleData, SINGLE_WIKI_KEY } from './move-over.ts';
 import { personSettings } from './settings.ts';
 import { createPeopleStore, SETTINGS_FILE } from './store.ts';
@@ -370,6 +370,15 @@ describe('the way back for one wiki (unadopt) and in again (adopt)', () => {
     copyPeopleForWiki(single, again, SINGLE_WIKI_KEY, 'github-1');
     expect([...mailedIds(again, 'github-11', 'github-1')]).toEqual(['t1:c1']);
     expect(readMailRecord(again, 'github-11').other?.address).toBe('anna@example.org');
+  });
+
+  it('carries "known, nothing mailed yet" along, so pending mail is not marked away', () => {
+    const { root, store } = setup();
+    markMailed(store, 'github-11', SINGLE_WIKI_KEY, []);
+    const front = createPeopleStore(join(root, 'front', 'people'));
+    copyPeopleForWiki(store, front, SINGLE_WIKI_KEY, 'github-1');
+    expect(knownWikis(front, 'github-11').has('github-1')).toBe(true);
+    expect(mailedIds(front, 'github-11', 'github-1').size).toBe(0);
   });
 
   it('writes nothing when there is nothing to move', () => {

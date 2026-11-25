@@ -10,7 +10,7 @@ import { isSameOriginRequest } from '../http-util.ts';
 import { resolveMailConfig, sendMail } from '../mail.ts';
 import { personChatData, personKeyStore } from '../people/chat-data.ts';
 import { createEmailService } from '../people/email-service.ts';
-import { createPeopleMailer, openWithin } from '../people/mailer.ts';
+import { createPeopleMailer, forgetWikiMailed, openWithin } from '../people/mailer.ts';
 import { movePeopleData } from '../people/move-over.ts';
 import { createPersonRoutes, emailRoutes, settingsRoutes } from '../people/person-routes.ts';
 import { personSettings } from '../people/settings.ts';
@@ -275,6 +275,7 @@ export async function startFrontDoor(
             url: `${settings.externalUrl.origin}${wikiPrefix(wiki)}`,
             mentions: () => mentionCounts.mentionsOf(wiki, entry.names.idPrefix),
             readIds: (id: number) => mentionCounts.readIdsOf(wiki, id),
+            addedAt: wiki.addedAt,
             canOpen: (account: { id: number; login: string }) =>
               openWithin(
                 entry.access.decide(account, wiki, { strict: true }),
@@ -442,6 +443,7 @@ export async function startFrontDoor(
     tickets,
     readAccountAddress: accountAddressReader({ store: people, log }),
     seen: (person, login) => email.seen({ person, login }),
+    wikiRemoved: (key) => forgetWikiMailed(people, key),
     personRoutes,
     log,
   });

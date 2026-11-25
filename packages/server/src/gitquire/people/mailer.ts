@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { isPermanentMailFailure, type MailConfig, type MailMessage } from '../mail.ts';
 import { mentionMail } from '../mention-mailer.ts';
@@ -38,6 +40,7 @@ export interface MailWiki {
   mentions: () => Mention[];
   readIds: (accountId: number) => Set<string>;
   canOpen: (account: { id: number; login: string }) => Promise<WikiOpen>;
+  addedAt?: string;
 }
 
 export interface PeopleMailerDeps {
@@ -88,6 +91,31 @@ function parseMailed(raw: unknown): Mailed {
 
 export function knownWikis(store: PeopleStore, person: string): Set<string> {
   return new Set(Object.keys(store.readJson(person, 'mailed.json', parseMailed)));
+}
+
+function mailedUnreadable(store: PeopleStore, person: string): boolean {
+  let text: string;
+  try {
+    text = readFileSync(join(store.root, person, 'mailed.json'), 'utf8');
+  } catch {
+    return false;
+  }
+  try {
+    JSON.parse(text);
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+export function forgetWikiMailed(store: PeopleStore, wikiKey: string): void {
+  for (const person of store.people()) {
+    if (!knownWikis(store, person).has(wikiKey)) continue;
+    store.updateJson(person, 'mailed.json', parseMailed, (mailed) => {
+      const { [wikiKey]: _gone, ...rest } = mailed;
+      return rest;
+    });
+  }
 }
 
 export function mailedIds(store: PeopleStore, person: string, wikiKey: string): Set<string> {
@@ -236,6 +264,20 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     );
   }
 
+  function markUnknownWikis(
+    person: string,
+    login: string,
+    idPrefix: string,
+    wikis: readonly RoundWiki[],
+  ): void {
+    const known = knownWikis(deps.store, person);
+    const unreadable = mailedUnreadable(deps.store, person);
+    for (const round of wikis) {
+      if (round.wiki.idPrefix !== idPrefix || known.has(round.wiki.key)) continue;
+      markExisting(person, login, round.wiki.key, unreadable ? undefined : round.wiki.addedAt);
+    }
+  }
+
   async function mailPerson(
     person: string,
     wikis: readonly RoundWiki[],
@@ -244,8 +286,11 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     const account = accountOf(person);
     if (account === undefined) return 0;
     const record = readMailRecord(deps.store, person);
+    if (record.use === undefined || record.login === undefined || record.since === undefined)
+      return 0;
+    markUnknownWikis(person, record.login, account.idPrefix, wikis);
     const address = mailAddressOf(record, deps.config, now());
-    if (address === undefined || record.login === undefined || record.since === undefined) return 0;
+    if (address === undefined) return 0;
     const lastSeen = Date.parse(record.lastSeen ?? record.since);
     if (now() - lastSeen > limits.idleDays * DAY_MS) return 0;
     if ((failures.get(person)?.retryAt ?? 0) > now()) return 0;
@@ -254,13 +299,8 @@ export function createPeopleMailer(deps: PeopleMailerDeps): PeopleMailer {
     const reader = { id: account.id, login };
     const earliest = new Date(Date.parse(since) - limits.clockSlackMs).toISOString();
     let sent = 0;
-    const known = knownWikis(deps.store, person);
     for (const round of wikis) {
       if (round.wiki.idPrefix !== account.idPrefix || hostsDown.has(account.idPrefix)) continue;
-      if (!known.has(round.wiki.key)) {
-        markExisting(person, login, round.wiki.key);
-        continue;
-      }
       const due = dueIn(round, person, reader, earliest);
       if (due.length === 0) continue;
       const open = await round.wiki.canOpen(reader);
