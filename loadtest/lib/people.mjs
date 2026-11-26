@@ -76,7 +76,7 @@ export class Typist {
     const started = performance.now();
     this.editor = new Editor(this.session, this.wikiPath, this.docName);
     await this.editor.synced();
-    this.recorder.add('page.open', performance.now() - started);
+    this.recorder.add(this.openMetric, performance.now() - started);
     this.editor.provider.on('unsyncedChanges', ({ number }) => {
       if (number === 0 && this.ackFrom !== undefined) {
         this.recorder.add('edit.ack', performance.now() - this.ackFrom);

@@ -17,7 +17,8 @@ const LEVEL_LABEL = {
   s1: (l) => `${l.editors} on one page`,
   s2: (l) => `${l.people} people`,
   s3: (l) => `${l.pages} pages, ${l.commits} commits`,
-  s4: (l) => `${l.wikis} wikis open`,
+  s4: (l) => `${l.wikis} ${l.wikis === 1 ? 'wiki' : 'wikis'} open`,
+  s5: (l) => `${l.drafts} ${l.drafts === 1 ? 'draft' : 'drafts'} in use`,
   s6: (l) => l.phase,
   s9: (l) => `${l.people} people, ${l.minutes} min`,
 };
@@ -26,7 +27,8 @@ const CLAIM = {
   s1: (l) => `${l.editors} people typing in one page`,
   s2: (l) => `${l.people} people signed in to one wiki`,
   s3: (l) => `a wiki of ${l.pages} pages`,
-  s4: (l) => `${l.wikis} wikis open at once`,
+  s4: (l) => `${l.wikis} ${l.wikis === 1 ? 'wiki' : 'wikis'} open at once`,
+  s5: (l) => `${l.drafts} ${l.drafts === 1 ? 'draft' : 'drafts'} in use`,
 };
 
 function load(dir) {
@@ -140,6 +142,12 @@ function summarise(data) {
         backlinksAfterRenameMs: metric(r, (x) => x.backlinksAfterRenameMs),
         startMs: metric(r, (x) => x.startMs),
         noWikiMb: metric(r, (x) => x.memoryNoWiki?.peakMb),
+        perDraftMb: metric(r, (x) => {
+          const g = x.memory?.groups?.draft;
+          return g === undefined ? null : g.rssMb / g.count;
+        }),
+        draftOpenP50: metric(r, (x) => x.timings?.['draft.open']?.p50),
+        publishMs: metric(r, (x) => x.timings?.['draft.publish']?.max),
       },
     });
   }
@@ -200,6 +208,11 @@ for (const name of Object.keys(current).sort()) {
       parts.push(`rename of a page with 200+ backlinks ${fmt(row.extra.renameHubMs, ' ms')}`);
     if (row.extra.backlinksAfterRenameMs !== null)
       parts.push(`backlinks complete again after ${fmt(row.extra.backlinksAfterRenameMs, ' ms')}`);
+    if (row.extra.perDraftMb !== null)
+      parts.push(`about ${fmt(row.extra.perDraftMb, ' MB')} per draft process`);
+    if (row.extra.draftOpenP50 !== null)
+      parts.push(`a draft's first open ${fmt(row.extra.draftOpenP50, ' ms')} (median)`);
+    if (row.extra.publishMs !== null) parts.push(`publish ${fmt(row.extra.publishMs, ' ms')}`);
     if (parts.length > 0) lines.push(`- ${row.label}: ${parts.join(', ')}`);
   }
   if (failed.length > 0 || extras.length > 0) lines.push('');

@@ -390,6 +390,121 @@ export const scenarios = {
     },
   },
 
+  s5: {
+    title: 'Drafts',
+    cumulative: true,
+    levels: (quick) => (quick ? [1, 3] : [1, 5, 10, 20]),
+    async runAll(levels, { hold, seed }) {
+      const max = Math.max(...levels);
+      const seedBare = seedRepo(200, 200);
+      const world = await setupWorld({ wikis: [{ name: 'drafts', seedBare }], persons: max + 6 });
+      const wiki = world.wikis[0];
+      const docNames = await documentNames(world.admin, wiki.path);
+      const sampler = new Sampler();
+      sampler.start();
+      let recorder = new Recorder();
+      const stopProbes = probes(
+        () => recorder,
+        world.admin,
+        () => [wiki.path],
+      );
+      const liveSessions = await signInMany(5, 2);
+      const drafters = [];
+      let nextLogin = 7;
+      const results = [];
+      for (const count of levels) {
+        recorder = new Recorder();
+        sampler.mark(`drafts-${count}`);
+        while (drafters.length < count) {
+          const [session] = await signInMany(1, nextLogin++);
+          const createStarted = performance.now();
+          const made = await session.call('POST', `${wiki.path}api/gitquire/drafts`, {
+            title: `Load draft ${drafters.length + 1}`,
+          });
+          recorder.add('draft.create', performance.now() - createStarted);
+          if (made.status !== 201) {
+            recorder.count(`error.draft.create.${made.status}`);
+            break;
+          }
+          drafters.push({
+            session,
+            slug: made.json.draft.slug,
+            docName: docNames[(drafters.length * 31 + 5) % docNames.length],
+          });
+        }
+        const until = Date.now() + hold;
+        const live = await mixedLoad({
+          world,
+          wiki,
+          sessions: liveSessions,
+          recorder,
+          until,
+          editorShare: 0.6,
+          seed,
+        });
+        const typists = [];
+        for (const d of drafters) {
+          const t = new Typist({
+            session: d.session,
+            wikiPath: wiki.path,
+            docName: d.docName,
+            recorder,
+            seed: seed + typists.length,
+          });
+          const opened = performance.now();
+          await t.open();
+          recorder.add('draft.open', performance.now() - opened);
+          typists.push(t);
+        }
+        await Promise.all(typists.map((t) => t.run(until)));
+        await live.done();
+        await wait(3000);
+        for (const t of typists) t.close();
+        const memory = memorySummary(sampler.samples, `drafts-${count}`);
+        results.push({ level: { drafts: count }, memory, ...recorder.result() });
+        if (memory !== null && memory.peakMb > 0.95 * parseMemory(settings.memory)) break;
+      }
+      const recorderPublish = recorder;
+      const target = drafters[0];
+      if (target !== undefined) {
+        const markers = [];
+        const editor = new Typist({
+          session: target.session,
+          wikiPath: wiki.path,
+          docName: target.docName,
+          recorder: recorderPublish,
+          seed,
+        });
+        await editor.open();
+        const marker = `zqpublish${seed}q`;
+        editor.keystroke(` ${marker} `);
+        markers.push(marker);
+        await wait(3000);
+        editor.close();
+        const started = performance.now();
+        const published = await target.session.call(
+          'POST',
+          `${wiki.path}api/gitquire/drafts/${target.slug}/publish`,
+          {},
+        );
+        recorderPublish.add('draft.publish', performance.now() - started);
+        recorderPublish.count(`draft.publish.status.${published.status}`);
+        const server = await onServer(world.admin, wiki.path, target.docName, markers);
+        const host = await onHost(world.admin, wiki.path, wiki.name, target.docName, markers);
+        recorderPublish.count('lost.server', server.ok ? 0 : server.missing);
+        recorderPublish.count('lost.host', host.ok ? 0 : host.missing);
+        results[results.length - 1] = {
+          ...results[results.length - 1],
+          ...recorderPublish.result(),
+        };
+      }
+      await stopProbes();
+      sampler.stop();
+      await teardown();
+      return results;
+    },
+  },
+
   s6: {
     title: 'Git under load',
     cumulative: true,

@@ -1,7 +1,7 @@
 import { inServer, serverRootPid, settings } from './env.mjs';
 
 const PROC_SCRIPT =
-  'for p in /proc/[0-9]*; do s=$(cat $p/stat 2>/dev/null) || continue; r=$(grep VmRSS $p/status 2>/dev/null | tr -s " " | cut -d" " -f2); c=$(tr "\\0" " " < $p/cmdline 2>/dev/null | cut -c1-160); echo "$s|${r:-0}|$c"; done; echo "@mem $(cat /sys/fs/cgroup/memory.current 2>/dev/null || echo 0)"';
+  'for p in /proc/[0-9]*; do s=$(cat $p/stat 2>/dev/null) || continue; r=$(grep VmRSS $p/status 2>/dev/null | tr -s " " | cut -d" " -f2); c=$({ tr "\\0" " " < $p/cmdline; } 2>/dev/null | cut -c1-160); echo "$s|${r:-0}|$c"; done; echo "@mem $(cat /sys/fs/cgroup/memory.current 2>/dev/null || echo 0) $(grep -m1 "^inactive_file " /sys/fs/cgroup/memory.stat 2>/dev/null | cut -d" " -f2)"';
 
 const TICKS = 100;
 
@@ -10,7 +10,8 @@ function parse(text) {
   let cgroup = 0;
   for (const line of text.split('\n')) {
     if (line.startsWith('@mem ')) {
-      cgroup = Number(line.slice(5)) || 0;
+      const [current, inactive] = line.slice(5).split(' ').map(Number);
+      cgroup = Math.max(0, (current || 0) - (inactive || 0));
       continue;
     }
     if (line.trim() === '') continue;
@@ -29,13 +30,14 @@ function parse(text) {
   return { procs, cgroup };
 }
 
-function kindOf(proc, rootPid) {
+function kindOf(proc, rootPid, byPid) {
   if (proc.pid === rootPid) return 'front-door';
   const match = /-server (\S+)/.exec(proc.cmd);
-  if (match)
-    return match[1].startsWith('draft') || proc.cmd.includes('draft')
-      ? `draft:${match[1]}`
-      : `wiki:${match[1]}`;
+  if (match) {
+    const parent = byPid.get(proc.ppid);
+    const underWiki = parent !== undefined && parent.pid !== rootPid && /-server /.test(parent.cmd);
+    return underWiki ? 'draft' : `wiki:${match[1]}`;
+  }
   if (/^git\b|\/git\b/.test(proc.cmd)) return 'git';
   return 'other';
 }
@@ -79,7 +81,7 @@ export class Sampler {
     let rssKb = 0;
     let cpuSeconds = 0;
     for (const p of own) {
-      const kind = kindOf(p, rootPid);
+      const kind = kindOf(p, rootPid, parsed.procs);
       const prev = this.last?.byPid.get(p.pid);
       const used = prev === undefined ? 0 : Math.max(0, p.cpu - prev.cpu);
       const group = (groups[kind] ??= { rssMb: 0, cpuSeconds: 0, count: 0 });

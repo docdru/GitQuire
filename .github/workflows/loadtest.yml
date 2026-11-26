@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       scenarios:
-        description: 'Scenarios, as a JSON list (s0 s1 s2 s3 s4 s6 s9)'
-        default: '["s0","s1","s2","s3","s4","s6"]'
+        description: 'Scenarios, as a JSON list (s0 s1 s2 s3 s4 s5 s6 s9)'
+        default: '["s0","s1","s2","s3","s4","s5","s6"]'
       hold:
         description: Seconds each level is held
         default: '180'
@@ -54,6 +54,7 @@ jobs:
           IN_REPEATS: ${{ inputs.repeats }}
           IN_STORE: ${{ inputs.store }}
           REF: ${{ github.ref }}
+          MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           set -eu
           case "$EVENT" in
@@ -61,10 +62,11 @@ jobs:
               scenarios="$IN_SCENARIOS"; hold="$IN_HOLD"; repeats="$IN_REPEATS"
               store=false; if [ "$IN_STORE" = true ] && [ "$REF" = refs/heads/main ]; then store=true; fi ;;
             schedule)
-              if [ "$SCHEDULE" = '43 1 1 * *' ]; then scenarios='["s9"]'; else scenarios='["s0","s1","s2","s3","s4","s6"]'; fi
+              if [ "$SCHEDULE" = '43 1 1 * *' ]; then scenarios='["s9"]'; else scenarios='["s0","s1","s2","s3","s4","s5","s6"]'; fi
               hold=180; repeats=3; store=true ;;
             *)
-              scenarios='["s0","s1","s2","s3","s4","s6"]'; hold=60; repeats=1; store=false ;;
+              scenarios='["s0","s1","s2","s3","s4","s5","s6"]'; hold=60; repeats=1; store=false
+              case "$MESSAGE" in *'[full load test]'*) hold=180; repeats=3 ;; esac ;;
           esac
           {
             echo "scenarios=$scenarios"
@@ -114,7 +116,6 @@ jobs:
       LOADTEST_CPUS: '2'
       LOADTEST_MEMORY: 4g
       LOADTEST_SOAK_MINUTES: ${{ inputs.soak_minutes || '300' }}
-      NODE_EXTRA_CA_CERTS: /tmp/ca/cert.pem
     steps:
       - uses: actions/checkout@v7
 
@@ -143,6 +144,7 @@ jobs:
           HOLD: ${{ needs.plan.outputs.hold }}
           REPEATS: ${{ needs.plan.outputs.repeats }}
           SCENARIO: ${{ matrix.scenario }}
+          NODE_EXTRA_CA_CERTS: /tmp/ca/cert.pem
         run: node loadtest/run.mjs --scenario "$SCENARIO" --hold "$HOLD" --repeats "$REPEATS" --out loadtest/results
 
       - name: Server log tail

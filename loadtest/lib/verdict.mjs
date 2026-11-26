@@ -10,6 +10,7 @@ export const LIMITS = {
   errorRate: 0.005,
   memoryShare: 0.85,
   saveToHostSeconds: 120,
+  publishMax: 15000,
 };
 
 const HEAVY = new Set(['api.search', 'api.backlinks', 'api.linkgraph']);
@@ -35,6 +36,8 @@ export function evaluate(_scenario, result) {
   check('a', t['edit.ack']?.p95, LIMITS.editAckP95, 'edit ack p95 ms');
   check('o', t['page.open']?.p95, LIMITS.pageOpenP95, 'page open p95 ms');
   check('c', t['wiki.coldOpen']?.max, LIMITS.coldOpenMax, 'cold open ms');
+  check('d', t['draft.open']?.max, LIMITS.coldOpenMax, 'draft first open ms');
+  check('d', t['draft.publish']?.max, LIMITS.publishMax, 'publish ms');
   check('w', t['probe.wiki']?.p99, LIMITS.probeWikiP99, 'wiki responsiveness p99 ms');
   for (const [name, s] of Object.entries(t)) {
     if (!name.startsWith('api.')) continue;

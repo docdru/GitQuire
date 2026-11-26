@@ -20,6 +20,7 @@ fake in `.github/prototypes/github-fake.mjs`.
 | s2 | One wiki, normal day | 10, 25, 50, 100 people; a fifth typing, the rest reading, searching, opening backlinks |
 | s3 | Big wiki | 1,000 / 5,000 / 20,000 pages with as many commits; rename of a page with 200+ backlinks |
 | s4 | Many wikis | 1, 5, 10, 20, 40 wikis open, three people each |
+| s5 | Drafts | 1, 5, 10, 20 drafts in use, one person typing in each, five people on the live wiki; then a publish |
 | s6 | Git under load | 25 people while the host answers after 0, 0.5 and 3 s, and while it is down for two minutes |
 | s9 | Soak | 20 people for five hours |
 

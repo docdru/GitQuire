@@ -44,6 +44,17 @@ function machine() {
   };
 }
 
+function show(name, result) {
+  const verdict = evaluate(name, result);
+  console.log(
+    `[loadtest] ${name} ${JSON.stringify(result.level)} -> ${verdict.pass ? 'pass' : `fail: ${verdict.reasons.join('; ')}`}`,
+  );
+  const { timings, ...rest } = result;
+  console.log(`[loadtest] result ${JSON.stringify({ ...rest, memoryCurve: undefined })}`);
+  console.log(`[loadtest] timings ${JSON.stringify(timings)}`);
+  return verdict;
+}
+
 mkdirSync(values.out, { recursive: true });
 const startedAt = new Date().toISOString();
 
@@ -59,7 +70,9 @@ for (const name of names) {
     );
     try {
       if (scenario.cumulative) {
-        runs.push(await scenario.runAll(levels, { hold, seed }));
+        const results = await scenario.runAll(levels, { hold, seed });
+        for (const result of results) show(name, result);
+        runs.push(results);
       } else {
         const results = [];
         for (const level of levels) {
@@ -68,11 +81,7 @@ for (const name of names) {
           const result = await scenario.run(level, { hold, seed });
           result.wallMs = Date.now() - started;
           results.push(result);
-          const verdict = evaluate(name, result);
-          console.log(
-            `[loadtest] ${name} ${JSON.stringify(level)} -> ${verdict.pass ? 'pass' : `fail: ${verdict.reasons.join('; ')}`}`,
-          );
-          if (!verdict.pass && verdict.stop) break;
+          if (!show(name, result).pass) break;
         }
         runs.push(results);
       }
