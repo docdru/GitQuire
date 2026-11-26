@@ -1,0 +1,218 @@
+name: Load test
+
+on:
+  schedule:
+    - cron: '17 2 * * 0'
+    - cron: '43 1 1 * *'
+  workflow_dispatch:
+    inputs:
+      scenarios:
+        description: 'Scenarios, as a JSON list (s0 s1 s2 s3 s4 s6 s9)'
+        default: '["s0","s1","s2","s3","s4","s6"]'
+      hold:
+        description: Seconds each level is held
+        default: '180'
+      repeats:
+        description: Runs of each scenario (the report takes the median)
+        default: '3'
+      soak_minutes:
+        description: Minutes for s9
+        default: '300'
+      store:
+        description: Store the results on the perf-results branch
+        type: boolean
+        default: true
+  push:
+    branches: [loadtest]
+    paths:
+      - 'loadtest/**'
+      - '.github/workflows/loadtest.yml'
+      - '.github/prototypes/github-fake.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: loadtest-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      scenarios: ${{ steps.plan.outputs.scenarios }}
+      hold: ${{ steps.plan.outputs.hold }}
+      repeats: ${{ steps.plan.outputs.repeats }}
+      store: ${{ steps.plan.outputs.store }}
+    steps:
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          IN_SCENARIOS: ${{ inputs.scenarios }}
+          IN_HOLD: ${{ inputs.hold }}
+          IN_REPEATS: ${{ inputs.repeats }}
+          IN_STORE: ${{ inputs.store }}
+          REF: ${{ github.ref }}
+        run: |
+          set -eu
+          case "$EVENT" in
+            workflow_dispatch)
+              scenarios="$IN_SCENARIOS"; hold="$IN_HOLD"; repeats="$IN_REPEATS"
+              store=false; if [ "$IN_STORE" = true ] && [ "$REF" = refs/heads/main ]; then store=true; fi ;;
+            schedule)
+              if [ "$SCHEDULE" = '43 1 1 * *' ]; then scenarios='["s9"]'; else scenarios='["s0","s1","s2","s3","s4","s6"]'; fi
+              hold=180; repeats=3; store=true ;;
+            *)
+              scenarios='["s0","s1","s2","s3","s4","s6"]'; hold=60; repeats=1; store=false ;;
+          esac
+          {
+            echo "scenarios=$scenarios"
+            echo "hold=$hold"
+            echo "repeats=$repeats"
+            echo "store=$store"
+          } >> "$GITHUB_OUTPUT"
+          echo "scenarios $scenarios, hold $hold s, repeats $repeats, store $store"
+
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: gitquire:ci
+          cache-from: type=gha,scope=loadtest
+          cache-to: type=gha,scope=loadtest,mode=max
+
+      - name: Save image
+        run: docker save gitquire:ci | gzip -1 > /tmp/gitquire-image.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gitquire-image
+          path: /tmp/gitquire-image.tar.gz
+          retention-days: 2
+
+  run:
+    needs: [plan, image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: ${{ fromJSON(needs.plan.outputs.scenarios) }}
+    env:
+      LOADTEST_TARGET: docker
+      LOADTEST_IMAGE: gitquire:ci
+      LOADTEST_CPUS: '2'
+      LOADTEST_MEMORY: 4g
+      LOADTEST_SOAK_MINUTES: ${{ inputs.soak_minutes || '300' }}
+      NODE_EXTRA_CA_CERTS: /tmp/ca/cert.pem
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gitquire-image
+          path: /tmp
+
+      - name: Load image
+        run: gunzip -c /tmp/gitquire-image.tar.gz | docker load
+
+      - name: Test certificate authority and app key
+        run: |
+          set -eu
+          mkdir -p /tmp/ca
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj /CN=127.0.0.1 \
+            -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" \
+            -keyout /tmp/ca/key.pem -out /tmp/ca/cert.pem 2>/dev/null
+          openssl genrsa -out /tmp/ca/app.pem 2048 2>/dev/null
+          chmod 644 /tmp/ca/*.pem
+
+      - name: Run ${{ matrix.scenario }}
+        env:
+          HOLD: ${{ needs.plan.outputs.hold }}
+          REPEATS: ${{ needs.plan.outputs.repeats }}
+          SCENARIO: ${{ matrix.scenario }}
+        run: node loadtest/run.mjs --scenario "$SCENARIO" --hold "$HOLD" --repeats "$REPEATS" --out loadtest/results
+
+      - name: Server log tail
+        if: always()
+        run: docker logs --tail 200 gq-loadtest 2>&1 | cut -c1-300 || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: loadtest-${{ matrix.scenario }}
+          path: loadtest/results/*.json
+          if-no-files-found: warn
+
+  report:
+    needs: [plan, run]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: loadtest-*
+          path: loadtest/results
+          merge-multiple: true
+
+      - name: Last stored results
+        run: |
+          set -eu
+          if git fetch --depth 1 origin perf-results 2>/dev/null; then
+            mkdir -p /tmp/baseline
+            git archive FETCH_HEAD latest | tar -x -C /tmp/baseline || true
+          fi
+
+      - name: Report
+        env:
+          LOADTEST_MEMORY: 4g
+        run: |
+          set -eu
+          base=""
+          if [ -d /tmp/baseline/latest ]; then base="--baseline /tmp/baseline/latest"; fi
+          node loadtest/report.mjs --results loadtest/results --out loadtest/results/report.md $base
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: loadtest-report
+          path: loadtest/results
+
+      - name: Store on perf-results
+        if: needs.plan.outputs.store == 'true'
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          stamp="$(date -u +%Y-%m-%d)-${SHA::7}"
+          mkdir -p /tmp/store && cd /tmp/store
+          git init -q -b perf-results
+          git remote add origin "$(git -C "$GITHUB_WORKSPACE" remote get-url origin)"
+          git -C "$GITHUB_WORKSPACE" config --get-all http.https://github.com/.extraheader | while read -r h; do
+            git config --add http.https://github.com/.extraheader "$h"
+          done
+          if git fetch -q --depth 1 origin perf-results; then git checkout -q FETCH_HEAD -b work; else git checkout -q --orphan work; fi
+          mkdir -p "runs/$stamp" latest
+          cp "$GITHUB_WORKSPACE"/loadtest/results/*.json "$GITHUB_WORKSPACE"/loadtest/results/report.md "runs/$stamp/"
+          cp "$GITHUB_WORKSPACE"/loadtest/results/*.json latest/
+          cp "$GITHUB_WORKSPACE"/loadtest/results/report.md latest/report.md
+          printf -- '- [%s](runs/%s/report.md)\n' "$stamp" "$stamp" >> history.md
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -qm "Load test results $stamp"
+          git push -q origin HEAD:perf-results

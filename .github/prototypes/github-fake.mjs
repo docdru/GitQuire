@@ -13,16 +13,19 @@ const base = `https://127.0.0.1:${port}`;
 const repoRoot = join(root, 'repos');
 
 const people = JSON.parse(process.env.GITHUB_FAKE_PEOPLE ?? '{}');
-const repos = [
-  { id: 501, owner: 'team', name: 'alpha', readme: '# alpha on GitHub\n' },
-  { id: 502, owner: 'team', name: 'gamma', readme: '# gamma on GitHub\n' },
-];
+const repos = JSON.parse(
+  process.env.GITHUB_FAKE_REPOS ??
+    JSON.stringify([
+      { id: 501, owner: 'team', name: 'alpha', readme: '# alpha on GitHub\n' },
+      { id: 502, owner: 'team', name: 'gamma', readme: '# gamma on GitHub\n' },
+    ]),
+);
 const OWNER_ID = 900;
 const INSTALLATION_ID = 77;
 const levels = JSON.parse(process.env.GITHUB_FAKE_LEVELS ?? '{}');
 const installationTokens = new Map();
 const codes = new Map();
-const state = { down: false, nextLogin: undefined };
+const state = { down: false, nextLogin: undefined, delayMs: 0 };
 const unknown = [];
 
 function git(args, cwd) {
@@ -46,9 +49,15 @@ function seed() {
     mkdirSync(bare, { recursive: true });
     git(['init', '--bare', '--initial-branch', 'main', bare], root);
     git(['config', 'http.receivepack', 'true'], bare);
+    if (repo.seedBare !== undefined) {
+      rmSync(bare, { recursive: true, force: true });
+      git(['clone', '--bare', repo.seedBare, bare], root);
+      git(['config', 'http.receivepack', 'true'], bare);
+      continue;
+    }
     const work = mkdtempSync(join(tmpdir(), 'github-fake-'));
     git(['init', '--initial-branch', 'main', work], root);
-    writeFileSync(join(work, 'README.md'), repo.readme);
+    writeFileSync(join(work, 'README.md'), repo.readme ?? `# ${repo.name}\n`);
     git(['add', 'README.md'], work);
     git(['commit', '-m', 'Initial commit'], work);
     git(['-c', 'push.negotiate=false', 'push', bare, 'main'], work);
@@ -137,6 +146,10 @@ async function control(req, res, path) {
     state.nextLogin = body.login;
     return send(res, 200, { ok: true });
   }
+  if (path === '/_fake/delay') {
+    state.delayMs = Number(body.ms) || 0;
+    return send(res, 200, { delayMs: state.delayMs });
+  }
   if (path === '/_fake/down') {
     state.down = body.down === true;
     return send(res, 200, { down: state.down });
@@ -219,8 +232,18 @@ async function api(req, res, path, url) {
       return send(res, 403, { message: 'Resource not accessible by integration' });
     }
     return send(res, 200, [
-      { email: `${person.id}+${person.login}@users.noreply.github.com`, primary: false, verified: true, visibility: null },
-      { email: person.email ?? `${person.login}@example.org`, primary: true, verified: true, visibility: 'private' },
+      {
+        email: `${person.id}+${person.login}@users.noreply.github.com`,
+        primary: false,
+        verified: true,
+        visibility: null,
+      },
+      {
+        email: person.email ?? `${person.login}@example.org`,
+        primary: true,
+        verified: true,
+        visibility: 'private',
+      },
     ]);
   }
   if (path === '/user/installations') {
@@ -348,29 +371,37 @@ const server = createServer(
       control(req, res, path).catch((err) => send(res, 500, { error: String(err) }));
       return;
     }
-    if (state.down) {
-      send(res, 503, { message: 'Service unavailable' });
+    if (state.delayMs > 0) {
+      setTimeout(() => handle(req, res, url, path), state.delayMs);
       return;
     }
-    if (path === '/login/oauth/authorize') return oauthAuthorize(res, url);
-    if (path === '/login/oauth/access_token' && req.method === 'POST') {
-      oauthToken(req, res).catch((err) => send(res, 500, { error: String(err) }));
-      return;
-    }
-    if (path.startsWith('/api/v3/')) {
-      api(req, res, path.slice('/api/v3'.length), url).catch((err) =>
-        send(res, 500, { error: String(err) }),
-      );
-      return;
-    }
-    if (/^\/[^/]+\/[^/]+\.git\//.test(path)) {
-      gitBackend(req, res, url);
-      return;
-    }
-    unknown.push(`${req.method} ${path}`);
-    send(res, 404, { message: 'Not Found' });
+    handle(req, res, url, path);
   },
 );
+
+function handle(req, res, url, path) {
+  if (state.down) {
+    send(res, 503, { message: 'Service unavailable' });
+    return;
+  }
+  if (path === '/login/oauth/authorize') return oauthAuthorize(res, url);
+  if (path === '/login/oauth/access_token' && req.method === 'POST') {
+    oauthToken(req, res).catch((err) => send(res, 500, { error: String(err) }));
+    return;
+  }
+  if (path.startsWith('/api/v3/')) {
+    api(req, res, path.slice('/api/v3'.length), url).catch((err) =>
+      send(res, 500, { error: String(err) }),
+    );
+    return;
+  }
+  if (/^\/[^/]+\/[^/]+\.git\//.test(path)) {
+    gitBackend(req, res, url);
+    return;
+  }
+  unknown.push(`${req.method} ${path}`);
+  send(res, 404, { message: 'Not Found' });
+}
 
 server.listen(port, '127.0.0.1', () => {
   console.log(`[github-fake] listening on ${base}`);
