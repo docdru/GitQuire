@@ -14,6 +14,7 @@ export class Editor {
     class CookieSocket extends WebSocket {
       constructor(url, protocols) {
         super(url, protocols, { headers: { cookie, origin } });
+        this.on('error', () => {});
       }
     }
     const url = `${session.base.replace(/^http/, 'ws')}${wikiPath}collab`;
@@ -64,7 +65,11 @@ export class Editor {
   }
 
   destroy() {
-    this.provider.destroy();
+    try {
+      this.provider.destroy();
+    } catch {
+      this.errors.push('destroy before connect');
+    }
     this.doc.destroy();
   }
 }

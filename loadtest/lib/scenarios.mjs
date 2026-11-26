@@ -332,7 +332,7 @@ export const scenarios = {
     title: 'Many wikis',
     cumulative: true,
     levels: (quick) => (quick ? [1, 5] : [1, 5, 10, 20, 40]),
-    async runAll(levels, { hold, seed }) {
+    async runAll(levels, { hold, seed, sink }) {
       const max = Math.max(...levels);
       const seedBare = seedRepo(200, 200);
       const wikis = Array.from({ length: max }, (_, i) => ({
@@ -349,7 +349,7 @@ export const scenarios = {
         world.admin,
         () => open.map((w) => w.path),
       );
-      const results = [];
+      const results = sink;
       const loads = [];
       let nextLogin = 2;
       for (const count of levels) {
@@ -394,7 +394,7 @@ export const scenarios = {
     title: 'Drafts',
     cumulative: true,
     levels: (quick) => (quick ? [1, 3] : [1, 5, 10, 20]),
-    async runAll(levels, { hold, seed }) {
+    async runAll(levels, { hold, seed, sink }) {
       const max = Math.max(...levels);
       const seedBare = seedRepo(200, 200);
       const world = await setupWorld({ wikis: [{ name: 'drafts', seedBare }], persons: max + 6 });
@@ -411,7 +411,7 @@ export const scenarios = {
       const liveSessions = await signInMany(5, 2);
       const drafters = [];
       let nextLogin = 7;
-      const results = [];
+      const results = sink;
       for (const count of levels) {
         recorder = new Recorder();
         sampler.mark(`drafts-${count}`);
@@ -509,13 +509,13 @@ export const scenarios = {
     title: 'Git under load',
     cumulative: true,
     levels: () => ['delay-0', 'delay-500', 'delay-3000', 'down-120'],
-    async runAll(levels, { hold, seed }) {
+    async runAll(levels, { hold, seed, sink }) {
       const seedBare = seedRepo(1000, 1000);
       const world = await setupWorld({ wikis: [{ name: 'gitload', seedBare }], persons: 26 });
       const wiki = world.wikis[0];
       const sampler = new Sampler();
       sampler.start();
-      const results = [];
+      const results = sink;
       let recorder = new Recorder();
       const stopProbes = probes(
         () => recorder,

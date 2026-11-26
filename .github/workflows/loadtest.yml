@@ -66,7 +66,11 @@ jobs:
               hold=180; repeats=3; store=true ;;
             *)
               scenarios='["s0","s1","s2","s3","s4","s5","s6"]'; hold=60; repeats=1; store=false
-              case "$MESSAGE" in *'[full load test]'*) hold=180; repeats=3 ;; esac ;;
+              case "$MESSAGE" in *'[full load test'*) hold=180; repeats=3 ;; esac
+              only=$(printf '%s' "$MESSAGE" | sed -n 's/.*\[full load test: \([a-z0-9 ]*\)\].*/\1/p')
+              if [ -n "$only" ]; then
+                scenarios=$(printf '%s' "$only" | tr ' ' '\n' | sed '/^$/d' | sed 's/.*/"&"/' | paste -sd, | sed 's/.*/[&]/')
+              fi ;;
           esac
           {
             echo "scenarios=$scenarios"

@@ -65,16 +65,15 @@ for (const name of names) {
   const runs = [];
   for (let repeat = 0; repeat < repeats; repeat++) {
     const seed = Number(values.seed) + repeat;
+    const results = [];
     console.log(
       `[loadtest] ${name} repeat ${repeat + 1}/${repeats} levels ${JSON.stringify(levels)}`,
     );
     try {
       if (scenario.cumulative) {
-        const results = await scenario.runAll(levels, { hold, seed });
+        await scenario.runAll(levels, { hold, seed, sink: results });
         for (const result of results) show(name, result);
-        runs.push(results);
       } else {
-        const results = [];
         for (const level of levels) {
           const started = Date.now();
           console.log(`[loadtest] ${name} level ${JSON.stringify(level)}`);
@@ -83,15 +82,16 @@ for (const name of names) {
           results.push(result);
           if (!show(name, result).pass) break;
         }
-        runs.push(results);
       }
     } catch (err) {
       console.error(`[loadtest] ${name} failed: ${err.stack ?? err}`);
       console.error(serverLogs(120));
-      runs.push([{ error: String(err.message ?? err) }]);
+      if (scenario.cumulative) for (const result of results) show(name, result);
+      results.push({ error: String(err.message ?? err) });
       await stopServer();
       await stopFake();
     }
+    runs.push(results);
   }
   const file = join(values.out, `${name}.json`);
   writeFileSync(
