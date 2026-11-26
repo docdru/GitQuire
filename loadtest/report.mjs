@@ -71,6 +71,26 @@ function byLevel(data) {
   return [...levels.values()];
 }
 
+function worstReasons(reasons) {
+  const worst = new Map();
+  for (const reason of reasons) {
+    const match = /^(.*) (\d+(?:\.\d+)?) > (\d+(?:\.\d+)?)$/.exec(reason);
+    if (match === null) {
+      worst.set(reason, { text: reason, value: 0 });
+      continue;
+    }
+    const value = Number(match[2]);
+    const prev = worst.get(match[1]);
+    if (prev === undefined || value > prev.value) {
+      worst.set(match[1], {
+        text: `${match[1]} up to ${Math.round(value)} (limit ${match[3]})`,
+        value,
+      });
+    }
+  }
+  return [...worst.values()].map((w) => w.text);
+}
+
 function metric(results, pick) {
   return median(results.map(pick));
 }
@@ -114,12 +134,12 @@ function summarise(data) {
       pass: passes * 2 > verdicts.length,
       passes,
       runs: verdicts.length,
-      reasons: [...new Set(verdicts.flatMap((v) => v.reasons))],
+      reasons: worstReasons(verdicts.flatMap((v) => v.reasons)),
       editPropagateP95: metric(r, (x) => x.timings?.['edit.propagate']?.p95),
       editAckP95: metric(r, (x) => x.timings?.['edit.ack']?.p95),
       pageOpenP95: metric(r, (x) => x.timings?.['page.open']?.p95),
       apiWorstP95: metric(r, worstApi),
-      wikiProbeP99: metric(r, (x) => x.timings?.['probe.wiki']?.p99),
+      wikiProbeP95: metric(r, (x) => x.timings?.['probe.wiki']?.p95),
       coldOpenMax: metric(r, (x) => x.timings?.['wiki.coldOpen']?.max ?? x.firstOpenMs),
       saveToHostP95: metric(r, (x) => x.timings?.['sync.saveToHost']?.p95 ?? x.saveToHostMs),
       memoryPeakMb: metric(r, (x) => x.memory?.peakMb),
@@ -177,7 +197,7 @@ for (const name of Object.keys(current).sort()) {
   lines.push(`## ${name.toUpperCase()} — ${data.title}`);
   lines.push('');
   lines.push(
-    '| Level | Result | Edit seen p95 | Edit ack p95 | Page open p95 | Slowest API p95 | Wiki resp. p99 | Save to host p95 | Memory peak | Per wiki process | CPU p95 | Errors | Lost edits |',
+    '| Level | Result | Edit seen p95 | Edit ack p95 | Page open p95 | Slowest API p95 | Wiki resp. p95 | Save to host p95 | Memory peak | Per wiki process | CPU p95 | Errors | Lost edits |',
   );
   lines.push(
     '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
@@ -188,7 +208,7 @@ for (const name of Object.keys(current).sort()) {
       continue;
     }
     lines.push(
-      `| ${row.label} | ${row.pass ? '✅' : '❌'} ${row.passes}/${row.runs} | ${fmt(row.editPropagateP95, ' ms')} | ${fmt(row.editAckP95, ' ms')} | ${fmt(row.pageOpenP95, ' ms')} | ${fmt(row.apiWorstP95, ' ms')} | ${fmt(row.wikiProbeP99, ' ms')} | ${fmt(row.saveToHostP95 === null ? null : row.saveToHostP95 / 1000, ' s')} | ${fmt(row.memoryPeakMb, ' MB')} | ${fmt(row.perWikiMb, ' MB')} | ${fmt(row.cpuP95)} | ${fmt(row.errors)}/${fmt(row.requests)} | ${fmt(row.lost)} |`,
+      `| ${row.label} | ${row.pass ? '✅' : '❌'} ${row.passes}/${row.runs} | ${fmt(row.editPropagateP95, ' ms')} | ${fmt(row.editAckP95, ' ms')} | ${fmt(row.pageOpenP95, ' ms')} | ${fmt(row.apiWorstP95, ' ms')} | ${fmt(row.wikiProbeP95, ' ms')} | ${fmt(row.saveToHostP95 === null ? null : row.saveToHostP95 / 1000, ' s')} | ${fmt(row.memoryPeakMb, ' MB')} | ${fmt(row.perWikiMb, ' MB')} | ${fmt(row.cpuP95)} | ${fmt(row.errors)}/${fmt(row.requests)} | ${fmt(row.lost)} |`,
     );
   }
   lines.push('');

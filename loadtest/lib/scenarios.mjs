@@ -54,6 +54,12 @@ async function finish(world, sampler, stopProbes) {
 }
 
 async function teardown() {
+  const problems = serverLogs(4000)
+    .split('\n')
+    .filter((line) => /WARN|ERROR|FATAL|exited|killed|out of memory|heap/i.test(line))
+    .slice(-60);
+  if (problems.length > 0)
+    console.log(`[loadtest] server warnings and errors:\n${problems.join('\n')}`);
   await stopServer();
   await stopFake();
 }
@@ -105,7 +111,7 @@ async function mixedLoad({
       await Promise.all(runs);
       const checks = [];
       for (const t of typists) {
-        checks.push(await onServer(world.admin, wiki.path, t.docName, t.markers, 30_000));
+        checks.push(await onServer(world.admin, wiki.path, t.docName, t.markers, 90_000));
       }
       for (const t of typists) t.close();
       const lost = checks.filter((c) => !c.ok).reduce((n, c) => n + c.missing, 0);

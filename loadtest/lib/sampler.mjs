@@ -64,6 +64,8 @@ export class Sampler {
     this.last = undefined;
     this.timer = undefined;
     this.phase = 'start';
+    this.pids = new Map();
+    this.restarts = 0;
   }
 
   take() {
@@ -82,6 +84,11 @@ export class Sampler {
     let cpuSeconds = 0;
     for (const p of own) {
       const kind = kindOf(p, rootPid, parsed.procs);
+      if (kind.startsWith('wiki:')) {
+        const before = this.pids.get(kind);
+        if (before !== undefined && before !== p.pid) this.restarts++;
+        this.pids.set(kind, p.pid);
+      }
       const prev = this.last?.byPid.get(p.pid);
       const used = prev === undefined ? 0 : Math.max(0, p.cpu - prev.cpu);
       const group = (groups[kind] ??= { rssMb: 0, cpuSeconds: 0, count: 0 });
@@ -99,6 +106,7 @@ export class Sampler {
       cgroupMb: settings.target === 'docker' ? parsed.cgroup / 1048576 : rssKb / 1024,
       cpuCores: seconds > 0 ? cpuSeconds / seconds : 0,
       processes: own.length,
+      restarts: this.restarts,
       groups: Object.fromEntries(
         Object.entries(groups).map(([k, g]) => [
           k,

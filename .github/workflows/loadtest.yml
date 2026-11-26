@@ -69,7 +69,7 @@ jobs:
               case "$MESSAGE" in *'[full load test'*) hold=180; repeats=3 ;; esac
               only=$(printf '%s' "$MESSAGE" | sed -n 's/.*\[full load test: \([a-z0-9 ]*\)\].*/\1/p')
               if [ -n "$only" ]; then
-                scenarios=$(printf '%s' "$only" | tr ' ' '\n' | sed '/^$/d' | sed 's/.*/"&"/' | paste -sd, | sed 's/.*/[&]/')
+                scenarios=$(printf '%s' "$only" | tr ' ' '\n' | sed '/^$/d' | sort -u | sed 's/.*/"&"/' | paste -sd, | sed 's/.*/[&]/')
               fi ;;
           esac
           {
@@ -151,9 +151,9 @@ jobs:
           NODE_EXTRA_CA_CERTS: /tmp/ca/cert.pem
         run: node loadtest/run.mjs --scenario "$SCENARIO" --hold "$HOLD" --repeats "$REPEATS" --out loadtest/results
 
-      - name: Server log tail
+      - name: Kernel out-of-memory kills
         if: always()
-        run: docker logs --tail 200 gq-loadtest 2>&1 | cut -c1-300 || true
+        run: sudo dmesg 2>/dev/null | grep -iE 'out of memory|oom-kill|killed process' | tail -40 || true
 
       - uses: actions/upload-artifact@v4
         if: always()

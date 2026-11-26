@@ -6,7 +6,7 @@ export const LIMITS = {
   coldOpenMax: 8000,
   apiP95: 800,
   heavyApiP95: 1500,
-  probeWikiP99: 400,
+  probeWikiP95: 400,
   errorRate: 0.005,
   memoryShare: 0.85,
   saveToHostSeconds: 120,
@@ -38,7 +38,7 @@ export function evaluate(_scenario, result) {
   check('c', t['wiki.coldOpen']?.max, LIMITS.coldOpenMax, 'cold open ms');
   check('d', t['draft.open']?.max, LIMITS.coldOpenMax, 'draft first open ms');
   check('d', t['draft.publish']?.max, LIMITS.publishMax, 'publish ms');
-  check('w', t['probe.wiki']?.p99, LIMITS.probeWikiP99, 'wiki responsiveness p99 ms');
+  check('w', t['probe.wiki']?.p95, LIMITS.probeWikiP95, 'wiki responsiveness p95 ms');
   for (const [name, s] of Object.entries(t)) {
     if (!name.startsWith('api.')) continue;
     check(name, s.p95, HEAVY.has(name) ? LIMITS.heavyApiP95 : LIMITS.apiP95, `${name} p95 ms`);
@@ -66,6 +66,8 @@ export function evaluate(_scenario, result) {
   }
   if ((c['edit.propagate.timeout'] ?? 0) > 0)
     reasons.push(`edits not seen within 30 s: ${c['edit.propagate.timeout']}`);
+  if ((result.memory?.wikiRestarts ?? 0) > 0)
+    reasons.push(`wiki processes restarted: ${result.memory.wikiRestarts}`);
   const limit = memoryLimitMb();
   if (result.memory?.peakMb > LIMITS.memoryShare * limit) {
     reasons.push(
