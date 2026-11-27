@@ -13,16 +13,19 @@ const base = `https://127.0.0.1:${port}`;
 const repoRoot = join(root, 'repos');
 
 const people = JSON.parse(process.env.GITHUB_FAKE_PEOPLE ?? '{}');
-const repos = [
-  { id: 501, owner: 'team', name: 'alpha', readme: '# alpha on GitHub\n' },
-  { id: 502, owner: 'team', name: 'gamma', readme: '# gamma on GitHub\n' },
-];
+const repos = JSON.parse(
+  process.env.GITHUB_FAKE_REPOS ??
+    JSON.stringify([
+      { id: 501, owner: 'team', name: 'alpha', readme: '# alpha on GitHub\n' },
+      { id: 502, owner: 'team', name: 'gamma', readme: '# gamma on GitHub\n' },
+    ]),
+);
 const OWNER_ID = 900;
 const INSTALLATION_ID = 77;
 const levels = JSON.parse(process.env.GITHUB_FAKE_LEVELS ?? '{}');
 const installationTokens = new Map();
 const codes = new Map();
-const state = { down: false, nextLogin: undefined };
+const state = { down: false, nextLogin: undefined, delayMs: 0 };
 const unknown = [];
 
 function git(args, cwd) {
@@ -46,9 +49,15 @@ function seed() {
     mkdirSync(bare, { recursive: true });
     git(['init', '--bare', '--initial-branch', 'main', bare], root);
     git(['config', 'http.receivepack', 'true'], bare);
+    if (repo.seedBare !== undefined) {
+      rmSync(bare, { recursive: true, force: true });
+      git(['clone', '--bare', repo.seedBare, bare], root);
+      git(['config', 'http.receivepack', 'true'], bare);
+      continue;
+    }
     const work = mkdtempSync(join(tmpdir(), 'github-fake-'));
     git(['init', '--initial-branch', 'main', work], root);
-    writeFileSync(join(work, 'README.md'), repo.readme);
+    writeFileSync(join(work, 'README.md'), repo.readme ?? `# ${repo.name}\n`);
     git(['add', 'README.md'], work);
     git(['commit', '-m', 'Initial commit'], work);
     git(['-c', 'push.negotiate=false', 'push', bare, 'main'], work);
@@ -137,6 +146,10 @@ async function control(req, res, path) {
     state.nextLogin = body.login;
     return send(res, 200, { ok: true });
   }
+  if (path === '/_fake/delay') {
+    state.delayMs = Number(body.ms) || 0;
+    return send(res, 200, { delayMs: state.delayMs });
+  }
   if (path === '/_fake/down') {
     state.down = body.down === true;
     return send(res, 200, { down: state.down });
@@ -219,8 +232,18 @@ async function api(req, res, path, url) {
       return send(res, 403, { message: 'Resource not accessible by integration' });
     }
     return send(res, 200, [
-      { email: `${person.id}+${person.login}@users.noreply.github.com`, primary: false, verified: true, visibility: null },
-      { email: person.email ?? `${person.login}@example.org`, primary: true, verified: true, visibility: 'private' },
+      {
+        email: `${person.id}+${person.login}@users.noreply.github.com`,
+        primary: false,
+        verified: true,
+        visibility: null,
+      },
+      {
+        email: person.email ?? `${person.login}@example.org`,
+        primary: true,
+        verified: true,
+        visibility: 'private',
+      },
     ]);
   }
   if (path === '/user/installations') {
@@ -268,9 +291,145 @@ async function api(req, res, path, url) {
     const permission = level === 'none' ? 'read' : level;
     return send(res, 200, { permission, role_name: permission, user: { login } });
   }
-  if (repo !== undefined && rest[0] === 'pulls' && req.method === 'GET') return send(res, 200, []);
+  if (repo !== undefined && rest[0] === 'pulls') return pullsApi(req, res, repo, rest, url);
+  if (repo !== undefined && rest[0] === 'branches' && rest.length === 2 && req.method === 'GET') {
+    const sha = refSha(repo, decodeURIComponent(rest[1]));
+    return sha === undefined
+      ? send(res, 404, { message: 'Branch not found' })
+      : send(res, 200, { name: decodeURIComponent(rest[1]), commit: { sha } });
+  }
+  if (
+    repo !== undefined &&
+    rest[0] === 'git' &&
+    rest[1] === 'ref' &&
+    rest[2] === 'heads' &&
+    req.method === 'GET'
+  ) {
+    const branch = rest.slice(3).map(decodeURIComponent).join('/');
+    const sha = refSha(repo, branch);
+    return sha === undefined
+      ? send(res, 404, { message: 'Not Found' })
+      : send(res, 200, { ref: `refs/heads/${branch}`, object: { sha, type: 'commit' } });
+  }
+  if (
+    repo !== undefined &&
+    rest[0] === 'git' &&
+    rest[1] === 'refs' &&
+    rest.length === 2 &&
+    req.method === 'POST'
+  ) {
+    const body = JSON.parse((await readBody(req)) || '{}');
+    git(['update-ref', body.ref, body.sha], bareOf(repo));
+    return send(res, 201, { ref: body.ref, object: { sha: body.sha, type: 'commit' } });
+  }
+  if (
+    repo !== undefined &&
+    rest[0] === 'git' &&
+    rest[1] === 'refs' &&
+    rest[2] === 'heads' &&
+    req.method === 'DELETE'
+  ) {
+    const branch = rest.slice(3).map(decodeURIComponent).join('/');
+    if (refSha(repo, branch) === undefined)
+      return send(res, 422, { message: 'Reference does not exist' });
+    git(['update-ref', '-d', `refs/heads/${branch}`], bareOf(repo));
+    res.writeHead(204);
+    return res.end();
+  }
+  if (
+    repo !== undefined &&
+    rest[0] === 'collaborators' &&
+    rest.length === 1 &&
+    req.method === 'GET'
+  ) {
+    const list = Object.values(people)
+      .filter((p) => ['write', 'admin'].includes(levelOf(p.login, repo)))
+      .map((p) => ({ id: p.id, login: p.login, avatar_url: '' }));
+    return send(res, 200, list);
+  }
   unknown.push(`${req.method} ${path}${url.search}`);
   console.log(`[github-fake] not handled: ${req.method} ${path}${url.search}`);
+  return send(res, 404, { message: 'Not Found' });
+}
+
+const pulls = new Map();
+
+function bareOf(repo) {
+  return join(repoRoot, repo.owner, `${repo.name}.git`);
+}
+
+function refSha(repo, branch) {
+  try {
+    return (
+      git(['rev-parse', '--verify', '--quiet', `refs/heads/${branch}`], bareOf(repo)).trim() ||
+      undefined
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+function pullBody(repo, pr) {
+  return {
+    number: pr.number,
+    title: pr.title,
+    body: pr.body,
+    state: pr.state,
+    draft: pr.draft,
+    merged: false,
+    merged_at: null,
+    mergeable: true,
+    html_url: `${base}/${repo.owner}/${repo.name}/pull/${pr.number}`,
+    head: { ref: pr.head, sha: refSha(repo, pr.head) ?? '' },
+    base: { ref: pr.base },
+    user: { login: pr.author },
+    updated_at: new Date(pr.updated).toISOString(),
+  };
+}
+
+async function pullsApi(req, res, repo, rest, url) {
+  const list = pulls.get(repo.id) ?? [];
+  pulls.set(repo.id, list);
+  if (rest.length === 1 && req.method === 'GET') {
+    const state = url.searchParams.get('state') ?? 'open';
+    const head = url.searchParams.get('head');
+    const found = list.filter(
+      (pr) =>
+        (state === 'all' || pr.state === state) &&
+        (head === null || `${repo.owner}:${pr.head}` === head),
+    );
+    return send(
+      res,
+      200,
+      found.map((pr) => pullBody(repo, pr)),
+    );
+  }
+  if (rest.length === 1 && req.method === 'POST') {
+    const body = JSON.parse((await readBody(req)) || '{}');
+    const pr = {
+      number: list.length + 1,
+      title: body.title,
+      body: body.body ?? '',
+      head: body.head,
+      base: body.base,
+      draft: body.draft === true,
+      state: 'open',
+      author: personOf(bearer(req))?.login ?? 'gitquire-app[bot]',
+      updated: Date.now(),
+    };
+    list.push(pr);
+    return send(res, 201, pullBody(repo, pr));
+  }
+  const pr = list.find((p) => String(p.number) === rest[1]);
+  if (pr === undefined) return send(res, 404, { message: 'Not Found' });
+  if (rest.length === 2 && req.method === 'GET') return send(res, 200, pullBody(repo, pr));
+  if (rest.length === 2 && req.method === 'PATCH') {
+    const body = JSON.parse((await readBody(req)) || '{}');
+    if (body.state === 'closed' || body.state === 'open') pr.state = body.state;
+    if (typeof body.title === 'string') pr.title = body.title;
+    pr.updated = Date.now();
+    return send(res, 200, pullBody(repo, pr));
+  }
   return send(res, 404, { message: 'Not Found' });
 }
 
@@ -348,29 +507,37 @@ const server = createServer(
       control(req, res, path).catch((err) => send(res, 500, { error: String(err) }));
       return;
     }
-    if (state.down) {
-      send(res, 503, { message: 'Service unavailable' });
+    if (state.delayMs > 0) {
+      setTimeout(() => handle(req, res, url, path), state.delayMs);
       return;
     }
-    if (path === '/login/oauth/authorize') return oauthAuthorize(res, url);
-    if (path === '/login/oauth/access_token' && req.method === 'POST') {
-      oauthToken(req, res).catch((err) => send(res, 500, { error: String(err) }));
-      return;
-    }
-    if (path.startsWith('/api/v3/')) {
-      api(req, res, path.slice('/api/v3'.length), url).catch((err) =>
-        send(res, 500, { error: String(err) }),
-      );
-      return;
-    }
-    if (/^\/[^/]+\/[^/]+\.git\//.test(path)) {
-      gitBackend(req, res, url);
-      return;
-    }
-    unknown.push(`${req.method} ${path}`);
-    send(res, 404, { message: 'Not Found' });
+    handle(req, res, url, path);
   },
 );
+
+function handle(req, res, url, path) {
+  if (state.down) {
+    send(res, 503, { message: 'Service unavailable' });
+    return;
+  }
+  if (path === '/login/oauth/authorize') return oauthAuthorize(res, url);
+  if (path === '/login/oauth/access_token' && req.method === 'POST') {
+    oauthToken(req, res).catch((err) => send(res, 500, { error: String(err) }));
+    return;
+  }
+  if (path.startsWith('/api/v3/')) {
+    api(req, res, path.slice('/api/v3'.length), url).catch((err) =>
+      send(res, 500, { error: String(err) }),
+    );
+    return;
+  }
+  if (/^\/[^/]+\/[^/]+\.git\//.test(path)) {
+    gitBackend(req, res, url);
+    return;
+  }
+  unknown.push(`${req.method} ${path}`);
+  send(res, 404, { message: 'Not Found' });
+}
 
 server.listen(port, '127.0.0.1', () => {
   console.log(`[github-fake] listening on ${base}`);

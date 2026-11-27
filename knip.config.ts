@@ -13,7 +13,7 @@ const differentialOnlyRootDeps =
 
 export default {
   tags: ['-lintignore'],
-  ignore: ['.github/**'],
+  ignore: ['.github/**', 'loadtest/**'],
   ignoreDependencies: [
     ...differentialOnlyRootDeps,
     'lint-staged', // not sure if it's false positive
