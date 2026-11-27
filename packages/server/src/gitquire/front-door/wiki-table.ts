@@ -121,7 +121,11 @@ export function wikiTableFile(dataDir: string): string {
 
 function hostOfOldPins(state: TableFile): string | undefined {
   const pins = Object.entries(state.owners);
-  const unkeyed = state.wikis.filter((wiki) => wiki.hostKey === undefined);
+  if (pins.length === 0) return undefined;
+  const further = new Set(Object.keys(state.hostOwners ?? {}));
+  const unkeyed = state.wikis.filter(
+    (wiki) => wiki.hostKey === undefined && !further.has(wiki.host),
+  );
   const byName = unkeyed.find((wiki) =>
     pins.some(([name, id]) => wiki.ownerId === id && wiki.owner.toLowerCase() === name),
   );
@@ -218,7 +222,12 @@ export function openWikiTable(file: string): WikiTable {
       pin: (owner, id) => {
         const name = owner.toLowerCase();
         if (hostKey === ownersKey) {
-          if (state.owners[name] !== undefined) return;
+          if (
+            state.owners[name] !== undefined ||
+            state.hostOwners?.[hostKey]?.[name] !== undefined
+          ) {
+            return;
+          }
           state.owners[name] = id;
         } else {
           const pins = state.hostOwners?.[hostKey] ?? {};

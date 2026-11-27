@@ -231,7 +231,11 @@ describe('trailing comments (C3)', () => {
 
   it('accepts a # that is part of a value', () => {
     const settings = resolveFrontDoorSettings(
-      { ...github, GITQUIRE_CHAT_WEBHOOK_URL: 'https://chat.example.org/hook#room' },
+      {
+        ...github,
+        GITQUIRE_CHAT_WEBHOOK_URL: 'https://chat.example.org/hook#room',
+        GITQUIRE_GIT_NAME: 'Wiki bot #2',
+      },
       '/data',
     );
     expect(settings.hosts).toHaveLength(1);

@@ -130,9 +130,9 @@ describe('the host list', () => {
     [{ GITQUIRE_HOSTS: 'Lab_1' }, /not a host key/],
     [{ GITQUIRE_HOSTS: 'url' }, /read like the old settings/],
     [{ GITQUIRE_HOSTS: 'api-two' }, /read like the old settings/],
-    [{ GITQUIRE_HOSTS: 'github,lab' }, /GITQUIRE_HOST_LAB_KIND must be github or forgejo/],
+    [{ GITQUIRE_HOSTS: 'github,forgejo,lab' }, /GITQUIRE_HOST_LAB_KIND must be github or forgejo/],
     [
-      { GITQUIRE_HOSTS: 'github,github2', GITQUIRE_HOST_GITHUB2_KIND: 'gitlab' },
+      { GITQUIRE_HOSTS: 'github,forgejo,github2', GITQUIRE_HOST_GITHUB2_KIND: 'gitlab' },
       /must be github or forgejo, got "gitlab"/,
     ],
     [
@@ -198,6 +198,32 @@ describe('the host list', () => {
         '/data',
       ),
     ).toThrow(/must start with https:\/\//);
+  });
+
+  it('refuses a host variable of a host that is not listed, or misspelt, naming it', () => {
+    expect(() =>
+      resolveFrontDoorSettings({ ...plusForgejo, GITQUIRE_HOSTS: 'github' }, '/data'),
+    ).toThrow(/does not read GITQUIRE_HOST_FORGEJO_ADMINS, GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS/);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_HOST_GITHUB_ADMIN: 'bob' }, '/data'),
+    ).toThrow(/does not read GITQUIRE_HOST_GITHUB_ADMIN:/);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_HOST_GITHUB_ADMINS_FILE: '/x' }, '/data'),
+    ).toThrow(/GITQUIRE_HOST_GITHUB_ADMINS_FILE/);
+  });
+
+  it('takes localhost and 127.0.0.1 for the same server', () => {
+    expect(() =>
+      resolveFrontDoorSettings(
+        {
+          ...plusForgejo,
+          GITQUIRE_HOST_GITHUB_URL: 'http://localhost:3000',
+          GITQUIRE_HOST_GITHUB_API_URL: 'http://localhost:3000/api/v3',
+          GITQUIRE_HOST_FORGEJO_URL: 'http://127.0.0.1:3000',
+        },
+        '/data',
+      ),
+    ).toThrow(/same address/);
   });
 
   it('refuses two hosts with the same given label', () => {

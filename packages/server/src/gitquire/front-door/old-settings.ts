@@ -101,7 +101,7 @@ export function refuseTrailingComments(env: Env): void {
         name.startsWith('GITQUIRE_') &&
         !name.startsWith('GITQUIRE_TEST_') &&
         value !== undefined &&
-        /\s#/.test(value),
+        /\s#(\s|$)/.test(value),
     )
     .map(([name]) => name)
     .sort();

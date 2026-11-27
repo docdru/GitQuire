@@ -200,4 +200,56 @@ describe('the wiki table with several hosts', () => {
     table.pinsOn('forgejo').pin('team', 7);
     expect(readFileSync(file, 'utf8')).toBe(before);
   });
+
+  it.each([
+    ['github first, forgejo further', 'github', 'forgejo'],
+    ['forgejo first, github further', 'forgejo', 'github'],
+  ] as const)(
+    "gives main's first-host pins to the first host when ids repeat (%s, O1)",
+    (_name, first, further) => {
+      const dir = mkdtempSync(join(tmpdir(), 'gq-table-'));
+      dirs.push(dir);
+      const file = join(dir, 'wikis.json');
+      const record = (host: 'github' | 'forgejo', id: number, owner: string, ownerId: number) => ({
+        host,
+        id,
+        owner,
+        ownerId,
+        name: 'wiki',
+        key: `${host}-${id}`,
+        state: 'on',
+        formerNames: [],
+        addedBy: 'alice',
+        addedAt: '2026-11-25T00:00:00.000Z',
+      });
+      writeFileSync(
+        file,
+        JSON.stringify({
+          version: 1,
+          wikis: [record(further, 2, 'team', 7), record(first, 1, 'team', 7)],
+          owners: { team: 7 },
+          hostOwners: { [further]: { team: 7 } },
+        }),
+      );
+      const table = openWikiTable(file);
+      expect(table.pinsOn(first).pinned()).toEqual({ team: 7 });
+      expect(table.pinsOn(further).pinned()).toEqual({ team: 7 });
+    },
+  );
+
+  it('keeps pins made while the first host had no wiki, and never hands them to another reading after a wiki is added again (O1)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'gq-table-'));
+    dirs.push(dir);
+    const file = join(dir, 'wikis.json');
+    writeFileSync(
+      file,
+      JSON.stringify({ version: 1, wikis: [], owners: { team: 7 }, hostOwners: {} }),
+    );
+    const table = openWikiTable(file);
+    table.pinsOn('github').pin('docs', 8);
+    table.add({ host: 'github', id: 3, owner: 'team', ownerId: 7, name: 'wiki' }, 'a', 0, 'github');
+    const again = openWikiTable(file);
+    expect(again.pinsOn('github').pinned()).toEqual({ docs: 8 });
+    expect(again.pinsOn('forgejo').pinned()).toEqual({});
+  });
 });

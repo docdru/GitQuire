@@ -320,9 +320,24 @@ export interface HostListResult {
   missing: readonly string[];
 }
 
+function refuseUnknownHostVariables(env: Env, keys: readonly string[]): void {
+  const known = new Set(keys.flatMap((key) => SUFFIXES.map((suffix) => hostVariable(key, suffix))));
+  const unqualified = new Set(UNQUALIFIED_VARIABLES);
+  const unknown = Object.keys(env)
+    .filter(
+      (name) => name.startsWith('GITQUIRE_HOST_') && !unqualified.has(name) && !known.has(name),
+    )
+    .sort();
+  if (unknown.length === 0) return;
+  throw new HostListError(
+    `GitQuire does not read ${unknown.join(', ')}: ${unknown.length === 1 ? 'it belongs' : 'they belong'} to no host listed in GITQUIRE_HOSTS (${keys.join(', ') || 'empty'}), or the part after the key is misspelt. List the host's key in GITQUIRE_HOSTS, or correct or remove the variable.`,
+  );
+}
+
 export function hostList(env: Env, readFile: (path: string) => string): HostListResult {
   const keys = hostKeys(env);
   checkKeys(keys);
+  refuseUnknownHostVariables(env, keys);
   const labels = new Set<string>();
   const missing: string[] = [];
   const hosts = keys
@@ -333,7 +348,9 @@ export function hostList(env: Env, readFile: (path: string) => string): HostList
   const origins = new Map<string, string>();
   for (const host of hosts) {
     for (const address of [host.webUrl, host.apiUrl]) {
-      const origin = new URL(address).origin;
+      const url = new URL(address);
+      if (['localhost', '[::1]'].includes(url.hostname)) url.hostname = '127.0.0.1';
+      const origin = url.origin;
       const other = origins.get(origin);
       if (other !== undefined && other !== host.key) {
         throw new HostListError(
