@@ -12,6 +12,7 @@ const { values } = parseArgs({
     hold: { type: 'string', default: process.env.LOADTEST_HOLD_SECONDS ?? '180' },
     repeats: { type: 'string', default: process.env.LOADTEST_REPEATS ?? '1' },
     quick: { type: 'boolean', default: false },
+    levels: { type: 'string' },
     out: { type: 'string', default: 'loadtest/results' },
     seed: { type: 'string', default: '1' },
   },
@@ -61,7 +62,8 @@ const startedAt = new Date().toISOString();
 for (const name of names) {
   const scenario = scenarios[name];
   if (scenario === undefined) throw new Error(`unknown scenario ${name}`);
-  const levels = scenario.levels(values.quick);
+  const levels =
+    values.levels === undefined ? scenario.levels(values.quick) : JSON.parse(values.levels);
   const runs = [];
   for (let repeat = 0; repeat < repeats; repeat++) {
     const seed = Number(values.seed) + repeat;
