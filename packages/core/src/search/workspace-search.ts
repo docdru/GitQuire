@@ -231,25 +231,25 @@ function sameSearchDocument(a: WorkspaceSearchDocument, b: WorkspaceSearchDocume
   );
 }
 
-export function updateWorkspaceSearchCorpus(
+type UpdatePlan =
+  | { rebuildReason: WorkspaceSearchRebuildReason }
+  | {
+      index: WorkspaceSearchIndex;
+      removedIds: string[];
+      insertedDocuments: WorkspaceSearchDocument[];
+      updated: number;
+    };
+
+function planUpdate(
   previous: WorkspaceSearchCorpus,
   documents: readonly WorkspaceSearchDocument[],
-): WorkspaceSearchCorpusUpdate {
-  const rebuild = (rebuildReason: WorkspaceSearchRebuildReason): WorkspaceSearchCorpusUpdate => ({
-    corpus: createWorkspaceSearchCorpus(documents),
-    inserted: 0,
-    updated: 0,
-    removed: 0,
-    rebuilt: true,
-    rebuildReason,
-  });
-
+): UpdatePlan {
   const index = workspaceSearchIndexes.get(previous);
-  if (!index) return rebuild('no-index');
-  if (consumedUpdateBases.has(previous)) return rebuild('stale-base');
+  if (!index) return { rebuildReason: 'no-index' };
+  if (consumedUpdateBases.has(previous)) return { rebuildReason: 'stale-base' };
 
   const nextById = new Map(documents.map((document) => [document.id, document] as const));
-  if (nextById.size !== documents.length) return rebuild('duplicate-id');
+  if (nextById.size !== documents.length) return { rebuildReason: 'duplicate-id' };
 
   const removedIds: string[] = [];
   const insertedDocuments: WorkspaceSearchDocument[] = [];
@@ -270,33 +270,133 @@ export function updateWorkspaceSearchCorpus(
   }
 
   if (removedIds.length + insertedDocuments.length > documents.length) {
-    return rebuild('bulk-change');
+    return { rebuildReason: 'bulk-change' };
   }
+  return { index, removedIds, insertedDocuments, updated };
+}
 
+function finishUpdate(
+  plan: Exclude<UpdatePlan, { rebuildReason: WorkspaceSearchRebuildReason }>,
+  documents: readonly WorkspaceSearchDocument[],
+): WorkspaceSearchCorpusUpdate {
+  if (count(plan.index) !== documents.length) {
+    throw new Error(
+      `Search index count ${count(plan.index)} diverged from document count ${documents.length} after incremental update`,
+    );
+  }
+  const corpus: WorkspaceSearchCorpus = { documents };
+  workspaceSearchIndexes.set(corpus, plan.index);
+  return {
+    corpus,
+    inserted: plan.insertedDocuments.length - plan.updated,
+    updated: plan.updated,
+    removed: plan.removedIds.length - plan.updated,
+    rebuilt: false,
+  };
+}
+
+export function updateWorkspaceSearchCorpus(
+  previous: WorkspaceSearchCorpus,
+  documents: readonly WorkspaceSearchDocument[],
+): WorkspaceSearchCorpusUpdate {
+  const rebuild = (rebuildReason: WorkspaceSearchRebuildReason): WorkspaceSearchCorpusUpdate => ({
+    corpus: createWorkspaceSearchCorpus(documents),
+    inserted: 0,
+    updated: 0,
+    removed: 0,
+    rebuilt: true,
+    rebuildReason,
+  });
+  const plan = planUpdate(previous, documents);
+  if ('rebuildReason' in plan) return rebuild(plan.rebuildReason);
   consumedUpdateBases.add(previous);
   try {
-    if (removedIds.length > 0) removeMultiple(index, removedIds);
-    if (insertedDocuments.length > 0) {
-      insertMultiple(index, insertedDocuments as WorkspaceSearchDocument[]);
+    if (plan.removedIds.length > 0) removeMultiple(plan.index, plan.removedIds);
+    if (plan.insertedDocuments.length > 0) {
+      insertMultiple(plan.index, plan.insertedDocuments as WorkspaceSearchDocument[]);
     }
-    if (count(index) !== documents.length) {
-      throw new Error(
-        `Search index count ${count(index)} diverged from document count ${documents.length} after incremental update`,
-      );
-    }
+    return finishUpdate(plan, documents);
   } catch {
     return rebuild('mutation-failed');
   }
+}
 
-  const corpus: WorkspaceSearchCorpus = { documents };
-  workspaceSearchIndexes.set(corpus, index);
-  return {
-    corpus,
-    inserted: insertedDocuments.length - updated,
-    updated,
-    removed: removedIds.length - updated,
-    rebuilt: false,
-  };
+export interface SliceOptions {
+  sliceSize?: number;
+  pause?: () => Promise<void>;
+}
+
+const DEFAULT_SLICE_SIZE = 100;
+
+function pauseForOthers(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+async function inSlices<T>(
+  items: readonly T[],
+  options: SliceOptions,
+  work: (slice: T[]) => void,
+): Promise<void> {
+  const size = Math.max(1, options.sliceSize ?? DEFAULT_SLICE_SIZE);
+  const pause = options.pause ?? pauseForOthers;
+  for (let at = 0; at < items.length; at += size) {
+    work(items.slice(at, at + size));
+    if (at + size < items.length) await pause();
+  }
+}
+
+async function createWorkspaceSearchIndexInSlices(
+  documents: readonly WorkspaceSearchDocument[],
+  options: SliceOptions,
+): Promise<WorkspaceSearchIndex> {
+  const db = create({
+    schema: WORKSPACE_SEARCH_SCHEMA,
+    components: { tokenizer: createWorkspaceSearchTokenizer() },
+  });
+  await inSlices(documents, options, (slice) => {
+    insertMultiple(db, slice as WorkspaceSearchDocument[]);
+  });
+  return db;
+}
+
+export async function createWorkspaceSearchCorpusInSlices(
+  documents: readonly WorkspaceSearchDocument[],
+  options: SliceOptions = {},
+): Promise<WorkspaceSearchCorpus> {
+  const corpus = { documents };
+  workspaceSearchIndexes.set(corpus, await createWorkspaceSearchIndexInSlices(documents, options));
+  return corpus;
+}
+
+export async function updateWorkspaceSearchCorpusInSlices(
+  previous: WorkspaceSearchCorpus,
+  documents: readonly WorkspaceSearchDocument[],
+  options: SliceOptions = {},
+): Promise<WorkspaceSearchCorpusUpdate> {
+  const rebuild = async (
+    rebuildReason: WorkspaceSearchRebuildReason,
+  ): Promise<WorkspaceSearchCorpusUpdate> => ({
+    corpus: await createWorkspaceSearchCorpusInSlices(documents, options),
+    inserted: 0,
+    updated: 0,
+    removed: 0,
+    rebuilt: true,
+    rebuildReason,
+  });
+  const plan = planUpdate(previous, documents);
+  if ('rebuildReason' in plan) return rebuild(plan.rebuildReason);
+  consumedUpdateBases.add(previous);
+  try {
+    await inSlices(plan.removedIds, options, (slice) => {
+      removeMultiple(plan.index, slice);
+    });
+    await inSlices(plan.insertedDocuments, options, (slice) => {
+      insertMultiple(plan.index, slice as WorkspaceSearchDocument[]);
+    });
+    return finishUpdate(plan, documents);
+  } catch {
+    return rebuild('mutation-failed');
+  }
 }
 
 function defaultScopes(intent: WorkspaceSearchIntent): readonly WorkspaceSearchScope[] {

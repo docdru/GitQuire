@@ -791,10 +791,12 @@ export {
 } from './schemas/cc1.ts';
 export {
   createWorkspaceSearchCorpus,
+  createWorkspaceSearchCorpusInSlices,
   createWorkspaceSearchDocument,
   DEFAULT_RRF_K,
   searchWorkspaceCorpus,
   updateWorkspaceSearchCorpus,
+  updateWorkspaceSearchCorpusInSlices,
   type WorkspaceSearchCorpus,
   type WorkspaceSearchDocument,
   type WorkspaceSearchIntent,

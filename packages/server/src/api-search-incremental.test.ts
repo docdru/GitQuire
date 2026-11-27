@@ -12,17 +12,17 @@ vi.mock('@gitquire/core', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@gitquire/core')>();
   return {
     ...actual,
-    createWorkspaceSearchCorpus: (
-      ...args: Parameters<typeof actual.createWorkspaceSearchCorpus>
+    createWorkspaceSearchCorpusInSlices: (
+      ...args: Parameters<typeof actual.createWorkspaceSearchCorpusInSlices>
     ) => {
       corpusCalls.create += 1;
-      return actual.createWorkspaceSearchCorpus(...args);
+      return actual.createWorkspaceSearchCorpusInSlices(...args);
     },
-    updateWorkspaceSearchCorpus: (
-      ...args: Parameters<typeof actual.updateWorkspaceSearchCorpus>
+    updateWorkspaceSearchCorpusInSlices: (
+      ...args: Parameters<typeof actual.updateWorkspaceSearchCorpusInSlices>
     ) => {
       corpusCalls.update += 1;
-      return actual.updateWorkspaceSearchCorpus(...args);
+      return actual.updateWorkspaceSearchCorpusInSlices(...args);
     },
   };
 });
