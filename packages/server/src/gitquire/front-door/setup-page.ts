@@ -49,7 +49,7 @@ export function setupPageBody(needed: FrontDoorSetupNeeded): string {
 
 export function createSetupServer(needed: FrontDoorSetupNeeded): Server {
   const body = setupPageBody(needed);
-  return createServer((req, res) => {
+  const server = createServer((req, res) => {
     const path = (req.url ?? '/').split('?')[0];
     if (path === '/healthz') {
       sendJson(res, 200, { ok: true });
@@ -61,4 +61,10 @@ export function createSetupServer(needed: FrontDoorSetupNeeded): Server {
     }
     sendHtml(res, 503, 'Set up GitQuire', body);
   });
+  server.on('upgrade', (_req, socket) => {
+    socket.end(
+      'HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\nContent-Length: 0\r\n\r\n',
+    );
+  });
+  return server;
 }

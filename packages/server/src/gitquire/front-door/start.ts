@@ -119,15 +119,14 @@ export async function startFrontDoor(
   options: { log: GateLogger; cli: readonly string[] },
 ): Promise<RunningFrontDoor> {
   const log = options.log;
+  refuseSingleWikiVolume(resolve(dataDir));
   let settings: FrontDoorSettings;
   try {
     settings = resolveFrontDoorSettings(env, dataDir);
   } catch (err) {
     if (!(err instanceof FrontDoorSetupNeeded)) throw err;
-    refuseSingleWikiVolume(resolve(dataDir));
     return startSetupPage(err, env, log);
   }
-  refuseSingleWikiVolume(settings.dataDir);
   mkdirSync(join(settings.dataDir, 'server'), { recursive: true, mode: 0o700 });
   chmodSync(join(settings.dataDir, 'server'), 0o700);
   mkdirSync(join(settings.dataDir, 'wikis'), { recursive: true });

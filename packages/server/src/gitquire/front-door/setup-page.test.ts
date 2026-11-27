@@ -1,5 +1,5 @@
 import { mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
-import { get } from 'node:http';
+import { get, request } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -80,14 +80,39 @@ describe('the set-up page', () => {
     }
   });
 
-  it('still refuses a single-wiki volume first, changing nothing (O2)', async () => {
-    const dir = volume();
-    mkdirSync(join(dir, '.git'));
-    const before = readdirSync(dir);
-    await expect(startFrontDoor(dir, { PORT: '0' }, { log, cli: [] })).rejects.toThrow(
-      /volume of the single-wiki mode/,
-    );
-    expect(readdirSync(dir)).toEqual(before);
+  it.each(['.git', '.gitquire', '.ok', '.gitquire-moving-in'])(
+    'still refuses a single-wiki volume with %s first, changing nothing (O2)',
+    async (marker) => {
+      const dir = volume();
+      mkdirSync(join(dir, marker));
+      const before = readdirSync(dir);
+      await expect(startFrontDoor(dir, { PORT: '0' }, { log, cli: [] })).rejects.toThrow(
+        /volume of the single-wiki mode/,
+      );
+      await expect(
+        startFrontDoor(dir, { PORT: '0', GITQUIRE_REPO: 'team/wiki' }, { log, cli: [] }),
+      ).rejects.toThrow(/volume of the single-wiki mode/);
+      expect(readdirSync(dir)).toEqual(before);
+    },
+  );
+
+  it('answers a websocket upgrade with 503 and closes it', async () => {
+    const running = await startFrontDoor(volume(), { PORT: '0' }, { log, cli: [] });
+    stops.push(running.stop);
+    const status = await new Promise<number | undefined>((done) => {
+      const req = request({
+        host: '127.0.0.1',
+        port: running.port,
+        path: '/w/github/team/wiki/collab',
+        headers: { Connection: 'Upgrade', Upgrade: 'websocket' },
+        agent: false,
+      });
+      req.on('response', (res) => done(res.statusCode));
+      req.on('upgrade', () => done(101));
+      req.on('error', () => done(undefined));
+      req.end();
+    });
+    expect(status).toBe(503);
   });
 
   it('stops on a wrong value or an old setting instead of showing the page', async () => {

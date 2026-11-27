@@ -59,7 +59,7 @@ jobs:
         run: |
           set -eu
           docker run -d --name gq-single -p 8083:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 \
-            --entrypoint sh gitquire:ci -c 'cd /data && gitquire init < /dev/null && exec gitquire start'
+            --entrypoint sh gitquire:ci -c 'git config --global user.name GitQuire; git config --global user.email gitquire@localhost; cd /data && gitquire init < /dev/null && exec gitquire start'
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8083/readyz >/dev/null 2>&1; then break; fi
             sleep 2
@@ -146,7 +146,7 @@ jobs:
         run: |
           set -eu
           docker run -d --name gq-e2e -p 8082:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 \
-            --entrypoint sh gitquire:ci -c 'cd /data && gitquire init < /dev/null && exec gitquire start'
+            --entrypoint sh gitquire:ci -c 'git config --global user.name GitQuire; git config --global user.email gitquire@localhost; cd /data && gitquire init < /dev/null && exec gitquire start'
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8082/readyz >/dev/null 2>&1; then break; fi
             sleep 2
@@ -194,7 +194,7 @@ jobs:
             sleep 2
           done
           curl -fsS http://127.0.0.1:8081/readyz
-          docker logs gq-auth 2>&1 | grep -q '"callback":"http://127.0.0.1:8081/auth/github/callback"'
+          docker logs gq-auth 2>&1 | grep -qF 'http://127.0.0.1:8081/auth/github/callback'
           if docker logs gq-auth 2>&1 | grep -q 'smoke-secret'; then echo "::error::secret in the log"; exit 1; fi
           page=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' -H 'Accept: text/html' http://127.0.0.1:8081/)
           echo "GET / -> $page"
