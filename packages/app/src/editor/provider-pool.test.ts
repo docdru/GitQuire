@@ -1297,6 +1297,27 @@ describe('ProviderPool doc-lineage epoch records', () => {
     expect(tokenOf(entry).expectedDocLineageEpoch).toBe('epoch-1');
   });
 
+  test('a page reopened after a server restart does not claim the old server epoch', async () => {
+    const { stub, store } = makeStubStorage();
+    store.set(ENVELOPE_KEY, makeEnvelope(TEST_SERVER_INSTANCE_ID, { doc1: 'epoch-1' }));
+    pool = new ProviderPool(3, DUMMY_WS, {
+      storage: stub,
+      persistenceFactory: vi.fn(makePersistenceStub),
+    });
+    pool.setExpectedServerInstanceId(TEST_SERVER_INSTANCE_ID);
+    const before = pool.open('doc1');
+    if (!before) throw new Error('expected entry');
+    expect(tokenOf(before).expectedDocLineageEpoch).toBe('epoch-1');
+
+    pool.setExpectedServerInstanceId('restarted-instance');
+    await pool.awaitMismatchSettled();
+
+    const after = pool.open('doc1');
+    if (!after) throw new Error('expected entry');
+    expect(after).not.toBe(before);
+    expect(tokenOf(after).expectedDocLineageEpoch).toBeUndefined();
+  });
+
   test('claim is omitted while the server instance id is unknown', () => {
     const { stub, store } = makeStubStorage();
     store.set(ENVELOPE_KEY, makeEnvelope(TEST_SERVER_INSTANCE_ID, { doc1: 'epoch-1' }));

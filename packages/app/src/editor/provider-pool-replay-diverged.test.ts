@@ -74,9 +74,12 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function armReplay(serverContent: string): { docName: string; ytext: Y.Text } {
+function armReplay(
+  serverContent: string,
+  fragmentMd: string = BASE_MD,
+): { docName: string; ytext: Y.Text } {
   const docName = `pp-diverged-${randomUUID()}`;
-  const { delta, fullState } = buildTwoSurfaceState(BASE_MD, BUFFERED_MD);
+  const { delta, fullState } = buildTwoSurfaceState(fragmentMd, BUFFERED_MD);
   pool = new ProviderPool(3, DUMMY_WS);
   const entry = pool.open(docName);
   if (!entry) throw new Error('expected entry');
@@ -110,6 +113,29 @@ describe('content-level replay against content the server has moved past', () =>
     });
     expect(ytext.toString()).toContain(BUFFERED_MARKER);
     expect(emittedEvents(warn)).not.toContain('ok-buffer-replay-diverged');
+  });
+});
+
+describe('content-level replay of text the server had taken over but not saved', () => {
+  it('adds the text when both surfaces carry it and the server holds the last saved state', async () => {
+    const { ytext } = armReplay(BASE_MD, BUFFERED_MD);
+
+    await vi.waitFor(() => {
+      expect(emittedEvents(warn)).toContain('ok-buffer-replay-content-applied');
+    });
+    expect(ytext.toString()).toBe(BUFFERED_MD);
+    expect(emittedEvents(warn)).not.toContain('ok-buffer-replay-diverged');
+  });
+
+  it('still refuses when the server holds text the buffer lacks', async () => {
+    const { ytext } = armReplay(MOVED_MD, BUFFERED_MD);
+
+    await vi.waitFor(() => {
+      expect(replaySettled()).toBe(true);
+    });
+    expect(ytext.toString()).toContain(MOVED_MARKER);
+    expect(emittedEvents(warn)).toContain('ok-buffer-replay-diverged');
+    expect(emittedEvents(warn)).not.toContain('ok-buffer-replay-content-applied');
   });
 });
 
