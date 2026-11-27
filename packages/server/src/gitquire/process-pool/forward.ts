@@ -1,6 +1,7 @@
 import { type IncomingMessage, request, type ServerResponse } from 'node:http';
 import { connect } from 'node:net';
-import type { Duplex } from 'node:stream';
+import { type Duplex, pipeline } from 'node:stream';
+import { createGzip, constants as zlibConstants } from 'node:zlib';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
 import {
   FORWARDED_PREFIX_HEADER,
@@ -43,6 +44,44 @@ function forwardedHeaders(
 
 const UNSAFE_HEADER_TEXT = /[\r\n\0]/;
 
+const COMPRESSIBLE =
+  /^(application\/(json|javascript|manifest\+json|xml|problem\+json)|text\/(html|css|javascript|plain|markdown|xml)|image\/svg\+xml)\b/i;
+const MIN_COMPRESS_BYTES = 1024;
+
+function headerText(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value.join(', ') : (value ?? '');
+}
+
+export function acceptsGzip(acceptEncoding: string | string[] | undefined): boolean {
+  for (const part of headerText(acceptEncoding).split(',')) {
+    const [coding, ...params] = part.trim().toLowerCase().split(';');
+    if (coding !== 'gzip' && coding !== '*') continue;
+    const q = params.map((p) => p.trim()).find((p) => p.startsWith('q='));
+    if (q === undefined || Number(q.slice(2)) > 0) return true;
+  }
+  return false;
+}
+
+export function shouldGzip(
+  req: Pick<IncomingMessage, 'method' | 'headers'>,
+  status: number,
+  headers: IncomingMessage['headers'],
+): boolean {
+  if (req.method === 'HEAD' || status < 200 || status === 204 || status === 304) return false;
+  if (!acceptsGzip(req.headers['accept-encoding'])) return false;
+  if (headers['content-encoding'] !== undefined) return false;
+  if (!COMPRESSIBLE.test(headerText(headers['content-type']))) return false;
+  const length = headers['content-length'];
+  if (length !== undefined && Number(length) < MIN_COMPRESS_BYTES) return false;
+  return /\bno-transform\b/i.test(headerText(headers['cache-control'])) === false;
+}
+
+function withVary(value: string | string[] | undefined): string {
+  const existing = headerText(value);
+  if (/\baccept-encoding\b/i.test(existing)) return existing;
+  return existing === '' ? 'Accept-Encoding' : `${existing}, Accept-Encoding`;
+}
+
 export function hasUnsafeHeader(headers: Record<string, string | string[]>): boolean {
   return Object.entries(headers).some(
     ([name, value]) =>
@@ -65,6 +104,7 @@ export function proxyRequest(
     rewriteHeaders?: (
       headers: Record<string, string | string[]>,
     ) => Record<string, string | string[]>;
+    compress?: boolean;
   } = {},
 ): void {
   const sent = forwardedHeaders(req, options.extraHeaders);
@@ -98,6 +138,15 @@ export function proxyRequest(
         } else {
           headers[name] = value;
         }
+      }
+      if (options.compress === true && shouldGzip(req, status, answer.headers)) {
+        delete headers['content-length'];
+        headers['content-encoding'] = 'gzip';
+        headers.vary = withVary(headers.vary);
+        res.writeHead(status, options.rewriteHeaders?.(headers) ?? headers);
+        const gzip = createGzip({ level: 4, flush: zlibConstants.Z_SYNC_FLUSH });
+        pipeline(answer, gzip, res, () => {});
+        return;
       }
       res.writeHead(status, options.rewriteHeaders?.(headers) ?? headers);
       answer.pipe(res);
