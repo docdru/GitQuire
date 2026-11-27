@@ -29,7 +29,7 @@ reference_docs = [
   { path = "plans/wikis-and-hosts.md", role = "plan of the wikis-hosts branch: decisions, requirements R1-R18, host interface, order", max_chars = 60_000 },
   { path = "plans/one-front-door.md", role = "plan of the hosts-one-door branch: one front door for several Git hosts, owner's decisions, requirements S1-S9, blocks B0-B9, findings", max_chars = 40_000 },
   { path = "plans/one-mode.md", role = "plan of the one-mode branch: one mode (always the front door), every host in GITQUIRE_HOSTS, old settings refused, requirements O1-O9, blocks, findings and assumptions", max_chars = 40_000 },
-  { path = "plans/review-map.md", role = "review map: which module owns what, contract files, seams where one wiki leaks into another or work is lost", max_chars = 30_000 },
+  { path = "plans/review-map.md", role = "review map: which module owns what, contract files, seams where one wiki leaks into another or work is lost", max_chars = 60_000 },
 ]
 
 generated_files = [
