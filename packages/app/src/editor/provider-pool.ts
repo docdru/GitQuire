@@ -7,7 +7,6 @@ import type { HocuspocusAuthRejectionReason } from '@gitquire/server';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { getSchema } from '@tiptap/core';
 import { yXmlFragmentToProseMirrorRootNode } from '@tiptap/y-tiptap';
-import { diffChars } from 'diff';
 import * as Y from 'yjs';
 import { buildAuthToken } from '../lib/auth-token';
 import { readNumericOverride } from '../lib/perf/env-override';
@@ -1182,11 +1181,7 @@ export class ProviderPool {
           staleEpoch: entry.lineageEpochRecordAtOpen ?? '',
         });
         const wasActive = this.activeDocName === docName;
-        const pendingReplay = this.bufferedUpdates.get(docName);
         void this.runCloseAndClearPersistence(docName);
-        if (pendingReplay !== undefined) {
-          this.bufferedUpdates.set(docName, { ...pendingReplay, durable: false });
-        }
         const reopened = this.open(docName);
         if (reopened !== null && wasActive) this.setActive(docName);
         return;
@@ -1468,7 +1463,6 @@ export class ProviderPool {
 
     this.recoveryMismatchStaleClaim =
       staleClaimedServerInstanceId.length > 0 ? staleClaimedServerInstanceId : undefined;
-    this.docLineageEpochs.clear();
 
     const snapshot = Array.from(this.entries.entries());
     this.emitStructuredClientBreadcrumb({
@@ -1683,13 +1677,6 @@ export class ProviderPool {
         ours = composeWithDerivedBody(oursFm, oursFragBody).md;
       } else if (fragClean) {
         ours = oursYtext;
-      } else if (this.replayInsertionsOnly(provider, theirs, oursYtext, oursFm, oursFragBody)) {
-        this.emitStructuredClientRecoveryEvent({
-          event: 'ok-buffer-replay-content-applied',
-          ...this.recoveryTelemetryBase(docName),
-          surface: 'insertions',
-        });
-        return true;
       } else {
         this.emitStructuredClientRecoveryEvent({
           event: 'ok-buffer-replay-diverged',
@@ -1731,33 +1718,6 @@ export class ProviderPool {
     } finally {
       replica.destroy();
     }
-  }
-
-  private replayInsertionsOnly(
-    provider: HocuspocusProvider,
-    theirs: string,
-    oursYtext: string,
-    oursFm: string,
-    oursFragBody: string,
-  ): boolean {
-    const acknowledged = insertionsOnly(theirs, oursYtext);
-    if (acknowledged === null) return false;
-    const oursFragment = composeWithDerivedBody(oursFm, oursFragBody).md;
-    const unacknowledged =
-      normalizeBridge(oursFragment) === normalizeBridge(oursYtext)
-        ? []
-        : (insertionsOnly(oursYtext, oursFragment) ?? []);
-    const ytext = provider.document.getText('source');
-    provider.document.transact(() => {
-      for (const batch of [acknowledged, unacknowledged]) {
-        let shift = 0;
-        for (const { index, text } of batch) {
-          ytext.insert(index + shift, text);
-          shift += text.length;
-        }
-      }
-    }, TAB_REPLAY_ORIGIN);
-    return true;
   }
 
   awaitMismatchSettled(): Promise<void> {
@@ -2174,16 +2134,4 @@ export class ProviderPool {
 
     this.notify();
   }
-}
-
-function insertionsOnly(from: string, to: string): { index: number; text: string }[] | null {
-  if (to.length < from.length) return null;
-  const insertions: { index: number; text: string }[] = [];
-  let index = 0;
-  for (const part of diffChars(from, to)) {
-    if (part.removed === true) return null;
-    if (part.added === true) insertions.push({ index, text: part.value });
-    else index += part.value.length;
-  }
-  return insertions;
 }
