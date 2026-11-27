@@ -222,17 +222,6 @@ export function createForgejoDoorHost(
     return repo === undefined ? { state: 'unreachable' } : { state: 'found', repo };
   }
 
-  async function repoByName(repo: HostRepo): Promise<RepoLookup> {
-    const bot = deps.botToken?.();
-    if (bot === undefined) return { state: 'refused', refusal: 'token' };
-    const answer = await call(repoPath(repo), bot);
-    if (answer.status === 'unreachable') return { state: 'unreachable' };
-    if (answer.status === 401) return { state: 'refused', refusal: 'token' };
-    if (answer.status === 403 || answer.status === 404) return { state: 'gone' };
-    const found = answer.status === 200 ? forgejoRepoRecord(answer.body) : undefined;
-    return found === undefined ? { state: 'unreachable' } : { state: 'found', repo: found };
-  }
-
   async function health(repo: HostRepoRef): Promise<HostHealth> {
     const bot = deps.botToken?.();
     if (bot === undefined) return 'refused:token';
@@ -394,7 +383,6 @@ export function createForgejoDoorHost(
     accessByBot,
     addableRepos,
     repoById,
-    repoByName,
     health,
     tokenFor,
     selfCheck,

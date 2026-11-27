@@ -1,7 +1,7 @@
 ---
 title: Several wikis
 icon: LuLibrary
-description: Run several wikis in one GitQuire container behind one front door, and move a single wiki over.
+description: Run several wikis in one GitQuire container behind one front door.
 ---
 
 With `GITQUIRE_WIKIS=on`, one GitQuire container serves several wikis. Each wiki is a repository on
@@ -16,7 +16,6 @@ copy of your volume first.
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. Off or empty: one wiki, as before. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. |
-| `GITQUIRE_REPO` | Optional. The repository whose single-wiki volume `gitquire wikis adopt` moves over. |
 | `GITQUIRE_ADMINS` | Server administrators. On Forgejo only they add wikis. |
 
 The sign-in settings, `GITQUIRE_SESSION_SECRET`, `GITQUIRE_EXTERNAL_URL` (the root address) and
@@ -67,25 +66,8 @@ bot token, allowed owners, administrators). One GitHub plus one Forgejo is teste
 The settings are in
 [DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#two-git-hosts-on-one-server).
 
-## Move a single wiki over
+## Coming from a single wiki
 
-`gitquire wikis adopt` moves an existing single-wiki volume into the several-wiki layout, with its
-people, mentions, drafts, settings, AI chats, saved AI keys and agent tokens; `gitquire wikis
-unadopt` moves it back while it is still the only wiki. Both run with the container stopped and
-with the settings for several wikis (`GITQUIRE_WIKIS=on` included). Start with a dry run, which
-changes nothing:
-
-```bash
-docker compose stop gitquire
-docker run --rm --env-file gitquire-wikis.env \
-  -v gitquire-data:/data -v gitquire-drafts:/drafts -e GITQUIRE_DRAFTS_DIR=/drafts \
-  -v "$PWD/app.pem:/run/secrets/app.pem:ro" \
-  --entrypoint gitquire ghcr.io/docdru/gitquire:latest wikis adopt /data --dry-run
-```
-
-Before moving the real volume, try the move on a copy of it; DEPLOY.md shows how, and what to
-watch for (the trial pushes to the real repository).
-
-It refuses edits that are not pushed yet unless you pass `--force`, never deletes anything, and
-can be run again. The full steps, the Forgejo token and the way back are in
-[DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#moving-a-single-wiki-over).
+A volume of the single-wiki mode is refused at start and left unchanged. The pages are in the Git
+repository: start on a new, empty volume and add the wiki in the app. The steps are in
+[DEPLOY.md](https://github.com/docdru/GitQuire/blob/main/DEPLOY.md#upgrading-from-a-single-wiki).

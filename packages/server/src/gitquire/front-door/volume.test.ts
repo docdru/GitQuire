@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -21,8 +21,22 @@ describe('one volume, one mode', () => {
     const dir = volume();
     expect(() => refuseSingleWikiVolume(dir)).not.toThrow();
     mkdirSync(join(dir, '.git'));
-    expect(() => refuseSingleWikiVolume(dir)).toThrow(/holds the checkout of a single wiki/);
+    expect(() => refuseSingleWikiVolume(dir)).toThrow(
+      /volume of the single-wiki mode \(it has \.git\).*Nothing on it was changed.*new, empty volume/,
+    );
   });
+
+  it.each(['.gitquire', '.ok', '.gitquire-moving-in', '.gitquire-moving-back'])(
+    'the front door refuses a volume with %s and changes nothing on it',
+    (marker) => {
+      const dir = volume();
+      mkdirSync(join(dir, marker));
+      writeFileSync(join(dir, 'index.md'), '# Home\n');
+      const before = readdirSync(dir).sort();
+      expect(() => refuseSingleWikiVolume(dir)).toThrow(`it has ${marker}`);
+      expect(readdirSync(dir).sort()).toEqual(before);
+    },
+  );
 
   it('a single wiki refuses a volume of the front door', () => {
     const dir = volume();

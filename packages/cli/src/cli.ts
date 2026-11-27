@@ -56,7 +56,6 @@ import { runStartCommand, startCommand } from './commands/start.ts';
 import { statusCommand } from './commands/status.ts';
 import { stopCommand } from './commands/stop.ts';
 import { syncCommand } from './commands/sync.ts';
-import { wikisCommand } from './commands/wikis.ts';
 import { writesFilesForARunningServer } from './commands/writes-files.ts';
 import { PACKAGE_VERSION } from './constants.ts';
 import { loadConfig } from './index.ts';
@@ -202,7 +201,6 @@ program.addCommand(statusCommand(() => resolvedConfig));
 program.addCommand(gitquireBootstrapCommand(), { hidden: true });
 
 program.addCommand(frontDoorCommand(), { hidden: true });
-program.addCommand(wikisCommand());
 
 program.addCommand(psCommand());
 

@@ -327,30 +327,6 @@ describe('GitHub door host for several repositories', () => {
     );
   });
 
-  it('looks a repo up by its name through its installation, for moving a single wiki over', async () => {
-    const calls: string[] = [];
-    const host = door((method, path, _token, body) => {
-      if (path === '/repos/dora/diary/installation') return { status: 200, body: { id: 12 } };
-      if (method === 'POST' && path === '/app/installations/12/access_tokens') {
-        expect(body).toEqual({ repositories: ['diary'] });
-        return { status: 201, body: tokenBody('ghs_diary', '2026-11-21T13:00:00Z') };
-      }
-      if (path === '/repos/dora/diary') {
-        return { status: 200, body: repoRecord(301, 'dora', 7, 'diary', true) };
-      }
-      return { status: 404 };
-    }, calls);
-    expect(await host.repoByName({ owner: 'dora', name: 'diary' })).toEqual({
-      state: 'found',
-      repo: { host: 'github', id: 301, owner: 'dora', ownerId: 7, name: 'diary' },
-    });
-    expect(calls.at(-1)).toBe('GET /repos/dora/diary ghs_diary');
-    expect(await host.repoByName({ owner: 'dora', name: 'other' })).toEqual({ state: 'gone' });
-    expect(await door(() => ({ status: 500 })).repoByName({ owner: 'a', name: 'b' })).toEqual({
-      state: 'unreachable',
-    });
-  });
-
   it('answers gone, refused or unreachable for a repo number', async () => {
     const none = door((method, path) => {
       if (path.startsWith('/app/installations?')) return { status: 200, body: [{ id: 11 }] };

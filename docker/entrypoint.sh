@@ -27,7 +27,7 @@ for marker in server/wikis.json .gitquire-moving-in .gitquire-moving-back; do
     continue
   fi
   if [ -e "/data/$marker" ]; then
-    echo "[entrypoint] /data holds several wikis or an unfinished move (/data/$marker). Start it with GITQUIRE_WIKIS=on, or finish the move with gitquire wikis adopt or unadopt." >&2
+    echo "[entrypoint] /data holds several wikis or an unfinished move (/data/$marker). Start it with GITQUIRE_WIKIS=on; an interrupted move cannot be finished any more: start on a new, empty volume." >&2
     exit 78
   fi
 done

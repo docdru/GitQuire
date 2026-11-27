@@ -1,12 +1,13 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-export const MOVING_IN = '.gitquire-moving-in';
-export const MOVING_BACK = '.gitquire-moving-back';
-export const FRONT_DOOR_LOCK = 'front-door.lock';
+const SINGLE_WIKI_MARKERS = ['.git', '.gitquire', '.ok'] as const;
+const MOVE_MARKERS = ['.gitquire-moving-in', '.gitquire-moving-back'] as const;
 
-export function interruptedMove(dataDir: string): string | undefined {
-  if (existsSync(join(dataDir, MOVING_IN))) return 'gitquire wikis adopt';
-  if (existsSync(join(dataDir, MOVING_BACK))) return 'gitquire wikis unadopt';
-  return undefined;
+export function singleWikiMarker(dataDir: string): string | undefined {
+  return [...MOVE_MARKERS, ...SINGLE_WIKI_MARKERS].find((name) => existsSync(join(dataDir, name)));
+}
+
+export function interruptedMove(dataDir: string): boolean {
+  return MOVE_MARKERS.some((name) => existsSync(join(dataDir, name)));
 }
