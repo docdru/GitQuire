@@ -650,7 +650,7 @@ export function createServer(options: ServerOptions): ServerInstance {
     projectDir = contentDir,
     quiet = true,
     debounce = 2000,
-    maxDebounce = 10000,
+    maxDebounce = 3000,
     gitEnabled = true,
     commitDebounceMs = 30_000,
     wipRef = 'refs/wip/main',
