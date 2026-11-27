@@ -142,6 +142,7 @@ export const scenarios = {
         wikis: [{ name: 'idle', seedBare }],
         persons: 1,
         open: false,
+        serverEnv: { GITQUIRE_WIKI_IDLE_MINUTES: '0.5' },
       });
       sampler.start();
       sampler.mark('no-wiki-open');
@@ -149,6 +150,17 @@ export const scenarios = {
       sampler.mark('one-wiki-open');
       const openMs = await openWiki(world.admin, world.wikis[0].path);
       await wait(Math.min(hold, 60_000));
+      sampler.mark('asleep');
+      await world.admin.call('POST', `${world.wikis[0].path}api/sync/trigger`, {});
+      const key = `wiki:github-${world.wikis[0].id}`;
+      const sleepStarted = Date.now();
+      while (Date.now() - sleepStarted < 240_000) {
+        const sample = sampler.take();
+        if (sample !== undefined && sample.groups[key] === undefined) break;
+        await wait(2000);
+      }
+      const asleep = Date.now() - sleepStarted < 240_000;
+      const wakeMs = asleep ? await openWiki(world.admin, world.wikis[0].path) : null;
       const samples = sampler.stop();
       await teardown();
       return {
@@ -156,6 +168,7 @@ export const scenarios = {
         startMs: world.startMs,
         addMs: world.addMs[0],
         firstOpenMs: openMs,
+        wakeMs,
         memoryNoWiki: memorySummary(samples, 'no-wiki-open'),
         memory: memorySummary(samples, 'one-wiki-open'),
         ...recorder.result(),
