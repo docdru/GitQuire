@@ -11,7 +11,7 @@ export function profileWanted() {
 function signalInspector(key) {
   const [host, id] = key.split('-');
   return inServer(
-    `h=${host}; i=${id}; for p in /proc/[0-9]*; do c=$(tr '\\0' ' ' < $p/cmdline 2>/dev/null) || continue; case "$c" in *"-server $h-$i"*) kill -USR1 \${p#/proc/} && echo \${p#/proc/};; esac; done; true`,
+    `h=${host}; i=${id}; for p in /proc/[0-9]*; do c=$(tr '\\0' ' ' < $p/cmdline 2>/dev/null) || continue; case "$c" in *"-server $h-$i"|*"-server $h-$i "*) kill -USR1 \${p#/proc/} && echo \${p#/proc/};; esac; done; true`,
   ).trim();
 }
 
