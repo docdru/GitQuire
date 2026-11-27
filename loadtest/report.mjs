@@ -159,6 +159,7 @@ function summarise(data) {
       ),
       extra: {
         firstOpenMs: metric(r, (x) => x.firstOpenMs),
+        wakeMs: metric(r, (x) => x.wakeMs),
         backlinksReadyMs: metric(r, (x) => x.backlinksReadyMs),
         renameHubMs: metric(r, (x) => x.renameHubMs),
         backlinksAfterRenameMs: metric(r, (x) => x.backlinksAfterRenameMs),
@@ -224,6 +225,8 @@ for (const name of Object.keys(current).sort()) {
       parts.push(`front door alone ${fmt(row.extra.noWikiMb, ' MB')}`);
     if (row.extra.firstOpenMs !== null)
       parts.push(`first open of the wiki ${fmt(row.extra.firstOpenMs, ' ms')}`);
+    if (row.extra.wakeMs !== null)
+      parts.push(`wake after sleep ${fmt(row.extra.wakeMs, ' ms')}`);
     if (row.extra.backlinksReadyMs !== null)
       parts.push(`backlinks ready ${fmt(row.extra.backlinksReadyMs, ' ms')}`);
     if (row.extra.renameHubMs !== null)
