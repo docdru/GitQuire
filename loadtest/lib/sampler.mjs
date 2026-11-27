@@ -1,17 +1,19 @@
 import { inServer, serverRootPid, settings } from './env.mjs';
 
 const PROC_SCRIPT =
-  'for p in /proc/[0-9]*; do s=$(cat $p/stat 2>/dev/null) || continue; r=$(grep VmRSS $p/status 2>/dev/null | tr -s " " | cut -d" " -f2); c=$({ tr "\\0" " " < $p/cmdline; } 2>/dev/null | cut -c1-160); echo "$s|${r:-0}|$c"; done; echo "@mem $(cat /sys/fs/cgroup/memory.current 2>/dev/null || echo 0) $(grep -m1 "^inactive_file " /sys/fs/cgroup/memory.stat 2>/dev/null | cut -d" " -f2)"';
+  'for p in /proc/[0-9]*; do s=$(cat $p/stat 2>/dev/null) || continue; r=$(grep VmRSS $p/status 2>/dev/null | tr -s " " | cut -d" " -f2); c=$({ tr "\\0" " " < $p/cmdline; } 2>/dev/null | cut -c1-160); echo "$s|${r:-0}|$c"; done; echo "@mem $(cat /sys/fs/cgroup/memory.current 2>/dev/null || echo 0) $(grep -m1 "^inactive_file " /sys/fs/cgroup/memory.stat 2>/dev/null | cut -d" " -f2) $(grep -m1 "^oom_kill " /sys/fs/cgroup/memory.events 2>/dev/null | cut -d" " -f2)"';
 
 const TICKS = 100;
 
 function parse(text) {
   const procs = new Map();
   let cgroup = 0;
+  let oomKills = 0;
   for (const line of text.split('\n')) {
     if (line.startsWith('@mem ')) {
-      const [current, inactive] = line.slice(5).split(' ').map(Number);
+      const [current, inactive, kills] = line.slice(5).split(' ').map(Number);
       cgroup = Math.max(0, (current || 0) - (inactive || 0));
+      oomKills = kills || 0;
       continue;
     }
     if (line.trim() === '') continue;
@@ -27,7 +29,7 @@ function parse(text) {
       cmd: (cmd ?? '').trim(),
     });
   }
-  return { procs, cgroup };
+  return { procs, cgroup, oomKills };
 }
 
 function kindOf(proc, rootPid, byPid) {
@@ -107,6 +109,7 @@ export class Sampler {
       cpuCores: seconds > 0 ? cpuSeconds / seconds : 0,
       processes: own.length,
       restarts: this.restarts,
+      oomKills: parsed.oomKills,
       groups: Object.fromEntries(
         Object.entries(groups).map(([k, g]) => [
           k,

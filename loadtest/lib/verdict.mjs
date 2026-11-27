@@ -66,6 +66,8 @@ export function evaluate(_scenario, result) {
   }
   if ((c['edit.propagate.timeout'] ?? 0) > 0)
     reasons.push(`edits not seen within 30 s: ${c['edit.propagate.timeout']}`);
+  if ((result.memory?.oomKills ?? 0) > 0)
+    reasons.push(`processes killed for memory: ${result.memory.oomKills}`);
   if ((result.memory?.wikiRestarts ?? 0) > 0)
     reasons.push(`wiki processes restarted: ${result.memory.wikiRestarts}`);
   const limit = memoryLimitMb();

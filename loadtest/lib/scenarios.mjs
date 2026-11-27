@@ -54,12 +54,21 @@ async function finish(world, sampler, stopProbes) {
 }
 
 async function teardown() {
-  const problems = serverLogs(4000)
-    .split('\n')
-    .filter((line) => /WARN|ERROR|FATAL|exited|killed|out of memory|heap/i.test(line))
-    .slice(-60);
-  if (problems.length > 0)
-    console.log(`[loadtest] server warnings and errors:\n${problems.join('\n')}`);
+  const counts = new Map();
+  for (const line of serverLogs(20000).split('\n')) {
+    if (!/WARN|ERROR|FATAL|exited|killed|out of memory|heap/i.test(line)) continue;
+    const key = line
+      .replace(/^\[[0-9:]+\] /, '')
+      .replace(/pid=\d+/g, 'pid=N')
+      .slice(0, 200);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  if (counts.size > 0) {
+    const list = [...counts].sort((a, b) => b[1] - a[1]).slice(0, 40);
+    console.log(
+      `[loadtest] server warnings and errors:\n${list.map(([k, n]) => `${String(n).padStart(6)} × ${k}`).join('\n')}`,
+    );
+  }
   await stopServer();
   await stopFake();
 }

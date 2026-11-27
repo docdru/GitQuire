@@ -62,6 +62,7 @@ export function memorySummary(samples, phase) {
     slopeMbPerMin: Math.round(slope * 10) / 10,
     cpuCores: { p50: cpu.p50, p95: cpu.p95, max: cpu.max },
     processes: list[list.length - 1].processes,
+    oomKills: (list[list.length - 1].oomKills ?? 0) - (list[0].oomKills ?? 0),
     wikiRestarts: (list[list.length - 1].restarts ?? 0) - (list[0].restarts ?? 0),
     groups: lastGroups,
   };
