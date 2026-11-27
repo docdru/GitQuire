@@ -662,7 +662,7 @@ export const scenarios = {
           const elapsed = Date.now() - started;
           if (killsDone < kills && elapsed >= firstKillMs + killsDone * betweenKillsMs) {
             const out = inServer(
-              `h=${key.split('-')[0]}; i=${key.split('-')[1]}; for p in /proc/[0-9]*; do c=$(tr '\\0' ' ' < $p/cmdline 2>/dev/null) || continue; case "$c" in *"-server $h-$i"*) kill -9 \${p#/proc/} && echo killed;; esac; done; true`,
+              `h=${key.split('-')[0]}; i=${key.split('-')[1]}; for p in /proc/[0-9]*; do c=$(tr '\\0' ' ' < $p/cmdline 2>/dev/null) || continue; case "$c" in *"-server $h-$i"|*"-server $h-$i "*) kill -9 \${p#/proc/} && echo killed;; esac; done; true`,
             );
             recorder.count('kill.signals', (out.match(/killed/g) ?? []).length);
             killsDone++;
