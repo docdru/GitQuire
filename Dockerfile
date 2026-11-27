@@ -4,7 +4,7 @@
 # it as an npm tarball. Stage 2 installs that tarball on a slim Node image.
 #
 #   docker build -t gitquire:local .
-#   docker run --rm -p 8080:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 -v gitquire-data:/data gitquire:local
+#   docker run --rm -p 8080:8080 -v gitquire-data:/data gitquire:local
 
 ARG NODE_VERSION=24.21.0
 
@@ -48,14 +48,9 @@ RUN apt-get update \
 COPY --from=build /out/gitquire.tgz /tmp/gitquire.tgz
 RUN npm install -g /tmp/gitquire.tgz && rm /tmp/gitquire.tgz && gitquire --version
 
-# PORT is the platform-injection contract (Railway, Fly, Cloud Run override it).
-# GITQUIRE_BIND=0.0.0.0 makes the listener reachable from the container network.
-# Exposure consent (GITQUIRE_ALLOW_EXTERNAL=1) is deliberately not baked in: a run
-# without it refuses to boot and names the fix.
 ENV PORT=8080 \
     GITQUIRE_BIND=0.0.0.0
 
-# Mount a persistent volume at /data. It holds the project (a git working copy).
 WORKDIR /data
 EXPOSE 8080
 

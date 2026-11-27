@@ -134,7 +134,7 @@ jobs:
               -e GITQUIRE_REPO="team/$repo" \
               -e GITQUIRE_GITHUB_WEB_URL=http://127.0.0.1:9001 \
               -e GITQUIRE_GITHUB_API_URL=http://127.0.0.1:3000/api/v1 \
-              gitquire:ci >/dev/null
+              --entrypoint sh gitquire:ci -c 'git config --global user.name GitQuire; git config --global user.email gitquire@localhost; exec gitquire start' >/dev/null
             for i in $(seq 1 120); do
               if curl -fsS "http://127.0.0.1:$port/readyz" >/dev/null 2>&1; then break; fi
               sleep 0.5
@@ -282,7 +282,7 @@ jobs:
             -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
             -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_HOST_REPO_TOKEN="$REPO_TOKEN" \
             -e GITQUIRE_REPO=team/wiki -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
-            gitquire:ci 2>&1)
+            --entrypoint sh gitquire:ci -c 'git config --global user.name GitQuire; git config --global user.email gitquire@localhost; gitquire gitquire-bootstrap /data && exec gitquire start' 2>&1)
           code=$?
           echo "$out" | tail -20
           START_CHECK_EXIT=$code START_CHECK_OUTPUT="$out" python3 -I .github/prototypes/h5_forgejo.py admin
@@ -309,7 +309,7 @@ jobs:
             -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
             -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_HOST_REPO_TOKEN="$REPO_TOKEN" \
             -e GITQUIRE_REPO=team/wiki -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
-            gitquire:ci >/dev/null
+            --entrypoint sh gitquire:ci -c 'git config --global user.name GitQuire; git config --global user.email gitquire@localhost; gitquire gitquire-bootstrap /data && exec gitquire start' >/dev/null
           for i in $(seq 1 180); do
             if curl -fsS http://127.0.0.1:8200/readyz >/dev/null 2>&1; then break; fi
             sleep 1
@@ -329,7 +329,7 @@ jobs:
           set +e
           out=$(timeout 120 docker run --rm --network host -v gq-h5:/data -v /tmp/ca:/ca:ro \
             -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e PORT=8201 -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8201 \
-            -e GITQUIRE_WIKIS=on -e GITQUIRE_HOSTS=forgejo -e GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS=team \
+            -e GITQUIRE_HOSTS=forgejo -e GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS=team \
             -e GITQUIRE_HOST_FORGEJO_URL="$FORGEJO_URL" \
             -e GITQUIRE_HOST_FORGEJO_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_FORGEJO_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
             -e GITQUIRE_HOST_FORGEJO_TOKEN="$BOT_TOKEN" -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
@@ -352,13 +352,13 @@ jobs:
           done
           python3 -I .github/prototypes/h5_forgejo.py wikis-setup
 
-      - name: Start GitQuire with GITQUIRE_WIKIS=on
+      - name: Start GitQuire's front door
         run: |
           set -eu
           docker run -d --name gq-wikis --network host -v gq-wikis:/data -v /tmp/ca:/ca:ro \
             -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
             -e PORT=8300 -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8300 \
-            -e GITQUIRE_WIKIS=on -e GITQUIRE_HOSTS=forgejo \
+            -e GITQUIRE_HOSTS=forgejo \
             -e GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS=team -e GITQUIRE_HOST_FORGEJO_ADMINS=alice \
             -e GITQUIRE_HOST_FORGEJO_URL="$FORGEJO_URL" \
             -e GITQUIRE_HOST_FORGEJO_CLIENT_ID="$WIKIS_CLIENT_ID" -e GITQUIRE_HOST_FORGEJO_CLIENT_SECRET="$WIKIS_CLIENT_SECRET" \

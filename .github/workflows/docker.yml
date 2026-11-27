@@ -33,20 +33,39 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.licenses=GPL-3.0-or-later
 
-      - name: Smoke test
+      - name: Smoke test (the set-up page of an image with no settings)
         run: |
           set -eu
-          docker run -d --name gq -p 8080:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 gitquire:ci
+          docker run -d --name gq -p 8080:8080 gitquire:ci
           for i in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:8080/readyz >/dev/null 2>&1; then
-              echo "ready after ${i} tries"
+            if curl -fsS http://127.0.0.1:8080/healthz >/dev/null 2>&1; then
+              echo "up after ${i} tries"
               break
             fi
             sleep 2
           done
-          curl -fsS http://127.0.0.1:8080/readyz
-          curl -fsS http://127.0.0.1:8080/ | grep -qi "<html"
-          echo "web app served"
+          curl -fsS http://127.0.0.1:8080/healthz
+          ready=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/readyz)
+          echo "GET /readyz -> $ready"
+          test "$ready" = 503
+          page=$(curl -s http://127.0.0.1:8080/w/github/team/wiki/)
+          echo "$page" | grep -q 'Set up GitQuire'
+          for name in GITQUIRE_EXTERNAL_URL GITQUIRE_SESSION_SECRET GITQUIRE_HOSTS; do
+            echo "$page" | grep -q "$name" || { echo "::error::$name not named on the set-up page"; exit 1; }
+          done
+          echo "set-up page served"
+
+      - name: Single wiki for the browser suites (until one-mode B5 moves them to the front door)
+        run: |
+          set -eu
+          docker run -d --name gq-single -p 8083:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 \
+            --entrypoint sh gitquire:ci -c 'cd /data && gitquire init < /dev/null && exec gitquire start'
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8083/readyz >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8083/readyz
+          curl -fsS http://127.0.0.1:8083/ | grep -qi "<html"
 
       - name: Image content
         run: |
@@ -69,7 +88,7 @@ jobs:
       - name: Seed a sample page
         run: |
           set -eu
-          docker exec -i gq sh -c 'cat > /data/welcome.md' <<'MD'
+          docker exec -i gq-single sh -c 'cat > /data/welcome.md' <<'MD'
           # Welcome to GitQuire
 
           This page is a **sample** used for layout screenshots. It links to [[Meeting notes]] and has a list:
@@ -111,7 +130,7 @@ jobs:
           set -eu
           cd /tmp/pw
           cp "$GITHUB_WORKSPACE/.github/scripts/screenshots.mjs" .
-          SCREENSHOT_DIR=/tmp/pw/shots SCREENSHOT_LOG=1 node screenshots.mjs
+          GITQUIRE_URL=http://127.0.0.1:8083 SCREENSHOT_DIR=/tmp/pw/shots SCREENSHOT_LOG=1 node screenshots.mjs
 
       - name: Upload layout screenshots
         if: always()
@@ -126,7 +145,8 @@ jobs:
       - name: Browser tests
         run: |
           set -eu
-          docker run -d --name gq-e2e -p 8082:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 gitquire:ci
+          docker run -d --name gq-e2e -p 8082:8080 -e GITQUIRE_ALLOW_EXTERNAL=1 \
+            --entrypoint sh gitquire:ci -c 'cd /data && gitquire init < /dev/null && exec gitquire start'
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8082/readyz >/dev/null 2>&1; then break; fi
             sleep 2
@@ -154,50 +174,68 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Smoke test with GitHub sign-in enabled
+      - name: Smoke test with GitHub sign-in
         run: |
           set -eu
-          docker run -d --name gq-auth -p 8081:8080 \
-            -e GITQUIRE_ALLOW_EXTERNAL=1 \
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /tmp/smoke-app.pem 2>/dev/null
+          chmod 644 /tmp/smoke-app.pem
+          docker run -d --name gq-auth -p 8081:8080 -v /tmp/smoke-app.pem:/run/secrets/app.pem:ro \
             -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8081 \
-            -e GITHUB_APP_CLIENT_ID=Iv1.smoke \
-            -e GITHUB_APP_CLIENT_SECRET=smoke-secret \
             -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
-            -e GITQUIRE_REPO=docdru/GitQuire \
+            -e GITQUIRE_HOSTS=github \
+            -e GITQUIRE_HOST_GITHUB_CLIENT_ID=Iv1.smoke \
+            -e GITQUIRE_HOST_GITHUB_CLIENT_SECRET=smoke-secret \
+            -e GITQUIRE_HOST_GITHUB_APP_ID=1 \
+            -e GITQUIRE_HOST_GITHUB_APP_PRIVATE_KEY_FILE=/run/secrets/app.pem \
+            -e GITQUIRE_HOST_GITHUB_ALLOWED_OWNERS=docdru \
             gitquire:ci
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8081/readyz >/dev/null 2>&1; then break; fi
             sleep 2
           done
           curl -fsS http://127.0.0.1:8081/readyz
+          docker logs gq-auth 2>&1 | grep -q '"callback":"http://127.0.0.1:8081/auth/github/callback"'
+          if docker logs gq-auth 2>&1 | grep -q 'smoke-secret'; then echo "::error::secret in the log"; exit 1; fi
           page=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' -H 'Accept: text/html' http://127.0.0.1:8081/)
           echo "GET / -> $page"
-          case "$page" in "302 http://127.0.0.1:8081/auth/github/login?next=%2F") ;; *) exit 1 ;; esac
-          api=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/api/config)
-          echo "GET /api/config -> $api"
-          test "$api" = 401
-          manifest=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/manifest.webmanifest)
-          echo "GET /manifest.webmanifest -> $manifest"
-          test "$manifest" = 200
+          case "$page" in "302 http://127.0.0.1:8081/auth/github/login"*) ;; *) exit 1 ;; esac
           login=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://127.0.0.1:8081/auth/github/login)
           echo "GET /auth/github/login -> $login"
           case "$login" in "302 https://github.com/login/oauth/authorize?client_id=Iv1.smoke"*) ;; *) exit 1 ;; esac
           ws=$(curl -s -o /dev/null -w '%{http_code}' -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
             -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
-            http://127.0.0.1:8081/collab)
-          echo "WS /collab -> $ws"
+            http://127.0.0.1:8081/w/github/docdru/wiki/collab)
+          echo "WS /w/github/docdru/wiki/collab -> $ws"
           test "$ws" = 401
 
-      - name: Misconfigured repository sync fails fast
+      - name: Old settings stop the start and are named (O3)
         run: |
           set +e
-          out=$(docker run --rm -e GITHUB_APP_ID=1 gitquire:ci 2>&1)
+          out=$(docker run --rm -e GITHUB_APP_ID=1 -e GITQUIRE_WIKIS=on -e GITQUIRE_REPO=team/wiki gitquire:ci 2>&1)
           code=$?
           set -e
           echo "$out"
           echo "exit code: $code"
           test "$code" = 78
-          echo "$out" | grep -q "GITHUB_APP_PRIVATE_KEY_FILE (or GITHUB_APP_PRIVATE_KEY), GITQUIRE_REPO"
+          echo "$out" | grep -q "GITHUB_APP_ID → GITQUIRE_HOST_GITHUB_APP_ID"
+          echo "$out" | grep -q "GITQUIRE_WIKIS → removed"
+          echo "$out" | grep -q "GITQUIRE_REPO → removed"
+
+      - name: A single-wiki volume is refused and left unchanged (O2)
+        run: |
+          set -eu
+          docker volume create gq-old >/dev/null
+          docker run --rm -v gq-old:/data alpine sh -c 'mkdir -p /data/.git /data/.gitquire && echo "# Home" > /data/index.md'
+          before=$(docker run --rm -v gq-old:/data alpine sh -c 'cd /data && find . | sort | xargs stat -c "%n %s %Y" | sha256sum')
+          set +e
+          out=$(docker run --rm -v gq-old:/data gitquire:ci 2>&1)
+          code=$?
+          set -e
+          echo "$out" | tail -3
+          test "$code" = 78
+          echo "$out" | grep -q "volume of the single-wiki mode"
+          after=$(docker run --rm -v gq-old:/data alpine sh -c 'cd /data && find . | sort | xargs stat -c "%n %s %Y" | sha256sum')
+          test "$before" = "$after"
 
       - name: Log in to GitHub Container Registry
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

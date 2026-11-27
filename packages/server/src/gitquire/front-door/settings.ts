@@ -15,12 +15,18 @@ export class FrontDoorConfigError extends Error {
 export class FrontDoorSetupNeeded extends FrontDoorConfigError {
   readonly missing: readonly string[];
   readonly hostKeys: readonly string[];
+  readonly externalUrl: URL | undefined;
 
-  constructor(missing: readonly string[], hostKeys: readonly string[]) {
+  constructor(
+    missing: readonly string[],
+    hostKeys: readonly string[],
+    externalUrl: URL | undefined,
+  ) {
     super(`GitQuire needs these settings: ${missing.join(', ')}.`);
     this.name = 'FrontDoorSetupNeeded';
     this.missing = missing;
     this.hostKeys = hostKeys;
+    this.externalUrl = externalUrl;
   }
 }
 
@@ -105,7 +111,7 @@ export function resolveFrontDoorSettings(
     }
   }
   if (missing.length > 0 || externalUrl === undefined || sessionSecret === undefined) {
-    throw new FrontDoorSetupNeeded(missing, hostKeys(env));
+    throw new FrontDoorSetupNeeded(missing, hostKeys(env), externalUrl);
   }
   const sessionDaysRaw = nonEmpty(env.GITQUIRE_SESSION_DAYS);
   const sessionDays = sessionDaysRaw === undefined ? DEFAULT_SESSION_DAYS : Number(sessionDaysRaw);

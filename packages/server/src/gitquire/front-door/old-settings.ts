@@ -17,6 +17,15 @@ const perHost =
     `GITQUIRE_HOST_${key}_${suffix}`;
 
 const OLD_SETTINGS: readonly OldSetting[] = [
+  { name: 'GITQUIRE_WIKIS', instead: removed('several wikis are always on; remove it') },
+  {
+    name: 'GITQUIRE_ALLOW_EXTERNAL',
+    instead: removed('the image always accepts connections; sign-in is always on'),
+  },
+  {
+    name: 'GITQUIRE_DRAFTS_DIR',
+    instead: removed('drafts live beside the wikis on /data; drop the second volume'),
+  },
   { name: 'GITQUIRE_REPO', instead: removed('wikis are added in the app (Add a wiki)') },
   { name: 'GITHUB_APP_CLIENT_ID', instead: () => 'GITQUIRE_HOST_GITHUB_CLIENT_ID' },
   { name: 'GITHUB_APP_CLIENT_SECRET', instead: () => 'GITQUIRE_HOST_GITHUB_CLIENT_SECRET' },
