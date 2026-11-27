@@ -149,10 +149,12 @@ function summarise(data) {
       cpuP95: metric(r, (x) => x.memory?.cpuCores?.p95),
       errors: metric(r, (x) => x.counts?.errors ?? 0),
       requests: metric(r, (x) => x.counts?.requests ?? 0),
-      lost: metric(r, (x) =>
-        ['lost.converge', 'lost.server', 'lost.host', 'sync.neverReachedHost'].reduce(
-          (n, k) => n + (x.counts?.[k] ?? 0),
-          0,
+      lost: Math.max(
+        ...r.map((x) =>
+          ['lost.converge', 'lost.server', 'lost.host', 'sync.neverReachedHost'].reduce(
+            (n, k) => n + (x.counts?.[k] ?? 0),
+            0,
+          ),
         ),
       ),
       extra: {
@@ -197,7 +199,7 @@ for (const name of Object.keys(current).sort()) {
   lines.push(`## ${name.toUpperCase()} — ${data.title}`);
   lines.push('');
   lines.push(
-    '| Level | Result | Edit seen p95 | Edit ack p95 | Page open p95 | Slowest API p95 | Wiki resp. p95 | Save to host p95 | Memory peak | Per wiki process | CPU p95 | Errors | Lost edits |',
+    '| Level | Result | Edit seen p95 | Edit ack p95 | Page open p95 | Slowest API p95 | Wiki resp. p95 | Save to host p95 | Memory peak | Per wiki process | CPU p95 | Errors | Lost edits (worst run) |',
   );
   lines.push(
     '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
