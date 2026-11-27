@@ -239,7 +239,9 @@ function expectSameResults(
     const got = searchWorkspaceCorpus(corpus, query, { intent: 'full_text' });
     const want = searchWorkspaceCorpus(fresh, query, { intent: 'full_text' });
     expect(got.map((r) => r.document.path)).toEqual(want.map((r) => r.document.path));
-    got.forEach((r, i) => expect(r.score).toBeCloseTo(want[i]?.score ?? Number.NaN, 6));
+    for (const [i, r] of got.entries()) {
+      expect(r.score).toBeCloseTo(want[i]?.score ?? Number.NaN, 6);
+    }
   }
 }
 
