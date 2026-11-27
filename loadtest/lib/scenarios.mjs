@@ -47,6 +47,19 @@ function probes(target, admin, wikiPaths) {
   };
 }
 
+async function startProfiler(wiki) {
+  const { profileWanted, StallProfiler } = await import('./stalls.mjs');
+  if (!profileWanted()) return undefined;
+  const profiler = new StallProfiler({ key: `github-${wiki.id}` });
+  try {
+    await profiler.start();
+    return profiler;
+  } catch (err) {
+    console.log(`[loadtest] stall profile not started: ${err.message ?? err}`);
+    return undefined;
+  }
+}
+
 async function finish(world, sampler, stopProbes) {
   await stopProbes();
   const samples = sampler.stop();
@@ -234,6 +247,7 @@ export const scenarios = {
       const seedBare = seedRepo(1000, 1000);
       const world = await setupWorld({ wikis: [{ name: 'team', seedBare }], persons: people + 1 });
       const wiki = world.wikis[0];
+      const profiler = await startProfiler(wiki);
       const sampler = new Sampler();
       sampler.start();
       const stopProbes = probes(recorder, world.admin, () => [wiki.path]);
@@ -248,9 +262,15 @@ export const scenarios = {
         hubs: [0, 1, 2].map(page),
       });
       await load.done();
+      const stalls = await profiler?.stop();
       const samples = await finish(world, sampler, stopProbes);
       await teardown();
-      return { level: { people }, memory: memorySummary(samples), ...recorder.result() };
+      return {
+        level: { people },
+        memory: memorySummary(samples),
+        ...(stalls === undefined ? {} : { stalls }),
+        ...recorder.result(),
+      };
     },
   },
 
@@ -273,6 +293,7 @@ export const scenarios = {
       const world = await setupWorld({ wikis: [{ name: 'big', seedBare }], persons: 11 });
       sampler.start();
       const wiki = world.wikis[0];
+      const profiler = await startProfiler(wiki);
       const hub = page(1);
       const readyStarted = performance.now();
       let backlinksReady = null;
@@ -323,9 +344,11 @@ export const scenarios = {
         }
         await wait(1000);
       }
+      const stalls = await profiler?.stop();
       const samples = await finish(world, sampler, stopProbes);
       await teardown();
       return {
+        ...(stalls === undefined ? {} : { stalls }),
         level: { pages, commits },
         generateMs: Math.round(genMs),
         addMs: world.addMs[0],

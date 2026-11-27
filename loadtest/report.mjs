@@ -238,6 +238,33 @@ for (const name of Object.keys(current).sort()) {
     if (parts.length > 0) lines.push(`- ${row.label}: ${parts.join(', ')}`);
   }
   if (failed.length > 0 || extras.length > 0) lines.push('');
+  for (const [runIndex, run] of data.runs.entries()) {
+    for (const result of run) {
+      const st = result?.stalls;
+      if (st === undefined || st.stallCount === 0) continue;
+      const label = LEVEL_LABEL[name]?.(result.level) ?? JSON.stringify(result.level);
+      lines.push(
+        `<details><summary>Stalls over 300 ms, ${label}, run ${runIndex + 1}: ${st.stallCount} stalls, ${st.stallMs} ms in all, longest ${st.longest[0]?.ms ?? 0} ms</summary>`,
+      );
+      lines.push('');
+      lines.push('| Function (time inside stalls, with callees) | ms |');
+      lines.push('| --- | ---: |');
+      for (const { fn, ms } of st.topInStalls.slice(0, 15))
+        lines.push(`| \`${fn.replace(/\|/g, '/')}\` | ${ms} |`);
+      lines.push('');
+      for (const stall of st.longest.slice(0, 3)) {
+        lines.push(
+          `- ${stall.ms} ms: ${stall.self
+            .slice(0, 4)
+            .map((f) => `\`${f.fn}\` ${f.ms} ms`)
+            .join(', ')}`,
+        );
+      }
+      lines.push('');
+      lines.push('</details>');
+      lines.push('');
+    }
+  }
   if (CLAIM[name]) {
     const passing = [];
     for (const row of rows) {

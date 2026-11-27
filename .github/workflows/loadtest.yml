@@ -18,6 +18,10 @@ on:
       soak_minutes:
         description: Minutes for s9
         default: '300'
+      profile:
+        description: Keep CPU profiles of stalls over 300 ms in the one-wiki scenarios (s2, s3)
+        type: boolean
+        default: false
       store:
         description: Store the results on the perf-results branch
         type: boolean
@@ -120,6 +124,7 @@ jobs:
       LOADTEST_CPUS: '2'
       LOADTEST_MEMORY: 4g
       LOADTEST_SOAK_MINUTES: ${{ inputs.soak_minutes || '300' }}
+      LOADTEST_PROFILE: ${{ inputs.profile && '1' || '' }}
     steps:
       - uses: actions/checkout@v7
 
