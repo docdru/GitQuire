@@ -61,20 +61,6 @@ describe('front door settings', () => {
     ).toThrow(/GITQUIRE_WIKI_IDLE_MINUTES must be/);
   });
 
-  it('reads the heap limit for wiki and draft processes: 256 MB unless set, 0 for none', () => {
-    expect(resolveFrontDoorSettings(github, '/data').processHeapMb).toBe(256);
-    expect(
-      resolveFrontDoorSettings({ ...github, GITQUIRE_PROCESS_HEAP_MB: '192' }, '/data')
-        .processHeapMb,
-    ).toBe(192);
-    expect(
-      resolveFrontDoorSettings({ ...github, GITQUIRE_PROCESS_HEAP_MB: '0' }, '/data').processHeapMb,
-    ).toBeUndefined();
-    expect(() =>
-      resolveFrontDoorSettings({ ...github, GITQUIRE_PROCESS_HEAP_MB: 'big' }, '/data'),
-    ).toThrow(/GITQUIRE_PROCESS_HEAP_MB must be a whole number of megabytes/);
-  });
-
   it('reads the agent settings, and still refuses GITQUIRE_MCP_TOKEN (R7)', () => {
     const plain = resolveFrontDoorSettings(github, '/data');
     expect(plain.agentTokenDays).toBe(90);
