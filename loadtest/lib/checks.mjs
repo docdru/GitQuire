@@ -29,10 +29,13 @@ export async function onServer(session, wikiPath, docName, markers, timeoutMs = 
     );
     const content = res.json?.content ?? '';
     missing = markers.filter((m) => !content.includes(m));
-    if (missing.length === 0) return { ok: true, ms: performance.now() - started };
+    if (missing.length === 0) {
+      const doubled = markers.filter((m) => content.split(m).length > 2).length;
+      return { ok: true, ms: performance.now() - started, doubled };
+    }
     await wait(1000);
   }
-  return { ok: false, missing: missing.length };
+  return { ok: false, missing: missing.length, doubled: 0 };
 }
 
 export async function onHost(session, wikiPath, repo, docName, markers, timeoutMs = 180_000) {

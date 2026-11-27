@@ -21,6 +21,8 @@ const LEVEL_LABEL = {
   s5: (l) => `${l.drafts} ${l.drafts === 1 ? 'draft' : 'drafts'} in use`,
   s6: (l) => l.phase,
   s9: (l) => `${l.people} people, ${l.minutes} min`,
+  s10: (l) =>
+    `${l.kills} ${l.kills === 1 ? 'kill' : 'kills'}${l.everyMs && l.everyMs !== 600 ? `, a phrase every ${l.everyMs} ms` : ''}${l.deleteBefore ? ', a deletion before the kill' : ''}`,
 };
 
 const CLAIM = {

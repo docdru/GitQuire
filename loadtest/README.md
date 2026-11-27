@@ -23,11 +23,18 @@ fake in `.github/prototypes/github-fake.mjs`.
 | s5 | Drafts | 1, 5, 10, 20 drafts in use, one person typing in each, five people on the live wiki; then a publish |
 | s6 | Git under load | 25 people while the host answers after 0, 0.5 and 3 s, and while it is down for two minutes |
 | s9 | Soak | 20 people for five hours |
+| s10 | Wiki process killed while typing | a real browser (Playwright) types a phrase every 0.6 s while the wiki process is killed with `kill -9` once, four times, twice while typing every 0.15 s, and once right after a deletion |
 
 A level passes under the limits in `lib/verdict.mjs`: edits seen by others within 500 ms (p95),
 pages open within 1 s, API answers within 0.8 s (search, backlinks and link graph 1.5 s), saved to
 the host within 2 minutes, memory under 85 % of the limit, fewer than 0.5 % errors and no lost
-edit. A scenario stops at the first level that fails. The scale claim is the last level that
+edit. A scenario stops at the first level that fails. s10 fails on any phrase the editor showed that
+is not on the server afterwards; after a deletion, only on a phrase that is neither saved nor offered
+in the page's notice for copying.
+
+When a connection drops, the simplified client opens a fresh copy of the page and types again the
+phrases of its own the server lacks, as the app does after a restart; it never sends its old copy.
+A phrase that ends up twice on the server fails the level. The scale claim is the last level that
 passes, per scenario.
 
 ## Results
@@ -49,6 +56,9 @@ openssl genrsa -out app.pem 2048 && cd -
 NODE_EXTRA_CA_CERTS=/tmp/ca/cert.pem node loadtest/run.mjs --scenario s1 --quick --hold 30
 node loadtest/report.mjs
 ```
+
+s10 needs Playwright: `npm install playwright` in `/tmp/pw` (or `LOADTEST_PLAYWRIGHT_DIR`) and
+`npx playwright install chromium`, or point `LOADTEST_CHROME` at an installed Chrome.
 
 `--quick` runs the first levels only. `LOADTEST_TARGET=local` runs `gitquire front-door` from the
 built CLI instead of the image, for working on the harness itself; its numbers are not comparable.
