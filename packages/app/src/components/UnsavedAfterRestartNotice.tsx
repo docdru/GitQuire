@@ -6,6 +6,7 @@ import {
   unsavedAfterRestart,
 } from '@/editor/unsaved-after-restart';
 import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
 
 export function UnsavedAfterRestartNotice({ docName }: { docName: string }) {
   const text = useSyncExternalStore(
@@ -19,16 +20,16 @@ export function UnsavedAfterRestartNotice({ docName }: { docName: string }) {
     <div
       data-slot="unsaved-after-restart"
       role="alert"
-      className="mx-4 my-3 flex flex-col gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+      className="mx-4 my-3 flex flex-col gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"
     >
-      <p className="font-medium">{t`Some of your recent typing could not be saved`}</p>
+      <p className="font-medium text-warning">{t`Some of your recent typing could not be saved`}</p>
       <p>
         {t`The server restarted while you were typing, and your latest changes could not be merged back into the page. Your version of the page is below: copy what is missing and paste it back.`}
       </p>
-      <textarea
+      <Textarea
         readOnly
         aria-label={t`Your version of the page`}
-        className="h-32 w-full resize-y rounded border bg-background p-2 font-mono text-xs text-foreground"
+        className="h-32 resize-y font-mono text-xs"
         value={text}
       />
       <div className="flex gap-2">

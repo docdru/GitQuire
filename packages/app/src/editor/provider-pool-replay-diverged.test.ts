@@ -5,7 +5,7 @@ import { updateYFragment } from '@tiptap/y-tiptap';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as Y from 'yjs';
 import { sharedExtensions } from './extensions/shared.ts';
-import { ProviderPool } from './provider-pool';
+import { insertionsOnly, ProviderPool } from './provider-pool';
 import { resetUnsavedAfterRestartForTests, unsavedAfterRestart } from './unsaved-after-restart';
 
 const DUMMY_WS = 'ws://localhost:1/collab';
@@ -179,5 +179,53 @@ describe('content-level replay of an edit the comparator cannot see', () => {
     });
     expect(ytext.toString()).toContain('# Notes\n\n\n\nSettled paragraph.');
     expect(emittedEvents(warn)).not.toContain('ok-buffer-replay-diverged');
+  });
+});
+
+describe('insertions between the two forms of a page', () => {
+  it('keeps text only the editor form has when the forms differ only in blank characters', () => {
+    const ytext = '# Notes\n\nFirst line.  \n\nSecond line.\n';
+    const fragment = '# Notes\n\nFirst line.\n\nSecond line. typed just now\n';
+    expect(insertionsOnly(ytext, fragment)).toBeNull();
+    const found = insertionsOnly(ytext, fragment, { keepBlankRemovals: true });
+    expect(found).not.toBeNull();
+    let text = ytext;
+    let shift = 0;
+    for (const { index, text: added } of found ?? []) {
+      text = `${text.slice(0, index + shift)}${added}${text.slice(index + shift)}`;
+      shift += added.length;
+    }
+    expect(text).toContain('Second line. typed just now');
+    expect(text).toContain('First line.  ');
+  });
+
+  it('still refuses when the editor form lacks real text', () => {
+    expect(
+      insertionsOnly('# Notes\n\nKeep me.\n', '# Notes\n\nnew\n', { keepBlankRemovals: true }),
+    ).toBeNull();
+  });
+});
+
+describe('replay after an earlier replay left blank-line differences between the forms', () => {
+  it('adds the text only the editor had, instead of dropping it while reporting success', async () => {
+    const docName = `pp-blank-${randomUUID()}`;
+    const ytextMd = '# Notes\n\nSettled paragraph.\n\n\nAck line.\n';
+    const fragmentMd = '# Notes\n\nSettled paragraph.\n\nAck line.\n\nFragment only line.\n';
+    const { delta, fullState } = buildTwoSurfaceState(fragmentMd, ytextMd);
+    pool = new ProviderPool(3, DUMMY_WS);
+    const entry = pool.open(docName);
+    if (!entry) throw new Error('expected entry');
+    entry.observerCleanup = () => {};
+    const ytext = entry.provider.document.getText('source');
+    ytext.insert(0, BASE_MD);
+    pool.__test_seedBufferedUpdate(docName, delta, { fullState, durable: false });
+    entry.provider.emit('synced', { state: true });
+
+    await vi.waitFor(() => {
+      expect(replaySettled()).toBe(true);
+    });
+    expect(ytext.toString()).toContain('Ack line.');
+    expect(ytext.toString()).toContain('Fragment only line.');
+    expect(unsavedAfterRestart(docName)).toBeUndefined();
   });
 });
