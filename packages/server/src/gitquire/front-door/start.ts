@@ -388,6 +388,7 @@ export async function startFrontDoor(
     table,
     tokenSocket: () => tokenSocketPath,
     idleMs: settings.wikiIdleMs,
+    heapMb: settings.processHeapMb,
     log,
   });
   later.check = (wiki) => {

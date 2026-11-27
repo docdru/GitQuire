@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { loginSet, parseGitHubRepo } from '../github-auth-config.ts';
 import { hostNamesFromEnv, parseHostKind } from '../host/names.ts';
 import type { HostKind, HostRepo } from '../host/types.ts';
+import { ProcessHeapSettingError, processHeapMb } from '../process-pool/pool.ts';
 import { HostListError, type HostSettings, hostList } from './hosts.ts';
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -33,6 +34,7 @@ export interface FrontDoorSettings {
   mcpConnectors: boolean;
   accessCheckMs: number;
   wikiIdleMs: number;
+  processHeapMb: number | undefined;
   hosts: readonly HostSettings[];
 }
 
@@ -55,6 +57,15 @@ function numberSetting(
     throw new FrontDoorConfigError(`${name} must be ${range.what}, got "${raw}".`);
   }
   return value;
+}
+
+function heapSetting(env: Env): number | undefined {
+  try {
+    return processHeapMb(env);
+  } catch (err) {
+    if (err instanceof ProcessHeapSettingError) throw new FrontDoorConfigError(err.message);
+    throw err;
+  }
 }
 
 function nonEmpty(value: string | undefined): string | undefined {
@@ -307,6 +318,7 @@ export function resolveFrontDoorSettings(
     ),
     accessCheckMs: Math.round(accessCheckSeconds * 1000),
     wikiIdleMs: Math.round(wikiIdleMinutes * 60 * 1000),
+    processHeapMb: heapSetting(env),
     hosts,
   };
 }

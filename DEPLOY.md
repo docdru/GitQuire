@@ -872,6 +872,7 @@ further host's wiki, and would take such a wiki for one of the first host's.
 | `GITQUIRE_ACCESS_CHECK_SECONDS` | How long the front door keeps a person's access answer before asking the host again, 1 to 3600, default 300. Open live-editing connections are checked every minute, or at this interval when it is shorter, so a person who loses access is cut off within this time plus a minute. Shorter means more host calls. |
 | `GITQUIRE_WIKI_IDLE_MINUTES` | How long a wiki's process keeps running without use, default 30. It stops only once it is pushed and clean, and starts again on the next request. |
 | `GITQUIRE_BRANCH_WATCH_SECONDS` | How often the front door asks the host whether a sleeping wiki's branch moved, at least 10, default 600. After a failed check a wiki is asked again after twice the time, up to two hours. |
+| `GITQUIRE_PROCESS_HEAP_MB` | Heap limit in MB for each wiki and draft process (Node's `--max-old-space-size`), 64 to 65536, default 256; `0` for no limit. Without a limit each process sizes its heap from the whole machine's memory and keeps garbage it has not collected yet. |
 
 ## Build the image yourself
 
@@ -971,4 +972,4 @@ move as a rename (`.ok/config.yml` → `.gitquire/config.yml`, templates and sch
 | `GITQUIRE_BEHIND_FRONT_DOOR`, `GITQUIRE_DOOR_TOKEN_SOCKET` | [Behind GitQuire's front door](#behind-gitquires-front-door) |
 | `GITQUIRE_WIKIS`, `GITQUIRE_ALLOWED_OWNERS` | [Several wikis](#several-wikis) |
 | `GITQUIRE_HOSTS`, `GITQUIRE_HOST_<KEY>_…` | [Two Git hosts on one server](#two-git-hosts-on-one-server) |
-| `GITQUIRE_ACCESS_CHECK_SECONDS`, `GITQUIRE_WIKI_IDLE_MINUTES`, `GITQUIRE_BRANCH_WATCH_SECONDS` | [Several wikis](#timing-of-access-checks-and-stops) |
+| `GITQUIRE_ACCESS_CHECK_SECONDS`, `GITQUIRE_WIKI_IDLE_MINUTES`, `GITQUIRE_BRANCH_WATCH_SECONDS`, `GITQUIRE_PROCESS_HEAP_MB` | [Several wikis](#timing-of-access-checks-and-stops) |

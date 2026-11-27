@@ -220,6 +220,7 @@ export async function twoHostRig(
     mcpConnectors: options.connectors === true,
     accessCheckMs: 300_000,
     wikiIdleMs: 30 * 60_000,
+    processHeapMb: undefined,
     hosts: [],
   };
   const entries: DoorHostEntry[] = kinds.map((kind, index) => {

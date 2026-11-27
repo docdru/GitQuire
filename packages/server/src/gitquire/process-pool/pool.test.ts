@@ -4,7 +4,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { proxyRequest } from './forward.ts';
-import { createPrivateSocketDir, createProcessPool, type ProcessPool, socketGet } from './pool.ts';
+import {
+  createPrivateSocketDir,
+  createProcessPool,
+  DEFAULT_PROCESS_HEAP_MB,
+  type ProcessPool,
+  processHeapMb,
+  socketGet,
+} from './pool.ts';
 import { listenOnUnixSocket, unixSocketFromEnv } from './socket-listener.ts';
 
 const silentLog = { info: () => {}, warn: () => {}, error: () => {} };
@@ -19,6 +26,10 @@ const server = http.createServer((req, res) => {
     return;
   }
   res.writeHead(200, { 'content-type': 'application/json' });
+  if (req.url === '/heap') {
+    res.end(JSON.stringify({ limitMb: Math.round(require('node:v8').getHeapStatistics().heap_size_limit / 1048576) }));
+    return;
+  }
   res.end(JSON.stringify({ url: req.url, port: process.env.PORT ?? null, args: process.argv.slice(2) }));
 });
 server.listen(socket);
@@ -36,7 +47,7 @@ function tempDir(): string {
   return dir;
 }
 
-function pool(made: string[] = []): ProcessPool {
+function pool(made: string[] = [], heapMb?: number): ProcessPool {
   const scripts = tempDir();
   const script = join(scripts, 'child.cjs');
   writeFileSync(script, CHILD);
@@ -45,6 +56,7 @@ function pool(made: string[] = []): ProcessPool {
     cli: [process.execPath, script],
     log: silentLog,
     stopGraceMs: 5000,
+    heapMb,
     makeSocketDir: () => {
       const dir = createPrivateSocketDir();
       made.push(dir);
@@ -76,6 +88,29 @@ describe('process pool', () => {
     const answer = await socketGet(socket, '/hello');
     expect(JSON.parse(answer.body)).toEqual({ url: '/hello', port: null, args: ['start'] });
     expect(children.isRunning('alpha')).toBe(true);
+  });
+
+  it('starts a child with the heap limit it was given', async () => {
+    const children = pool([], 192);
+    const cwd = tempDir();
+    const socket = await children.ensure('small', async () => ({ cwd, env: { ...process.env } }));
+    const limit = JSON.parse((await socketGet(socket, '/heap')).body) as { limitMb: number };
+    expect(limit.limitMb).toBeGreaterThanOrEqual(192);
+    expect(limit.limitMb).toBeLessThan(260);
+    expect(JSON.parse((await socketGet(socket, '/x')).body).args).toEqual(['start']);
+  });
+
+  it('reads the heap setting: 256 MB by default, 0 for none, refuses nonsense', () => {
+    expect(processHeapMb({})).toBe(DEFAULT_PROCESS_HEAP_MB);
+    expect(DEFAULT_PROCESS_HEAP_MB).toBe(256);
+    expect(processHeapMb({ GITQUIRE_PROCESS_HEAP_MB: ' 384 ' })).toBe(384);
+    expect(processHeapMb({ GITQUIRE_PROCESS_HEAP_MB: '0' })).toBeUndefined();
+    expect(processHeapMb({ GITQUIRE_PROCESS_HEAP_MB: 'off' })).toBeUndefined();
+    for (const bad of ['12', '1.5', 'lots', '-1']) {
+      expect(() => processHeapMb({ GITQUIRE_PROCESS_HEAP_MB: bad })).toThrow(
+        /GITQUIRE_PROCESS_HEAP_MB/,
+      );
+    }
   });
 
   it('asks a child whether it is pushed and clean', async () => {

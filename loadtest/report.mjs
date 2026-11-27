@@ -188,7 +188,7 @@ lines.push('# GitQuire load test');
 lines.push('');
 if (anyMachine) {
   lines.push(
-    `Machine: GitQuire container limited to **${anyMachine.limits.cpus} CPUs / ${anyMachine.limits.memory.toUpperCase()}B** (${anyMachine.target}) on a host with ${anyMachine.hostCpus} CPUs (${(anyMachine.cpuModel ?? '').trim()}); commit \`${(anyMachine.commit ?? '').slice(0, 7)}\`. Hold per level: ${Object.values(current)[0]?.hold} s, repeats: ${Object.values(current)[0]?.repeats}.`,
+    `Machine: GitQuire container limited to **${anyMachine.limits.cpus} CPUs / ${anyMachine.limits.memory.toUpperCase()}B** (${anyMachine.target}) on a host with ${anyMachine.hostCpus} CPUs (${(anyMachine.cpuModel ?? '').trim()}); commit \`${(anyMachine.commit ?? '').slice(0, 7)}\`. Hold per level: ${Object.values(current)[0]?.hold} s, repeats: ${Object.values(current)[0]?.repeats}.${Object.keys(anyMachine.serverEnv ?? {}).length > 0 ? ` Extra server settings: \`${JSON.stringify(anyMachine.serverEnv)}\`.` : ''}`,
   );
   lines.push('');
 }

@@ -9,6 +9,10 @@ import { internalRequestHeaders } from '../internal-request.ts';
 type Env = Record<string, string | undefined>;
 
 export const SOCKET_ENV = 'GITQUIRE_SOCKET';
+export const PROCESS_HEAP_ENV = 'GITQUIRE_PROCESS_HEAP_MB';
+export const DEFAULT_PROCESS_HEAP_MB = 256;
+const MIN_PROCESS_HEAP_MB = 64;
+const MAX_PROCESS_HEAP_MB = 65_536;
 export const STOP_STATE_PATH = '/api/gitquire/stop-state';
 const READY_TIMEOUT_MS = 120_000;
 const READY_POLL_MS = 300;
@@ -45,6 +49,7 @@ export interface ProcessPoolDeps {
   get?: SocketGet;
   idleMs?: number;
   stopGraceMs?: number;
+  heapMb?: number;
   now?: () => number;
 }
 
@@ -109,6 +114,30 @@ export function parseStopState(answer: SocketAnswer): StopState | undefined {
   } catch {
     return undefined;
   }
+}
+
+export class ProcessHeapSettingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ProcessHeapSettingError';
+  }
+}
+
+export function processHeapMb(env: Readonly<Env>): number | undefined {
+  const raw = env[PROCESS_HEAP_ENV]?.trim();
+  if (raw === undefined || raw === '') return DEFAULT_PROCESS_HEAP_MB;
+  if (['0', 'off'].includes(raw.toLowerCase())) return undefined;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < MIN_PROCESS_HEAP_MB || value > MAX_PROCESS_HEAP_MB) {
+    throw new ProcessHeapSettingError(
+      `${PROCESS_HEAP_ENV} must be a whole number of megabytes between ${MIN_PROCESS_HEAP_MB} and ${MAX_PROCESS_HEAP_MB}, or 0 for no limit, got "${raw}".`,
+    );
+  }
+  return value;
+}
+
+export function heapArgs(heapMb: number | undefined): string[] {
+  return heapMb === undefined ? [] : [`--max-old-space-size=${heapMb}`];
 }
 
 function delay(ms: number): Promise<void> {
@@ -200,7 +229,11 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
     rmSync(socket, { force: true });
     const childEnv: Env = { ...env, [SOCKET_ENV]: socket };
     delete childEnv.PORT;
-    const child = spawn(command, [...args, 'start'], { cwd, env: childEnv, stdio: 'inherit' });
+    const child = spawn(command, [...heapArgs(deps.heapMb), ...args, 'start'], {
+      cwd,
+      env: childEnv,
+      stdio: 'inherit',
+    });
     const exited = new Promise<void>((resolve) => {
       child.once('exit', () => resolve());
       child.once('error', () => resolve());

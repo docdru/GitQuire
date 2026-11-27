@@ -61,6 +61,7 @@ const PASSED_SETTINGS = new Set([
   'GITQUIRE_SEARCH_MAX_ENTRIES',
   'GITQUIRE_SHOWALL_MAX_ENTRIES',
   'GITQUIRE_CHANNEL',
+  'GITQUIRE_PROCESS_HEAP_MB',
 ]);
 
 const PASSED_SYSTEM = new Set([
@@ -184,6 +185,7 @@ export interface WikiProcessesDeps {
   bootstrap?: (dir: string, env: Record<string, string>) => Promise<void>;
   socketDir?: string;
   idleMs?: number;
+  heapMb?: number;
   now?: () => number;
 }
 
@@ -248,6 +250,7 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
     get,
     idleMs: Number.POSITIVE_INFINITY,
     stopGraceMs: WIKI_STOP_GRACE_MS,
+    heapMb: deps.heapMb,
     now,
   });
 

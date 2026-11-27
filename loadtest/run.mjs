@@ -35,6 +35,7 @@ function machine() {
   return {
     target: settings.target,
     limits: { cpus: settings.cpus, memory: settings.memory },
+    serverEnv: settings.serverEnv,
     hostCpus: read('nproc', []),
     cpuModel: read('sh', ['-c', "grep -m1 'model name' /proc/cpuinfo | cut -d: -f2"]),
     hostMemory: read('sh', ['-c', "grep MemTotal /proc/meminfo | tr -s ' ' | cut -d' ' -f2"]),
