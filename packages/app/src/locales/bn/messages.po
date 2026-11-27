@@ -6672,6 +6672,9 @@ msgstr "কিছু সম্পাদনা এখনও সার্ভার
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "কিছু ফাইল তালিকায় নেই: ওয়ার্কিং ট্রিতে অনেক বেশি পরিবর্তন আছে।"
 
+msgid "Some of your recent typing could not be saved"
+msgstr ""
+
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "থিম ফোল্ডারটি স্ক্যানের সীমা ছাড়িয়ে যাওয়ায় কিছু সংরক্ষিত থিম দেখানো হচ্ছে না।"
 
@@ -7250,6 +7253,9 @@ msgstr "সার্ভার এই প্রকল্পের সিঙ্ক
 
 msgid "the server responded but server.lock has no port yet"
 msgstr "সার্ভার সাড়া দিয়েছে কিন্তু server.lock-এ এখনো কোনো পোর্ট নেই"
+
+msgid "The server restarted while you were typing, and your latest changes could not be merged back into the page. Your version of the page is below: copy what is missing and paste it back."
+msgstr ""
 
 msgid "The server stopped."
 msgstr "সার্ভার বন্ধ হয়ে গেছে।"
@@ -8310,6 +8316,9 @@ msgid "Your user settings could not be read"
 msgstr "আপনার ব্যবহারকারী সেটিং পড়া যায়নি"
 
 msgid "Your version"
+msgstr ""
+
+msgid "Your version of the page"
 msgstr ""
 
 msgid "Your wikis"

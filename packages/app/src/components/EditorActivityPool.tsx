@@ -60,6 +60,7 @@ import {
   RESTORE_BACKSTOP_MS,
   shouldRecordScrollPosition,
 } from './scroll-restore';
+import { UnsavedAfterRestartNotice } from './UnsavedAfterRestartNotice';
 import { Button } from './ui/button';
 
 const LazyDiffViewBoundary = lazy(async () => {
@@ -858,6 +859,7 @@ function ActivityEntry({
           <ServerRestartRecoveryPanel view={recoveryView} />
         ) : (
           <>
+            <UnsavedAfterRestartNotice docName={entry.docName} />
             <DocumentErrorBoundary
               activeDocName={entry.docName}
               previousDocName={previousDocName}

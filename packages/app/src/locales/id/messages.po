@@ -6672,6 +6672,9 @@ msgstr "Beberapa suntingan belum sampai ke server, jadi tab tidak dimuat ulang. 
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "Sebagian file tidak ditampilkan: working tree memiliki terlalu banyak perubahan."
 
+msgid "Some of your recent typing could not be saved"
+msgstr ""
+
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Beberapa tema tersimpan tidak ditampilkan karena folder tema melewati batas pemindaian."
 
@@ -7250,6 +7253,9 @@ msgstr "Server tidak dapat membaca status sinkronisasi proyek ini, jadi opsi sin
 
 msgid "the server responded but server.lock has no port yet"
 msgstr "server merespons tetapi server.lock belum memiliki port"
+
+msgid "The server restarted while you were typing, and your latest changes could not be merged back into the page. Your version of the page is below: copy what is missing and paste it back."
+msgstr ""
 
 msgid "The server stopped."
 msgstr "Server berhenti."
@@ -8310,6 +8316,9 @@ msgid "Your user settings could not be read"
 msgstr "Pengaturan pengguna Anda tidak dapat dibaca"
 
 msgid "Your version"
+msgstr ""
+
+msgid "Your version of the page"
 msgstr ""
 
 msgid "Your wikis"

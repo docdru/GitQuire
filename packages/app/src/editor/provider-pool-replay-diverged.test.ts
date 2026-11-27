@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as Y from 'yjs';
 import { sharedExtensions } from './extensions/shared.ts';
 import { ProviderPool } from './provider-pool';
+import { resetUnsavedAfterRestartForTests, unsavedAfterRestart } from './unsaved-after-restart';
 
 const DUMMY_WS = 'ws://localhost:1/collab';
 const schema = getSchema(sharedExtensions);
@@ -70,6 +71,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  resetUnsavedAfterRestartForTests();
   pool?.dispose();
   vi.restoreAllMocks();
 });
@@ -136,6 +138,24 @@ describe('content-level replay of text the server had taken over but not saved',
     expect(ytext.toString()).toContain(MOVED_MARKER);
     expect(emittedEvents(warn)).toContain('ok-buffer-replay-diverged');
     expect(emittedEvents(warn)).not.toContain('ok-buffer-replay-content-applied');
+  });
+
+  it('keeps the refused text for the page notice instead of dropping it silently', async () => {
+    const { docName } = armReplay(MOVED_MD, BUFFERED_MD);
+
+    await vi.waitFor(() => {
+      expect(replaySettled()).toBe(true);
+    });
+    expect(unsavedAfterRestart(docName)).toContain(BUFFERED_MARKER);
+  });
+
+  it('keeps nothing for the notice when the replay is applied', async () => {
+    const { docName } = armReplay(BASE_MD, BUFFERED_MD);
+
+    await vi.waitFor(() => {
+      expect(emittedEvents(warn)).toContain('ok-buffer-replay-content-applied');
+    });
+    expect(unsavedAfterRestart(docName)).toBeUndefined();
   });
 });
 

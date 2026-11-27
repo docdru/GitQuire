@@ -6676,6 +6676,9 @@ msgstr "部分编辑尚未到达服务器，因此没有重新加载标签页。
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "部分文件未列出：工作区的更改过多。"
 
+msgid "Some of your recent typing could not be saved"
+msgstr ""
+
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "因为主题文件夹超出扫描限制，部分已保存的主题未显示。"
 
@@ -7254,6 +7257,9 @@ msgstr "服务器无法读取此项目的同步状态，因此已隐藏同步选
 
 msgid "the server responded but server.lock has no port yet"
 msgstr "服务器有响应，但 server.lock 中还没有端口"
+
+msgid "The server restarted while you were typing, and your latest changes could not be merged back into the page. Your version of the page is below: copy what is missing and paste it back."
+msgstr ""
 
 msgid "The server stopped."
 msgstr "服务器已停止。"
@@ -8314,6 +8320,9 @@ msgid "Your user settings could not be read"
 msgstr "无法读取你的用户设置"
 
 msgid "Your version"
+msgstr ""
+
+msgid "Your version of the page"
 msgstr ""
 
 msgid "Your wikis"
