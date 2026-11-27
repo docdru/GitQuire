@@ -11,6 +11,7 @@ import {
 } from '../process-pool/memory.ts';
 import { createDraftInstances } from './instances.ts';
 import type { DraftRecord } from './model.ts';
+import { draftIdle } from './setup.ts';
 
 const silentLog = { info: () => {}, warn: () => {}, error: () => {} };
 
@@ -182,5 +183,20 @@ describe('draft editors', () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
     spawned[0]?.child.emit('exit', 1, null);
     await expect(starting).rejects.toThrow('stopped while starting');
+  });
+});
+
+describe('draft idle setting', () => {
+  it('is 30 minutes unless set, and a draft nobody has open sleeps after at most 10', () => {
+    expect(draftIdle({}, silentLog)).toEqual({ idleMs: 30 * 60_000, closedIdleMs: 10 * 60_000 });
+    expect(draftIdle({ GITQUIRE_DRAFT_IDLE_MINUTES: '60' }, silentLog)).toEqual({
+      idleMs: 60 * 60_000,
+      closedIdleMs: 10 * 60_000,
+    });
+    expect(draftIdle({ GITQUIRE_DRAFT_IDLE_MINUTES: '5' }, silentLog)).toEqual({
+      idleMs: 5 * 60_000,
+      closedIdleMs: 5 * 60_000,
+    });
+    expect(draftIdle({ GITQUIRE_DRAFT_IDLE_MINUTES: 'soon' }, silentLog).idleMs).toBe(30 * 60_000);
   });
 });

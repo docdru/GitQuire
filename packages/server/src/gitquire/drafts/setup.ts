@@ -95,6 +95,22 @@ function rereadLiveSoon(env: Env, live: LiveServerHandle | undefined): void {
   }).catch(() => undefined);
 }
 
+export const DRAFT_IDLE_ENV = 'GITQUIRE_DRAFT_IDLE_MINUTES';
+const DEFAULT_DRAFT_IDLE_MINUTES = 30;
+const DRAFT_CLOSED_IDLE_MINUTES = 10;
+
+export function draftIdle(env: Env, log: GateLogger): { idleMs: number; closedIdleMs: number } {
+  const raw = env[DRAFT_IDLE_ENV]?.trim();
+  let minutes = DEFAULT_DRAFT_IDLE_MINUTES;
+  if (raw !== undefined && raw !== '') {
+    const value = Number(raw);
+    if (Number.isFinite(value) && value >= 0.01 && value <= 1440) minutes = value;
+    else log.warn({ value: raw }, `[gitquire-drafts] ${DRAFT_IDLE_ENV} refused, using 30`);
+  }
+  const idleMs = Math.round(minutes * 60_000);
+  return { idleMs, closedIdleMs: Math.min(idleMs, DRAFT_CLOSED_IDLE_MINUTES * 60_000) };
+}
+
 export function draftHeapMb(env: Env, log: GateLogger): number | undefined {
   try {
     return processHeapMb(env);
@@ -224,6 +240,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     log: deps.log,
     behindFrontDoor: deps.behindFrontDoor,
     heapMb: draftHeapMb(deps.env, deps.log),
+    ...draftIdle(deps.env, deps.log),
     prepare,
     stillOpen: (slug) => {
       const draft = store.get(slug);
