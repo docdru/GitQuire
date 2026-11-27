@@ -141,7 +141,7 @@ Two sides have to be told apart: the **operator's** environment, read by the fro
 
 `lib/gitquire/wiki-prefix.ts` gives no prefix outside `/w/<key>/<owner>/<repo>/`; then `GitQuireWikiMenu` is not shown (plain `WebProjectName`), no `/api/front-door/…` call is made, storage keys have no namespace. Behind the front door a page always has the prefix, so these branches become dead once the single wiki is gone. They are browser code and harmless; removing them is listed for B4 if it stays small, otherwise left.
 
-### Does anything break the design?
+### Nothing breaks the design
 
 No. Two points shape how it is built:
 
