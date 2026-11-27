@@ -386,5 +386,17 @@ export function createForgejoDoorHost(
     health,
     tokenFor,
     selfCheck,
+    accountExists: async (name) => {
+      const bot = deps.botToken?.();
+      for (const path of [
+        `/users/${encodeURIComponent(name)}`,
+        `/orgs/${encodeURIComponent(name)}`,
+      ]) {
+        const answer = await call(path, bot);
+        if (answer.status === 200) return 'found';
+        if (answer.status !== 404) return 'unknown';
+      }
+      return 'missing';
+    },
   };
 }

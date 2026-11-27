@@ -1,30 +1,14 @@
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import {
-  FrontDoorConfigError,
-  getLogger,
-  startFrontDoor,
-  wikisModeFromEnv,
-} from '@gitquire/server';
+import { FrontDoorConfigError, getLogger, startFrontDoor } from '@gitquire/server';
 import { Command } from 'commander';
 import { error as errorColor } from '../ui/colors.ts';
 
 export function frontDoorCommand(): Command {
   return new Command('front-door')
-    .description('Run the front door for several wikis (GITQUIRE_WIKIS=on, GitQuire container)')
+    .description('Run the front door for the wikis (GitQuire container)')
     .argument('[dir]', 'Data directory', '.')
     .action(async (dir: string) => {
-      let on: boolean;
-      try {
-        on = wikisModeFromEnv(process.env);
-      } catch (err) {
-        console.error(errorColor(err instanceof Error ? err.message : String(err)));
-        process.exit(78);
-      }
-      if (!on) {
-        console.error(errorColor('The front door runs only with GITQUIRE_WIKIS=on.'));
-        process.exit(78);
-      }
       const target = resolve(dir);
       mkdirSync(target, { recursive: true });
       try {

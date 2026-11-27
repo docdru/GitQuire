@@ -218,7 +218,7 @@ export {
   emitPreflightFailureSpan,
   GIT_PREFLIGHT_FAIL_SPAN_NAME,
 } from './git-preflight-telemetry.ts';
-export { FrontDoorConfigError, wikisModeFromEnv } from './gitquire/front-door/settings.ts';
+export { FrontDoorConfigError } from './gitquire/front-door/settings.ts';
 export { startFrontDoor } from './gitquire/front-door/start.ts';
 export {
   GitHubAppConfigError,

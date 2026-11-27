@@ -20,7 +20,12 @@ import type { AddableRepo, BotAccess, DoorHost, HostRepo, RepoAccess } from '../
 import { createPersonTickets, type PersonTickets } from '../people/ticket.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
-import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
+import {
+  entryForTest,
+  type HostBaseForTest,
+  hostSettingsForTest,
+  hostsForTest,
+} from './door-hosts.test-helper.ts';
 import { createMentionCounts } from './mention-counts.ts';
 import type { ForgejoTokenChecks, FrontDoorDeps } from './server.ts';
 import { createFrontDoor, type FrontDoor } from './server.ts';
@@ -163,24 +168,25 @@ async function rig(
   table.add(repoB, 'alice', time);
   const owners: AllowedOwners = {
     names: new Set(['team']),
-    pinned: table.ownerIds,
-    pin: table.pinOwner,
+    ...table.pinsOn('github'),
   };
-  const settings: FrontDoorSettings = {
+  const hostBase: HostBaseForTest = {
     host: options.host ?? 'github',
-    dataDir: data,
-    externalUrl: new URL('http://127.0.0.1'),
     clientId: 'id',
     clientSecret: 'secret',
-    sessionSecret: '0123456789abcdef0123456789abcdef',
-    sessionMaxAgeSeconds: 3600,
     webUrl: 'https://host.example',
     apiUrl: 'https://host.example/api',
-    defaultWiki: { owner: 'team', name: 'a' },
     allowedOwners: owners.names,
     serverAdmins: new Set(['alice']),
     githubApp: undefined,
     forgejoBotToken: undefined,
+  };
+  const settings: FrontDoorSettings = {
+    dataDir: data,
+    externalUrl: new URL('http://127.0.0.1'),
+    sessionSecret: '0123456789abcdef0123456789abcdef',
+    sessionMaxAgeSeconds: 3600,
+    hosts: [],
   };
   const now = () => time;
   const access = createWikiAccess({
@@ -219,7 +225,7 @@ async function rig(
       : undefined;
   const hosts = hostsForTest(
     entryForTest({
-      settings: hostSettingsForTest(settings),
+      settings: hostSettingsForTest(hostBase),
       host,
       access,
       owners,
@@ -669,7 +675,7 @@ describe('front door', () => {
       wiki: { key: 'github-3', address: '/w/github/team/c/', admin: true },
     });
     expect(r.table.byKey('github-3')).toMatchObject({ state: 'on', addedBy: 'alice' });
-    expect(r.table.ownerIds()).toEqual({ team: 7 });
+    expect(r.table.pinsOn('github').pinned()).toEqual({ team: 7 });
     const crossSite = await httpFetch(`${r.base}/api/front-door/wikis`, {
       method: 'POST',
       headers: {

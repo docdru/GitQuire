@@ -45,7 +45,7 @@ function record(): WikiRecord {
 }
 
 describe('wiki process environment (R12)', () => {
-  it('passes only the settings a wiki needs, with its own repo, address, secret and token socket', () => {
+  it('passes only the settings a wiki needs, with its own repo, address, secret and token socket, never a host setting of the operator (O3)', () => {
     const env = wikiEnv(
       {
         PATH: '/bin',
@@ -78,6 +78,10 @@ describe('wiki process environment (R12)', () => {
         GITQUIRE_SMTP_URL: 'smtps://user:password@mail.example.org',
         GITQUIRE_MAIL_FROM: 'wiki@example.org',
         GITQUIRE_MAIL_DOMAINS: 'example.org',
+        GITQUIRE_SYNC_MODE: 'off',
+        GITQUIRE_AUTO_SYNC_MODE: 'off',
+        GITQUIRE_COMMIT_EMAIL_FORMAT: '{login}@x.org',
+        GITQUIRE_GITHUB_API_URL: 'https://elsewhere.example',
       },
       record(),
       {
@@ -92,10 +96,7 @@ describe('wiki process environment (R12)', () => {
       NODE_EXTRA_CA_CERTS: '/ca.pem',
       LC_ALL: 'C.UTF-8',
       HTTPS_PROXY: 'http://proxy:3128',
-      GITQUIRE_HOST: 'forgejo',
-      GITQUIRE_HOST_URL: 'https://code.example.org',
       GITQUIRE_AI_CHAT: 'off',
-      GITQUIRE_ADMINS: 'alice',
       GITQUIRE_BEHIND_FRONT_DOOR: 'on',
       GITQUIRE_REPO: 'team/wiki',
       GITQUIRE_WIKI_NAME: 'github/team/wiki',
@@ -134,8 +135,7 @@ function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHea
   const wiki = table.add(repo, 'alice', 0);
   const owners: AllowedOwners = {
     names: new Set(['team']),
-    pinned: table.ownerIds,
-    pin: table.pinOwner,
+    ...table.pinsOn('github'),
   };
   let time = 1_000_000;
   const answers = {
@@ -261,7 +261,7 @@ describe('wiki processes', () => {
     expect(await processes.check(wiki)).toBe('unreachable');
     await expect(processes.ensure(wiki)).rejects.toThrow(/never confirmed/);
     expect(processes.isRunning('github-5')).toBe(false);
-    table.pinOwner('team', 7);
+    table.pinsOn('github').pin('team', 7);
     await expect(processes.ensure(wiki)).resolves.toContain('github-5.sock');
   });
 

@@ -201,20 +201,10 @@ export async function twoHostRig(
     for (const repo of state[kind].repos) table.add(repo, 'setup', time, kind);
   }
   const settings: FrontDoorSettings = {
-    host: kinds[0] as HostKeyName,
     dataDir: data,
     externalUrl: new URL('http://127.0.0.1'),
-    clientId: 'gh-id',
-    clientSecret: 'gh-secret',
     sessionSecret: '0123456789abcdef0123456789abcdef',
     sessionMaxAgeSeconds: options.sessionSeconds ?? 3600,
-    webUrl: 'https://github.example',
-    apiUrl: 'https://api.github.example',
-    defaultWiki: undefined,
-    allowedOwners: new Set(['team']),
-    serverAdmins: new Set(['alice']),
-    githubApp: undefined,
-    forgejoBotToken: undefined,
     agentTokenDays: 30,
     mcpConnectors: options.connectors === true,
     accessCheckMs: 300_000,
@@ -240,14 +230,7 @@ export async function twoHostRig(
       commitEmailFormat: undefined,
       names,
     };
-    const owners: AllowedOwners =
-      index === 0
-        ? { names: hostSettings.allowedOwners, pinned: table.ownerIds, pin: table.pinOwner }
-        : {
-            names: hostSettings.allowedOwners,
-            pinned: () => table.hostOwnerIds(kind),
-            pin: (owner, id) => table.pinHostOwner(kind, owner, id),
-          };
+    const owners: AllowedOwners = { names: hostSettings.allowedOwners, ...table.pinsOn(kind) };
     const host = fakeHost(kind, state[kind]);
     return {
       key: kind,

@@ -327,6 +327,19 @@ describe('GitHub door host for several repositories', () => {
     );
   });
 
+  it('asks without a token whether a user or organisation exists, for the start warning', async () => {
+    const calls: string[] = [];
+    const host = door(
+      (_method, path) =>
+        path === '/users/alice' ? { status: 200, body: { login: 'alice' } } : { status: 404 },
+      calls,
+    );
+    expect(await host.accountExists?.('alice')).toBe('found');
+    expect(await host.accountExists?.('docdur')).toBe('missing');
+    expect(calls).toEqual(['GET /users/alice ', 'GET /users/docdur ']);
+    expect(await door(() => ({ status: 500 })).accountExists?.('alice')).toBe('unknown');
+  });
+
   it('answers gone, refused or unreachable for a repo number', async () => {
     const none = door((method, path) => {
       if (path.startsWith('/app/installations?')) return { status: 200, body: [{ id: 11 }] };

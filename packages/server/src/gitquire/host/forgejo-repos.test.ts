@@ -54,6 +54,19 @@ const tokens: ForgejoRepoTokens = {
 };
 
 describe('Forgejo door host for several repositories', () => {
+  it('asks with the bot token whether a user or organisation exists', async () => {
+    const calls: string[] = [];
+    const host = door((path) => {
+      if (path === '/users/alice' || path === '/orgs/team') return { status: 200, body: {} };
+      return { status: 404, body: {} };
+    }, calls);
+    expect(await host.accountExists?.('alice')).toBe('found');
+    expect(await host.accountExists?.('team')).toBe('found');
+    expect(await host.accountExists?.('docdur')).toBe('missing');
+    expect(calls).toContain('/users/alice bot');
+    expect(await door(() => ({ status: 401, body: {} })).accountExists?.('x')).toBe('unknown');
+  });
+
   it('lists the person repos where the person is admin and the bot reaches the repo', async () => {
     const calls: string[] = [];
     const host = door((path, token) => {

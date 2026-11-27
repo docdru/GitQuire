@@ -117,10 +117,10 @@ export function createGitHubDoorHost(
     return { status: response.status, body };
   }
 
-  function apiHeaders(token: string): Record<string, string> {
+  function apiHeaders(token: string | undefined): Record<string, string> {
     return {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
+      ...(token === undefined ? {} : { Authorization: `Bearer ${token}` }),
       'User-Agent': 'GitQuire',
       'X-GitHub-Api-Version': GITHUB_API_VERSION,
     };
@@ -128,7 +128,7 @@ export function createGitHubDoorHost(
 
   async function call(
     path: string,
-    token: string,
+    token: string | undefined,
     init: { method?: string; body?: unknown } = {},
   ): Promise<Answer> {
     let response: Response;
@@ -484,5 +484,10 @@ export function createGitHubDoorHost(
     },
     contentsOf: (repo) => tokens.get(repoKey(repo))?.contents,
     selfCheck: async () => ({ ok: true }),
+    accountExists: async (name) => {
+      const answer = await call(`/users/${encodeURIComponent(name)}`, undefined);
+      if (answer.status === 200) return 'found';
+      return answer.status === 404 ? 'missing' : 'unknown';
+    },
   };
 }

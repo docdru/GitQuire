@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -127,11 +127,17 @@ describe('a wiki process of a further host', () => {
     expect(names.noreplyEmail({ id: 1, login: 'carol' })).toBe('carol@lab.example.org');
   });
 
-  it('leaves a wiki of the first host exactly as before (S8)', () => {
-    const plain = wikiEnv(door, wiki({}), options);
-    const withHost = wikiEnv(door, wiki({}), { ...options, host: hostSettingsForTest(base) });
-    expect(withHost).toEqual(plain);
-    expect(plain.GITQUIRE_HOST_KEY).toBeUndefined();
+  it('describes the host of every wiki the same way, the GitHub host included', () => {
+    const env = wikiEnv(door, wiki({}), { ...options, host: hostSettingsForTest(base) });
+    expect(env).toMatchObject({
+      GITQUIRE_HOST: 'github',
+      GITQUIRE_GITHUB_WEB_URL: 'https://github.com',
+      GITQUIRE_GITHUB_API_URL: 'https://api.github.com',
+      GITQUIRE_HOST_KEY: 'github',
+      GITQUIRE_HOST_LABEL: 'GitHub',
+      GITQUIRE_ADMINS: 'alice',
+    });
+    expect(hostNamesFromEnv(env).idPrefix).toBe('github-');
   });
 
   it('reads the key only behind the front door', () => {
@@ -143,25 +149,55 @@ describe('a wiki process of a further host', () => {
 });
 
 describe('the wiki table with several hosts', () => {
-  it('keys records by the host key, keeps pins per host, and writes nothing new for one host', () => {
+  it('keys records by the host key and keeps pins per host', () => {
     const dir = mkdtempSync(join(tmpdir(), 'gq-table-'));
     dirs.push(dir);
     const file = join(dir, 'wikis.json');
     const table = openWikiTable(file);
     const repo = { host: 'forgejo' as const, id: 5, owner: 'team', ownerId: 7, name: 'wiki' };
-    const first = table.add(repo, 'a', 0);
-    table.pinOwner('team', 7);
-    const firstFile = JSON.parse(readFileSync(file, 'utf8'));
+    const first = table.add(repo, 'a', 0, 'forgejo');
+    table.pinsOn('forgejo').pin('team', 7);
     expect(first.key).toBe('forgejo-5');
     expect(first.hostKey).toBeUndefined();
-    expect(firstFile.hostOwners).toBeUndefined();
     const other = table.add(repo, 'a', 0, 'lab');
     expect(other).toMatchObject({ key: 'lab-5', hostKey: 'lab' });
     expect(table.byId('forgejo', 5)?.key).toBe('forgejo-5');
     expect(table.byId('lab', 5)?.key).toBe('lab-5');
-    table.pinHostOwner('lab', 'Team', 70);
-    expect(table.ownerIds()).toEqual({ team: 7 });
-    expect(table.hostOwnerIds('lab')).toEqual({ team: 70 });
-    expect(openWikiTable(file).hostOwnerIds('lab')).toEqual({ team: 70 });
+    table.pinsOn('lab').pin('Team', 70);
+    expect(table.pinsOn('forgejo').pinned()).toEqual({ team: 7 });
+    expect(table.pinsOn('lab').pinned()).toEqual({ team: 70 });
+    expect(openWikiTable(file).pinsOn('lab').pinned()).toEqual({ team: 70 });
+  });
+
+  it("reads the first host's pins of a table written by main without knowing which host was first (O1)", () => {
+    const dir = mkdtempSync(join(tmpdir(), 'gq-table-'));
+    dirs.push(dir);
+    const file = join(dir, 'wikis.json');
+    const record = (host: 'github' | 'forgejo', id: number, ownerId: number) => ({
+      host,
+      id,
+      owner: 'team',
+      ownerId,
+      name: 'wiki',
+      key: `${host}-${id}`,
+      state: 'on',
+      formerNames: [],
+      addedBy: 'alice',
+      addedAt: '2026-11-25T00:00:00.000Z',
+    });
+    const before = `${JSON.stringify({
+      version: 1,
+      wikis: [record('forgejo', 5, 7), record('github', 9, 70)],
+      owners: { team: 7 },
+      hostOwners: { github: { team: 70 } },
+    })}\n`;
+    writeFileSync(file, before);
+    const table = openWikiTable(file);
+    expect(table.pinsOn('forgejo').pinned()).toEqual({ team: 7 });
+    expect(table.pinsOn('github').pinned()).toEqual({ team: 70 });
+    expect(table.byId('forgejo', 5)?.key).toBe('forgejo-5');
+    expect(table.byId('github', 9)?.key).toBe('github-9');
+    table.pinsOn('forgejo').pin('team', 7);
+    expect(readFileSync(file, 'utf8')).toBe(before);
   });
 });

@@ -376,18 +376,19 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     env = {
       PATH: process.env.PATH ?? '',
       HOME: process.env.HOME ?? '',
-      GITQUIRE_WIKIS: 'on',
-      GITHUB_APP_CLIENT_ID: 'client',
-      GITHUB_APP_CLIENT_SECRET: 'client-secret',
-      GITHUB_APP_ID: '5',
-      GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs1', format: 'pem' }).toString(),
-      GITQUIRE_GITHUB_WEB_URL: github.url,
-      GITQUIRE_GITHUB_API_URL: github.url,
+      GITQUIRE_HOSTS: 'github',
+      GITQUIRE_HOST_GITHUB_CLIENT_ID: 'client',
+      GITQUIRE_HOST_GITHUB_CLIENT_SECRET: 'client-secret',
+      GITQUIRE_HOST_GITHUB_APP_ID: '5',
+      GITQUIRE_HOST_GITHUB_APP_PRIVATE_KEY: privateKey
+        .export({ type: 'pkcs1', format: 'pem' })
+        .toString(),
+      GITQUIRE_HOST_GITHUB_URL: github.url,
+      GITQUIRE_HOST_GITHUB_API_URL: github.url,
       GITQUIRE_SESSION_SECRET: SECRET,
       GITQUIRE_EXTERNAL_URL: base,
-      GITQUIRE_ALLOWED_OWNERS: 'team',
-      GITQUIRE_REPO: 'team/a',
-      GITQUIRE_ADMINS: 'alice',
+      GITQUIRE_HOST_GITHUB_ALLOWED_OWNERS: 'team',
+      GITQUIRE_HOST_GITHUB_ADMINS: 'alice',
       GITQUIRE_ACCESS_CHECK_SECONDS: '1',
       GITQUIRE_WIKI_IDLE_MINUTES: '0.03',
       PORT: String(port),
@@ -617,7 +618,7 @@ describe('two wikis behind the front door with the GitHub adapter and a fake Git
     expect(JSON.parse(refused.body)).toMatchObject({ error: 'owner-not-allowed' });
     expect((await get('alice', '/w/other/d/page')).status).toBe(404);
     await stopDoor();
-    await startDoor({ GITQUIRE_ALLOWED_OWNERS: 'other' });
+    await startDoor({ GITQUIRE_HOST_GITHUB_ALLOWED_OWNERS: 'other' });
     const table = await until(
       async () => openWikiTable(wikiTableFile(data)).list(),
       (wikis) => wikis.every((w) => w.state === 'disconnected'),

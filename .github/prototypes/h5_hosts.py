@@ -69,12 +69,11 @@ def start():
     env = {
         "NODE_EXTRA_CA_CERTS": "/ca/cert.pem", "GIT_SSL_CAINFO": "/ca/cert.pem",
         "PORT": str(PORT), "GITQUIRE_EXTERNAL_URL": HOSTS,
-        "GITQUIRE_WIKIS": "on", "GITQUIRE_ALLOWED_OWNERS": "team", "GITQUIRE_ADMINS": "alice",
-        "GITQUIRE_HOST": "forgejo", "GITQUIRE_HOST_URL": os.environ["FORGEJO_URL"],
-        "GITQUIRE_HOST_CLIENT_ID": os.environ["HOSTS_CLIENT_ID"],
-        "GITQUIRE_HOST_CLIENT_SECRET": os.environ["HOSTS_CLIENT_SECRET"],
-        "GITQUIRE_HOST_TOKEN": os.environ["BOT_TOKEN"],
-        "GITQUIRE_HOSTS": "github",
+        "GITQUIRE_WIKIS": "on", "GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS": "team", "GITQUIRE_HOST_FORGEJO_ADMINS": "alice",
+        "GITQUIRE_HOSTS": "forgejo,github", "GITQUIRE_HOST_FORGEJO_URL": os.environ["FORGEJO_URL"],
+        "GITQUIRE_HOST_FORGEJO_CLIENT_ID": os.environ["HOSTS_CLIENT_ID"],
+        "GITQUIRE_HOST_FORGEJO_CLIENT_SECRET": os.environ["HOSTS_CLIENT_SECRET"],
+        "GITQUIRE_HOST_FORGEJO_TOKEN": os.environ["BOT_TOKEN"],
         "GITQUIRE_HOST_GITHUB_URL": FAKE,
         "GITQUIRE_HOST_GITHUB_API_URL": FAKE + "/api/v3",
         "GITQUIRE_HOST_GITHUB_CLIENT_ID": "fake-client",
@@ -298,7 +297,7 @@ def test():
     leaks = h.docker("exec", NAME, "sh", "-c",
                      "for p in /proc/[0-9]*; do e=$(tr '\\0' '\\n' < $p/environ 2>/dev/null) || continue; "
                      "echo \"$e\" | grep -q '^GITQUIRE_BEHIND_FRONT_DOOR=on' || continue; "
-                     "echo \"$e\" | grep -Eq '^(GITQUIRE_HOST_TOKEN|GITQUIRE_HOST_CLIENT_SECRET|GITQUIRE_SESSION_SECRET|GITQUIRE_HOST_GITHUB_[A-Z_]*)=' && echo leak; "
+                     "echo \"$e\" | grep -Eq '^(GITQUIRE_HOST_TOKEN|GITQUIRE_HOST_CLIENT_SECRET|GITQUIRE_HOST_FORGEJO_[A-Z_]*|GITQUIRE_SESSION_SECRET|GITQUIRE_HOST_GITHUB_[A-Z_]*)=' && echo leak; "
                      "echo editor; done", check_ok=False).stdout.split()
     check("Hosts R12", leaks.count("editor") >= 2 and "leak" not in leaks,
           f"editor processes: {leaks.count('editor')}, holding a host secret: {leaks.count('leak')}")

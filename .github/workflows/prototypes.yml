@@ -329,10 +329,10 @@ jobs:
           set +e
           out=$(timeout 120 docker run --rm --network host -v gq-h5:/data -v /tmp/ca:/ca:ro \
             -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e PORT=8201 -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8201 \
-            -e GITQUIRE_WIKIS=on -e GITQUIRE_ALLOWED_OWNERS=team \
-            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
-            -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
-            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            -e GITQUIRE_WIKIS=on -e GITQUIRE_HOSTS=forgejo -e GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS=team \
+            -e GITQUIRE_HOST_FORGEJO_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_FORGEJO_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_FORGEJO_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_FORGEJO_TOKEN="$BOT_TOKEN" -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
             gitquire:ci 2>&1)
           code=$?
           set -e
@@ -358,10 +358,11 @@ jobs:
           docker run -d --name gq-wikis --network host -v gq-wikis:/data -v /tmp/ca:/ca:ro \
             -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e GIT_SSL_CAINFO=/ca/cert.pem \
             -e PORT=8300 -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8300 \
-            -e GITQUIRE_WIKIS=on -e GITQUIRE_ALLOWED_OWNERS=team -e GITQUIRE_ADMINS=alice \
-            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
-            -e GITQUIRE_HOST_CLIENT_ID="$WIKIS_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$WIKIS_CLIENT_SECRET" \
-            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            -e GITQUIRE_WIKIS=on -e GITQUIRE_HOSTS=forgejo \
+            -e GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS=team -e GITQUIRE_HOST_FORGEJO_ADMINS=alice \
+            -e GITQUIRE_HOST_FORGEJO_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_FORGEJO_CLIENT_ID="$WIKIS_CLIENT_ID" -e GITQUIRE_HOST_FORGEJO_CLIENT_SECRET="$WIKIS_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_FORGEJO_TOKEN="$BOT_TOKEN" -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
             gitquire:ci >/dev/null
           for i in $(seq 1 120); do
             if curl -fsS http://127.0.0.1:8300/readyz >/dev/null 2>&1; then break; fi

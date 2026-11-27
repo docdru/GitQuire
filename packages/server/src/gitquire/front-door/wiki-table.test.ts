@@ -28,7 +28,7 @@ describe('wiki table', () => {
     const file = tableFile();
     const table = openWikiTable(file);
     table.add(repo, 'alice', Date.UTC(2026, 10, 21));
-    table.pinOwner('team', 7);
+    table.pinsOn('github').pin('team', 7);
     expect(statSync(file).mode & 0o777).toBe(0o600);
     const again = openWikiTable(file);
     expect(again.byKey('github-41')).toMatchObject({
@@ -36,7 +36,7 @@ describe('wiki table', () => {
       state: 'on',
       addedBy: 'alice',
     });
-    expect(again.ownerIds()).toEqual({ team: 7 });
+    expect(again.pinsOn('github').pinned()).toEqual({ team: 7 });
     expect(JSON.parse(readFileSync(file, 'utf8')).version).toBe(1);
   });
 

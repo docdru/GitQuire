@@ -380,13 +380,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       .map((entry) => ({ host: entry.key, label: entry.names.label, address: entry.paths.login }));
   }
 
-  function defaultWiki(): WikiRecord | undefined {
-    const wanted = settings.defaultWiki;
-    if (wanted === undefined) return undefined;
-    const match = table.byAddress(primary.key, wanted.owner, wanted.name);
-    return match?.current === true && hosts.of(match.wiki) === primary ? match.wiki : undefined;
-  }
-
   function signInAddress(next: string): string {
     return `${severalHosts ? chooserPath : loginPath}?next=${encodeURIComponent(next)}`;
   }
@@ -804,7 +797,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
 
   async function listWikis(accounts: Accounts): Promise<Record<string, unknown>> {
     const listed = await openableWikis(accounts);
-    const fallback = defaultWiki();
     return {
       wikis: listed.map(({ wiki, admin, unread }) => ({
         ...wikiView(wiki, admin),
@@ -812,7 +804,6 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       })),
       unread: listed.reduce((sum, { unread }) => sum + (unread ?? 0), 0),
       hosts: ownersSentence(),
-      defaultWiki: fallback === undefined ? null : `${wikiPrefix(fallback)}/`,
       addWiki: addPath,
       addWikiPage: ADD_WIKI_PAGE,
       ...(severalHosts
