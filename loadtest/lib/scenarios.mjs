@@ -3,7 +3,15 @@ import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { setTimeout as wait } from 'node:timers/promises';
 import { converged, onHost, onServer } from './checks.mjs';
-import { fakeControl, hostFile, serverLogs, settings, stopFake, stopServer } from './env.mjs';
+import {
+  fakeControl,
+  hostFile,
+  inServer,
+  serverLogs,
+  settings,
+  stopFake,
+  stopServer,
+} from './env.mjs';
 import { generateBareRepo, pagePath } from './generate.mjs';
 
 const page = (i) => pagePath(i, 10);
@@ -122,9 +130,21 @@ async function mixedLoad({
       for (const t of typists) {
         checks.push(await onServer(world.admin, wiki.path, t.docName, t.markers, 90_000));
       }
+      recorder.count(
+        'client.reopens',
+        typists.reduce((n, t) => n + t.editor.reopens, 0),
+      );
+      recorder.count(
+        'client.replayed',
+        typists.reduce((n, t) => n + t.editor.replayed, 0),
+      );
       for (const t of typists) t.close();
       const lost = checks.filter((c) => !c.ok).reduce((n, c) => n + c.missing, 0);
       recorder.count('lost.server', lost);
+      recorder.count(
+        'doubled.server',
+        checks.reduce((n, c) => n + (c.doubled ?? 0), 0),
+      );
       return { typists, checks };
     },
   };
@@ -216,6 +236,7 @@ export const scenarios = {
       recorder.count('lost.converge', together.ok ? 0 : together.missing);
       recorder.count('diverged.clients', together.ok ? 0 : together.differing);
       recorder.count('lost.server', server.ok ? 0 : server.missing);
+      recorder.count('doubled.server', server.doubled ?? 0);
       recorder.count('lost.host', host.ok ? 0 : host.missing);
       return {
         level: { editors },
@@ -595,6 +616,116 @@ export const scenarios = {
       sampler.stop();
       await teardown();
       return results;
+    },
+  },
+
+  s10: {
+    title: 'Wiki process killed while typing (real browser)',
+    levels: (quick) =>
+      quick
+        ? [{ kills: 1 }]
+        : [{ kills: 1 }, { kills: 4 }, { kills: 2, everyMs: 150 }, { kills: 1, deleteBefore: true }],
+    async run({ kills, everyMs = 600, deleteBefore = false }, { seed }) {
+      const recorder = new Recorder();
+      const seedBare = seedRepo(100, 100);
+      const world = await setupWorld({ wikis: [{ name: 'killtest', seedBare }], persons: 2 });
+      const wiki = world.wikis[0];
+      const key = `github-${wiki.id}`;
+      const [session] = await signInMany(1);
+      const docName = page(12 + seed);
+      const { editorOf, launchBrowser, signedInPage } = await import('./browser.mjs');
+      const browser = await launchBrowser();
+      const result = { level: { kills, everyMs, deleteBefore } };
+      try {
+        const { page: tab, console: notes } = await signedInPage(browser, session);
+        await tab.goto(`${wiki.path}#/${encodeURIComponent(docName)}`);
+        const area = editorOf(tab);
+        await area.waitFor({ state: 'visible', timeout: 90_000 });
+        await wait(1500);
+        const focusEnd = async () => {
+          await area.click({ timeout: 2000 });
+          await tab.keyboard.press('Control+End');
+        };
+        await focusEnd();
+        await tab.keyboard.press('Enter');
+        const accepted = [];
+        let notAccepted = 0;
+        let n = 0;
+        const firstKillMs = 7000;
+        const betweenKillsMs = 12_000;
+        const typingMs = firstKillMs + (kills - 1) * betweenKillsMs + 15_000;
+        const started = Date.now();
+        let killsDone = 0;
+        let deleted;
+        const killTimes = [];
+        while (Date.now() - started < typingMs) {
+          const elapsed = Date.now() - started;
+          if (killsDone < kills && elapsed >= firstKillMs + killsDone * betweenKillsMs) {
+            const out = inServer(
+              `h=${key.split('-')[0]}; i=${key.split('-')[1]}; for p in /proc/[0-9]*; do c=$(tr '\\0' ' ' < $p/cmdline 2>/dev/null) || continue; case "$c" in *"-server $h-$i"*) kill -9 \${p#/proc/} && echo killed;; esac; done; true`,
+            );
+            recorder.count('kill.signals', (out.match(/killed/g) ?? []).length);
+            killsDone++;
+            killTimes.push(elapsed);
+          }
+          if (deleteBefore && !deleted && elapsed >= firstKillMs - 1500 && accepted.length > 2) {
+            const last = accepted.pop();
+            for (let i = 0; i <= last.length; i++) await tab.keyboard.press('Backspace');
+            deleted = last;
+          }
+          const phrase = `zqk${seed}x${n++}q`;
+          try {
+            const focused = await area.evaluate((el) => el.contains(document.activeElement));
+            if (!focused) await focusEnd();
+            await tab.keyboard.insertText(` ${phrase}`);
+            const text = await area.innerText({ timeout: 1000 });
+            if (text.includes(phrase)) accepted.push(phrase);
+            else notAccepted++;
+          } catch {
+            notAccepted++;
+          }
+          await wait(everyMs);
+        }
+        await wait(5000);
+        const server = await onServer(world.admin, wiki.path, docName, accepted, 120_000);
+        const content =
+          (
+            await world.admin.call(
+              'GET',
+              `${wiki.path}api/document?docName=${encodeURIComponent(docName)}`,
+            )
+          ).json?.content ?? '';
+        const doubled = accepted.filter((m) => content.split(m).length > 2).length;
+        const shown = await area.innerText({ timeout: 5000 }).catch(() => '');
+        const missingOnServer = accepted.filter((m) => !content.includes(m));
+        const offered = await tab
+          .getByLabel('Your version of the page')
+          .inputValue({ timeout: 1000 })
+          .catch(() => '');
+        const silent = missingOnServer.filter((m) => !offered.includes(m));
+        recorder.count('lost.silent', silent.length);
+        recorder.count('lost.offered', missingOnServer.length - silent.length);
+        if (deleted !== undefined) recorder.count('deleted.back', content.includes(deleted) ? 1 : 0);
+        recorder.count('phrases.typed', n);
+        recorder.count('phrases.accepted', accepted.length);
+        recorder.count('phrases.notAccepted', notAccepted);
+        recorder.count('lost.notSaved', server.ok ? 0 : server.missing);
+        recorder.count(
+          'lost.shownNotSaved',
+          missingOnServer.filter((m) => shown.includes(m)).length,
+        );
+        recorder.count('doubled.server', doubled);
+        recorder.count('notice.shown', offered.length > 0 ? 1 : 0);
+        Object.assign(result, {
+          killAtMs: killTimes,
+          missing: missingOnServer.slice(0, 40),
+          browserNotes: notes.slice(-30),
+        });
+      } finally {
+        await browser.close();
+        await teardown();
+      }
+      return { ...result, ...recorder.result() };
     },
   },
 

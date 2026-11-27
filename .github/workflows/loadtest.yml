@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       scenarios:
-        description: 'Scenarios, as a JSON list (s0 s1 s2 s3 s4 s5 s6 s9)'
-        default: '["s0","s1","s2","s3","s4","s5","s6"]'
+        description: 'Scenarios, as a JSON list (s0 s1 s2 s3 s4 s5 s6 s9 s10)'
+        default: '["s0","s1","s2","s3","s4","s5","s6","s10"]'
       hold:
         description: Seconds each level is held
         default: '180'
@@ -31,6 +31,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  PLAYWRIGHT_VERSION: 1.63.0
 
 concurrency:
   group: loadtest-${{ github.ref }}
@@ -62,7 +65,7 @@ jobs:
               scenarios="$IN_SCENARIOS"; hold="$IN_HOLD"; repeats="$IN_REPEATS"
               store=false; if [ "$IN_STORE" = true ] && [ "$REF" = refs/heads/main ]; then store=true; fi ;;
             schedule)
-              if [ "$SCHEDULE" = '43 1 1 * *' ]; then scenarios='["s9"]'; else scenarios='["s0","s1","s2","s3","s4","s5","s6"]'; fi
+              if [ "$SCHEDULE" = '43 1 1 * *' ]; then scenarios='["s9"]'; else scenarios='["s0","s1","s2","s3","s4","s5","s6","s10"]'; fi
               hold=180; repeats=3; store=true ;;
             *)
               scenarios='["s0","s1","s2","s3","s4","s5","s6"]'; hold=60; repeats=1; store=false
@@ -120,6 +123,7 @@ jobs:
       LOADTEST_CPUS: '2'
       LOADTEST_MEMORY: 4g
       LOADTEST_SOAK_MINUTES: ${{ inputs.soak_minutes || '300' }}
+      LOADTEST_PLAYWRIGHT_DIR: /tmp/pw
     steps:
       - uses: actions/checkout@v7
 
@@ -142,6 +146,26 @@ jobs:
             -keyout /tmp/ca/key.pem -out /tmp/ca/cert.pem 2>/dev/null
           openssl genrsa -out /tmp/ca/app.pem 2048 2>/dev/null
           chmod 644 /tmp/ca/*.pem
+
+      - name: Install Playwright
+        if: matrix.scenario == 's10'
+        run: |
+          set -eu
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "playwright@$PLAYWRIGHT_VERSION" >/dev/null
+
+      - name: Restore Playwright browsers
+        if: matrix.scenario == 's10'
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}-chromium
+
+      - name: Install Playwright browsers
+        if: matrix.scenario == 's10' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: cd /tmp/pw && npx playwright install chromium
 
       - name: Run ${{ matrix.scenario }}
         env:

@@ -50,6 +50,8 @@ export function evaluate(_scenario, result) {
   for (const key of [
     'lost.converge',
     'lost.server',
+    'doubled.server',
+    'lost.silent',
     'lost.host',
     'diverged.clients',
     'sync.neverReachedHost',

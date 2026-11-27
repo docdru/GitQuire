@@ -19,8 +19,12 @@ export class MarkerBoard {
   }
 
   watch(editor) {
+    editor.onDoc((doc) => this.watchDoc(editor, doc));
+  }
+
+  watchDoc(editor, doc) {
     let queued = false;
-    editor.doc.on('update', () => {
+    doc.on('update', () => {
       if (queued) return;
       queued = true;
       setImmediate(() => {
@@ -77,12 +81,14 @@ export class Typist {
     this.editor = new Editor(this.session, this.wikiPath, this.docName);
     await this.editor.synced();
     this.recorder.add(this.openMetric, performance.now() - started);
-    this.editor.provider.on('unsyncedChanges', ({ number }) => {
-      if (number === 0 && this.ackFrom !== undefined) {
-        this.recorder.add('edit.ack', performance.now() - this.ackFrom);
-        this.ackFrom = undefined;
-      }
-    });
+    this.editor.onProvider((provider) =>
+      provider.on('unsyncedChanges', ({ number }) => {
+        if (number === 0 && this.ackFrom !== undefined) {
+          this.recorder.add('edit.ack', performance.now() - this.ackFrom);
+          this.ackFrom = undefined;
+        }
+      }),
+    );
     this.editor.typeParagraph(`${this.session.login} notes `);
   }
 
@@ -100,6 +106,7 @@ export class Typist {
       }
       const marker = `zq${this.session.login}x${this.count++}q`;
       this.markers.push(marker);
+      this.editor.expected.push(marker);
       this.board?.sent(marker);
       this.keystroke(` ${marker} `);
       if (this.r.next() < 0.08) this.editor.typeParagraph(`${this.session.login} more `);

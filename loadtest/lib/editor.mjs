@@ -3,31 +3,87 @@ import { HocuspocusProvider, WebSocket, Y } from './deps.mjs';
 export class Editor {
   constructor(session, wikiPath, docName) {
     this.session = session;
+    this.wikiPath = wikiPath;
     this.docName = docName;
+    this.disconnects = 0;
+    this.reopens = 0;
+    this.replayed = 0;
+    this.errors = [];
+    this.expected = [];
+    this.docListeners = [];
+    this.providerListeners = [];
+    this.destroyed = false;
+    this.connect();
+  }
+
+  connect() {
     this.doc = new Y.Doc();
     this.fragment = this.doc.getXmlFragment('default');
     this.source = this.doc.getText('source');
-    this.disconnects = 0;
-    this.errors = [];
-    const cookie = session.cookieHeader();
-    const origin = session.base;
+    const cookie = this.session.cookieHeader();
+    const origin = this.session.base;
     class CookieSocket extends WebSocket {
       constructor(url, protocols) {
         super(url, protocols, { headers: { cookie, origin } });
         this.on('error', () => {});
       }
     }
-    const url = `${session.base.replace(/^http/, 'ws')}${wikiPath}collab`;
-    this.provider = new HocuspocusProvider({
+    const url = `${this.session.base.replace(/^http/, 'ws')}${this.wikiPath}collab`;
+    const provider = new HocuspocusProvider({
       url,
-      name: docName,
+      name: this.docName,
       document: this.doc,
       WebSocketPolyfill: CookieSocket,
       onDisconnect: () => {
+        if (this.provider !== provider || this.destroyed || !wasSynced) return;
         this.disconnects++;
+        this.reopen();
       },
       onAuthenticationFailed: ({ reason }) => this.errors.push(`auth: ${reason}`),
     });
+    this.provider = provider;
+    let wasSynced = false;
+    provider.on('synced', () => {
+      if (this.provider !== provider) return;
+      wasSynced = true;
+      this.replayMissing();
+    });
+    for (const fn of this.docListeners) fn(this.doc);
+    for (const fn of this.providerListeners) fn(this.provider);
+  }
+
+  reopen() {
+    const old = this.provider;
+    const oldDoc = this.doc;
+    this.reopens++;
+    this.connect();
+    setImmediate(() => {
+      try {
+        old.destroy();
+      } catch {}
+      oldDoc.destroy();
+    });
+  }
+
+  replayMissing() {
+    if (this.reopens === 0) return;
+    const text = this.plain();
+    for (const marker of this.expected) {
+      if (!text.includes(marker)) {
+        this.appendToLast(` ${marker} `);
+        this.replayed++;
+      }
+    }
+  }
+
+  onDoc(fn) {
+    this.docListeners.push(fn);
+    fn(this.doc);
+  }
+
+  onProvider(fn) {
+    this.providerListeners.push(fn);
+    fn(this.provider);
   }
 
   synced(timeoutMs = 30_000) {
@@ -65,6 +121,7 @@ export class Editor {
   }
 
   destroy() {
+    this.destroyed = true;
     try {
       this.provider.destroy();
     } catch {
