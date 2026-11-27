@@ -1,4 +1,5 @@
 import type { GateLogger } from '../access-gate.ts';
+import type { SelfCheck } from '../host/types.ts';
 import type { DoorHostEntry } from './door-hosts.ts';
 import { FrontDoorConfigError } from './settings.ts';
 
@@ -15,14 +16,28 @@ export function hostSummary(entry: DoorHostEntry, externalUrl: URL): Record<stri
   };
 }
 
+const CHECK_DEADLINE_MS = 15_000;
+
+function withDeadline(check: Promise<SelfCheck>, ms: number): Promise<SelfCheck> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<SelfCheck>((done) => {
+    timer = setTimeout(
+      () => done({ ok: false, unreachable: true, problems: [`no answer within ${ms / 1000} s`] }),
+      ms,
+    );
+  });
+  return Promise.race([check, late]).finally(() => clearTimeout(timer));
+}
+
 export async function checkHosts(
   entries: readonly DoorHostEntry[],
   log: GateLogger,
+  deadlineMs: number = CHECK_DEADLINE_MS,
 ): Promise<void> {
   const results = await Promise.all(
     entries.map(async (entry) => {
       try {
-        return { entry, result: await entry.host.selfCheck() };
+        return { entry, result: await withDeadline(entry.host.selfCheck(), deadlineMs) };
       } catch (err) {
         return {
           entry,

@@ -88,6 +88,17 @@ describe('the start check of every host', () => {
   });
 });
 
+describe('a host that never answers its start check', () => {
+  it('counts as unreachable after the deadline, so the other hosts start', async () => {
+    const { lines, log } = recorder();
+    await checkHosts([entry('github', { selfCheck: () => new Promise(() => {}) })], log, 20);
+    expect(lines[0]?.fields).toMatchObject({
+      host: 'github',
+      problems: ['no answer within 0.02 s'],
+    });
+  });
+});
+
 describe('names the host does not know (C2)', () => {
   it('warns about an administrator or owner the host does not know, and only those', async () => {
     const { lines, log } = recorder();
