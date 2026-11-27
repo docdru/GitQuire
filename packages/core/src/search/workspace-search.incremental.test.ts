@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import {
   createWorkspaceSearchCorpus,
+  createWorkspaceSearchCorpusInSlices,
   createWorkspaceSearchDocument,
   searchWorkspaceCorpus,
   updateWorkspaceSearchCorpus,
+  updateWorkspaceSearchCorpusInSlices,
   type WorkspaceSearchDocument,
   type WorkspaceSearchOptions,
 } from './workspace-search.ts';
@@ -224,5 +226,60 @@ describe('updateWorkspaceSearchCorpus', () => {
         intent: 'omnibar',
       });
     }
+  });
+});
+
+function expectSameResults(
+  corpus: ReturnType<typeof createWorkspaceSearchCorpus>,
+  documents: readonly WorkspaceSearchDocument[],
+  queries: readonly string[],
+) {
+  const fresh = createWorkspaceSearchCorpus(documents);
+  for (const query of queries) {
+    const got = searchWorkspaceCorpus(corpus, query, { intent: 'full_text' });
+    const want = searchWorkspaceCorpus(fresh, query, { intent: 'full_text' });
+    expect(got.map((r) => r.document.path)).toEqual(want.map((r) => r.document.path));
+    for (const [i, r] of got.entries()) {
+      expect(r.score).toBeCloseTo(want[i]?.score ?? Number.NaN, 6);
+    }
+  }
+}
+
+describe('building and updating the index in slices', () => {
+  const many = Array.from({ length: 450 }, (_, i) =>
+    page(`area/page-${i}`, `body text number ${i} with keyword${i % 7}`, i, `Page ${i}`),
+  );
+
+  test('a sliced build pauses between slices and searches like a whole build', async () => {
+    let pauses = 0;
+    const sliced = await createWorkspaceSearchCorpusInSlices(many, {
+      sliceSize: 100,
+      pause: async () => {
+        pauses += 1;
+      },
+    });
+    expect(pauses).toBe(4);
+    expectSameResults(sliced, many, ['keyword3', 'Page 12', 'number 449']);
+  });
+
+  test('a sliced update changes only what changed and searches like a fresh build', async () => {
+    const base = await createWorkspaceSearchCorpusInSlices(many, { sliceSize: 100 });
+    const next = [
+      ...many.slice(0, 200),
+      page('area/page-200', 'rewritten body with freshword', 999, 'Page 200'),
+      ...many.slice(201, 400),
+      page('area/new-page', 'a new page with freshword', 1000, 'New Page'),
+    ];
+    let pauses = 0;
+    const update = await updateWorkspaceSearchCorpusInSlices(base, next, {
+      sliceSize: 10,
+      pause: async () => {
+        pauses += 1;
+      },
+    });
+    expect(update.rebuilt).toBe(false);
+    expect(update).toMatchObject({ inserted: 1, updated: 1, removed: 50 });
+    expect(pauses).toBeGreaterThan(4);
+    expectSameResults(update.corpus, next, ['freshword', 'keyword3', 'Page 450']);
   });
 });

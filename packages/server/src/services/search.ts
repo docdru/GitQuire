@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import {
   classifySemanticProviderError,
-  createWorkspaceSearchCorpus,
+  createWorkspaceSearchCorpusInSlices,
   createWorkspaceSearchDocument,
   isHiddenDocName,
   type SearchSemanticStatus,
@@ -10,7 +10,7 @@ import {
   type SemanticQueryOutcome,
   searchWorkspaceCorpus,
   semanticProviderErrorBlocks,
-  updateWorkspaceSearchCorpus,
+  updateWorkspaceSearchCorpusInSlices,
   type WorkspaceSearchCorpus,
   type WorkspaceSearchDocument,
   type WorkspaceSearchIntent,
@@ -390,9 +390,9 @@ export function createSearchService(deps: SearchServiceDeps): SearchService {
       const { documents, truncated } = await buildWorkspaceSearchDocumentsFromIndex();
       if (!base) {
         searchCorpusUpdateCounter().add(1, { mode: 'cold' });
-        return { corpus: createWorkspaceSearchCorpus(documents), truncated };
+        return { corpus: await createWorkspaceSearchCorpusInSlices(documents), truncated };
       }
-      const update = updateWorkspaceSearchCorpus(base, documents);
+      const update = await updateWorkspaceSearchCorpusInSlices(base, documents);
       if (update.rebuilt) {
         searchCorpusUpdateCounter().add(1, { mode: 'rebuild', reason: update.rebuildReason });
         const logLevel = update.rebuildReason === 'mutation-failed' ? 'warn' : 'debug';
@@ -489,13 +489,16 @@ export function createSearchService(deps: SearchServiceDeps): SearchService {
 
     prewarm() {
       if (process.env.NODE_ENV === 'test') return;
-      for (const delayMs of [0, 1000, 3000]) {
-        setTimeout(() => {
-          void getWorkspaceSearchCorpus().catch((err) => {
-            log.warn({ err }, '[search] Failed to prewarm workspace search cache');
-          });
-        }, delayMs);
+      const warm = () => {
+        void getWorkspaceSearchCorpus().catch((err) => {
+          log.warn({ err }, '[search] Failed to prewarm workspace search cache');
+        });
+      };
+      if (ready === undefined) {
+        warm();
+        return;
       }
+      ready.then(warm, warm);
     },
   };
 }
