@@ -4,6 +4,11 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CHAT_KEY_SECRET_ENV, deriveChatKeySecret } from '../chat/key-secret.ts';
 import type { DoorHost, HostHealth, RepoLookup } from '../host/types.ts';
+import {
+  type MemoryUse,
+  MIN_IDLE_BEFORE_MAKING_ROOM_MS,
+  ServerBusyError,
+} from '../process-pool/memory.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
 import { createWikiProcesses, WIKI_IDLE_MS, WikiClosedError, wikiEnv } from './wiki-processes.ts';
 import { openWikiTable, type WikiRecord } from './wiki-table.ts';
@@ -128,7 +133,14 @@ describe('AI chat key inside a wiki', () => {
   });
 });
 
-function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHealth } = {}) {
+function setup(
+  options: {
+    dirty?: boolean;
+    lookup?: RepoLookup;
+    health?: HostHealth;
+    memory?: () => MemoryUse | undefined;
+  } = {},
+) {
   const data = tempDir();
   const script = join(tempDir(), 'child.cjs');
   writeFileSync(script, CHILD);
@@ -145,7 +157,10 @@ function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHea
     health: options.health ?? ('ok' as HostHealth),
   };
   const host: Pick<DoorHost, 'repoById' | 'health'> = {
-    repoById: async () => answers.lookup,
+    repoById: async (id) =>
+      id === repo.id
+        ? answers.lookup
+        : ({ state: 'found', repo: { ...repo, id, name: `wiki${id}` } } as RepoLookup),
     health: async () => answers.health,
   };
   const bootstrapped: string[] = [];
@@ -162,6 +177,7 @@ function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHea
       bootstrapped.push(dir);
       if (options.dirty) writeFileSync(join(dir, 'DIRTY'), '');
     },
+    memory: options.memory ?? (() => undefined),
     now: () => time,
   });
   cleanup.push(() => processes.stopAll());
@@ -172,6 +188,7 @@ function setup(options: { dirty?: boolean; lookup?: RepoLookup; health?: HostHea
     processes,
     answers,
     bootstrapped,
+    another: (id: number) => table.add({ ...repo, id, name: `wiki${id}` }, 'alice', 0),
     advance: (ms: number) => {
       time += ms;
     },
@@ -204,6 +221,50 @@ describe('wiki processes', () => {
     dirty.advance(WIKI_IDLE_MS + 1);
     await dirty.processes.sweep();
     expect(dirty.processes.isRunning('github-5')).toBe(true);
+  });
+
+  it('puts the longest-idle wiki to sleep before waking another when memory is above 80 %', async () => {
+    const state = { tight: false, running: (_key: string) => false };
+    const memory = () => ({
+      usedBytes: state.tight && state.running('github-5') ? 850 : 500,
+      limitBytes: 1000,
+    });
+    const { wiki, processes, advance, another } = setup({ memory });
+    state.running = processes.isRunning;
+    const second = another(6);
+    const third = another(7);
+    await processes.ensure(wiki);
+    advance(1000);
+    await processes.ensure(second);
+    advance(MIN_IDLE_BEFORE_MAKING_ROOM_MS);
+    state.tight = true;
+    await processes.ensure(third);
+    expect(processes.isRunning('github-5')).toBe(false);
+    expect(processes.isRunning('github-6')).toBe(true);
+    expect(processes.isRunning('github-7')).toBe(true);
+  });
+
+  it('answers busy instead of starting a wiki when no idle wiki can make room', async () => {
+    const use = { usedBytes: 0, limitBytes: 1000 };
+    const { wiki, processes, advance, another } = setup({ memory: () => use });
+    const second = another(6);
+    const third = another(7);
+    await processes.ensure(wiki);
+    await processes.ensure(second);
+    const release = processes.hold('github-6');
+    advance(10);
+    use.usedBytes = 900;
+    await expect(processes.ensure(third)).rejects.toBeInstanceOf(ServerBusyError);
+    expect(processes.isRunning('github-7')).toBe(false);
+    expect(processes.isRunning('github-6')).toBe(true);
+    advance(MIN_IDLE_BEFORE_MAKING_ROOM_MS);
+    await expect(processes.ensure(third)).rejects.toBeInstanceOf(ServerBusyError);
+    expect(processes.isRunning('github-5')).toBe(false);
+    expect(processes.isRunning('github-6')).toBe(true);
+    release();
+    use.usedBytes = 100;
+    await processes.ensure(third);
+    expect(processes.isRunning('github-7')).toBe(true);
   });
 
   it('keeps a wiki with an open live-editing connection running', async () => {

@@ -4,6 +4,7 @@ import { type GateLogger, type SessionUser, safeNextPath } from '../access-gate.
 import { pathOf, redirect, sendJson } from '../http-util.ts';
 import { internalRequestHeaders, isInternalRequest } from '../internal-request.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
+import { ServerBusyError } from '../process-pool/memory.ts';
 import {
   behindFrontDoorFromEnv,
   encodeProxiedUser,
@@ -358,7 +359,13 @@ export function createDraftsHttp(deps: DraftsHttpDeps): DraftsHttp {
       );
       return;
     }
-    sendJson(res, 503, { error: 'draft-unavailable', message });
+    const busy = err instanceof ServerBusyError;
+    sendJson(
+      res,
+      503,
+      { error: busy ? 'server-busy' : 'draft-unavailable', message },
+      busy ? { 'Retry-After': '60' } : {},
+    );
   }
 
   function chosenTarget(req: IncomingMessage): EditTarget | undefined {

@@ -370,9 +370,17 @@ export const scenarios = {
       for (const count of levels) {
         recorder = new Recorder();
         sampler.mark(`wikis-${count}`);
+        let busy = false;
         while (open.length < count) {
           const wiki = world.wikis[open.length];
-          recorder.add('wiki.coldOpen', await openWiki(world.admin, wiki.path));
+          try {
+            recorder.add('wiki.coldOpen', await openWiki(world.admin, wiki.path));
+          } catch (err) {
+            if (!err.busy) throw err;
+            recorder.count('wiki.busy');
+            busy = true;
+            break;
+          }
           open.push(wiki);
           const sessions = await signInMany(3, nextLogin);
           nextLogin += 3;
@@ -395,7 +403,13 @@ export const scenarios = {
         recorder.count(`door.wikiList.status.${list.status}`);
         await Promise.all(started.map((s) => s.done()));
         const memory = memorySummary(sampler.samples, `wikis-${count}`);
-        results.push({ level: { wikis: count }, memory, ...recorder.result() });
+        results.push({
+          level: { wikis: count },
+          wikisOpen: open.length,
+          memory,
+          ...recorder.result(),
+        });
+        if (busy) break;
         if (memory !== null && memory.peakMb > 0.95 * parseMemory(settings.memory)) break;
       }
       await stopProbes();
@@ -425,6 +439,7 @@ export const scenarios = {
       );
       const liveSessions = await signInMany(5, 2);
       const drafters = [];
+      let draftsBusy = false;
       let nextLogin = 7;
       const results = sink;
       for (const count of levels) {
@@ -467,7 +482,16 @@ export const scenarios = {
             seed: seed + typists.length,
           });
           const opened = performance.now();
-          await t.open();
+          try {
+            await t.open();
+          } catch (err) {
+            const probe = await d.session.call('GET', `${wiki.path}api/documents`);
+            t.close();
+            if (probe.status !== 503) throw err;
+            recorder.count('draft.busy');
+            draftsBusy = true;
+            break;
+          }
           recorder.add('draft.open', performance.now() - opened);
           typists.push(t);
         }
@@ -476,7 +500,13 @@ export const scenarios = {
         await wait(3000);
         for (const t of typists) t.close();
         const memory = memorySummary(sampler.samples, `drafts-${count}`);
-        results.push({ level: { drafts: count }, memory, ...recorder.result() });
+        results.push({
+          level: { drafts: count },
+          draftsInUse: typists.length,
+          memory,
+          ...recorder.result(),
+        });
+        if (draftsBusy) break;
         if (memory !== null && memory.peakMb > 0.95 * parseMemory(settings.memory)) break;
       }
       const recorderPublish = recorder;

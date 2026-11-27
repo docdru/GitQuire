@@ -107,6 +107,7 @@ interface Rig {
   bot: { answer: BotAccess | undefined };
   gone: Set<number>;
   forgotten: string[];
+  memory: { usedBytes: number; limitBytes: number };
   advance: (ms: number) => void;
 }
 
@@ -189,7 +190,9 @@ async function rig(
     refused: (wiki, refusal) => table.disconnect(wiki.key, refusal),
     now,
   });
+  const memory = { usedBytes: 0, limitBytes: 1000 };
   const processes = createWikiProcesses({
+    memory: () => memory,
     dataDir: data,
     externalUrl: settings.externalUrl,
     env: { PATH: process.env.PATH, GITHUB_APP_PRIVATE_KEY: 'key' },
@@ -275,6 +278,7 @@ async function rig(
     gone,
     bot,
     forgotten,
+    memory,
     advance: (ms) => {
       time += ms;
     },
@@ -401,6 +405,22 @@ describe('front door', () => {
     expect(principal(b)).toMatchObject({ login: 'alice' });
     expect(principal(b).repoAdmin).toBeUndefined();
     expect(a.headers.cookie).toBeUndefined();
+  });
+
+  it('answers "busy, try again in a minute" instead of waking a wiki when memory is tight', async () => {
+    const session = await signIn(r, 'alice');
+    expect((await get(r, '/w/github/team/a/', session)).status).toBe(200);
+    r.processes.hold('github-1');
+    r.memory.usedBytes = 900;
+    const page = await get(r, '/w/github/team/b/', session, { accept: 'text/html' });
+    expect(page.status).toBe(503);
+    expect(page.headers.get('retry-after')).toBe('60');
+    expect(await page.text()).toContain('This server is busy. Try again in a minute.');
+    const api = await get(r, '/w/github/team/b/api/x', session);
+    expect(api.status).toBe(503);
+    expect(await api.json()).toEqual({ error: 'server-busy' });
+    expect(r.processes.isRunning('github-2')).toBe(false);
+    expect(r.processes.isRunning('github-1')).toBe(true);
   });
 
   it('gives a person with one wiki "no wiki here" for the other, without naming it', async () => {

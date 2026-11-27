@@ -4,6 +4,11 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import {
+  type MemoryUse,
+  MIN_IDLE_BEFORE_MAKING_ROOM_MS,
+  ServerBusyError,
+} from '../process-pool/memory.ts';
 import { createDraftInstances } from './instances.ts';
 import type { DraftRecord } from './model.ts';
 
@@ -42,7 +47,9 @@ afterEach(() => {
   for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
 });
 
-function setup(options: { readyAfter?: number } = {}) {
+function setup(
+  options: { readyAfter?: number; memory?: () => MemoryUse | undefined; now?: () => number } = {},
+) {
   const baseDir = mkdtempSync(join(tmpdir(), 'gq-instances-'));
   dirs.push(baseDir);
   const spawned: Array<{
@@ -67,6 +74,8 @@ function setup(options: { readyAfter?: number } = {}) {
       return child as unknown as ChildProcess;
     },
     socketDir: baseDir,
+    memory: options.memory ?? (() => undefined),
+    now: options.now,
     get: async (socket, path) => {
       if (path === '/api/gitquire/stop-state') {
         return { status: 200, body: JSON.stringify({ pushedAndClean: !socket.includes('dirty') }) };
@@ -117,6 +126,30 @@ describe('draft editors', () => {
     expect(await instances.stopState()).toEqual({ pushedAndClean: true });
     await instances.ensure(record('dirty-notes'));
     expect(await instances.stopState()).toEqual({ pushedAndClean: false });
+  });
+
+  it('puts an idle draft to sleep before starting another when memory is tight, else answers busy', async () => {
+    let time = 0;
+    let used = 0;
+    const { instances, spawned } = setup({
+      memory: () => ({ usedBytes: used, limitBytes: 1000 }),
+      now: () => time,
+    });
+    await instances.ensure(record('old'));
+    const release = instances.hold('old');
+    time = MIN_IDLE_BEFORE_MAKING_ROOM_MS * 2;
+    used = 900;
+    await expect(instances.ensure(record('new'))).rejects.toBeInstanceOf(ServerBusyError);
+    expect(instances.isRunning('new')).toBe(false);
+    release();
+    time += MIN_IDLE_BEFORE_MAKING_ROOM_MS;
+    const sleeping = spawned[0]?.child;
+    sleeping?.once('exit', () => {
+      used = 500;
+    });
+    await instances.ensure(record('new'));
+    expect(instances.isRunning('old')).toBe(false);
+    expect(instances.isRunning('new')).toBe(true);
   });
 
   it('stops an editor with SIGTERM and starts it again on demand', async () => {

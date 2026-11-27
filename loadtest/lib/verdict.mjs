@@ -64,6 +64,10 @@ export function evaluate(_scenario, result) {
   ) {
     check('s', Math.round(save / 1000), LIMITS.saveToHostSeconds, 'save to host p95 s');
   }
+  if ((c['wiki.busy'] ?? 0) > 0)
+    reasons.push(`server answered busy: ${result.wikisOpen ?? '?'} wikis open, no room for more`);
+  if ((c['draft.busy'] ?? 0) > 0)
+    reasons.push(`server answered busy: ${result.draftsInUse ?? '?'} drafts in use, no room for more`);
   if ((c['edit.propagate.timeout'] ?? 0) > 0)
     reasons.push(`edits not seen within 30 s: ${c['edit.propagate.timeout']}`);
   if ((result.memory?.oomKills ?? 0) > 0)

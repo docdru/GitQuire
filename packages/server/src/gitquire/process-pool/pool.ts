@@ -73,6 +73,7 @@ export interface ProcessPool {
   hold: (id: string) => () => void;
   isRunning: (id: string) => boolean;
   running: () => string[];
+  unheld: () => Array<{ id: string; idleSinceMs: number }>;
   stop: (id: string) => Promise<void>;
   halt: (id: string) => Promise<void>;
   exclusive: <T>(id: string, work: () => Promise<T>) => Promise<T>;
@@ -339,6 +340,10 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
     },
     isRunning: (id) => entries.has(id),
     running: () => [...entries.keys()],
+    unheld: () =>
+      [...entries]
+        .filter(([, entry]) => entry.holds === 0)
+        .map(([id, entry]) => ({ id, idleSinceMs: entry.lastUsed })),
     stop: (id) => exclusive(id, () => halt(id)),
     halt,
     exclusive,
