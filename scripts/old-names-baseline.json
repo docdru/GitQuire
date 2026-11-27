@@ -5,9 +5,6 @@
   "biome.jsonc": {
     "open-knowledge": 1
   },
-  "docker/entrypoint.sh": {
-    "ok-folder": 1
-  },
   "docs/content/gitquire/overview.mdx": {
     "open-knowledge": 3
   },
@@ -950,6 +947,9 @@
   },
   "packages/server/src/github-reference/fetch-reference.ts": {
     "open-knowledge": 1
+  },
+  "packages/server/src/gitquire/front-door/setup-page.test.ts": {
+    "ok-folder": 1
   },
   "packages/server/src/gitquire/front-door/volume.test.ts": {
     "ok-folder": 1
