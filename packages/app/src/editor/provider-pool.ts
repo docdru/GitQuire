@@ -36,6 +36,7 @@ import {
   writeReplayOutboxEntry,
 } from './replay-outbox';
 import { BridgeSetupError, invalidateSyncPromise, rejectSyncPromise } from './sync-promise';
+import { keepUnsavedAfterRestart } from './unsaved-after-restart';
 
 export const TAB_REPLAY_ORIGIN = Object.freeze({ kind: 'tab-replay' } as const);
 
@@ -1053,7 +1054,7 @@ export class ProviderPool {
         entry.pendingRecycleTimer = null;
       }
       entry.serverDrivenCloseReauthAttempts = 0;
-      this.markServerRestartRecoverySynced(docName);
+      if (!this.bufferedUpdates.has(docName)) this.markServerRestartRecoverySynced(docName);
       this.notify();
 
       if (!entry.observerCleanup) {
@@ -1375,6 +1376,8 @@ export class ProviderPool {
         })
         .finally(() => {
           this.replaysInFlight -= 1;
+          this.markServerRestartRecoverySynced(docName);
+          this.notify();
           this.emitUnsyncedWork();
         });
     };
@@ -1573,6 +1576,32 @@ export class ProviderPool {
       toClear.push({ docName, persistence: poolEntry.persistence });
     }
 
+    const recaptureTypedSinceCapture = (): void => {
+      for (const [docName, poolEntry] of snapshot) {
+        if (poolEntry.kind !== 'active') continue;
+        const buffered = this.bufferedUpdates.get(docName);
+        const baseline = poolEntry.lastDiskAckedSV ?? poolEntry.lastServerSyncedSV;
+        if (baseline === null) continue;
+        const unsynced = computeUnsyncedUpdate(poolEntry.provider.document, baseline);
+        if (unsynced.byteLength <= (buffered?.delta.byteLength ?? 0)) continue;
+        if (unsynced.byteLength > MAX_BUFFER_BYTES) continue;
+        const fullState = Y.encodeStateAsUpdate(poolEntry.provider.document);
+        if (fullState.byteLength > MAX_BUFFER_BYTES) continue;
+        this.bufferedUpdates.set(docName, {
+          branch: recoveryBranch,
+          durable: false,
+          ...buffered,
+          delta: unsynced,
+          fullState,
+        });
+        this.emitStructuredClientBreadcrumb({
+          event: 'ok-pool-mismatch-buffer-recaptured',
+          docName,
+          deltaBytes: unsynced.byteLength,
+        });
+      }
+    };
+
     const runClearsAndRecycle = (): Promise<void> => {
       const clears: { docName: string; promise: Promise<void> }[] = toClear.map(
         ({ docName, persistence }) => ({
@@ -1585,6 +1614,7 @@ export class ProviderPool {
         count: clears.length,
       });
       return Promise.allSettled(clears.map((c) => c.promise)).then((results) => {
+        recaptureTypedSinceCapture();
         const failed: string[] = [];
         const cleared: string[] = [];
         let sawClearTimeout = false;
@@ -1683,7 +1713,9 @@ export class ProviderPool {
         ours = composeWithDerivedBody(oursFm, oursFragBody).md;
       } else if (fragClean) {
         ours = oursYtext;
-      } else if (this.replayInsertionsOnly(provider, theirs, oursYtext, oursFm, oursFragBody)) {
+      } else if (
+        this.replayInsertionsOnly(docName, provider, theirs, oursYtext, oursFm, oursFragBody)
+      ) {
         this.emitStructuredClientRecoveryEvent({
           event: 'ok-buffer-replay-content-applied',
           ...this.recoveryTelemetryBase(docName),
@@ -1695,6 +1727,7 @@ export class ProviderPool {
           event: 'ok-buffer-replay-diverged',
           ...this.recoveryTelemetryBase(docName),
         });
+        keepUnsavedAfterRestart(docName, composeWithDerivedBody(oursFm, oursFragBody).md);
         return false;
       }
       if (ours !== theirs) {
@@ -1721,6 +1754,8 @@ export class ProviderPool {
       });
       return true;
     } catch (err: unknown) {
+      const text = replica.getText('source').toString();
+      if (text.length > 0) keepUnsavedAfterRestart(docName, text);
       this.emitStructuredClientRecoveryEvent({
         event: 'ok-buffer-replay-content-failed',
         ...this.recoveryTelemetryBase(docName),
@@ -1734,6 +1769,7 @@ export class ProviderPool {
   }
 
   private replayInsertionsOnly(
+    docName: string,
     provider: HocuspocusProvider,
     theirs: string,
     oursYtext: string,
@@ -1743,10 +1779,19 @@ export class ProviderPool {
     const acknowledged = insertionsOnly(theirs, oursYtext);
     if (acknowledged === null) return false;
     const oursFragment = composeWithDerivedBody(oursFm, oursFragBody).md;
-    const unacknowledged =
-      normalizeBridge(oursFragment) === normalizeBridge(oursYtext)
-        ? []
-        : (insertionsOnly(oursYtext, oursFragment) ?? []);
+    let unacknowledged: { index: number; text: string }[] = [];
+    if (normalizeBridge(oursFragment) !== normalizeBridge(oursYtext)) {
+      const found = insertionsOnly(oursYtext, oursFragment, { keepBlankRemovals: true });
+      if (found === null) {
+        this.emitStructuredClientRecoveryEvent({
+          event: 'ok-buffer-replay-fragment-diverged',
+          ...this.recoveryTelemetryBase(docName),
+        });
+        keepUnsavedAfterRestart(docName, oursFragment);
+      } else {
+        unacknowledged = found;
+      }
+    }
     const ytext = provider.document.getText('source');
     provider.document.transact(() => {
       for (const batch of [acknowledged, unacknowledged]) {
@@ -2176,12 +2221,20 @@ export class ProviderPool {
   }
 }
 
-function insertionsOnly(from: string, to: string): { index: number; text: string }[] | null {
-  if (to.length < from.length) return null;
+export function insertionsOnly(
+  from: string,
+  to: string,
+  options: { keepBlankRemovals?: boolean } = {},
+): { index: number; text: string }[] | null {
+  if (options.keepBlankRemovals !== true && to.length < from.length) return null;
   const insertions: { index: number; text: string }[] = [];
   let index = 0;
   for (const part of diffChars(from, to)) {
-    if (part.removed === true) return null;
+    if (part.removed === true) {
+      if (options.keepBlankRemovals !== true || part.value.trim() !== '') return null;
+      index += part.value.length;
+      continue;
+    }
     if (part.added === true) insertions.push({ index, text: part.value });
     else index += part.value.length;
   }

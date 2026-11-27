@@ -6676,6 +6676,9 @@ msgstr "لم تصل بعض التعديلات إلى الخادم بعد، لذ�
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "بعض الملفات غير مدرجة: شجرة العمل تحتوي على تغييرات كثيرة جدًا."
 
+msgid "Some of your recent typing could not be saved"
+msgstr ""
+
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "لا تظهر بعض السمات المحفوظة لأن مجلد السمات يتجاوز حد الفحص."
 
@@ -7254,6 +7257,9 @@ msgstr "تعذّر على الخادم قراءة حالة المزامنة له
 
 msgid "the server responded but server.lock has no port yet"
 msgstr "استجاب الخادم لكن server.lock لا يحتوي على منفذ بعد"
+
+msgid "The server restarted while you were typing, and your latest changes could not be merged back into the page. Your version of the page is below: copy what is missing and paste it back."
+msgstr ""
 
 msgid "The server stopped."
 msgstr "توقّف الخادم."
@@ -8314,6 +8320,9 @@ msgid "Your user settings could not be read"
 msgstr "تعذّرت قراءة إعدادات المستخدم الخاصة بك"
 
 msgid "Your version"
+msgstr ""
+
+msgid "Your version of the page"
 msgstr ""
 
 msgid "Your wikis"

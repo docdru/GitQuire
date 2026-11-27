@@ -6676,6 +6676,9 @@ msgstr "کچھ ترامیم ابھی سرور تک نہیں پہنچیں، اس 
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "کچھ فائلیں فہرست میں نہیں ہیں: ورکنگ ٹری میں بہت زیادہ تبدیلیاں ہیں۔"
 
+msgid "Some of your recent typing could not be saved"
+msgstr ""
+
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "تھیم فولڈر اسکین کی حد سے بڑا ہونے کی وجہ سے کچھ محفوظ شدہ تھیمز نہیں دکھائی جا رہیں۔"
 
@@ -7254,6 +7257,9 @@ msgstr "سرور اس پروجیکٹ کی مطابقت پذیری کی حالت 
 
 msgid "the server responded but server.lock has no port yet"
 msgstr "سرور نے جواب دیا مگر server.lock میں ابھی کوئی پورٹ نہیں"
+
+msgid "The server restarted while you were typing, and your latest changes could not be merged back into the page. Your version of the page is below: copy what is missing and paste it back."
+msgstr ""
 
 msgid "The server stopped."
 msgstr "سرور رک گیا۔"
@@ -8314,6 +8320,9 @@ msgid "Your user settings could not be read"
 msgstr "آپ کی صارف ترتیبات پڑھی نہیں جا سکیں"
 
 msgid "Your version"
+msgstr ""
+
+msgid "Your version of the page"
 msgstr ""
 
 msgid "Your wikis"

@@ -6672,6 +6672,9 @@ msgstr "Algumas edições ainda não chegaram ao servidor, então a aba não foi
 msgid "Some files are not listed — the working tree has too many changes."
 msgstr "Alguns arquivos não estão listados: a árvore de trabalho tem alterações demais."
 
+msgid "Some of your recent typing could not be saved"
+msgstr ""
+
 msgid "Some saved themes aren’t shown because the theme folder exceeds the scan limit."
 msgstr "Alguns temas salvos não são exibidos porque a pasta de temas excede o limite de verificação."
 
@@ -7250,6 +7253,9 @@ msgstr "O servidor não conseguiu ler o status de sincronização deste projeto,
 
 msgid "the server responded but server.lock has no port yet"
 msgstr "o servidor respondeu, mas o server.lock ainda não tem porta"
+
+msgid "The server restarted while you were typing, and your latest changes could not be merged back into the page. Your version of the page is below: copy what is missing and paste it back."
+msgstr ""
 
 msgid "The server stopped."
 msgstr "O servidor parou."
@@ -8310,6 +8316,9 @@ msgid "Your user settings could not be read"
 msgstr "Não foi possível ler suas configurações de usuário"
 
 msgid "Your version"
+msgstr ""
+
+msgid "Your version of the page"
 msgstr ""
 
 msgid "Your wikis"

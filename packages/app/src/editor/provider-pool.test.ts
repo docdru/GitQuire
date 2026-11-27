@@ -2128,6 +2128,59 @@ describe("ProviderPool authenticationFailed handling (US-002 / 'server-instance-
     __resetSyncPromiseCache();
   });
 
+  test('server restart: text typed after the capture is kept, and the page stays in recovery until the replay ran', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    try {
+      __resetSyncPromiseCache();
+      pool = new ProviderPool(3, DUMMY_WS, { storage: null });
+      pool.setExpectedServerInstanceId('server-old');
+      const entry = pool.open('doc1');
+      if (!entry) throw new Error('expected entry');
+      const persistence = await awaitAttachedPersistence(entry);
+      pool.setActive('doc1');
+      entry.observerCleanup = () => {};
+      entry.provider.emit('synced', { state: true });
+      const typeParagraph = (doc: Y.Doc, text: string) => {
+        const paragraph = new Y.XmlElement('paragraph');
+        paragraph.insert(0, [new Y.XmlText(text)]);
+        doc.getXmlFragment('default').push([paragraph]);
+      };
+      typeParagraph(entry.provider.document, 'typed before the kill');
+
+      let resolveClear: () => void = () => {};
+      persistence.clearData = vi.fn(() => {
+        const { promise, resolve } = Promise.withResolvers<void>();
+        resolveClear = resolve;
+        return promise;
+      });
+      entry.provider.emit('authenticationFailed', { reason: 'server-instance-mismatch' });
+      await vi.waitFor(() => {
+        expect(persistence.clearData).toHaveBeenCalled();
+      });
+      typeParagraph(entry.provider.document, 'typed while the panel came up');
+      resolveClear();
+      await wait(50);
+
+      const replacement = pool.getActive();
+      if (!replacement) throw new Error('expected replacement');
+      replacement.observerCleanup = () => {};
+      replacement.provider.emit('synced', { state: true });
+      expect(pool.getServerRestartRecoveryState()).toMatchObject({ kind: 'recovering' });
+
+      await vi.waitFor(() => {
+        expect(pool.getServerRestartRecoveryState()).toEqual({ kind: 'idle' });
+      });
+      const text = replacement.provider.document.getText('source').toString();
+      expect(text).toContain('typed before the kill');
+      expect(text).toContain('typed while the panel came up');
+    } finally {
+      __resetSyncPromiseCache();
+      warnSpy.mockRestore();
+      infoSpy.mockRestore();
+    }
+  });
+
   test('active doc clearData failure exposes targeted recovery failure state', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     try {
