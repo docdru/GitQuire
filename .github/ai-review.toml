@@ -28,6 +28,7 @@ reference_docs = [
   { path = "DEPLOY.md", role = "operator documentation: settings and environment variables", max_chars = 80_000 },
   { path = "plans/wikis-and-hosts.md", role = "plan of the wikis-hosts branch: decisions, requirements R1-R18, host interface, order", max_chars = 60_000 },
   { path = "plans/one-front-door.md", role = "plan of the hosts-one-door branch: one front door for several Git hosts, owner's decisions, requirements S1-S9, blocks B0-B9, findings", max_chars = 40_000 },
+  { path = "plans/one-mode.md", role = "plan of the one-mode branch: one mode (always the front door), every host in GITQUIRE_HOSTS, old settings refused, requirements O1-O9, blocks, findings and assumptions", max_chars = 40_000 },
   { path = "plans/review-map.md", role = "review map: which module owns what, contract files, seams where one wiki leaks into another or work is lost", max_chars = 30_000 },
 ]
 
@@ -114,16 +115,19 @@ key = "plan"
 title = "🗺️ Plan consistency"
 reference = true
 checklist = """
-does the change match plans/wikis-and-hosts.md, in particular the requirements
-R1-R18 and the owner's decisions? Does it implement what the pull request's
+does the change match plans/one-mode.md (requirements O1-O9 and its
+assumptions) and the earlier plans plans/wikis-and-hosts.md (R1-R18) and
+plans/one-front-door.md (S1-S9)? Does it implement what the pull request's
 "Context for the reviewer" says it implements, and does plans/review-map.md
 still describe the modules and seams the change touches?"""
 
 [[sections]]
 key = "switched_off"
-title = "🔌 Unchanged when switched off"
+title = "🔌 Existing volumes and old settings"
 checklist = """
-with GITQUIRE_WIKIS off and GITQUIRE_HOST unset, can anything behave differently
-from main: a changed default, a new required setting, a renamed route, cookie,
-header, file or folder, a different id or commit email, a new network call, a
-changed error message or status code, a changed order of start-up steps?"""
+can a several-wikis volume made by main's image still start with only its
+variables renamed, finding every wiki, token, agent token, per-person file and
+draft (O1)? Is a single-wiki volume refused before anything is written (O2)?
+Can any removed or renamed variable be silently ignored or keep a meaning
+under its old name (O3)? Does anything remain that lets a request into a wiki
+without the host's access check (O4)?"""
