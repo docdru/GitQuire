@@ -17,12 +17,6 @@
   "docs/content/reference/cli.mdx": {
     "open-knowledge": 1
   },
-  "docs/content/reference/configuration.mdx": {
-    "open-knowledge": 3
-  },
-  "docs/content/remote-control/methods/cli.mdx": {
-    "open-knowledge": 1
-  },
   "docs/content/workflows/karpathy-llm-wiki.mdx": {
     "open-knowledge": 1
   },
@@ -175,9 +169,6 @@
     "open-knowledge": 1
   },
   "packages/app/src/components/EditorActivityPool.conflict-swap.dom.test.tsx": {
-    "open-knowledge": 1
-  },
-  "packages/app/src/components/EditorHeader.tsx": {
     "open-knowledge": 1
   },
   "packages/app/src/components/EditorTabs.tsx": {
@@ -739,12 +730,6 @@
   "packages/cli/src/auth/resolve-auth.test.ts": {
     "open-knowledge": 7
   },
-  "packages/cli/src/auth/token-store.test.ts": {
-    "open-knowledge": 14
-  },
-  "packages/cli/src/cli.test.ts": {
-    "open-knowledge": 1
-  },
   "packages/cli/src/commands/audit-scope-composition.test.ts": {
     "ok-folder": 1
   },
@@ -757,9 +742,6 @@
   "packages/cli/src/commands/auth/login.ts": {
     "open-knowledge": 1
   },
-  "packages/cli/src/commands/bug-report-bundle.test.ts": {
-    "open-knowledge": 5
-  },
   "packages/cli/src/commands/clean.ts": {
     "open-knowledge": 1
   },
@@ -771,9 +753,6 @@
   },
   "packages/cli/src/commands/clone.test.ts": {
     "ok-env": 2
-  },
-  "packages/cli/src/commands/diagnose-bundle.test.ts": {
-    "open-knowledge": 6
   },
   "packages/cli/src/commands/diagnose.ts": {
     "open-knowledge": 1
@@ -805,15 +784,8 @@
   "packages/cli/src/commands/sync-credential-helper.test.ts": {
     "open-knowledge": 41
   },
-  "packages/cli/src/diagnose/bundle-redact.test.ts": {
-    "open-knowledge": 15
-  },
   "packages/cli/src/diagnose/bundle.test.ts": {
-    "open-knowledge": 4,
     "ok-env": 1
-  },
-  "packages/cli/src/diagnose/staging-coverage.test.ts": {
-    "open-knowledge": 3
   },
   "packages/cli/src/github/folder-validator.test.ts": {
     "open-knowledge": 40
@@ -829,9 +801,6 @@
   },
   "packages/cli/src/project-anchor.test.ts": {
     "open-knowledge": 2
-  },
-  "packages/cli/src/report-bundle.test.ts": {
-    "open-knowledge": 23
   },
   "packages/cli/src/sharing/git-exclude.test.ts": {
     "open-knowledge": 11
@@ -861,14 +830,11 @@
   "packages/core/src/constants/mcp-launcher.test.ts": {
     "open-knowledge": 4
   },
-  "packages/core/src/constants/ok-user-home.test.ts": {
-    "open-knowledge": 2
-  },
   "packages/core/src/constants/product.test.ts": {
-    "open-knowledge": 40
+    "open-knowledge": 7
   },
   "packages/core/src/constants/product.ts": {
-    "open-knowledge": 30
+    "open-knowledge": 10
   },
   "packages/core/src/constants/product.type-tests.ts": {
     "open-knowledge": 3
@@ -878,9 +844,6 @@
   },
   "packages/core/src/git-repository.test.ts": {
     "open-knowledge": 2
-  },
-  "packages/core/src/helper-bundle.test.ts": {
-    "open-knowledge": 8
   },
   "packages/core/src/logging/qa-secret-pattern-canary.test.ts": {
     "open-knowledge": 1
@@ -988,8 +951,14 @@
   "packages/server/src/github-reference/fetch-reference.ts": {
     "open-knowledge": 1
   },
+  "packages/server/src/gitquire/front-door/volume.test.ts": {
+    "ok-folder": 1
+  },
   "packages/server/src/gitquire/principal-directory.test.ts": {
     "open-knowledge": 1
+  },
+  "packages/server/src/gitquire/volume-markers.ts": {
+    "ok-folder": 1
   },
   "packages/server/src/http/agent-write-routes.ts": {
     "open-knowledge": 2
@@ -1045,9 +1014,6 @@
   "packages/server/src/mcp/tools/output-schema-strictness.test.ts": {
     "open-knowledge": 4
   },
-  "packages/server/src/mcp/tools/preview-url.test.ts": {
-    "open-knowledge": 2
-  },
   "packages/server/src/mcp/tools/share-link.test.ts": {
     "open-knowledge": 10,
     "ok-folder": 1
@@ -1057,9 +1023,6 @@
   },
   "packages/server/src/mcp/tools/write.ts": {
     "ok-folder": 4
-  },
-  "packages/server/src/parcel-drop-notice.test.ts": {
-    "ok-folder": 8
   },
   "packages/server/src/persistence.test.ts": {
     "open-knowledge": 2
@@ -1077,13 +1040,13 @@
     "open-knowledge": 4
   },
   "packages/server/src/process-scan-enumeration.test.ts": {
-    "open-knowledge": 3
+    "open-knowledge": 2
   },
   "packages/server/src/process-scan.test.ts": {
-    "open-knowledge": 41
+    "open-knowledge": 29
   },
   "packages/server/src/process-scan.ts": {
-    "open-knowledge": 4
+    "open-knowledge": 3
   },
   "packages/server/src/project-git.test.ts": {
     "open-knowledge": 1
@@ -1158,6 +1121,13 @@
   },
   "packages/server/src/timeline-query.test.ts": {
     "open-knowledge": 4
+  },
+  "plans/one-mode.md": {
+    "open-knowledge": 3,
+    "ok-folder": 2
+  },
+  "plans/review-map.md": {
+    "ok-folder": 1
   },
   "PRECEDENTS.md": {
     "open-knowledge": 1,
