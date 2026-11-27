@@ -41,4 +41,42 @@ describe('saving before a wiki process stops', () => {
       'Typed just before the stop.',
     );
   });
+
+  it('writes continuous typing at the latest about 3 s after it started', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'gq-save-while-typing-'));
+    dirs.push(projectDir);
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    await ensureProjectGit(projectDir);
+    configureTestGitRepository(projectDir);
+    writeFileSync(join(contentDir, 'notes.md'), '# Notes\n\nFirst line.\n', 'utf-8');
+    const server = createServer({
+      contentDir,
+      projectDir,
+      quiet: true,
+      shadowRepo: await initShadowRepo(projectDir),
+    });
+    await server.ready;
+    try {
+      const conn = await server.hocuspocus.openDirectConnection('notes');
+      const started = Date.now();
+      let savedAfterMs: number | undefined;
+      for (let i = 0; i < 16 && savedAfterMs === undefined; i++) {
+        await conn.transact((doc) => {
+          const paragraph = new Y.XmlElement('paragraph');
+          paragraph.insert(0, [new Y.XmlText(`typing ${i}`)]);
+          doc.getXmlFragment('default').push([paragraph]);
+        });
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        if (readFileSync(join(contentDir, 'notes.md'), 'utf-8').includes('typing 0')) {
+          savedAfterMs = Date.now() - started;
+        }
+      }
+      expect(savedAfterMs).toBeDefined();
+      expect(savedAfterMs).toBeLessThan(4500);
+      await conn.disconnect();
+    } finally {
+      await server.destroy();
+    }
+  }, 30_000);
 });
