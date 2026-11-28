@@ -19,6 +19,18 @@ const { values } = parseArgs({
 });
 
 const names = values.scenario ?? Object.keys(scenarios);
+const baseImage = process.env.LOADTEST_IMAGE_BASE?.trim() ?? '';
+
+function imageId(image) {
+  if (settings.target !== 'docker') return null;
+  try {
+    return execFileSync('docker', ['image', 'inspect', image, '--format', '{{.Id}}'], {
+      encoding: 'utf8',
+    }).trim();
+  } catch {
+    return null;
+  }
+}
 const hold = Number(values.hold) * 1000;
 const repeats = Number(values.repeats);
 
@@ -65,11 +77,15 @@ for (const name of names) {
   const levels =
     values.levels === undefined ? scenario.levels(values.quick) : JSON.parse(values.levels);
   const runs = [];
+  const baseRuns = [];
+  const underTest = settings.image;
   for (let repeat = 0; repeat < repeats; repeat++) {
-    const seed = Number(values.seed) + repeat;
+    const base = baseImage !== '' && repeat % 2 === 0;
+    settings.image = base ? baseImage : underTest;
+    const seed = Number(values.seed) + (baseImage === '' ? repeat : Math.floor(repeat / 2));
     const results = [];
     console.log(
-      `[loadtest] ${name} repeat ${repeat + 1}/${repeats} levels ${JSON.stringify(levels)}`,
+      `[loadtest] ${name} repeat ${repeat + 1}/${repeats} image ${base ? 'base' : 'test'} levels ${JSON.stringify(levels)}`,
     );
     try {
       if (scenario.cumulative) {
@@ -93,12 +109,17 @@ for (const name of names) {
       await stopServer();
       await stopFake();
     }
-    runs.push(results);
+    (base ? baseRuns : runs).push(results);
   }
-  const file = join(values.out, `${name}.json`);
-  writeFileSync(
-    file,
-    `${JSON.stringify({ scenario: name, title: scenario.title, startedAt, machine: machine(), hold: values.hold, repeats, runs }, null, 2)}\n`,
-  );
-  console.log(`[loadtest] wrote ${file}`);
+  settings.image = underTest;
+  const write = (file, list, image) => {
+    writeFileSync(
+      file,
+      `${JSON.stringify({ scenario: name, title: scenario.title, startedAt, machine: { ...machine(), image }, hold: values.hold, repeats: list.length, runs: list }, null, 2)}\n`,
+    );
+    console.log(`[loadtest] wrote ${file}`);
+  };
+  write(join(values.out, `${name}.json`), runs, imageId(underTest));
+  if (baseImage !== '')
+    write(join(values.out, `${name}-baseline.json`), baseRuns, imageId(baseImage));
 }

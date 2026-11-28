@@ -18,6 +18,12 @@ on:
       soak_minutes:
         description: Minutes for s9
         default: '300'
+      image_ref:
+        description: Build the image under test from this ref instead of the workflow's own (the harness stays this ref's)
+        default: ''
+      baseline_ref:
+        description: Also build an image from this ref and alternate the two in every job (A/B on the same runner)
+        default: ''
       profile:
         description: Keep CPU profiles of stalls over 300 ms in the one-wiki scenarios (s2, s3)
         type: boolean
@@ -89,20 +95,46 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.image_ref || github.sha }}
+          path: under-test
+
+      - uses: actions/checkout@v7
+        if: inputs.baseline_ref != ''
+        with:
+          ref: ${{ inputs.baseline_ref }}
+          path: baseline
 
       - uses: docker/setup-buildx-action@v3
 
       - name: Build image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: under-test
           load: true
           tags: gitquire:ci
           cache-from: type=gha,scope=loadtest
           cache-to: type=gha,scope=loadtest,mode=max
 
-      - name: Save image
-        run: docker save gitquire:ci | gzip -1 > /tmp/gitquire-image.tar.gz
+      - name: Build baseline image
+        if: inputs.baseline_ref != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: baseline
+          load: true
+          tags: gitquire:base
+          cache-from: type=gha,scope=loadtest
+
+      - name: Save images
+        env:
+          BASELINE: ${{ inputs.baseline_ref }}
+        run: |
+          set -eu
+          if [ -n "$BASELINE" ]; then
+            docker save gitquire:ci gitquire:base | gzip -1 > /tmp/gitquire-image.tar.gz
+          else
+            docker save gitquire:ci | gzip -1 > /tmp/gitquire-image.tar.gz
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
@@ -125,6 +157,7 @@ jobs:
       LOADTEST_MEMORY: 4g
       LOADTEST_SOAK_MINUTES: ${{ inputs.soak_minutes || '300' }}
       LOADTEST_PROFILE: ${{ inputs.profile && '1' || '' }}
+      LOADTEST_IMAGE_BASE: ${{ inputs.baseline_ref != '' && 'gitquire:base' || '' }}
     steps:
       - uses: actions/checkout@v7
 

@@ -31,11 +31,11 @@ const CLAIM = {
   s5: (l) => `${l.drafts} ${l.drafts === 1 ? 'draft' : 'drafts'} in use`,
 };
 
-function load(dir) {
+function load(dir, suffix = '') {
   if (dir === undefined || !existsSync(dir)) return {};
   const out = {};
   for (const file of readdirSync(dir)) {
-    if (!/^s\d+\.json$/.test(file)) continue;
+    if (!new RegExp(`^s\\d+${suffix}\\.json$`).test(file)) continue;
     const data = JSON.parse(readFileSync(join(dir, file), 'utf8'));
     out[data.scenario] = data;
   }
@@ -177,7 +177,9 @@ function summarise(data) {
 }
 
 const current = load(values.results);
-const baseline = load(values.baseline);
+const inRunBaseline = load(values.results, '-baseline');
+const sameRunner = Object.keys(inRunBaseline).length > 0;
+const baseline = sameRunner ? inRunBaseline : load(values.baseline);
 const threshold = Number(values.threshold);
 const lines = [];
 const claims = [];
@@ -316,8 +318,8 @@ if (claims.length > 0 && anyMachine) {
 if (Object.keys(baseline).length > 0) {
   head.push(
     regressions.length === 0
-      ? '**Against the last run:** no regression above the threshold.'
-      : '**Regressions against the last run:**',
+      ? `**Against ${sameRunner ? 'the baseline image, alternated on the same runners' : 'the last run'}:** no regression above the threshold.`
+      : `**Regressions against ${sameRunner ? 'the baseline image, alternated on the same runners' : 'the last run'}:**`,
   );
   for (const r of regressions) head.push(`- ${r}`);
   head.push('');
