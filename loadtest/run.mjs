@@ -12,7 +12,7 @@ const { values } = parseArgs({
     hold: { type: 'string', default: process.env.LOADTEST_HOLD_SECONDS ?? '180' },
     repeats: { type: 'string', default: process.env.LOADTEST_REPEATS ?? '1' },
     quick: { type: 'boolean', default: false },
-    levels: { type: 'string' },
+    levels: { type: 'string', default: process.env.LOADTEST_LEVELS?.trim() || undefined },
     out: { type: 'string', default: 'loadtest/results' },
     seed: { type: 'string', default: '1' },
   },
