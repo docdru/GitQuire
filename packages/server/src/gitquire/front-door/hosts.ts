@@ -31,7 +31,7 @@ export interface HostSettings {
 export const HOST_KEY_RE = /^[a-z](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
 const KINDS: readonly HostKind[] = ['github', 'forgejo'];
 const KIND_LABEL: Record<HostKind, string> = { github: 'GitHub', forgejo: 'Forgejo' };
-const FIRST_HOST_VARIABLES = [
+const UNQUALIFIED_VARIABLES = [
   'GITQUIRE_HOST_URL',
   'GITQUIRE_HOST_API_URL',
   'GITQUIRE_HOST_CLIENT_ID',
@@ -45,7 +45,7 @@ const FIRST_HOST_VARIABLES = [
   'GITQUIRE_HOST_LABEL',
 ];
 const RESERVED_FIRST_SEGMENTS = new Set(
-  FIRST_HOST_VARIABLES.map((name) =>
+  UNQUALIFIED_VARIABLES.map((name) =>
     (name.slice('GITQUIRE_HOST_'.length).split('_')[0] as string).toLowerCase(),
   ),
 );
@@ -108,9 +108,10 @@ function httpsBase(raw: string, name: string): string {
   } catch {
     throw new HostListError(`${name} is not a valid URL: "${raw}".`);
   }
-  if (url.protocol !== 'https:') {
+  const loopback = ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname);
+  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && loopback)) {
     throw new HostListError(
-      `${name} must start with https://: GitQuire only sends a host's tokens over https.`,
+      `${name} must start with https://: GitQuire only sends a host's tokens over https (plain http only to this machine, 127.0.0.1 or localhost).`,
     );
   }
   if (url.username !== '' || url.password !== '' || url.search !== '' || url.hash !== '') {
@@ -119,7 +120,7 @@ function httpsBase(raw: string, name: string): string {
   return stripTrailingSlash(`${url.origin}${url.pathname}`);
 }
 
-export function furtherHostKeys(env: Env): string[] {
+export function hostKeys(env: Env): string[] {
   const raw = nonEmpty(env.GITQUIRE_HOSTS);
   if (raw === undefined) return [];
   return raw
@@ -128,8 +129,8 @@ export function furtherHostKeys(env: Env): string[] {
     .filter((part) => part !== '');
 }
 
-function checkKeys(primary: HostSettings, keys: readonly string[]): void {
-  const seen = new Set<string>([primary.key]);
+function checkKeys(keys: readonly string[]): void {
+  const seen = new Set<string>();
   for (const key of keys) {
     if (!HOST_KEY_RE.test(key)) {
       throw new HostListError(
@@ -143,19 +144,13 @@ function checkKeys(primary: HostSettings, keys: readonly string[]): void {
     }
     if (RESERVED_FIRST_SEGMENTS.has(key.split('-')[0] as string)) {
       throw new HostListError(
-        `"${key}" cannot be a host key: its variables would be mistaken for the first host's (GITQUIRE_HOST_URL and the like). Choose another key.`,
+        `"${key}" cannot be a host key: its variables would read like the old settings GITQUIRE_HOST_URL and the like. Choose another key.`,
       );
     }
-    if (seen.has(key)) {
-      throw new HostListError(
-        key === primary.key
-          ? `GITQUIRE_HOSTS lists "${key}", the key of the first host (set by GITQUIRE_HOST). List only the further hosts, and give a further host of the same kind a key of its own.`
-          : `GITQUIRE_HOSTS lists "${key}" twice.`,
-      );
-    }
+    if (seen.has(key)) throw new HostListError(`GITQUIRE_HOSTS lists "${key}" twice.`);
     seen.add(key);
   }
-  const all = [primary.key, ...keys, ...KINDS];
+  const all = [...keys, ...KINDS];
   for (const key of keys) {
     const parts = key.split('-');
     for (let end = 1; end < parts.length; end += 1) {
@@ -202,12 +197,13 @@ function secret(
   }
 }
 
-function furtherHost(
+function hostFromEnv(
   env: Env,
   key: string,
   readFile: (path: string) => string,
   usedLabels: Set<string>,
-): HostSettings {
+  missing: string[],
+): HostSettings | undefined {
   const name = (suffix: Suffix) => hostVariable(key, suffix);
   const kindRaw = nonEmpty(env[name('KIND')])?.toLowerCase() ?? key;
   if (!KINDS.includes(kindRaw as HostKind)) {
@@ -221,7 +217,7 @@ function furtherHost(
       `The host key "${key}" names the other kind of host. Give this ${KIND_LABEL[kind]} host another key.`,
     );
   }
-  const missing: string[] = [];
+  const before = missing.length;
   const clientId = nonEmpty(env[name('CLIENT_ID')]);
   const clientSecret = secret(env, name('CLIENT_SECRET'), readFile);
   if (clientId === undefined) missing.push(name('CLIENT_ID'));
@@ -272,8 +268,8 @@ function furtherHost(
     forgejoBotToken = secret(env, name('TOKEN'), readFile);
     if (forgejoBotToken === undefined) missing.push(`${name('TOKEN')} (or _FILE)`);
   }
-  if (missing.length > 0 || clientId === undefined || clientSecret === undefined) {
-    throw new HostListError(`The host "${key}" in GITQUIRE_HOSTS needs: ${missing.join(', ')}.`);
+  if (missing.length > before || clientId === undefined || clientSecret === undefined) {
+    return undefined;
   }
   const given = nonEmpty(env[name('LABEL')]);
   let label = given ?? KIND_LABEL[kind];
@@ -319,19 +315,42 @@ function furtherHost(
   };
 }
 
-export function hostList(
-  env: Env,
-  primary: HostSettings,
-  readFile: (path: string) => string,
-): readonly HostSettings[] {
-  const keys = furtherHostKeys(env);
-  checkKeys(primary, keys);
-  const labels = new Set([primary.label.toLowerCase()]);
-  const hosts = [primary, ...keys.map((key) => furtherHost(env, key, readFile, labels))];
+export interface HostListResult {
+  hosts: readonly HostSettings[];
+  missing: readonly string[];
+}
+
+function refuseUnknownHostVariables(env: Env, keys: readonly string[]): void {
+  const known = new Set(keys.flatMap((key) => SUFFIXES.map((suffix) => hostVariable(key, suffix))));
+  const unqualified = new Set(UNQUALIFIED_VARIABLES);
+  const unknown = Object.keys(env)
+    .filter(
+      (name) => name.startsWith('GITQUIRE_HOST_') && !unqualified.has(name) && !known.has(name),
+    )
+    .sort();
+  if (unknown.length === 0) return;
+  throw new HostListError(
+    `GitQuire does not read ${unknown.join(', ')}: ${unknown.length === 1 ? 'it belongs' : 'they belong'} to no host listed in GITQUIRE_HOSTS (${keys.join(', ') || 'empty'}), or the part after the key is misspelt. List the host's key in GITQUIRE_HOSTS, or correct or remove the variable.`,
+  );
+}
+
+export function hostList(env: Env, readFile: (path: string) => string): HostListResult {
+  const keys = hostKeys(env);
+  checkKeys(keys);
+  refuseUnknownHostVariables(env, keys);
+  const labels = new Set<string>();
+  const missing: string[] = [];
+  const hosts = keys
+    .map((key) => hostFromEnv(env, key, readFile, labels, missing))
+    .filter((host): host is HostSettings => host !== undefined)
+    .map((host, index) => ({ ...host, primary: index === 0 }));
+  if (missing.length > 0) return { hosts: [], missing };
   const origins = new Map<string, string>();
   for (const host of hosts) {
     for (const address of [host.webUrl, host.apiUrl]) {
-      const origin = new URL(address).origin;
+      const url = new URL(address);
+      if (['localhost', '[::1]'].includes(url.hostname)) url.hostname = '127.0.0.1';
+      const origin = url.origin;
       const other = origins.get(origin);
       if (other !== undefined && other !== host.key) {
         throw new HostListError(
@@ -341,7 +360,7 @@ export function hostList(
       origins.set(origin, host.key);
     }
   }
-  return hosts;
+  return { hosts, missing };
 }
 
 export function hostByKey(hosts: readonly HostSettings[], key: string): HostSettings | undefined {

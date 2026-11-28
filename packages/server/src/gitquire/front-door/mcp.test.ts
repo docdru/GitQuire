@@ -10,7 +10,12 @@ import type { BotAccess, DoorHost, RepoAccess } from '../host/types.ts';
 import { ACCESS_TTL_MS, createWikiAccess } from './access.ts';
 import { createDoorAgents, type DoorAgents } from './agents.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
-import { entryForTest, hostSettingsForTest, hostsForTest } from './door-hosts.test-helper.ts';
+import {
+  entryForTest,
+  type HostBaseForTest,
+  hostSettingsForTest,
+  hostsForTest,
+} from './door-hosts.test-helper.ts';
 import { wikiNameOf, withWikiArgument } from './mcp.ts';
 import { createFrontDoor } from './server.ts';
 import type { FrontDoorSettings } from './settings.ts';
@@ -164,26 +169,27 @@ async function rig(
   table.add(repoB, 'alice', time);
   const owners: AllowedOwners = {
     names: new Set(['team']),
-    pinned: table.ownerIds,
-    pin: table.pinOwner,
+    ...table.pinsOn('github'),
   };
-  const settings: FrontDoorSettings = {
+  const hostBase: HostBaseForTest = {
     host: 'github',
-    dataDir: data,
-    externalUrl: new URL(`http://127.0.0.1:${port}`),
     clientId: 'id',
     clientSecret: 'secret',
-    sessionSecret: '0123456789abcdef0123456789abcdef',
-    sessionMaxAgeSeconds: 3600,
     webUrl: 'https://host.example',
     apiUrl: 'https://host.example/api',
-    defaultWiki: undefined,
     allowedOwners: owners.names,
     serverAdmins: new Set(['alice']),
     githubApp: undefined,
     forgejoBotToken: undefined,
+  };
+  const settings: FrontDoorSettings = {
+    dataDir: data,
+    externalUrl: new URL(`http://127.0.0.1:${port}`),
+    sessionSecret: '0123456789abcdef0123456789abcdef',
+    sessionMaxAgeSeconds: 3600,
     agentTokenDays: 30,
     mcpConnectors: true,
+    hosts: [],
   };
   const now = () => time;
   const access = createWikiAccess({
@@ -212,7 +218,7 @@ async function rig(
     now,
   });
   const hosts = hostsForTest(
-    entryForTest({ settings: hostSettingsForTest(settings), host, access, owners }),
+    entryForTest({ settings: hostSettingsForTest(hostBase), host, access, owners }),
   );
   const agents = createDoorAgents({
     settings,

@@ -28,11 +28,11 @@ def start(allowed="team"):
     env = {
         "NODE_EXTRA_CA_CERTS": "/ca/cert.pem", "GIT_SSL_CAINFO": "/ca/cert.pem",
         "PORT": str(PORT), "GITQUIRE_EXTERNAL_URL": URL,
-        "GITQUIRE_WIKIS": "on", "GITQUIRE_ALLOWED_OWNERS": allowed, "GITQUIRE_ADMINS": "alice",
-        "GITQUIRE_HOST": "forgejo", "GITQUIRE_HOST_URL": os.environ["FORGEJO_URL"],
-        "GITQUIRE_HOST_CLIENT_ID": os.environ["WIKIS_CLIENT_ID"],
-        "GITQUIRE_HOST_CLIENT_SECRET": os.environ["WIKIS_CLIENT_SECRET"],
-        "GITQUIRE_HOST_TOKEN": os.environ["BOT_TOKEN"],
+        "GITQUIRE_WIKIS": "on", "GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS": allowed, "GITQUIRE_HOST_FORGEJO_ADMINS": "alice",
+        "GITQUIRE_HOSTS": "forgejo", "GITQUIRE_HOST_FORGEJO_URL": os.environ["FORGEJO_URL"],
+        "GITQUIRE_HOST_FORGEJO_CLIENT_ID": os.environ["WIKIS_CLIENT_ID"],
+        "GITQUIRE_HOST_FORGEJO_CLIENT_SECRET": os.environ["WIKIS_CLIENT_SECRET"],
+        "GITQUIRE_HOST_FORGEJO_TOKEN": os.environ["BOT_TOKEN"],
         "GITQUIRE_SESSION_SECRET": "0123456789abcdef0123456789abcdef",
         "GITQUIRE_ACCESS_CHECK_SECONDS": str(ACCESS_CHECK_SECONDS),
         "GITQUIRE_WIKI_IDLE_MINUTES": "1",
@@ -343,7 +343,7 @@ def owners():
     status, page, _ = call(alice, "GET", "/w/other/notes/", accept="text/html")
     check("Two wikis R18", status == 404 and "This server hosts wikis from team" in str(page),
           f"its address says which owners this server hosts -> {status}")
-    check("Two wikis R18", start("other"), "the front door restarts with GITQUIRE_ALLOWED_OWNERS=other")
+    check("Two wikis R18", start("other"), "the front door restarts with GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS=other")
     out = wait_for(lambda: call(alice, "GET", "/w/forgejo/team/alpha/api/config")[0] == 403, 90)
     status, listed, _ = call(alice, "GET", "/api/front-door/wikis")
     reasons = sorted((w.get("name"), w.get("state"), w.get("reason")) for w in listed.get("wikis", [])) if isinstance(listed, dict) else []

@@ -30,10 +30,12 @@ export interface WikiTable {
   connect: (key: string) => WikiRecord | undefined;
   disconnect: (key: string, reason: DisconnectReason) => WikiRecord | undefined;
   remove: (key: string) => WikiRecord | undefined;
-  ownerIds: () => Readonly<Record<string, number>>;
-  pinOwner: (owner: string, id: number) => void;
-  hostOwnerIds: (hostKey: string) => Readonly<Record<string, number>>;
-  pinHostOwner: (hostKey: string, owner: string, id: number) => void;
+  pinsOn: (hostKey: string) => OwnerPins;
+}
+
+export interface OwnerPins {
+  pinned: () => Readonly<Record<string, number>>;
+  pin: (owner: string, id: number) => void;
 }
 
 interface TableFile {
@@ -117,8 +119,22 @@ export function wikiTableFile(dataDir: string): string {
   return join(dataDir, 'server', 'wikis.json');
 }
 
+function hostOfOldPins(state: TableFile): string | undefined {
+  const pins = Object.entries(state.owners);
+  if (pins.length === 0) return undefined;
+  const further = new Set(Object.keys(state.hostOwners ?? {}));
+  const unkeyed = state.wikis.filter(
+    (wiki) => wiki.hostKey === undefined && !further.has(wiki.host),
+  );
+  const byName = unkeyed.find((wiki) =>
+    pins.some(([name, id]) => wiki.ownerId === id && wiki.owner.toLowerCase() === name),
+  );
+  return (byName ?? unkeyed.find((wiki) => pins.some(([, id]) => wiki.ownerId === id)))?.host;
+}
+
 export function openWikiTable(file: string): WikiTable {
   const state = load(file);
+  const ownersKey = hostOfOldPins(state);
 
   function save(): void {
     mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
@@ -201,21 +217,25 @@ export function openWikiTable(file: string): WikiTable {
         wiki.state = 'disconnected';
         wiki.reason = reason;
       }),
-    ownerIds: () => state.owners,
-    pinOwner: (owner, id) => {
-      const name = owner.toLowerCase();
-      if (state.owners[name] === id) return;
-      if (state.owners[name] !== undefined) return;
-      state.owners[name] = id;
-      save();
-    },
-    hostOwnerIds: (hostKey) => state.hostOwners?.[hostKey] ?? {},
-    pinHostOwner: (hostKey, owner, id) => {
-      const name = owner.toLowerCase();
-      const pins = state.hostOwners?.[hostKey] ?? {};
-      if (pins[name] !== undefined) return;
-      state.hostOwners = { ...state.hostOwners, [hostKey]: { ...pins, [name]: id } };
-      save();
-    },
+    pinsOn: (hostKey) => ({
+      pinned: () => (hostKey === ownersKey ? state.owners : (state.hostOwners?.[hostKey] ?? {})),
+      pin: (owner, id) => {
+        const name = owner.toLowerCase();
+        if (hostKey === ownersKey) {
+          if (
+            state.owners[name] !== undefined ||
+            state.hostOwners?.[hostKey]?.[name] !== undefined
+          ) {
+            return;
+          }
+          state.owners[name] = id;
+        } else {
+          const pins = state.hostOwners?.[hostKey] ?? {};
+          if (pins[name] !== undefined) return;
+          state.hostOwners = { ...state.hostOwners, [hostKey]: { ...pins, [name]: id } };
+        }
+        save();
+      },
+    }),
   };
 }

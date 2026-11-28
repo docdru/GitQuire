@@ -5,20 +5,20 @@ import { resolveFrontDoorSettings } from './settings.ts';
 const PEM = '-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n';
 
 const github = {
-  GITQUIRE_WIKIS: 'on',
-  GITHUB_APP_CLIENT_ID: 'id',
-  GITHUB_APP_CLIENT_SECRET: 'secret',
-  GITHUB_APP_ID: '7',
-  GITHUB_APP_PRIVATE_KEY: PEM,
+  GITQUIRE_HOSTS: 'github',
+  GITQUIRE_HOST_GITHUB_CLIENT_ID: 'id',
+  GITQUIRE_HOST_GITHUB_CLIENT_SECRET: 'secret',
+  GITQUIRE_HOST_GITHUB_APP_ID: '7',
+  GITQUIRE_HOST_GITHUB_APP_PRIVATE_KEY: PEM,
   GITQUIRE_SESSION_SECRET: '0123456789abcdef0123456789abcdef',
   GITQUIRE_EXTERNAL_URL: 'https://wiki.example.org',
-  GITQUIRE_REPO: 'Team/wiki',
-  GITQUIRE_ADMINS: 'alice',
+  GITQUIRE_HOST_GITHUB_ALLOWED_OWNERS: 'Team',
+  GITQUIRE_HOST_GITHUB_ADMINS: 'alice',
 };
 
 const plusForgejo = {
   ...github,
-  GITQUIRE_HOSTS: 'forgejo',
+  GITQUIRE_HOSTS: 'github,forgejo',
   GITQUIRE_HOST_FORGEJO_URL: 'https://code.example.org',
   GITQUIRE_HOST_FORGEJO_CLIENT_ID: 'fid',
   GITQUIRE_HOST_FORGEJO_CLIENT_SECRET: 'fsecret',
@@ -34,7 +34,7 @@ const read = (files: Record<string, string>) => (path: string) => {
 };
 
 describe('the host list', () => {
-  it('has only the first host, described as before, without GITQUIRE_HOSTS (S8)', () => {
+  it('describes a single host by its key, as any other host', () => {
     const settings = resolveFrontDoorSettings(github, '/data');
     expect(settings.hosts).toHaveLength(1);
     const [first] = settings.hosts;
@@ -42,14 +42,13 @@ describe('the host list', () => {
       key: 'github',
       kind: 'github',
       label: 'GitHub',
-      primary: true,
-      webUrl: settings.webUrl,
-      apiUrl: settings.apiUrl,
-      clientId: settings.clientId,
-      clientSecret: settings.clientSecret,
-      githubApp: settings.githubApp,
+      webUrl: 'https://github.com',
+      apiUrl: 'https://api.github.com',
+      clientId: 'id',
+      clientSecret: 'secret',
+      githubApp: { appId: '7', privateKeyPem: PEM.trim() },
     });
-    expect(first?.allowedOwners).toBe(settings.allowedOwners);
+    expect([...(first?.allowedOwners ?? [])]).toEqual(['team']);
     expect([...(first?.serverAdmins ?? [])]).toEqual(['alice']);
     expect(first?.names.idPrefix).toBe('github-');
     expect(first?.names.noreplyEmail({ id: 4, login: 'bo' })).toBe('4+bo@users.noreply.github.com');
@@ -62,7 +61,6 @@ describe('the host list', () => {
     expect(forgejo).toMatchObject({
       kind: 'forgejo',
       label: 'Forgejo',
-      primary: false,
       webUrl: 'https://code.example.org',
       apiUrl: 'https://code.example.org/api/v1',
       clientId: 'fid',
@@ -76,15 +74,13 @@ describe('the host list', () => {
     expect(forgejo?.names.noreplyEmail({ id: 1, login: 'carol' })).toBe(
       'carol@noreply.code.example.org',
     );
-    expect([...settings.allowedOwners]).toEqual(['team']);
-    expect([...settings.serverAdmins]).toEqual(['alice']);
   });
 
   it('keys a second host of the same kind, labels it apart and prefixes its people with the key', () => {
     const settings = resolveFrontDoorSettings(
       {
         ...plusForgejo,
-        GITQUIRE_HOSTS: 'forgejo, lab-2',
+        GITQUIRE_HOSTS: 'github, forgejo, lab-2',
         GITQUIRE_HOST_LAB_2_KIND: 'forgejo',
         GITQUIRE_HOST_LAB_2_URL: 'https://lab.example.org/',
         GITQUIRE_HOST_LAB_2_CLIENT_ID: 'lid',
@@ -106,59 +102,47 @@ describe('the host list', () => {
     expect(lab?.serverAdmins.size).toBe(0);
   });
 
-  it('adds a GitHub host to a Forgejo server with its own app', () => {
+  it('reads a GitHub host listed after a Forgejo host with its own app', () => {
     const settings = resolveFrontDoorSettings(
       {
-        GITQUIRE_WIKIS: 'on',
-        GITQUIRE_HOST: 'forgejo',
-        GITQUIRE_HOST_URL: 'https://code.example.org',
-        GITQUIRE_HOST_CLIENT_ID: 'id',
-        GITQUIRE_HOST_CLIENT_SECRET: 'secret',
-        GITQUIRE_HOST_TOKEN: 'bot',
-        GITQUIRE_SESSION_SECRET: '0123456789abcdef0123456789abcdef',
-        GITQUIRE_EXTERNAL_URL: 'https://wiki.example.org',
-        GITQUIRE_ALLOWED_OWNERS: 'lab',
-        GITQUIRE_HOSTS: 'github',
-        GITQUIRE_HOST_GITHUB_CLIENT_ID: 'gid',
-        GITQUIRE_HOST_GITHUB_CLIENT_SECRET: 'gsecret',
-        GITQUIRE_HOST_GITHUB_APP_ID: '9',
+        ...plusForgejo,
+        GITQUIRE_HOSTS: 'forgejo,github',
+        GITQUIRE_HOST_GITHUB_APP_PRIVATE_KEY: '',
         GITQUIRE_HOST_GITHUB_APP_PRIVATE_KEY_FILE: '/run/key.pem',
-        GITQUIRE_HOST_GITHUB_ALLOWED_OWNERS: 'Team',
       },
       '/data',
       read({ '/run/key.pem': PEM }),
     );
-    expect(settings.host).toBe('forgejo');
+    expect(settings.hosts.map((host) => host.key)).toEqual(['forgejo', 'github']);
     const gh = hostByKey(settings.hosts, 'github');
     expect(gh).toMatchObject({
       kind: 'github',
       webUrl: 'https://github.com',
       apiUrl: 'https://api.github.com',
-      githubApp: { appId: '9', privateKeyPem: PEM },
+      githubApp: { appId: '7', privateKeyPem: PEM },
       forgejoBotToken: undefined,
     });
     expect([...(gh?.allowedOwners ?? [])]).toEqual(['team']);
   });
 
   it.each([
-    [{ GITQUIRE_HOSTS: 'github' }, /the key of the first host/],
-    [{ GITQUIRE_HOSTS: 'forgejo,forgejo' }, /twice/],
+    [{ GITQUIRE_HOSTS: 'github,forgejo,github' }, /twice/],
     [{ GITQUIRE_HOSTS: 'Lab_1' }, /not a host key/],
-    [{ GITQUIRE_HOSTS: 'url' }, /mistaken for the first host's/],
-    [{ GITQUIRE_HOSTS: 'api-two' }, /mistaken for the first host's/],
-    [{ GITQUIRE_HOSTS: 'lab' }, /GITQUIRE_HOST_LAB_KIND must be github or forgejo/],
+    [{ GITQUIRE_HOSTS: 'url' }, /read like the old settings/],
+    [{ GITQUIRE_HOSTS: 'api-two' }, /read like the old settings/],
+    [{ GITQUIRE_HOSTS: 'github,forgejo,lab' }, /GITQUIRE_HOST_LAB_KIND must be github or forgejo/],
     [
-      { GITQUIRE_HOSTS: 'github2', GITQUIRE_HOST_GITHUB2_KIND: 'gitlab' },
+      { GITQUIRE_HOSTS: 'github,forgejo,github2', GITQUIRE_HOST_GITHUB2_KIND: 'gitlab' },
       /must be github or forgejo, got "gitlab"/,
     ],
     [
-      { GITQUIRE_HOSTS: 'forgejo', GITQUIRE_HOST_FORGEJO_KIND: 'github' },
+      { GITQUIRE_HOSTS: 'github,forgejo', GITQUIRE_HOST_FORGEJO_KIND: 'github' },
       /names the other kind of host/,
     ],
-    [{ GITQUIRE_HOSTS: 'a,a-api' }, /begins with "a-", the key of another host/],
-    [{ GITQUIRE_HOSTS: 'forgejo,forgejo-2' }, /begins with "forgejo-"/],
-    [{ GITQUIRE_HOSTS: 'github-lab' }, /begins with "github-"/],
-    [{ GITQUIRE_HOSTS: 'agents' }, /already uses \/auth\/agents/],
+    [{ GITQUIRE_HOSTS: 'github,a,a-api' }, /begins with "a-", the key of another host/],
+    [{ GITQUIRE_HOSTS: 'github,forgejo,forgejo-2' }, /begins with "forgejo-"/],
+    [{ GITQUIRE_HOSTS: 'github,github-lab' }, /begins with "github-"/],
+    [{ GITQUIRE_HOSTS: 'github,agents' }, /already uses \/auth\/agents/],
     [
       { GITQUIRE_HOST_FORGEJO_URL: 'https://code.example.org/?x=1' },
       /plain address, without a user, query/,
@@ -173,7 +157,7 @@ describe('the host list', () => {
     ],
     [
       {
-        GITQUIRE_HOSTS: 'forgejo,lab',
+        GITQUIRE_HOSTS: 'github,forgejo,lab',
         GITQUIRE_HOST_LAB_KIND: 'github',
         GITQUIRE_HOST_LAB_CLIENT_ID: 'x',
         GITQUIRE_HOST_LAB_CLIENT_SECRET: 'y',
@@ -185,14 +169,6 @@ describe('the host list', () => {
     ],
   ])('refuses %j', (extra, message) => {
     expect(() => resolveFrontDoorSettings({ ...plusForgejo, ...extra }, '/data')).toThrow(message);
-  });
-
-  it('names every missing setting of a further host', () => {
-    expect(() =>
-      resolveFrontDoorSettings({ ...github, GITQUIRE_HOSTS: 'forgejo' }, '/data'),
-    ).toThrow(
-      'The host "forgejo" in GITQUIRE_HOSTS needs: GITQUIRE_HOST_FORGEJO_CLIENT_ID, GITQUIRE_HOST_FORGEJO_CLIENT_SECRET (or _FILE), GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS, GITQUIRE_HOST_FORGEJO_URL, GITQUIRE_HOST_FORGEJO_TOKEN (or _FILE).',
-    );
   });
 
   it('sends tokens only over https and wants the root address of a Forgejo', () => {
@@ -210,6 +186,46 @@ describe('the host list', () => {
     ).toThrow(/root address/);
   });
 
+  it('sends a host plain http only on this machine', () => {
+    const local = resolveFrontDoorSettings(
+      { ...plusForgejo, GITQUIRE_HOST_FORGEJO_URL: 'http://127.0.0.1:3000' },
+      '/data',
+    );
+    expect(hostByKey(local.hosts, 'forgejo')?.apiUrl).toBe('http://127.0.0.1:3000/api/v1');
+    expect(() =>
+      resolveFrontDoorSettings(
+        { ...plusForgejo, GITQUIRE_HOST_FORGEJO_URL: 'http://127.0.0.1.example.org' },
+        '/data',
+      ),
+    ).toThrow(/must start with https:\/\//);
+  });
+
+  it('refuses a host variable of a host that is not listed, or misspelt, naming it', () => {
+    expect(() =>
+      resolveFrontDoorSettings({ ...plusForgejo, GITQUIRE_HOSTS: 'github' }, '/data'),
+    ).toThrow(/does not read GITQUIRE_HOST_FORGEJO_ADMINS, GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS/);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_HOST_GITHUB_ADMIN: 'bob' }, '/data'),
+    ).toThrow(/does not read GITQUIRE_HOST_GITHUB_ADMIN:/);
+    expect(() =>
+      resolveFrontDoorSettings({ ...github, GITQUIRE_HOST_GITHUB_ADMINS_FILE: '/x' }, '/data'),
+    ).toThrow(/GITQUIRE_HOST_GITHUB_ADMINS_FILE/);
+  });
+
+  it('takes localhost and 127.0.0.1 for the same server', () => {
+    expect(() =>
+      resolveFrontDoorSettings(
+        {
+          ...plusForgejo,
+          GITQUIRE_HOST_GITHUB_URL: 'http://localhost:3000',
+          GITQUIRE_HOST_GITHUB_API_URL: 'http://localhost:3000/api/v3',
+          GITQUIRE_HOST_FORGEJO_URL: 'http://127.0.0.1:3000',
+        },
+        '/data',
+      ),
+    ).toThrow(/same address/);
+  });
+
   it('refuses two hosts with the same given label', () => {
     expect(() =>
       resolveFrontDoorSettings({ ...plusForgejo, GITQUIRE_HOST_FORGEJO_LABEL: 'github' }, '/data'),
@@ -220,7 +236,7 @@ describe('the host list', () => {
     const settings = resolveFrontDoorSettings(
       {
         ...plusForgejo,
-        GITQUIRE_HOSTS: 'forgejo,ghe',
+        GITQUIRE_HOSTS: 'github,forgejo,ghe',
         GITQUIRE_HOST_GHE_KIND: 'github',
         GITQUIRE_HOST_GHE_URL: 'https://ghe.example.org/',
         GITQUIRE_HOST_GHE_CLIENT_ID: 'x',

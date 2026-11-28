@@ -72,7 +72,7 @@ describe('two hosts in one front door', () => {
     expect(toForgejo.host).toBe('forgejo');
     expect(principal(toForgejo)).toMatchObject({ id: 11, login: 'alice', repoAdmin: true });
     const toGithub = (await (await r.get('/w/github/team/g/page', cookie)).json()) as Echo;
-    expect(toGithub.host).toBeUndefined();
+    expect(toGithub.host).toBe('github');
     expect(principal(toGithub).repoAdmin).toBeUndefined();
     expect(r.hosts.forgejo.asked.some((line) => line.startsWith('bot:alice:2'))).toBe(false);
   });

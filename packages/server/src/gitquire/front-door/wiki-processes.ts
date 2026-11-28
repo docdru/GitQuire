@@ -35,7 +35,6 @@ const PASSED_SETTINGS = new Set([
   'GITQUIRE_ASK_AI',
   'GITQUIRE_ANTHROPIC_BASE_URL',
   'GITQUIRE_MISTRAL_BASE_URL',
-  'GITQUIRE_ADMINS',
   'GITQUIRE_CHAT_WEBHOOK_URL',
   'GITQUIRE_CHAT_FORMAT',
   'GITQUIRE_SEMANTIC_SEARCH',
@@ -45,14 +44,6 @@ const PASSED_SETTINGS = new Set([
   'GITQUIRE_EMBEDDINGS_MODEL',
   'GITQUIRE_EMBEDDINGS_DIMENSIONS',
   'GITQUIRE_NAMING',
-  'GITQUIRE_SYNC_MODE',
-  'GITQUIRE_AUTO_SYNC_MODE',
-  'GITQUIRE_COMMIT_EMAIL_FORMAT',
-  'GITQUIRE_HOST',
-  'GITQUIRE_HOST_URL',
-  'GITQUIRE_HOST_API_URL',
-  'GITQUIRE_GITHUB_WEB_URL',
-  'GITQUIRE_GITHUB_API_URL',
   'GITQUIRE_LANG',
   'GITQUIRE_LOG_LEVEL',
   'GITQUIRE_CONSOLE_LEVEL',
@@ -95,17 +86,7 @@ function isPassed(name: string): boolean {
   return PASSED_SYSTEM.has(upper);
 }
 
-const HOST_SETTINGS = new Set([
-  'GITQUIRE_HOST',
-  'GITQUIRE_HOST_URL',
-  'GITQUIRE_HOST_API_URL',
-  'GITQUIRE_GITHUB_WEB_URL',
-  'GITQUIRE_GITHUB_API_URL',
-  'GITQUIRE_COMMIT_EMAIL_FORMAT',
-  'GITQUIRE_ADMINS',
-]);
-
-function furtherHostEnv(host: HostSettings): Record<string, string> {
+function hostEnv(host: HostSettings): Record<string, string> {
   const addresses: Record<string, string> =
     host.kind === 'forgejo'
       ? { GITQUIRE_HOST_URL: host.webUrl, GITQUIRE_HOST_API_URL: host.apiUrl }
@@ -113,7 +94,7 @@ function furtherHostEnv(host: HostSettings): Record<string, string> {
   return {
     GITQUIRE_HOST: host.kind,
     ...addresses,
-    ...(host.key === host.kind ? {} : { [HOST_KEY_ENV]: host.key }),
+    [HOST_KEY_ENV]: host.key,
     [HOST_LABEL_ENV]: host.label,
     ...(host.commitEmailFormat === undefined
       ? {}
@@ -127,14 +108,12 @@ export function wikiEnv(
   wiki: WikiRecord,
   options: { externalUrl: URL; secret: string; tokenSocket: string; host?: HostSettings },
 ): Record<string, string> {
-  const further = options.host !== undefined && !options.host.primary ? options.host : undefined;
   const env: Record<string, string> = {};
   for (const [name, value] of Object.entries(base)) {
     if (value === undefined || !isPassed(name)) continue;
-    if (further !== undefined && HOST_SETTINGS.has(name.toUpperCase())) continue;
     env[name] = value;
   }
-  if (further !== undefined) Object.assign(env, furtherHostEnv(further));
+  if (options.host !== undefined) Object.assign(env, hostEnv(options.host));
   return {
     ...env,
     GITQUIRE_BEHIND_FRONT_DOOR: 'on',

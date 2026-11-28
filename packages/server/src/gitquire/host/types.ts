@@ -88,4 +88,5 @@ export interface DoorHost {
   tokenFor: (repo: HostRepoRef) => Promise<string | undefined>;
   contentsOf?: (repo: HostRepoRef) => string | undefined;
   selfCheck: () => Promise<SelfCheck>;
+  accountExists?: (name: string) => Promise<'found' | 'missing' | 'unknown'>;
 }

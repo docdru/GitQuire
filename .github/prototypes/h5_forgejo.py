@@ -619,7 +619,7 @@ def wikis_test():
     leaks = docker("exec", WIKIS_CONTAINER, "sh", "-c",
                    "for p in /proc/[0-9]*; do e=$(tr '\\0' '\\n' < $p/environ 2>/dev/null) || continue; "
                    "echo \"$e\" | grep -q '^GITQUIRE_BEHIND_FRONT_DOOR=on' || continue; "
-                   "echo \"$e\" | grep -Eq '^(GITQUIRE_HOST_TOKEN|GITQUIRE_HOST_CLIENT_SECRET|GITQUIRE_SESSION_SECRET)=' && echo leak; "
+                   "echo \"$e\" | grep -Eq '^(GITQUIRE_HOST_TOKEN|GITQUIRE_HOST_CLIENT_SECRET|GITQUIRE_HOST_FORGEJO_[A-Z_]*|GITQUIRE_SESSION_SECRET)=' && echo leak; "
                    "echo editor; done", check_ok=False).stdout.split()
     check("Wikis R12", leaks.count("editor") >= 2 and "leak" not in leaks,
           f"editor processes: {leaks.count('editor')}, holding the bot token or a secret: {leaks.count('leak')}")

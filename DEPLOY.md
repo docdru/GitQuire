@@ -537,19 +537,15 @@ after 30 minutes without use, once it says it is pushed and clean. A volume of t
 | Setting | Meaning |
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. `off` or empty: one wiki, exactly as before. Any other value stops the container. |
-| `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
-| `GITQUIRE_REPO` | Optional. Without `GITQUIRE_ALLOWED_OWNERS`, its owner is the allowed owner. |
-| `GITQUIRE_ADMINS` | Server administrators. They see every disconnected wiki and why, can revoke anyone's agent tokens, and on Forgejo they are the only ones who add a wiki, because they enter its token. |
+| `GITQUIRE_HOSTS` and `GITQUIRE_HOST_<KEY>_…` | Every Git host, see [Two Git hosts on one server](#two-git-hosts-on-one-server). |
+| `GITQUIRE_HOST_<KEY>_ALLOWED_OWNERS` | Required. Users or organisations on the host whose repositories may become wikis, separated by commas. |
+| `GITQUIRE_HOST_<KEY>_ADMINS` | Server administrators of that host. They see every disconnected wiki and why, can revoke anyone's agent tokens, and on Forgejo they are the only ones who add a wiki, because they enter its token. |
 
-Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET` (at least 32
-characters), optionally `GITQUIRE_SESSION_DAYS`, `GITQUIRE_EXTERNAL_URL` (the root address, without
-a path), and GitQuire's own access: on GitHub `GITHUB_APP_ID` and the private key, on Forgejo
-`GITQUIRE_HOST_TOKEN` (the bot's unlimited token). The front door does not use
-`GITQUIRE_HOST_REPO_TOKEN` and warns when it is set.
-
-`GITQUIRE_ALLOWED_USERS` and `GITQUIRE_MCP_TOKEN` cannot be used with `GITQUIRE_WIKIS=on`: both
-skip the check of who may write to a repository and would open every wiki. GitQuire refuses to
-start with either set.
+Also needed: `GITQUIRE_SESSION_SECRET` (at least 32 characters), optionally
+`GITQUIRE_SESSION_DAYS`, and `GITQUIRE_EXTERNAL_URL` (the root address, without a path). Each
+host's sign-in application and GitQuire's own access on it (on GitHub the App's id and private key,
+on Forgejo the bot's unlimited token) are described per host. `GITQUIRE_ALLOWED_USERS` and
+`GITQUIRE_MCP_TOKEN` are refused: the Git host decides who may open each wiki.
 
 ### Allowed owners
 
@@ -704,20 +700,19 @@ personal settings, saved AI keys, AI chats, agent tokens and connector approvals
 
 One front door can serve wikis from **GitHub and one Forgejo server** together; this combination is
 tested (against the real Forgejo 15 and a GitHub fake; the real GitHub has not been tried with two
-hosts yet). The host you configure as today is the **first host**. Further hosts are listed in
-`GITQUIRE_HOSTS` and each is described by its own variables, `GITQUIRE_HOST_<KEY>_…`:
+hosts yet). **Every host** is listed in `GITQUIRE_HOSTS` and described by its own variables,
+`GITQUIRE_HOST_<KEY>_…`; there is no first host, and the order of the list means nothing:
 
 ```env
-GITQUIRE_WIKIS=on
-GITQUIRE_HOST=forgejo
-GITQUIRE_HOST_URL=https://git.example.com
-GITQUIRE_HOST_CLIENT_ID=…
-GITQUIRE_HOST_CLIENT_SECRET=…
-GITQUIRE_HOST_TOKEN_FILE=/run/secrets/forgejo-bot
-GITQUIRE_ALLOWED_OWNERS=team
-GITQUIRE_ADMINS=alice
+GITQUIRE_HOSTS=forgejo,github
 
-GITQUIRE_HOSTS=github
+GITQUIRE_HOST_FORGEJO_URL=https://git.example.com
+GITQUIRE_HOST_FORGEJO_CLIENT_ID=…
+GITQUIRE_HOST_FORGEJO_CLIENT_SECRET=…
+GITQUIRE_HOST_FORGEJO_TOKEN_FILE=/run/secrets/forgejo-bot
+GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS=team
+GITQUIRE_HOST_FORGEJO_ADMINS=alice
+
 GITQUIRE_HOST_GITHUB_CLIENT_ID=…
 GITQUIRE_HOST_GITHUB_CLIENT_SECRET_FILE=/run/secrets/github-client-secret
 GITQUIRE_HOST_GITHUB_APP_ID=123456
@@ -728,18 +723,29 @@ GITQUIRE_HOST_GITHUB_ADMINS=alice
 
 | Variable | Meaning |
 | --- | --- |
-| `GITQUIRE_HOSTS` | The keys of the further hosts, separated by commas. A key is lower-case letters, digits and dashes, starting with a letter; it appears in addresses (`/w/<key>/…`) and person ids, so do not change it later. A key that is `github` or `forgejo` is also the kind. |
+| `GITQUIRE_HOSTS` | The keys of the hosts, separated by commas. A key is lower-case letters, digits and dashes, starting with a letter; it appears in addresses (`/w/<key>/…`) and person ids, so do not change it later. A key that is `github` or `forgejo` is also the kind. |
 | `GITQUIRE_HOST_<KEY>_KIND` | `github` or `forgejo`; may be left out when the key is the kind. |
-| `GITQUIRE_HOST_<KEY>_URL`, `_API_URL` | The host's https address; for GitHub default `https://github.com` (then the API is `https://api.github.com`, otherwise `<url>/api/v3`), for Forgejo required (the API defaults to `<url>/api/v1`). |
+| `GITQUIRE_HOST_<KEY>_URL`, `_API_URL` | The host's https address (plain http only to `127.0.0.1` or `localhost`); for GitHub default `https://github.com` (then the API is `https://api.github.com`, otherwise `<url>/api/v3`), for Forgejo required (the API defaults to `<url>/api/v1`). |
 | `GITQUIRE_HOST_<KEY>_CLIENT_ID`, `_CLIENT_SECRET` (or `_FILE`) | The sign-in application of this host. Its callback is `<server>/auth/<key>/callback`. |
-| GitHub: `GITQUIRE_HOST_<KEY>_APP_ID`, `_APP_PRIVATE_KEY_FILE` (or `_APP_PRIVATE_KEY`) | The GitHub App, as for the first host. |
-| Forgejo: `GITQUIRE_HOST_<KEY>_TOKEN` (or `_FILE`) | The bot's unlimited token, as `GITQUIRE_HOST_TOKEN`. |
+| GitHub: `GITQUIRE_HOST_<KEY>_APP_ID`, `_APP_PRIVATE_KEY_FILE` (or `_APP_PRIVATE_KEY`) | The GitHub App. |
+| Forgejo: `GITQUIRE_HOST_<KEY>_TOKEN` (or `_FILE`) | The bot's unlimited token. |
 | `GITQUIRE_HOST_<KEY>_ALLOWED_OWNERS` | Required: the owners on this host whose repositories may become wikis. |
-| `GITQUIRE_HOST_<KEY>_ADMINS` | Server administrators on this host. `GITQUIRE_ADMINS` is for the first host only. |
+| `GITQUIRE_HOST_<KEY>_ADMINS` | Server administrators on this host. |
 | `GITQUIRE_HOST_<KEY>_LABEL`, `_COMMIT_EMAIL_FORMAT` | Optional: the name shown to people, and the commit address format. |
 
-A single wiki (`GITQUIRE_WIKIS` off) refuses `GITQUIRE_HOSTS`. Two hosts with the same address
-are refused. With one host, nothing above is needed.
+Two hosts with the same address are refused. At start the log has one line per host with its key,
+kind, address, the callback address to register, allowed owners and administrators (never a
+secret), and a warning for an administrator or allowed owner the host does not know. A host that
+cannot be reached at start is warned about; a host whose settings it refuses (a wrong token, say)
+stops the start.
+
+**Old settings stop the start.** The front door refuses, all at once, every setting it no longer
+reads (`GITQUIRE_REPO`, `GITHUB_APP_*`, `GITQUIRE_GITHUB_*_URL`, `GITQUIRE_HOST`, the unqualified
+`GITQUIRE_HOST_URL`, `_CLIENT_ID`, `_CLIENT_SECRET`, `_TOKEN`, `_REPO_TOKEN`, `GITQUIRE_ADMINS`,
+`GITQUIRE_ALLOWED_OWNERS`, `GITQUIRE_COMMIT_EMAIL_FORMAT`, `GITQUIRE_ALLOWED_USERS`,
+`GITQUIRE_MCP_TOKEN`, `GITQUIRE_AUTH`, `GITQUIRE_BRANCH`, `GITQUIRE_SYNC_MODE`), each with its new
+name, even when it is empty. A value that ends in a comment (`on   # …`) is refused too: `docker
+run --env-file` passes the comment as part of the value, so put comments on a line of their own.
 
 **People sign in once per host.** The sign-in page (`/auth/sign-in`) offers each host; a person can
 be signed in with both at once, and each account sees the wikis of its own host. Accounts are never

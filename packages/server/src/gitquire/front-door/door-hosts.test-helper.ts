@@ -1,26 +1,26 @@
 import { forgejoNames, gitHubNames } from '../host/names.ts';
-import type { DoorHost } from '../host/types.ts';
+import type { DoorHost, HostKind } from '../host/types.ts';
 import type { WikiAccess } from './access.ts';
 import type { AllowedOwners } from './allowed-owners.ts';
 import { type DoorHostEntry, type DoorHosts, doorHostPaths, doorHosts } from './door-hosts.ts';
 import type { HostSettings } from './hosts.ts';
 import type { AddWikiHelp } from './pages.ts';
 import type { ForgejoTokenChecks } from './server.ts';
-import type { FrontDoorSettings } from './settings.ts';
+
+export interface HostBaseForTest {
+  host: HostKind;
+  webUrl: string;
+  apiUrl: string;
+  clientId: string;
+  clientSecret: string;
+  githubApp: HostSettings['githubApp'];
+  forgejoBotToken: string | undefined;
+  allowedOwners: ReadonlySet<string>;
+  serverAdmins: ReadonlySet<string>;
+}
 
 export function hostSettingsForTest(
-  settings: Pick<
-    FrontDoorSettings,
-    | 'host'
-    | 'webUrl'
-    | 'apiUrl'
-    | 'clientId'
-    | 'clientSecret'
-    | 'githubApp'
-    | 'forgejoBotToken'
-    | 'allowedOwners'
-    | 'serverAdmins'
-  >,
+  settings: HostBaseForTest,
   extra: Partial<HostSettings> = {},
 ): HostSettings {
   const kind = extra.kind ?? settings.host;

@@ -7,6 +7,7 @@ import { fakeControl, hostFile, serverLogs, settings, stopFake, stopServer } fro
 import { generateBareRepo, pagePath } from './generate.mjs';
 
 const page = (i) => pagePath(i, 10);
+
 import { MarkerBoard, Reader, Typist } from './people.mjs';
 import { Sampler } from './sampler.mjs';
 import { memorySummary, Recorder } from './stats.mjs';

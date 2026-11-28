@@ -3,7 +3,7 @@ import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { deriveChatKeySecret, derivePeopleKeySecret } from '../chat/key-secret.ts';
-import { createAppJwt, GitHubUnavailableError, retryWhileUnavailable } from '../github-app.ts';
+import { createAppJwt } from '../github-app.ts';
 import type { DoorHost, HostPerson } from '../host/types.ts';
 import { isSameOriginRequest } from '../http-util.ts';
 import { resolveMailConfig, sendMail } from '../mail.ts';
@@ -30,6 +30,7 @@ import {
   trialKey,
 } from './door-hosts.ts';
 import { createForgejoTokenScopeCheck } from './forgejo-token-check.ts';
+import { checkHosts, hostSummary, warnUnknownNames } from './host-checks.ts';
 import type { HostSettings } from './hosts.ts';
 import { createMentionCounts } from './mention-counts.ts';
 import { createPersonSocketHandler } from './person-socket.ts';
@@ -76,21 +77,6 @@ export function refuseSingleWikiVolume(dataDir: string): void {
   );
 }
 
-async function checkHost(host: DoorHost, log: GateLogger): Promise<void> {
-  await retryWhileUnavailable(
-    async () => {
-      const result = await host.selfCheck();
-      if (result.ok) return;
-      if (result.unreachable) throw new GitHubUnavailableError(result.problems.join(' '));
-      throw new FrontDoorConfigError(result.problems.join(' '));
-    },
-    {
-      onRetry: (err, attempt, delayMs) =>
-        log.warn({ attempt, delayMs, reason: err.message }, '[gitquire-door] host unavailable'),
-    },
-  );
-}
-
 export async function startFrontDoor(
   dataDir: string,
   env: Env,
@@ -98,12 +84,6 @@ export async function startFrontDoor(
 ): Promise<RunningFrontDoor> {
   const log = options.log;
   const settings: FrontDoorSettings = resolveFrontDoorSettings(env, dataDir);
-  if ((env.GITQUIRE_HOST_REPO_TOKEN ?? env.GITQUIRE_HOST_REPO_TOKEN_FILE ?? '').trim() !== '') {
-    log.warn(
-      {},
-      "[gitquire-door] GITQUIRE_HOST_REPO_TOKEN is not used with GITQUIRE_WIKIS=on; a server administrator enters each wiki's token when adding it",
-    );
-  }
   refuseSingleWikiVolume(settings.dataDir);
   mkdirSync(join(settings.dataDir, 'server'), { recursive: true, mode: 0o700 });
   chmodSync(join(settings.dataDir, 'server'), 0o700);
@@ -114,13 +94,7 @@ export async function startFrontDoor(
 
   function entryFor(hostSettings: HostSettings): DoorHostEntry {
     const key = hostSettings.key;
-    const owners: AllowedOwners = hostSettings.primary
-      ? { names: hostSettings.allowedOwners, pinned: table.ownerIds, pin: table.pinOwner }
-      : {
-          names: hostSettings.allowedOwners,
-          pinned: () => table.hostOwnerIds(key),
-          pin: (owner, id) => table.pinHostOwner(key, owner, id),
-        };
+    const owners: AllowedOwners = { names: hostSettings.allowedOwners, ...table.pinsOn(key) };
     const trial = new Map<string, string>();
     const store =
       hostSettings.kind === 'forgejo' ? tokenFile.scoped(repoTokenKey(table, key)) : undefined;
@@ -190,22 +164,11 @@ export async function startFrontDoor(
   }
 
   const hosts = doorHosts(settings.hosts.map(entryFor));
-  await checkHost(hosts.primary.host, log);
-  for (const further of hosts.list().slice(1)) {
-    further.host
-      .selfCheck()
-      .then((result) => {
-        if (!result.ok) {
-          log.warn(
-            { host: further.key, unreachable: result.unreachable, problems: result.problems },
-            '[gitquire-door] a further host did not pass its start check; its wikis stay closed until it does',
-          );
-        }
-      })
-      .catch((err: unknown) =>
-        log.warn({ err, host: further.key }, '[gitquire-door] a further host could not be checked'),
-      );
+  for (const entry of hosts.list()) {
+    log.info(hostSummary(entry, settings.externalUrl), '[gitquire-door] host');
   }
+  await checkHosts(hosts.list(), log);
+  void warnUnknownNames(hosts.list(), log);
 
   const tickets = createPersonTickets();
   const people = createPeopleStore(frontDoorPeopleRoot(settings.dataDir));
@@ -486,10 +449,8 @@ export async function startFrontDoor(
   log.info(
     {
       port: boundPort,
-      host: settings.host,
-      ...(hosts.list().length > 1 ? { hosts: hosts.list().map((entry) => entry.key) } : {}),
+      hosts: hosts.list().map((entry) => entry.key),
       wikis: table.list().length,
-      allowedOwners: [...settings.allowedOwners],
     },
     '[gitquire-door] front door started',
   );
