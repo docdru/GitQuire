@@ -230,7 +230,7 @@ so the App needs **Pull requests: read and write** and **Contents: read and writ
 drafts use the repository's `origin` remote directly and are published by a squash merge.
 
 For each draft in use, the server starts one more editor process, with its own working copy, and
-forwards the people who opened that draft to it over a Unix socket in a private folder under `/tmp`. A process needs about 250 MB of
+forwards the people who opened that draft to it over a Unix socket in a private folder under `/tmp`. A process needs about 230 MB of
 memory, starts in a few seconds, and stops 10 minutes after the last person closed the draft (30 minutes when only an AI assistant uses it). Working
 copies are kept in `GITQUIRE_DRAFTS_DIR` (default: `.gitquire-drafts/<folder>` next to the project,
 so `/.gitquire-drafts/data` in the container). They can be recreated from GitHub, but mount a volume
@@ -852,8 +852,8 @@ further host's wiki, and would take such a wiki for one of the first host's.
 
 - One GitHub and one Forgejo per server are tested; more hosts may work but are not promised.
   Accounts on two hosts are not linked, and an AI connection reaches one host.
-- About 250 MB of memory per wiki in use, and the same per draft in use. A wiki's process starts
-  when someone opens it (a few seconds) and stops after 30 minutes without use.
+- Memory: see [Sizing](#sizing). A wiki's process starts when someone opens it (a few seconds)
+  and stops after 30 minutes without use.
 - All wikis share one browser origin and one container user; the separation is the front door's
   access check and one process, folder and token per wiki.
 - On Forgejo, only server administrators add wikis, each needs its own limited token made while
@@ -874,6 +874,23 @@ further host's wiki, and would take such a wiki for one of the first host's.
 | `GITQUIRE_WIKI_IDLE_MINUTES` | How long a wiki's process keeps running without use, default 30. It stops only once it is pushed and clean, and starts again on the next request. |
 | `GITQUIRE_BRANCH_WATCH_SECONDS` | How often the front door asks the host whether a sleeping wiki's branch moved, at least 10, default 600. After a failed check a wiki is asked again after twice the time, up to two hours. |
 | `GITQUIRE_PROCESS_HEAP_MB` | Heap limit in MB for each wiki and draft process (Node's `--max-old-space-size`), 64 to 65536, default 256; `0` for no limit. Without a limit each process sizes its heap from the whole machine's memory and keeps garbage it has not collected yet. |
+
+## Sizing
+
+Measured with the load test (`loadtest/`) on 2 vCPU / 4 GB, November 2026:
+
+| Part | Plan for |
+| --- | --- |
+| Front door | 250 MB |
+| Each open wiki | 400 MB with the default heap limit (`GITQUIRE_PROCESS_HEAP_MB=256`), 650 MB at 5,000 pages; about 550 MB without the limit |
+| Each draft in use | 230 MB |
+
+Before starting another wiki or draft above 80 % of the container's memory, the front door first
+puts the longest-idle one to sleep, and otherwise answers "This server is busy. Try again in a
+minute.". In 4 GB that is about ten small wikis or 18 drafts. The heap limit keeps running
+processes from growing into the container's limit, but on 2 vCPU it costs speed once several
+wikis are busy (garbage collection): with five busy wikis, edits reach the server in about 1.5 s
+instead of 0.5 s. With few wikis and more memory, `GITQUIRE_PROCESS_HEAP_MB=0` is faster.
 
 ## Build the image yourself
 
