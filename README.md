@@ -155,15 +155,16 @@ the content repository can use the wiki, and loses access when they lose reposit
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e GITQUIRE_ALLOW_EXTERNAL=1 \
   -v gitquire-data:/data \
   ghcr.io/docdru/gitquire:latest
-# then open http://localhost:8080
+# then open http://localhost:8080: the set-up page names the settings to give
+# (GITQUIRE_EXTERNAL_URL, GITQUIRE_SESSION_SECRET, GITQUIRE_HOSTS and the host's own)
+# and the callback address to register at the Git host
 ```
 
 GitQuire runs only in this Docker image (one Linux container, the wiki in the `/data` volume); it is
-not installed directly on a computer. The command above runs it without sign-in or sync, which is fine for a look around but not for a
-shared server. **[DEPLOY.md](./DEPLOY.md)** covers setting up the GitHub App, sign-in, repository
+not installed directly on a computer. Sign-in with the Git host is always on; there is no mode
+without it. **[DEPLOY.md](./DEPLOY.md)** covers setting up the GitHub App, sign-in, repository
 sync, email and chat notifications, and AI agent access.
 
 ## Roadmap

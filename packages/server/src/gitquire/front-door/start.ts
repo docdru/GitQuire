@@ -1,6 +1,6 @@
 import { chmodSync, mkdirSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { deriveChatKeySecret, derivePeopleKeySecret } from '../chat/key-secret.ts';
 import { createAppJwt } from '../github-app.ts';
@@ -39,8 +39,10 @@ import { createFrontDoor, type ForgejoTokenChecks, RECHECK_MS } from './server.t
 import {
   FrontDoorConfigError,
   type FrontDoorSettings,
+  FrontDoorSetupNeeded,
   resolveFrontDoorSettings,
 } from './settings.ts';
+import { createSetupServer } from './setup-page.ts';
 import { listenTokenSocket } from './token-socket.ts';
 import { createWikiProcesses } from './wiki-processes.ts';
 import {
@@ -77,14 +79,54 @@ export function refuseSingleWikiVolume(dataDir: string): void {
   );
 }
 
+async function listen(server: Server, env: Env): Promise<number> {
+  const port = Number(env.PORT ?? '') || 8080;
+  const bind = (env.GITQUIRE_BIND ?? '').trim() || '127.0.0.1';
+  await new Promise<void>((done, reject) => {
+    server.once('error', reject);
+    server.listen(port, bind, () => done());
+  });
+  const address = server.address();
+  return typeof address === 'object' && address !== null ? address.port : port;
+}
+
+async function startSetupPage(
+  needed: FrontDoorSetupNeeded,
+  env: Env,
+  log: GateLogger,
+): Promise<RunningFrontDoor> {
+  const server = createSetupServer(needed);
+  const port = await listen(server, env);
+  log.warn(
+    { port, missing: needed.missing },
+    '[gitquire-door] not set up yet: every address shows the set-up page until these settings are given',
+  );
+  return {
+    server,
+    port,
+    stop: async () => {
+      await new Promise<void>((done) => {
+        server.close(() => done());
+        server.closeAllConnections();
+      });
+    },
+  };
+}
+
 export async function startFrontDoor(
   dataDir: string,
   env: Env,
   options: { log: GateLogger; cli: readonly string[] },
 ): Promise<RunningFrontDoor> {
   const log = options.log;
-  const settings: FrontDoorSettings = resolveFrontDoorSettings(env, dataDir);
-  refuseSingleWikiVolume(settings.dataDir);
+  refuseSingleWikiVolume(resolve(dataDir));
+  let settings: FrontDoorSettings;
+  try {
+    settings = resolveFrontDoorSettings(env, dataDir);
+  } catch (err) {
+    if (!(err instanceof FrontDoorSetupNeeded)) throw err;
+    return startSetupPage(err, env, log);
+  }
   mkdirSync(join(settings.dataDir, 'server'), { recursive: true, mode: 0o700 });
   chmodSync(join(settings.dataDir, 'server'), 0o700);
   mkdirSync(join(settings.dataDir, 'wikis'), { recursive: true });
@@ -412,14 +454,7 @@ export async function startFrontDoor(
   }
   const server = createServer(door.handleRequest);
   server.on('upgrade', door.handleUpgrade);
-  const port = Number(env.PORT ?? '') || 8080;
-  const bind = (env.GITQUIRE_BIND ?? '').trim() || '127.0.0.1';
-  await new Promise<void>((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(port, bind, () => resolve());
-  });
-  const address = server.address();
-  const boundPort = typeof address === 'object' && address !== null ? address.port : port;
+  const boundPort = await listen(server, env);
 
   const recheck = setInterval(
     () => {

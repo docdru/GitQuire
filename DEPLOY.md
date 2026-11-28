@@ -23,14 +23,16 @@ agent access. For what GitQuire does, see the [README](./README.md).
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e GITQUIRE_ALLOW_EXTERNAL=1 \
   -v gitquire-data:/data \
   ghcr.io/docdru/gitquire:latest
-# then open http://localhost:8080
+# then open http://localhost:8080: the set-up page names the settings to give
+# (GITQUIRE_EXTERNAL_URL, GITQUIRE_SESSION_SECRET, GITQUIRE_HOSTS and the host's own)
+# and the callback address to register at the Git host
 ```
 
-> **Warning:** without GitHub sign-in (below), anyone who can reach the port can read and edit
-> everything. Turn sign-in on before exposing GitQuire beyond localhost.
+Until a Git host is configured, every address shows that set-up page (`/healthz` answers, `/readyz`
+says not ready); no wiki is reachable. Once set up, people sign in with the host and a server
+administrator adds wikis with **Add a wiki**.
 
 Behind a real domain, also set `GITQUIRE_EXTERNAL_URL=https://your.domain`. Run exactly one container per
 volume: the collaboration server is single-writer. Health checks: `GET /healthz` and `GET /readyz`.

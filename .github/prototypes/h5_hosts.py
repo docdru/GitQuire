@@ -69,7 +69,7 @@ def start():
     env = {
         "NODE_EXTRA_CA_CERTS": "/ca/cert.pem", "GIT_SSL_CAINFO": "/ca/cert.pem",
         "PORT": str(PORT), "GITQUIRE_EXTERNAL_URL": HOSTS,
-        "GITQUIRE_WIKIS": "on", "GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS": "team", "GITQUIRE_HOST_FORGEJO_ADMINS": "alice",
+        "GITQUIRE_HOST_FORGEJO_ALLOWED_OWNERS": "team", "GITQUIRE_HOST_FORGEJO_ADMINS": "alice",
         "GITQUIRE_HOSTS": "forgejo,github", "GITQUIRE_HOST_FORGEJO_URL": os.environ["FORGEJO_URL"],
         "GITQUIRE_HOST_FORGEJO_CLIENT_ID": os.environ["HOSTS_CLIENT_ID"],
         "GITQUIRE_HOST_FORGEJO_CLIENT_SECRET": os.environ["HOSTS_CLIENT_SECRET"],
