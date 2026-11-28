@@ -46,7 +46,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: loadtest-${{ github.ref }}
+  group: loadtest-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'auto' }}
   cancel-in-progress: false
 
 jobs:
