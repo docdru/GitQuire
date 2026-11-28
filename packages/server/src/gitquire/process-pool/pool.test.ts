@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(200, { 'content-type': 'application/json' });
   if (req.url === '/heap') {
-    res.end(JSON.stringify({ limitMb: Math.round(require('node:v8').getHeapStatistics().heap_size_limit / 1048576) }));
+    res.end(JSON.stringify({ execArgv: process.execArgv, limitMb: Math.round(require('node:v8').getHeapStatistics().heap_size_limit / 1048576) }));
     return;
   }
   res.end(JSON.stringify({ url: req.url, port: process.env.PORT ?? null, args: process.argv.slice(2) }));
@@ -94,9 +94,13 @@ describe('process pool', () => {
     const children = pool([], 192);
     const cwd = tempDir();
     const socket = await children.ensure('small', async () => ({ cwd, env: { ...process.env } }));
-    const limit = JSON.parse((await socketGet(socket, '/heap')).body) as { limitMb: number };
+    const limit = JSON.parse((await socketGet(socket, '/heap')).body) as {
+      execArgv: string[];
+      limitMb: number;
+    };
+    expect(limit.execArgv).toContain('--max-old-space-size=192');
     expect(limit.limitMb).toBeGreaterThanOrEqual(192);
-    expect(limit.limitMb).toBeLessThan(260);
+    expect(limit.limitMb).toBeLessThan(1024);
     expect(JSON.parse((await socketGet(socket, '/x')).body).args).toEqual(['start']);
   });
 
