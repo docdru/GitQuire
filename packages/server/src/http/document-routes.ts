@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
@@ -233,6 +234,11 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
     { handler: 'document-read', method: 'GET', skipBodyParse: true },
   );
 
+  const listToken = randomBytes(6).toString('hex');
+  const documentListCache = new Map<string, { cacheKey: string; body: string }>();
+
+  const DOCUMENT_LIST_CACHE_ENTRIES = 8;
+
   const handleDocumentList = withValidation(
     EmptyRequestSchema,
     async (req, res) => {
@@ -419,6 +425,20 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
               '[api] ready gate rejected — responding with partial index',
             );
           });
+        }
+        const generation = getFileIndexGeneration?.();
+        const cacheKey =
+          generation === undefined ? undefined : `documents-${listToken}-${generation}`;
+        const listKey = dir ?? '';
+        const kept = cacheKey === undefined ? undefined : documentListCache.get(listKey);
+        if (kept !== undefined && kept.cacheKey === cacheKey) {
+          res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'X-Content-Type-Options': 'nosniff',
+            'Cache-Control': 'no-store',
+          });
+          res.end(kept.body);
+          return;
         }
         const index = getFileIndex();
         const allFiles = [...getAllFilesIndex()];
@@ -654,13 +674,41 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
           const bPath = b.kind === 'folder' ? (b.path ?? '') : (b.docName ?? b.path ?? '');
           return aPath.localeCompare(bPath);
         });
-        successResponse(
-          res,
-          200,
-          DocumentListSuccessSchema,
-          { documents },
-          { handler: 'document-list' },
-        );
+        if (cacheKey === undefined) {
+          successResponse(
+            res,
+            200,
+            DocumentListSuccessSchema,
+            { documents },
+            { handler: 'document-list' },
+          );
+          return;
+        }
+        const validated = DocumentListSuccessSchema.safeParse({ documents });
+        if (!validated.success) {
+          successResponse(
+            res,
+            200,
+            DocumentListSuccessSchema,
+            { documents },
+            { handler: 'document-list' },
+          );
+          return;
+        }
+        const body = JSON.stringify(validated.data);
+        if (getFileIndexGeneration?.() === generation) {
+          documentListCache.set(listKey, { cacheKey, body });
+          if (documentListCache.size > DOCUMENT_LIST_CACHE_ENTRIES) {
+            const oldest = documentListCache.keys().next().value;
+            if (oldest !== undefined) documentListCache.delete(oldest);
+          }
+        }
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'X-Content-Type-Options': 'nosniff',
+          'Cache-Control': 'no-store',
+        });
+        res.end(body);
       } catch (e) {
         errorResponse(res, 500, 'urn:ok:error:internal-server-error', 'Failed to list documents.', {
           handler: 'document-list',

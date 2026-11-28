@@ -1271,6 +1271,7 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
         asksForMe ? deps.agents?.features(seat.entry.key, user) : undefined,
       ),
       unavailable: { error: 'wiki-unavailable', message: 'The wiki is not reachable.' },
+      compress: true,
       rewriteHeaders: (headers) =>
         translateResponseHeaders(headers, { prefix: wikiPrefix(wiki), key: wiki.key, secure }),
     });
