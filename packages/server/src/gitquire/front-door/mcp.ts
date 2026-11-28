@@ -22,6 +22,7 @@ import type { AgentTokenRecord } from '../agent-tokens.ts';
 import { EDITS_DRAFT_HEADER, EDITS_HEADER } from '../drafts/model.ts';
 import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
 import { PERSON_TICKET_HEADER } from '../people/ticket.ts';
+import { ServerBusyError } from '../process-pool/memory.ts';
 import {
   encodeProxiedUser,
   FORWARDED_PREFIX_HEADER,
@@ -396,7 +397,9 @@ export function createDoorMcp(deps: DoorMcpDeps): DoorMcp {
         refused:
           err instanceof WikiClosedError
             ? `The wiki ${wiki.owner}/${wiki.name} is disconnected.`
-            : `The wiki ${wiki.owner}/${wiki.name} could not be started. Try again in a moment.`,
+            : err instanceof ServerBusyError
+              ? 'This server is busy. Try again in a minute.'
+              : `The wiki ${wiki.owner}/${wiki.name} could not be started. Try again in a moment.`,
       };
     }
     deps.processes.touch(wiki.key);

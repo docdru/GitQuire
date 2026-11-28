@@ -7,6 +7,7 @@ import { HOST_KEY_ENV, HOST_LABEL_ENV } from '../host/names.ts';
 import { repoChange } from '../host/renames.ts';
 import type { DoorHost, Refusal } from '../host/types.ts';
 import { INTERNAL_REQUEST_HEADER, INTERNAL_SECRET_ENV } from '../internal-request.ts';
+import { containerMemory, makeRoom, type ReadMemory } from '../process-pool/memory.ts';
 import {
   createProcessPool,
   type ProcessPool,
@@ -186,6 +187,7 @@ export interface WikiProcessesDeps {
   socketDir?: string;
   idleMs?: number;
   heapMb?: number;
+  memory?: ReadMemory;
   now?: () => number;
 }
 
@@ -222,6 +224,7 @@ function runBootstrap(
 export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
   const now = deps.now ?? Date.now;
   const idleMs = deps.idleMs ?? WIKI_IDLE_MS;
+  const memory = deps.memory ?? (() => containerMemory());
   const secrets = new Map<string, string>();
   const bySocket = new Map<string, string>();
   const lastUsed = new Map<string, number>();
@@ -325,6 +328,21 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
           `The host cannot be reached, and the owner of ${wiki.owner}/${wiki.name} was never confirmed by id.`,
         );
       }
+      await makeRoom({
+        memory,
+        candidates: () =>
+          pool
+            .running()
+            .filter((key) => key !== wiki.key && (holds.get(key) ?? 0) === 0)
+            .map((key) => ({ id: key, idleSinceMs: lastUsed.get(key) ?? 0 })),
+        sleep: (key) => stopIfStoppable(key, 'making room'),
+        now,
+        onSlept: (key, use) =>
+          deps.log.info(
+            { wiki: key, for: wiki.key, usedMb: Math.round(use.usedBytes / 1048576) },
+            '[gitquire-wikis] memory is tight: put an idle wiki to sleep',
+          ),
+      });
       starting.add(wiki.key);
       try {
         return await prepare(wiki);
@@ -351,14 +369,15 @@ export function createWikiProcesses(deps: WikiProcessesDeps): WikiProcesses {
     return { cwd: dir, env };
   }
 
-  async function stopIfStoppable(key: string, why: string): Promise<void> {
+  async function stopIfStoppable(key: string, why: string): Promise<boolean> {
     const state = await pool.stopState(key);
     if (state?.pushedAndClean !== true) {
       deps.log.info({ wiki: key, why }, '[gitquire-wikis] not stopping: not pushed and clean yet');
-      return;
+      return false;
     }
     deps.log.info({ wiki: key, why }, '[gitquire-wikis] stopping a wiki process');
     await pool.stop(key);
+    return true;
   }
 
   async function sweep(): Promise<void> {

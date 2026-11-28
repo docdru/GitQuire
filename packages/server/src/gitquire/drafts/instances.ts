@@ -2,6 +2,7 @@ import { existsSync, rmSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { INTERNAL_SECRET_ENV } from '../internal-request.ts';
+import { containerMemory, makeRoom, type ReadMemory } from '../process-pool/memory.ts';
 import {
   createProcessPool,
   type ProcessPool,
@@ -35,6 +36,7 @@ export interface DraftInstancesDeps {
   socketDir?: string;
   idleMs?: number;
   heapMb?: number;
+  memory?: ReadMemory;
   now?: () => number;
 }
 
@@ -67,6 +69,8 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
     stopGraceMs: deps.behindFrontDoor === true ? BEHIND_DRAFT_STOP_GRACE_MS : STOP_GRACE_MS,
     now: deps.now,
   });
+  const memory = deps.memory ?? (() => containerMemory());
+  const now = deps.now ?? Date.now;
   const folder = deps.projectName ?? 'wiki';
   const dir = (slug: string): string => join(deps.baseDir, slug, basename(folder));
 
@@ -86,6 +90,20 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
       if (deps.stillOpen !== undefined && !deps.stillOpen(draft.slug)) {
         throw new Error(`The draft "${draft.slug}" is closed.`);
       }
+      await makeRoom({
+        memory,
+        candidates: () => pool.unheld().filter((entry) => entry.id !== draft.slug),
+        sleep: async (slug) => {
+          await pool.stop(slug);
+          return true;
+        },
+        now,
+        onSlept: (slug, use) =>
+          deps.log.info(
+            { draft: slug, for: draft.slug, usedMb: Math.round(use.usedBytes / 1048576) },
+            '[gitquire-drafts] memory is tight: put an idle draft to sleep',
+          ),
+      });
       await prepareDir(draft);
       return {
         cwd: dir(draft.slug),

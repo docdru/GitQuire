@@ -43,12 +43,16 @@ export async function addWiki(admin, id, name) {
 
 export async function openWiki(session, path) {
   const started = performance.now();
+  let last = 0;
   for (let attempt = 0; attempt < 120; attempt++) {
     const res = await session.call('GET', `${path}api/documents`);
     if (res.status === 200) return performance.now() - started;
+    last = res.status;
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error(`wiki ${path} did not open`);
+  const err = new Error(`wiki ${path} did not open (last answer ${last})`);
+  err.busy = last === 503;
+  throw err;
 }
 
 export async function signInMany(count, first = 2) {

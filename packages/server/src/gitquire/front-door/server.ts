@@ -19,6 +19,7 @@ import { INTERNAL_REQUEST_HEADER } from '../internal-request.ts';
 import type { PersonRoutes } from '../people/person-routes.ts';
 import { PERSON_TICKET_HEADER, type PersonTickets } from '../people/ticket.ts';
 import { proxyRequest, proxyUpgrade } from '../process-pool/forward.ts';
+import { ServerBusyError } from '../process-pool/memory.ts';
 import {
   encodeProxiedUser,
   FORWARDED_AGENTS_HEADER,
@@ -1219,20 +1220,34 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
     err: unknown,
   ): void {
     const closed = err instanceof WikiClosedError;
+    const busy = err instanceof ServerBusyError;
     deps.log.warn({ err, wiki: wiki.key }, '[gitquire-door] could not start a wiki');
     if (res.headersSent) {
       res.destroy();
       return;
     }
+    const status = closed ? 403 : busy ? 503 : 502;
+    const retry: Record<string, string> = busy ? { 'Retry-After': '60' } : {};
     if (wantsHtml(req)) {
+      const text = closed
+        ? 'This wiki is disconnected.'
+        : busy
+          ? 'This server is busy. Try again in a minute.'
+          : 'The wiki could not be started. Try again in a moment.';
       sendHtml(
         res,
-        closed ? 403 : 502,
-        'Wiki unavailable',
-        `<p>${closed ? 'This wiki is disconnected.' : 'The wiki could not be started. Try again in a moment.'}</p><p><a href="/">Your wikis</a></p>`,
+        status,
+        busy ? 'Server busy' : 'Wiki unavailable',
+        `<p>${text}</p><p><a href="/">Your wikis</a></p>`,
+        retry,
       );
     } else {
-      sendJson(res, closed ? 403 : 502, { error: closed ? 'disconnected' : 'wiki-unavailable' });
+      sendJson(
+        res,
+        status,
+        { error: closed ? 'disconnected' : busy ? 'server-busy' : 'wiki-unavailable' },
+        retry,
+      );
     }
   }
 
@@ -1751,7 +1766,10 @@ export function createFrontDoor(deps: FrontDoorDeps): FrontDoor {
       );
     })().catch((err: unknown) => {
       deps.log.warn({ err, wiki: wiki.key }, '[gitquire-door] websocket to a wiki failed');
-      refuseUpgrade(socket, '502 Bad Gateway');
+      refuseUpgrade(
+        socket,
+        err instanceof ServerBusyError ? '503 Service Unavailable' : '502 Bad Gateway',
+      );
     });
   }
 
