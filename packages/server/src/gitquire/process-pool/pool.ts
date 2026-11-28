@@ -48,6 +48,7 @@ export interface ProcessPoolDeps {
   spawn?: SpawnFn;
   get?: SocketGet;
   idleMs?: number;
+  closedIdleMs?: number;
   stopGraceMs?: number;
   heapMb?: number;
   now?: () => number;
@@ -60,6 +61,7 @@ interface Running {
   exited: Promise<void>;
   lastUsed: number;
   holds: number;
+  closedAt: number | undefined;
 }
 
 export interface StopState {
@@ -78,6 +80,7 @@ export interface ProcessPool {
   halt: (id: string) => Promise<void>;
   exclusive: <T>(id: string, work: () => Promise<T>) => Promise<T>;
   stopState: (id: string) => Promise<StopState | undefined>;
+  sweep: () => void;
   stopAll: () => Promise<void>;
 }
 
@@ -150,6 +153,7 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
     deps.spawn ?? ((command, args, options) => nodeSpawn(command, [...args], options));
   const get = deps.get ?? socketGet;
   const idleMs = deps.idleMs ?? DEFAULT_IDLE_MS;
+  const closedIdleMs = deps.closedIdleMs;
   const stopGraceMs = deps.stopGraceMs ?? DEFAULT_STOP_GRACE_MS;
   const now = deps.now ?? Date.now;
   let socketDir = deps.socketDir;
@@ -246,6 +250,7 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
       ready: Promise.resolve(socket),
       lastUsed: now(),
       holds: 0,
+      closedAt: undefined,
     };
     entry.ready = waitReady(id, socket, exited);
     entries.set(id, entry);
@@ -309,14 +314,20 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
     removeSocketDir();
   });
 
-  const sweep = setInterval(() => {
+  function sweepIdle(): void {
     for (const [id, entry] of entries) {
-      if (entry.holds === 0 && now() - entry.lastUsed > idleMs) {
+      const closedLongEnough =
+        entry.closedAt !== undefined &&
+        closedIdleMs !== undefined &&
+        now() - entry.lastUsed > closedIdleMs;
+      if (entry.holds === 0 && (now() - entry.lastUsed > idleMs || closedLongEnough)) {
         deps.log.info({ id }, `${tag} stopping an idle process`);
         void exclusive(id, () => halt(id));
       }
     }
-  }, SWEEP_MS);
+  }
+
+  const sweep = setInterval(sweepIdle, SWEEP_MS);
   sweep.unref();
 
   return {
@@ -330,12 +341,14 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
       const entry = entries.get(id);
       if (entry === undefined) return () => {};
       entry.holds++;
+      entry.closedAt = undefined;
       let released = false;
       return () => {
         if (released) return;
         released = true;
         entry.holds--;
         entry.lastUsed = now();
+        if (entry.holds === 0) entry.closedAt = now();
       };
     },
     isRunning: (id) => entries.has(id),
@@ -348,6 +361,7 @@ export function createProcessPool(deps: ProcessPoolDeps): ProcessPool {
     halt,
     exclusive,
     stopState,
+    sweep: sweepIdle,
     stopAll: async () => {
       closing = true;
       clearInterval(sweep);

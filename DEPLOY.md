@@ -231,7 +231,7 @@ drafts use the repository's `origin` remote directly and are published by a squa
 
 For each draft in use, the server starts one more editor process, with its own working copy, and
 forwards the people who opened that draft to it over a Unix socket in a private folder under `/tmp`. A process needs about 250 MB of
-memory, starts in a few seconds, and stops after 30 minutes without anyone in the draft. Working
+memory, starts in a few seconds, and stops 10 minutes after the last person closed the draft (30 minutes when only an AI assistant uses it). Working
 copies are kept in `GITQUIRE_DRAFTS_DIR` (default: `.gitquire-drafts/<folder>` next to the project,
 so `/.gitquire-drafts/data` in the container). They can be recreated from GitHub, but mount a volume
 there so edits that are less than a minute old survive a container restart; `deploy/compose.yaml`
@@ -240,6 +240,7 @@ does that.
 | Variable | Meaning |
 | --- | --- |
 | `GITQUIRE_DRAFTS_DIR` | Where draft working copies live. Must be outside the project folder. |
+| `GITQUIRE_DRAFT_IDLE_MINUTES` | How long a draft's process keeps running without use, default 30; once nobody has the draft open, at most 10. |
 
 The old shared branch switch (`POST /api/git/checkout`) and the branch and pull request endpoints
 (`/api/gitquire/branches`, `/api/gitquire/pulls`) still exist for scripts, but the editor no longer

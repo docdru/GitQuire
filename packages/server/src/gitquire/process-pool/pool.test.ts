@@ -117,6 +117,40 @@ describe('process pool', () => {
     }
   });
 
+  it('stops a process nobody holds after the idle time, or sooner once its last holder left', async () => {
+    const scripts = tempDir();
+    const script = join(scripts, 'child.cjs');
+    writeFileSync(script, CHILD);
+    let time = 0;
+    const children = createProcessPool({
+      label: 'test',
+      cli: [process.execPath, script],
+      log: silentLog,
+      stopGraceMs: 5000,
+      idleMs: 30_000,
+      closedIdleMs: 10_000,
+      now: () => time,
+    });
+    cleanup.push(() => children.stopAll());
+    const cwd = tempDir();
+    const spec = async () => ({ cwd, env: { ...process.env } });
+    await children.ensure('agent', spec);
+    await children.ensure('people', spec);
+    const release = children.hold('people');
+    time = 20_000;
+    release();
+    time = 25_000;
+    children.sweep();
+    expect(children.isRunning('agent')).toBe(true);
+    expect(children.isRunning('people')).toBe(true);
+    time = 30_001;
+    children.sweep();
+    await children.exclusive('people', async () => {});
+    await children.exclusive('agent', async () => {});
+    expect(children.isRunning('people')).toBe(false);
+    expect(children.isRunning('agent')).toBe(false);
+  });
+
   it('asks a child whether it is pushed and clean', async () => {
     const children = pool();
     const cwd = tempDir();

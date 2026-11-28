@@ -35,6 +35,7 @@ export interface DraftInstancesDeps {
   get?: SocketGet;
   socketDir?: string;
   idleMs?: number;
+  closedIdleMs?: number;
   heapMb?: number;
   memory?: ReadMemory;
   now?: () => number;
@@ -65,6 +66,7 @@ export function createDraftInstances(deps: DraftInstancesDeps): DraftInstances {
     spawn: deps.spawn,
     get: deps.get,
     idleMs: deps.idleMs,
+    closedIdleMs: deps.closedIdleMs,
     heapMb: deps.heapMb,
     stopGraceMs: deps.behindFrontDoor === true ? BEHIND_DRAFT_STOP_GRACE_MS : STOP_GRACE_MS,
     now: deps.now,
