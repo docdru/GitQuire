@@ -320,19 +320,27 @@ jobs:
       - name: H5 rows
         run: python3 -I .github/prototypes/h5_forgejo.py test
 
-      - name: Before moving the single wiki over (alice's agent token and a draft)
-        run: python3 -I .github/prototypes/h5_adopt.py prepare
-
-      - name: Move a copy of the single-wiki volume over and back (gitquire wikis adopt, unadopt)
+      - name: The front door refuses the single-wiki volume and changes nothing on it (O2)
         run: |
           set -eu
           docker stop -t 60 gq-h5 >/dev/null
-          python3 -I .github/prototypes/h5_adopt.py run
-
-      - name: Logs of the moved volume
-        if: always()
-        run: |
-          for c in gq-adopted gq-unadopted; do echo "::group::$c"; docker logs --tail 200 "$c" 2>&1 | cut -c1-300; echo "::endgroup::"; done
+          listing() { docker run --rm -v gq-h5:/data alpine sh -c 'cd /data && find . -path ./.git/objects -prune -o -print0 | sort -z | xargs -0 stat -c "%n %s %Y" | sha256sum'; }
+          before=$(listing)
+          set +e
+          out=$(timeout 120 docker run --rm --network host -v gq-h5:/data -v /tmp/ca:/ca:ro \
+            -e NODE_EXTRA_CA_CERTS=/ca/cert.pem -e PORT=8201 -e GITQUIRE_EXTERNAL_URL=http://127.0.0.1:8201 \
+            -e GITQUIRE_WIKIS=on -e GITQUIRE_ALLOWED_OWNERS=team \
+            -e GITQUIRE_HOST=forgejo -e GITQUIRE_HOST_URL="$FORGEJO_URL" \
+            -e GITQUIRE_HOST_CLIENT_ID="$OAUTH_CLIENT_ID" -e GITQUIRE_HOST_CLIENT_SECRET="$OAUTH_CLIENT_SECRET" \
+            -e GITQUIRE_HOST_TOKEN="$BOT_TOKEN" -e GITQUIRE_SESSION_SECRET=0123456789abcdef0123456789abcdef \
+            gitquire:ci 2>&1)
+          code=$?
+          set -e
+          echo "$out" | tail -5
+          test "$code" = 78 || { echo "::error::expected exit 78, got $code"; exit 1; }
+          echo "$out" | grep -q 'volume of the single-wiki mode' || { echo "::error::no refusal message"; exit 1; }
+          test "$(listing)" = "$before" || { echo "::error::the volume changed"; exit 1; }
+          echo "[O2] PASS: single-wiki volume refused with exit 78, nothing on it changed"
 
       - name: Two wikis behind the front door (repos, tokens, OAuth app)
         run: |

@@ -296,28 +296,6 @@ export function createGitHubDoorHost(
     return repo === undefined ? { state: 'unreachable' } : { state: 'found', repo };
   }
 
-  async function repoByName(repo: HostRepo): Promise<RepoLookup> {
-    let token: string;
-    if (deps.app !== undefined) {
-      const minted = await repoToken(deps.app, { owner: repo.owner, name: repo.name });
-      if (minted.state === 'refused') {
-        return minted.refusal === 'removed' ? { state: 'gone' } : minted;
-      }
-      if (minted.state !== 'ok') return minted;
-      token = minted.token;
-    } else {
-      const installation = deps.installationToken?.();
-      if (installation === undefined) return { state: 'unreachable' };
-      token = installation;
-    }
-    const answer = await call(repoPath(repo), token);
-    if (answer.status === 'unreachable') return { state: 'unreachable' };
-    if (answer.status === 401) return { state: 'refused', refusal: 'token' };
-    if (answer.status === 403 || answer.status === 404) return { state: 'gone' };
-    const found = answer.status === 200 ? githubRepoRecord(answer.body) : undefined;
-    return found === undefined ? { state: 'unreachable' } : { state: 'found', repo: found };
-  }
-
   async function health(repo: HostRepoRef): Promise<HostHealth> {
     if (deps.app !== undefined) {
       const minted = await repoToken(deps.app, repo);
@@ -494,7 +472,6 @@ export function createGitHubDoorHost(
     accessByBot,
     addableRepos,
     repoById,
-    repoByName,
     health,
     tokenFor: async (repo) => {
       if (deps.app !== undefined) {

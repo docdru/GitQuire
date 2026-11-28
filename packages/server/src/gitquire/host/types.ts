@@ -84,7 +84,6 @@ export interface DoorHost {
   accessByBot: (login: string, repo: HostRepoRef) => Promise<BotAccess>;
   addableRepos: (personToken: string) => Promise<AddableRepos>;
   repoById: (id: number) => Promise<RepoLookup>;
-  repoByName: (repo: HostRepo) => Promise<RepoLookup>;
   health: (repo: HostRepoRef) => Promise<HostHealth>;
   tokenFor: (repo: HostRepoRef) => Promise<string | undefined>;
   contentsOf?: (repo: HostRepoRef) => string | undefined;

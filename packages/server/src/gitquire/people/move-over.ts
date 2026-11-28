@@ -1,6 +1,4 @@
 import {
-  chmodSync,
-  copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -9,7 +7,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import type { SealedKeyStore } from '../chat/key-store.ts';
 import { chatKeysDir, createChatKeyStore } from '../chat/key-store.ts';
 import { CHAT_PROVIDERS, type ChatProvider } from '../chat/models.ts';
@@ -18,7 +16,7 @@ import { draftsStatePath } from '../drafts/store.ts';
 import { mentionStatePath } from '../mentions.ts';
 import type { PersonUsageEntry } from './chat-data.ts';
 import { readMailRecord, updateMailRecord } from './mail.ts';
-import { knownWikis, mailedIds, markMailed } from './mailer.ts';
+import { markMailed } from './mailer.ts';
 import { type AgentMode, isAgentMode } from './settings.ts';
 import { type PeopleStore, SETTINGS_FILE } from './store.ts';
 
@@ -361,58 +359,4 @@ export function writeMovedFile(store: PeopleStore): (moved: Moved) => void {
     writeFileSync(temporary, `${JSON.stringify(moved)}\n`, { mode: 0o600 });
     renameSync(temporary, file);
   };
-}
-
-export function markWikisMoved(store: PeopleStore, keys: readonly string[], at: Date): void {
-  const moved = readMoved(store);
-  for (const key of keys) moved.wikis[key] ??= at.toISOString();
-  writeMovedFile(store)(moved);
-}
-
-function copyIfAbsent(from: string, to: string): boolean {
-  if (!existsSync(from) || existsSync(to)) return false;
-  mkdirSync(dirname(to), { recursive: true, mode: 0o700 });
-  copyFileSync(from, to);
-  chmodSync(to, 0o600);
-  return true;
-}
-
-export function copyPeopleForWiki(
-  from: PeopleStore,
-  to: PeopleStore,
-  fromWiki: string,
-  toWiki: string,
-): number {
-  let people = 0;
-  for (const person of from.people()) {
-    people += 1;
-    for (const file of ['mail.json', 'prefs.json', 'ai-keys.json', SETTINGS_FILE] as const) {
-      copyIfAbsent(join(from.root, person, file), join(to.root, person, file));
-    }
-    if (knownWikis(from, person).has(fromWiki)) {
-      markMailed(to, person, toWiki, [...mailedIds(from, person, fromWiki)]);
-    }
-    const entries = from
-      .readJson(person, 'usage.json', (raw) => {
-        const list = (raw as { entries?: PersonUsageEntry[] } | undefined)?.entries;
-        return Array.isArray(list) ? list : [];
-      })
-      .filter((entry) => entry.wiki === fromWiki)
-      .map((entry) => ({ ...entry, wiki: toWiki }));
-    if (entries.length > 0) {
-      to.updateJson(
-        person,
-        'usage.json',
-        (raw) => {
-          const list = (raw as { entries?: PersonUsageEntry[] } | undefined)?.entries;
-          return { entries: Array.isArray(list) ? list : [] };
-        },
-        (file) =>
-          file.entries.some((entry) => entry.wiki === toWiki)
-            ? file
-            : { entries: [...file.entries, ...entries] },
-      );
-    }
-  }
-  return people;
 }

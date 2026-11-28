@@ -1,6 +1,5 @@
-import { chmodSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
-import { hostname } from 'node:os';
 import { join } from 'node:path';
 import type { GateLogger } from '../access-gate.ts';
 import { deriveChatKeySecret, derivePeopleKeySecret } from '../chat/key-secret.ts';
@@ -16,7 +15,7 @@ import { createPersonRoutes, emailRoutes, settingsRoutes } from '../people/perso
 import { personSettings } from '../people/settings.ts';
 import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
 import { createPersonTickets } from '../people/ticket.ts';
-import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
+import { singleWikiMarker } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
 import { accountAddressReader } from './account-addresses.ts';
 import { addWikiHelpFor } from './add-wiki-help.ts';
@@ -70,17 +69,11 @@ interface RunningFrontDoor {
 }
 
 export function refuseSingleWikiVolume(dataDir: string): void {
-  const move = interruptedMove(dataDir);
-  if (move !== undefined) {
-    throw new FrontDoorConfigError(
-      `${dataDir} is in the middle of "${move}", which was interrupted. Run "${move}" again to finish it before starting GitQuire.`,
-    );
-  }
-  if (existsSync(join(dataDir, '.git'))) {
-    throw new FrontDoorConfigError(
-      `${dataDir} holds the checkout of a single wiki (it has .git). Move it into the several-wiki layout first with "gitquire wikis adopt" (see "Moving a single wiki over" in DEPLOY.md), or give the front door a volume of its own.`,
-    );
-  }
+  const marker = singleWikiMarker(dataDir);
+  if (marker === undefined) return;
+  throw new FrontDoorConfigError(
+    `${dataDir} is a volume of the single-wiki mode (it has ${marker}), which no longer exists. Nothing on it was changed. The pages are in the Git repository: start GitQuire with a new, empty volume and add the wiki in the app (see "Upgrading from a single wiki" in DEPLOY.md). Keep this volume aside until you are sure.`,
+  );
 }
 
 async function checkHost(host: DoorHost, log: GateLogger): Promise<void> {
@@ -462,12 +455,6 @@ export async function startFrontDoor(
     server.once('error', reject);
     server.listen(port, bind, () => resolve());
   });
-  const lockFile = join(settings.dataDir, 'server', FRONT_DOOR_LOCK);
-  writeFileSync(
-    lockFile,
-    `${JSON.stringify({ pid: process.pid, hostname: hostname(), startedAt: new Date().toISOString() })}\n`,
-    { mode: 0o600 },
-  );
   const address = server.address();
   const boundPort = typeof address === 'object' && address !== null ? address.port : port;
 
@@ -524,7 +511,6 @@ export async function startFrontDoor(
       await agents.close();
       await processes.stopAll();
       await tokenSocket.close();
-      rmSync(lockFile, { force: true });
     },
   };
 }

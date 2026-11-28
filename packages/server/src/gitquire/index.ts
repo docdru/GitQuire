@@ -169,10 +169,9 @@ export function configureHostFromEnv(env: Env, projectDir: string | undefined): 
 }
 
 export function refuseFrontDoorVolume(projectDir: string): void {
-  const move = interruptedMove(projectDir);
-  if (move !== undefined) {
+  if (interruptedMove(projectDir)) {
     throw new HostConfigError(
-      `${projectDir} is in the middle of "${move}", which was interrupted. Run "${move}" again to finish it before starting GitQuire.`,
+      `${projectDir} is in the middle of moving a single wiki over, which GitQuire no longer does. Nothing on it was changed.`,
     );
   }
   if (

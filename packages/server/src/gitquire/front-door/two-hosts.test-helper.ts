@@ -123,7 +123,6 @@ function fakeHost(kind: HostKeyName, state: FakeHostState): DoorHost {
       const found = state.repos.find((repo) => repo.id === id);
       return found === undefined ? { state: 'gone' } : { state: 'found', repo: found };
     },
-    repoByName: async () => ({ state: 'gone' }),
     health: async () => (state.bot.down ? 'unreachable' : 'ok'),
     tokenFor: async () => `${kind}-repo-token`,
     selfCheck: async () => ({ ok: true }),

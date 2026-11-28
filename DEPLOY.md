@@ -529,8 +529,8 @@ out.
 
 `GITQUIRE_WIKIS=on` turns the container into a front door for several wikis. Each wiki opens at
 `/w/<host>/<owner>/<repo>/`, for example `/w/github/team/handbook/`, and runs in its own editor process, started when someone opens it and stopped
-after 30 minutes without use, once it says it is pushed and clean. Try it on a copy of your volume first (see
-[Moving a single wiki over](#moving-a-single-wiki-over)).
+after 30 minutes without use, once it says it is pushed and clean. A volume of the single-wiki mode is refused (see
+[Upgrading from a single wiki](#upgrading-from-a-single-wiki)).
 
 ### Settings
 
@@ -538,15 +538,14 @@ after 30 minutes without use, once it says it is pushed and clean. Try it on a c
 | --- | --- |
 | `GITQUIRE_WIKIS=on` | Several wikis behind one front door. `off` or empty: one wiki, exactly as before. Any other value stops the container. |
 | `GITQUIRE_ALLOWED_OWNERS` | Users or organisations on the host whose repositories may become wikis, separated by commas. Empty means the owner of `GITQUIRE_REPO`. With neither set, GitQuire does not start. |
-| `GITQUIRE_REPO` | Optional. The repository whose single-wiki volume `gitquire wikis adopt` moves over; without `GITQUIRE_ALLOWED_OWNERS`, its owner is the allowed owner. |
+| `GITQUIRE_REPO` | Optional. Without `GITQUIRE_ALLOWED_OWNERS`, its owner is the allowed owner. |
 | `GITQUIRE_ADMINS` | Server administrators. They see every disconnected wiki and why, can revoke anyone's agent tokens, and on Forgejo they are the only ones who add a wiki, because they enter its token. |
 
 Needed as for one wiki: the sign-in settings of the host, `GITQUIRE_SESSION_SECRET` (at least 32
 characters), optionally `GITQUIRE_SESSION_DAYS`, `GITQUIRE_EXTERNAL_URL` (the root address, without
 a path), and GitQuire's own access: on GitHub `GITHUB_APP_ID` and the private key, on Forgejo
-`GITQUIRE_HOST_TOKEN` (the bot's unlimited token). `GITQUIRE_HOST_REPO_TOKEN` is read only by
-`gitquire wikis adopt`, which keeps it as the first wiki's token; the front door itself does not
-use it and warns when it is set.
+`GITQUIRE_HOST_TOKEN` (the bot's unlimited token). The front door does not use
+`GITQUIRE_HOST_REPO_TOKEN` and warns when it is set.
 
 `GITQUIRE_ALLOWED_USERS` and `GITQUIRE_MCP_TOKEN` cannot be used with `GITQUIRE_WIKIS=on`: both
 skip the check of who may write to a repository and would open every wiki. GitQuire refuses to
@@ -688,97 +687,18 @@ AI chat is on inside each wiki. The front door gives each wiki's process a key f
 keys that is derived from `GITQUIRE_SESSION_SECRET` and the wiki, never the session secret itself,
 so a person enters their API key once per wiki for now.
 
-### Moving a single wiki over
+### Upgrading from a single wiki
 
-`gitquire wikis adopt` moves a single-wiki volume into the several-wiki layout: the checkout of
-`GITQUIRE_REPO` and its `.gitquire/local/` state (people, mentions, read marks, drafts, personal
-settings, AI chats, saved AI keys) go to `/data/wikis/<host>-<repository id>/`, the repository
-becomes the first wiki in `/data/server/wikis.json`, and the draft working copies are copied next
-to it. `gitquire wikis unadopt` is the way back. Both run with the container stopped, in the same
-environment as the front door, and never delete anything.
+GitQuire no longer moves a single-wiki volume over. A volume from the single-wiki mode (it has
+`.git`, `.gitquire` or `.ok` at its top, or the mark of an interrupted move) is refused at start,
+and nothing on it is changed. The pages, comments and drafts' branches are in the Git repository:
 
-**Try it on a copy of the volume first.** Write the settings for several wikis into a separate
-file, `gitquire-wikis.env`: your current settings plus `GITQUIRE_WIKIS=on`, `GITQUIRE_ALLOWED_OWNERS`
-(or keep `GITQUIRE_REPO`), without `GITQUIRE_ALLOWED_USERS`, `GITQUIRE_MCP_TOKEN` and
-`GITQUIRE_BRANCH`. Then:
+1. With the old image still running, let it sync, and publish or discard open drafts.
+2. Stop it and keep the old volume aside until you are sure.
+3. Start GitQuire on a new, empty volume, sign in and **Add a wiki**.
 
-```bash
-docker compose stop gitquire
-docker volume create gitquire-data-copy
-docker volume create gitquire-drafts-copy
-docker run --rm -v gitquire-data:/from:ro -v gitquire-data-copy:/to alpine cp -a /from/. /to/
-docker run --rm -v gitquire-drafts:/from:ro -v gitquire-drafts-copy:/to alpine cp -a /from/. /to/
-docker run --rm --env-file gitquire-wikis.env \
-  -v gitquire-data-copy:/data -v gitquire-drafts-copy:/drafts -e GITQUIRE_DRAFTS_DIR=/drafts \
-  -v "$PWD/app.pem:/run/secrets/app.pem:ro" \
-  --entrypoint gitquire ghcr.io/docdru/gitquire:latest wikis adopt /data --dry-run
-```
-
-(On Forgejo, mount the token files instead of `app.pem` if your settings use `_FILE` variables.)
-The dry run looks the repository up on the host, checks everything below (on Forgejo also
-`GITQUIRE_HOST_REPO_TOKEN`) and lists every step without changing anything. Without `--dry-run` it
-moves the copy. To look around, start a second container on the copy with the same env file, the
-same mounts and another port, and set `GITQUIRE_EXTERNAL_URL` to that address; **its sign-in
-callback (`<address>/auth/github/callback` or `/auth/forgejo/callback`) must be registered with the
-GitHub App or the Forgejo OAuth application**. The trial is not a sandbox: it pushes to the real
-repository and its draft branches, so edit with care or not at all. Then move the real volume the
-same way, with the container stopped:
-
-```bash
-docker run --rm --env-file gitquire-wikis.env \
-  -v gitquire-data:/data -v gitquire-drafts:/drafts -e GITQUIRE_DRAFTS_DIR=/drafts \
-  -v "$PWD/app.pem:/run/secrets/app.pem:ro" \
-  --entrypoint gitquire ghcr.io/docdru/gitquire:latest wikis adopt /data
-```
-
-and switch the service to `env_file: gitquire-wikis.env`.
-
-What it does, and refuses:
-
-- It stops with a message unless `GITQUIRE_WIKIS=on` is set, if GitQuire still runs on the volume
-  (the single wiki's lock, or the front door's `/data/server/front-door.lock`), if the checkout is
-  not a clone of `GITQUIRE_REPO` on the configured host, if it is not on the repository's default
-  branch or `GITQUIRE_BRANCH` names another one (a wiki behind the front door always follows the
-  default branch), if its owner is not allowed, if the host cannot be asked for the repository's
-  id, or if anything is not pushed yet: uncommitted changes or commits ahead of the host, in the
-  wiki or in a draft working copy. Start the single wiki again and let it push, or pass `--force`:
-  the edits then move along and the wiki pushes them behind the front door.
-- Running it again does only what is left. A move that was interrupted leaves
-  `/data/.gitquire-moving-in` (or `.gitquire-moving-back` for the way back); while it is there,
-  neither the single wiki nor the front door starts, and running the same command again finishes
-  the move (only commits not yet pushed still need `--force` then).
-- **Agent tokens move:** they are copied to the front door's store for the host,
-  `/data/server/agent-tokens-<host>.json`, which has one writer, the front door. The address
-  changes from `/mcp` to `/mcp/<host>`, so agents and connectors must be pointed at the new
-  address; the tokens themselves keep working there. The original file stays in the wiki's folder,
-  unused.
-- **Saved AI keys** are re-sealed with the wiki's own key (see AI chat above), so people do not
-  enter them again; the old files stay in `ai-keys.before-wikis`. This needs the
-  `GITQUIRE_SESSION_SECRET` the single wiki ran with; if the keys do not open with it, the command
-  says so and people enter their keys again.
-- **Drafts:** each draft working copy is copied from the single wiki's drafts folder
-  (`GITQUIRE_DRAFTS_DIR`, `/drafts` in `deploy/compose.yaml`) to
-  `/data/wikis/.gitquire-drafts/<host>-<repository id>/`. The originals stay.
-- **On Forgejo**, `GITQUIRE_HOST_REPO_TOKEN` becomes the first wiki's token in
-  `/data/server/repo-tokens.json` after the same check as at Add a wiki (so the bot must reach
-  another repository); the dry run already runs the check. If the check fails, or the setting is missing, the wiki shows as
-  disconnected until a server administrator enters a token in the wiki list. Afterwards remove
-  `GITQUIRE_HOST_REPO_TOKEN` from the settings.
-- People stay signed in when `GITQUIRE_SESSION_SECRET` stays the same: the front door reads the
-  single wiki's session cookie and asks the host about the person's access on the first request.
-
-`gitquire wikis unadopt /data` works only while the server has exactly this one wiki. It refuses
-unpushed edits as above (or takes `--force`), moves the checkout back to `/data`, re-seals the AI
-keys with `GITQUIRE_SESSION_SECRET`, puts the front door's agent tokens back as the single wiki's
-(the older file is kept beside it), copies the draft working copies back to `GITQUIRE_DRAFTS_DIR`
-(an existing one is kept beside it with `.before-single-wiki-<time>`), and keeps everything else of
-the front door (the wiki table, the Forgejo tokens, the drafts folder) in
-`/data/.gitquire/local/gitquire/several-wikis-<time>/`. Then start the container with
-`GITQUIRE_WIKIS` off and, on Forgejo, with `GITQUIRE_HOST_REPO_TOKEN` again. It also takes
-`--dry-run`, and an interrupted run is finished by running it again.
-
-A volume that holds several wikis (`server/wikis.json` without `.git`) or an unfinished move is
-refused when the container starts with `GITQUIRE_WIKIS` off, before anything is written to it.
+What lives only on the volume is not carried over: mention read marks and the mail switch,
+personal settings, saved AI keys, AI chats, agent tokens and connector approvals.
 
 ### Two Git hosts on one server
 
@@ -861,7 +781,6 @@ further host's wiki, and would take such a wiki for one of the first host's.
 - The front door asks the host once per wiki at sign-in; with many wikis (roughly 50 and more)
   sign-in gets slower.
 - Mentions in files a wiki hides from its file tree are still counted and mailed by the front door.
-- The way back (`unadopt`) is for a server that still has only the moved wiki.
 - Whether an AI assistant such as Claude uses the `wiki` argument well has not been tried with a
   real connector yet.
 
