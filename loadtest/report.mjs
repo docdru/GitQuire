@@ -31,11 +31,11 @@ const CLAIM = {
   s5: (l) => `${l.drafts} ${l.drafts === 1 ? 'draft' : 'drafts'} in use`,
 };
 
-function load(dir) {
+function load(dir, suffix = '') {
   if (dir === undefined || !existsSync(dir)) return {};
   const out = {};
   for (const file of readdirSync(dir)) {
-    if (!/^s\d+\.json$/.test(file)) continue;
+    if (!new RegExp(`^s\\d+${suffix}\\.json$`).test(file)) continue;
     const data = JSON.parse(readFileSync(join(dir, file), 'utf8'));
     out[data.scenario] = data;
   }
@@ -159,6 +159,7 @@ function summarise(data) {
       ),
       extra: {
         firstOpenMs: metric(r, (x) => x.firstOpenMs),
+        wakeMs: metric(r, (x) => x.wakeMs),
         backlinksReadyMs: metric(r, (x) => x.backlinksReadyMs),
         renameHubMs: metric(r, (x) => x.renameHubMs),
         backlinksAfterRenameMs: metric(r, (x) => x.backlinksAfterRenameMs),
@@ -177,7 +178,9 @@ function summarise(data) {
 }
 
 const current = load(values.results);
-const baseline = load(values.baseline);
+const inRunBaseline = load(values.results, '-baseline');
+const sameRunner = Object.keys(inRunBaseline).length > 0;
+const baseline = sameRunner ? inRunBaseline : load(values.baseline);
 const threshold = Number(values.threshold);
 const lines = [];
 const claims = [];
@@ -224,6 +227,8 @@ for (const name of Object.keys(current).sort()) {
       parts.push(`front door alone ${fmt(row.extra.noWikiMb, ' MB')}`);
     if (row.extra.firstOpenMs !== null)
       parts.push(`first open of the wiki ${fmt(row.extra.firstOpenMs, ' ms')}`);
+    if (row.extra.wakeMs !== null)
+      parts.push(`wake after sleep ${fmt(row.extra.wakeMs, ' ms')}`);
     if (row.extra.backlinksReadyMs !== null)
       parts.push(`backlinks ready ${fmt(row.extra.backlinksReadyMs, ' ms')}`);
     if (row.extra.renameHubMs !== null)
@@ -238,6 +243,33 @@ for (const name of Object.keys(current).sort()) {
     if (parts.length > 0) lines.push(`- ${row.label}: ${parts.join(', ')}`);
   }
   if (failed.length > 0 || extras.length > 0) lines.push('');
+  for (const [runIndex, run] of data.runs.entries()) {
+    for (const result of run) {
+      const st = result?.stalls;
+      if (st === undefined || st.stallCount === 0) continue;
+      const label = LEVEL_LABEL[name]?.(result.level) ?? JSON.stringify(result.level);
+      lines.push(
+        `<details><summary>Stalls over 300 ms, ${label}, run ${runIndex + 1}: ${st.stallCount} stalls, ${st.stallMs} ms in all, longest ${st.longest[0]?.ms ?? 0} ms</summary>`,
+      );
+      lines.push('');
+      lines.push('| Function (time inside stalls, with callees) | ms |');
+      lines.push('| --- | ---: |');
+      for (const { fn, ms } of st.topInStalls.slice(0, 15))
+        lines.push(`| \`${fn.replace(/\|/g, '/')}\` | ${ms} |`);
+      lines.push('');
+      for (const stall of st.longest.slice(0, 3)) {
+        lines.push(
+          `- ${stall.ms} ms: ${stall.self
+            .slice(0, 4)
+            .map((f) => `\`${f.fn}\` ${f.ms} ms`)
+            .join(', ')}`,
+        );
+      }
+      lines.push('');
+      lines.push('</details>');
+      lines.push('');
+    }
+  }
   if (CLAIM[name]) {
     const passing = [];
     for (const row of rows) {
@@ -289,8 +321,8 @@ if (claims.length > 0 && anyMachine) {
 if (Object.keys(baseline).length > 0) {
   head.push(
     regressions.length === 0
-      ? '**Against the last run:** no regression above the threshold.'
-      : '**Regressions against the last run:**',
+      ? `**Against ${sameRunner ? 'the baseline image, alternated on the same runners' : 'the last run'}:** no regression above the threshold.`
+      : `**Regressions against ${sameRunner ? 'the baseline image, alternated on the same runners' : 'the last run'}:**`,
   );
   for (const r of regressions) head.push(`- ${r}`);
   head.push('');

@@ -21,6 +21,13 @@ function seedRepo(pages, commits) {
 
 function probes(target, admin, wikiPaths) {
   let stopped = false;
+  let last = performance.now();
+  const lagTimer = setInterval(() => {
+    const now = performance.now();
+    const recorder = typeof target === 'function' ? target() : target;
+    recorder.add('client.lag', Math.max(0, now - last - 20));
+    last = now;
+  }, 20);
   const loop = async () => {
     while (!stopped) {
       const recorder = typeof target === 'function' ? target() : target;
@@ -42,9 +49,23 @@ function probes(target, admin, wikiPaths) {
   };
   const running = loop();
   return async () => {
+    clearInterval(lagTimer);
     stopped = true;
     await running;
   };
+}
+
+async function startProfiler(wiki) {
+  const { profileWanted, StallProfiler } = await import('./stalls.mjs');
+  if (!profileWanted()) return undefined;
+  const profiler = new StallProfiler({ key: `github-${wiki.id}` });
+  try {
+    await profiler.start();
+    return profiler;
+  } catch (err) {
+    console.log(`[loadtest] stall profile not started: ${err.message ?? err}`);
+    return undefined;
+  }
 }
 
 async function finish(world, sampler, stopProbes) {
@@ -142,6 +163,7 @@ export const scenarios = {
         wikis: [{ name: 'idle', seedBare }],
         persons: 1,
         open: false,
+        serverEnv: { GITQUIRE_WIKI_IDLE_MINUTES: '0.5' },
       });
       sampler.start();
       sampler.mark('no-wiki-open');
@@ -149,6 +171,17 @@ export const scenarios = {
       sampler.mark('one-wiki-open');
       const openMs = await openWiki(world.admin, world.wikis[0].path);
       await wait(Math.min(hold, 60_000));
+      sampler.mark('asleep');
+      await world.admin.call('POST', `${world.wikis[0].path}api/sync/trigger`, {});
+      const key = `wiki:github-${world.wikis[0].id}`;
+      const sleepStarted = Date.now();
+      while (Date.now() - sleepStarted < 240_000) {
+        const sample = sampler.take();
+        if (sample !== undefined && sample.groups[key] === undefined) break;
+        await wait(2000);
+      }
+      const asleep = Date.now() - sleepStarted < 240_000;
+      const wakeMs = asleep ? await openWiki(world.admin, world.wikis[0].path) : null;
       const samples = sampler.stop();
       await teardown();
       return {
@@ -156,6 +189,7 @@ export const scenarios = {
         startMs: world.startMs,
         addMs: world.addMs[0],
         firstOpenMs: openMs,
+        wakeMs,
         memoryNoWiki: memorySummary(samples, 'no-wiki-open'),
         memory: memorySummary(samples, 'one-wiki-open'),
         ...recorder.result(),
@@ -234,6 +268,7 @@ export const scenarios = {
       const seedBare = seedRepo(1000, 1000);
       const world = await setupWorld({ wikis: [{ name: 'team', seedBare }], persons: people + 1 });
       const wiki = world.wikis[0];
+      const profiler = await startProfiler(wiki);
       const sampler = new Sampler();
       sampler.start();
       const stopProbes = probes(recorder, world.admin, () => [wiki.path]);
@@ -248,9 +283,15 @@ export const scenarios = {
         hubs: [0, 1, 2].map(page),
       });
       await load.done();
+      const stalls = await profiler?.stop();
       const samples = await finish(world, sampler, stopProbes);
       await teardown();
-      return { level: { people }, memory: memorySummary(samples), ...recorder.result() };
+      return {
+        level: { people },
+        memory: memorySummary(samples),
+        ...(stalls === undefined ? {} : { stalls }),
+        ...recorder.result(),
+      };
     },
   },
 
@@ -273,6 +314,7 @@ export const scenarios = {
       const world = await setupWorld({ wikis: [{ name: 'big', seedBare }], persons: 11 });
       sampler.start();
       const wiki = world.wikis[0];
+      const profiler = await startProfiler(wiki);
       const hub = page(1);
       const readyStarted = performance.now();
       let backlinksReady = null;
@@ -323,9 +365,11 @@ export const scenarios = {
         }
         await wait(1000);
       }
+      const stalls = await profiler?.stop();
       const samples = await finish(world, sampler, stopProbes);
       await teardown();
       return {
+        ...(stalls === undefined ? {} : { stalls }),
         level: { pages, commits },
         generateMs: Math.round(genMs),
         addMs: world.addMs[0],

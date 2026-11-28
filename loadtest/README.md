@@ -50,5 +50,11 @@ NODE_EXTRA_CA_CERTS=/tmp/ca/cert.pem node loadtest/run.mjs --scenario s1 --quick
 node loadtest/report.mjs
 ```
 
+`LOADTEST_PROFILE=1` (the workflow's `profile` input) opens the inspector of the wiki process in
+s2 and s3 (`SIGUSR1`, nothing changes in the image), records CPU profiles in 10 s windows and keeps
+every stretch of 300 ms or more without an idle sample: the report lists the functions that ran in
+those stalls. The image's code is minified, so names on the runners are short; profile a local
+build with `minify: false` in `packages/cli/tsdown.config.ts` to read them.
+
 `--quick` runs the first levels only. `LOADTEST_TARGET=local` runs `gitquire front-door` from the
 built CLI instead of the image, for working on the harness itself; its numbers are not comparable.
