@@ -3,6 +3,19 @@ import { WebSocket } from './deps.mjs';
 import { inServer } from './env.mjs';
 
 const INSPECTOR = 'http://127.0.0.1:9229';
+const LAG_PROBE = `(() => {
+  if (globalThis.__gqLag) return;
+  const late = [];
+  let last = performance.now();
+  const timer = setInterval(() => {
+    const now = performance.now();
+    const lag = now - last - 20;
+    if (lag >= 100) late.push(Math.round(lag));
+    last = now;
+  }, 20);
+  timer.unref();
+  globalThis.__gqLag = { take: () => late.splice(0) };
+})()`;
 
 export function profileWanted() {
   return ['1', 'on', 'true'].includes(String(process.env.LOADTEST_PROFILE ?? '').toLowerCase());
@@ -129,6 +142,8 @@ export class StallProfiler {
     });
     await this.send('Profiler.enable');
     await this.send('Profiler.setSamplingInterval', { interval: 1000 });
+    await this.send('Runtime.evaluate', { expression: LAG_PROBE });
+    this.lags = [];
     this.running = true;
     this.loop = this.run();
   }
@@ -141,6 +156,11 @@ export class StallProfiler {
         const { profile } = await this.send('Profiler.stop');
         this.windows++;
         for (const stall of findStalls(profile, this.thresholdMs)) this.stalls.push(stall);
+        const lag = await this.send('Runtime.evaluate', {
+          expression: 'JSON.stringify(globalThis.__gqLag.take())',
+          returnByValue: true,
+        });
+        this.lags.push(...JSON.parse(lag.result.value));
       } catch (err) {
         this.errors.push(String(err.message ?? err));
         break;
@@ -163,7 +183,11 @@ export class StallProfiler {
       for (const { fn, ms } of stall.total) byFn.set(fn, (byFn.get(fn) ?? 0) + ms);
     }
     const longest = [...this.stalls].sort((a, b) => b.ms - a.ms).slice(0, 8);
+    const lags = [...(this.lags ?? [])].sort((a, b) => b - a);
     return {
+      lagOver300: lags.filter((ms) => ms >= this.thresholdMs).length,
+      lagOver300Ms: lags.filter((ms) => ms >= this.thresholdMs).reduce((n, ms) => n + ms, 0),
+      lagLongest: lags.slice(0, 5),
       windows: this.windows,
       stallCount: this.stalls.length,
       stallMs: this.stalls.reduce((n, s) => n + s.ms, 0),
