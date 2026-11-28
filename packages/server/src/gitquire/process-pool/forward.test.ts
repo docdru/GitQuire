@@ -3,6 +3,7 @@ import { createServer, request, type Server } from 'node:http';
 import { connect } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { gunzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
 import { hasUnsafeHeader, proxyRequest, proxyUpgrade } from './forward.ts';
 
@@ -120,5 +121,79 @@ describe('forwarding to a child socket', () => {
       front.getConnections((_e, n) => resolve(n)),
     );
     expect(open).toBe(0);
+  });
+});
+
+describe('compressing forwarded answers', () => {
+  async function gzipRig(answer: { type: string; body: string; headers?: Record<string, string> }) {
+    const dir = mkdtempSync(join(tmpdir(), 'gq-forward-gzip-'));
+    cleanup.push(() => rmSync(dir, { recursive: true, force: true }));
+    const socket = join(dir, 'up.sock');
+    const upstream = createServer((_req, res) => {
+      res.writeHead(200, { 'content-type': answer.type, ...answer.headers });
+      res.end(answer.body);
+    });
+    await listen(upstream, socket);
+    const front = createServer((req, res) => proxyRequest(req, res, socket, { compress: true }));
+    const port = await listen(front);
+    return (acceptEncoding: string | undefined) =>
+      new Promise<{ headers: Record<string, unknown>; body: Buffer }>((resolve, reject) => {
+        const req = request(
+          {
+            host: '127.0.0.1',
+            port,
+            path: '/x',
+            headers: acceptEncoding === undefined ? {} : { 'accept-encoding': acceptEncoding },
+          },
+          (res) => {
+            const chunks: Buffer[] = [];
+            res.on('data', (c: Buffer) => chunks.push(c));
+            res.on('end', () => resolve({ headers: res.headers, body: Buffer.concat(chunks) }));
+          },
+        );
+        req.on('error', reject);
+        req.end();
+      });
+  }
+
+  it('gzips a large JSON answer for a browser that accepts it, and only then', async () => {
+    const body = JSON.stringify({ documents: Array.from({ length: 500 }, (_, i) => `page-${i}`) });
+    const get = await gzipRig({ type: 'application/json', body });
+    const zipped = await get('gzip, deflate, br');
+    expect(zipped.headers['content-encoding']).toBe('gzip');
+    expect(zipped.headers.vary).toContain('Accept-Encoding');
+    expect(gunzipSync(zipped.body).toString()).toBe(body);
+    expect(zipped.body.length).toBeLessThan(body.length / 3);
+    const plain = await get(undefined);
+    expect(plain.headers['content-encoding']).toBeUndefined();
+    expect(plain.body.toString()).toBe(body);
+    expect((await get('gzip;q=0')).headers['content-encoding']).toBeUndefined();
+  });
+
+  it('leaves small, binary, already encoded and streaming answers alone', async () => {
+    expect(
+      (
+        await (
+          await gzipRig({
+            type: 'application/json',
+            body: '{"a":1}',
+            headers: { 'content-length': '7' },
+          })
+        )('gzip')
+      ).headers['content-encoding'],
+    ).toBeUndefined();
+    expect(
+      (await (await gzipRig({ type: 'image/png', body: 'x'.repeat(4000) }))('gzip')).headers[
+        'content-encoding'
+      ],
+    ).toBeUndefined();
+    expect(
+      (await (await gzipRig({ type: 'application/x-ndjson', body: 'x'.repeat(4000) }))('gzip'))
+        .headers['content-encoding'],
+    ).toBeUndefined();
+    const encoded = await (
+      await gzipRig({ type: 'text/javascript', body: 'x', headers: { 'content-encoding': 'br' } })
+    )('gzip');
+    expect(encoded.headers['content-encoding']).toBe('br');
   });
 });
