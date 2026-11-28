@@ -151,6 +151,10 @@ committed with that person as the author. Agents also see a page's open comment 
 One Docker container with a `/data` volume. Everyone signs in with GitHub; whoever can write to
 the content repository can use the wiki, and loses access when they lose repository access.
 
+Load-tested on 2 vCPU / 4 GB (November 2026): 20 people typing in one page, 25 people in one
+wiki, a wiki of 1,000 pages and 10 drafts in use, with no edit lost; above about ten open wikis
+the server answers "busy" instead of running out of memory. Details and sizing: [DEPLOY.md](./DEPLOY.md#sizing).
+
 ## Quick start
 
 ```bash
