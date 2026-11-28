@@ -21,6 +21,13 @@ function seedRepo(pages, commits) {
 
 function probes(target, admin, wikiPaths) {
   let stopped = false;
+  let last = performance.now();
+  const lagTimer = setInterval(() => {
+    const now = performance.now();
+    const recorder = typeof target === 'function' ? target() : target;
+    recorder.add('client.lag', Math.max(0, now - last - 20));
+    last = now;
+  }, 20);
   const loop = async () => {
     while (!stopped) {
       const recorder = typeof target === 'function' ? target() : target;
@@ -42,6 +49,7 @@ function probes(target, admin, wikiPaths) {
   };
   const running = loop();
   return async () => {
+    clearInterval(lagTimer);
     stopped = true;
     await running;
   };
