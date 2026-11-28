@@ -87,23 +87,22 @@ function rig() {
 }
 
 describe('page list answered from the index generation', () => {
-  test('carries an ETag, answers 304 while nothing changed, and a new list after a change', async () => {
+  test('is built once per generation, never stored by the browser, and rebuilt after a change', async () => {
     const r = rig();
     const first = await r.ask();
     expect(first.status).toBe(200);
     expect(r.names(first)).toEqual(['log']);
-    const etag = first.headers.ETag;
-    expect(etag).toMatch(/^W\/"documents-[0-9a-f]+-1"$/);
-    expect(first.headers['Cache-Control']).toBe('no-cache');
+    expect(first.headers['Cache-Control']).toBe('no-store');
+    expect(first.headers.ETag).toBeUndefined();
 
-    const again = await r.ask();
+    const again = await r.ask({ 'if-none-match': 'W/"anything"' });
+    expect(again.status).toBe(200);
     expect(again.body).toBe(first.body);
-    expect((await r.ask({ 'if-none-match': etag ?? '' })).status).toBe(304);
+    expect(again.headers['Cache-Control']).toBe('no-store');
 
     r.change('notes');
-    const stale = await r.ask({ 'if-none-match': etag ?? '' });
-    expect(stale.status).toBe(200);
-    expect(r.names(stale)).toEqual(['log', 'notes']);
-    expect(stale.headers.ETag).not.toBe(etag);
+    const after = await r.ask();
+    expect(after.status).toBe(200);
+    expect(r.names(after)).toEqual(['log', 'notes']);
   });
 });

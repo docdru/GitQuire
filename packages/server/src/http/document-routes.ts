@@ -235,7 +235,7 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
   );
 
   const listToken = randomBytes(6).toString('hex');
-  const documentListCache = new Map<string, { etag: string; body: string }>();
+  const documentListCache = new Map<string, { cacheKey: string; body: string }>();
 
   const DOCUMENT_LIST_CACHE_ENTRIES = 8;
 
@@ -427,21 +427,15 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
           });
         }
         const generation = getFileIndexGeneration?.();
-        const etag =
-          generation === undefined ? undefined : `W/"documents-${listToken}-${generation}"`;
-        if (etag !== undefined && req.headers['if-none-match'] === etag) {
-          res.writeHead(304, { ETag: etag, 'Cache-Control': 'no-cache' });
-          res.end();
-          return;
-        }
+        const cacheKey =
+          generation === undefined ? undefined : `documents-${listToken}-${generation}`;
         const listKey = dir ?? '';
-        const kept = etag === undefined ? undefined : documentListCache.get(listKey);
-        if (kept !== undefined && kept.etag === etag) {
+        const kept = cacheKey === undefined ? undefined : documentListCache.get(listKey);
+        if (kept !== undefined && kept.cacheKey === cacheKey) {
           res.writeHead(200, {
             'Content-Type': 'application/json',
             'X-Content-Type-Options': 'nosniff',
-            'Cache-Control': 'no-cache',
-            ETag: kept.etag,
+            'Cache-Control': 'no-store',
           });
           res.end(kept.body);
           return;
@@ -680,7 +674,7 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
           const bPath = b.kind === 'folder' ? (b.path ?? '') : (b.docName ?? b.path ?? '');
           return aPath.localeCompare(bPath);
         });
-        if (etag === undefined) {
+        if (cacheKey === undefined) {
           successResponse(
             res,
             200,
@@ -703,7 +697,7 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
         }
         const body = JSON.stringify(validated.data);
         if (getFileIndexGeneration?.() === generation) {
-          documentListCache.set(listKey, { etag, body });
+          documentListCache.set(listKey, { cacheKey, body });
           if (documentListCache.size > DOCUMENT_LIST_CACHE_ENTRIES) {
             const oldest = documentListCache.keys().next().value;
             if (oldest !== undefined) documentListCache.delete(oldest);
@@ -712,8 +706,7 @@ export function createDocumentRoutes(deps: DocumentRouteDeps): DocumentRoutes {
         res.writeHead(200, {
           'Content-Type': 'application/json',
           'X-Content-Type-Options': 'nosniff',
-          'Cache-Control': 'no-cache',
-          ETag: etag,
+          'Cache-Control': 'no-store',
         });
         res.end(body);
       } catch (e) {
