@@ -50,5 +50,7 @@ NODE_EXTRA_CA_CERTS=/tmp/ca/cert.pem node loadtest/run.mjs --scenario s1 --quick
 node loadtest/report.mjs
 ```
 
-`--quick` runs the first levels only. `LOADTEST_TARGET=local` runs `gitquire front-door` from the
+`--quick` runs the first levels only. `LOADTEST_SERVER_ENV` (a JSON object, the workflow's
+`server_env` input) adds server settings to a run, for example
+`{"GITQUIRE_PROCESS_HEAP_MB":"192"}`; the report names them. `LOADTEST_TARGET=local` runs `gitquire front-door` from the
 built CLI instead of the image, for working on the harness itself; its numbers are not comparable.

@@ -9,6 +9,11 @@ import type { HostKind } from '../host/types.ts';
 import { internalRequestHeaders, internalSecret } from '../internal-request.ts';
 import { migrateLegacyDataFolders } from '../legacy-data-folder.ts';
 import {
+  DEFAULT_PROCESS_HEAP_MB,
+  ProcessHeapSettingError,
+  processHeapMb,
+} from '../process-pool/pool.ts';
+import {
   authHeaderEnv,
   ensureAutoSyncMode,
   parseAutoSyncMode,
@@ -88,6 +93,16 @@ function rereadLiveSoon(env: Env, live: LiveServerHandle | undefined): void {
     headers: { ...internalRequestHeaders(), 'Content-Type': 'application/json' },
     body: '{}',
   }).catch(() => undefined);
+}
+
+export function draftHeapMb(env: Env, log: GateLogger): number | undefined {
+  try {
+    return processHeapMb(env);
+  } catch (err) {
+    if (!(err instanceof ProcessHeapSettingError)) throw err;
+    log.warn({ err }, '[gitquire-drafts] heap setting refused, using the default');
+    return DEFAULT_PROCESS_HEAP_MB;
+  }
 }
 
 export function isDraftInstance(env: Env): boolean {
@@ -208,6 +223,7 @@ export function createDrafts(deps: DraftsSetupDeps): Drafts | undefined {
     internalSecret: internalSecret(),
     log: deps.log,
     behindFrontDoor: deps.behindFrontDoor,
+    heapMb: draftHeapMb(deps.env, deps.log),
     prepare,
     stillOpen: (slug) => {
       const draft = store.get(slug);

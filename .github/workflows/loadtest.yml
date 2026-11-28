@@ -18,6 +18,9 @@ on:
       soak_minutes:
         description: Minutes for s9
         default: '300'
+      server_env:
+        description: 'Extra server settings for this run, as a JSON object (for example {"GITQUIRE_PROCESS_HEAP_MB":"192"})'
+        default: '{}'
       store:
         description: Store the results on the perf-results branch
         type: boolean
@@ -33,7 +36,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: loadtest-${{ github.ref }}
+  group: loadtest-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'auto' }}
   cancel-in-progress: false
 
 jobs:
@@ -120,6 +123,7 @@ jobs:
       LOADTEST_CPUS: '2'
       LOADTEST_MEMORY: 4g
       LOADTEST_SOAK_MINUTES: ${{ inputs.soak_minutes || '300' }}
+      LOADTEST_SERVER_ENV: ${{ inputs.server_env || '{}' }}
     steps:
       - uses: actions/checkout@v7
 

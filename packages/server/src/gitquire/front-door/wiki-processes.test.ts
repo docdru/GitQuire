@@ -78,6 +78,7 @@ describe('wiki process environment (R12)', () => {
         GITQUIRE_SMTP_URL: 'smtps://user:password@mail.example.org',
         GITQUIRE_MAIL_FROM: 'wiki@example.org',
         GITQUIRE_MAIL_DOMAINS: 'example.org',
+        GITQUIRE_PROCESS_HEAP_MB: '384',
       },
       record(),
       {
@@ -96,6 +97,7 @@ describe('wiki process environment (R12)', () => {
       GITQUIRE_HOST_URL: 'https://code.example.org',
       GITQUIRE_AI_CHAT: 'off',
       GITQUIRE_ADMINS: 'alice',
+      GITQUIRE_PROCESS_HEAP_MB: '384',
       GITQUIRE_BEHIND_FRONT_DOOR: 'on',
       GITQUIRE_REPO: 'team/wiki',
       GITQUIRE_WIKI_NAME: 'github/team/wiki',

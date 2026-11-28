@@ -16,6 +16,7 @@ export const settings = {
   ca: process.env.LOADTEST_CA ?? '/tmp/ca',
   work: process.env.LOADTEST_WORK ?? '/tmp/loadtest',
   container: 'gq-loadtest',
+  serverEnv: JSON.parse(process.env.LOADTEST_SERVER_ENV?.trim() || '{}'),
 };
 
 export const base = () => `http://127.0.0.1:${settings.port}`;
@@ -100,6 +101,7 @@ function serverEnv(extra) {
     GITQUIRE_GITHUB_WEB_URL: fakeBase(),
     GITQUIRE_GITHUB_API_URL: `${fakeBase()}/api/v3`,
     GITQUIRE_SESSION_SECRET: '0123456789abcdef0123456789abcdef',
+    ...settings.serverEnv,
     ...extra,
   };
 }

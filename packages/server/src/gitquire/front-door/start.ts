@@ -16,6 +16,7 @@ import { createPersonRoutes, emailRoutes, settingsRoutes } from '../people/perso
 import { personSettings } from '../people/settings.ts';
 import { createPeopleStore, frontDoorPeopleRoot } from '../people/store.ts';
 import { createPersonTickets } from '../people/ticket.ts';
+import { ProcessHeapSettingError, processHeapMb } from '../process-pool/pool.ts';
 import { FRONT_DOOR_LOCK, interruptedMove } from '../volume-markers.ts';
 import { createWikiAccess } from './access.ts';
 import { accountAddressReader } from './account-addresses.ts';
@@ -98,6 +99,15 @@ async function checkHost(host: DoorHost, log: GateLogger): Promise<void> {
   );
 }
 
+function processHeapSetting(env: Env): number | undefined {
+  try {
+    return processHeapMb(env);
+  } catch (err) {
+    if (err instanceof ProcessHeapSettingError) throw new FrontDoorConfigError(err.message);
+    throw err;
+  }
+}
+
 export async function startFrontDoor(
   dataDir: string,
   env: Env,
@@ -105,6 +115,7 @@ export async function startFrontDoor(
 ): Promise<RunningFrontDoor> {
   const log = options.log;
   const settings: FrontDoorSettings = resolveFrontDoorSettings(env, dataDir);
+  const heapMb = processHeapSetting(env);
   if ((env.GITQUIRE_HOST_REPO_TOKEN ?? env.GITQUIRE_HOST_REPO_TOKEN_FILE ?? '').trim() !== '') {
     log.warn(
       {},
@@ -388,6 +399,7 @@ export async function startFrontDoor(
     table,
     tokenSocket: () => tokenSocketPath,
     idleMs: settings.wikiIdleMs,
+    heapMb,
     log,
   });
   later.check = (wiki) => {
