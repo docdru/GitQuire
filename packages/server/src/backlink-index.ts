@@ -177,6 +177,7 @@ interface SerializedBranchGraphState {
   >;
   sourceLinks?: Record<string, ExtractedWikiLink[]>;
   mtimes?: Record<string, number>;
+  withoutFileOracle?: string[];
 }
 
 interface BacklinkIndexOptions {
@@ -1203,6 +1204,7 @@ export class BacklinkIndex {
   private readonly contentDir: string;
   private readonly contentFilter?: ContentFilter;
   private readonly getFileOracle: () => GraphFileOracle | undefined;
+  private readonly withoutOracle = new Map<string, Set<string> | null>();
   private readonly documentNames: readonly string[];
   private readonly states = new Map<string, BranchGraphState>();
   private readonly mtimesByBranch = new Map<string, Map<string, number>>();
@@ -1327,12 +1329,11 @@ export class BacklinkIndex {
       const { frontmatter, body } = stripFrontmatter(markdown);
       const lineOffset = frontmatterLineCount(frontmatter);
       const wikiLinks = extractDocumentWikiLinks(frontmatter, body, lineOffset);
-      const mdLinks = extractMarkdownLinksFromMarkdown(
-        body,
-        docName,
-        lineOffset,
-        this.getFileOracle(),
-      ).map((link) => ({ ...link, sourceForm: 'markdown' as const }));
+      const oracle = this.getFileOracle();
+      this.noteFileOracle(branch, docName, oracle);
+      const mdLinks = extractMarkdownLinksFromMarkdown(body, docName, lineOffset, oracle).map(
+        (link) => ({ ...link, sourceForm: 'markdown' as const }),
+      );
       const jsxLinks = extractJsxSrcRefsFromMarkdown(body, docName, lineOffset).map((link) => ({
         ...link,
         sourceForm: 'jsx' as const,
@@ -1382,7 +1383,51 @@ export class BacklinkIndex {
     const deleted = state.forward.delete(docName);
     state.externalForward.delete(docName);
     state.sourceLinks.delete(docName);
+    this.withoutOracle.get(branch)?.delete(docName);
     if (deleted) this.inventoryChanged(state, docName, false);
+  }
+
+  private noteFileOracle(
+    branch: string,
+    docName: string,
+    oracle: GraphFileOracle | undefined,
+  ): void {
+    let docs = this.withoutOracle.get(branch);
+    if (docs === null) return;
+    if (docs === undefined) {
+      docs = new Set();
+      this.withoutOracle.set(branch, docs);
+    }
+    if (oracle === undefined) docs.add(docName);
+    else docs.delete(docName);
+  }
+
+  docsExtractedWithoutFileOracle(branch = this.activeBranch): string[] | null {
+    const docs = this.withoutOracle.get(branch);
+    if (docs === null) return null;
+    return docs === undefined ? [] : [...docs];
+  }
+
+  async refreshDocuments(docNames: readonly string[], branch = this.activeBranch): Promise<void> {
+    const wanted = new Set(docNames);
+    const rawDocs: Array<{ docName: string; filePath: string }> = [];
+    await this.walkForPaths(this.contentDir, rawDocs);
+    const mtimes = this.mtimesByBranch.get(branch) ?? new Map<string, number>();
+    for (const { docName, filePath } of rawDocs) {
+      if (!wanted.delete(docName)) continue;
+      try {
+        const [fileStat, markdown] = await Promise.all([
+          stat(filePath),
+          readFile(filePath, 'utf-8'),
+        ]);
+        this.updateDocumentFromMarkdown(docName, markdown, branch);
+        mtimes.set(docName, fileStat.mtimeMs);
+      } catch (err) {
+        log.warn({ err, docName }, 'Failed to refresh entry');
+      }
+    }
+    for (const gone of wanted) this.withoutOracle.get(branch)?.delete(gone);
+    this.mtimesByBranch.set(branch, mtimes);
   }
 
   renameDocument(
@@ -1929,10 +1974,12 @@ export class BacklinkIndex {
     await tracedMkdir(dirname(filePath), { recursive: true });
     const state = this.getState(branch);
     const mtimes = this.mtimesByBranch.get(branch);
+    const withoutFileOracle = this.withoutOracle.get(branch);
     const data: SerializedBranchGraphState = {
       version: SNAPSHOT_VERSION,
       ...serializeState(state),
       ...(mtimes ? { mtimes: Object.fromEntries(mtimes) } : {}),
+      ...(withoutFileOracle === null ? {} : { withoutFileOracle: [...(withoutFileOracle ?? [])] }),
     };
     await atomicWriteFile(filePath, JSON.stringify(data), { fs: tracedAtomicFs });
   }
@@ -1965,6 +2012,10 @@ export class BacklinkIndex {
         return false;
       }
       this.states.set(branch, deserializeState(parsed));
+      this.withoutOracle.set(
+        branch,
+        Array.isArray(parsed.withoutFileOracle) ? new Set(parsed.withoutFileOracle) : null,
+      );
       if (parsed.mtimes) {
         this.mtimesByBranch.set(branch, new Map(Object.entries(parsed.mtimes)));
       } else {
@@ -1996,6 +2047,7 @@ export class BacklinkIndex {
   clear(branch = this.activeBranch): void {
     this.states.set(branch, createEmptyState());
     this.mtimesByBranch.delete(branch);
+    this.withoutOracle.set(branch, new Set());
   }
 
   async rebuildFromDisk(branch = this.activeBranch): Promise<void> {
@@ -2005,6 +2057,7 @@ export class BacklinkIndex {
   private async rebuildFromDiskUnspanned(branch: string): Promise<void> {
     const state = createEmptyState();
     const mtimes = new Map<string, number>();
+    const withoutOracle = new Set<string>();
     const rawDocs: Array<{ docName: string; filePath: string }> = [];
     await this.walkForPaths(this.contentDir, rawDocs);
 
@@ -2038,12 +2091,11 @@ export class BacklinkIndex {
         const { frontmatter, body } = stripFrontmatter(markdown);
         const lineOffset = frontmatterLineCount(frontmatter);
         const wikiLinks = extractDocumentWikiLinks(frontmatter, body, lineOffset);
-        const mdLinks = extractMarkdownLinksFromMarkdown(
-          body,
-          docName,
-          lineOffset,
-          this.getFileOracle(),
-        ).map((link) => ({ ...link, sourceForm: 'markdown' as const }));
+        const oracle = this.getFileOracle();
+        if (oracle === undefined) withoutOracle.add(docName);
+        const mdLinks = extractMarkdownLinksFromMarkdown(body, docName, lineOffset, oracle).map(
+          (link) => ({ ...link, sourceForm: 'markdown' as const }),
+        );
         const jsxLinks = extractJsxSrcRefsFromMarkdown(body, docName, lineOffset).map((link) => ({
           ...link,
           sourceForm: 'jsx' as const,
@@ -2102,6 +2154,7 @@ export class BacklinkIndex {
 
     this.states.set(branch, state);
     this.mtimesByBranch.set(branch, mtimes);
+    this.withoutOracle.set(branch, withoutOracle);
   }
 
   private async walkForPaths(

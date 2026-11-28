@@ -22,6 +22,7 @@ import {
   extractWikiLinksFromMarkdown,
   resolveMarkdownHref,
 } from './backlink-index.ts';
+import { getLocalDir } from './config/paths.ts';
 import { _resetDocExtensionsForTests } from './doc-extensions.ts';
 import { getLogger } from './logger.ts';
 
@@ -2409,5 +2410,63 @@ describe('computeBrokenOutboundLinks across canonically equivalent spellings', (
     expect(
       computeBrokenOutboundLinks('[x](/People/Nope.md)\n', 'Probe', new Set([RENE_NFD])),
     ).toEqual([{ href: '/People/Nope.md', resolvedTo: 'People/Nope', reason: 'no-such-doc' }]);
+  });
+});
+
+describe('pages whose links were read without the file list', () => {
+  test('are remembered across a save and load, and only they are read again', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'gq-backlinks-oracle-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    try {
+      writeFileSync(join(contentDir, 'a.md'), '# A\n\n![chart](chart.png) and [[b]]\n', 'utf-8');
+      writeFileSync(join(contentDir, 'b.md'), '# B\n\nSee [[a]].\n', 'utf-8');
+      let files: { hasFile(path: string): boolean } | undefined;
+      const options = { projectDir, contentDir, getFileOracle: () => files };
+
+      const cold = new BacklinkIndex(options);
+      await cold.rebuildFromDisk();
+      expect(cold.docsExtractedWithoutFileOracle()?.sort()).toEqual(['a', 'b']);
+
+      files = { hasFile: (path) => path === 'chart.png' };
+      await cold.refreshDocuments(['a']);
+      expect(cold.docsExtractedWithoutFileOracle()).toEqual(['b']);
+      await cold.saveToDisk();
+
+      files = undefined;
+      const woken = new BacklinkIndex(options);
+      expect(await woken.loadFromDisk()).toBe(true);
+      expect(woken.docsExtractedWithoutFileOracle()).toEqual(['b']);
+      expect(woken.getBacklinks('b')).toEqual([expect.objectContaining({ source: 'a' })]);
+
+      writeFileSync(join(contentDir, 'b.md'), '# B\n\nNo links now.\n', 'utf-8');
+      files = { hasFile: (path) => path === 'chart.png' };
+      await woken.refreshDocuments(woken.docsExtractedWithoutFileOracle() ?? []);
+      expect(woken.docsExtractedWithoutFileOracle()).toEqual([]);
+      expect(woken.getBacklinks('a')).toEqual([]);
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  test('a snapshot from before this was recorded counts as unknown', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'gq-backlinks-oracle-old-'));
+    const contentDir = join(projectDir, 'content');
+    mkdirSync(contentDir, { recursive: true });
+    try {
+      writeFileSync(join(contentDir, 'a.md'), '# A\n\n[[b]]\n', 'utf-8');
+      const index = new BacklinkIndex({ projectDir, contentDir });
+      await index.rebuildFromDisk();
+      await index.saveToDisk();
+      const file = join(getLocalDir(projectDir), 'cache', 'main', 'backlinks.json');
+      const data = JSON.parse(readFileSync(file, 'utf-8')) as Record<string, unknown>;
+      delete data.withoutFileOracle;
+      writeFileSync(file, JSON.stringify(data), 'utf-8');
+      const reloaded = new BacklinkIndex({ projectDir, contentDir });
+      expect(await reloaded.loadFromDisk()).toBe(true);
+      expect(reloaded.docsExtractedWithoutFileOracle()).toBeNull();
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true });
+    }
   });
 });

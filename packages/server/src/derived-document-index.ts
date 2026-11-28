@@ -834,7 +834,13 @@ export class DerivedDocumentIndex
     if (!this.graphFileOracle()) return;
     this.graphBuiltWithoutFileOracle = false;
     try {
-      await this.backlinkIndex.rebuildFromDisk(branch);
+      const pending = this.backlinkIndex.docsExtractedWithoutFileOracle(branch);
+      const indexed = this.backlinkIndex.getIndexedDocNames(branch).length;
+      if (pending !== null && pending.length <= Math.max(50, indexed / 4)) {
+        await this.backlinkIndex.refreshDocuments(pending, branch);
+      } else {
+        await this.backlinkIndex.rebuildFromDisk(branch);
+      }
       await this.saveBacklinksLogOnly('file-inventory-reconcile', branch);
       this.signalChannel('backlinks');
       this.signalChannel('graph');
