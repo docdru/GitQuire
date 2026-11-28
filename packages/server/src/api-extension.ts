@@ -379,6 +379,7 @@ export const MANAGED_RENAME_ORIGIN = {
 } as const satisfies PairedWriteOrigin;
 
 const log = getLogger('api');
+const RENAME_SLICE_MS = 50;
 
 function safeDocPath(docName: string, contentRoot: string): { path: string } | { error: string } {
   if (!docName || docName.includes('..') || docName.includes('\0')) {
@@ -2571,6 +2572,18 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
     return readFileSync(filePath, 'utf-8');
   }
 
+  function createRenamePause(): () => Promise<boolean> {
+    let paused = false;
+    let since = performance.now();
+    return async () => {
+      if (performance.now() - since < RENAME_SLICE_MS) return paused;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      since = performance.now();
+      paused = true;
+      return true;
+    };
+  }
+
   function writeManagedRenameDocumentToDisk(
     docName: string,
     markdown: string,
@@ -3284,12 +3297,16 @@ export function createApiExtension(options: ApiExtensionOptions): Extension & {
               derivedMutations.push({ kind: 'delete', documentName: docName });
             }
 
+            const pause = createRenamePause();
             for (const docName of rewriteDocNames) {
+              const paused = await pause();
               const document = hocuspocus.documents.get(docName);
               const rewritten = document
                 ? applyManagedRenameMapToLoadedDocument(docName, renamedAssets, wikiContext)
                 : applyRenameAndAssetReferenceRewrites(
-                    snapshotContents.get(docName) ?? '',
+                    (paused ? readCurrentDocumentContent(docName) : undefined) ??
+                      snapshotContents.get(docName) ??
+                      '',
                     docName,
                     docName,
                     renamedAssets,

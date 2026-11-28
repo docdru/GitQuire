@@ -35,6 +35,7 @@ const DERIVED_INDEX_SAVE_MIN_INTERVAL_MS = 30_000;
 const LOCAL_TARGET_REBUILD_RETRY_BASE_MS = 1000;
 const LOCAL_TARGET_REBUILD_RETRY_MAX_MS = 30_000;
 const LOCAL_TARGET_FILE_EXISTENCE_SWEEP_MS = 5000;
+const MUTATION_SLICE_MS = 50;
 
 export type DerivedDocumentRelationChannel = Extract<
   DerivedViewChannel,
@@ -487,7 +488,12 @@ export class DerivedDocumentIndex
     if (mutations.length === 0) return Promise.resolve();
     return this.runCommand(async () => {
       let tagsChanged = false;
+      let since = performance.now();
       for (const mutation of mutations) {
+        if (performance.now() - since >= MUTATION_SLICE_MS) {
+          await new Promise<void>((resolve) => setImmediate(resolve));
+          since = performance.now();
+        }
         switch (mutation.kind) {
           case 'upsert':
             this.updateBoth(mutation.documentName, mutation.markdown);
